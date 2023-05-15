@@ -7,6 +7,9 @@ struct AppSizes {
 
 	int sceneWidth = 1920;
 	int sceneHeight = 720;
+
+	int hierarchyWidth = 200;
+	int hierarchyHeight = 1000;
 };
 
 #endif // MY_APPHEADER_H

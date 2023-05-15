@@ -16,30 +16,25 @@
 #include <random>
 #include <filesystem>
 #include <fileSystem/fileSystem.h>
-//#include "asd.h"
-//#include "Editor/GUI/guiMain.h"
+#include "Application.h"
+#include "Editor/GUI/guiMain.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
-struct AppSizes {
-	int appWidth = 2560;
-	int appHeight = 1080;
 
-	int sceneWidth = 1920;
-	int sceneHeight = 720;
-};
-
-
-int main() 
+AppSizes appSizes;
+AppSizes lastAppSizes;
+int main()
 {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-	GLFWwindow* window = glfwCreateWindow(800,600, "LearnOpenGL", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(appSizes.appSize.x, appSizes.appSize.y, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -54,14 +49,15 @@ int main()
 		return -1;
 	}
 
-    //Initialize ImGui
-	
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    (void)io;
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
-	
+	//Initialize ImGui
+
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	(void)io;
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	io.IniFilename = NULL;
+	ImGui_ImplOpenGL3_Init("#version 330");
+
 	// framebuffer configuration
 	// -------------------------
 	unsigned int framebuffer;
@@ -89,43 +85,18 @@ int main()
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 		// Start a new ImGui frame
-		
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		
+
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
 		glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		
-		AppSizes appSizes;
-		ImGuiWindowFlags  windowFlags = ImGuiWindowFlags_MenuBar;
-		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-		ImGui::SetNextWindowSize(ImVec2(appSizes.appWidth, appSizes.appHeight));
-		windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBringToFrontOnFocus;
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.f, 10.f));
-		if (ImGui::Begin("demo", new bool(true), windowFlags)) {
 
-			// Create UI elements
-			ImGui::SetNextWindowSize(ImVec2(appSizes.sceneWidth, appSizes.sceneHeight));
-			ImGui::SetNextWindowPos(ImVec2(0, 0));
-			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize;
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
-			if (ImGui::Begin("Scene", new bool(true), sceneWindowFlags)) {
-
-				int textureId = textureColorbuffer;
-				ImGui::Image(ImTextureID(textureId), ImVec2(appSizes.sceneWidth, appSizes.sceneHeight));
-			}
-
-			ImGui::End();
-			ImGui::PopStyleVar();
-			ImGui::PopStyleVar();
-		}
-		ImGui::End();
-		
-		//setupDockspace(window, textureColorbuffer, ape);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		gui::setupDockspace(window, textureColorbuffer, appSizes, lastAppSizes);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Render the ImGui frame
 		ImGui::Render();

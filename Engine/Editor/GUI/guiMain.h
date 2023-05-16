@@ -2,7 +2,6 @@
 #ifndef guiHeader_H
 #define guiHeader_H
 #include "../../Application.h"
-
 namespace gui {
 	void setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes);
 }

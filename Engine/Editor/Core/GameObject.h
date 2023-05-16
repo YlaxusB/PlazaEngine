@@ -1,23 +1,27 @@
+#ifndef GAMEOBJECT_H
+#define GAMEOBJECT_H
+
+
 #include <iostream>
+#include <random>
+#include <filesystem>
 #include <typeinfo>
 #include <list>
 #include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-//#include "game"
-//#include "../../Application.h"
 class Component {
 public:
 	virtual ~Component() {}  // virtual destructor is necessary for derived classes
 };
-
+class GameObject;
+extern std::list<GameObject*> gameObjects;
 class GameObject {
 public:
-	static std::list<GameObject*> gameObjects;
-
-
-	GameObject(){
+	std::string name = "";
+	GameObject(std::string objName) {
+		name = objName;
 		gameObjects.push_back(this);
 	}
 	std::list<Component*> components;
@@ -36,6 +40,7 @@ public:
 	}
 };
 
+//extern std::list<GameObject*> gameObjects;
 
 
 class Transform : public Component {
@@ -43,5 +48,4 @@ public:
 	glm::vec3 position = { 0,0,0 };
 	glm::vec3 eulerAngles = { 0,0,0 };
 };
-
-std::list<GameObject*> GameObject::gameObjects;
+#endif

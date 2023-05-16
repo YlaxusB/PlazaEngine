@@ -14,6 +14,8 @@
 #include <fileSystem/fileSystem.h>
 #include "guiMain.h"
 #include "../../Application.h"
+#include "../Core/GameObject.h"
+//
 
 void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes);
 void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes);
@@ -76,8 +78,15 @@ void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastA
 			ImGui::CollapsingHeader("Eae2");
 		}
 		ImGui::CollapsingHeader("Eae3");
-
+		//gameObjects.size()
 		if (ImGui::TreeNode("lista de eae")) {
+			for(GameObject* var : gameObjects)
+			{
+				//std::cout << var->name << std::endl;
+				if (ImGui::TreeNodeEx(var->name.c_str())) {
+					ImGui::TreePop();
+				}
+			}
 			if (ImGui::TreeNodeEx("1")) {
 				if (ImGui::TreeNodeEx("2")) {
 					ImGui::TreePop();

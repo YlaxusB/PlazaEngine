@@ -1,4 +1,3 @@
-#include "GameObject.h"
-
-// Define gameObjects
-std::list<GameObject*> GameObject::gameObjects;
+#include <list>
+class GameObject;
+std::list<GameObject*> gameObjects;

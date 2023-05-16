@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Editor\Core\GameObject.cpp" />
     <ClCompile Include="Engine\Editor\GUI\guiMain.cpp" />
     <ClCompile Include="Engine\Application.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
@@ -145,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Application.h" />
+    <ClInclude Include="Engine\Editor\Core\GameObject.h" />
     <ClInclude Include="Engine\Editor\GUI\guiMain.h" />
     <ClInclude Include="Engine\main.h" />
     <ClInclude Include="imgui\imconfig.h" />

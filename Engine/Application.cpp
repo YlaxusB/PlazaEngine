@@ -18,9 +18,12 @@
 #include <fileSystem/fileSystem.h>
 #include "Application.h"
 #include "Editor/GUI/guiMain.h"
+
+#include "Editor/Core/GameObject.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
+extern std::list<GameObject*> gameObjects;
 
 AppSizes appSizes;
 AppSizes lastAppSizes;
@@ -81,8 +84,18 @@ int main()
 	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	std::cout << gameObjects.size() << std::endl;
+	GameObject asd;
+
+	Transform transform;
+	std::cout << transform.position.x << std::endl;
+	std::cout << gameObjects.size() << std::endl;
+	asd.AddComponent(&transform);
+	std::cout << asd.GetComponent<Transform>()->position.x << std::endl;
 
 	while (!glfwWindowShouldClose(window)) {
+		std::cout << gameObjects.back()->GetComponent<Transform>()->position.x << std::endl;
+		asd.GetComponent<Transform>()->position.x++;
 		processInput(window);
 		// Start a new ImGui frame
 

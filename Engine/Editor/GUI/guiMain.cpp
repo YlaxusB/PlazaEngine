@@ -63,7 +63,6 @@ void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastA
 	if (ImGui::Begin("Hierarchy", new bool(true), sceneWindowFlags)) {
 		ImGui::SetWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y), ImGuiCond_Always);
 		// set this window image to be the game framebuffer
-		//std::cout << appSizes.hierarchyWidth << std::endl;
 		const ImVec2& CurSize = ImGui::GetWindowSize();
 		if (CurSize.x != lastAppSizes.hierarchySize.x || CurSize.y != lastAppSizes.hierarchySize.y) {
 			appSizes.hierarchySize = ImGui::glmVec2(CurSize);
@@ -71,9 +70,31 @@ void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastA
 			ImGui::SetWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y), ImGuiCond_Always);
 			ImGui::SetWindowPos(ImVec2(0, 0));
 		}
+
+
+		if (ImGui::CollapsingHeader("Eae")) {
+			ImGui::CollapsingHeader("Eae2");
+		}
+		ImGui::CollapsingHeader("Eae3");
+
+		if (ImGui::TreeNode("lista de eae")) {
+			if (ImGui::TreeNodeEx("1")) {
+				if (ImGui::TreeNodeEx("2")) {
+					ImGui::TreePop();
+				}
+				ImGui::TreePop();
+			}
+
+			//ImGui::TreeNodeEx("3");
+			ImGui::TreePop();
+		}
 	}
+
 	ImGui::End();
 	ImGui::PopStyleVar();
+
+
+	//ImGui::End();
 }
 
 void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes) {
@@ -86,8 +107,6 @@ void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSi
 	if (ImGui::Begin("Inspector", new bool(true), inspectorWindowFlags)) {
 
 		const ImVec2& CurSize = ImGui::GetWindowSize();
-		std::cout << CurSize.x << std::endl;
-		std::cout << lastAppSizes.inspectorSize.x << std::endl;
 		if (!ImGui::Compare(CurSize, ImGui::imVec2(lastAppSizes.inspectorSize))) {
 			appSizes.inspectorSize = ImGui::glmVec2(CurSize);
 			lastAppSizes.inspectorSize = appSizes.inspectorSize;

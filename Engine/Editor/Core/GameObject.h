@@ -11,6 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "Mesh.h"
 class Component {
 public:
 	virtual ~Component() {}  // virtual destructor is necessary for derived classes
@@ -48,4 +49,11 @@ public:
 	glm::vec3 position = { 0,0,0 };
 	glm::vec3 eulerAngles = { 0,0,0 };
 };
+
+class MeshRenderer : public Component {
+public:
+	Mesh mesh;
+	
+};
+
 #endif

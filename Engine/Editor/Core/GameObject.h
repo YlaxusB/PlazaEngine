@@ -53,7 +53,9 @@ public:
 class MeshRenderer : public Component {
 public:
 	Mesh mesh;
-	
+	MeshRenderer(const Mesh& initialMesh) : mesh(initialMesh) {
+
+	}
 };
 
 #endif

@@ -75,7 +75,7 @@ int main()
 	//glEnable(GL_DEPTH_TEST);
 
 	Shader ourShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\1.model_loading.fs");
-	Model ourModel("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/backpack/backpack.obj");
+	//Model ourModel("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/backpack/backpack.obj");
 
 	unsigned int cubeTexture = loadTexture("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/container.jpg");
 	// load models
@@ -122,24 +122,52 @@ int main()
 	//std::cout << transform.position.x << std::endl;
 	//std::cout << gameObjects.size() << std::endl;
 	asd->AddComponent(&transform);
-	/*
+	
 	std::cout << asd->GetComponent<Transform>()->position.x << std::endl;
-	MeshRenderer* meshRenderer = nullptr;
-	Mesh* mesh;
+
+	//Mesh* mesh = new Mesh();
 
 	std::vector<unsigned int> indices;
 	indices.push_back(0);
 	indices.push_back(1);
 	indices.push_back(2);
+
+	indices.push_back(0);
+	indices.push_back(2);
+	indices.push_back(3);
+
+	indices.push_back(3);
+	indices.push_back(4);
+	indices.push_back(5);
+
+	indices.push_back(4);
+	indices.push_back(5);
+	indices.push_back(6);
+
+	indices.push_back(6);
+	indices.push_back(7);
+	indices.push_back(8);
 	std::vector<Vertex> vertices;
 	vertices.push_back(Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 	vertices.push_back(Vertex(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(2, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	Mesh* testingMesh = new Mesh(vertices, indices, std::vector<Texture>());
+	vertices.push_back(Vertex(glm::vec3(0, 1, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 
+	vertices.push_back(Vertex(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+	vertices.push_back(Vertex(glm::vec3(2, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+	vertices.push_back(Vertex(glm::vec3(0, 2, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+
+	vertices.push_back(Vertex(glm::vec3(3, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+	vertices.push_back(Vertex(glm::vec3(4, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+	vertices.push_back(Vertex(glm::vec3(0, 4, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+
+	vertices.push_back(Vertex(glm::vec3(5, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+	vertices.push_back(Vertex(glm::vec3(6, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+	vertices.push_back(Vertex(glm::vec3(0, 6, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+	Mesh* testingMesh = new Mesh(vertices, indices, std::vector<Texture>());
+	MeshRenderer* meshRenderer = new MeshRenderer(*testingMesh);
 	meshRenderer->mesh = *testingMesh;
 	asd->AddComponent(meshRenderer);
-	*/
+	
 
 
 	//vertices.push_back(Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
@@ -185,15 +213,22 @@ int main()
 		ourShader.setMat4("model", model);
 
 		//testingMesh->Draw(ourShader);
-		ourModel.Draw(ourShader);
+		//ourModel.Draw(ourShader);
 
 
 
 		// Render GameObjects
+		int i = 0;
 		for (GameObject* gameObject : gameObjects) {
 			MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
 			if (meshRenderer) {
+				// render the loaded model
+				glm::mat4 model = glm::mat4(1.0f);
+				model = glm::translate(model, glm::vec3(i, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+				model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+				ourShader.setMat4("model", model);
 				meshRenderer->mesh.Draw(ourShader);
+				i++;
 			}
 		}
 
@@ -229,14 +264,54 @@ void processInput(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 		for (int i = 0; i < 1000; i++) {
-			GameObject* d = new GameObject("EAE");
+			GameObject* d = new GameObject("d");
+			std::vector<unsigned int> indices;
+			indices.push_back(0);
+			indices.push_back(1);
+			indices.push_back(2);
+
+			indices.push_back(0);
+			indices.push_back(2);
+			indices.push_back(3);
+
+			indices.push_back(3);
+			indices.push_back(4);
+			indices.push_back(5);
+
+			indices.push_back(4);
+			indices.push_back(5);
+			indices.push_back(6);
+
+			indices.push_back(6);
+			indices.push_back(7);
+			indices.push_back(8);
+			std::vector<Vertex> vertices;
+			vertices.push_back(Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			vertices.push_back(Vertex(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			vertices.push_back(Vertex(glm::vec3(0, 1, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+
+			vertices.push_back(Vertex(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			vertices.push_back(Vertex(glm::vec3(2, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			vertices.push_back(Vertex(glm::vec3(0, 2, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+
+			vertices.push_back(Vertex(glm::vec3(3, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			vertices.push_back(Vertex(glm::vec3(4, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			vertices.push_back(Vertex(glm::vec3(0, 4, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+
+			vertices.push_back(Vertex(glm::vec3(5, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			vertices.push_back(Vertex(glm::vec3(6, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			vertices.push_back(Vertex(glm::vec3(0, 6, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			Mesh* testingMesh = new Mesh(vertices, indices, std::vector<Texture>());
+			MeshRenderer* meshRenderer = new MeshRenderer(*testingMesh);
+			meshRenderer->mesh = *testingMesh;
+			d->AddComponent(meshRenderer);
 		}
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime);
+		camera.ProcessKeyboard(FORWARD, deltaTime * 100);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
+		camera.ProcessKeyboard(BACKWARD, deltaTime * 100);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)

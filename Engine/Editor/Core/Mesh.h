@@ -19,7 +19,8 @@ struct Vertex {
 	glm::vec3 tangent;
 	glm::vec3 bitangent;
 
-    
+    Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const glm::vec3& bitan)
+        : position(pos), normal(norm), texCoords(tex), tangent(tan), bitangent(bitan) {}
 };
 
 struct Texture {
@@ -43,6 +44,7 @@ public:
 	}
 
     void Draw(Shader& shader) {
+        std::cout << "drawing" << std::endl;
         // bind appropriate textures
         unsigned int diffuseNr = 1;
         unsigned int specularNr = 1;

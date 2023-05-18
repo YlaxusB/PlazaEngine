@@ -138,6 +138,7 @@
     <ClCompile Include="Engine\Application\Birimbau.cpp" />
     <ClCompile Include="Engine\Components\GameObject.cpp" />
     <ClCompile Include="Engine\GUI\guiMain.cpp" />
+    <ClCompile Include="Engine\GUI\Hierarchy.cpp" />
     <ClCompile Include="Engine\stb_image.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="Engine\Editor\Core\Shader.h" />
     <ClInclude Include="Engine\Editor\GUI\guiMain.h" />
     <ClInclude Include="Engine\GUI\guiMain.h" />
+    <ClInclude Include="Engine\GUI\Hierarchy.h" />
     <ClInclude Include="Engine\Shaders\Shader.h" />
     <ClInclude Include="Engine\stb_image.h" />
     <ClInclude Include="Engine\Vendor\uuid_v4\endianness.h" />

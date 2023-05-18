@@ -15,6 +15,7 @@
 #include "guiMain.h"
 #include "Engine/Application/Application.h"
 #include "Engine/Components/GameObject.h"
+#include "Engine/GUI/Hierarchy.h"
 //
 
 GameObject* selectedGameObject;
@@ -74,38 +75,11 @@ void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastA
 			ImGui::SetWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y), ImGuiCond_Always);
 			ImGui::SetWindowPos(ImVec2(0, 0));
 		}
-		if (ImGui::Button("crica")) {
-			std::cout << "eae 2" << std::endl;
-			//selectedGameObject = gameObject;
-			//Gui::Button;
-		}
-		ImGui::CollapsingHeader("Eae3");
-		//gameObjects.size()
 		if (ImGui::TreeNode("Scene Objects")) {
 			for(GameObject* gameObject : gameObjects)
 			{
-				//std::cout << var->name << std::endl;
-								//
-				ImGui::PushID(&gameObject->id);
-				bool treeNodeOpen = ImGui::TreeNodeEx("");
 
-				ImGui::SameLine();
-				ImGui::Selectable(gameObject->name.c_str());
-				if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-				{
-					std::cout << "Button pressed for GameObject: " << gameObject->name << std::endl;
-					selectedGameObject = gameObject;
-				}
-
-				if (treeNodeOpen)
-				{
-					// Content inside the TreeNode
-					ImGui::Text("Content inside the TreeNode");
-
-					ImGui::TreePop();
-				}
-				ImGui::PopID();
-
+				Hierarchy::Item(*gameObject, *selectedGameObject);
 			}
 			if (ImGui::TreeNode("1")) {
 				if (ImGui::TreeNodeEx("2")) {

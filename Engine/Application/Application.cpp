@@ -43,6 +43,33 @@ bool firstMouse = true;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+Mesh* CubeMesh() {
+	std::vector<unsigned int> indices{
+		0, 1, 2, 2, 3, 0,
+		1, 5, 6, 6, 2, 1,
+		5, 4, 7, 7, 6, 5,
+		4, 0, 3, 3, 7, 4,
+		3, 2, 6, 6, 7, 3,
+		0, 4, 5, 5, 1, 0
+	};
+	std::vector<Vertex> vertices{
+	{glm::vec3(0, 0, 0)},
+	{glm::vec3(1, 0, 0)},
+	{glm::vec3(1, 1, 0)},
+	{glm::vec3(0, 1, 0)},
+	{glm::vec3(0, 0, 1)},
+	{glm::vec3(1, 0, 1)},
+	{glm::vec3(1, 1, 1)},
+	{glm::vec3(0, 1, 1)}
+	};
+	//vertices.push_back(Vertex(glm::vec3(0.5, 0.5, 1), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+
+	return new Mesh(vertices, indices, std::vector<Texture>());
+}
+
+
+
 int main()
 {
 	glfwInit();
@@ -81,7 +108,7 @@ int main()
 	unsigned int cubeTexture = loadTexture("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/ExampleAssets/container.jpg");
 	// load models
 	// -----------
-	//Model ourModel(FileSystem::getPath("resources/objects/backpack/backpack.obj"));
+	Model ourModel(FileSystem::getPath("resources/objects/backpack/backpack.obj"));
 
 	//Initialize ImGui
 
@@ -128,54 +155,34 @@ int main()
 	//Mesh* mesh = new Mesh();
 
 	std::vector<unsigned int> indices;
-	indices.push_back(0);
 	indices.push_back(1);
 	indices.push_back(2);
+	indices.push_back(3);
 
-	indices.push_back(0);
+	indices.push_back(1);
+	indices.push_back(3);
+	indices.push_back(4);
+
+	indices.push_back(1);
+	indices.push_back(4);
 	indices.push_back(2);
+
+	indices.push_back(1);
 	indices.push_back(3);
-
-	indices.push_back(3);
-	indices.push_back(4);
-	indices.push_back(5);
-
-	indices.push_back(4);
-	indices.push_back(5);
-	indices.push_back(6);
-
-	indices.push_back(6);
-	indices.push_back(7);
-	indices.push_back(8);
+	indices.push_back(2);
 
 	std::vector<Vertex> vertices;
 	vertices.push_back(Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 	vertices.push_back(Vertex(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(0, 1, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+	vertices.push_back(Vertex(glm::vec3(0.5, 1, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 
-	vertices.push_back(Vertex(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(2, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(0, 2, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+	vertices.push_back(Vertex(glm::vec3(0.5, 0.5, 1), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 
-	vertices.push_back(Vertex(glm::vec3(3, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(4, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(0, 4, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-
-	vertices.push_back(Vertex(glm::vec3(5, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(6, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(0, 6, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-
-	Mesh* testingMesh = new Mesh(vertices, indices, std::vector<Texture>());
+	//Mesh* testingMesh = new Mesh(vertices, indices, std::vector<Texture>());
+	Mesh* testingMesh = CubeMesh();
 	MeshRenderer* meshRenderer = new MeshRenderer(*testingMesh);
 	meshRenderer->mesh = *testingMesh;
 	asd->AddComponent(meshRenderer);
-	
-
-
-	//vertices.push_back(Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	//vertices.push_back(Vertex(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	//vertices.push_back(Vertex(glm::vec3(2, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	//Mesh* testingMesh = new Mesh(vertices, indices, std::vector<Texture>());
 
 	ourShader.use();
 	ourShader.setInt("texture1", 0);
@@ -270,41 +277,29 @@ void processInput(GLFWwindow* window)
 			d->GetComponent<Transform>()->position = glm::vec3(i, 0, 0);
 
 			std::vector<unsigned int> indices;
-			indices.push_back(0);
 			indices.push_back(1);
 			indices.push_back(2);
+			indices.push_back(3);
 
-			indices.push_back(0);
+			indices.push_back(1);
+			indices.push_back(3);
+			indices.push_back(4);
+
+			indices.push_back(1);
+			indices.push_back(4);
 			indices.push_back(2);
+
+			indices.push_back(1);
 			indices.push_back(3);
+			indices.push_back(2);
 
-			indices.push_back(3);
-			indices.push_back(4);
-			indices.push_back(5);
-
-			indices.push_back(4);
-			indices.push_back(5);
-			indices.push_back(6);
-
-			indices.push_back(6);
-			indices.push_back(7);
-			indices.push_back(8);
 			std::vector<Vertex> vertices;
 			vertices.push_back(Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 			vertices.push_back(Vertex(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-			vertices.push_back(Vertex(glm::vec3(0, 1, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			vertices.push_back(Vertex(glm::vec3(0.5, 1, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 
-			vertices.push_back(Vertex(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-			vertices.push_back(Vertex(glm::vec3(2, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-			vertices.push_back(Vertex(glm::vec3(0, 2, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			vertices.push_back(Vertex(glm::vec3(0.5, 0.5, 1), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 
-			vertices.push_back(Vertex(glm::vec3(3, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-			vertices.push_back(Vertex(glm::vec3(4, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-			vertices.push_back(Vertex(glm::vec3(0, 4, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-
-			vertices.push_back(Vertex(glm::vec3(5, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-			vertices.push_back(Vertex(glm::vec3(6, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-			vertices.push_back(Vertex(glm::vec3(0, 6, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 			Mesh* testingMesh = new Mesh(vertices, indices, std::vector<Texture>());
 			MeshRenderer* meshRenderer = new MeshRenderer(*testingMesh);
 			meshRenderer->mesh = *testingMesh;

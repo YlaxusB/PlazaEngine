@@ -19,6 +19,9 @@ struct Vertex {
 	glm::vec3 tangent;
 	glm::vec3 bitangent;
 
+    Vertex(const glm::vec3& pos)
+        : Vertex(pos, glm::vec3(0.0f), glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)) {}
+
     Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const glm::vec3& bitan)
         : position(pos), normal(norm), texCoords(tex), tangent(tan), bitangent(bitan) {}
 };

@@ -73,6 +73,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\OpenGL\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\OpenGL\lib;$(LibraryPath)</LibraryPath>
+    <TargetName>sadasdasda</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -108,7 +109,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\OpenGL\include\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\OpenGL\include\imgui;C:\Users\Giovane\Desktop\Workspace 2023\OpenGL\OpenGLEngine\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,9 +134,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Engine\Editor\Core\GameObject.cpp" />
-    <ClCompile Include="Engine\Editor\GUI\guiMain.cpp" />
-    <ClCompile Include="Engine\Application.cpp" />
+    <ClCompile Include="Engine\Application\Application.cpp" />
+    <ClCompile Include="Engine\Application\Birimbau.cpp" />
+    <ClCompile Include="Engine\Components\GameObject.cpp" />
+    <ClCompile Include="Engine\GUI\guiMain.cpp" />
     <ClCompile Include="Engine\stb_image.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_demo.cpp" />
@@ -147,14 +149,22 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Application.h" />
+    <ClInclude Include="Engine\Application\Application.h" />
+    <ClInclude Include="Engine\Components\Camera.h" />
+    <ClInclude Include="Engine\Components\GameObject.h" />
+    <ClInclude Include="Engine\Components\Mesh.h" />
+    <ClInclude Include="Engine\Components\Model.h" />
     <ClInclude Include="Engine\Editor\Core\Camera.h" />
     <ClInclude Include="Engine\Editor\Core\GameObject.h" />
     <ClInclude Include="Engine\Editor\Core\Mesh.h" />
     <ClInclude Include="Engine\Editor\Core\Model.h" />
     <ClInclude Include="Engine\Editor\Core\Shader.h" />
     <ClInclude Include="Engine\Editor\GUI\guiMain.h" />
-    <ClInclude Include="Engine\main.h" />
+    <ClInclude Include="Engine\GUI\guiMain.h" />
+    <ClInclude Include="Engine\Shaders\Shader.h" />
     <ClInclude Include="Engine\stb_image.h" />
+    <ClInclude Include="Engine\Vendor\uuid_v4\endianness.h" />
+    <ClInclude Include="Engine\Vendor\uuid_v4\uuid_v4.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
     <ClInclude Include="imgui\imgui_impl_glfw.h" />
@@ -164,10 +174,6 @@
     <ClInclude Include="imgui\imstb_rectpack.h" />
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Engine\1.model_loading.fs" />
-    <None Include="Engine\1.model_loading.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

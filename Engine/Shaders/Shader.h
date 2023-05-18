@@ -24,12 +24,9 @@ public:
 		fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		try {
-			std::cout << "teste1" << std::endl;
 			// Open the shader files, assign their values into shaderStream, close the reader and convert stream into string
 			vShaderFile.open(vertexPath);
-			std::cout << "teste1.5" << std::endl;
 			fShaderFile.open(fargmentPath);
-			std::cout << "teste2" << std::endl;
 			std::stringstream vShaderStream, fShaderStream;
 			vShaderStream << vShaderFile.rdbuf();
 			fShaderStream << fShaderFile.rdbuf();
@@ -46,7 +43,6 @@ public:
 				gShaderFile.close();
 				geometryCode = gShaderStream.str();
 			}
-			std::cout << "testeFinal" << std::endl;
 		}
 		catch (std::ifstream::failure& e) {
 			std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ: " << e.what() << std::endl;

@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Shader.h"
+#include "Engine/Shaders/Shader.h"
 
 #include <string>
 #include <vector>
@@ -44,7 +44,6 @@ public:
 	}
 
     void Draw(Shader& shader) {
-        std::cout << "drawing" << std::endl;
         // bind appropriate textures
         unsigned int diffuseNr = 1;
         unsigned int specularNr = 1;

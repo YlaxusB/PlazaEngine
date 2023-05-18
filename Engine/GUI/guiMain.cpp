@@ -13,9 +13,11 @@
 #include <filesystem>
 #include <fileSystem/fileSystem.h>
 #include "guiMain.h"
-#include "../../Application.h"
-#include "../Core/GameObject.h"
+#include "Engine/Application/Application.h"
+#include "Engine/Components/GameObject.h"
 //
+
+GameObject* selectedGameObject;
 
 void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes);
 void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes);
@@ -72,22 +74,40 @@ void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastA
 			ImGui::SetWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y), ImGuiCond_Always);
 			ImGui::SetWindowPos(ImVec2(0, 0));
 		}
-
-
-		if (ImGui::CollapsingHeader("Eae")) {
-			ImGui::CollapsingHeader("Eae2");
+		if (ImGui::Button("crica")) {
+			std::cout << "eae 2" << std::endl;
+			//selectedGameObject = gameObject;
+			//Gui::Button;
 		}
 		ImGui::CollapsingHeader("Eae3");
 		//gameObjects.size()
-		if (ImGui::TreeNode("lista de eae")) {
-			for(GameObject* var : gameObjects)
+		if (ImGui::TreeNode("Scene Objects")) {
+			for(GameObject* gameObject : gameObjects)
 			{
 				//std::cout << var->name << std::endl;
-				if (ImGui::TreeNodeEx(var->name.c_str())) {
+								//
+				ImGui::PushID(&gameObject->id);
+				bool treeNodeOpen = ImGui::TreeNodeEx("");
+
+				ImGui::SameLine();
+				ImGui::Selectable(gameObject->name.c_str());
+				if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+				{
+					std::cout << "Button pressed for GameObject: " << gameObject->name << std::endl;
+					selectedGameObject = gameObject;
+				}
+
+				if (treeNodeOpen)
+				{
+					// Content inside the TreeNode
+					ImGui::Text("Content inside the TreeNode");
+
 					ImGui::TreePop();
 				}
+				ImGui::PopID();
+
 			}
-			if (ImGui::TreeNodeEx("1")) {
+			if (ImGui::TreeNode("1")) {
 				if (ImGui::TreeNodeEx("2")) {
 					ImGui::TreePop();
 				}
@@ -121,6 +141,12 @@ void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSi
 			lastAppSizes.inspectorSize = appSizes.inspectorSize;
 			ImGui::SetWindowSize(ImGui::imVec2(appSizes.inspectorSize), ImGuiCond_Always);
 			ImGui::SetWindowPos(ImVec2(appSizes.appSize.x - appSizes.inspectorSize.x, 0));
+		}
+
+		if (selectedGameObject) {
+			if (ImGui::TreeNodeEx(selectedGameObject->name.c_str())) {
+				ImGui::TreePop();
+			}
 		}
 	}
 	ImGui::End();

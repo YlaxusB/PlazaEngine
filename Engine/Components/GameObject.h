@@ -12,18 +12,26 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Mesh.h"
+#include "Engine/Vendor/uuid_v4/uuid_v4.h"
+
+//UUIDv4::UUID uuid = uuidGenerator.getUUID();
 class Component {
 public:
 	virtual ~Component() {}  // virtual destructor is necessary for derived classes
 };
 class GameObject;
 extern std::list<GameObject*> gameObjects;
+
 class GameObject {
 public:
 	std::string name = "";
+	std::string id = "";
 	GameObject(std::string objName) {
+		UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
 		name = objName;
 		gameObjects.push_back(this);
+		id = uuidGenerator.getUUID().str();
+		std::cout << id << std::endl;
 	}
 	std::list<Component*> components;
 

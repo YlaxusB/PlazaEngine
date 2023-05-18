@@ -1,7 +1,7 @@
 #pragma once
 #ifndef guiHeader_H
 #define guiHeader_H
-#include "../../Application.h"
+#include "Engine/Application/Application.h"
 namespace gui {
 	void setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes);
 }

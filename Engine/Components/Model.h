@@ -4,13 +4,12 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "../../stb_image.h"
+#include "Engine/stb_image.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
 #include "Mesh.h"
-#include "Shader.h"
+#include "Engine/Shaders/Shader.h"
 
 #include <string>
 #include <fstream>
@@ -206,7 +205,6 @@ unsigned int TextureFromFile(const char* path, const string& directory, bool gam
 {
     string filename = string(path);
     filename = directory + '/' + filename;
-    std::cout << filename << std::endl;
     unsigned int textureID;
     glGenTextures(1, &textureID);
 

@@ -16,13 +16,13 @@
 #include <random>
 #include <filesystem>
 #include <fileSystem/fileSystem.h>
-#include "Application.h"
-#include "Editor/GUI/guiMain.h"
-#include "Editor/Core/Camera.h"
-#include "Editor/Core/Mesh.h"
-#include "Editor/Core/Shader.h"
-#include "Editor/Core/GameObject.h"
-#include "Editor/Core/Model.h"
+#include "Engine/Application/Application.h"
+#include "Engine/GUI/guiMain.h"
+#include "Engine/Components/Camera.h"
+#include "Engine/Components/Mesh.h"
+#include "Engine/Components/GameObject.h"
+#include "Engine/Components/Model.h"
+#include "Engine/Shaders/Shader.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
@@ -64,20 +64,21 @@ int main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
 
+
 	stbi_set_flip_vertically_on_load(true);
 	//glEnable(GL_DEPTH_TEST);
 
-	Shader ourShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\1.model_loading.fs");
+	Shader ourShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.fs");
 	//Model ourModel("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/backpack/backpack.obj");
 
-	unsigned int cubeTexture = loadTexture("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/container.jpg");
+	unsigned int cubeTexture = loadTexture("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/ExampleAssets/container.jpg");
 	// load models
 	// -----------
 	//Model ourModel(FileSystem::getPath("resources/objects/backpack/backpack.obj"));
@@ -122,8 +123,7 @@ int main()
 	//std::cout << transform.position.x << std::endl;
 	//std::cout << gameObjects.size() << std::endl;
 	asd->AddComponent(&transform);
-	
-	std::cout << asd->GetComponent<Transform>()->position.x << std::endl;
+
 
 	//Mesh* mesh = new Mesh();
 
@@ -147,6 +147,7 @@ int main()
 	indices.push_back(6);
 	indices.push_back(7);
 	indices.push_back(8);
+
 	std::vector<Vertex> vertices;
 	vertices.push_back(Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 	vertices.push_back(Vertex(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
@@ -163,6 +164,7 @@ int main()
 	vertices.push_back(Vertex(glm::vec3(5, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 	vertices.push_back(Vertex(glm::vec3(6, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 	vertices.push_back(Vertex(glm::vec3(0, 6, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+
 	Mesh* testingMesh = new Mesh(vertices, indices, std::vector<Texture>());
 	MeshRenderer* meshRenderer = new MeshRenderer(*testingMesh);
 	meshRenderer->mesh = *testingMesh;
@@ -178,7 +180,6 @@ int main()
 	ourShader.use();
 	ourShader.setInt("texture1", 0);
 	while (!glfwWindowShouldClose(window)) {
-		//std::cout << gameObjects.back()->GetComponent<Transform>()->position.x << std::endl;
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -264,7 +265,10 @@ void processInput(GLFWwindow* window)
 		glfwSetWindowShouldClose(window, true);
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 		for (int i = 0; i < 1000; i++) {
-			GameObject* d = new GameObject("d");
+			GameObject* d = new GameObject(std::to_string(i));
+			d->AddComponent(new Transform());
+			d->GetComponent<Transform>()->position = glm::vec3(i, 0, 0);
+
 			std::vector<unsigned int> indices;
 			indices.push_back(0);
 			indices.push_back(1);

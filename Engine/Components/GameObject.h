@@ -31,7 +31,6 @@ public:
 		name = objName;
 		gameObjects.push_back(this);
 		id = uuidGenerator.getUUID().str();
-		std::cout << id << std::endl;
 	}
 	std::list<Component*> components;
 

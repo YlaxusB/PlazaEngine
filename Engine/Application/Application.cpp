@@ -14,7 +14,7 @@
 
 #include <iostream>
 #include <random>
-#include <filesystem>
+//#include <filesystem>
 #include <fileSystem/fileSystem.h>
 #include "Engine/Application/Application.h"
 #include "Engine/GUI/guiMain.h"
@@ -23,6 +23,7 @@
 #include "Engine/Components/GameObject.h"
 #include "Engine/Components/Model.h"
 #include "Engine/Shaders/Shader.h"
+#include "Engine/Application/EditorCamera.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
@@ -35,7 +36,8 @@ unsigned int loadTexture(const char* path);
 AppSizes appSizes;
 AppSizes lastAppSizes;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera editorCamera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera activeCamera = editorCamera;
 
 float lastX = appSizes.appSize.x / 2.0f;
 float lastY = appSizes.appSize.y / 2.0f;
@@ -44,6 +46,69 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+bool 	rightClickPressed;
+
+bool mouseFirstCallback;
+
+int setupVAO(float skyboxVertices[]) {
+	unsigned int skyboxVAO;
+	glGenVertexArrays(1, &skyboxVAO);
+	glBindVertexArray(skyboxVAO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	return skyboxVAO;
+}
+
+int setupVBO() {
+	unsigned int skyboxVBO;
+	glGenBuffers(1, &skyboxVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	return skyboxVBO;
+}
+
+unsigned int loadCubemap(vector<std::string> faces)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	int width, height, nrChannels;
+	for (unsigned int i = 0; i < faces.size(); i++)
+	{
+		unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			stbi_image_free(data);
+		}
+		else
+		{
+			std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+			stbi_image_free(data);
+		}
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureID;
+}
+/*
+int setupSkybox(float skyboxVertices[]) {
+	unsigned int skyboxVAO, skyboxVBO;
+	glGenVertexArrays(1, &skyboxVAO);
+	glGenBuffers(1, &skyboxVBO);
+	glBindVertexArray(skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	return skyboxVAO;
+}
+*/
 Mesh* CubeMesh() {
 	std::vector<unsigned int> indices{
 		0, 1, 2, 2, 3, 0,
@@ -63,12 +128,21 @@ Mesh* CubeMesh() {
 	{glm::vec3(1, 1, 1)},
 	{glm::vec3(0, 1, 1)}
 	};
-	//vertices.push_back(Vertex(glm::vec3(0.5, 0.5, 1), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-
 	return new Mesh(vertices, indices, std::vector<Texture>());
 }
 
-
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+		// Pressing right button
+		rightClickPressed = true;
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
+	else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+		// No more pressing right button
+		rightClickPressed = false;
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
+}
 
 int main()
 {
@@ -92,6 +166,7 @@ int main()
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
@@ -100,7 +175,7 @@ int main()
 
 
 	stbi_set_flip_vertically_on_load(true);
-	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 
 	Shader ourShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.fs");
 	//Model ourModel("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/backpack/backpack.obj");
@@ -108,7 +183,7 @@ int main()
 	unsigned int cubeTexture = loadTexture("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/ExampleAssets/container.jpg");
 	// load models
 	// -----------
-	Model ourModel(FileSystem::getPath("resources/objects/backpack/backpack.obj"));
+	//Model ourModel(FileSystem::getPath("resources/objects/backpack/backpack.obj"));
 
 	//Initialize ImGui
 
@@ -121,6 +196,10 @@ int main()
 
 	// framebuffer configuration
 	// -------------------------
+#pragma region Framebuffer
+
+
+
 	unsigned int framebuffer;
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -142,47 +221,76 @@ int main()
 	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	GameObject* asd = new GameObject("EAE");
-	GameObject* b = new GameObject("EAE");
-	GameObject* c = new GameObject("EAE");
-	GameObject* d = new GameObject("EAE");
-	Transform transform;
-	//std::cout << transform.position.x << std::endl;
-	//std::cout << gameObjects.size() << std::endl;
-	asd->AddComponent(&transform);
+#pragma endregion
 
+#pragma region Skybox Setup
+	float skyboxVertices[] = {
+		// positions          
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
 
-	//Mesh* mesh = new Mesh();
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
 
-	std::vector<unsigned int> indices;
-	indices.push_back(1);
-	indices.push_back(2);
-	indices.push_back(3);
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
 
-	indices.push_back(1);
-	indices.push_back(3);
-	indices.push_back(4);
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
 
-	indices.push_back(1);
-	indices.push_back(4);
-	indices.push_back(2);
+		-1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
 
-	indices.push_back(1);
-	indices.push_back(3);
-	indices.push_back(2);
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f
+	};
+	unsigned int skyboxVAO, skyboxVBO;
+	glGenVertexArrays(1, &skyboxVAO);
+	glGenBuffers(1, &skyboxVBO);
+	glBindVertexArray(skyboxVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-	std::vector<Vertex> vertices;
-	vertices.push_back(Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-	vertices.push_back(Vertex(glm::vec3(0.5, 1, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-
-	vertices.push_back(Vertex(glm::vec3(0.5, 0.5, 1), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-
-	//Mesh* testingMesh = new Mesh(vertices, indices, std::vector<Texture>());
-	Mesh* testingMesh = CubeMesh();
-	MeshRenderer* meshRenderer = new MeshRenderer(*testingMesh);
-	meshRenderer->mesh = *testingMesh;
-	asd->AddComponent(meshRenderer);
+	vector<std::string> faces
+	{
+		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\right.jpg",
+		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\left.jpg",
+		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\bottom.jpg",
+		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\top.jpg",
+		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\front.jpg",
+		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\back.jpg"
+	};
+	unsigned int cubemapTexture = loadCubemap(faces);
+	Shader skyboxShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxFragment.glsl");
+	skyboxShader.use();
+	skyboxShader.setInt("skybox", 0);
+#pragma endregion
 
 	ourShader.use();
 	ourShader.setInt("texture1", 0);
@@ -191,7 +299,6 @@ int main()
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		asd->GetComponent<Transform>()->position.x++;
 		processInput(window);
 		// Start a new ImGui frame
 
@@ -200,7 +307,6 @@ int main()
 		ImGui::NewFrame();
 
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-		glEnable(GL_DEPTH_TEST);
 
 		glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -209,8 +315,8 @@ int main()
 		ourShader.use();
 
 		// view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.1f, 100.0f);
-		glm::mat4 view = camera.GetViewMatrix();
+		glm::mat4 projection = glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.1f, 100.0f);
+		glm::mat4 view = activeCamera.GetViewMatrix();
 		ourShader.setMat4("projection", projection);
 		ourShader.setMat4("view", view);
 
@@ -220,32 +326,48 @@ int main()
 		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
 		ourShader.setMat4("model", model);
 
-		//testingMesh->Draw(ourShader);
-		//ourModel.Draw(ourShader);
 
 
-
-		// Render GameObjects
-		int i = 0;
+		// Render Game
 		for (GameObject* gameObject : gameObjects) {
 			MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
 			if (meshRenderer) {
 				// render the loaded model
 				glm::mat4 model = glm::mat4(1.0f);
-				model = glm::translate(model, glm::vec3(i, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+				model = glm::translate(model, glm::vec3(gameObject->GetComponent<Transform>()->position)); // translate it down so it's at the center of the scene
+				glm::vec3 objectEulerAngles = gameObject->GetComponent<Transform>()->eulerAngles;
+				model = glm::rotate(model, objectEulerAngles.z, glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
+				model = glm::rotate(model, objectEulerAngles.y, glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
+				model = glm::rotate(model, objectEulerAngles.x, glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
+
 				model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
 				ourShader.setMat4("model", model);
 				meshRenderer->mesh.Draw(ourShader);
-				i++;
 			}
 		}
 
-		gui::setupDockspace(window, textureColorbuffer, appSizes, lastAppSizes);
+		// Render Skybox
+		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+		skyboxShader.use();
+		view = glm::mat4(glm::mat3(activeCamera.GetViewMatrix())); // remove translation from the view matrix
+		skyboxShader.setMat4("view", view);
+		skyboxShader.setMat4("projection", projection);
+		// skybox cube
+		glBindVertexArray(skyboxVAO);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+		glDepthFunc(GL_LESS); // set depth function back to default
+
+		// Start the Imgui GUI
+		Gui::setupDockspace(window, textureColorbuffer, appSizes, lastAppSizes);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Render the ImGui frame
 		ImGui::Render();
 
+		// Update the game, so game calculations can run
 
 
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -257,6 +379,10 @@ int main()
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+
+	glDeleteVertexArrays(1, &skyboxVAO);
+	glDeleteBuffers(1, &skyboxVBO);
+	glDeleteBuffers(1, &framebuffer);
 
 	glfwTerminate();
 	return 0;
@@ -271,8 +397,8 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-		for (int i = 0; i < 1000; i++) {
-			GameObject* d = new GameObject(std::to_string(i));
+		for (int i = 0; i < 100; i++) {
+			GameObject* d = new GameObject(std::to_string(gameObjects.size()));
 			d->AddComponent(new Transform());
 			d->GetComponent<Transform>()->position = glm::vec3(i, 0, 0);
 
@@ -307,15 +433,35 @@ void processInput(GLFWwindow* window)
 		}
 	}
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime * 100);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime * 100);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		activeCamera.MovementSpeedTemporaryBoost = 5.0f;
 
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		activeCamera.ProcessKeyboard(FORWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		activeCamera.ProcessKeyboard(BACKWARD, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		activeCamera.ProcessKeyboard(LEFT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		activeCamera.ProcessKeyboard(RIGHT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		activeCamera.ProcessKeyboard(UP, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+		activeCamera.ProcessKeyboard(DOWN, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		activeCamera.ProcessMouseMovement(0, 0, 10);
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		activeCamera.ProcessMouseMovement(0, 0, -10);
+
+	//if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
+	//	activeCamera.ProcessMouseMovement(0, 0, 0);
+	//}
+
+
+
+
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS)
+		activeCamera.MovementSpeedTemporaryBoost = 1.0f;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -334,27 +480,33 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 	float xpos = static_cast<float>(xposIn);
 	float ypos = static_cast<float>(yposIn);
 
-	if (firstMouse)
-	{
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
-
 	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
+	float yoffset = lastY - ypos;
+	// Prevent the camera from roughly moving to mouse position when pressed right button
+	if (rightClickPressed && mouseFirstCallback) {
+		mouseFirstCallback = false;
+	}
+	else if (rightClickPressed && !mouseFirstCallback) {
+		activeCamera.ProcessMouseMovement(xoffset, -yoffset);
+		mouseFirstCallback = false;
+	}
+	else if (!rightClickPressed) {
+		mouseFirstCallback = true;
+	}
 	lastX = xpos;
 	lastY = ypos;
-
-	camera.ProcessMouseMovement(xoffset, -yoffset);
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	camera.ProcessMouseScroll(static_cast<float>(yoffset));
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+		activeCamera.MovementSpeed += activeCamera.MovementSpeed * 10 * deltaTime;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS)
+		activeCamera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
 unsigned int loadTexture(char const* path)

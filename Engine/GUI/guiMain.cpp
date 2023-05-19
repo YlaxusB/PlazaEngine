@@ -16,6 +16,7 @@
 #include "Engine/Application/Application.h"
 #include "Engine/Components/GameObject.h"
 #include "Engine/GUI/Hierarchy.h"
+#include "Engine/GUI/Inspector.h"
 //
 
 GameObject* selectedGameObject;
@@ -24,7 +25,7 @@ void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes)
 void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes);
 void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes);
 
-void gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes) {
+void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes) {
 	ImGuiWindowFlags  windowFlags = ImGuiWindowFlags_MenuBar;
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.appSize));
@@ -39,6 +40,7 @@ void gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appS
 	}
 	appSizes.sceneSize = glm::vec2(appSizes.appSize.x - appSizes.hierarchySize.x - appSizes.inspectorSize.x, appSizes.sceneSize.y);
 	ImGui::End();
+
 }
 
 // Create the scene view
@@ -61,13 +63,13 @@ inline void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAp
 void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes) {
 	ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.hierarchySize), ImGuiCond_Always);
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoScrollbar;
+	ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus;
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f)); // Remove the padding of the window
 	//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
 
 	if (ImGui::Begin("Hierarchy", new bool(true), sceneWindowFlags)) {
 		ImGui::SetWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y), ImGuiCond_Always);
-		// set this window image to be the game framebuffer
+		// Handle size changes
 		const ImVec2& CurSize = ImGui::GetWindowSize();
 		if (CurSize.x != lastAppSizes.hierarchySize.x || CurSize.y != lastAppSizes.hierarchySize.y) {
 			appSizes.hierarchySize = ImGui::glmVec2(CurSize);
@@ -75,29 +77,21 @@ void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastA
 			ImGui::SetWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y), ImGuiCond_Always);
 			ImGui::SetWindowPos(ImVec2(0, 0));
 		}
+
+		// Create the main collapser
 		if (ImGui::TreeNode("Scene Objects")) {
+
+			// For each GameObject, create a new collapser
 			for(GameObject* gameObject : gameObjects)
 			{
-
-				Hierarchy::Item(*gameObject, *selectedGameObject);
-			}
-			if (ImGui::TreeNode("1")) {
-				if (ImGui::TreeNodeEx("2")) {
-					ImGui::TreePop();
-				}
-				ImGui::TreePop();
+				Gui::Hierarchy::Item(gameObject, selectedGameObject);
 			}
 
-			//ImGui::TreeNodeEx("3");
-			ImGui::TreePop();
+			ImGui::TreePop(); // End TreeNode Scene Objects
 		}
 	}
-
-	ImGui::End();
-	ImGui::PopStyleVar();
-
-
-	//ImGui::End();
+	ImGui::End(); // End hierarchy
+	ImGui::PopStyleVar();// End hierarchy style
 }
 
 void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes) {
@@ -109,6 +103,7 @@ void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSi
 	//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
 	if (ImGui::Begin("Inspector", new bool(true), inspectorWindowFlags)) {
 
+		// Handle size changes
 		const ImVec2& CurSize = ImGui::GetWindowSize();
 		if (!ImGui::Compare(CurSize, ImGui::imVec2(lastAppSizes.inspectorSize))) {
 			appSizes.inspectorSize = ImGui::glmVec2(CurSize);
@@ -118,9 +113,7 @@ void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSi
 		}
 
 		if (selectedGameObject) {
-			if (ImGui::TreeNodeEx(selectedGameObject->name.c_str())) {
-				ImGui::TreePop();
-			}
+			Gui::Inspector::ComponentInspector inspector(selectedGameObject);
 		}
 	}
 	ImGui::End();

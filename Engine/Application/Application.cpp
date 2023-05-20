@@ -36,7 +36,7 @@ unsigned int loadTexture(const char* path);
 AppSizes appSizes;
 AppSizes lastAppSizes;
 
-Camera editorCamera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera editorCamera(glm::vec3(0.0f, 0.0f, 5.0f));
 Camera activeCamera = editorCamera;
 
 float lastX = appSizes.appSize.x / 2.0f;
@@ -46,7 +46,7 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-bool 	rightClickPressed;
+bool rightClickPressed;
 
 bool mouseFirstCallback;
 
@@ -197,9 +197,6 @@ int main()
 	// framebuffer configuration
 	// -------------------------
 #pragma region Framebuffer
-
-
-
 	unsigned int framebuffer;
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -281,11 +278,12 @@ int main()
 	{
 		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\right.jpg",
 		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\left.jpg",
-		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\bottom.jpg",
 		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\top.jpg",
+		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\bottom.jpg",
 		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\front.jpg",
 		"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\back.jpg"
 	};
+	stbi_set_flip_vertically_on_load(false);
 	unsigned int cubemapTexture = loadCubemap(faces);
 	Shader skyboxShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxFragment.glsl");
 	skyboxShader.use();
@@ -360,8 +358,9 @@ int main()
 		glBindVertexArray(0);
 		glDepthFunc(GL_LESS); // set depth function back to default
 
+
 		// Start the Imgui GUI
-		Gui::setupDockspace(window, textureColorbuffer, appSizes, lastAppSizes);
+		Gui::setupDockspace(window, textureColorbuffer, appSizes, lastAppSizes, activeCamera);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// Render the ImGui frame
@@ -396,35 +395,35 @@ void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
 		for (int i = 0; i < 100; i++) {
 			GameObject* d = new GameObject(std::to_string(gameObjects.size()));
 			d->AddComponent(new Transform());
 			d->GetComponent<Transform>()->position = glm::vec3(i, 0, 0);
 
 			std::vector<unsigned int> indices;
+			indices.push_back(0);
 			indices.push_back(1);
 			indices.push_back(2);
-			indices.push_back(3);
 
-			indices.push_back(1);
-			indices.push_back(3);
-			indices.push_back(4);
+			//indices.push_back(1);
+			//indices.push_back(3);
+			//indices.push_back(4);
 
-			indices.push_back(1);
-			indices.push_back(4);
-			indices.push_back(2);
+			//indices.push_back(1);
+			//indices.push_back(4);
+			//indices.push_back(2);
 
-			indices.push_back(1);
-			indices.push_back(3);
-			indices.push_back(2);
+			//indices.push_back(1);
+			//indices.push_back(3);
+			//indices.push_back(2);
 
 			std::vector<Vertex> vertices;
 			vertices.push_back(Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-			vertices.push_back(Vertex(glm::vec3(1, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-			vertices.push_back(Vertex(glm::vec3(0.5, 1, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			vertices.push_back(Vertex(glm::vec3(1, 1, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			vertices.push_back(Vertex(glm::vec3(2, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 
-			vertices.push_back(Vertex(glm::vec3(0.5, 0.5, 1), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
+			//vertices.push_back(Vertex(glm::vec3(0.5, 0.5, 1), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 
 			Mesh* testingMesh = new Mesh(vertices, indices, std::vector<Texture>());
 			MeshRenderer* meshRenderer = new MeshRenderer(*testingMesh);
@@ -444,9 +443,9 @@ void processInput(GLFWwindow* window)
 		activeCamera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		activeCamera.ProcessKeyboard(RIGHT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		activeCamera.ProcessKeyboard(UP, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+		activeCamera.ProcessKeyboard(UP, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
 		activeCamera.ProcessKeyboard(DOWN, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
 		activeCamera.ProcessMouseMovement(0, 0, 10);
@@ -487,7 +486,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 		mouseFirstCallback = false;
 	}
 	else if (rightClickPressed && !mouseFirstCallback) {
-		activeCamera.ProcessMouseMovement(xoffset, -yoffset);
+		activeCamera.ProcessMouseMovement(xoffset, yoffset);
 		mouseFirstCallback = false;
 	}
 	else if (!rightClickPressed) {
@@ -502,7 +501,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-		activeCamera.MovementSpeed += activeCamera.MovementSpeed * 10 * deltaTime;
+		activeCamera.MovementSpeed += activeCamera.MovementSpeed * (yoffset * 3)* deltaTime;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS)

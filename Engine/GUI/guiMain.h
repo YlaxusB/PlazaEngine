@@ -2,8 +2,9 @@
 #ifndef guiHeader_H
 #define guiHeader_H
 #include "Engine/Application/Application.h"
+#include "Engine/Application/EditorCamera.h"
 namespace Gui {
-	void setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes);
+	void setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera);
 }
 
 namespace ImGui {

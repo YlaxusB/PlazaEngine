@@ -7,7 +7,7 @@ namespace Gui {
 		TransformInspector(GameObject* gameObject) {
 			if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
 				glm::vec3& currentPosition = gameObject->GetComponent<Transform>()->position;
-				glm::vec3& currentRotation = gameObject->GetComponent<Transform>()->eulerAngles;
+				glm::vec3& currentRotation = gameObject->GetComponent<Transform>()->rotation;
 				ImGui::Text("Position: ");
 
 				ImGui::SameLine();

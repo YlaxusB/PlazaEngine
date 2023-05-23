@@ -54,7 +54,17 @@ public:
 class Transform : public Component {
 public:
 	glm::vec3 position = { 0,0,0 };
-	glm::vec3 eulerAngles = { 0,0,0 };
+	glm::vec3 rotation = { 0,0,0 };
+	glm::vec3 scale = { 1,1,1, };
+
+	glm::mat4 GetTransform() const
+	{
+		glm::mat4 rotation = glm::mat4(glm::quat(rotation));
+
+		return glm::translate(glm::mat4(1.0f), position)
+			* rotation
+			* glm::scale(glm::mat4(1.0f), scale);
+	}
 };
 
 class MeshRenderer : public Component {

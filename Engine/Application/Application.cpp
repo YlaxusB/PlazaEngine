@@ -24,6 +24,7 @@
 #include "Engine/Components/Model.h"
 #include "Engine/Shaders/Shader.h"
 #include "Engine/Application/EditorCamera.h"
+#include "Engine/GUI/gizmo.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
@@ -31,6 +32,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 unsigned int loadTexture(const char* path);
+
+double previousTime = glfwGetTime();
+int frameCount = 0;
+
 
 //gameObjects
 AppSizes appSizes;
@@ -155,6 +160,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 	GLFWwindow* window = glfwCreateWindow(appSizes.appSize.x, appSizes.appSize.y, "LearnOpenGL", NULL, NULL);
+
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -165,6 +171,7 @@ int main()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+	//glfwSwapInterval(0); Disable vsync
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -178,7 +185,7 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 
 	Shader ourShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.fs");
-	//Model ourModel("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/backpack/backpack.obj");
+	//Model ourModel("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/ExampleAssets/backpack/backpack.obj");
 
 	unsigned int cubeTexture = loadTexture("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/ExampleAssets/container.jpg");
 	// load models
@@ -204,6 +211,7 @@ int main()
 	unsigned int textureColorbuffer;
 	glGenTextures(1, &textureColorbuffer);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -213,9 +221,8 @@ int main()
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, appSizes.sceneSize.x, appSizes.sceneSize.y); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
-	// now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
-	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 #pragma endregion
@@ -293,9 +300,26 @@ int main()
 	ourShader.use();
 	ourShader.setInt("texture1", 0);
 	while (!glfwWindowShouldClose(window)) {
+
+		// Measure speed
+		double currentTime = glfwGetTime();
+		frameCount++;
+		// If a second has passed.
+		if (currentTime - previousTime >= 1.0)
+		{
+			// Display the frame count here any way you want.
+			//std::cout << frameCount << std::endl;
+
+			frameCount = 0;
+			previousTime = currentTime;
+		}
+
+
 		float currentFrame = static_cast<float>(glfwGetTime());
 		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
+
+
+		//std::cout << 1000 / deltaTime << std::endl;
 
 		processInput(window);
 		// Start a new ImGui frame
@@ -313,7 +337,7 @@ int main()
 		ourShader.use();
 
 		// view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.1f, 1000.0f);
 		glm::mat4 view = activeCamera.GetViewMatrix();
 		ourShader.setMat4("projection", projection);
 		ourShader.setMat4("view", view);
@@ -324,7 +348,7 @@ int main()
 		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
 		ourShader.setMat4("model", model);
 
-
+		//ourModel.Draw(ourShader);
 
 		// Render Game
 		for (GameObject* gameObject : gameObjects) {
@@ -333,7 +357,7 @@ int main()
 				// render the loaded model
 				glm::mat4 model = glm::mat4(1.0f);
 				model = glm::translate(model, glm::vec3(gameObject->GetComponent<Transform>()->position)); // translate it down so it's at the center of the scene
-				glm::vec3 objectEulerAngles = gameObject->GetComponent<Transform>()->eulerAngles;
+				glm::vec3 objectEulerAngles = gameObject->GetComponent<Transform>()->rotation;
 				model = glm::rotate(model, objectEulerAngles.z, glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
 				model = glm::rotate(model, objectEulerAngles.y, glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
 				model = glm::rotate(model, objectEulerAngles.x, glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
@@ -358,10 +382,10 @@ int main()
 		glBindVertexArray(0);
 		glDepthFunc(GL_LESS); // set depth function back to default
 
-
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Start the Imgui GUI
 		Gui::setupDockspace(window, textureColorbuffer, appSizes, lastAppSizes, activeCamera);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
 		// Render the ImGui frame
 		ImGui::Render();
@@ -373,6 +397,7 @@ int main()
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+		lastFrame = currentFrame;
 	}
 	// Clean up ImGui
 	ImGui_ImplOpenGL3_Shutdown();
@@ -396,33 +421,59 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-		for (int i = 0; i < 100; i++) {
+		int size = gameObjects.size();
+		for (int i = size; i < size + 1; i++) {
 			GameObject* d = new GameObject(std::to_string(gameObjects.size()));
 			d->AddComponent(new Transform());
-			d->GetComponent<Transform>()->position = glm::vec3(i, 0, 0);
+			d->GetComponent<Transform>()->position = glm::vec3(size + i + 2, 0, 0);
 
-			std::vector<unsigned int> indices;
-			indices.push_back(0);
-			indices.push_back(1);
-			indices.push_back(2);
+			std::vector<unsigned int> indices = {
+				0, 1, 2,  // Front face
+				2, 1, 3,  // Front face
+				4, 5, 6,  // Back face
+				6, 5, 7,  // Back face
+				8, 9, 10, // Top face
+				10, 9, 11,// Top face
+				12, 13, 14,// Bottom face
+				14, 13, 15,// Bottom face
+				16, 17, 18,// Left face
+				18, 17, 19,// Left face
+				20, 21, 22,// Right face
+				22, 21, 23 // Right face
+			};
 
-			//indices.push_back(1);
-			//indices.push_back(3);
-			//indices.push_back(4);
-
-			//indices.push_back(1);
-			//indices.push_back(4);
-			//indices.push_back(2);
-
-			//indices.push_back(1);
-			//indices.push_back(3);
-			//indices.push_back(2);
-
-			std::vector<Vertex> vertices;
-			vertices.push_back(Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-			vertices.push_back(Vertex(glm::vec3(1, 1, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-			vertices.push_back(Vertex(glm::vec3(2, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
-
+			std::vector<Vertex> vertices = {
+				// Front face vertices
+				Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				// Back face vertices
+				Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				// Top face vertices
+				Vertex(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 1, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				// Bottom face vertices
+				Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0, -1, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0, -1, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0, -1, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0, -1, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				// Left face vertices
+				Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-1, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(-1, 0, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(-1, 0, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(-1, 0, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				// Right face vertices
+				Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(1, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1, 0, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1, 0, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+				Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(1, 0, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0))
+			};
 			//vertices.push_back(Vertex(glm::vec3(0.5, 0.5, 1), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)));
 
 			Mesh* testingMesh = new Mesh(vertices, indices, std::vector<Texture>());

@@ -14,7 +14,8 @@
 
 #include <iostream>
 #include <random>
-//#include <filesystem>
+//#include "Engine/Vendor/filesystem/filesys.h"
+#include <fileSystem>
 #include <fileSystem/fileSystem.h>
 #include "Engine/Application/Application.h"
 #include "Engine/GUI/guiMain.h"
@@ -28,6 +29,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
+void drop_callback(GLFWwindow* window, int count, const char** paths);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
@@ -35,6 +37,8 @@ unsigned int loadTexture(const char* path);
 
 double previousTime = glfwGetTime();
 int frameCount = 0;
+
+std::list<Model> models;
 
 
 //gameObjects
@@ -174,6 +178,7 @@ int main()
 	//glfwSwapInterval(0); Disable vsync
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
+	glfwSetDropCallback(window, drop_callback);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
@@ -181,7 +186,7 @@ int main()
 	}
 
 
-	stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(false);
 	glEnable(GL_DEPTH_TEST);
 
 	Shader ourShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.fs");
@@ -190,7 +195,9 @@ int main()
 	unsigned int cubeTexture = loadTexture("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/ExampleAssets/container.jpg");
 	// load models
 	// -----------
-	//Model ourModel(FileSystem::getPath("resources/objects/backpack/backpack.obj"));
+	//Model ourModel(FileSystem::getPath("Engine/ExampleAssets/sponza/sponza.obj");
+	//Model ourModel("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\sponza\\sponza.obj");
+
 
 	//Initialize ImGui
 
@@ -337,7 +344,7 @@ int main()
 		ourShader.use();
 
 		// view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.1f, 1000.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.01f, 10000.0f);
 		glm::mat4 view = activeCamera.GetViewMatrix();
 		ourShader.setMat4("projection", projection);
 		ourShader.setMat4("view", view);
@@ -345,7 +352,7 @@ int main()
 		// render the loaded model
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+		model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));	// it's a bit too big for our scene, so scale it down
 		ourShader.setMat4("model", model);
 
 		//ourModel.Draw(ourShader);
@@ -368,6 +375,15 @@ int main()
 			}
 		}
 
+		for (Model model : models) {
+			glm::mat4 modelMath = glm::mat4(1.0f);
+			
+			modelMath = glm::translate(modelMath, glm::vec3(models.size() * 4, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+			modelMath = glm::scale(modelMath, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+			ourShader.setMat4("model", modelMath);
+			model.Draw(ourShader);
+		}
+
 		// Render Skybox
 		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 		skyboxShader.use();
@@ -385,7 +401,6 @@ int main()
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Start the Imgui GUI
 		Gui::setupDockspace(window, textureColorbuffer, appSizes, lastAppSizes, activeCamera);
-
 
 		// Render the ImGui frame
 		ImGui::Render();
@@ -410,6 +425,17 @@ int main()
 
 	glfwTerminate();
 	return 0;
+}
+
+void drop_callback(GLFWwindow* window, int count, const char** paths)
+{
+	int i;
+	for (i = 0; i < count; i++) {
+		std::string fileParent = filesystem::path{ paths[i] }.parent_path().string();
+		//Model model(fileParent);
+		Model model(paths[i]);
+		models.push_back(model);
+	}
 }
 
 

@@ -110,6 +110,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\OpenGL\include\imgui;C:\Users\Giovane\Desktop\Workspace 2023\OpenGL\OpenGLEngine\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -170,6 +171,7 @@
     <ClInclude Include="Engine\GUI\Inspector\TransformInspector.h" />
     <ClInclude Include="Engine\Shaders\Shader.h" />
     <ClInclude Include="Engine\stb_image.h" />
+    <ClInclude Include="Engine\Vendor\filesystem\filesys.h" />
     <ClInclude Include="Engine\Vendor\imgui\ImGuizmo.h" />
     <ClInclude Include="Engine\Vendor\uuid_v4\endianness.h" />
     <ClInclude Include="Engine\Vendor\uuid_v4\uuid_v4.h" />

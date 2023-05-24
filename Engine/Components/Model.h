@@ -202,11 +202,22 @@ private:
 
 unsigned int TextureFromFile(const char* path, const string& directory, bool gamma)
 {
+    std::cout << "1" << std::endl;
+    std::cout << path << std::endl;
+    std::cout << "2" << std::endl;
+    std::cout << directory << std::endl;
+    string filename = std::filesystem::path{ directory }.parent_path().string() + "/" + path;
+    /*
     string filename = string(path);
+    std::cout << "3" << std::endl;
+    std::cout << filename << std::endl;
+    std::string fileParent = std::filesystem::path{ directory }.parent_path().string();
     filename = directory + '/' + filename;
+    */
     unsigned int textureID;
     glGenTextures(1, &textureID);
-
+    std::cout << "4" << std::endl;
+    std::cout << filename << std::endl;
     int width, height, nrComponents;
     unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
     if (data)

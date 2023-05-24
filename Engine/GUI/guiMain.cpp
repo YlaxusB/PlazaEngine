@@ -61,13 +61,13 @@ inline void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAp
 	ImGuiStyle style = ImGui::GetStyle();
 	ImVec2 headerSize = ImVec2(0, ImGui::GetFontSize() + style.FramePadding.y * 2);
 	// Set the window to be the content size + header size
-	ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.sceneSize + glm::vec2(0, headerSize.y))); // REMOVE THE + glm::vec2(0.0f,50.0f) -----------------------------------
+	ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.sceneSize - glm::vec2(0, appSizes.sceneSize.y + headerSize.y + 100))); // REMOVE THE + glm::vec2(0.0f,50.0f) -----------------------------------
 	ImGui::SetNextWindowPos(ImVec2(appSizes.hierarchySize.x, 0));
-	ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_AlwaysAutoResize;
+	ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_AlwaysAutoResize | ImGuiViewportFlags_NoFocusOnClick;
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f)); // Remove the padding of the window
-
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f)); 
 	if (ImGui::Begin("Scene", new bool(true), sceneWindowFlags)) {
-		if (ImGui::Begin("Image Container", new bool(true), sceneWindowFlags | ImGuiWindowFlags_NoTitleBar)) {
+		if (ImGui::BeginChild("Image Container", ImVec2(appSizes.sceneSize.x , appSizes.sceneSize.y), false, sceneWindowFlags | ImGuiWindowFlags_NoTitleBar)) {
 			ImVec2 uv0(0, 1); // bottom-left corner
 			ImVec2 uv1(1, 0); // top-right corner
 
@@ -79,12 +79,13 @@ inline void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAp
 				Gui::Gizmo gizmo(selectedGameObject, camera, appSizes);
 			}
 		}
-		ImGui::End();
+		ImGui::EndChild();
 
 	}
 	curSceneSize = ImGui::glmVec2(ImGui::GetWindowSize());
 	ImGui::End();
 	ImGui::PopStyleVar();
+	ImGui::PopStyleColor();
 }
 
 void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes) {

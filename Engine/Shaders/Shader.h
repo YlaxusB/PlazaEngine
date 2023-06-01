@@ -12,6 +12,7 @@
 class Shader {
 public:
 	unsigned int ID;
+	Shader();
 	Shader(const char* vertexPath, const char* fargmentPath, const char* geometryPath = nullptr) {
 		std::string vertexCode;
 		std::string fragmentCode;

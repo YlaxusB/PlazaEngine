@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <random>
+#include <unordered_map>
 //#include "Engine/Vendor/filesystem/filesys.h"
 #include <fileSystem>
 #include <fileSystem/fileSystem.h>
@@ -26,6 +27,8 @@
 #include "Engine/Shaders/Shader.h"
 #include "Engine/Application/EditorCamera.h"
 #include "Engine/GUI/gizmo.h"
+#include "Engine/Application/ModelLoader.h"
+#include "Engine/Application/PickingTexture.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
@@ -58,6 +61,13 @@ float lastFrame = 0.0f;
 bool rightClickPressed;
 
 bool mouseFirstCallback;
+
+
+unsigned int framebuffer;
+unsigned int textureColorbuffer;
+unsigned int rbo;
+
+PickingTexture* pickingTexture;
 
 int setupVAO(float skyboxVertices[]) {
 	unsigned int skyboxVAO;
@@ -140,6 +150,7 @@ Mesh* CubeMesh() {
 	return new Mesh(vertices, indices, std::vector<Texture>());
 }
 
+GLuint shaderID;
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 		// Pressing right button
@@ -150,6 +161,27 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		// No more pressing right button
 		rightClickPressed = false;
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
+
+	// Pick objects
+	float xposGame = lastX - appSizes.hierarchySize.x;
+
+	float yposGame = lastY - appSizes.appHeaderSize;
+	yposGame = appSizes.sceneSize.y - yposGame;
+
+
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && pickingTexture->readPixel(xposGame, yposGame) != 0){
+		int targetName = pickingTexture->readPixel(xposGame, yposGame);
+		auto it = std::find_if(gameObjects.begin(), gameObjects.end(), [&](const GameObject* obj) {
+			return obj->id == targetName;
+			});
+		if (it != gameObjects.end()) {
+			// Object with the specified name found
+			Gui::changeSelectedGameObject(*it);
+		}
+		else {
+			std::cout << "Object with name '" << targetName << "' not found." << std::endl;
+		}
 	}
 }
 
@@ -190,6 +222,7 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 
 	Shader ourShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.fs");
+	Shader pickingShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\objectPickingFragment.glsl");
 	//Model ourModel("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/ExampleAssets/backpack/backpack.obj");
 
 	unsigned int cubeTexture = loadTexture("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/ExampleAssets/container.jpg");
@@ -211,27 +244,45 @@ int main()
 	// framebuffer configuration
 	// -------------------------
 #pragma region Framebuffer
-	unsigned int framebuffer;
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 	// create a color attachment texture
-	unsigned int textureColorbuffer;
+
 	glGenTextures(1, &textureColorbuffer);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-	unsigned int rbo;
+
+	GLuint textureColor2;
+	glGenTextures(1, &textureColor2);
+	glBindTexture(GL_TEXTURE_2D, textureColor2);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_R32I, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RED_INTEGER, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32UI, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, textureColor2, 0);
+
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, appSizes.sceneSize.x, appSizes.sceneSize.y); // use a single renderbuffer object for both a depth AND stencil buffer.
 	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
+
+	GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_RED_INTEGER };
+	glDrawBuffers(3, attachments);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+
 	//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	pickingTexture = new PickingTexture();
+	pickingTexture->init(appSizes.sceneSize.x, appSizes.sceneSize.y, appSizes);
+	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 #pragma endregion
 
 #pragma region Skybox Setup
@@ -326,38 +377,27 @@ int main()
 		deltaTime = currentFrame - lastFrame;
 
 
-		//std::cout << 1000 / deltaTime << std::endl;
+		//std::cout << 1000 / deltaTime << std::endl;ssss
 
 		processInput(window);
-		// Start a new ImGui frame
 
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+		
+		// Render into picking texture frame buffer
 
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		// DISABLE GL BLEND IF USING
+		glDisable(GL_BLEND);
 
-		glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
+
+		pickingTexture->enableWriting();
+		glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		// don't forget to enable shader before setting uniforms
-		ourShader.use();
-
+		pickingShader.use();
 		// view/projection transformations
-		glm::mat4 projection = glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.01f, 10000.0f);
+		glm::mat4 projection = activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 		glm::mat4 view = activeCamera.GetViewMatrix();
-		ourShader.setMat4("projection", projection);
-		ourShader.setMat4("view", view);
-
-		// render the loaded model
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(0.01f, 0.01f, 0.01f));	// it's a bit too big for our scene, so scale it down
-		ourShader.setMat4("model", model);
-
-		//ourModel.Draw(ourShader);
-
-		// Render Game
+		pickingShader.setMat4("projection", projection);
+		pickingShader.setMat4("view", view);
 		for (GameObject* gameObject : gameObjects) {
 			MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
 			if (meshRenderer) {
@@ -365,29 +405,61 @@ int main()
 				glm::mat4 model = glm::mat4(1.0f);
 				model = glm::translate(model, glm::vec3(gameObject->GetComponent<Transform>()->position)); // translate it down so it's at the center of the scene
 				glm::vec3 objectEulerAngles = gameObject->GetComponent<Transform>()->rotation;
-				model = glm::rotate(model, objectEulerAngles.z, glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
-				model = glm::rotate(model, objectEulerAngles.y, glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
-				model = glm::rotate(model, objectEulerAngles.x, glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
+				model = glm::rotate(model, glm::radians(objectEulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
+				model = glm::rotate(model, glm::radians(objectEulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
+				model = glm::rotate(model, glm::radians(objectEulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
+				glm::vec3 objectScale = gameObject->GetComponent<Transform>()->scale;
+				model = glm::scale(model, objectScale);	// it's a bit too big for our scene, so scale it down
+				pickingShader.setMat4("model", model);
+				pickingShader.setFloat("objectID", gameObject->id);
+				meshRenderer->mesh.Draw(pickingShader);
+			}
+		}
 
-				model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+
+		pickingTexture->disableWriting();
+		glEnable(GL_BLEND);
+		// ENABLE GL BLEND IF USING
+
+		// Start a new ImGui frame
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+		glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		// don't forget to enable shader before setting uniforms
+		ourShader.use();
+
+		// Render Game
+		for (GameObject* gameObject : gameObjects) {
+			MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
+			if (meshRenderer) {
+				glm::mat4 projection = activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+				glm::mat4 view = activeCamera.GetViewMatrix();
+				ourShader.setMat4("projection", projection);
+				ourShader.setMat4("view", view);
+				glm::mat4 model = glm::mat4(1.0f);
+				model = glm::translate(model, glm::vec3(gameObject->GetComponent<Transform>()->position)); // translate it down so it's at the center of the scene
+				glm::vec3 objectEulerAngles = gameObject->GetComponent<Transform>()->rotation;
+				model = glm::rotate(model, glm::radians(objectEulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
+				model = glm::rotate(model, glm::radians(objectEulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
+				model = glm::rotate(model, glm::radians(objectEulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
+				glm::vec3 objectScale = gameObject->GetComponent<Transform>()->scale;
+				model = glm::scale(model, objectScale);	// it's a bit too big for our scene, so scale it down
 				ourShader.setMat4("model", model);
 				meshRenderer->mesh.Draw(ourShader);
 			}
 		}
-
-		for (Model model : models) {
-			glm::mat4 modelMath = glm::mat4(1.0f);
-			
-			modelMath = glm::translate(modelMath, glm::vec3(models.size() * 4, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-			modelMath = glm::scale(modelMath, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
-			ourShader.setMat4("model", modelMath);
-			model.Draw(ourShader);
-		}
-
 		// Render Skybox
 		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 		skyboxShader.use();
 		view = glm::mat4(glm::mat3(activeCamera.GetViewMatrix())); // remove translation from the view matrix
+		projection = activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 		skyboxShader.setMat4("view", view);
 		skyboxShader.setMat4("projection", projection);
 		// skybox cube
@@ -401,14 +473,14 @@ int main()
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Start the Imgui GUI
 		Gui::setupDockspace(window, textureColorbuffer, appSizes, lastAppSizes, activeCamera);
-
 		// Render the ImGui frame
 		ImGui::Render();
-
 		// Update the game, so game calculations can run
 
 
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		activeCamera.updateCameraAppSizes(appSizes);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -433,12 +505,47 @@ void drop_callback(GLFWwindow* window, int count, const char** paths)
 	for (i = 0; i < count; i++) {
 		std::string fileParent = filesystem::path{ paths[i] }.parent_path().string();
 		//Model model(fileParent);
-		Model model(paths[i]);
-		models.push_back(model);
+		//Model model(paths[i]);
+		//models.push_back(model);
+		vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
+		vector<Mesh> meshes = vector<Mesh>();
+		string directory = "";
+		ModelLoader::loadModel(paths[i], directory, &meshes, textures_loaded);
+		std::cout << "TAMANHO EM BAIXO" << std::endl;
+		std::cout << meshes.size() << std::endl;
+		std::string fileName = filesystem::path{ paths[i] }.filename().string();
+		for (Mesh mesh : meshes) {
+			GameObject* modelMainMesh = new GameObject("mainMesh" + fileName);
+			Transform* transform = new Transform();
+			modelMainMesh->AddComponent(transform);
+			MeshRenderer* meshRenderer = new MeshRenderer(mesh);
+			//meshRenderer->mesh = mesh;
+			modelMainMesh->AddComponent(meshRenderer);
+		}
 	}
 }
 
+struct PixelInfo {
+	float ObjectID;
+	float DrawID;
+	float PrimID;
 
+	PixelInfo() {
+		ObjectID = 0.0f;
+		DrawID = 0.0f;
+		PrimID = 0.0f;
+
+	}
+
+};
+
+struct person_has_name
+{
+	person_has_name(int const& n) : id(n) { }
+	bool operator () (GameObject const& p) { return p.id == id; }
+private:
+	int id;
+};
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
@@ -451,7 +558,7 @@ void processInput(GLFWwindow* window)
 		for (int i = size; i < size + 1; i++) {
 			GameObject* d = new GameObject(std::to_string(gameObjects.size()));
 			d->AddComponent(new Transform());
-			d->GetComponent<Transform>()->position = glm::vec3(size + i + 2, 0, 0);
+			d->GetComponent<Transform>()->position = glm::vec3(size + i + i + i, 0, 0);
 
 			std::vector<unsigned int> indices = {
 				0, 1, 2,  // Front face
@@ -569,8 +676,23 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 	else if (!rightClickPressed) {
 		mouseFirstCallback = true;
 	}
+	/*
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+	glReadBuffer(GL_COLOR_ATTACHMENT1);
+	//glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+	PixelInfo pixelData;
+	glReadPixels(xposGame, yposGame, 1, 1, GL_RGB, GL_FLOAT, &pixelData);
+	if (pixelData.ObjectID != -858993460 && pixelData.ObjectID != 0) {
+
+	}
+	std::cout << pixelData.ObjectID << std::endl;
+	//GL_COLOR_ATTACHMENT0 + 1
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	*/
 	lastX = xpos;
 	lastY = ypos;
+
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
@@ -578,7 +700,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-		activeCamera.MovementSpeed += activeCamera.MovementSpeed * (yoffset * 3)* deltaTime;
+		activeCamera.MovementSpeed += activeCamera.MovementSpeed * (yoffset * 3) * deltaTime;
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS)

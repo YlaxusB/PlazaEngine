@@ -12,7 +12,7 @@ namespace Gui {
 
 			Item(GameObject* gameObject, GameObject*& selectedGameObject) : gameObject(gameObject), selectedGameObject(selectedGameObject) {
 				// Push the gameObject id, to prevent it to collpases all the treenodes with same id
-				ImGui::PushID(gameObject->id.c_str());
+				ImGui::PushID(gameObject->id);
 				// Start the treenode before the component selectable, but only assign its values after creating the button
 				bool treeNodeOpen = ImGui::TreeNodeEx("");
 				ImGui::SameLine();

@@ -25,14 +25,15 @@ GameObject* selectedGameObject;
 void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera);
 void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes);
 void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera);
-
 void updateSizes(AppSizes appSizes);
 
 glm::vec2 curHierarchySize;
 glm::vec2 curSceneSize;
 glm::vec2 curInspectorSize;
 
-
+void Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
+	selectedGameObject = newSelectedGameObject;
+}
 
 void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera) {
 	ImGuiWindowFlags  windowFlags = ImGuiWindowFlags_MenuBar;
@@ -55,11 +56,14 @@ void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appS
 	updateSizes(appSizes);
 }
 
+
+
 // Create the scene view
 inline void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera) {
 	// Get the header size
 	ImGuiStyle style = ImGui::GetStyle();
 	ImVec2 headerSize = ImVec2(0, ImGui::GetFontSize() + style.FramePadding.y * 2);
+	appSizes.appHeaderSize = headerSize.y;
 	// Set the window to be the content size + header size
 	ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.sceneSize - glm::vec2(0, appSizes.sceneSize.y + headerSize.y + 100))); // REMOVE THE + glm::vec2(0.0f,50.0f) -----------------------------------
 	ImGui::SetNextWindowPos(ImVec2(appSizes.hierarchySize.x, 0));
@@ -143,6 +147,10 @@ void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSi
 
 		if (selectedGameObject) {
 			Gui::Inspector::ComponentInspector inspector(selectedGameObject);
+
+			Gui::Inspector* asd = new Gui::Inspector();
+			asd->addComponentButton(appSizes);
+			//Gui::Inspector::addComponentButton(appSizes);
 		}
 	}
 	curInspectorSize = ImGui::glmVec2(ImGui::GetWindowSize());
@@ -150,11 +158,13 @@ void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSi
 	ImGui::PopStyleVar();
 }
 
+
+
 // Update appSizes
 void updateSizes(AppSizes appSizes) {
-	appSizes.sceneSize = curSceneSize;
 	appSizes.hierarchySize = curHierarchySize;
 	appSizes.inspectorSize = curInspectorSize;
+	appSizes.sceneSize.x = appSizes.appSize.x - appSizes.hierarchySize.x - appSizes.inspectorSize.x;
 }
 
 

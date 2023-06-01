@@ -21,25 +21,26 @@ namespace Gui {
 			// Create a view and projection matrix for the camera.
 			//glm::mat4 projection = glm::mat4(1.0f);//glm::perspective(glm::radians(camera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 100.0f);
 			//glm::mat4 view = camera.GetViewMatrix();
-			glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.1f, 100.0f);
+			auto& tc = *gameObject->GetComponent<Transform>();
+			glm::mat4 projection = camera.GetProjectionMatrix();//glm::perspective(glm::radians(camera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.1f, farplane);
 			glm::mat4 view = camera.GetViewMatrix();
 			// Create a matrix that represents the current state of the object.
 			//glm::mat4& objectMatrix = gameObject->GetComponent<Transform>()->GetTransform();//glm::translate(objectMatrix, glm::vec3(0, 0, 0));
 
 
 			// Entity transform
-			auto& tc = *gameObject->GetComponent<Transform>();
 
 			glm::mat4 gizmoTransform = glm::mat4(1.0f);
+			gizmoTransform = glm::scale(gizmoTransform, tc.scale);
 			gizmoTransform = glm::translate(gizmoTransform, tc.position);
-			//gizmoTransform = glm::rotate(gizmoTransform, tc.rotation.x, glm::vec3(1, 0, 0)); // Rotate around the X-axis
-			//gizmoTransform = glm::rotate(gizmoTransform, tc.rotation.y, glm::vec3(0, 1, 0)); // Rotate around the Y-axis
-			//gizmoTransform = glm::rotate(gizmoTransform, tc.rotation.z, glm::vec3(0, 0, 1)); // Rotate around the Z-axis
-			gizmoTransform = glm::scale(gizmoTransform, glm::vec3(1.0f));
+			gizmoTransform = glm::rotate(gizmoTransform, glm::radians(tc.rotation.z), glm::vec3(0, 0, 1)); // Rotate around the Z-axis
+			gizmoTransform = glm::rotate(gizmoTransform, glm::radians(tc.rotation.y), glm::vec3(0, 1, 0)); // Rotate around the Y-axis
+			gizmoTransform = glm::rotate(gizmoTransform, glm::radians(tc.rotation.x), glm::vec3(1, 0, 0)); // Rotate around the X-axis
+
 
 			//ImGuizmo::RecomposeMatrixFromComponents
 			glm::mat4 transform = tc.GetTransform();
-			ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), ImGuizmo::TRANSLATE, ImGuizmo::WORLD, glm::value_ptr(transform));
+			ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(transform));
 			if (ImGuizmo::IsUsing())
 			{
 				glm::vec3 position, rotation, scale;
@@ -49,7 +50,7 @@ namespace Gui {
 				tc.position = position;
 				std::cout << (rotation - tc.rotation).x << std::endl;
 				//tc.rotation = rotation - tc.rotation;
-				tc.scale = scale;
+				//tc.scale = scale;
 			}
 		}
 	private:

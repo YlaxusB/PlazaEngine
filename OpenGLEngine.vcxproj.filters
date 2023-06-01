@@ -45,9 +45,6 @@
     <ClCompile Include="Engine\GUI\guiMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Application\Birimbau.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\Application\Application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -158,9 +155,19 @@
     <ClInclude Include="Engine\Vendor\filesystem\filesys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Application\ModelLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Utils\glmUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Application\PickingTexture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Engine\Shaders\skybox\skyboxVertex.glsl" />
     <None Include="Engine\Shaders\skybox\skyboxFragment.glsl" />
+    <None Include="Engine\Shaders\objectPickingFragment.glsl" />
   </ItemGroup>
 </Project>

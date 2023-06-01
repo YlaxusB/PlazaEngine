@@ -136,7 +136,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Engine\Application\Application.cpp" />
-    <ClCompile Include="Engine\Application\Birimbau.cpp" />
     <ClCompile Include="Engine\Application\EditorCamera.cpp" />
     <ClCompile Include="Engine\Components\GameObject.cpp" />
     <ClCompile Include="Engine\GUI\guiMain.cpp" />
@@ -154,6 +153,8 @@
     <ClInclude Include="Engine\Application.h" />
     <ClInclude Include="Engine\Application\Application.h" />
     <ClInclude Include="Engine\Application\EditorCamera.h" />
+    <ClInclude Include="Engine\Application\ModelLoader.h" />
+    <ClInclude Include="Engine\Application\PickingTexture.h" />
     <ClInclude Include="Engine\Components\Camera.h" />
     <ClInclude Include="Engine\Components\GameObject.h" />
     <ClInclude Include="Engine\Components\Mesh.h" />
@@ -171,6 +172,7 @@
     <ClInclude Include="Engine\GUI\Inspector\TransformInspector.h" />
     <ClInclude Include="Engine\Shaders\Shader.h" />
     <ClInclude Include="Engine\stb_image.h" />
+    <ClInclude Include="Engine\Utils\glmUtils.h" />
     <ClInclude Include="Engine\Vendor\filesystem\filesys.h" />
     <ClInclude Include="Engine\Vendor\imgui\ImGuizmo.h" />
     <ClInclude Include="Engine\Vendor\uuid_v4\endianness.h" />
@@ -186,6 +188,7 @@
     <ClInclude Include="Engine\Vendor\imgui\imstb_truetype.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Engine\Shaders\objectPickingFragment.glsl" />
     <None Include="Engine\Shaders\skybox\skyboxFragment.glsl" />
     <None Include="Engine\Shaders\skybox\skyboxVertex.glsl" />
   </ItemGroup>

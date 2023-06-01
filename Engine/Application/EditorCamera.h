@@ -41,7 +41,9 @@ public:
     float MovementSpeedTemporaryBoost;
     float MouseSensitivity;
     float Zoom;
-
+    float nearPlane = 0.1f;
+    float farPlane = 15000.0f;
+    AppSizes appSizes;
     // constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
     {
@@ -59,6 +61,18 @@ public:
         Yaw = yaw;
         Pitch = pitch;
         updateCameraVectors();
+    }
+    glm::mat4 GetProjectionMatrix() {
+        return glm::perspective(glm::radians(this->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), nearPlane, farPlane);
+    }
+    glm::mat4 GetProjectionMatrix(float nearPlaneCustom, float farPlaneCustom) {
+        nearPlaneCustom = nearPlaneCustom == NULL ? nearPlane : nearPlaneCustom;
+        farPlaneCustom = farPlaneCustom == NULL ? nearPlane : farPlaneCustom;
+        return glm::perspective(glm::radians(this->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), nearPlaneCustom, farPlaneCustom);
+    }
+
+    void updateCameraAppSizes(AppSizes appSizes) {
+        this->appSizes = appSizes;
     }
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix

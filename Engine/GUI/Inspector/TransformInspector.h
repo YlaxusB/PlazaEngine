@@ -8,6 +8,7 @@ namespace Gui {
 			if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
 				glm::vec3& currentPosition = gameObject->GetComponent<Transform>()->position;
 				glm::vec3& currentRotation = gameObject->GetComponent<Transform>()->rotation;
+				glm::vec3& currentScale = gameObject->GetComponent<Transform>()->scale;
 				ImGui::Text("Position: ");
 
 				ImGui::SameLine();
@@ -36,6 +37,22 @@ namespace Gui {
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(75);
 				ImGui::InputFloat("Z", &currentRotation.z);
+				ImGui::PopID();
+//				ImGui::TreePop();
+
+				ImGui::Text("Scale: ");
+				ImGui::PushID("Scale");
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(75);
+				ImGui::InputFloat("X", &currentScale.x);
+
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(75);
+				ImGui::InputFloat("Y", &currentScale.y);
+
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(75);
+				ImGui::InputFloat("Z", &currentScale.z);
 				ImGui::PopID();
 				ImGui::TreePop();
 			}

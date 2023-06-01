@@ -49,6 +49,14 @@ public:
 		return true;
 	}
 
+	void updateSize(glm::vec2 newSize) {
+		glBindTexture(GL_TEXTURE_2D, pickingTextureId);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, newSize.x, newSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
+
+		glBindTexture(GL_TEXTURE_2D, depthTextureId);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, newSize.x, newSize.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	}
+
 	void enableWriting() {
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebufferId);
 	}

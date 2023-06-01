@@ -36,6 +36,8 @@ void drop_callback(GLFWwindow* window, int count, const char** paths);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
+void updateBuffers(GLuint textureColorBuffer, GLuint textureColor2, GLuint rbo, AppSizes appSizes);
+
 unsigned int loadTexture(const char* path);
 
 double previousTime = glfwGetTime();
@@ -243,6 +245,7 @@ int main()
 
 	// framebuffer configuration
 	// -------------------------
+
 #pragma region Framebuffer
 	glGenFramebuffers(1, &framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -283,6 +286,7 @@ int main()
 	pickingTexture = new PickingTexture();
 	pickingTexture->init(appSizes.sceneSize.x, appSizes.sceneSize.y, appSizes);
 	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+
 #pragma endregion
 
 #pragma region Skybox Setup
@@ -358,6 +362,12 @@ int main()
 	ourShader.use();
 	ourShader.setInt("texture1", 0);
 	while (!glfwWindowShouldClose(window)) {
+		if (appSizes.sceneSize != lastAppSizes.sceneSize) {
+			updateBuffers(textureColorbuffer, textureColor2, rbo, appSizes);
+			pickingTexture->updateSize(appSizes.sceneSize);
+		}
+
+
 
 		// Measure speed
 		double currentTime = glfwGetTime();
@@ -389,9 +399,10 @@ int main()
 
 
 		pickingTexture->enableWriting();
-		glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+		//glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 		pickingShader.use();
 		// view/projection transformations
 		glm::mat4 projection = activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
@@ -416,7 +427,7 @@ int main()
 			}
 		}
 
-
+		//glViewport(0, 0, 1920, 1080);
 		pickingTexture->disableWriting();
 		glEnable(GL_BLEND);
 		// ENABLE GL BLEND IF USING
@@ -428,7 +439,7 @@ int main()
 		ImGui::NewFrame();
 
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-		glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+		//glViewport(0, 0, 1920, appSizes.sceneSize.y);
 		glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -497,6 +508,21 @@ int main()
 
 	glfwTerminate();
 	return 0;
+}
+
+void updateBuffers(GLuint textureColorBuffer, GLuint textureColor2, GLuint rbo, AppSizes appSizes) {
+	{
+		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
+
+		glBindTexture(GL_TEXTURE_2D, textureColor2);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32UI, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
+
+		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, appSizes.sceneSize.x, appSizes.sceneSize.y);
+
+		glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+	}
 }
 
 void drop_callback(GLFWwindow* window, int count, const char** paths)
@@ -635,6 +661,11 @@ void processInput(GLFWwindow* window)
 		activeCamera.ProcessMouseMovement(0, 0, 10);
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 		activeCamera.ProcessMouseMovement(0, 0, -10);
+
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+		appSizes.sceneSize += 1;
+	if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
+		appSizes.sceneSize -= 1;
 
 	//if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
 	//	activeCamera.ProcessMouseMovement(0, 0, 0);

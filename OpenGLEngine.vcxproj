@@ -137,7 +137,7 @@
   <ItemGroup>
     <ClCompile Include="Engine\Application\Application.cpp" />
     <ClCompile Include="Engine\Application\EditorCamera.cpp" />
-    <ClCompile Include="Engine\Components\GameObject.cpp" />
+    <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
     <ClCompile Include="Engine\GUI\guiMain.cpp" />
     <ClCompile Include="Engine\stb_image.cpp" />
     <ClCompile Include="Engine\Vendor\imgui\imgui.cpp" />
@@ -155,10 +155,12 @@
     <ClInclude Include="Engine\Application\EditorCamera.h" />
     <ClInclude Include="Engine\Application\ModelLoader.h" />
     <ClInclude Include="Engine\Application\PickingTexture.h" />
-    <ClInclude Include="Engine\Components\Camera.h" />
-    <ClInclude Include="Engine\Components\GameObject.h" />
-    <ClInclude Include="Engine\Components\Mesh.h" />
-    <ClInclude Include="Engine\Components\Model.h" />
+    <ClInclude Include="Engine\Components\Core\Camera.h" />
+    <ClInclude Include="Engine\Components\Core\Component.h" />
+    <ClInclude Include="Engine\Components\Core\Transform.h" />
+    <ClInclude Include="Engine\Components\Core\GameObject.h" />
+    <ClInclude Include="Engine\Components\Core\Mesh.h" />
+    <ClInclude Include="Engine\Components\Core\Model.h" />
     <ClInclude Include="Engine\Editor\Core\Camera.h" />
     <ClInclude Include="Engine\Editor\Core\GameObject.h" />
     <ClInclude Include="Engine\Editor\Core\Mesh.h" />

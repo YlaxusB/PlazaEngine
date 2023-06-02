@@ -20,10 +20,10 @@
 #include <fileSystem/fileSystem.h>
 #include "Engine/Application/Application.h"
 #include "Engine/GUI/guiMain.h"
-#include "Engine/Components/Camera.h"
-#include "Engine/Components/Mesh.h"
-#include "Engine/Components/GameObject.h"
-#include "Engine/Components/Model.h"
+#include "Engine/Components/Core/Camera.h"
+#include "Engine/Components/Core/Mesh.h"
+#include "Engine/Components/Core/GameObject.h"
+#include "Engine/Components/Core/Model.h"
 #include "Engine/Shaders/Shader.h"
 #include "Engine/Application/EditorCamera.h"
 #include "Engine/GUI/gizmo.h"
@@ -64,12 +64,37 @@ bool rightClickPressed;
 
 bool mouseFirstCallback;
 
-
 unsigned int framebuffer;
 unsigned int textureColorbuffer;
 unsigned int rbo;
 
 PickingTexture* pickingTexture;
+
+void Render(Shader shader) {
+	// Render Game
+	shader.use();
+	for (GameObject* gameObject : gameObjects) {
+		MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
+		if (meshRenderer && gameObject->parent != nullptr) {
+			glm::mat4 projection = activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+			glm::mat4 view = activeCamera.GetViewMatrix();
+			shader.setMat4("projection", projection);
+			shader.setMat4("view", view);
+			glm::mat4 model = glm::mat4(1.0f);
+			//model = glm::translate(model, glm::vec3(gameObject->GetComponent<Transform>()->position) + gameObject->parent->GetComponent<Transform>()->position); // translate it down so it's at the center of the scene
+			model = glm::translate(model, glm::vec3(gameObject->transform->worldPosition));
+			glm::vec3 objectEulerAngles = gameObject->GetComponent<Transform>()->rotation;
+			model = glm::rotate(model, glm::radians(objectEulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
+			model = glm::rotate(model, glm::radians(objectEulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
+			model = glm::rotate(model, glm::radians(objectEulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
+			glm::vec3 objectScale = gameObject->GetComponent<Transform>()->scale;
+			model = glm::scale(model, objectScale);	// it's a bit too big for our scene, so scale it down
+			shader.setMat4("model", model);
+			shader.setFloat("objectID", gameObject->id);
+			meshRenderer->mesh.Draw(shader);
+		}
+	}
+}
 
 int setupVAO(float skyboxVertices[]) {
 	unsigned int skyboxVAO;
@@ -172,7 +197,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	yposGame = appSizes.sceneSize.y - yposGame;
 
 
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && pickingTexture->readPixel(xposGame, yposGame) != 0){
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && pickingTexture->readPixel(xposGame, yposGame) != 0) {
 		int targetName = pickingTexture->readPixel(xposGame, yposGame);
 		auto it = std::find_if(gameObjects.begin(), gameObjects.end(), [&](const GameObject* obj) {
 			return obj->id == targetName;
@@ -287,6 +312,8 @@ int main()
 	pickingTexture->init(appSizes.sceneSize.x, appSizes.sceneSize.y, appSizes);
 	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 
+	//Transform* transform = new Transform();
+	//sceneObject->AddComponent(transform);
 #pragma endregion
 
 #pragma region Skybox Setup
@@ -362,6 +389,7 @@ int main()
 	ourShader.use();
 	ourShader.setInt("texture1", 0);
 	while (!glfwWindowShouldClose(window)) {
+		// Update the buffers to correspond to the new sizes
 		if (appSizes.sceneSize != lastAppSizes.sceneSize) {
 			updateBuffers(textureColorbuffer, textureColor2, rbo, appSizes);
 			pickingTexture->updateSize(appSizes.sceneSize);
@@ -403,29 +431,8 @@ int main()
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		//glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
-		pickingShader.use();
-		// view/projection transformations
-		glm::mat4 projection = activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
-		glm::mat4 view = activeCamera.GetViewMatrix();
-		pickingShader.setMat4("projection", projection);
-		pickingShader.setMat4("view", view);
-		for (GameObject* gameObject : gameObjects) {
-			MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
-			if (meshRenderer) {
-				// render the loaded model
-				glm::mat4 model = glm::mat4(1.0f);
-				model = glm::translate(model, glm::vec3(gameObject->GetComponent<Transform>()->position)); // translate it down so it's at the center of the scene
-				glm::vec3 objectEulerAngles = gameObject->GetComponent<Transform>()->rotation;
-				model = glm::rotate(model, glm::radians(objectEulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
-				model = glm::rotate(model, glm::radians(objectEulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
-				model = glm::rotate(model, glm::radians(objectEulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
-				glm::vec3 objectScale = gameObject->GetComponent<Transform>()->scale;
-				model = glm::scale(model, objectScale);	// it's a bit too big for our scene, so scale it down
-				pickingShader.setMat4("model", model);
-				pickingShader.setFloat("objectID", gameObject->id);
-				meshRenderer->mesh.Draw(pickingShader);
-			}
-		}
+		Render(pickingShader);
+
 
 		//glViewport(0, 0, 1920, 1080);
 		pickingTexture->disableWriting();
@@ -445,32 +452,13 @@ int main()
 
 		// don't forget to enable shader before setting uniforms
 		ourShader.use();
+		Render(ourShader);
 
-		// Render Game
-		for (GameObject* gameObject : gameObjects) {
-			MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
-			if (meshRenderer) {
-				glm::mat4 projection = activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
-				glm::mat4 view = activeCamera.GetViewMatrix();
-				ourShader.setMat4("projection", projection);
-				ourShader.setMat4("view", view);
-				glm::mat4 model = glm::mat4(1.0f);
-				model = glm::translate(model, glm::vec3(gameObject->GetComponent<Transform>()->position)); // translate it down so it's at the center of the scene
-				glm::vec3 objectEulerAngles = gameObject->GetComponent<Transform>()->rotation;
-				model = glm::rotate(model, glm::radians(objectEulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
-				model = glm::rotate(model, glm::radians(objectEulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
-				model = glm::rotate(model, glm::radians(objectEulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
-				glm::vec3 objectScale = gameObject->GetComponent<Transform>()->scale;
-				model = glm::scale(model, objectScale);	// it's a bit too big for our scene, so scale it down
-				ourShader.setMat4("model", model);
-				meshRenderer->mesh.Draw(ourShader);
-			}
-		}
 		// Render Skybox
 		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 		skyboxShader.use();
-		view = glm::mat4(glm::mat3(activeCamera.GetViewMatrix())); // remove translation from the view matrix
-		projection = activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+		glm::mat4 view = glm::mat4(glm::mat3(activeCamera.GetViewMatrix())); // remove translation from the view matrix
+		glm::mat4 projection = activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 		skyboxShader.setMat4("view", view);
 		skyboxShader.setMat4("projection", projection);
 		// skybox cube
@@ -530,16 +518,14 @@ void drop_callback(GLFWwindow* window, int count, const char** paths)
 	int i;
 	for (i = 0; i < count; i++) {
 		std::string fileParent = filesystem::path{ paths[i] }.parent_path().string();
-		//Model model(fileParent);
-		//Model model(paths[i]);
-		//models.push_back(model);
 		vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 		vector<Mesh> meshes = vector<Mesh>();
 		string directory = "";
-		ModelLoader::loadModel(paths[i], directory, &meshes, textures_loaded);
-		std::cout << "TAMANHO EM BAIXO" << std::endl;
-		std::cout << meshes.size() << std::endl;
+		
 		std::string fileName = filesystem::path{ paths[i] }.filename().string();
+		ModelLoader::loadModel(paths[i], directory, &meshes, textures_loaded, fileName);
+		/*
+
 		for (Mesh mesh : meshes) {
 			GameObject* modelMainMesh = new GameObject("mainMesh" + fileName);
 			Transform* transform = new Transform();
@@ -548,6 +534,7 @@ void drop_callback(GLFWwindow* window, int count, const char** paths)
 			//meshRenderer->mesh = mesh;
 			modelMainMesh->AddComponent(meshRenderer);
 		}
+		*/
 	}
 }
 
@@ -582,10 +569,11 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
 		int size = gameObjects.size();
 		for (int i = size; i < size + 1; i++) {
-			GameObject* d = new GameObject(std::to_string(gameObjects.size()));
-			d->AddComponent(new Transform());
-			d->GetComponent<Transform>()->position = glm::vec3(size + i + i + i, 0, 0);
+			GameObject* d = new GameObject(std::to_string(gameObjects.size()), gameObjects.back());
+			//d->AddComponent(new Transform());
 
+			d->GetComponent<Transform>()->relativePosition = glm::vec3(size + i + i + i, 0, 0);
+			Gui::Gizmo::UpdateChildrenTransform(d->parent);
 			std::vector<unsigned int> indices = {
 				0, 1, 2,  // Front face
 				2, 1, 3,  // Front face
@@ -638,7 +626,7 @@ void processInput(GLFWwindow* window)
 			Mesh* testingMesh = new Mesh(vertices, indices, std::vector<Texture>());
 			MeshRenderer* meshRenderer = new MeshRenderer(*testingMesh);
 			meshRenderer->mesh = *testingMesh;
-			d->AddComponent(meshRenderer);
+			d->AddComponent<MeshRenderer>(meshRenderer);
 		}
 	}
 
@@ -666,6 +654,9 @@ void processInput(GLFWwindow* window)
 		appSizes.sceneSize += 1;
 	if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
 		appSizes.sceneSize -= 1;
+
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+		gameObjects.back()->transform->position.x += 1;
 
 	//if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
 	//	activeCamera.ProcessMouseMovement(0, 0, 0);

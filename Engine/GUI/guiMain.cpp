@@ -14,7 +14,7 @@
 #include <fileSystem/fileSystem.h>
 #include "guiMain.h"
 #include "Engine/Application/Application.h"
-#include "Engine/Components/GameObject.h"
+#include "Engine/Components/Core/GameObject.h"
 #include "Engine/GUI/Hierarchy.h"
 #include "Engine/GUI/Inspector.h"
 #include "Engine/GUI/gizmo.h"
@@ -80,6 +80,10 @@ inline void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAp
 			ImGui::Image(ImTextureID(gameFrameBuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 			// Show the gizmo if there's a selected gameObject
 			if (selectedGameObject) {
+				//std::cout << selectedGameObject->GetComponent<Transform>(). << std::endl;
+			}
+
+			if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr) {
 				Gui::Gizmo gizmo(selectedGameObject, camera, appSizes);
 			}
 		}
@@ -109,18 +113,15 @@ void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastA
 			ImGui::SetWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y), ImGuiCond_Always);
 			ImGui::SetWindowPos(ImVec2(0, 0));
 		}
-
 		// Create the main collapser
-		if (ImGui::TreeNode("Scene Objects")) {
-
+		Gui::Hierarchy::Item(gameObjects.front(), selectedGameObject);
+		/*
 			// For each GameObject, create a new collapser
 			for (GameObject* gameObject : gameObjects)
 			{
 				Gui::Hierarchy::Item(gameObject, selectedGameObject);
 			}
-
-			ImGui::TreePop(); // End TreeNode Scene Objects
-		}
+			*/
 	}
 	curHierarchySize = ImGui::glmVec2(ImGui::GetWindowSize());
 	ImGui::End(); // End hierarchy

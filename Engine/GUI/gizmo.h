@@ -29,31 +29,44 @@ namespace Gui {
 
 
 			// Entity transform
-
+			UpdateChildrenTransform(gameObject->parent);
 			glm::mat4 gizmoTransform = glm::mat4(1.0f);
-			gizmoTransform = glm::scale(gizmoTransform, tc.scale);
-			gizmoTransform = glm::translate(gizmoTransform, tc.position);
+			gizmoTransform = glm::scale(gizmoTransform, tc.scale * gameObject->parent->transform->scale);
+			gizmoTransform = glm::translate(gizmoTransform, tc.worldPosition);
 			gizmoTransform = glm::rotate(gizmoTransform, glm::radians(tc.rotation.z), glm::vec3(0, 0, 1)); // Rotate around the Z-axis
 			gizmoTransform = glm::rotate(gizmoTransform, glm::radians(tc.rotation.y), glm::vec3(0, 1, 0)); // Rotate around the Y-axis
 			gizmoTransform = glm::rotate(gizmoTransform, glm::radians(tc.rotation.x), glm::vec3(1, 0, 0)); // Rotate around the X-axis
-
+			UpdateChildrenTransform(gameObject->parent);
 
 			//ImGuizmo::RecomposeMatrixFromComponents
-			glm::mat4 transform = tc.GetTransform();
+			glm::mat4 transform = tc.GetTransform(gameObject->transform->worldPosition);
 			ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(transform));
+			UpdateChildrenTransform(gameObject->parent);
 			if (ImGuizmo::IsUsing())
 			{
+				UpdateChildrenTransform(gameObject->parent);
 				glm::vec3 position, rotation, scale;
 				DecomposeTransform(transform, position, rotation, scale);
 
 				glm::vec3 deltaRotation = rotation - tc.rotation;
-				tc.position = position;
-				std::cout << (rotation - tc.rotation).x << std::endl;
+				tc.relativePosition = position;
+				//tc.relativePosition = tc.position;
+				UpdateChildrenTransform(gameObject->parent);
+				//std::cout << (rotation - tc.rotation).x << std::endl;
 				//tc.rotation = rotation - tc.rotation;
 				//tc.scale = scale;
 			}
 		}
+
+		static void UpdateChildrenTransform(GameObject* gameObject) {
+			for (GameObject* child : gameObject->children) {
+				child->transform->worldPosition = child->transform->relativePosition + child->parent->transform->worldPosition;
+				UpdateChildrenTransform(child);
+			}
+		}
 	private:
+
+
 
 		bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
 		{

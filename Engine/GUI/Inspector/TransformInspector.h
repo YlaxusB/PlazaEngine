@@ -1,14 +1,15 @@
 #pragma once
 #include "Engine/GUI/Inspector.h"
-
+#include "Engine/GUI/gizmo.h"
 namespace Gui {
 	class TransformInspector {
 	public:
 		TransformInspector(GameObject* gameObject) {
 			if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-				glm::vec3& currentPosition = gameObject->GetComponent<Transform>()->position;
+				glm::vec3& currentPosition = gameObject->GetComponent<Transform>()->relativePosition;
 				glm::vec3& currentRotation = gameObject->GetComponent<Transform>()->rotation;
 				glm::vec3& currentScale = gameObject->GetComponent<Transform>()->scale;
+				Gui::Gizmo::UpdateChildrenTransform(gameObject->parent);
 				ImGui::Text("Position: ");
 
 				ImGui::SameLine();

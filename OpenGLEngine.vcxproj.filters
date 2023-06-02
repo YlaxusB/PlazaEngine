@@ -39,7 +39,7 @@
     <ClCompile Include="Engine\stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Components\GameObject.cpp">
+    <ClCompile Include="Engine\Components\Core\GameObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Engine\GUI\guiMain.cpp">
@@ -104,16 +104,16 @@
     <ClInclude Include="Engine\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Components\Camera.h">
+    <ClInclude Include="Engine\Components\Core\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Components\GameObject.h">
+    <ClInclude Include="Engine\Components\Core\GameObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Components\Mesh.h">
+    <ClInclude Include="Engine\Components\Core\Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Components\Model.h">
+    <ClInclude Include="Engine\Components\Core\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\GUI\guiMain.h">
@@ -162,6 +162,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Application\PickingTexture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Components\Core\Transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Components\Core\Component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

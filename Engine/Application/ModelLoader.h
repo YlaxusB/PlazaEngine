@@ -8,9 +8,9 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "Engine/Components/Mesh.h"
+#include "Engine/Components/Core/Mesh.h"
 #include "Engine/Shaders/Shader.h"
-#include "Engine/Components/Model.h"
+#include "Engine/Components/Core/Model.h"
 
 #include <string>
 #include <fstream>
@@ -25,8 +25,8 @@ using namespace std;
 namespace ModelLoader
 {
     vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture> textures_loaded, string* directory);
-    void processNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture> textures_loaded, string* directory);
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene, vector<Texture> textures_loaded, string* directory);
+    void processNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture> textures_loaded, string* directory, GameObject* modelMainObject);
+    Mesh processMesh(aiMesh* mesh, const aiScene* scene, vector<Texture> textures_loaded, string* directory, aiNode* node);
 
 	bool checkFlippedTextures(const std::string& modelPath) {
 		Assimp::Importer importer;
@@ -49,7 +49,7 @@ namespace ModelLoader
 
 
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-    void loadModel(string const& path, string directory, vector<Mesh> *meshes, vector<Texture> textures_loaded)
+    void loadModel(string const& path, string directory, vector<Mesh> *meshes, vector<Texture> textures_loaded, std::string modelName)
     {
         // read file via ASSIMP
         Assimp::Importer importer;
@@ -64,28 +64,48 @@ namespace ModelLoader
         directory = path.substr(0, path.find_last_of('/'));
 
         // process ASSIMP's root node recursively
-        processNode(scene->mRootNode, scene, *meshes, textures_loaded, &directory);
+        GameObject* modelMainObject = new GameObject(modelName, sceneObject);
+        //modelMainObject->AddComponent(new Transform());
+        processNode(scene->mRootNode, scene, *meshes, textures_loaded, &directory, modelMainObject);
     }
 
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
-    void processNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture> textures_loaded, string* directory)
+    void processNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture> textures_loaded, string* directory, GameObject* modelMainObject)
     {
-        // process each mesh located at the current node
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
         {
-            // the node object only contains indices to index the actual objects in the scene. 
-            // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
+            // Get the assimp mesh of the current node
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-            meshes.push_back(processMesh(mesh, scene, textures_loaded, directory));
+            // Convert it to my own mesh
+            Mesh nodeMesh = processMesh(mesh, scene, textures_loaded, directory, node);
+            std::string childName = std::string(node->mName.C_Str());
+            // Get the position of the mesh
+            aiMatrix4x4 transformationMatrix = node->mTransformation;
+            glm::vec3 position;
+            position.x = transformationMatrix.a4;
+            position.y = transformationMatrix.b4;
+            position.z = transformationMatrix.c4;
+            // Finds the parent Object, if its not found or there inst any, then it just assigns to the model main gameobject
+            std::string parentName = node->mParent->mName.C_Str();
+            std::cout << parentName << std::endl;
+            GameObject* parentObject = gameObjects.find(parentName);
+            if (parentName != "RootNode" || parentObject == nullptr) {
+                parentObject = modelMainObject;
+            }
+            else {
+                parentObject = sceneObject;
+            }
+            GameObject* childObject = new GameObject(childName, parentObject);
+            childObject->AddComponent<MeshRenderer>(new MeshRenderer(nodeMesh));
         }
         // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
         for (unsigned int i = 0; i < node->mNumChildren; i++)
         {
-            processNode(node->mChildren[i], scene, meshes, textures_loaded, directory);
+            processNode(node->mChildren[i], scene, meshes, textures_loaded, directory, modelMainObject);
         }
     }
 
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene, vector<Texture> textures_loaded, string* directory)
+    Mesh processMesh(aiMesh* mesh, const aiScene* scene, vector<Texture> textures_loaded, string* directory, aiNode* node)
     {
         // data to fill
         vector<Vertex> vertices;

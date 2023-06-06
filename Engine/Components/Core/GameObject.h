@@ -42,23 +42,8 @@ public:
 	std::string name = "";
 	int id;
 
+	GameObject(std::string objName, GameObject* parent = sceneObject);
 
-	GameObject(std::string objName, GameObject* parent = sceneObject) {
-		this->transform = this->AddComponent<Transform>(new Transform());
-		//transform->gameObject = this;
-		//this->AddComponent<Transform>(this->transform);
-		UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
-		name = objName;
-		id = gameObjects.size() > 0 ? gameObjects.back()->id + 1 : 1; // IT WILL PROBABLY BREAK IN THE NEAR FUTURE
-
-		// Set the new parent
-		this->parent = parent;
-		if (parent != nullptr) {
-			parent->children.push_back(this);
-		}
-		// Add to the gameobjects list
-		gameObjects.push_back(this);
-	}
 	std::list<Component*> components;
 	template<typename T>
 	T* AddComponent(T* component) {

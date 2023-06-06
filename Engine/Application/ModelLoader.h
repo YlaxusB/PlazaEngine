@@ -1,23 +1,23 @@
-#ifndef MODEL_LOADER_H
-#define MODEL_LOADER_H
-
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include "Engine/stb_image.h"
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include "Engine/Components/Core/Mesh.h"
-#include "Engine/Shaders/Shader.h"
-#include "Engine/Components/Core/Model.h"
-
+#pragma once
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <map>
 #include <vector>
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include "Engine/stb_image.h"
+
+#include "Engine/Components/Core/Mesh.h"
+#include "Engine/Shaders/Shader.h"
+#include "Engine/Components/Core/Model.h"
+#include "Engine/GUI/gizmo.h"
+
 using namespace std;
 
 //unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
@@ -27,6 +27,7 @@ namespace ModelLoader
     vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture> textures_loaded, string* directory);
     void processNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture> textures_loaded, string* directory, GameObject* modelMainObject);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene, vector<Texture> textures_loaded, string* directory, aiNode* node);
+    double modelScale = 0.01;
 
 	bool checkFlippedTextures(const std::string& modelPath) {
 		Assimp::Importer importer;
@@ -67,6 +68,7 @@ namespace ModelLoader
         GameObject* modelMainObject = new GameObject(modelName, sceneObject);
         //modelMainObject->AddComponent(new Transform());
         processNode(scene->mRootNode, scene, *meshes, textures_loaded, &directory, modelMainObject);
+        modelMainObject->transform->UpdateChildrenTransform();
     }
 
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
@@ -82,9 +84,9 @@ namespace ModelLoader
             // Get the position of the mesh
             aiMatrix4x4 transformationMatrix = node->mTransformation;
             glm::vec3 position;
-            position.x = transformationMatrix.a4;
-            position.y = transformationMatrix.b4;
-            position.z = transformationMatrix.c4;
+            position.x = transformationMatrix.a4 * modelScale;
+            position.y = transformationMatrix.b4 * modelScale;
+            position.z = transformationMatrix.c4 * modelScale;
             // Finds the parent Object, if its not found or there inst any, then it just assigns to the model main gameobject
             std::string parentName = node->mParent->mName.C_Str();
             std::cout << parentName << std::endl;
@@ -97,6 +99,7 @@ namespace ModelLoader
             }
             GameObject* childObject = new GameObject(childName, parentObject);
             childObject->AddComponent<MeshRenderer>(new MeshRenderer(nodeMesh));
+            childObject->transform->relativePosition = position;
         }
         // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
         for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -118,16 +121,16 @@ namespace ModelLoader
             Vertex* vertex = new Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
             glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
             // positions
-            vector.x = mesh->mVertices[i].x;
-            vector.y = mesh->mVertices[i].y;
-            vector.z = mesh->mVertices[i].z;
+            vector.x = mesh->mVertices[i].x * modelScale;
+            vector.y = mesh->mVertices[i].y * modelScale;
+            vector.z = mesh->mVertices[i].z * modelScale;
             vertex->position = vector;
             // normals
             if (mesh->HasNormals())
             {
-                vector.x = mesh->mNormals[i].x;
-                vector.y = mesh->mNormals[i].y;
-                vector.z = mesh->mNormals[i].z;
+                vector.x = mesh->mNormals[i].x * modelScale;
+                vector.y = mesh->mNormals[i].y * modelScale;
+                vector.z = mesh->mNormals[i].z * modelScale;
                 vertex->normal = vector;
             }
             // texture coordinates
@@ -140,14 +143,14 @@ namespace ModelLoader
                 vec.y = mesh->mTextureCoords[0][i].y;
                 vertex->texCoords = vec;
                 // tangent
-                vector.x = mesh->mTangents[i].x;
-                vector.y = mesh->mTangents[i].y;
-                vector.z = mesh->mTangents[i].z;
+                vector.x = mesh->mTangents[i].x * modelScale;
+                vector.y = mesh->mTangents[i].y * modelScale;
+                vector.z = mesh->mTangents[i].z * modelScale;
                 vertex->tangent = vector;
                 // bitangent
-                vector.x = mesh->mBitangents[i].x;
-                vector.y = mesh->mBitangents[i].y;
-                vector.z = mesh->mBitangents[i].z;
+                vector.x = mesh->mBitangents[i].x * modelScale;
+                vector.y = mesh->mBitangents[i].y * modelScale;
+                vector.z = mesh->mBitangents[i].z * modelScale;
                 vertex->bitangent = vector;
             }
             else
@@ -228,5 +231,3 @@ namespace ModelLoader
 	public:
 	};
 };
-
-#endif

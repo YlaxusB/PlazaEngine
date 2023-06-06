@@ -21,6 +21,7 @@ namespace Gui {
 				}
 
 
+
 				ImGui::Selectable(gameObject->name.c_str());
 				// Change the selected gameobject if user clicked on the selectable
 				if (ImGui::IsItemClicked(ImGuiMouseButton_Left))

@@ -6,10 +6,19 @@ namespace Gui {
 	public:
 		TransformInspector(GameObject* gameObject) {
 			if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+				glm::vec3 lastScale = gameObject->transform->scale;
+
 				glm::vec3& currentPosition = gameObject->GetComponent<Transform>()->relativePosition;
 				glm::vec3& currentRotation = gameObject->GetComponent<Transform>()->rotation;
 				glm::vec3& currentScale = gameObject->GetComponent<Transform>()->scale;
-				Gui::Gizmo::UpdateChildrenTransform(gameObject->parent);
+
+				if (currentScale.x != lastScale.x) {
+
+				}
+
+				gameObject->transform->UpdateChildrenTransform();
+				gameObject->transform->UpdateChildrenScale();
 				ImGui::Text("Position: ");
 
 				ImGui::SameLine();
@@ -54,6 +63,20 @@ namespace Gui {
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(75);
 				ImGui::InputFloat("Z", &currentScale.z);
+
+				ImGui::Text("World Position");
+				ImGui::Text(std::to_string(gameObject->transform->worldPosition.x).c_str());
+				ImGui::Text(std::to_string(gameObject->transform->worldPosition.y).c_str());
+				ImGui::Text(std::to_string(gameObject->transform->worldPosition.z).c_str());
+				ImGui::Text("World Position Scaled");
+				ImGui::Text(std::to_string(gameObject->transform->worldPosition.x * gameObject->transform->worldScale.x).c_str());
+				ImGui::Text(std::to_string(gameObject->transform->worldPosition.y * gameObject->transform->worldScale.y).c_str());
+				ImGui::Text(std::to_string(gameObject->transform->worldPosition.z * gameObject->transform->worldScale.z).c_str());
+				ImGui::Text("World Scale");
+				ImGui::Text(std::to_string(gameObject->transform->worldScale.x).c_str());
+				ImGui::Text(std::to_string(gameObject->transform->worldScale.y).c_str());
+				ImGui::Text(std::to_string(gameObject->transform->worldScale.z).c_str());
+
 				ImGui::PopID();
 				ImGui::TreePop();
 			}

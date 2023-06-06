@@ -7,5 +7,14 @@ uniform sampler2D texture_diffuse1;
 
 void main()
 {    
-    FragColor = texture(texture_diffuse1, TexCoords);
+
+    vec3 texDiffuseCol = texture2D(texture_diffuse1, TexCoords).rgb;
+    if(length(texDiffuseCol) == 0.0)
+    {
+         FragColor = vec4(0.8, 0.3, 0.3, 1);
+    } 
+    else
+    {
+        FragColor = texture(texture_diffuse1, TexCoords);
+    }
 }

@@ -87,7 +87,7 @@ void Render(Shader shader) {
 			model = glm::rotate(model, glm::radians(objectEulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
 			model = glm::rotate(model, glm::radians(objectEulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
 			model = glm::rotate(model, glm::radians(objectEulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
-			glm::vec3 objectScale = gameObject->GetComponent<Transform>()->scale;
+			glm::vec3 objectScale = gameObject->GetComponent<Transform>()->worldScale;
 			model = glm::scale(model, objectScale);	// it's a bit too big for our scene, so scale it down
 			shader.setMat4("model", model);
 			shader.setFloat("objectID", gameObject->id);
@@ -572,8 +572,8 @@ void processInput(GLFWwindow* window)
 			GameObject* d = new GameObject(std::to_string(gameObjects.size()), gameObjects.back());
 			//d->AddComponent(new Transform());
 
-			d->GetComponent<Transform>()->relativePosition = glm::vec3(size + i + i + i, 0, 0);
-			Gui::Gizmo::UpdateChildrenTransform(d->parent);
+			d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);
+			d->transform->UpdateChildrenTransform();
 			std::vector<unsigned int> indices = {
 				0, 1, 2,  // Front face
 				2, 1, 3,  // Front face

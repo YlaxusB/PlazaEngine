@@ -83,7 +83,7 @@ inline void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAp
 				//std::cout << selectedGameObject->GetComponent<Transform>(). << std::endl;
 			}
 
-			if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr) {
+			if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parent != nullptr) {
 				Gui::Gizmo gizmo(selectedGameObject, camera, appSizes);
 			}
 		}

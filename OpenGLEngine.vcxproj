@@ -138,6 +138,7 @@
     <ClCompile Include="Engine\Application\Application.cpp" />
     <ClCompile Include="Engine\Application\EditorCamera.cpp" />
     <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
+    <ClCompile Include="Engine\Components\Core\Transform.cpp" />
     <ClCompile Include="Engine\GUI\guiMain.cpp" />
     <ClCompile Include="Engine\stb_image.cpp" />
     <ClCompile Include="Engine\Vendor\imgui\imgui.cpp" />

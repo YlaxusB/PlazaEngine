@@ -83,12 +83,13 @@ void Render(Shader shader) {
 			glm::mat4 model = glm::mat4(1.0f);
 			//model = glm::translate(model, glm::vec3(gameObject->GetComponent<Transform>()->position) + gameObject->parent->GetComponent<Transform>()->position); // translate it down so it's at the center of the scene
 			model = glm::translate(model, glm::vec3(gameObject->transform->worldPosition));
+
+			glm::vec3 objectScale = gameObject->GetComponent<Transform>()->worldScale;
+			model = glm::scale(model, objectScale);	// it's a bit too big for our scene, so scale it down
 			glm::vec3 objectEulerAngles = gameObject->GetComponent<Transform>()->rotation;
 			model = glm::rotate(model, glm::radians(objectEulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
 			model = glm::rotate(model, glm::radians(objectEulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
 			model = glm::rotate(model, glm::radians(objectEulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
-			glm::vec3 objectScale = gameObject->GetComponent<Transform>()->worldScale;
-			model = glm::scale(model, objectScale);	// it's a bit too big for our scene, so scale it down
 			shader.setMat4("model", model);
 			shader.setFloat("objectID", gameObject->id);
 			meshRenderer->mesh.Draw(shader);
@@ -569,7 +570,7 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
 		int size = gameObjects.size();
 		for (int i = size; i < size + 1; i++) {
-			GameObject* d = new GameObject(std::to_string(gameObjects.size()), gameObjects.back());
+			GameObject* d = new GameObject(std::to_string(gameObjects.size()), gameObjects.front());
 			//d->AddComponent(new Transform());
 
 			d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);

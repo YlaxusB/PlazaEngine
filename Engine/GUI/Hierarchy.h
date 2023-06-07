@@ -9,6 +9,7 @@ namespace Gui {
 		public:
 			GameObject* gameObject;
 			GameObject*& selectedGameObject;
+			std::string payloadName;
 
 			Item(GameObject* gameObject, GameObject*& selectedGameObject) : gameObject(gameObject), selectedGameObject(selectedGameObject) {
 				// Push the gameObject id, to prevent it to collpases all the treenodes with same id
@@ -36,6 +37,25 @@ namespace Gui {
 					ImGui::TreePop();
 				}
 				ImGui::PopID();
+
+				if (gameObject) {
+					if (ImGui::BeginDragDropSource()) {
+						ImGui::SetDragDropPayload("MyPayload", &gameObject, sizeof(GameObject*));
+						ImGui::Text("Drag me!");
+						ImGui::EndDragDropSource();
+					}
+				}
+
+				if (ImGui::BeginDragDropTarget()) {
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MyPayload")) {
+						if (payload->DataSize == sizeof(GameObject*)) {  // Check the payload data size
+							GameObject* payloadObj = *static_cast<GameObject**>(payload->Data);  // Dereference the pointer							
+							//std::cout << gameObjects. << std::endl;
+							// Handle the dropped data here
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
 			}
 		};
 

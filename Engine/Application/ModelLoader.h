@@ -114,6 +114,8 @@ namespace ModelLoader
         vector<Vertex> vertices;
         vector<unsigned int> indices;
         vector<Texture> textures;
+        aiColor3D color(0.f, 0.f, 0.f);
+        scene->mMaterials[mesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, color);
 
         // walk through each of the mesh's vertices
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -201,6 +203,9 @@ namespace ModelLoader
         {
             aiString str;
             mat->GetTexture(type, i, &str);
+            std::cout << "AQUI" << std::endl;
+            std::cout << str.C_Str() << std::endl;
+            std::cout << directory->c_str() << std::endl;
             // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
             bool skip = false;
             for (unsigned int j = 0; j < textures_loaded.size(); j++)

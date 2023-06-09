@@ -23,7 +23,7 @@
 class Transform;
 class GameObject;
 
-class GameObjectList : public std::list<GameObject*> {
+class GameObjectList : public std::vector<GameObject*> {
 public:
 	void push_back(GameObject* obj);
 	GameObject* find(std::string findName);
@@ -36,7 +36,7 @@ extern GameObject* sceneObject;
 
 class GameObject {
 public:
-	std::list<GameObject*> children;
+	std::vector<GameObject*> children;
 	GameObject* parent = nullptr;
 	Transform* transform = nullptr;// = new Transform();
 	std::string name = "";

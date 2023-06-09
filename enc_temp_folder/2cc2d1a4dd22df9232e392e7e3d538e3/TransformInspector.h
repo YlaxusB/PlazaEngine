@@ -129,7 +129,7 @@ namespace Gui {
 				// Move the object
 				localPoint = moveTowards(gameObject->parent->transform->worldPosition, gameObject->parent->transform->worldRotation, gameObject->transform->relativePosition);//gameObject->parent->transform->worldPosition + displacement;
 
-				glm::vec3 radiansRotation = glm::radians(gameObject->parent->transform->worldRotation);
+				glm::vec3 radiansRotation = glm::radians(gameObject->transform->worldRotation);
 				glm::mat4 rotationMatrix = glm::mat4(1.0f);
 				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));

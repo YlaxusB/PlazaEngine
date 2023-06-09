@@ -85,7 +85,7 @@ glm::vec3 TransformToLocalSpace(const glm::vec3& worldPosition,
 }
 
 glm::vec3 test(GameObject* child) {
-	glm::vec3 radiansRotation = glm::radians(child->parent->transform->worldRotation);
+	glm::vec3 radiansRotation = glm::radians(child->transform->worldRotation);
 	glm::mat4 rotationMatrix = glm::mat4(1.0f);
 	rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 	rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));

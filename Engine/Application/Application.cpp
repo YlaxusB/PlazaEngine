@@ -82,14 +82,31 @@ void Render(Shader shader) {
 			shader.setMat4("view", view);
 			glm::mat4 model = glm::mat4(1.0f);
 			//model = glm::translate(model, glm::vec3(gameObject->GetComponent<Transform>()->position) + gameObject->parent->GetComponent<Transform>()->position); // translate it down so it's at the center of the scene
+			glm::vec3 worldRotation = gameObject->transform->worldRotation;
+			glm::vec3 rotation = gameObject->transform->rotation;
+
 			model = glm::translate(model, glm::vec3(gameObject->transform->worldPosition));
 
-			glm::vec3 objectScale = gameObject->GetComponent<Transform>()->worldScale;
+			
+			model = glm::rotate(model, glm::radians(worldRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, glm::radians(worldRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::rotate(model, glm::radians(worldRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+			
+			/*
+			model = glm::rotate(model, glm::radians(worldRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
+			model = glm::rotate(model, glm::radians(worldRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
+			model = glm::rotate(model, glm::radians(worldRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
+			*/
+
+
+
+
+
+
+			glm::vec3 objectScale = gameObject->transform->worldScale;
+
+
 			model = glm::scale(model, objectScale);	// it's a bit too big for our scene, so scale it down
-			glm::vec3 objectEulerAngles = gameObject->GetComponent<Transform>()->rotation;
-			model = glm::rotate(model, glm::radians(objectEulerAngles.z), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
-			model = glm::rotate(model, glm::radians(objectEulerAngles.y), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
-			model = glm::rotate(model, glm::radians(objectEulerAngles.x), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
 			shader.setMat4("model", model);
 			shader.setFloat("objectID", gameObject->id);
 			meshRenderer->mesh.Draw(shader);
@@ -223,15 +240,31 @@ int main()
 #ifdef __APPLE__
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-	GLFWwindow* window = glfwCreateWindow(appSizes.appSize.x, appSizes.appSize.y, "LearnOpenGL", NULL, NULL);
 
+	int count;
+	GLFWmonitor** monitors = glfwGetMonitors(&count);
+
+	GLFWmonitor* secondMonitor = monitors[1];
+	const GLFWvidmode* videoMode = glfwGetVideoMode(secondMonitor);
+
+
+	GLFWwindow* window = glfwCreateWindow(appSizes.appSize.x, appSizes.appSize.y, "OpenGLEngine", secondMonitor, NULL);
+
+	glfwMakeContextCurrent(window);
+
+
+
+	glfwSetWindowMonitor(window, nullptr, 1, 10, appSizes.appSize.x, appSizes.appSize.y, GLFW_DONT_CARE);
+	glfwSetWindowPos(window, -2560, 0);
+
+	glfwMaximizeWindow(window);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
-	glfwMakeContextCurrent(window);
+
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
@@ -571,6 +604,7 @@ void processInput(GLFWwindow* window)
 		int size = gameObjects.size();
 		for (int i = size; i < size + 1; i++) {
 			GameObject* d = new GameObject(std::to_string(gameObjects.size()), gameObjects.front());
+			std::cout << d->parent << std::endl;
 			//d->AddComponent(new Transform());
 
 			d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);

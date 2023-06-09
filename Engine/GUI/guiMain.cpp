@@ -18,6 +18,7 @@
 #include "Engine/GUI/Hierarchy.h"
 #include "Engine/GUI/Inspector.h"
 #include "Engine/GUI/gizmo.h"
+#include "Engine/GUI/TransformOverlay.h"
 //
 
 GameObject* selectedGameObject;
@@ -25,7 +26,9 @@ GameObject* selectedGameObject;
 void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera);
 void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes);
 void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera);
+//void beginOverlay(AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera);
 void updateSizes(AppSizes appSizes);
+
 
 glm::vec2 curHierarchySize;
 glm::vec2 curSceneSize;
@@ -47,6 +50,7 @@ void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appS
 		beginScene(gameFrameBuffer, appSizes, lastAppSizes, camera);
 		beginHierarchyView(gameFrameBuffer, appSizes, lastAppSizes);
 		beginInspector(gameFrameBuffer, appSizes, lastAppSizes, camera);
+		Gui::Overlay().beginTransformOverlay(appSizes, lastAppSizes, camera);
 	}
 	appSizes.sceneSize = glm::vec2(appSizes.appSize.x - appSizes.hierarchySize.x - appSizes.inspectorSize.x, appSizes.sceneSize.y);
 	curSceneSize = ImGui::glmVec2(ImGui::GetWindowSize());
@@ -122,6 +126,7 @@ void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastA
 				Gui::Hierarchy::Item(gameObject, selectedGameObject);
 			}
 			*/
+		//if(gameObjects.size() > 10)std::cout << currentObj->children[5]->name << std::endl;
 	}
 	curHierarchySize = ImGui::glmVec2(ImGui::GetWindowSize());
 	ImGui::End(); // End hierarchy

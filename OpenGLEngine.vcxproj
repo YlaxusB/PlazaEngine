@@ -140,6 +140,7 @@
     <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
     <ClCompile Include="Engine\Components\Core\Transform.cpp" />
     <ClCompile Include="Engine\GUI\guiMain.cpp" />
+    <ClCompile Include="Engine\GUI\TransformOverlay.cpp" />
     <ClCompile Include="Engine\stb_image.cpp" />
     <ClCompile Include="Engine\Vendor\imgui\imgui.cpp" />
     <ClCompile Include="Engine\Vendor\imgui\ImGuizmo.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="Engine\GUI\Hierarchy.h" />
     <ClInclude Include="Engine\GUI\Inspector.h" />
     <ClInclude Include="Engine\GUI\Inspector\TransformInspector.h" />
+    <ClInclude Include="Engine\GUI\TransformOverlay.h" />
     <ClInclude Include="Engine\Shaders\Shader.h" />
     <ClInclude Include="Engine\stb_image.h" />
     <ClInclude Include="Engine\Utils\glmUtils.h" />

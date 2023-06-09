@@ -6,56 +6,69 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include "Engine/GUI/TransformOverlay.h"
+
 //bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
 
 namespace Gui {
 	class Gizmo {
 	public:
 		Gizmo(GameObject* gameObject, Camera camera, AppSizes appSizes) {
+			// Setup imguizmo
 			ImGuizmo::SetOrthographic(false);
 			ImGuizmo::SetDrawlist();
 			ImVec2 windowSize = ImGui::GetWindowSize();
 			ImVec2 windowPos = ImGui::GetWindowPos();
 			ImGuizmo::SetRect(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
-			//ImGuizmo::SetRect(appSizes.hierarchySize.x, 0, appSizes.appSize.x, appSizes.appSize.y);
-			// Create a view and projection matrix for the camera.
-			//glm::mat4 projection = glm::mat4(1.0f);//glm::perspective(glm::radians(camera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 100.0f);
-			//glm::mat4 view = camera.GetViewMatrix();
-			auto& tc = *gameObject->GetComponent<Transform>();
+
+			// Get the object transform and camera matrices
+			auto& transform = *gameObject->GetComponent<Transform>();
 			glm::mat4 projection = camera.GetProjectionMatrix();//glm::perspective(glm::radians(camera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.1f, farplane);
 			glm::mat4 view = camera.GetViewMatrix();
-			// Create a matrix that represents the current state of the object.
-			//glm::mat4& objectMatrix = gameObject->GetComponent<Transform>()->GetTransform();//glm::translate(objectMatrix, glm::vec3(0, 0, 0));
+			glm::mat4 gizmoTransform = transform.GetTransform(gameObject->transform->worldPosition);
+
+			ImGuizmo::OPERATION activeOperation = Gui::Overlay::activeOperation; // Operation is translate, rotate, scale
+			ImGuizmo::MODE activeMode = Gui::Overlay::activeMode; // Mode is world or local
+
+			ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), activeOperation, activeMode, glm::value_ptr(gizmoTransform));
 
 
-			// Entity transform
-			//UpdateChildrenTransform(gameObject);
-			glm::mat4 gizmoTransform = glm::mat4(1.0f);
-			gizmoTransform = glm::scale(gizmoTransform, tc.worldScale);
-			gizmoTransform = glm::translate(gizmoTransform, tc.worldPosition * gameObject->transform->worldScale);
-			gizmoTransform = glm::rotate(gizmoTransform, glm::radians(tc.rotation.z), glm::vec3(0, 0, 1)); // Rotate around the Z-axis
-			gizmoTransform = glm::rotate(gizmoTransform, glm::radians(tc.rotation.y), glm::vec3(0, 1, 0)); // Rotate around the Y-axis
-			gizmoTransform = glm::rotate(gizmoTransform, glm::radians(tc.rotation.x), glm::vec3(1, 0, 0)); // Rotate around the X-axis
-			//UpdateChildrenTransform(gameObject);
-
-			//ImGuizmo::RecomposeMatrixFromComponents
-			glm::mat4 transform = tc.GetTransform(gameObject->transform->worldPosition);
-			//glm::mat4 transform = tc.GetTransform(glm::vec3(0));
-			ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), ImGuizmo::TRANSLATE, ImGuizmo::LOCAL, glm::value_ptr(transform));
-			//UpdateChildrenTransform(gameObject);
 			if (ImGuizmo::IsUsing())
 			{
-				//UpdateChildrenTransform(gameObject);
 				glm::vec3 position, rotation, scale;
-				DecomposeTransform(transform, position, rotation, scale);
-				glm::vec3 deltaRotation = rotation - tc.rotation;
-				tc.worldPosition = position;
-				tc.relativePosition = (tc.worldPosition  - gameObject->parent->transform->worldPosition) / gameObject->parent->transform->worldScale;
-				//tc.relativePosition = tc.position;
-				gameObject->transform->UpdateChildrenTransform();
-				//std::cout << (rotation - tc.rotation).x << std::endl;
-				//tc.rotation = rotation - tc.rotation;
-				//tc.scale = scale;
+				DecomposeTransform(gizmoTransform, position, rotation, scale); // The rotation is radians
+
+				glm::vec3 radiansRotation = glm::radians(gameObject->parent->transform->worldRotation);
+				glm::vec3 radiansRotation2 = glm::radians(gameObject->transform->worldRotation);
+				glm::mat4 rotationMatrix = glm::mat4(1.0f);
+				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+				glm::vec3 localPoint = glm::vec3(glm::inverse(rotationMatrix) * glm::vec4(position, 1.0f));
+				//rotationMatrix = glm::rotate(rotationMatrix, radiansRotation2.y, glm::vec3(0.0f, 1.0f, 0.0f));
+				//rotationMatrix = glm::rotate(rotationMatrix, radiansRotation2.x, glm::vec3(1.0f, 0.0f, 0.0f));
+				//rotationMatrix = glm::rotate(rotationMatrix, radiansRotation2.z, glm::vec3(0.0f, 0.0f, 1.0f));
+				//transform.worldPosition = position;
+				transform.relativePosition = localPoint;
+				//transform.relativePosition = localPoint;
+
+				radiansRotation = glm::radians(gameObject->transform->worldRotation);
+				rotationMatrix = glm::mat4(1.0f);
+				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+
+				glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(localPoint, 1.0f));
+				glm::vec3 finalWorldPoint = transformedPoint + gameObject->parent->transform->worldPosition;
+				//transform.worldPosition = finalWorldPoint;
+
+				//transform.relativePosition = (transform.worldPosition - gameObject->parent->transform->worldPosition) / gameObject->parent->transform->worldScale;
+
+				glm::vec3 deltaRotation = glm::degrees(rotation) - transform.rotation;
+				transform.rotation += deltaRotation;
+				transform.scale = scale;
+
+				gameObject->parent->transform->UpdateChildrenTransform();
 			}
 		}
 	private:

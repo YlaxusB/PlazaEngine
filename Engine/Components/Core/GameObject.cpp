@@ -22,7 +22,7 @@ GameObject::GameObject(std::string objName, GameObject* parent) {
 
 void GameObjectList::push_back(GameObject* obj) {
 	gameObjectsMap.emplace(obj->name, obj);
-	std::list<GameObject*>::push_back(obj);
+	std::vector<GameObject*>::push_back(obj);
 }
 GameObject* GameObjectList::find(std::string findName) {;
 	auto it = gameObjectsMap.find(findName);
@@ -30,8 +30,6 @@ GameObject* GameObjectList::find(std::string findName) {;
 		GameObject* obj = it->second;
 		return obj;
 	}
-	std::cout << "e" << std::endl;
-
 	return nullptr;
 }
 

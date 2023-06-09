@@ -16,6 +16,7 @@ public:
 	glm::vec3 worldPosition = { 0, 0, 0 };
 	glm::vec3 relativePosition = { 0, 0, 0 };
 	glm::vec3 rotation = { 0,0,0 };
+	glm::vec3 worldRotation = { 0, 0, 0 };
 	glm::vec3 scale = { 1,1,1, };
 	glm::vec3 worldScale = {1, 1, 1};
 

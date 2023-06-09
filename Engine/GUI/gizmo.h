@@ -38,34 +38,33 @@ namespace Gui {
 				glm::vec3 position, rotation, scale;
 				DecomposeTransform(gizmoTransform, position, rotation, scale); // The rotation is radians
 
+				glm::vec3 deltaRotation = glm::degrees(rotation) - gameObject->transform->worldRotation;
+				transform.rotation = glm::degrees(rotation) - gameObject->parent->transform->worldRotation;//deltaRotation;
+
+				glm::vec3 worldPosition;  // The world position you want to transform to local space
+
+				// Calculate the relative position by subtracting the parent's world position
+				glm::vec3 relativePosition = position - gameObject->parent->transform->worldPosition;
+
+				// Calculate the inverse rotation matrix based on the euler angles
 				glm::vec3 radiansRotation = glm::radians(gameObject->parent->transform->worldRotation);
-				glm::vec3 radiansRotation2 = glm::radians(gameObject->transform->worldRotation);
 				glm::mat4 rotationMatrix = glm::mat4(1.0f);
-				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-				glm::vec3 localPoint = glm::vec3(glm::inverse(rotationMatrix) * glm::vec4(position, 1.0f));
-				//rotationMatrix = glm::rotate(rotationMatrix, radiansRotation2.y, glm::vec3(0.0f, 1.0f, 0.0f));
-				//rotationMatrix = glm::rotate(rotationMatrix, radiansRotation2.x, glm::vec3(1.0f, 0.0f, 0.0f));
-				//rotationMatrix = glm::rotate(rotationMatrix, radiansRotation2.z, glm::vec3(0.0f, 0.0f, 1.0f));
-				//transform.worldPosition = position;
+				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+
+				// Transform the relative position using the inverse rotation matrix
+				glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(relativePosition, 1.0f));
+
+				// The resulting transformedPoint is the position in local space
+				glm::vec3 localPoint = transformedPoint;
+
+
 				transform.relativePosition = localPoint;
-				//transform.relativePosition = localPoint;
-
-				radiansRotation = glm::radians(gameObject->transform->worldRotation);
-				rotationMatrix = glm::mat4(1.0f);
-				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-
-				glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(localPoint, 1.0f));
-				glm::vec3 finalWorldPoint = transformedPoint + gameObject->parent->transform->worldPosition;
-				//transform.worldPosition = finalWorldPoint;
 
 				//transform.relativePosition = (transform.worldPosition - gameObject->parent->transform->worldPosition) / gameObject->parent->transform->worldScale;
 
-				glm::vec3 deltaRotation = glm::degrees(rotation) - transform.rotation;
-				transform.rotation += deltaRotation;
+
 				transform.scale = scale;
 
 				gameObject->parent->transform->UpdateChildrenTransform();

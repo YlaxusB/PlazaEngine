@@ -4,7 +4,7 @@
 namespace Gui {
 	class TransformInspector {
 	public:
-		glm::vec3 moveTowards(const glm::vec3& position, const glm::vec3& eulerRotation, glm::vec3& targetPosition) {
+		glm::vec3 moveTowards(const glm::vec3 position, const glm::vec3 eulerRotation, glm::vec3& targetPosition) {
 			// Convert Euler angles rotation to radians
 			float yaw = glm::radians(eulerRotation.y);
 

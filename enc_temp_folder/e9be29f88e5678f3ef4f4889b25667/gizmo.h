@@ -39,11 +39,9 @@ namespace Gui {
 				DecomposeTransform(gizmoTransform, position, rotation, scale); // The rotation is radians
 
 
-
 				glm::vec3 deltaRotation = rotation - transform.rotation;
-
 				transform.rotation += deltaRotation; //- gameObject->parent->transform->worldRotation;//deltaRotation;
-				glm::quat asd = glm::quat(glm::vec3(1.0f, 1.0f, 1.0f));
+
 				glm::vec3 worldPosition;  // The world position you want to transform to local space
 
 				// Calculate the relative position by subtracting the parent's world position

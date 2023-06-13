@@ -88,9 +88,9 @@ void Render(Shader shader) {
 			model = glm::translate(model, glm::vec3(gameObject->transform->worldPosition));
 
 			
-			model = glm::rotate(model, glm::radians(worldRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-			model = glm::rotate(model, glm::radians(worldRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-			model = glm::rotate(model, glm::radians(worldRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::rotate(model, worldRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::rotate(model, worldRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+			model = glm::rotate(model, worldRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 			
 			/*
 			model = glm::rotate(model, glm::radians(worldRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis

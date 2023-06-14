@@ -47,7 +47,10 @@ namespace IMGUIZMO_NAMESPACE
     static const float ZPI = 3.14159265358979323846f;
     static const float RAD2DEG = (180.f / ZPI);
     static const float DEG2RAD = (ZPI / 180.f);
-    const float screenRotateSize = 0.06f;
+
+    static float gGizmoSizeClipSpace = 0.15f;
+    const float screenRotateSize = 0.04f;
+
     // scale a bit so translate axis do not touch when in universal
     const float rotationDisplayFactor = 1.2f;
 
@@ -1222,10 +1225,10 @@ namespace IMGUIZMO_NAMESPACE
         vec_t perpendicularVector;
         perpendicularVector.Cross(gContext.mRotationVectorSource, gContext.mTranslationPlan);
         perpendicularVector.Normalize();
-        float acosAngle = Clamp(Dot(localPos, gContext.mRotationVectorSource), -1.f, 1.f);
+        float acosAngle = Clamp(Dot(localPos, gContext.mRotationVectorSource), -0.9999f, 0.9999f);
         float angle = acosf(acosAngle);
         angle *= (Dot(localPos, perpendicularVector) < 0.f) ? 1.f : -1.f;
-        return angle;
+        return  angle;
     }
 
     static void DrawRotationGizmo(OPERATION op, int type)
@@ -1256,6 +1259,9 @@ namespace IMGUIZMO_NAMESPACE
 
         gContext.mRadiusSquareCenter = screenRotateSize * gContext.mHeight;
 
+        constexpr float circleLineThickness = 6.0f;
+        constexpr float lineThickness = 6.0f;
+
         bool hasRSC = Intersects(op, ROTATE_SCREEN);
         for (int axis = 0; axis < 3; axis++)
         {
@@ -1268,7 +1274,7 @@ namespace IMGUIZMO_NAMESPACE
 
             ImVec2* circlePos = (ImVec2*)alloca(sizeof(ImVec2) * (circleMul * halfCircleSegmentCount + 1));
 
-            float angleStart = atan2f(cameraToModelNormalized[(4 - axis) % 3], cameraToModelNormalized[(3 - axis) % 3]) + ZPI * 0.5f;
+            float angleStart = atan2f(cameraToModelNormalized[(4 - axis) % 3], cameraToModelNormalized[(3 - axis) % 3]) + ZPI * 0.5f + 0.25f;
 
             for (int i = 0; i < circleMul * halfCircleSegmentCount + 1; i++)
             {
@@ -2402,7 +2408,7 @@ namespace IMGUIZMO_NAMESPACE
 
             if (applyRotationLocaly)
             {
-                *(matrix_t*)matrix = scaleOrigin * deltaRotation * gContext.mModelLocal;
+                //*(matrix_t*)matrix = scaleOrigin * deltaRotation * gContext.mModelLocal;
             }
             else
             {
@@ -2438,9 +2444,9 @@ namespace IMGUIZMO_NAMESPACE
 
         mat.OrthoNormalize();
 
-        rotation[0] = RAD2DEG * atan2f(mat.m[1][2], mat.m[2][2]);
-        rotation[1] = RAD2DEG * atan2f(-mat.m[0][2], sqrtf(mat.m[1][2] * mat.m[1][2] + mat.m[2][2] * mat.m[2][2]));
-        rotation[2] = RAD2DEG * atan2f(mat.m[0][1], mat.m[0][0]);
+        //rotation[0] = RAD2DEG * atan2f(mat.m[1][2], mat.m[2][2]);
+        //rotation[1] = RAD2DEG * atan2f(-mat.m[0][2], sqrtf(mat.m[1][2] * mat.m[1][2] + mat.m[2][2] * mat.m[2][2]));
+        //rotation[2] = RAD2DEG * atan2f(mat.m[0][1], mat.m[0][0]);
 
         translation[0] = mat.v.position.x;
         translation[1] = mat.v.position.y;

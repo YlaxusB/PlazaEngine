@@ -5,6 +5,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <float.h>
+#include <glm/gtx/euler_angles.hpp>
 
 #include "Engine/GUI/TransformOverlay.h"
 
@@ -15,7 +17,7 @@ namespace Gui {
 	public:
 		Gizmo(GameObject* gameObject, Camera camera, AppSizes appSizes) {
 			// Setup imguizmo
-			ImGuizmo::SetOrthographic(true);
+			ImGuizmo::SetOrthographic(false);
 			ImGuizmo::SetDrawlist();
 			ImVec2 windowSize = ImGui::GetWindowSize();
 			ImVec2 windowPos = ImGui::GetWindowPos();
@@ -30,27 +32,41 @@ namespace Gui {
 			ImGuizmo::OPERATION activeOperation = Gui::Overlay::activeOperation; // Operation is translate, rotate, scale
 			ImGuizmo::MODE activeMode = Gui::Overlay::activeMode; // Mode is world or local
 
-			ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), activeOperation, activeMode, glm::value_ptr(gizmoTransform), nullptr);
-
+			ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), activeOperation, activeMode, glm::value_ptr(gizmoTransform));
 
 			if (ImGuizmo::IsUsing())
 			{
-				glm::vec3 position, rotation, scale;
-				DecomposeTransform(gizmoTransform, position, rotation, scale); // The rotation is radians
+				glm::vec3 position, rot, scale;
+				DecomposeTransform(gizmoTransform, position, rot, scale); // The rotation is radians
+				std::cout << "x";
+				std::cout << rot.x;
+				std::cout << "y";
+				std::cout << rot.y;
+				std::cout << "z";
+				std::cout << rot.z << std::endl;
+				/*
+				ImGuizmo::DecomposeMatrixToComponents(
+					glm::value_ptr(gizmoTransform), // Pass the pointer to the matrix data
+					glm::value_ptr(position),      // Output translation
+					glm::value_ptr(rot),         // Output rotation
+					glm::value_ptr(scale)             // Output scale
+				);
+				*/
+				//glm::vec3 rotation =;//glm::vec3(rot.y, rot.z, rot.x);;//glm::eulerAngles(glm::quat_cast(gizmoTransform));
+				glm::quat rotation = glm::quat(glm::vec3(rot.x, rot.y, rot.z));
 
+				//rotation = glm::radians(rotation);
+				glm::quat deltaRotation = rotation - transform.rotation;
 
-
-				glm::vec3 deltaRotation = rotation - transform.rotation;
-
-				transform.rotation += deltaRotation; //- gameObject->parent->transform->worldRotation;//deltaRotation;
-				glm::quat asd = glm::quat(glm::vec3(1.0f, 1.0f, 1.0f));
+				transform.rotation += deltaRotation - gameObject->parent->transform->worldRotation;//deltaRotation;
+				transform.worldRotation = transform.rotation + transform.gameObject->parent->transform->worldRotation;
 				glm::vec3 worldPosition;  // The world position you want to transform to local space
 
 				// Calculate the relative position by subtracting the parent's world position
 				glm::vec3 relativePosition = position - gameObject->parent->transform->worldPosition;
 
 				// Calculate the inverse rotation matrix based on the euler angles
-				glm::vec3 radiansRotation = glm::radians(gameObject->parent->transform->worldRotation);
+				glm::quat radiansRotation = gameObject->parent->transform->worldRotation;
 				glm::mat4 rotationMatrix = glm::mat4(1.0f);
 				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -143,11 +159,11 @@ namespace Gui {
 			else {
 				rotation.x = atan2(-Row[2][0], Row[1][1]);
 				rotation.z = 0;
-			}
+				}
 
 
 			return true;
-		}
+			}
 
 	};
 }

@@ -80,14 +80,18 @@ glm::mat4 Transform::GetTransform(glm::vec3 pos)
 	//rotationMatrix = glm::scale(rotationMatrix, this->worldScale);
 	//return rotationMatrix;
 	
-	glm::quat rotationQuat = glm::quat(glm::vec3(this->rotation.x, this->rotation.y, (this->rotation.z)));
-	glm::mat4 rot = glm::toMat4(rotationQuat);
-	this->rotation.z *= -1.0f;
-	rotationQuat = glm::quat(rotationQuat.w, rotationQuat.x, rotationQuat.y, rotationQuat.z);
+	glm::mat4 rot = glm::toMat4(glm::quat(rotation));
+
+	glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), this->worldPosition)
+		* glm::toMat4(glm::quat(glm::eulerAngles(gameObject->transform->worldRotation)))
+		* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
+	return gizmoMatrix;
+	/*
+
 	return glm::translate(glm::mat4(1.0f), pos)
 		* rot
 		* glm::scale(glm::mat4(1.0f), scale * worldScale);
-	
+	*/
 }
 
 glm::vec3 ConvertToRadians(const glm::vec3& anglesInDegrees)
@@ -132,7 +136,7 @@ glm::vec3 TransformToLocalSpace(const glm::vec3& worldPosition,
 }
 
 glm::vec3 test(GameObject* child) {
-	glm::vec3 radiansRotation = glm::radians(child->parent->transform->worldRotation);
+	glm::quat radiansRotation = child->parent->transform->worldRotation;
 	glm::mat4 rotationMatrix = glm::mat4(1.0f);
 	rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 	rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
@@ -154,7 +158,7 @@ void Transform::UpdateChildrenTransform(GameObject* gameObject) {
 
 
 
-		glm::vec3 radiansRotation = glm::radians(gameObject->parent->transform->worldRotation);
+		glm::quat radiansRotation = gameObject->parent->transform->worldRotation;
 		glm::mat4 rotationMatrix = glm::mat4(1.0f);
 		rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 		rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));

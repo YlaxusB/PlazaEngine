@@ -210,6 +210,9 @@ unsigned int TextureFromFile(const char* path, const string& directory, bool gam
     std::string fileParent = std::filesystem::path{ directory }.parent_path().string();
     filename = directory + '/' + filename;
     */
+    filename = "D:\\Work\\Cartoon Low Poly World Project\\texture\\texture_main.png";
+    std::cout << "CAVALOLO" << std::endl;
+    std::cout << filename << std::endl;
     unsigned int textureID;
     glGenTextures(1, &textureID);
     int width, height, nrComponents;

@@ -37,7 +37,9 @@ namespace Gui {
 				glm::vec3 lastScale = gameObject->transform->scale;
 
 				glm::vec3& currentPosition = gameObject->GetComponent<Transform>()->relativePosition;
-				glm::vec3& currentRotation =  gameObject->GetComponent<Transform>()->rotation;
+				glm::quat& currentRotation =  gameObject->GetComponent<Transform>()->rotation;
+				glm::vec3 rotationField = glm::degrees(glm::eulerAngles(currentRotation));
+
 				//currentRotation = glm::degrees(currentRotation);
 				glm::vec3& currentScale = gameObject->GetComponent<Transform>()->scale;
 
@@ -66,16 +68,17 @@ namespace Gui {
 				ImGui::PushID("Rotation");
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(75);
-				ImGui::InputFloat("X", &currentRotation.x);
+				ImGui::InputFloat("X", &rotationField.x);
 
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(75);
-				ImGui::InputFloat("Y", &currentRotation.y);
+				ImGui::InputFloat("Y", &rotationField.y);
 
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(75);
-				ImGui::InputFloat("Z", &currentRotation.z);
+				ImGui::InputFloat("Z", &rotationField.z);
 				ImGui::PopID();
+				//currentRotation = glm::quat(glm::radians(rotationField));
 				//				ImGui::TreePop();
 
 				ImGui::Text("Scale: ");
@@ -105,9 +108,15 @@ namespace Gui {
 				ImGui::Text(std::to_string(gameObject->transform->worldScale.y).c_str());
 				ImGui::Text(std::to_string(gameObject->transform->worldScale.z).c_str());
 				ImGui::Text("World Rotation");
-				ImGui::Text(std::to_string(gameObject->transform->worldRotation.x).c_str());
-				ImGui::Text(std::to_string(gameObject->transform->worldRotation.y).c_str());
-				ImGui::Text(std::to_string(gameObject->transform->worldRotation.z).c_str());
+				ImGui::Text(std::to_string(glm::degrees(gameObject->transform->worldRotation.x)).c_str());
+				ImGui::Text(std::to_string(glm::degrees(gameObject->transform->worldRotation.y)).c_str());
+				ImGui::Text(std::to_string(glm::degrees(gameObject->transform->worldRotation.z)).c_str());
+				glm::vec3 eulerAngles = glm::degrees(glm::eulerAngles(gameObject->transform->worldRotation));
+				ImGui::Text("Euler Rotation");
+				ImGui::Text(std::to_string(eulerAngles.x).c_str());
+				ImGui::Text(std::to_string(eulerAngles.y).c_str());
+				ImGui::Text(std::to_string(eulerAngles.z).c_str());
+
 				ImGui::Text("Parent");
 				ImGui::Text(gameObject->parent->name.c_str());
 
@@ -128,9 +137,10 @@ namespace Gui {
 				glm::vec3 displacement = distance * desiredDirection;
 
 				// Move the object
-				localPoint = moveTowards(gameObject->parent->transform->worldPosition, gameObject->parent->transform->worldRotation, gameObject->transform->relativePosition);//gameObject->parent->transform->worldPosition + displacement;
+				glm::quat worldRotation = gameObject->transform->worldRotation;
+				localPoint = moveTowards(gameObject->parent->transform->worldPosition, glm::vec3(worldRotation.x, worldRotation.y, worldRotation.z), gameObject->transform->relativePosition);//gameObject->parent->transform->worldPosition + displacement;
 
-				glm::vec3 radiansRotation = glm::radians(gameObject->parent->transform->worldRotation);
+				glm::quat radiansRotation = gameObject->parent->transform->worldRotation;
 				glm::mat4 rotationMatrix = glm::mat4(1.0f);
 				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));

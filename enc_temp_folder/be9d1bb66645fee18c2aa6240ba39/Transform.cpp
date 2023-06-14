@@ -97,7 +97,7 @@ glm::mat4 Transform::GetTransform(glm::vec3 position)
 	glm::mat4 rot = glm::toMat4(glm::quat(rotation));
 
 	glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), this->worldPosition)
-		* glm::toMat4(glm::quat(gameObject->parent->transform->worldRotation))
+		* glm::toMat4(glm::quat(gameObject->transform->worldRotation))
 		* glm::toMat4(glm::quat(gameObject->transform->rotation))
 		* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
 	return gizmoMatrix;

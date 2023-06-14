@@ -13,8 +13,9 @@
 #include <filesystem>
 #include <fileSystem/fileSystem.h>
 #include "guiMain.h"
-#include "Engine/Application/Application.h"
+
 #include "Engine/Components/Core/GameObject.h"
+#include "Engine/Application/Application.h"
 #include "Engine/GUI/Hierarchy.h"
 #include "Engine/GUI/Inspector.h"
 #include "Engine/GUI/gizmo.h"
@@ -83,7 +84,7 @@ inline void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAp
 			ImGui::SetWindowPos(ImVec2(appSizes.hierarchySize.x, headerSize.y)); // Position it to on the center and below the header
 			ImGui::Image(ImTextureID(gameFrameBuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 			// Show the gizmo if there's a selected gameObject
-			if (selectedGameObject) {
+			if (selectedGameObject && selectedGameObject->parent) {
 				//std::cout << selectedGameObject->GetComponent<Transform>(). << std::endl;
 			}
 
@@ -151,7 +152,7 @@ void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSi
 			ImGui::SetWindowPos(ImVec2(appSizes.appSize.x - appSizes.inspectorSize.x, 0));
 		}
 
-		if (selectedGameObject) {
+		if (selectedGameObject && selectedGameObject->parent) {
 			Gui::Inspector::ComponentInspector inspector(selectedGameObject);
 
 			Gui::Inspector* asd = new Gui::Inspector();

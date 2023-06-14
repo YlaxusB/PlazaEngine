@@ -1,9 +1,10 @@
 #pragma once
-#ifndef guiHeader_H
-#define guiHeader_H
+#include "Engine/Components/Core/GameObject.h"
 #include "Engine/Application/Application.h"
 #include "Engine/Application/EditorCamera.h"
-#include "Engine/Components/Core/GameObject.h"
+
+
+extern GameObject* selectedGameObject;
 namespace Gui {
 	void setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera);
 	void changeSelectedGameObject(GameObject* newSelectedGameObject);
@@ -22,5 +23,3 @@ namespace ImGui {
 		return glm::vec2(imguiVec.x, imguiVec.y);
 	}
 }
-
-#endif // guiHeader_H

@@ -54,7 +54,6 @@ namespace Gui {
 				*/
 				//glm::vec3 rotation =;//glm::vec3(rot.y, rot.z, rot.x);;//glm::eulerAngles(glm::quat_cast(gizmoTransform));
 				glm::vec3 rotation = glm::vec3(rot.x, rot.y, rot.z);
-				rotation -= transform.worldRotation;
 
 				//rotation = glm::radians(rotation);
 				glm::vec3 deltaRotation = rotation - transform.rotation;

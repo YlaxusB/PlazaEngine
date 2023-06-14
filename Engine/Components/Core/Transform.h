@@ -15,14 +15,15 @@ public:
 	glm::vec3 position = { 0,0,0 };
 	glm::vec3 worldPosition = { 0, 0, 0 };
 	glm::vec3 relativePosition = { 0, 0, 0 };
-	glm::quat rotation = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);
-	glm::quat worldRotation = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);
+	glm::vec3 rotation = { 0.0f, 0.0f, 0.0f };
+	glm::vec3 worldRotation = { 0.0f, 0.0f, 0.0f };
 	glm::vec3 scale = { 1,1,1, };
-	glm::vec3 worldScale = {1, 1, 1};
+	glm::vec3 worldScale = { 1, 1, 1 };
 
 	Transform();
 
-	glm::mat4 GetTransform(glm::vec3 pos);
+	glm::mat4 GetTransform();
+	glm::mat4 GetTransform(glm::vec3 position);
 
 	void UpdateChildrenTransform(GameObject* gameObject);
 	void UpdateChildrenTransform();

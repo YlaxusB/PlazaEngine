@@ -1,6 +1,4 @@
-#ifndef GAMEOBJECT_H
-#define GAMEOBJECT_H
-
+#pragma  once
 
 #include <iostream>
 #include <random>
@@ -65,13 +63,9 @@ public:
 //extern std::list<GameObject*> gameObjects;
 
 
-
-
 class MeshRenderer : public Component {
 public:
 	Mesh mesh;
 	MeshRenderer(const Mesh& initialMesh) : mesh(initialMesh) {
 	}
 };
-
-#endif

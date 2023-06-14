@@ -69,6 +69,8 @@ namespace ModelLoader
         //modelMainObject->AddComponent(new Transform());
         processNode(scene->mRootNode, scene, *meshes, textures_loaded, &directory, modelMainObject);
         modelMainObject->transform->UpdateChildrenTransform();
+
+        selectedGameObject = modelMainObject;
     }
 
     // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).

@@ -1,3 +1,4 @@
+#pragma once
 // https://github.com/CedricGuillemet/ImGuizmo
 // v 1.89 WIP
 //

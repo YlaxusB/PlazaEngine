@@ -37,8 +37,8 @@ namespace Gui {
 				glm::vec3 lastScale = gameObject->transform->scale;
 
 				glm::vec3& currentPosition = gameObject->GetComponent<Transform>()->relativePosition;
-				glm::quat& currentRotation =  gameObject->GetComponent<Transform>()->rotation;
-				glm::vec3 rotationField = glm::degrees(glm::eulerAngles(currentRotation));
+				glm::vec3& currentRotation =  gameObject->GetComponent<Transform>()->rotation;
+				glm::vec3 rotationField = glm::degrees(currentRotation);
 
 				//currentRotation = glm::degrees(currentRotation);
 				glm::vec3& currentScale = gameObject->GetComponent<Transform>()->scale;
@@ -78,7 +78,7 @@ namespace Gui {
 				ImGui::SetNextItemWidth(75);
 				ImGui::InputFloat("Z", &rotationField.z);
 				ImGui::PopID();
-				//currentRotation = glm::quat(glm::radians(rotationField));
+				currentRotation = glm::radians(rotationField);
 				//				ImGui::TreePop();
 
 				ImGui::Text("Scale: ");
@@ -111,11 +111,15 @@ namespace Gui {
 				ImGui::Text(std::to_string(glm::degrees(gameObject->transform->worldRotation.x)).c_str());
 				ImGui::Text(std::to_string(glm::degrees(gameObject->transform->worldRotation.y)).c_str());
 				ImGui::Text(std::to_string(glm::degrees(gameObject->transform->worldRotation.z)).c_str());
-				glm::vec3 eulerAngles = glm::degrees(glm::eulerAngles(gameObject->transform->worldRotation));
+				glm::vec3 eulerAngles = glm::degrees(gameObject->transform->worldRotation);
 				ImGui::Text("Euler Rotation");
 				ImGui::Text(std::to_string(eulerAngles.x).c_str());
 				ImGui::Text(std::to_string(eulerAngles.y).c_str());
 				ImGui::Text(std::to_string(eulerAngles.z).c_str());
+				ImGui::Text("Parent World Rotation");
+				ImGui::Text(std::to_string(gameObject->parent->transform->worldRotation.x).c_str());
+				ImGui::Text(std::to_string(gameObject->parent->transform->worldRotation.y).c_str());
+				ImGui::Text(std::to_string(gameObject->parent->transform->worldRotation.z).c_str());
 
 				ImGui::Text("Parent");
 				ImGui::Text(gameObject->parent->name.c_str());

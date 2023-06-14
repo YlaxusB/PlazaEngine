@@ -33,6 +33,7 @@
 #include "Engine/GUI/gizmo.h"
 #include "Engine/Application/ModelLoader.h"
 #include "Engine/Application/PickingTexture.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
@@ -94,14 +95,18 @@ void Render(Shader shader) {
 			glm::mat4 view = activeCamera.GetViewMatrix();
 			shader.setMat4("projection", projection);
 			shader.setMat4("view", view);
-			glm::mat4 model = glm::mat4(1.0f);
+			glm::mat4 modelMatrix = gameObject->transform->GetTransform();
+			//modelMatrix = glm::rotate(modelMatrix, );
 			//model = glm::translate(model, glm::vec3(gameObject->GetComponent<Transform>()->position) + gameObject->parent->GetComponent<Transform>()->position); // translate it down so it's at the center of the scene
-
+			/*
 			glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), gameObject->transform->worldPosition)
 				//* glm::toMat4(gameObject->transform->worldRotation)
-				* glm::toMat4(glm::quat(glm::eulerAngles(gameObject->transform->worldRotation)))
+				* glm::toMat4(glm::quat(gameObject->transform->worldRotation))
+				//* glm::toMat4(glm::quat(gameObject->parent->transform->worldRotation))
+				//* glm::toMat4(glm::quat(gameObject->transform->rotation))
 				* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
-			/*
+			
+			 
 			glm::quat worldRotation = gameObject->transform->worldRotation;
 			glm::vec3 rotation = gameObject->transform->rotation;
 
@@ -130,7 +135,7 @@ void Render(Shader shader) {
 
 
 			//model = glm::scale(model, objectScale);	// it's a bit too big for our scene, so scale it down
-			shader.setMat4("model", gizmoMatrix);
+			shader.setMat4("model", modelMatrix);
 			shader.setFloat("objectID", gameObject->id);
 			meshRenderer->mesh.Draw(shader);
 		}
@@ -635,33 +640,35 @@ void rotateObject(GLFWwindow* window, int axis)
 	default:
 		return;
 	}
-
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+		rotationAxis *= -1.0f;
+	}
 	// Convert rotation angles to radians
-	glm::quat rotationAnglesRad = gameObjects.back()->transform->rotation;
+	glm::vec3 rotationAnglesRad = selectedGameObject->transform->rotation;
 
 	// Create the initial rotation quaternion
-	glm::quat quatInitial = glm::quat(rotationAnglesRad);
+	glm::vec3 quatInitial = rotationAnglesRad;
 
 	// Calculate the additional rotation angle (e.g., 1 degree)
 	float additionalAngle = 1.0f;
 	float additionalAngleRad = glm::radians(additionalAngle);
 
 	// Create the additional rotation quaternion
-	glm::quat quatAdditional = glm::angleAxis(additionalAngleRad, rotationAxis);
+	//glm::quat quatAdditional = glm::angleAxis(additionalAngleRad, rotationAxis);
 
 	// Combine the rotations
-	glm::quat combinedQuaternion = quatAdditional * quatInitial;
-
+	//glm::quat combinedQuaternion = quatAdditional * quatInitial;
+	
 	// Convert the combined quaternion back to Euler angles in radians
-	glm::vec3 combinedAnglesRad = glm::eulerAngles(combinedQuaternion);
+	//glm::vec3 combinedAnglesRad = glm::eulerAngles(combinedQuaternion);
 
 	// Wrap the angles to the range of 0 to 2*pi radians
-	combinedAnglesRad.x = fmod(combinedAnglesRad.x, glm::two_pi<float>());
-	combinedAnglesRad.y = fmod(combinedAnglesRad.y, glm::two_pi<float>());
-	combinedAnglesRad.z = fmod(combinedAnglesRad.z, glm::two_pi<float>());
+	//combinedAnglesRad.x = fmod(combinedAnglesRad.x, glm::two_pi<float>());
+	//combinedAnglesRad.y = fmod(combinedAnglesRad.y, glm::two_pi<float>());
+	//combinedAnglesRad.z = fmod(combinedAnglesRad.z, glm::two_pi<float>());
 
 	// Update the rotation angles
-	gameObjects.back()->transform->rotation = combinedAnglesRad;
+	selectedGameObject->transform->rotation += glm::radians(rotationAxis);
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly

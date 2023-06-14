@@ -54,12 +54,11 @@ namespace Gui {
 				*/
 				//glm::vec3 rotation =;//glm::vec3(rot.y, rot.z, rot.x);;//glm::eulerAngles(glm::quat_cast(gizmoTransform));
 				glm::vec3 rotation = glm::vec3(rot.x, rot.y, rot.z);
-				rotation -= transform.worldRotation;
 
 				//rotation = glm::radians(rotation);
 				glm::vec3 deltaRotation = rotation - transform.rotation;
 
-				transform.rotation += deltaRotation;// - gameObject->parent->transform->worldRotation;//deltaRotation;
+				transform.rotation += deltaRotation - gameObject->parent->transform->worldRotation;//deltaRotation;
 				transform.worldRotation = transform.rotation + transform.gameObject->parent->transform->worldRotation;
 				glm::vec3 worldPosition;  // The world position you want to transform to local space
 

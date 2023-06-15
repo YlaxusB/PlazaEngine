@@ -133,7 +133,7 @@ namespace Gui {
 
 				//transform.scale = scale;
 
-				//gameObject->parent->transform->UpdateChildrenTransform();
+				gameObject->parent->transform->UpdateChildrenTransform();
 			}
 		}
 	private:

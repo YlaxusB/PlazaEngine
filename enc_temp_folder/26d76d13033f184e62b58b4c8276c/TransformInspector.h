@@ -47,7 +47,7 @@ namespace Gui {
 
 				}
 
-				//gameObject->transform->UpdateChildrenTransform();
+				gameObject->transform->UpdateChildrenTransform();
 				gameObject->transform->UpdateChildrenScale();
 				ImGui::Text("Position: ");
 

@@ -85,9 +85,9 @@ namespace Gui {
 				std::cout << "z";
 				std::cout << glm::degrees(rot.z) << std::endl;
 
-				//rot = glm::eulerAngles(glm::quat_cast(gizmoTransform));
-				//rot -= gameObject->transform->worldRotation;
-				//rot += gameObject->transform->rotation;
+				rot = glm::eulerAngles(glm::quat_cast(gizmoTransform));
+				rot -= gameObject->transform->worldRotation;
+				rot += gameObject->transform->rotation;
 
 				/*
 				ImGuizmo::DecomposeMatrixToComponents(
@@ -103,9 +103,9 @@ namespace Gui {
 				//rotation -= transform.worldRotation;
 
 				//rotation = glm::radians(rotation);
-				glm::vec3 deltaRotation = rotation - transform.worldRotation;
+				glm::vec3 deltaRotation = rotation - transform.rotation;
 
-				transform.worldRotation += deltaRotation;// - gameObject->parent->transform->worldRotation;//deltaRotation;
+				transform.rotation += deltaRotation;// - gameObject->parent->transform->worldRotation;//deltaRotation;
 				//transform.worldRotation = transform.rotation + transform.gameObject->parent->transform->worldRotation;
 				glm::vec3 worldPosition;  // The world position you want to transform to local space
 
@@ -133,7 +133,7 @@ namespace Gui {
 
 				//transform.scale = scale;
 
-				//gameObject->parent->transform->UpdateChildrenTransform();
+				gameObject->parent->transform->UpdateChildrenTransform();
 			}
 		}
 	private:

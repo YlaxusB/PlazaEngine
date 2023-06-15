@@ -97,10 +97,17 @@ glm::mat4 Transform::GetTransform(glm::vec3 position)
 	glm::mat4 rot = glm::toMat4(glm::quat(rotation));
 
 	glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), this->worldPosition)
+		* glm::toMat4(glm::quat(gameObject->transform->worldRotation))
+		* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
+	return gizmoMatrix;
+
+	/*
+		glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), this->worldPosition)
 		* glm::toMat4(glm::quat(gameObject->parent->transform->worldRotation))
 		* glm::toMat4(glm::quat(gameObject->transform->rotation))
 		* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
 	return gizmoMatrix;
+	*/
 }
 
 glm::mat4 Transform::GetTransform() {
@@ -159,20 +166,15 @@ glm::vec3 test(GameObject* child) {
 }
 
 glm::vec3 newWorldRotation(GameObject* gameObject) {
-	//glm::mat4 a = gameObject->transform->GetTransform(gameObject->transform->worldPosition) + gameObject->parent->transform->GetTransform(gameObject->parent->transform->worldPosition);
-	glm::mat4 a = glm::translate(glm::mat4(1.0f), gameObject->transform->worldPosition)
-		* glm::toMat4(glm::quat(gameObject->transform->worldRotation))
+	glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), gameObject->transform->worldPosition)
+		* glm::toMat4(glm::quat(gameObject->parent->transform->worldRotation))
+		* glm::toMat4(glm::quat(gameObject->transform->rotation))
 		* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
 
-	glm::mat4 b = glm::translate(glm::mat4(1.0f), gameObject->parent->transform->worldPosition)
-		* glm::toMat4(glm::quat(gameObject->parent->transform->worldRotation))
-		* glm::scale(glm::mat4(1.0f), gameObject->parent->transform->worldScale);
+	glm::vec3 a = glm::eulerAngles(glm::quat_cast(gizmoMatrix));
+	return a;
 
-	glm::mat4 c = a + b;
-	glm::vec3 position, rotation, scale;
-	DecomposeTransform(c, position, rotation, scale);
-	//return rotation;
-	return gameObject->transform->rotation + gameObject->parent->transform->worldRotation;
+	//return gameObject->transform->rotation + gameObject->parent->transform->worldRotation;
 }
 
 

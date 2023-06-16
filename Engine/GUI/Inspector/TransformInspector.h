@@ -47,7 +47,7 @@ namespace Gui {
 
 				}
 
-				//gameObject->transform->UpdateChildrenTransform();
+				gameObject->transform->UpdateChildrenTransform();
 				gameObject->transform->UpdateChildrenScale();
 				ImGui::Text("Position: ");
 
@@ -146,8 +146,8 @@ namespace Gui {
 
 				glm::quat radiansRotation = gameObject->parent->transform->worldRotation;
 				glm::mat4 rotationMatrix = glm::mat4(1.0f);
-				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
 				glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(gameObject->transform->relativePosition, 1.0f));

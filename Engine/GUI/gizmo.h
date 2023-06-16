@@ -31,6 +31,9 @@ namespace Gui {
 			ImVec2 windowPos = ImGui::GetWindowPos();
 			ImGuizmo::SetRect(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
 
+
+			ImGuizmo::GetStyle().RotationLineThickness = 6.0f;
+
 			// Get the object transform and camera matrices
 			auto& transform = *gameObject->GetComponent<Transform>();
 			glm::mat4 projection = camera.GetProjectionMatrix();//glm::perspective(glm::radians(camera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.1f, farplane);
@@ -50,23 +53,20 @@ namespace Gui {
 				glm::vec3 position, rotation, scale;
 				DecomposeTransform(gizmoTransform, position, rotation, scale); // The rotation is radians
 
+				position = position - gameObject->parent->transform->worldPosition;// / gameObject->parent->transform->worldScale;
 
-				glm::mat4 updatedTransform = glm::translate(glm::mat4(1.0f), transform.worldPosition)
+				position = position / gameObject->parent->transform->worldScale;
+				glm::mat4 updatedTransform = glm::translate(glm::mat4(1.0f), position)
 					* glm::toMat4(glm::inverse(glm::quat(gameObject->parent->transform->worldRotation)))
 					* glm::toMat4(glm::quat(rotation))
-					* glm::scale(glm::mat4(1.0f), scale);
+					* glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 
 				glm::vec3 position2, rotation2, scale2;
 				DecomposeTransform(updatedTransform, position2, rotation2, scale2); // The rotation is radians
 				transform.rotation += (rotation2 - transform.rotation);
-
+				//position = position2;//   / gameObject->parent->transform->worldScale;
 				rotation = rotation2;
-				std::cout << "x";
-				std::cout << glm::degrees(rotation.x);
-				std::cout << "y";
-				std::cout << glm::degrees(rotation.y);
-				std::cout << "z";
-				std::cout << glm::degrees(rotation.z) << std::endl;
+
 				//transform.rotation += deltaRotation3;
 
 
@@ -76,7 +76,7 @@ namespace Gui {
 				glm::vec3 worldPosition;  // The world position you want to transform to local space
 
 				// Calculate the relative position by subtracting the parent's world position
-				glm::vec3 relativePosition = position - gameObject->parent->transform->worldPosition;
+				glm::vec3 relativePosition = position;
 
 				// Calculate the inverse rotation matrix based on the euler angles
 				glm::vec3 radiansRotation = gameObject->parent->transform->worldRotation;
@@ -91,6 +91,13 @@ namespace Gui {
 
 				// The resulting transformedPoint is the position in local space
 				glm::vec3 localPoint = transformedPoint;
+				position = localPoint;
+				std::cout << "x";
+				std::cout << (position.x);
+				std::cout << "y";
+				std::cout << (position.y);
+				std::cout << "z";
+				std::cout << (position.z) << std::endl;
 
 				// THIS WAS MOVING THE OBJECT \/ -------------------------------------------------------------------------------------------
 				transform.relativePosition = localPoint;
@@ -99,7 +106,7 @@ namespace Gui {
 				//transform.relativePosition = (transform.worldPosition - gameObject->parent->transform->worldPosition) / gameObject->parent->transform->worldScale;
 
 
-				//transform.scale = scale;
+				transform.scale = scale / gameObject->parent->transform->worldScale;
 
 				gameObject->parent->transform->UpdateChildrenTransform();
 			}

@@ -106,8 +106,10 @@ glm::mat4 Transform::GetTransform(glm::vec3 position)
 	glm::mat4 rot = glm::toMat4(glm::quat(rotation));
 
 	glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), this->worldPosition)
-		* glm::toMat4(glm::quat(gameObject->transform->worldRotation))
-		* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
+		* glm::toMat4(glm::quat(gameObject->transform->worldRotation));
+		//* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
+
+	gizmoMatrix = glm::scale(gizmoMatrix, gameObject->transform->worldScale);
 	return gizmoMatrix;
 }
 
@@ -159,10 +161,12 @@ glm::vec3 TransformToLocalSpace(const glm::vec3& worldPosition,
 glm::vec3 test(GameObject* child) {
 	glm::mat4 rotationMatrix = glm::mat4(1.0f);
 	rotationMatrix *= glm::toMat4(glm::quat(child->parent->transform->worldRotation));
-
+	rotationMatrix = glm::scale(rotationMatrix, child->parent->transform->worldScale);
+	//rotationMatrix = glm::scale(rotationMatrix, child->parent->transform->worldScale);
 	glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(child->transform->relativePosition, 1.0f));
 	glm::vec3 finalWorldPoint = transformedPoint + child->parent->transform->worldPosition;
-
+	//finalWorldPoint = (finalWorldPoint * child->parent->transform->worldScale);
+	//finalWorldPoint = finalWorldPoint * child->parent->transform->worldScale;
 	return finalWorldPoint;
 }
 
@@ -170,7 +174,7 @@ glm::vec3 newWorldRotation(GameObject* gameObject) {
 	glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), gameObject->transform->worldPosition)
 		* glm::toMat4(glm::quat(gameObject->parent->transform->worldRotation))
 		* glm::toMat4(glm::quat(gameObject->transform->rotation))
-		* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
+		* glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 
 	glm::vec3 a = glm::eulerAngles(glm::quat_cast(gizmoMatrix));
 	return a;
@@ -178,47 +182,23 @@ glm::vec3 newWorldRotation(GameObject* gameObject) {
 	//return gameObject->transform->rotation + gameObject->parent->transform->worldRotation;
 }
 
+void UpdateObjectTransform(GameObject* gameObject) {
+	gameObject->transform->worldScale = gameObject->transform->scale * gameObject->parent->transform->worldScale;
+	//gameObject->transform->worldPosition = (gameObject->transform->relativePosition * gameObject->parent->transform->worldScale + gameObject->parent->transform->worldPosition);
+	gameObject->transform->worldRotation = newWorldRotation(gameObject);//gameObject->transform->rotation + gameObject->parent->transform->worldRotation;
+	gameObject->transform->worldPosition = test(gameObject);
+//	gameObject->transform->worldPosition = (gameObject->transform->worldPosition * gameObject->parent->transform->worldScale) + gameObject->parent->transform->worldPosition;
+}
+
 
 void Transform::UpdateChildrenTransform(GameObject* gameObject) {
 	if (gameObject->parent != nullptr) {
-		gameObject->transform->worldScale = gameObject->transform->scale * gameObject->parent->transform->worldScale;
-		gameObject->transform->worldPosition = (gameObject->transform->relativePosition * gameObject->parent->transform->worldScale + gameObject->parent->transform->worldPosition);
-		gameObject->transform->worldRotation = newWorldRotation(gameObject);//gameObject->transform->rotation + gameObject->parent->transform->worldRotation;
-		gameObject->transform->worldPosition = test(gameObject);
-
-
-
-		glm::quat radiansRotation = gameObject->parent->transform->worldRotation;
-		glm::mat4 rotationMatrix = glm::mat4(1.0f);
-		rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-		rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-		rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-
-		glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(gameObject->transform->relativePosition, 1.0f));
-		glm::vec3 finalWorldPoint = transformedPoint + gameObject->parent->transform->worldPosition;
-		//gameObject->transform->worldPosition = test(gameObject);//finalWorldPoint;
-
+		UpdateObjectTransform(gameObject);
 	}
 
 	for (GameObject* child : gameObject->children) {
-		child->transform->worldScale = child->transform->scale * child->parent->transform->worldScale;
-		child->transform->worldPosition = (child->transform->relativePosition * child->parent->transform->worldScale + child->parent->transform->worldPosition);
-		child->transform->worldRotation = newWorldRotation(child);//child->transform->rotation + child->parent->transform->worldRotation;
-		child->transform->worldPosition = test(child);
+		UpdateObjectTransform(child);
 
-
-		/*
-		glm::vec3 radiansRotation = glm::radians(child->transform->worldRotation);
-		glm::mat4 rotationMatrix = glm::mat4(1.0f);
-		rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-		rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-		rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-
-		glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(child->transform->relativePosition, 1.0f));
-		glm::vec3 finalWorldPoint = transformedPoint + child->parent->transform->worldPosition;
-		child->transform->worldPosition = finalWorldPoint;
-		//glm::vec3 localPoint = glm::vec3(rotationMatrix * glm::vec4(translatedPoint, 1.0f));
-		*/
 		UpdateChildrenTransform(child);
 	}
 

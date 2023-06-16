@@ -52,13 +52,13 @@ namespace Gui {
 
 
 				glm::mat4 updatedTransform = glm::translate(glm::mat4(1.0f), transform.worldPosition)
-					* glm::toMat4(glm::inverse(glm::quat(gameObject->parent->transform->worldRotation)))
+					* glm::toMat4(glm::inverse(glm::quat(transform.worldRotation)))
 					* glm::toMat4(glm::quat(rotation))
 					* glm::scale(glm::mat4(1.0f), scale);
 
 				glm::vec3 position2, rotation2, scale2;
 				DecomposeTransform(updatedTransform, position2, rotation2, scale2); // The rotation is radians
-				transform.rotation += (rotation2 - transform.rotation);
+				transform.rotation += (glm::vec3(updatedTransform[2]));
 
 				rotation = rotation2;
 				std::cout << "x";
@@ -81,10 +81,9 @@ namespace Gui {
 				// Calculate the inverse rotation matrix based on the euler angles
 				glm::vec3 radiansRotation = gameObject->parent->transform->worldRotation;
 				glm::mat4 rotationMatrix = glm::mat4(1.0f);
-				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-
 				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f)); 
+				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 
 				// Transform the relative position using the inverse rotation matrix
 				glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(relativePosition, 1.0f));
@@ -93,7 +92,7 @@ namespace Gui {
 				glm::vec3 localPoint = transformedPoint;
 
 				// THIS WAS MOVING THE OBJECT \/ -------------------------------------------------------------------------------------------
-				transform.relativePosition = localPoint;
+				//transform.relativePosition = localPoint;
 
 				// may be useful
 				//transform.relativePosition = (transform.worldPosition - gameObject->parent->transform->worldPosition) / gameObject->parent->transform->worldScale;

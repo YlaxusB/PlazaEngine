@@ -17,13 +17,16 @@ namespace Gui {
 				// Start the treenode before the component selectable, but only assign its values after creating the button
 				bool treeNodeOpen = false;
 				if (gameObject->children.size() > 0) {
-					treeNodeOpen = ImGui::TreeNodeEx("");
-					ImGui::SameLine();
+					treeNodeOpen = ImGui::TreeNodeEx(gameObject->name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick);
+				}
+				else {
+					//treeNodeOpen = ImGui::TreeNodeEx(gameObject->name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick);
+					ImGui::Selectable(gameObject->name.c_str());
 				}
 
 
 
-				ImGui::Selectable(gameObject->name.c_str());
+				//ImGui::Selectable(gameObject->name.c_str());
 				// Change the selected gameobject if user clicked on the selectable
 				if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 					selectedGameObject = gameObject;

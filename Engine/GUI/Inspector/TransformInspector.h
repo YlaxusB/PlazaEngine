@@ -53,15 +53,15 @@ namespace Gui {
 
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(75);
-				ImGui::InputFloat("X", &currentPosition.x);
+				ImGui::DragFloat("X", &currentPosition.x);
 
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(75);
-				ImGui::InputFloat("Y", &currentPosition.y);
+				ImGui::DragFloat("Y", &currentPosition.y);
 
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(75);
-				ImGui::InputFloat("Z", &currentPosition.z);
+				ImGui::DragFloat("Z", &currentPosition.z);
 
 
 				ImGui::Text("Rotation: ");

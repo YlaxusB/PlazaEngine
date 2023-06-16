@@ -88,6 +88,15 @@ bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm:
 	return true;
 }
 
+
+/*
+	glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), this->worldPosition)
+	* glm::toMat4(glm::quat(gameObject->parent->transform->worldRotation))
+	* glm::toMat4(glm::quat(gameObject->transform->rotation))
+	* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
+return gizmoMatrix;
+*/
+
 // Get transform
 glm::mat4 Transform::GetTransform(glm::vec3 position)
 {	
@@ -100,14 +109,6 @@ glm::mat4 Transform::GetTransform(glm::vec3 position)
 		* glm::toMat4(glm::quat(gameObject->transform->worldRotation))
 		* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
 	return gizmoMatrix;
-
-	/*
-		glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), this->worldPosition)
-		* glm::toMat4(glm::quat(gameObject->parent->transform->worldRotation))
-		* glm::toMat4(glm::quat(gameObject->transform->rotation))
-		* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
-	return gizmoMatrix;
-	*/
 }
 
 glm::mat4 Transform::GetTransform() {

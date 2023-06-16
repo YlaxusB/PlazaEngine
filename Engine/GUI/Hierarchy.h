@@ -15,6 +15,8 @@ namespace Gui {
 				// Push the gameObject id, to prevent it to collpases all the treenodes with same id
 				ImGui::PushID(gameObject->id);
 				// Start the treenode before the component selectable, but only assign its values after creating the button
+
+
 				bool treeNodeOpen = false;
 				if (gameObject->children.size() > 0) {
 					treeNodeOpen = ImGui::TreeNodeEx(gameObject->name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick);
@@ -79,7 +81,6 @@ namespace Gui {
 				}
 
 
-
 				if (treeNodeOpen)
 				{
 					for (GameObject* child : gameObject->children)
@@ -88,6 +89,7 @@ namespace Gui {
 					}
 					ImGui::TreePop();
 				}
+
 				ImGui::PopID();
 			}
 		};

@@ -57,7 +57,7 @@ namespace Gui {
 
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(75);
-				ImGui::DragFloat("Y", &currentPosition.y);
+				ImGui::DragFloat("Y", &currentPosition.y, ImGuiSliderFlags_Logarithmic);
 
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(75);
@@ -79,7 +79,6 @@ namespace Gui {
 				ImGui::InputFloat("Z", &rotationField.z);
 				ImGui::PopID();
 				currentRotation = glm::radians(rotationField);
-				//				ImGui::TreePop();
 
 				ImGui::Text("Scale: ");
 				ImGui::PushID("Scale");
@@ -95,68 +94,6 @@ namespace Gui {
 				ImGui::SetNextItemWidth(75);
 				ImGui::InputFloat("Z", &currentScale.z);
 
-				ImGui::Text("World Position");
-				ImGui::Text(std::to_string(gameObject->transform->worldPosition.x).c_str());
-				ImGui::Text(std::to_string(gameObject->transform->worldPosition.y).c_str());
-				ImGui::Text(std::to_string(gameObject->transform->worldPosition.z).c_str());
-				ImGui::Text("World Position Scaled");
-				ImGui::Text(std::to_string(gameObject->transform->worldPosition.x * gameObject->transform->worldScale.x).c_str());
-				ImGui::Text(std::to_string(gameObject->transform->worldPosition.y * gameObject->transform->worldScale.y).c_str());
-				ImGui::Text(std::to_string(gameObject->transform->worldPosition.z * gameObject->transform->worldScale.z).c_str());
-				ImGui::Text("World Scale");
-				ImGui::Text(std::to_string(gameObject->transform->worldScale.x).c_str());
-				ImGui::Text(std::to_string(gameObject->transform->worldScale.y).c_str());
-				ImGui::Text(std::to_string(gameObject->transform->worldScale.z).c_str());
-				ImGui::Text("World Rotation");
-				ImGui::Text(std::to_string(glm::degrees(gameObject->transform->worldRotation.x)).c_str());
-				ImGui::Text(std::to_string(glm::degrees(gameObject->transform->worldRotation.y)).c_str());
-				ImGui::Text(std::to_string(glm::degrees(gameObject->transform->worldRotation.z)).c_str());
-				glm::vec3 eulerAngles = glm::degrees(gameObject->transform->worldRotation);
-				ImGui::Text("Euler Rotation");
-				ImGui::Text(std::to_string(eulerAngles.x).c_str());
-				ImGui::Text(std::to_string(eulerAngles.y).c_str());
-				ImGui::Text(std::to_string(eulerAngles.z).c_str());
-				ImGui::Text("Parent World Rotation");
-				ImGui::Text(std::to_string(gameObject->parent->transform->worldRotation.x).c_str());
-				ImGui::Text(std::to_string(gameObject->parent->transform->worldRotation.y).c_str());
-				ImGui::Text(std::to_string(gameObject->parent->transform->worldRotation.z).c_str());
-
-				ImGui::Text("Parent");
-				ImGui::Text(gameObject->parent->name.c_str());
-
-
-
-				ImGui::Text("Calculated relative to parent");
-				
-				//rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-				//rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-				//rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-				glm::vec3 pos = gameObject->transform->relativePosition;
-				glm::vec3 localPoint = gameObject->transform->relativePosition;//glm::vec3(glm::inverse(rotationMatrix) * glm::vec4(pos, 1.0f)) - gameObject->parent->transform->worldPosition;
-
-				glm::vec3 desiredDirection = glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f));  // Example: Move in the positive X direction
-
-				// Scale the direction vector by the desired distance
-				float distance = 2.5f;  // Example: Move 2.5 units in the desired direction
-				glm::vec3 displacement = distance * desiredDirection;
-
-				// Move the object
-				glm::quat worldRotation = gameObject->transform->worldRotation;
-				localPoint = moveTowards(gameObject->parent->transform->worldPosition, glm::vec3(worldRotation.x, worldRotation.y, worldRotation.z), gameObject->transform->relativePosition);//gameObject->parent->transform->worldPosition + displacement;
-
-				glm::quat radiansRotation = gameObject->parent->transform->worldRotation;
-				glm::mat4 rotationMatrix = glm::mat4(1.0f);
-				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-				rotationMatrix = glm::rotate(rotationMatrix, radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-
-				glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(gameObject->transform->relativePosition, 1.0f));
-				glm::vec3 finalWorldPoint = transformedPoint + gameObject->parent->transform->worldPosition;
-				localPoint = finalWorldPoint;
-
-				ImGui::Text(std::to_string(localPoint.x).c_str());
-				ImGui::Text(std::to_string(localPoint.y).c_str());
-				ImGui::Text(std::to_string(localPoint.z).c_str());
 				ImGui::PopID();
 				ImGui::TreePop();
 			}

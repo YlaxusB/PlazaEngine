@@ -17,9 +17,6 @@
 
 #include "Engine/GUI/TransformOverlay.h"
 
-//bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
-glm::vec3 GetLocalRotation(const glm::vec3& worldRotation, const glm::vec3& parentRotation);
-
 namespace Gui {
 	class Gizmo {
 	public:
@@ -31,123 +28,65 @@ namespace Gui {
 			ImVec2 windowPos = ImGui::GetWindowPos();
 			ImGuizmo::SetRect(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
 
-
-			ImGuizmo::GetStyle().RotationLineThickness = 6.0f;
-
 			// Get the object transform and camera matrices
+			auto& parentTransform = *gameObject->parent->GetComponent<Transform>();
 			auto& transform = *gameObject->GetComponent<Transform>();
-			glm::mat4 projection = camera.GetProjectionMatrix();//glm::perspective(glm::radians(camera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.1f, farplane);
+
+			glm::mat4 projection = camera.GetProjectionMatrix();
 			glm::mat4 view = camera.GetViewMatrix();
 			glm::mat4 gizmoTransform = transform.GetTransform(gameObject->transform->worldPosition);
-			glm::mat4 originalMatrix = transform.GetTransform(gameObject->transform->worldPosition);
 
 			ImGuizmo::OPERATION activeOperation = Gui::Overlay::activeOperation; // Operation is translate, rotate, scale
 			ImGuizmo::MODE activeMode = Gui::Overlay::activeMode; // Mode is world or local
-
-			glm::mat4 deltaMatrix;
 
 			ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), activeOperation, activeMode, glm::value_ptr(gizmoTransform));
 
 			if (ImGuizmo::IsUsing())
 			{
 				glm::vec3 position, rotation, scale;
-				DecomposeTransform(gizmoTransform, position, rotation, scale); // The rotation is radians
+				DecomposeTransform(gizmoTransform, position, rotation, scale);
 
-				position = position - gameObject->parent->transform->worldPosition;// / gameObject->parent->transform->worldScale;
-
-				position = position / gameObject->parent->transform->worldScale;
+				// --- Rotation
 				glm::mat4 updatedTransform = glm::translate(glm::mat4(1.0f), position)
-					* glm::toMat4(glm::inverse(glm::quat(gameObject->parent->transform->worldRotation)))
+					* glm::toMat4(glm::inverse(glm::quat(parentTransform.worldRotation)))
 					* glm::toMat4(glm::quat(rotation))
 					* glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 
-				glm::vec3 position2, rotation2, scale2;
-				DecomposeTransform(updatedTransform, position2, rotation2, scale2); // The rotation is radians
-				transform.rotation += (rotation2 - transform.rotation);
-				//position = position2;//   / gameObject->parent->transform->worldScale;
-				rotation = rotation2;
-
-				//transform.rotation += deltaRotation3;
-
-
+				glm::vec3 updatedPosition, updatedRotation, updatedScale;
+				DecomposeTransform(updatedTransform, updatedPosition, updatedRotation, updatedScale); // The rotation is radians
+				rotation = updatedRotation;
 				
-				//transform.worldRotation += deltaRotation;// - gameObject->parent->transform->worldRotation;//deltaRotation;
-				//transform.worldRotation = transform.rotation + transform.gameObject->parent->transform->worldRotation;
-				glm::vec3 worldPosition;  // The world position you want to transform to local space
+				// Adding the deltaRotation avoid the gimbal lock
+				glm::vec3 deltaRotation = rotation - transform.rotation;
+				transform.rotation += deltaRotation;
 
-				// Calculate the relative position by subtracting the parent's world position
-				glm::vec3 relativePosition = position;
+				// --- Position
+				// Get the position in the world and transform it to be a localPosition in relation to the parent
+				position = position - parentTransform.worldPosition;
+				position = position / parentTransform.worldScale;
 
-				// Calculate the inverse rotation matrix based on the euler angles
-				glm::vec3 radiansRotation = gameObject->parent->transform->worldRotation;
+				glm::vec3 parentWorldRotation = parentTransform.worldRotation;
 				glm::mat4 rotationMatrix = glm::mat4(1.0f);
-				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+				rotationMatrix = glm::rotate(rotationMatrix, -parentWorldRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+				rotationMatrix = glm::rotate(rotationMatrix, -parentWorldRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+				rotationMatrix = glm::rotate(rotationMatrix, -parentWorldRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
 
-				rotationMatrix = glm::rotate(rotationMatrix, -radiansRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-
-				// Transform the relative position using the inverse rotation matrix
-				glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(relativePosition, 1.0f));
-
-				// The resulting transformedPoint is the position in local space
-				glm::vec3 localPoint = transformedPoint;
-				position = localPoint;
-				std::cout << "x";
-				std::cout << (position.x);
-				std::cout << "y";
-				std::cout << (position.y);
-				std::cout << "z";
-				std::cout << (position.z) << std::endl;
-
-				// THIS WAS MOVING THE OBJECT \/ -------------------------------------------------------------------------------------------
+				glm::vec3 localPoint = glm::vec3(rotationMatrix * glm::vec4(position, 1.0f));
 				transform.relativePosition = localPoint;
 
-				// may be useful
-				//transform.relativePosition = (transform.worldPosition - gameObject->parent->transform->worldPosition) / gameObject->parent->transform->worldScale;
+				// --- Scale
+				transform.scale = scale / parentTransform.worldScale;
 
-
-				transform.scale = scale / gameObject->parent->transform->worldScale;
-
-				gameObject->parent->transform->UpdateChildrenTransform();
+				parentTransform.UpdateChildrenTransform();
 			}
 		}
 
-
-		glm::vec3 GetLocalRotation(const glm::vec3& worldRotation, const glm::vec3& parentRotation)
-		{
-			// Convert world rotation to quaternion representation
-			glm::quat worldRotationQuat = glm::quat(worldRotation);
-
-			// Convert parent rotation to quaternion representation
-			glm::quat parentRotationQuat = glm::quat(parentRotation);
-
-			// Calculate the inverse of the parent's rotation quaternion
-			glm::quat parentRotationInverse = glm::inverse(parentRotationQuat);
-
-			// Calculate the local rotation quaternion by multiplying the world rotation by the inverse of the parent rotation
-			glm::quat localRotationQuat = worldRotationQuat * parentRotationInverse;
-
-			// Convert the local rotation quaternion back to euler angles (vec3 representation)
-			glm::vec3 localRotation = glm::eulerAngles(localRotationQuat);
-
-			return localRotation;
-		}
 	private:
 
-		float GetRotationAngle(const glm::mat4& matrixA, const glm::mat4& matrixB)
-		{
-			glm::quat rotationA = glm::normalize(glm::quat(matrixA));
-			glm::quat rotationB = glm::normalize(glm::quat(matrixB));
-
-			// Calculate the rotation difference between the two quaternions
-			glm::quat rotationDifference = glm::inverse(rotationA) * rotationB;
-
-			// Calculate the angle in radians from the quaternion
-			float angle = 2.0f * acos(rotationDifference.w);
-
-			return angle;
-		}
-
+		/// <summary>
+		/// Extract translation, rotation and scale from a Matrix 4 
+		/// <para> Rotation is returned in radians </para>
+		/// </summary>
 		bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
 		{
 			// From glm::decompose in matrix_decompose.inl
@@ -219,6 +158,5 @@ namespace Gui {
 
 			return true;
 			}
-
 	};
 }

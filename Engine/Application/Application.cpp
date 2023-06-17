@@ -9,9 +9,7 @@
 #include <glm/trigonometric.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
-
 #include <stb/stb_image.h>
-
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -19,20 +17,23 @@
 #include <iostream>
 #include <random>
 #include <unordered_map>
-//#include "Engine/Vendor/filesystem/filesys.h"
 #include <fileSystem>
 #include <fileSystem/fileSystem.h>
+
 #include "Engine/Application/Application.h"
-#include "Engine/GUI/guiMain.h"
+#include "Engine/Application/EditorCamera.h"
+#include "Engine/Application/ModelLoader.h"
+#include "Engine/Application/PickingTexture.h"
 #include "Engine/Components/Core/Camera.h"
 #include "Engine/Components/Core/Mesh.h"
 #include "Engine/Components/Core/GameObject.h"
 #include "Engine/Components/Core/Model.h"
 #include "Engine/Shaders/Shader.h"
-#include "Engine/Application/EditorCamera.h"
+#include "Engine/GUI/guiMain.h"
 #include "Engine/GUI/gizmo.h"
-#include "Engine/Application/ModelLoader.h"
-#include "Engine/Application/PickingTexture.h"
+#include "Engine/GUI/Style/EditorStyle.h"
+
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -56,7 +57,9 @@ AppSizes appSizes;
 AppSizes lastAppSizes;
 
 Camera editorCamera(glm::vec3(0.0f, 0.0f, 5.0f));
-Camera activeCamera = editorCamera;
+Camera& activeCamera = editorCamera;
+
+EditorStyle editorStyle;
 
 float lastX = appSizes.appSize.x / 2.0f;
 float lastY = appSizes.appSize.y / 2.0f;
@@ -91,55 +94,69 @@ void Render(Shader shader) {
 	for (GameObject* gameObject : gameObjects) {
 		MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
 		if (meshRenderer && gameObject->parent != nullptr) {
+
 			glm::mat4 projection = activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 			glm::mat4 view = activeCamera.GetViewMatrix();
+			glm::mat4 modelMatrix = gameObject->transform->GetTransform();
+
 			shader.setMat4("projection", projection);
 			shader.setMat4("view", view);
-			glm::mat4 modelMatrix = gameObject->transform->GetTransform();
-			//modelMatrix = glm::rotate(modelMatrix, );
-			//model = glm::translate(model, glm::vec3(gameObject->GetComponent<Transform>()->position) + gameObject->parent->GetComponent<Transform>()->position); // translate it down so it's at the center of the scene
-			/*
-			glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), gameObject->transform->worldPosition)
-				//* glm::toMat4(gameObject->transform->worldRotation)
-				* glm::toMat4(glm::quat(gameObject->transform->worldRotation))
-				//* glm::toMat4(glm::quat(gameObject->parent->transform->worldRotation))
-				//* glm::toMat4(glm::quat(gameObject->transform->rotation))
-				* glm::scale(glm::mat4(1.0f), gameObject->transform->worldScale);
-			
-			 
-			glm::quat worldRotation = gameObject->transform->worldRotation;
-			glm::vec3 rotation = gameObject->transform->rotation;
-
-			model = glm::translate(model, glm::vec3(gameObject->transform->worldPosition));
-
-			
-			model = glm::rotate(model, worldRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
-			model = glm::rotate(model, worldRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
-			model = glm::rotate(model, worldRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
-			*/
-
-
-
-			/*xxxxxx 
-			model = glm::rotate(model, glm::radians(worldRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));  // Rotate around Z-axis
-			model = glm::rotate(model, glm::radians(worldRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));  // Rotate around Y-axis
-			model = glm::rotate(model, glm::radians(worldRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));  // Rotate around X-axis
-			*/
-
-
-
-
-
-
-			glm::vec3 objectScale = gameObject->transform->worldScale;
-
-
-			//model = glm::scale(model, objectScale);	// it's a bit too big for our scene, so scale it down
 			shader.setMat4("model", modelMatrix);
 			shader.setFloat("objectID", gameObject->id);
+
+
+			glStencilFunc(GL_ALWAYS, 1, 0xFF);
+			glStencilMask(0xFF);
+
+
 			meshRenderer->mesh.Draw(shader);
 		}
 	}
+}
+
+void outlineDraw(GameObject* gameObject, Shader shader, glm::vec3 scale) {
+	if (gameObject->GetComponent<MeshRenderer>()) {
+		glm::mat4 modelMatrix = gameObject->transform->GetTransform(selectedGameObject->transform->worldPosition, gameObject->transform->worldScale + scale);
+		shader.setMat4("model", modelMatrix);
+		gameObject->GetComponent<MeshRenderer>()->mesh.Draw(shader);
+	}
+	for (GameObject* child : gameObject->children) {
+		outlineDraw(child, shader, scale);
+	}
+}
+
+// Render the outlining border
+void RenderOutline(Shader outlineShader, Shader shader) {
+	glStencilMask(0x00);
+	shader.use();
+	glm::mat4 projection = activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+	glm::mat4 view = activeCamera.GetViewMatrix();
+	glm::mat4 modelMatrix = selectedGameObject->transform->GetTransform();
+
+
+	shader.setMat4("projection", projection);
+	shader.setMat4("view", view);
+	shader.setMat4("model", modelMatrix);
+	shader.setFloat("objectID", selectedGameObject->id);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilMask(0xFF);
+
+	outlineDraw(selectedGameObject, shader, glm::vec3(0.0f));
+
+
+
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilMask(0x00);
+
+	modelMatrix = glm::scale(modelMatrix, selectedGameObject->transform->worldScale + glm::vec3(0.01f));
+	outlineShader.use();
+	outlineShader.setMat4("projection", projection);
+	outlineShader.setMat4("view", view);
+	outlineShader.setMat4("model", modelMatrix);
+	outlineDraw(selectedGameObject, outlineShader, glm::vec3(0.03f));
+	glStencilMask(0xFF);
+	glStencilFunc(GL_ALWAYS, 0, 0xFF);
+	glEnable(GL_DEPTH_TEST);
 }
 
 int setupVAO(float skyboxVertices[]) {
@@ -188,19 +205,7 @@ unsigned int loadCubemap(vector<std::string> faces)
 
 	return textureID;
 }
-/*
-int setupSkybox(float skyboxVertices[]) {
-	unsigned int skyboxVAO, skyboxVBO;
-	glGenVertexArrays(1, &skyboxVAO);
-	glGenBuffers(1, &skyboxVBO);
-	glBindVertexArray(skyboxVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	return skyboxVAO;
-}
-*/
+
 Mesh* CubeMesh() {
 	std::vector<unsigned int> indices{
 		0, 1, 2, 2, 3, 0,
@@ -308,10 +313,20 @@ int main()
 
 
 	stbi_set_flip_vertically_on_load(false);
+
+	//
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
 
 	Shader ourShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.fs");
 	Shader pickingShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\objectPickingFragment.glsl");
+	Shader outliningShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningFragment.glsl");
+
+
 	//Model ourModel("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/ExampleAssets/backpack/backpack.obj");
 
 	unsigned int cubeTexture = loadTexture("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/ExampleAssets/container.jpg");
@@ -481,7 +496,7 @@ int main()
 
 		processInput(window);
 
-		
+
 		// Render into picking texture frame buffer
 
 		// DISABLE GL BLEND IF USING
@@ -491,8 +506,12 @@ int main()
 		pickingTexture->enableWriting();
 		//glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		//glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+
+
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
 		Render(pickingShader);
 
 
@@ -510,12 +529,20 @@ int main()
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		//glViewport(0, 0, 1920, appSizes.sceneSize.y);
 		glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		// don't forget to enable shader before setting uniforms
 		ourShader.use();
+
 		Render(ourShader);
 
+		// Outline
+		//glStencilFunc(GL_ALWAYS, 1, 0xFF);
+
+
+		//glDisable(GL_STENCIL_TEST);
+		glStencilFunc(GL_ALWAYS, 0, 0xFF);
+		glStencilMask(0xFF);
 		// Render Skybox
 		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 		skyboxShader.use();
@@ -530,6 +557,17 @@ int main()
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 		glDepthFunc(GL_LESS); // set depth function back to default
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 0, 0xFF);
+
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_STENCIL_TEST);
+
+		glStencilMask(0xFF);
+
+		if (selectedGameObject) {
+			RenderOutline(outliningShader, ourShader);
+		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Start the Imgui GUI
@@ -583,9 +621,10 @@ void drop_callback(GLFWwindow* window, int count, const char** paths)
 		vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
 		vector<Mesh> meshes = vector<Mesh>();
 		string directory = "";
-		
+
 		std::string fileName = filesystem::path{ paths[i] }.filename().string();
 		ModelLoader::loadModel(paths[i], directory, &meshes, textures_loaded, fileName);
+		std::cout << "finished loading" << std::endl;
 		/*
 
 		for (Mesh mesh : meshes) {
@@ -658,7 +697,7 @@ void rotateObject(GLFWwindow* window, int axis)
 
 	// Combine the rotations
 	//glm::quat combinedQuaternion = quatAdditional * quatInitial;
-	
+
 	// Convert the combined quaternion back to Euler angles in radians
 	//glm::vec3 combinedAnglesRad = glm::eulerAngles(combinedQuaternion);
 
@@ -785,7 +824,7 @@ void processInput(GLFWwindow* window)
 	{
 		rotateObject(window, 3);
 	}
-	
+
 	//if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
 	//	activeCamera.ProcessMouseMovement(0, 0, 0);
 	//}

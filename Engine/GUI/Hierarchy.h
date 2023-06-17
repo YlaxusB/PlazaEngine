@@ -1,8 +1,9 @@
 #pragma once
-#include "Engine/Components/Core/GameObject.h"
-#include "Engine/GUI/guiMain.h"
 #include <imgui/imgui.h>
 
+#include "Engine/Components/Core/GameObject.h"
+#include "Engine/GUI/guiMain.h"
+#include "Engine/GUI/Style/EditorStyle.h"
 namespace Gui {
 	namespace Hierarchy {
 		class Item { // Item consists of a Treenode and a selectable
@@ -16,19 +17,28 @@ namespace Gui {
 				ImGui::PushID(gameObject->id);
 				// Start the treenode before the component selectable, but only assign its values after creating the button
 
+				bool itemIsSelectedObject = false;
+				if (selectedGameObject) itemIsSelectedObject = gameObject->id == selectedGameObject->id;
+
+				if (itemIsSelectedObject)
+					// Selected background
+					ImGui::PushStyleColor(ImGuiCol_Header, editorStyle.selectedTreeNodeBackgroundColor);
+				else {
+					// Not selected background
+					ImGui::PushStyleColor(ImGuiCol_Header, editorStyle.treeNodeBackgroundColor);
+				}
 
 				bool treeNodeOpen = false;
 				if (gameObject->children.size() > 0) {
-					treeNodeOpen = ImGui::TreeNodeEx(gameObject->name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick);
+					treeNodeOpen = ImGui::TreeNodeEx(gameObject->name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed);
 				}
 				else {
-					//treeNodeOpen = ImGui::TreeNodeEx(gameObject->name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick);
-					ImGui::Selectable(gameObject->name.c_str());
+					ImGui::Selectable(gameObject->name.c_str(), ImGuiTreeNodeFlags_Framed);
 				}
 
+				ImGui::PopStyleColor();
 
 
-				//ImGui::Selectable(gameObject->name.c_str());
 				// Change the selected gameobject if user clicked on the selectable
 				if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 					selectedGameObject = gameObject;
@@ -88,9 +98,11 @@ namespace Gui {
 						Gui::Hierarchy::Item(child, selectedGameObject);
 					}
 					ImGui::TreePop();
-				}
 
+				}
 				ImGui::PopID();
+
+
 			}
 		};
 
@@ -98,47 +110,3 @@ namespace Gui {
 
 	}
 }
-/*
-if (ImGui::BeginDragDropTarget()) {
-	if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("MyPayload")) {
-		if (payload->DataSize == sizeof(GameObject*)) {
-			std::cout << "1" << std::endl;
-
-			GameObject* currentObj = gameObject;
-			GameObject* payloadObj = *static_cast<GameObject**>(payload->Data);  // Dereference the pointer			
-			std::vector<GameObject*>& children = currentObj->parent->children;
-			std::cout << "2" << std::endl;
-	
-			// Find the iterator of the GameObject with the specified name
-
-			size_t currentIndex = std::distance(children.begin(), std::find(children.begin(), children.end(), gameObject));
-			std::cout << "3" << std::endl;
-			if (currentIndex < children.size()) {
-				// Find the current object, erase it and insert the payloadObj on that position
-				auto currentIterator = std::find(children.begin(), children.end(), currentObj);
-				children.erase(currentIterator);
-				//currentIndex = std::distance(children.begin(), std::find(children.begin(), children.end(), gameObject));
-				children.insert(children.begin() + currentIndex, payloadObj);
-				std::cout << "4" << std::endl;
-				// Find the payload object, erase it and insert the currentObj on that position
-
-				size_t payloadIndex = std::distance(children.begin(), std::find(children.begin(), children.end(), payloadObj));
-				if (payloadIndex < children.size()) {
-					std::cout << "5" << std::endl;
-					auto payloadIterator = std::find(children.begin(), children.end(), payloadObj);
-					std::cout << "6" << std::endl;
-					children.erase(payloadIterator);
-					std::cout << "7" << std::endl;
-					//payloadIndex = std::distance(children.begin(), std::find(children.begin(), children.end(), payloadObj));
-					children.insert(children.begin() + payloadIndex, currentObj);
-					std::cout << "8" << std::endl;
-
-				}
-
-			}
-
-
-		}
-	}
-	ImGui::EndDragDropTarget();
-}*/

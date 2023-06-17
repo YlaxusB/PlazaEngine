@@ -17,7 +17,8 @@
 #include "Engine/Shaders/Shader.h"
 #include "Engine/Components/Core/Model.h"
 #include "Engine/GUI/gizmo.h"
-
+#include "Engine/Components/Core/GameObject.h"
+#include "Engine/GUI/guiMain.h"
 using namespace std;
 
 //unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);

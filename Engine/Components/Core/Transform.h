@@ -21,10 +21,9 @@ public:
 	glm::vec3 worldScale = { 1, 1, 1 };
 
 	Transform();
-
-	glm::mat4 GetTransform();
+	glm::mat4 GetTransform(glm::vec3 position, glm::vec3 scale);
 	glm::mat4 GetTransform(glm::vec3 position);
-
+	glm::mat4 GetTransform();
 	void UpdateChildrenTransform(GameObject* gameObject);
 	void UpdateChildrenTransform();
 	void UpdateChildrenScale(GameObject* gameObject);

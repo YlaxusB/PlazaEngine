@@ -6,7 +6,7 @@
 
 extern GameObject* selectedGameObject;
 namespace Gui {
-	void setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera);
+	void setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera& camera);
 	void changeSelectedGameObject(GameObject* newSelectedGameObject);
 }
 

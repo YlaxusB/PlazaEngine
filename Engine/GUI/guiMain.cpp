@@ -15,16 +15,18 @@
 #include "guiMain.h"
 
 #include "Engine/Components/Core/GameObject.h"
-#include "Engine/Application/Application.h"
+//#include "Engine/Application/Application.h"
 #include "Engine/GUI/Hierarchy.h"
 #include "Engine/GUI/Inspector.h"
 #include "Engine/GUI/gizmo.h"
 #include "Engine/GUI/TransformOverlay.h"
+#include "Engine/Components/Core/GameObject.h"
+
 //
 
 GameObject* selectedGameObject;
 
-void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera);
+void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera& camera);
 void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes);
 void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera);
 //void beginOverlay(AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera);
@@ -39,7 +41,7 @@ void Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
 	selectedGameObject = newSelectedGameObject;
 }
 
-void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera) {
+void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera& camera) {
 	ImGuiWindowFlags  windowFlags = ImGuiWindowFlags_MenuBar;
 	ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.appSize));
@@ -64,7 +66,7 @@ void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appS
 
 
 // Create the scene view
-inline void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera) {
+inline void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera& camera) {
 	// Get the header size
 	ImGuiStyle style = ImGui::GetStyle();
 	ImVec2 headerSize = ImVec2(0, ImGui::GetFontSize() + style.FramePadding.y * 2);
@@ -90,6 +92,7 @@ inline void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAp
 
 			if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parent != nullptr) {
 				Gui::Gizmo gizmo(selectedGameObject, camera, appSizes);
+				//camera.Position = selectedGameObject->transform->worldPosition;
 			}
 		}
 		ImGui::EndChild();
@@ -107,6 +110,7 @@ void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastA
 	ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus;
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f)); // Remove the padding of the window
 	//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.hierarchyBackgroundColor);
 
 	if (ImGui::Begin("Hierarchy", new bool(true), sceneWindowFlags)) {
 		ImGui::SetWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y), ImGuiCond_Always);
@@ -120,17 +124,11 @@ void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastA
 		}
 		// Create the main collapser
 		Gui::Hierarchy::Item(gameObjects.front(), selectedGameObject);
-		/*
-			// For each GameObject, create a new collapser
-			for (GameObject* gameObject : gameObjects)
-			{
-				Gui::Hierarchy::Item(gameObject, selectedGameObject);
-			}
-			*/
-		//if(gameObjects.size() > 10)std::cout << currentObj->children[5]->name << std::endl;
+
 	}
 	curHierarchySize = ImGui::glmVec2(ImGui::GetWindowSize());
 	ImGui::End(); // End hierarchy
+	ImGui::PopStyleColor(); // Background Color
 	ImGui::PopStyleVar();// End hierarchy style
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/Vendor/imgui/ImGuizmo.h"
 #include "Engine/Application/EditorCamera.h"
+#include "Engine/Components/Core/GameObject.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -16,7 +17,6 @@
 #include <glm/gtx/euler_angles.hpp>
 
 #include "Engine/GUI/TransformOverlay.h"
-
 namespace Gui {
 	class Gizmo {
 	public:

@@ -2,7 +2,7 @@
 #include "Engine/Components/Core/GameObject.h"
 #include "Engine/Application/Application.h"
 #include "Engine/Application/EditorCamera.h"
-
+#include <GLFW/glfw3.h>
 
 extern GameObject* selectedGameObject;
 namespace Gui {

@@ -33,8 +33,6 @@
 #include "Engine/GUI/gizmo.h"
 #include "Engine/GUI/Style/EditorStyle.h"
 
-
-
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
@@ -247,6 +245,12 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	float yposGame = lastY - appSizes.appHeaderSize;
 	yposGame = appSizes.sceneSize.y - yposGame;
 
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && pickingTexture->readPixel(xposGame, yposGame) == 0) {
+		Gui::changeSelectedGameObject(nullptr);
+	}
+	else {
+		std::cout << pickingTexture->readPixel(xposGame, yposGame) << std::endl;
+	}
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && pickingTexture->readPixel(xposGame, yposGame) != 0) {
 		int targetName = pickingTexture->readPixel(xposGame, yposGame);
@@ -258,9 +262,12 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 			Gui::changeSelectedGameObject(*it);
 		}
 		else {
-			std::cout << "Object with name '" << targetName << "' not found." << std::endl;
+			//Gui::changeSelectedGameObject(nullptr);
 		}
 	}
+
+
+
 }
 
 int main()
@@ -504,10 +511,10 @@ int main()
 
 
 		pickingTexture->enableWriting();
-		//glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+		// glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		//glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+		// glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 
 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
@@ -575,7 +582,6 @@ int main()
 		// Render the ImGui frame
 		ImGui::Render();
 		// Update the game, so game calculations can run
-
 
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

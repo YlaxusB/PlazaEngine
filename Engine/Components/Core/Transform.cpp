@@ -15,7 +15,13 @@
 
 Transform::Transform() {};
 
-// Get transform
+/// <summary>
+/// Returns a Matrix 4x4 
+/// Order: WorldPosition - WorldRotation - Scale
+/// </summary>
+/// <param name="position"></param>
+/// <param name="vec3"></param>
+/// <returns></returns>
 glm::mat4 Transform::GetTransform(glm::vec3 position, glm::vec3 scale)
 {	
 	if (this->gameObject->parent == nullptr) {
@@ -34,60 +40,38 @@ glm::mat4 Transform::GetTransform(glm::vec3 position, glm::vec3 scale)
 glm::mat4 Transform::GetTransform() {
 	return GetTransform(this->worldPosition, this->worldScale);
 }
-
 glm::mat4 Transform::GetTransform(glm::vec3 position) {
 	return GetTransform(position, this->worldScale);
 }
-
-glm::vec3 TransformToWorldSpace(const glm::vec3& localPosition,
-	const glm::mat4& transformMatrix)
-{
-	glm::vec4 homogeneousPos(localPosition.x, localPosition.y, localPosition.z, 1.0f);
-	glm::vec4 worldPos = transformMatrix * homogeneousPos;
-
-	return glm::vec3(worldPos);
-}
-
-glm::vec3 TransformToLocalSpace(const glm::vec3& worldPosition,
-	const glm::mat4& transformMatrix)
-{
-	glm::mat4 inverseMatrix = glm::inverse(transformMatrix);
-	glm::vec4 homogeneousPos(worldPosition.x, worldPosition.y, worldPosition.z, 1.0f);
-	glm::vec4 localPos = inverseMatrix * homogeneousPos;
-
-	return glm::vec3(localPos);
-}
-
-glm::vec3 test(GameObject* child) {
+/// <summary>
+/// Rotates around parent, then positionates its relative position based on the rotation and returns this position.
+/// </summary>
+glm::vec3 newWorldPosition(GameObject* gameObject) {
 	glm::mat4 rotationMatrix = glm::mat4(1.0f);
-	rotationMatrix *= glm::toMat4(glm::quat(child->parent->transform->worldRotation));
-	rotationMatrix = glm::scale(rotationMatrix, child->parent->transform->worldScale);
-	//rotationMatrix = glm::scale(rotationMatrix, child->parent->transform->worldScale);
-	glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(child->transform->relativePosition, 1.0f));
-	glm::vec3 finalWorldPoint = transformedPoint + child->parent->transform->worldPosition;
-	//finalWorldPoint = (finalWorldPoint * child->parent->transform->worldScale);
-	//finalWorldPoint = finalWorldPoint * child->parent->transform->worldScale;
+	rotationMatrix *= glm::toMat4(glm::quat(gameObject->parent->transform->worldRotation));
+	rotationMatrix = glm::scale(rotationMatrix, gameObject->parent->transform->worldScale);
+	glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(gameObject->transform->relativePosition, 1.0f));
+	glm::vec3 finalWorldPoint = transformedPoint + gameObject->parent->transform->worldPosition;
 	return finalWorldPoint;
 }
-
+/// <summary>
+/// First rotates with parent rotation and then its own rotation.
+/// </summary>
 glm::vec3 newWorldRotation(GameObject* gameObject) {
-	glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), gameObject->transform->worldPosition)
+	glm::mat4 newRotationMatrix = glm::translate(glm::mat4(1.0f), gameObject->transform->worldPosition)
 		* glm::toMat4(glm::quat(gameObject->parent->transform->worldRotation))
 		* glm::toMat4(glm::quat(gameObject->transform->rotation))
 		* glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 
-	glm::vec3 a = glm::eulerAngles(glm::quat_cast(gizmoMatrix));
-	return a;
+	glm::vec3 eulerAngles = glm::eulerAngles(glm::quat_cast(newRotationMatrix));
+	return eulerAngles;
 
-	//return gameObject->transform->rotation + gameObject->parent->transform->worldRotation;
 }
 
 void UpdateObjectTransform(GameObject* gameObject) {
 	gameObject->transform->worldScale = gameObject->transform->scale * gameObject->parent->transform->worldScale;
-	//gameObject->transform->worldPosition = (gameObject->transform->relativePosition * gameObject->parent->transform->worldScale + gameObject->parent->transform->worldPosition);
-	gameObject->transform->worldRotation = newWorldRotation(gameObject);//gameObject->transform->rotation + gameObject->parent->transform->worldRotation;
-	gameObject->transform->worldPosition = test(gameObject);
-//	gameObject->transform->worldPosition = (gameObject->transform->worldPosition * gameObject->parent->transform->worldScale) + gameObject->parent->transform->worldPosition;
+	gameObject->transform->worldRotation = newWorldRotation(gameObject);
+	gameObject->transform->worldPosition = newWorldPosition(gameObject);
 }
 
 

@@ -60,6 +60,12 @@
     <ClCompile Include="Engine\GUI\TransformOverlay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\GUI\Hierarchy\Hierarchy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\GUI\Hierarchy\DragDrop.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h">
@@ -140,7 +146,7 @@
     <ClInclude Include="Engine\Vendor\uuid_v4\uuid_v4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\Hierarchy.h">
+    <ClInclude Include="Engine\GUI\Hierarchy\Hierarchy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\GUI\Inspector.h">
@@ -180,6 +186,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\GUI\Style\EditorStyle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Utils\vectorUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

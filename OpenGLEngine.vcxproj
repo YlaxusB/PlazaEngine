@@ -140,6 +140,8 @@
     <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
     <ClCompile Include="Engine\Components\Core\Transform.cpp" />
     <ClCompile Include="Engine\GUI\guiMain.cpp" />
+    <ClCompile Include="Engine\GUI\Hierarchy\DragDrop.cpp" />
+    <ClCompile Include="Engine\GUI\Hierarchy\Hierarchy.cpp" />
     <ClCompile Include="Engine\GUI\TransformOverlay.cpp" />
     <ClCompile Include="Engine\stb_image.cpp" />
     <ClCompile Include="Engine\Vendor\imgui\imgui.cpp" />
@@ -171,7 +173,7 @@
     <ClInclude Include="Engine\Editor\GUI\guiMain.h" />
     <ClInclude Include="Engine\GUI\gizmo.h" />
     <ClInclude Include="Engine\GUI\guiMain.h" />
-    <ClInclude Include="Engine\GUI\Hierarchy.h" />
+    <ClInclude Include="Engine\GUI\Hierarchy\Hierarchy.h" />
     <ClInclude Include="Engine\GUI\Inspector.h" />
     <ClInclude Include="Engine\GUI\Inspector\TransformInspector.h" />
     <ClInclude Include="Engine\GUI\Style\EditorStyle.h" />
@@ -179,6 +181,7 @@
     <ClInclude Include="Engine\Shaders\Shader.h" />
     <ClInclude Include="Engine\stb_image.h" />
     <ClInclude Include="Engine\Utils\glmUtils.h" />
+    <ClInclude Include="Engine\Utils\vectorUtils.h" />
     <ClInclude Include="Engine\Vendor\filesystem\filesys.h" />
     <ClInclude Include="Engine\Vendor\imgui\ImGuizmo.h" />
     <ClInclude Include="Engine\Vendor\uuid_v4\endianness.h" />

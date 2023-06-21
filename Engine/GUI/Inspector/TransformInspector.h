@@ -94,6 +94,10 @@ namespace Gui {
 				ImGui::SetNextItemWidth(75);
 				ImGui::InputFloat("Z", &currentScale.z);
 
+				for (GameObject* child : gameObject->children) {
+					ImGui::Text(child->name.c_str());
+				}
+
 				ImGui::PopID();
 				ImGui::TreePop();
 			}

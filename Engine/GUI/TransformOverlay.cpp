@@ -4,7 +4,7 @@ ImGuizmo::MODE Gui::Overlay::activeMode = ImGuizmo::MODE::WORLD;
 ImGuizmo::OPERATION Gui::Overlay::activeOperation = ImGuizmo::OPERATION::TRANSLATE;
 
 void Gui::Overlay::beginTransformOverlay(AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera) {
-	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse;
 	if (ImGui::Begin("Transform Overlay", new bool(true), window_flags))
 	{
 		Button* worldButton = new Button{ "World", ImGuizmo::OPERATION(-1), ImGuizmo::MODE::WORLD };

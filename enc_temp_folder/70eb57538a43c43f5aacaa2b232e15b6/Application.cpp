@@ -76,16 +76,6 @@ unsigned int rbo;
 
 PickingTexture* pickingTexture;
 
-void Application::CreateApplication() {
-
-}
-
-void Application::InitGLFW() {
-
-}
-
-
-
 float WrapValue(float value, float minValue, float maxValue) {
 	float range = maxValue - minValue;
 	float wrappedValue = fmod((value - minValue), range);

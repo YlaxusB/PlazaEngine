@@ -9,8 +9,3 @@ struct AppSizes {
 	glm::vec2 hierarchySize = { 320, 1000 };
 	glm::vec2 inspectorSize = { 420, 1000 };
 };
-
-namespace Application {
-	void Application::CreateApplication();
-	void Application::InitGLFW();
-}

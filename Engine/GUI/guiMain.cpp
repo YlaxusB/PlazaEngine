@@ -4,7 +4,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+
 #include <imgui/imgui.h>
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 #include <stb/stb_image.h>
 
@@ -37,6 +40,15 @@ glm::vec2 curHierarchySize;
 glm::vec2 curSceneSize;
 glm::vec2 curInspectorSize;
 
+void Gui::Init(GLFWwindow* window) {
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	(void)io;
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	io.IniFilename = NULL;
+	ImGui_ImplOpenGL3_Init("#version 330");
+}
+
 void Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
 	selectedGameObject = newSelectedGameObject;
 }
@@ -53,13 +65,49 @@ void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appS
 		//ImGui::PopStyleVar();
 		ImGui::PopStyleColor();
 		// Create UI elements
-		beginScene(gameFrameBuffer, appSizes, lastAppSizes, camera);
+
+		ImGui::Columns(3, "MainColumns", true);
+		//float columnWidth1 = 320.0f;
+		float columnWidth1 = appSizes.hierarchySize.x;
+		float columnWidth2 = appSizes.sceneSize.x;
+		float columnWidth3 = appSizes.inspectorSize.x;
+
+
+		ImGui::SetColumnWidth(0, columnWidth1);
+		ImGui::SetColumnWidth(1, columnWidth2);
+		ImGui::SetColumnWidth(2, columnWidth3);
+
+
+		// Set the background color for the first column
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f));
+		ImGui::Separator();
 		beginHierarchyView(gameFrameBuffer, appSizes, lastAppSizes);
+		ImGui::Separator();
+		ImGui::PopStyleColor();
+
+		ImGui::NextColumn();
+
+		// Set the background color for the second column
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
+		ImGui::Separator();
+		beginScene(gameFrameBuffer, appSizes, lastAppSizes, camera);
+		//Gui::Overlay().beginTransformOverlay(appSizes, lastAppSizes, camera);
+		ImGui::Separator();
+		ImGui::PopStyleColor();
+
+		ImGui::NextColumn();
+
+		// Set the background color for the third column
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
+		ImGui::Separator();
 		beginInspector(gameFrameBuffer, appSizes, lastAppSizes, camera);
-		Gui::Overlay().beginTransformOverlay(appSizes, lastAppSizes, camera);
+		ImGui::Separator();
+		ImGui::PopStyleColor();
+
+		ImGui::Columns();
 	}
-	appSizes.sceneSize = glm::vec2(appSizes.appSize.x - appSizes.hierarchySize.x - appSizes.inspectorSize.x, appSizes.sceneSize.y);
-	curSceneSize = ImGui::glmVec2(ImGui::GetWindowSize());
+	//appSizes.sceneSize = glm::abs(glm::vec2(appSizes.appSize.x - appSizes.hierarchySize.x - appSizes.inspectorSize.x, appSizes.sceneSize.y));
+	curSceneSize =  glm::abs(ImGui::glmVec2(ImGui::GetWindowSize()));
 
 
 	ImGui::End();
@@ -72,18 +120,25 @@ void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appS
 
 // Create the scene view
 inline void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera& camera) {
+	ImGui::SetCursorPosY(appSizes.appHeaderSize);
+	ImGui::Text("Scene");
+	//ImGui::NextColumn();
 	// Get the header size
 	ImGuiStyle style = ImGui::GetStyle();
 	ImVec2 headerSize = ImVec2(0, ImGui::GetFontSize() + style.FramePadding.y * 2);
 	appSizes.appHeaderSize = headerSize.y;
 	// Set the window to be the content size + header size
 	ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.sceneSize - glm::vec2(0, appSizes.sceneSize.y + headerSize.y + 100))); // REMOVE THE + glm::vec2(0.0f,50.0f) -----------------------------------
-	ImGui::SetNextWindowPos(ImVec2(appSizes.hierarchySize.x, 0));
-	ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_AlwaysAutoResize | ImGuiViewportFlags_NoFocusOnClick | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoFocusOnAppearing;
+	//ImGui::SetNextWindowPos(ImVec2(appSizes.hierarchySize.x, 0));
+	ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_AlwaysAutoResize | ImGuiViewportFlags_NoFocusOnClick;
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f)); // Remove the padding of the window
-	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f)); 
-	if (ImGui::BeginChild("Scene", ImGui::imVec2(appSizes.sceneSize), new bool(true), sceneWindowFlags)) {
-		if (ImGui::BeginChild("Image Container", ImVec2(appSizes.sceneSize.x , appSizes.sceneSize.y), false, sceneWindowFlags | ImGuiWindowFlags_NoTitleBar)) {
+	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+
+	ImGui::SetCursorPosY(appSizes.appHeaderSize + 20);
+	if (ImGui::BeginChild("Scene", ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y + appSizes.appHeaderSize + 100.0f), new bool(true), sceneWindowFlags)) {
+		ImGui::SetCursorPosY(appSizes.appHeaderSize + 20);
+		if (ImGui::BeginChild("Image Container", ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y), false, sceneWindowFlags | ImGuiWindowFlags_NoTitleBar)) {
+			std::cout << ImGui::GetWindowPos().y << std::endl;
 			ImVec2 uv0(0, 1); // bottom-left corner
 			ImVec2 uv1(1, 0); // top-right corner
 
@@ -99,51 +154,58 @@ inline void beginScene(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAp
 				Gui::Gizmo gizmo(selectedGameObject, camera, appSizes);
 				//camera.Position = selectedGameObject->transform->worldPosition;
 			}
-		}
-		ImGui::EndChild();
 
+			ImGui::EndChild();
+
+		}
 	}
-	curSceneSize = ImGui::glmVec2(ImGui::GetWindowSize());
+
+
+	curSceneSize = glm::abs(ImGui::glmVec2(ImGui::GetWindowSize()));
 	ImGui::EndChild();
 	ImGui::PopStyleVar();
 	ImGui::PopStyleColor();
 }
 
 void beginHierarchyView(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes) {
-	ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.hierarchySize), ImGuiCond_Always);
-	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::SetCursorPosY(appSizes.appHeaderSize);
+	ImGui::Text("Hierarchy");
+	ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.hierarchySize + glm::vec2(0.0f, appSizes.appHeaderSize)), ImGuiCond_Always);
+	//ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoFocusOnAppearing;
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f)); // Remove the padding of the window
 	//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.treeNodeBackgroundColor);
 
-
-	if (ImGui::BeginChild("Hierarchy", ImGui::imVec2(appSizes.hierarchySize), new bool(true), sceneWindowFlags)) {
+	if (ImGui::BeginChild("Hierarchy", ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y), new bool(false), sceneWindowFlags)) {
 		ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.treeNodeBackgroundColor);
 
 		ImGui::SetWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y), ImGuiCond_Always);
 		// Handle size changes
 		const ImVec2& CurSize = ImGui::GetWindowSize();
 		if (CurSize.x != lastAppSizes.hierarchySize.x || CurSize.y != lastAppSizes.hierarchySize.y) {
-			appSizes.hierarchySize = ImGui::glmVec2(CurSize);
+			//appSizes.hierarchySize = ImGui::glmVec2(CurSize);
 			lastAppSizes.hierarchySize = appSizes.hierarchySize;
 			ImGui::SetWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y), ImGuiCond_Always);
-			ImGui::SetWindowPos(ImVec2(0, 0));
+			//ImGui::SetWindowPos(ImVec2(0, 0));
 
 
 		}
 		// Create the main collapser
 		Gui::Hierarchy::Item(gameObjects.front(), selectedGameObject);
 		ImGui::PopStyleColor(); // Background Color
-
 	}
+
+
 	curHierarchySize = ImGui::glmVec2(ImGui::GetWindowSize());
-	ImGui::EndChild(); // End hierarchy
+	ImGui::EndChild();
 	ImGui::PopStyleColor(); // Background Color
 	ImGui::PopStyleVar();// End hierarchy style
 }
 
 void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera camera) {
+	ImGui::SetCursorPosY(appSizes.appHeaderSize);
+	ImGui::Text("Inspector");
 	ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.inspectorSize), ImGuiCond_Always);
 	ImGui::SetNextWindowPos(ImVec2(appSizes.appSize.x - appSizes.inspectorSize.x, 0));
 
@@ -155,10 +217,10 @@ void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSi
 		// Handle size changes
 		const ImVec2& CurSize = ImGui::GetWindowSize();
 		if (!ImGui::Compare(CurSize, ImGui::imVec2(lastAppSizes.inspectorSize))) {
-			appSizes.inspectorSize = ImGui::glmVec2(CurSize);
+			//appSizes.inspectorSize = ImGui::glmVec2(CurSize);
 			lastAppSizes.inspectorSize = appSizes.inspectorSize;
 			ImGui::SetWindowSize(ImGui::imVec2(appSizes.inspectorSize), ImGuiCond_Always);
-			ImGui::SetWindowPos(ImVec2(appSizes.appSize.x - appSizes.inspectorSize.x, 0));
+			//ImGui::SetWindowPos(ImVec2(appSizes.appSize.x - appSizes.inspectorSize.x, 0));
 		}
 
 		if (selectedGameObject && selectedGameObject->parent) {
@@ -169,6 +231,7 @@ void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSi
 			//Gui::Inspector::addComponentButton(appSizes);
 		}
 	}
+
 	curInspectorSize = ImGui::glmVec2(ImGui::GetWindowSize());
 	ImGui::EndChild();
 	ImGui::PopStyleVar();
@@ -178,9 +241,9 @@ void beginInspector(int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSi
 
 // Update appSizes
 void updateSizes(AppSizes appSizes) {
-	appSizes.hierarchySize = curHierarchySize;
-	appSizes.inspectorSize = curInspectorSize;
-	appSizes.sceneSize.x = appSizes.appSize.x - appSizes.hierarchySize.x - appSizes.inspectorSize.x;
+	//appSizes.hierarchySize = glm::abs(curHierarchySize);
+	//appSizes.inspectorSize = glm::abs(curInspectorSize);
+	//appSizes.sceneSize.x = glm::abs(appSizes.appSize.x - appSizes.hierarchySize.x - appSizes.inspectorSize.x);
 }
 
 

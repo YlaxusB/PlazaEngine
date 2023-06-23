@@ -1,17 +1,35 @@
 #pragma once
 
 #include <GLFW/glfw3.h>
+#include <imgui/imgui.h>
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 
-
-#include "Engine/Components/Core/GameObject.h"
-#include "Engine/Application/Application.h"
 #include "Engine/Application/EditorCamera.h"
+#include "Engine/Components/Core/GameObject.h"
+//#include "Engine/Application/Application.h"
+
+
 
 extern GameObject* selectedGameObject;
-namespace Gui {
-	void setupDockspace(GLFWwindow* window, int gameFrameBuffer, AppSizes& appSizes, AppSizes& lastAppSizes, Camera& camera);
-	void changeSelectedGameObject(GameObject* newSelectedGameObject);
-	void Init(GLFWwindow* window);
+namespace Engine {
+	class Camera;
+}
+namespace Editor {
+	namespace Gui {
+		using namespace Engine;
+		static void setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera& camera);
+		static void changeSelectedGameObject(GameObject* newSelectedGameObject);
+		static void Init(GLFWwindow* window);
+		static void Delete();
+		static void Update();
+
+		static void beginScene(int gameFrameBuffer, Camera& camera);
+		static void beginHierarchyView(int gameFrameBuffer);
+		static void beginInspector(int gameFrameBuffer, Camera camera);
+
+		static void UpdateSizes();
+	}
 }
 
 namespace ImGui {

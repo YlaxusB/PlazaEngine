@@ -135,6 +135,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Engine\Components\Core\Mesh.cpp" />
+    <ClCompile Include="Engine\Editor\Editor.cpp" />
     <ClCompile Include="Engine\Application\Application.cpp" />
     <ClCompile Include="Engine\Application\EditorCamera.cpp" />
     <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
@@ -152,13 +154,22 @@
     <ClCompile Include="Engine\Vendor\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="Engine\Vendor\imgui\imgui_tables.cpp" />
     <ClCompile Include="Engine\Vendor\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Engine\Core\Time.cpp" />
+    <ClCompile Include="Engine\Core\FrameBuffer.cpp" />
+    <ClCompile Include="Engine\Core\Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\Application\ApplicationSizes.h" />
+    <ClInclude Include="Engine\Editor\Editor.h" />
     <ClInclude Include="Engine\Application.h" />
     <ClInclude Include="Engine\Application\Application.h" />
     <ClInclude Include="Engine\Application\EditorCamera.h" />
+    <ClInclude Include="Engine\Application\EntryPoint.h" />
     <ClInclude Include="Engine\Application\ModelLoader.h" />
     <ClInclude Include="Engine\Application\PickingTexture.h" />
+    <ClInclude Include="Engine\Components\Core\CoreComponents.h" />
+    <ClInclude Include="Engine\Core\Meshes\Cube.cpp" />
+    <ClInclude Include="Engine\Core\Skybox.h" />
     <ClInclude Include="Engine\Components\Core\Camera.h" />
     <ClInclude Include="Engine\Components\Core\Component.h" />
     <ClInclude Include="Engine\Components\Core\Transform.h" />
@@ -195,6 +206,9 @@
     <ClInclude Include="Engine\Vendor\imgui\imstb_rectpack.h" />
     <ClInclude Include="Engine\Vendor\imgui\imstb_textedit.h" />
     <ClInclude Include="Engine\Vendor\imgui\imstb_truetype.h" />
+    <ClInclude Include="Engine\Core\Time.h" />
+    <ClInclude Include="Engine\Core\FrameBuffer.h" />
+    <ClInclude Include="Engine\Core\Renderer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Engine\Shaders\objectPickingFragment.glsl" />

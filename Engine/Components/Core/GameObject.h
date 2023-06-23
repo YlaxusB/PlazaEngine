@@ -65,7 +65,7 @@ public:
 
 class MeshRenderer : public Component {
 public:
-	Mesh mesh;
-	MeshRenderer(const Mesh& initialMesh) : mesh(initialMesh) {
+	Engine::Mesh mesh;
+	MeshRenderer(const Engine::Mesh& initialMesh) : mesh(initialMesh) {
 	}
 };

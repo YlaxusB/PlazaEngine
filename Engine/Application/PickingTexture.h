@@ -20,7 +20,7 @@ public:
 	unsigned int framebufferId;
 	unsigned int pickingTextureId;
 	unsigned int depthTextureId;
-	bool init(int width, int height, AppSizes appSizes) {
+	bool init(int width, int height) {
 		glGenFramebuffers(1, &framebufferId);
 		glBindFramebuffer(GL_FRAMEBUFFER, framebufferId);
 		// create a color attachment texture

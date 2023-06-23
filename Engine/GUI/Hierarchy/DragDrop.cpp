@@ -7,20 +7,20 @@ void InsertAsChild(GameObject* payloadObj, GameObject* currentObj);
 void InsertAfter(GameObject* payloadObj, GameObject* currentObj);
 
 
-
-namespace Gui {
-	namespace Hierarchy {
-		void Item::HierarchyDragDrop(GameObject* gameObject, GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax) {
-			if (gameObject->parent && ImGui::BeginDragDropTarget()) { 
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadName.c_str())) {
-					payloadDrop(gameObject, currentObj, treeNodeMin, treeNodeMax, payload);
+namespace Editor {
+	namespace Gui {
+		namespace Hierarchy {
+			void Item::HierarchyDragDrop(GameObject* gameObject, GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax) {
+				if (gameObject->parent && ImGui::BeginDragDropTarget()) {
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadName.c_str())) {
+						payloadDrop(gameObject, currentObj, treeNodeMin, treeNodeMax, payload);
+					}
+					ImGui::EndDragDropTarget();
 				}
-				ImGui::EndDragDropTarget();
 			}
 		}
 	}
 }
-
 void payloadDrop(GameObject* gameObject, GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, const ImGuiPayload* payload) {
 	if (payload->DataSize == sizeof(GameObject*)) {
 		/* The current "object" is the one that the mouse was over when dropped*/
@@ -39,7 +39,7 @@ void payloadDrop(GameObject* gameObject, GameObject* currentObj, ImVec2 treeNode
 		std::cout << "Tree Node Size: x " << treeNodeSize.x << ", y " << treeNodeSize.y << std::endl;
 		std::cout << "Tree Node Center: x " << treeNodeCenter.x << ", y " << treeNodeCenter.y << std::endl;
 
-		if (mousePos.y <  treeNodeCenter.y - treeNodeSize.y * 0.15f) { // Top
+		if (mousePos.y < treeNodeCenter.y - treeNodeSize.y * 0.15f) { // Top
 			InsertBefore(payloadObj, currentObj);
 		}
 		else if (mousePos.y > treeNodeCenter.y + treeNodeSize.y * 0.15f) { // Bottom

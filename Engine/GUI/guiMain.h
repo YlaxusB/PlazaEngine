@@ -10,8 +10,6 @@
 //#include "Engine/Application/Application.h"
 
 
-
-extern GameObject* selectedGameObject;
 namespace Engine {
 	class Camera;
 }

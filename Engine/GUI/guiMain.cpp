@@ -26,21 +26,22 @@
 #include "Engine/GUI/TransformOverlay.h"
 #include "Engine/Components/Core/GameObject.h"
 #include "Engine/Application/ApplicationSizes.h"
+#include "Engine/Editor/Editor.h"
 //#include "Engine/Application/Application.h" //
 
 //
 
 using namespace Engine;
-using namespace Editor;
-GameObject* selectedGameObject;
+//using namespace Editor;
 
 glm::vec2 curHierarchySize;
 glm::vec2 curSceneSize;
 glm::vec2 curInspectorSize;
 
 // Update ImGui Windows
-void Editor::Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
-	selectedGameObject = newSelectedGameObject;
+void Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
+	Engine::Editor::selectedGameObject = newSelectedGameObject;
+	
 }
 
 
@@ -143,12 +144,12 @@ namespace Editor {
 	}
 
 
-	using namespace Editor::Gui;
+	//using namespace Editor::Gui;
 	// Create the scene view
 	inline void Gui::beginScene(int gameFrameBuffer, Camera& camera) {
 		ApplicationSizes& appSizes = Engine::Application::appSizes;
 		ApplicationSizes& lastAppSizes = Engine::Application::lastAppSizes;
-
+		GameObject* selectedGameObject = Engine::Editor::selectedGameObject;
 		ImGui::SetCursorPosY(appSizes.appHeaderSize);
 		ImGui::Text("Scene");
 		//ImGui::NextColumn();
@@ -198,6 +199,7 @@ namespace Editor {
 	void Gui::beginHierarchyView(int gameFrameBuffer) {
 		ApplicationSizes& appSizes = Engine::Application::appSizes;
 		ApplicationSizes& lastAppSizes = Engine::Application::lastAppSizes;
+		GameObject* selectedGameObject = Engine::Editor::selectedGameObject;
 
 		ImGui::SetCursorPosY(appSizes.appHeaderSize);
 		ImGui::Text("Hierarchy");
@@ -237,6 +239,7 @@ namespace Editor {
 	void Gui::beginInspector(int gameFrameBuffer, Camera camera) {
 		ApplicationSizes& appSizes = Engine::Application::appSizes;
 		ApplicationSizes& lastAppSizes = Engine::Application::lastAppSizes;
+		GameObject* selectedGameObject = Engine::Editor::selectedGameObject;
 
 		ImGui::SetCursorPosY(appSizes.appHeaderSize);
 		ImGui::Text("Inspector");

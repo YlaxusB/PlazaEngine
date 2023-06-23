@@ -19,6 +19,7 @@
 #include "Engine/GUI/gizmo.h"
 #include "Engine/Components/Core/GameObject.h"
 #include "Engine/GUI/guiMain.h"
+#include "Engine/Editor/Editor.h"
 using namespace std;
 
 //unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
@@ -73,7 +74,7 @@ namespace Engine {
             processNode(scene->mRootNode, scene, *meshes, textures_loaded, &directory, modelMainObject);
             modelMainObject->transform->UpdateChildrenTransform();
 
-            selectedGameObject = modelMainObject;
+            Engine::Editor::selectedGameObject = modelMainObject;
         }
 
         // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).

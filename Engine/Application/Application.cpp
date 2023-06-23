@@ -146,6 +146,10 @@ void Engine::Application::Loop() {
 		if (Editor::selectedGameObject != nullptr)
 			Renderer::RenderOutline(*Application::outlineShader);
 
+		if (Editor::selectedGameObject != nullptr) {
+			std::cout << "eaeaeaeaea" << std::endl;
+		}
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Update ImGui
 		Gui::Update();

@@ -1,5 +1,4 @@
-#ifndef SHADER_H
-#define SHADER_H
+#pragma once
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -12,8 +11,10 @@
 class Shader {
 public:
 	unsigned int ID;
+	const char* pathDebug;
 	Shader();
 	Shader(const char* vertexPath, const char* fargmentPath, const char* geometryPath = nullptr) {
+		pathDebug = vertexPath;
 		std::string vertexCode;
 		std::string fragmentCode;
 		std::string geometryCode;
@@ -175,5 +176,3 @@ private:
 		}
 	}
 };
-
-#endif

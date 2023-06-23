@@ -14,3 +14,7 @@ namespace Engine {
 }
 
 
+inline int Engine::Time::frameCount = 0;
+inline float Engine::Time::previousTime = 0;
+inline float Engine::Time::deltaTime = 0;
+inline float Engine::Time::lastFrame = 0;

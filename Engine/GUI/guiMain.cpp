@@ -26,7 +26,7 @@
 #include "Engine/GUI/TransformOverlay.h"
 #include "Engine/Components/Core/GameObject.h"
 #include "Engine/Application/ApplicationSizes.h"
-#include "Engine/Application/Application.h" //
+//#include "Engine/Application/Application.h" //
 
 //
 
@@ -39,15 +39,22 @@ glm::vec2 curSceneSize;
 glm::vec2 curInspectorSize;
 
 // Update ImGui Windows
+void Editor::Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
+	selectedGameObject = newSelectedGameObject;
+}
+
 
 namespace Editor {
 	void Gui::Update() {
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
 		Gui::setupDockspace(Engine::Application::window, Engine::Application::textureColorbuffer, Engine::Application::activeCamera);
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	}
+
+	void Gui::NewFrame() {
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 	}
 
 	void Gui::Init(GLFWwindow* window) {
@@ -66,9 +73,7 @@ namespace Editor {
 		ImGui::DestroyContext();
 	}
 
-	void Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
-		selectedGameObject = newSelectedGameObject;
-	}
+
 
 
 	void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera& camera) {
@@ -162,13 +167,12 @@ namespace Editor {
 		if (ImGui::BeginChild("Scene", ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y + appSizes.appHeaderSize + 100.0f), new bool(true), sceneWindowFlags)) {
 			ImGui::SetCursorPosY(appSizes.appHeaderSize + 20);
 			if (ImGui::BeginChild("Image Container", ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y), false, sceneWindowFlags | ImGuiWindowFlags_NoTitleBar)) {
-				std::cout << ImGui::GetWindowPos().y << std::endl;
 				ImVec2 uv0(0, 1); // bottom-left corner
 				ImVec2 uv1(1, 0); // top-right corner
 
 				ImGui::SetWindowSize(ImGui::imVec2(appSizes.sceneSize));
 				ImGui::SetWindowPos(ImVec2(appSizes.hierarchySize.x, headerSize.y)); // Position it to on the center and below the header
-				ImGui::Image(ImTextureID(gameFrameBuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+				ImGui::Image(ImTextureID(Application::textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 				// Show the gizmo if there's a selected gameObject
 				if (selectedGameObject && selectedGameObject->parent) {
 					//std::cout << selectedGameObject->GetComponent<Transform>(). << std::endl;

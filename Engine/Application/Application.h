@@ -1,13 +1,14 @@
 #pragma once
 #include <glm/glm.hpp>
+#include <GLFW/glfw3.h>
 
 #include "Engine/Application/ApplicationSizes.h"
 #include "Engine/Components/Core/Camera.h"
-#include "Engine/Gui/guiMain.h"
+
 #include "Engine/Application/EditorCamera.h"
 #include "Engine/Shaders/Shader.h"
-
-
+#include "Engine/GUI/guiMain.h"
+#include "Engine/Application/PickingTexture.h"
 namespace Engine {
 	class Camera;
 
@@ -20,11 +21,14 @@ namespace Engine {
 		static Camera& activeCamera;
 
 		static unsigned int textureColorbuffer;
+		static unsigned int frameBuffer;
+		static unsigned int rbo;
 
-		static Shader shader;
-		static Shader pickingShader;
-		static Shader skyboxShader;
-		static Shader outlineShader;
+		static PickingTexture* pickingTexture;
+
+		static Shader* shader;
+		static Shader* pickingShader;
+		static Shader* outlineShader;
 
 		static GLFWwindow* window;
 

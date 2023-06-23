@@ -135,7 +135,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Engine\Components\Core\Mesh.cpp" />
+    <ClCompile Include="Engine\Application\EntryPoint.cpp" />
     <ClCompile Include="Engine\Editor\Editor.cpp" />
     <ClCompile Include="Engine\Application\Application.cpp" />
     <ClCompile Include="Engine\Application\EditorCamera.cpp" />
@@ -164,7 +164,6 @@
     <ClInclude Include="Engine\Application.h" />
     <ClInclude Include="Engine\Application\Application.h" />
     <ClInclude Include="Engine\Application\EditorCamera.h" />
-    <ClInclude Include="Engine\Application\EntryPoint.h" />
     <ClInclude Include="Engine\Application\ModelLoader.h" />
     <ClInclude Include="Engine\Application\PickingTexture.h" />
     <ClInclude Include="Engine\Components\Core\CoreComponents.h" />
@@ -176,12 +175,6 @@
     <ClInclude Include="Engine\Components\Core\GameObject.h" />
     <ClInclude Include="Engine\Components\Core\Mesh.h" />
     <ClInclude Include="Engine\Components\Core\Model.h" />
-    <ClInclude Include="Engine\Editor\Core\Camera.h" />
-    <ClInclude Include="Engine\Editor\Core\GameObject.h" />
-    <ClInclude Include="Engine\Editor\Core\Mesh.h" />
-    <ClInclude Include="Engine\Editor\Core\Model.h" />
-    <ClInclude Include="Engine\Editor\Core\Shader.h" />
-    <ClInclude Include="Engine\Editor\GUI\guiMain.h" />
     <ClInclude Include="Engine\GUI\gizmo.h" />
     <ClInclude Include="Engine\GUI\guiMain.h" />
     <ClInclude Include="Engine\GUI\Hierarchy\Hierarchy.h" />

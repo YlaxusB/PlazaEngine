@@ -5,7 +5,7 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-#include "Engine/Application/EditorCamera.h"
+//#include "Engine/Application/EditorCamera.h"
 #include "Engine/Components/Core/GameObject.h"
 //#include "Engine/Application/Application.h"
 
@@ -19,10 +19,11 @@ namespace Editor {
 	namespace Gui {
 		using namespace Engine;
 		static void setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera& camera);
-		static void changeSelectedGameObject(GameObject* newSelectedGameObject);
-		static void Init(GLFWwindow* window);
-		static void Delete();
-		static void Update();
+		extern void changeSelectedGameObject(GameObject* newSelectedGameObject);
+		extern void Init(GLFWwindow* window);
+		extern void Delete();
+		extern void Update();
+		extern void NewFrame();
 
 		static void beginScene(int gameFrameBuffer, Camera& camera);
 		static void beginHierarchyView(int gameFrameBuffer);

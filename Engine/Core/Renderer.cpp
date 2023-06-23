@@ -4,7 +4,7 @@
 #include "Engine/Editor/Editor.h"
 namespace Engine {
 	// Render all GameObjects
-	void Renderer::Render(Shader shader) {
+	void Renderer::Render(Shader& shader) {
 		shader.use();
 		for (GameObject* gameObject : gameObjects) {
 			MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();

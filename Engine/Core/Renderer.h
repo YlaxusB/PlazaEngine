@@ -8,7 +8,7 @@ namespace Engine {
 		/// Loops through the GameObjects list, if GameObject haves a MeshRenderer then it draws it with its transformation
 		/// </summary>
 		/// <param name="shader"></param>
-		static void Render(Shader shader);
+		static void Render(Shader& shader);
 
 		/// <summary>
 		/// Renders the Outline of the Selected GameObject and its children

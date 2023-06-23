@@ -10,7 +10,7 @@
 namespace Engine {
 	class Skybox {
 	public:
-		static Shader skyboxShader;
+		static Shader* skyboxShader;
 		static unsigned int vao, vbo, cubemapTexture;
 
 		static void Init() {
@@ -84,15 +84,16 @@ namespace Engine {
 			skyboxShader.setInt("skybox", 0);
 		}
 		static void Update() {
+			//Shader& skyboxShader = skyboxShader;
 			// Render Skybox
 			glStencilFunc(GL_ALWAYS, 0, 0xFF);
 			glStencilMask(0xFF);
 			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-			skyboxShader.use();
+			skyboxShader->use();
 			glm::mat4 view = glm::mat4(glm::mat3(Application::activeCamera.GetViewMatrix())); // remove translation from the view matrix
 			glm::mat4 projection = Application::activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
-			skyboxShader.setMat4("view", view);
-			skyboxShader.setMat4("projection", projection);
+			skyboxShader->setMat4("view", view);
+			skyboxShader->setMat4("projection", projection);
 			// skybox cube
 			glBindVertexArray(vao);
 			glActiveTexture(GL_TEXTURE0);
@@ -145,3 +146,7 @@ namespace Engine {
 		}
 	};
 }
+
+inline unsigned int Engine::Skybox::vao = 0;
+inline unsigned int Engine::Skybox::vbo = 0;
+inline unsigned int Engine::Skybox::cubemapTexture = 0;

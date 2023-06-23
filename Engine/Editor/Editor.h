@@ -7,3 +7,4 @@ namespace Engine {
 		static GameObject* selectedGameObject;
 	};
 }
+inline GameObject* Engine::Editor::selectedGameObject = nullptr;

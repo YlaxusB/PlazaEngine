@@ -1,3 +1,5 @@
+#pragma once
+/*
 #ifndef MODEL_H
 #define MODEL_H
 
@@ -204,13 +206,7 @@ private:
 unsigned int TextureFromFile(const char* path, const string& directory, bool gamma)
 {
 	string filename = std::filesystem::path{ directory }.parent_path().string() + "/" + path;
-	/*
-	string filename = string(path);
-	std::cout << "3" << std::endl;
-	std::cout << filename << std::endl;
-	std::string fileParent = std::filesystem::path{ directory }.parent_path().string();
-	filename = directory + '/' + filename;
-	*/
+
 	filename = "D:\\Work\\Cartoon Low Poly World Project\\texture\\texture_main.png";
 	std::cout << "CAVALOLO" << std::endl;
 	std::cout << filename << std::endl;
@@ -248,3 +244,4 @@ unsigned int TextureFromFile(const char* path, const string& directory, bool gam
 	return textureID;
 }
 #endif
+*/

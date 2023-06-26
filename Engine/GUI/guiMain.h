@@ -9,6 +9,9 @@
 #include "Engine/Components/Core/GameObject.h"
 //#include "Engine/Application/Application.h"
 
+namespace ImGuizmo {
+	static bool IsDrawing;
+}
 
 namespace Engine {
 	class Camera;

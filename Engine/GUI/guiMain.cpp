@@ -31,6 +31,10 @@
 
 //
 
+
+
+//bool ImGuizmo::IsDrawing = false;
+
 using namespace Engine;
 //using namespace Editor;
 
@@ -165,8 +169,8 @@ namespace Editor {
 		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
 		ImGui::SetCursorPosY(appSizes.appHeaderSize + 20);
-		if (ImGui::BeginChild("Scene", ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y + appSizes.appHeaderSize + 100.0f), new bool(true), sceneWindowFlags)) {
-			ImGui::SetCursorPosY(appSizes.appHeaderSize + 20);
+		if (ImGui::BeginChild("Scene", ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y + appSizes.appHeaderSize), new bool(true), sceneWindowFlags)) {
+			ImGui::SetCursorPosY(appSizes.appHeaderSize);
 			if (ImGui::BeginChild("Image Container", ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y), false, sceneWindowFlags | ImGuiWindowFlags_NoTitleBar)) {
 				ImVec2 uv0(0, 1); // bottom-left corner
 				ImVec2 uv1(1, 0); // top-right corner
@@ -180,8 +184,12 @@ namespace Editor {
 				}
 
 				if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parent != nullptr) {
+					ImGuizmo::IsDrawing = true;
 					Gui::Gizmo::Draw(selectedGameObject, camera);
 					//camera.Position = selectedGameObject->transform->worldPosition;
+				}
+				else {
+					ImGuizmo::IsDrawing = false;
 				}
 
 				ImGui::EndChild();

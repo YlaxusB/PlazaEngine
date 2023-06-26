@@ -1,4 +1,5 @@
 #include "Engine/GUI/Hierarchy/Hierarchy.h"
+#include "Engine/Editor/Editor.h"
 namespace Editor {
 	namespace Gui {
 		namespace Hierarchy {
@@ -56,8 +57,8 @@ namespace Editor {
 
 				// Change the selected gameobject if user clicked on the selectable
 				if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-					selectedGameObject = gameObject;
-
+					Engine::Editor::selectedGameObject = gameObject;
+				
 
 
 				if (gameObject->parent) {

@@ -41,7 +41,13 @@ namespace Engine {
 		outlineShader.setMat4("projection", projection);
 		outlineShader.setMat4("view", view);
 		outlineShader.setMat4("model", modelMatrix);
-		Renderer::OutlineDraw(Editor::selectedGameObject, outlineShader, glm::vec3(0.03f));
+
+		//Renderer::OutlineDraw(Editor::selectedGameObject, outlineShader, glm::vec3(0.03f));
+		float distanceCameraSelectedGameObject = glm::distance(Editor::selectedGameObject->transform->position, Application::activeCamera.Position);
+		float outlineScale = distanceCameraSelectedGameObject * distanceCameraSelectedGameObject;
+		outlineScale *= 0.00001f;
+		Renderer::OutlineDraw(Editor::selectedGameObject, outlineShader, glm::vec3(1 + outlineScale));
+		Renderer::OutlineDraw(Editor::selectedGameObject, outlineShader, glm::vec3(1 - outlineScale));
 
 		glStencilMask(0xFF);
 		glStencilFunc(GL_ALWAYS, 0, 0xFF);
@@ -51,7 +57,8 @@ namespace Engine {
 	// Draw the Outline
 	void Renderer::OutlineDraw(GameObject* gameObject, Shader shader, glm::vec3 scale) {
 		if (gameObject->GetComponent<MeshRenderer>()) {
-			glm::mat4 modelMatrix = gameObject->transform->GetTransform(Editor::selectedGameObject->transform->worldPosition, gameObject->transform->worldScale + scale);
+			glm::mat4 modelMatrix = gameObject->transform->GetTransform(Editor::selectedGameObject->transform->worldPosition, gameObject->transform->worldScale);
+			modelMatrix = glm::scale(modelMatrix, scale);
 			shader.setMat4("model", modelMatrix);
 			gameObject->GetComponent<MeshRenderer>()->mesh.Draw(shader);
 		}

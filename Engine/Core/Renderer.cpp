@@ -2,6 +2,16 @@
 #include "Engine/Components/Core/CoreComponents.h"
 #include "Engine/Application/Application.h"
 #include "Engine/Editor/Editor.h"
+
+void renderFullscreenQuad() {
+	// skybox cube
+	glBindVertexArray(Engine::Application::blurVAO);
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	//glBindVertexArray(0);
+
+}
+
 namespace Engine {
 	// Render all GameObjects
 	void Renderer::Render(Shader& shader) {
@@ -22,7 +32,10 @@ namespace Engine {
 				glStencilFunc(GL_ALWAYS, 1, 0xFF);
 				glStencilMask(0xFF);
 
+				//glBindTexture(GL_TEXTURE0, Application::frameBuffer);
 				meshRenderer->mesh.Draw(shader);
+				//glBindTexture(GL_TEXTURE0, 0);
+
 			}
 		}
 	}
@@ -33,7 +46,8 @@ namespace Engine {
 		glm::mat4 view = Application::activeCamera.GetViewMatrix();
 		glm::mat4 modelMatrix = Editor::selectedGameObject->transform->GetTransform();
 
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0x00);
 
 		modelMatrix = glm::scale(modelMatrix, Editor::selectedGameObject->transform->worldScale + glm::vec3(0.01f));
@@ -41,14 +55,61 @@ namespace Engine {
 		outlineShader.setMat4("projection", projection);
 		outlineShader.setMat4("view", view);
 		outlineShader.setMat4("model", modelMatrix);
+		glDisable(GL_DEPTH_TEST);
 
-		//Renderer::OutlineDraw(Editor::selectedGameObject, outlineShader, glm::vec3(0.03f));
-		float distanceCameraSelectedGameObject = glm::distance(Editor::selectedGameObject->transform->position, Application::activeCamera.Position);
-		float outlineScale = distanceCameraSelectedGameObject * distanceCameraSelectedGameObject;
-		outlineScale *= 0.00001f;
-		Renderer::OutlineDraw(Editor::selectedGameObject, outlineShader, glm::vec3(1 + outlineScale));
-		Renderer::OutlineDraw(Editor::selectedGameObject, outlineShader, glm::vec3(1 - outlineScale));
 
+
+
+		// now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
+		glBindFramebuffer(GL_FRAMEBUFFER, Application::frameBuffer);
+		glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, Engine::Application::textureColorbuffer);
+
+
+		// clear all relevant buffers
+		//glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+
+
+		Engine::Application::outlineBlurShader->use();
+		Engine::Application::outlineBlurShader->setInt("screenTexture", 0);
+		Application::updateBuffers(Application::textureColorbuffer, Application::rbo);
+
+		Application::outlineBlurShader->setMat4("projection", projection);
+		Application::outlineBlurShader->setMat4("view", view);
+		glUniform2f(glGetUniformLocation(Application::outlineBlurShader->ID, "textureSize"), Application::appSizes.sceneSize.x, Application::appSizes.sceneSize.y);
+
+		glBindVertexArray(Engine::Application::blurVAO);
+		glBindTexture(GL_TEXTURE_2D, Engine::Application::textureColorbuffer);	// use the color attachment texture as the texture of the quad plane
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		/*
+		Application::updateBuffers(Application::textureColorbuffer, Application::rbo);
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, Application::textureColorbuffer);
+
+		glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		// Set the uniforms for the shader
+		glUniform1i(glGetUniformLocation(Application::outlineBlurShader->ID, "originalTexture"), 0);
+		Application::outlineBlurShader->setMat4("projection", projection);
+		Application::outlineBlurShader->setMat4("view", view);
+		glUniform2f(glGetUniformLocation(Application::outlineBlurShader->ID, "textureSize"), Application::appSizes.sceneSize.x, Application::appSizes.sceneSize.y);
+		
+		// Render a fullscreen quad
+		//renderFullscreenQuad();
+
+//		Renderer::OutlineDraw(Editor::selectedGameObject, outlineShader, glm::vec3(1));
+		//Renderer::OutlineDraw(Editor::selectedGameObject, outlineShader, glm::vec3(1 - outlineScale));
+
+
+
+		renderFullscreenQuad();
+		*/
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glStencilMask(0xFF);
 		glStencilFunc(GL_ALWAYS, 0, 0xFF);
 		glEnable(GL_DEPTH_TEST);

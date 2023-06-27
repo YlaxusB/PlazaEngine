@@ -1,5 +1,4 @@
 #include "CallbacksHeader.h"
-//#include "Engine/Application/Application.h"
 #include "Engine/Application/ModelLoader.h"
 void Engine::Application::Callbacks::dropCallback(GLFWwindow* window, int count, const char** paths) {
 	int i;

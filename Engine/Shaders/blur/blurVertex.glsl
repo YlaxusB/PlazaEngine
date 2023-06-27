@@ -1,0 +1,14 @@
+#version 330 core
+layout (location = 0) in vec3 aPos;
+
+out vec2 TexCoords;
+
+uniform mat4 projection;
+uniform mat4 view;
+
+void main()
+{
+    TexCoords = aPos.xy;  // Modify this line to assign only the x and y components
+    vec4 pos =  vec4(aPos, 1.0);
+    gl_Position = pos.xyww;
+}

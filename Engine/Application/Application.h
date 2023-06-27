@@ -25,11 +25,18 @@ namespace Engine {
 		static unsigned int frameBuffer;
 		static unsigned int rbo;
 
+		static unsigned int blurVAO;
+		static unsigned int blurVBO;
+
+		static unsigned int verticalBlurColorBuffer;
+		static unsigned int horizontalBlurColorBuffer;
+
 		static PickingTexture* pickingTexture;
 
 		static Shader* shader;
 		static Shader* pickingShader;
 		static Shader* outlineShader;
+		static Shader* outlineBlurShader;
 
 		static GLFWwindow* window;
 
@@ -50,5 +57,7 @@ namespace Engine {
 
 		// MUST REVIEW
 		static void updateBuffers(GLuint textureColorBuffer, GLuint rbo);
+
+		static void InitBlur();
 	};
 }

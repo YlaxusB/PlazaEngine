@@ -177,7 +177,8 @@ namespace Editor {
 
 				ImGui::SetWindowSize(ImGui::imVec2(appSizes.sceneSize));
 				ImGui::SetWindowPos(ImVec2(appSizes.hierarchySize.x, headerSize.y)); // Position it to on the center and below the header
-				ImGui::Image(ImTextureID(Application::textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+				//ImGui::Image(ImTextureID(Application::textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+				ImGui::Image(ImTextureID(Application::blurColorBuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 				// Show the gizmo if there's a selected gameObject
 				if (selectedGameObject && selectedGameObject->parent) {
 					//std::cout << selectedGameObject->GetComponent<Transform>(). << std::endl;

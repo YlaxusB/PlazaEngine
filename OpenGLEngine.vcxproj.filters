@@ -244,5 +244,7 @@
     <None Include="Engine\Shaders\skybox\skyboxVertex.glsl" />
     <None Include="Engine\Shaders\skybox\skyboxFragment.glsl" />
     <None Include="Engine\Shaders\objectPickingFragment.glsl" />
+    <None Include="Engine\Shaders\edgeDetection\edgeDetectionFragment.glsl" />
+    <None Include="Engine\Shaders\edgeDetection\edgeDetectionVertex.glsl" />
   </ItemGroup>
 </Project>

@@ -17,7 +17,8 @@ namespace Engine {
 		static void RenderOutline(Shader outlineShader);
 
 	private:
-		static void OutlineDraw(GameObject* gameObject, Shader shader);
+		static void OutlineDraw(GameObject* gameObject, Shader shader, glm::vec3 scale);
+		static void BlurBuffer();
 	};
 }
 

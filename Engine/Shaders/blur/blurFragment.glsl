@@ -1,64 +1,65 @@
 #version 330 core
-
-uniform sampler2D frameBufferTexture;
-uniform usampler2D stencilTexture;
-uniform int numSteps = 12;
-uniform float radius = 3.0;
-
-const float TAU = 6.28318530;
-
-in vec2 TexCoords;
 out vec4 FragColor;
 
-// Modification of: https://www.shadertoy.com/view/sltcRf
+in vec2 TexCoords;
+
+uniform sampler2D screenTexture;
+    uniform sampler2D depthStencilTexture;
+    uniform sampler2D depthStencilTexture2;
+
+const float offset = 1.0 / 300.0;  
+
 void main()
 {
-    vec4 color = vec4(texture(frameBufferTexture, TexCoords).rgb, 1);
-    uint stencil = texture(stencilTexture, TexCoords).r;
+    vec2 offsets[9] = vec2[](
+        vec2(-offset,  offset), // top-left
+        vec2( 0.0f,    offset), // top-center
+        vec2( offset,  offset), // top-right
+        vec2(-offset,  0.0f),   // center-left
+        vec2( 0.0f,    0.0f),   // center-center
+        vec2( offset,  0.0f),   // center-right
+        vec2(-offset, -offset), // bottom-left
+        vec2( 0.0f,   -offset), // bottom-center
+        vec2( offset, -offset)  // bottom-right    
+    );
+
+float kernel[9] = float[](
+    1.0 / 16, 2.0 / 16, 1.0 / 16,
+    2.0 / 16, 4.0 / 16, 2.0 / 16,
+    1.0 / 16, 2.0 / 16, 1.0 / 16  
+);
     
-    vec2 aspect = 1.0 / vec2(textureSize(stencilTexture, 0));
-    float outlinemask = 0.0;
-    for (float i = 0.0; i < TAU; i += TAU / numSteps)
+    vec3 sampleTex[9];
+    for(int i = 0; i < 9; i++)
     {
-        vec2 offset = vec2(sin(i), cos(i)) * aspect * radius;
-        float col = texture(stencilTexture, clamp(TexCoords + offset, 0, 1)).r;
-        
-        outlinemask = mix(outlinemask, 1.0, col);
+        sampleTex[i] = vec3(texture(screenTexture, TexCoords.st + offsets[i]));
     }
-    outlinemask = mix(outlinemask, 0.0, stencil);
+    vec3 col = vec3(0.0);
+    for(int i = 0; i < 9; i++)
+        col += sampleTex[i] * kernel[i];
+    
+    FragColor = vec4(col, 1.0);
 
-    FragColor = mix(color, vec4(0.75, 0.4, 0.0, 1.0), clamp(outlinemask, 0.0, 1.0));
-}
-/*
-out vec4 FragColor;
-  
-in vec2 TexCoords;
-
-uniform sampler2D image;
-  
-uniform bool horizontal;
-uniform float weight[5] = float[] (0.16522441005671412, 0.2163960891171625, 0.23675900165224684, 0.2163960891171625, 0.16522441005671412);
-
-void main()
-{             
-    vec2 tex_offset = 1.0 / textureSize(image, 0); // gets size of single texel
-    vec3 result = texture(image, TexCoords).rgb * weight[0]; // current fragment's contribution
-    if(horizontal)
-    {
-        for(int i = 1; i < 5; ++i)
+    vec2 screenCoords = gl_FragCoord.xy;
+    //float currentDepth = gl_FragCoord.z;
+    
+    float depthValue = texture(depthStencilTexture, screenCoords).r;
+    float currentDepth = texture(depthStencilTexture2, screenCoords).r;
+            if (texture(screenTexture, TexCoords) == vec4(0.0, 0.0, 0.0, 1.0))
         {
-            result += texture(image, TexCoords + vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
-            result += texture(image, TexCoords - vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+            // Fragment is behind or at the same depth as the one in the depth buffer
+            // Output desired color here
+            //FragColor = vec4(0.3, 0.5, 0.7, 1.0);  // Yellow color
+                FragColor = vec4(col, 1.0);
+                if(FragColor != vec4(0.0, 0.0, 0.0, 1.0)){
+                    FragColor = vec4(0.6, 0.3, 0.3, 1.0);
+                }
         }
-    }
-    else
-    {
-        for(int i = 1; i < 5; ++i)
+        else
         {
-            result += texture(image, TexCoords + vec2(0.0, tex_offset.y * i)).rgb * weight[i];
-            result += texture(image, TexCoords - vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+            // Fragment is in front of the one in the depth buffer
+            //discard;
+            FragColor = vec4(0.0, 0.0, 0.0, 0.0);
         }
-    }
-    FragColor = vec4(result, 1.0);
-}
-*/
+    //FragColor = texture(screenTexture, TexCoords);
+}  

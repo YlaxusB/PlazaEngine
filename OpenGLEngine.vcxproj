@@ -213,9 +213,15 @@
     <ClInclude Include="Engine\Core\Renderer.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Engine\Shaders\blur\blurFragment.glsl" />
+    <None Include="Engine\Shaders\blur\blurVertex.glsl" />
+    <None Include="Engine\Shaders\combining\combiningFragment.glsl" />
+    <None Include="Engine\Shaders\combining\combiningVertex.glsl" />
     <None Include="Engine\Shaders\edgeDetection\edgeDetectionFragment.glsl" />
     <None Include="Engine\Shaders\edgeDetection\edgeDetectionVertex.glsl" />
     <None Include="Engine\Shaders\objectPickingFragment.glsl" />
+    <None Include="Engine\Shaders\singleColor\singleColorFragment.glsl" />
+    <None Include="Engine\Shaders\singleColor\singleColorVertex.glsl" />
     <None Include="Engine\Shaders\skybox\skyboxFragment.glsl" />
     <None Include="Engine\Shaders\skybox\skyboxVertex.glsl" />
   </ItemGroup>

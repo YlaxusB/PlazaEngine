@@ -39,7 +39,9 @@
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
 
 
-void blurFramebuffer();
+void blurFramebuffer1();
+void blurFramebuffer2();
+void blurFramebuffer3();
 
 
 
@@ -51,10 +53,18 @@ Engine::Camera Engine::Application::editorCamera = Engine::Camera::Camera(glm::v
 Engine::Camera& Engine::Application::activeCamera = Engine::Application::editorCamera;
 
 unsigned int Application::textureColorbuffer = 0;
-unsigned int Application::blurColorBuffer = 0;
+unsigned int Application::edgeDetectionColorBuffer = 0;
 unsigned int Application::frameBuffer = 0;
 unsigned int Application::edgeDetectionFramebuffer = 0;
 unsigned int Application::edgeDetectionDepthStencilRBO = 0;
+unsigned int Application::blurColorBuffer = 0;
+unsigned int Application::blurFramebuffer = 0;
+unsigned int Application::blurDepthStencilRBO = 0;
+
+unsigned int Application::selectedColorBuffer = 0;
+unsigned int Application::selectedDepthStencilRBO = 0;
+unsigned int Application::selectedFramebuffer = 0;
+
 unsigned int Application::rbo = 0;
 
 unsigned int Application::blurVAO = 0;
@@ -68,6 +78,8 @@ Shader* Application::pickingShader = nullptr;
 Shader* Application::outlineShader = nullptr;
 Shader* Application::outlineBlurShader = nullptr;
 Shader* Application::edgeDetectionShader = nullptr;
+Shader* Application::combiningShader = nullptr;
+Shader* Application::singleColorShader = nullptr;
 Shader* Skybox::skyboxShader = nullptr;
 GLFWwindow* Application::window = nullptr;
 
@@ -79,6 +91,48 @@ PickingTexture* Application::pickingTexture = nullptr;
 
 using namespace Editor;
 
+void combineBuffers() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, Application::frameBuffer);
+	glViewport(Application::appSizes.sceneStart.x, Application::appSizes.sceneStart.y, Application::appSizes.sceneSize.x, Application::appSizes.sceneSize.y);
+
+	//glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, Application::textureColorbuffer);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, Application::edgeDetectionColorBuffer);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, Application::rbo);
+	// Load depth data into the texture
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, Application::blurDepthStencilRBO);
+
+	Application::combiningShader->use();
+	Application::combiningShader->setInt("buffer1", 0);
+	Application::combiningShader->setInt("buffer2", 1);
+	Application::combiningShader->setInt("Depth0", 2);
+	Application::combiningShader->setInt("Depth1", 3);
+	//glUniform1i(glGetUniformLocation(Application::edgeDetectionShader->ID, "screenTexture"), 0);
+
+	glBindVertexArray(Engine::Application::blurVAO);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//Renderer::Render(*Application::shader);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void Engine::Application::CreateApplication() {
 	// Initialize GLFW (Window)
 	Application::window = Application::Window::InitGLFWWindow();
@@ -89,7 +143,9 @@ void Engine::Application::CreateApplication() {
 	Application::pickingShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\objectPickingFragment.glsl");
 	Application::outlineShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningFragment.glsl");
 	Application::outlineBlurShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\blur\\blurVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\blur\\blurFragment.glsl");
+	Application::combiningShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\combining\\combiningVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\combining\\combiningFragment.glsl");
 	Application::edgeDetectionShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\edgeDetection\\edgeDetectionVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\edgeDetection\\edgeDetectionFragment.glsl");
+	Application::singleColorShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\singleColor\\singleColorVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\singleColor\\singleColorFragment.glsl");
 	Skybox::skyboxShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxFragment.glsl");
 	InitBlur();
 
@@ -118,6 +174,7 @@ void Engine::Application::Loop() {
 		glDisable(GL_BLEND);
 
 		pickingTexture->enableWriting();
+		//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -133,18 +190,30 @@ void Engine::Application::Loop() {
 
 		// Clear buffers
 		glBindFramebuffer(GL_FRAMEBUFFER, Application::frameBuffer);
-		glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
+		//glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		// Draw GameObjects
 		Renderer::Render(*Application::shader);
 
 		// Update Skybox
+		glBindFramebuffer(GL_FRAMEBUFFER, Application::frameBuffer);
 		//Skybox::Update();
 
 		//  Draw Outline
 		if (Editor::selectedGameObject != nullptr)
+		{
 			Renderer::RenderOutline(*Application::outlineShader);
+			combineBuffers();
+		}
+
+
+
+
+
+
+
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Update ImGui
@@ -209,6 +278,7 @@ void Engine::Application::InitOpenGL() {
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
+
 	// Init some starting shaders
 	Engine::Application::shader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.fs");
 	Engine::Application::pickingShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\objectPickingFragment.glsl");
@@ -219,36 +289,10 @@ void Engine::Application::InitOpenGL() {
 	// Create buffers
 
 			/* Edge Detection Framebuffer */
-	blurFramebuffer();
-	/*
-	glGenFramebuffers(1, &Application::edgeDetectionFramebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, Application::edgeDetectionFramebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	// Create the blur color attachment texture
-	glGenTextures(1, &Application::blurColorBuffer);
-	glBindTexture(GL_TEXTURE_2D, Application::blurColorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Application::blurColorBuffer, 0);
-	// Create a renderbuffer for the depth and stencil attachments (optional)
-	glGenRenderbuffers(1, &Application::edgeDetectionDepthStencilRBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, Application::edgeDetectionDepthStencilRBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, appSizes.sceneSize.x, appSizes.sceneSize.y);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, Application::edgeDetectionDepthStencilRBO);
-	GLenum attachment[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_RED_INTEGER };
-	glDrawBuffers(3, attachment);
-	// Check framebuffer completeness
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		std::cout << "Failed to create the edge detection FBO" << std::endl;
-		// Handle error and clean up resources
-	}
-	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
-	 */
+	blurFramebuffer1();
+	blurFramebuffer2();
+	blurFramebuffer3();
+
 #pragma region Framebuffer
 	unsigned int& frameBuffer = Application::frameBuffer;
 	//unsigned int& textureColorbuffer = Application::textureColorbuffer;
@@ -293,10 +337,10 @@ void Engine::Application::InitOpenGL() {
 	Engine::Application::shader->setInt("texture1", 0);
 }
 
-void blurFramebuffer() {
+void blurFramebuffer1() {
 	ApplicationSizes& appSizes = Application::appSizes;
 	unsigned int& frameBuffer = Application::edgeDetectionFramebuffer;
-	unsigned int& textureColorbuffer = Application::blurColorBuffer;
+	unsigned int& textureColorbuffer = Application::edgeDetectionColorBuffer;
 	unsigned int& rbo = Application::edgeDetectionDepthStencilRBO;
 	//unsigned int& textureColorbuffer = Application::textureColorbuffer;
 	glGenFramebuffers(1, &frameBuffer);
@@ -320,9 +364,67 @@ void blurFramebuffer() {
 	glDrawBuffers(3, attachments);
 	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 
-	Application::edgeDetectionShader->setInt("screenTexture", 0);
+	Application::edgeDetectionShader->setInt("sceneBuffer", 0);
 }
 
+void blurFramebuffer2() {
+	ApplicationSizes& appSizes = Application::appSizes;
+	unsigned int& frameBuffer = Application::blurFramebuffer;
+	unsigned int& textureColorbuffer = Application::blurColorBuffer;
+	unsigned int& rbo = Application::blurDepthStencilRBO;
+
+	//unsigned int& textureColorbuffer = Application::textureColorbuffer;
+	glGenFramebuffers(1, &frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	// create a color attachment texture
+	glGenTextures(1, &textureColorbuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, appSizes.sceneSize.x, appSizes.sceneSize.y); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
+
+	GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_RED_INTEGER };
+	glDrawBuffers(3, attachments);
+	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+
+	Application::outlineBlurShader->setInt("sceneBuffer", 0);
+}
+void blurFramebuffer3() {
+	ApplicationSizes& appSizes = Application::appSizes;
+	unsigned int& frameBuffer = Application::selectedFramebuffer;
+	unsigned int& textureColorbuffer = Application::selectedColorBuffer;
+	unsigned int& rbo = Application::selectedDepthStencilRBO;
+
+	//unsigned int& textureColorbuffer = Application::textureColorbuffer;
+	glGenFramebuffers(1, &frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+	// create a color attachment texture
+	glGenTextures(1, &textureColorbuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, appSizes.sceneSize.x, appSizes.sceneSize.y); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
+
+	GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_RED_INTEGER };
+	glDrawBuffers(3, attachments);
+	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+}
 
 /* Updates ? ------------------------------------------------------------------- MUST REVIEW IT*/
 void Engine::Application::updateBuffers(GLuint textureColorBuffer, GLuint rbo) {
@@ -331,7 +433,7 @@ void Engine::Application::updateBuffers(GLuint textureColorBuffer, GLuint rbo) {
 		glBindTexture(GL_TEXTURE_2D, Engine::Application::textureColorbuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
 
-		glBindTexture(GL_TEXTURE_2D, Engine::Application::blurColorBuffer);
+		glBindTexture(GL_TEXTURE_2D, Engine::Application::edgeDetectionColorBuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
 
 		glBindRenderbuffer(GL_RENDERBUFFER, rbo);

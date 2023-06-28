@@ -22,9 +22,15 @@ namespace Engine {
 		static Camera& activeCamera;
 
 		static unsigned int textureColorbuffer;
-		static unsigned int blurColorBuffer;
+		static unsigned int edgeDetectionColorBuffer;
 		static unsigned int edgeDetectionFramebuffer;
 		static unsigned int edgeDetectionDepthStencilRBO;
+		static unsigned int blurColorBuffer;
+		static unsigned int blurFramebuffer;
+		static unsigned int blurDepthStencilRBO;
+		static unsigned int selectedColorBuffer;
+		static unsigned int selectedFramebuffer;
+		static unsigned int selectedDepthStencilRBO;
 		static unsigned int frameBuffer;
 		static unsigned int rbo;
 
@@ -41,6 +47,8 @@ namespace Engine {
 		static Shader* outlineShader;
 		static Shader* outlineBlurShader;
 		static Shader* edgeDetectionShader;
+		static Shader* combiningShader;
+		static Shader* singleColorShader;
 
 		static GLFWwindow* window;
 

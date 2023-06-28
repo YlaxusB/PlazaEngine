@@ -20,7 +20,6 @@ namespace Engine {
 		for (GameObject* gameObject : gameObjects) {
 			MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
 			if (meshRenderer && gameObject->parent != nullptr) {
-
 				glm::mat4 projection = Application::activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 				glm::mat4 view = Application::activeCamera.GetViewMatrix();
 				glm::mat4 modelMatrix = gameObject->transform->GetTransform();
@@ -41,7 +40,7 @@ namespace Engine {
 		}
 	}
 
-	void Renderer::RenderOutline(Shader outlineShader) {
+	void DetectEdges() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, Application::edgeDetectionFramebuffer);
 		glViewport(Application::appSizes.sceneStart.x, Application::appSizes.sceneStart.y, Application::appSizes.sceneSize.x, Application::appSizes.sceneSize.y);
@@ -52,7 +51,7 @@ namespace Engine {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Application::textureColorbuffer);
 		Application::edgeDetectionShader->use();
-		Application::edgeDetectionShader->setInt("screenTexture", 0);
+		Application::edgeDetectionShader->setInt("sceneBuffer", 0);
 		//glUniform1i(glGetUniformLocation(Application::edgeDetectionShader->ID, "screenTexture"), 0);
 
 		glBindVertexArray(Engine::Application::blurVAO);
@@ -61,80 +60,183 @@ namespace Engine {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		/*
-		glStencilMask(0x00);
+	}
+	//void Renderer::OutlineDraw(Editor::selectedGameObject, *Application::shader);
+	void Renderer::BlurBuffer()
+	{
+		// Enable stencil testing
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+		// Clear the stencil buffer to 0
+		glClear(GL_STENCIL_BUFFER_BIT);
+
+		// Set the stencil mask to 0xFF
+		glStencilMask(0xFF);
+
+		// Render the cubes to update the stencil buffer
+		glStencilFunc(GL_ALWAYS, 0, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+		// Bind the blur framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, Application::blurFramebuffer);
+		glViewport(Application::appSizes.sceneStart.x, Application::appSizes.sceneStart.y, Application::appSizes.sceneSize.x, Application::appSizes.sceneSize.y);
+
+		// Clear the buffers
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		// Enable stencil test
+		glEnable(GL_DEPTH_TEST);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glStencilFunc(GL_ALWAYS, 0, 0xFF);
+		glStencilMask(0xFF);
+
+		// Render the cubes here
+		Application::singleColorShader->use();
 		glm::mat4 projection = Application::activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 		glm::mat4 view = Application::activeCamera.GetViewMatrix();
 		glm::mat4 modelMatrix = Editor::selectedGameObject->transform->GetTransform();
 
-		//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		Application::singleColorShader->setMat4("projection", projection);
+		Application::singleColorShader->setMat4("view", view);
+		Application::singleColorShader->setMat4("model", modelMatrix);
+		Application::singleColorShader->setFloat("objectID", Editor::selectedGameObject->id);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should pass the stencil test
+		glStencilMask(0xFF); // enable writing to the stencil buffer
+		Renderer::OutlineDraw(Editor::selectedGameObject, *Application::shader, glm::vec3(0.0f));
+
+		// Disable stencil test for rendering the blur buffer
+		//glDisable(GL_STENCIL_TEST);
+
+		// Render the blur buffer
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Application::selectedColorBuffer);
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00); // disable writing to the stencil buffer
+		glDisable(GL_DEPTH_TEST);
+
+		// Unbind textures and framebuffer
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		
+		glBindFramebuffer(GL_FRAMEBUFFER, Application::edgeDetectionFramebuffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		glViewport(Application::appSizes.sceneStart.x, Application::appSizes.sceneStart.y, Application::appSizes.sceneSize.x, Application::appSizes.sceneSize.y);
+		// Render the blur buffer
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00); // disable writing to the stencil buffer
+		glDisable(GL_DEPTH_TEST);
+		Application::singleColorShader->use();
+		Application::singleColorShader->setMat4("projection", projection);
+		Application::singleColorShader->setMat4("view", view);
+		Application::singleColorShader->setMat4("model", modelMatrix);
+		Application::singleColorShader->setFloat("objectID", Editor::selectedGameObject->id);
+		//Renderer::OutlineDraw(Editor::selectedGameObject, *Application::singleColorShader, glm::vec3(1.0f));
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Application::blurColorBuffer);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, Application::blurDepthStencilRBO);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, Application::selectedDepthStencilRBO);
+		Application::outlineBlurShader->use();
+		Application::outlineBlurShader->setInt("sceneBuffer", 0);
+		Application::outlineBlurShader->setInt("depthStencilTexture", 1);
+		Application::outlineBlurShader->setInt("depthStencilTexture2", 2);
+
+		glBindVertexArray(Engine::Application::blurVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		/*
+		Application::shader->use();
+		Application::shader->setMat4("projection", projection);
+		Application::shader->setMat4("view", view);
+		Application::shader->setMat4("model", modelMatrix);
+		Application::shader->setFloat("objectID", Editor::selectedGameObject->id);
+		Renderer::OutlineDraw(Editor::selectedGameObject, *Application::shader, glm::vec3(0.0f));
+		*/
+
+		// Unbind textures and framebuffer
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
+
+
+	void Renderer::RenderOutline(Shader outlineShader) {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, Application::selectedFramebuffer);
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_STENCIL_TEST);
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		//DetectEdges();
+
+		glViewport(Application::appSizes.sceneStart.x, Application::appSizes.sceneStart.y, Application::appSizes.sceneSize.x, Application::appSizes.sceneSize.y);
+		//glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		// Clear the buffers
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		// Enable stencil test
+		glEnable(GL_STENCIL_TEST);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+
+		Application::shader->use();
+		glm::mat4 projection = Application::activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+		glm::mat4 view = Application::activeCamera.GetViewMatrix();
+		glm::mat4 modelMatrix = Editor::selectedGameObject->transform->GetTransform();
+
+		Application::shader->setMat4("projection", projection);
+		Application::shader->setMat4("view", view);
+		Application::shader->setMat4("model", modelMatrix);
+		Application::shader->setFloat("objectID", Editor::selectedGameObject->id);
+		glStencilFunc(GL_ALWAYS, 0, 0x00);
+		glStencilMask(0x00);
+		OutlineDraw(Editor::selectedGameObject, *Application::shader, glm::vec3(0.0f));
+		glDisable(GL_DEPTH_TEST);
+
+		glStencilFunc(GL_EQUAL, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+		Renderer::BlurBuffer();
+		glDisable(GL_STENCIL_TEST);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0x00);
 
-		modelMatrix = glm::scale(modelMatrix, Editor::selectedGameObject->transform->worldScale + glm::vec3(0.01f));
-	Application::edgeDetectionShader->use();
-	Application::edgeDetectionShader->setMat4("projection", projection);
-		Application::edgeDetectionShader->setMat4("view", view);
-		Application::edgeDetectionShader->setMat4("model", modelMatrix);
+
+
 		glDisable(GL_DEPTH_TEST);
 
-		Application::updateBuffers(Application::textureColorbuffer, Application::rbo);
-		glBindFramebuffer(GL_FRAMEBUFFER, Application::edgeDetectionFramebuffer);
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		Application::updateBuffers(Application::textureColorbuffer, Application::rbo);
-		glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-		Application::edgeDetectionShader->use();
-		glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, Application::blurColorBuffer);
-		glBindTexture(GL_TEXTURE_2D, Application::textureColorbuffer);
-		Application::updateBuffers(Application::textureColorbuffer, Application::rbo);
-		GLint textureUniform = glGetUniformLocation(Application::edgeDetectionShader->ID, "screenTexture");
-		glUniform1i(textureUniform, 0); // 0 corresponds to GL_TEXTURE0
-
-		glBindVertexArray(Engine::Application::blurVAO);
-		glBindTexture(GL_TEXTURE_2D, Engine::Application::textureColorbuffer);	// use the color attachment texture as the texture of the quad plane
-
-		Application::updateBuffers(Application::textureColorbuffer, Application::rbo);
-		GLuint mainTexUniform = glGetUniformLocation(Application::edgeDetectionShader->ID, "screenTexture");
-		//glUniform1i(mainTexUniform, Engine::Application::textureColorbuffer);
-		Application::edgeDetectionShader->setInt("screenTexture", 0);
-		Application::updateBuffers(Application::textureColorbuffer, Application::rbo);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		//Renderer::OutlineDraw(Editor::selectedGameObject, *Engine::Application::edgeDetectionShader);
-		//Render(*Application::edgeDetectionShader);
-		//Skybox::Update();
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glStencilMask(0xFF);
-		glStencilFunc(GL_ALWAYS, 0, 0xFF);
-		glEnable(GL_DEPTH_TEST);
-		*/
 	}
 
-	/*
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, Application::edgeDetectionFramebuffer);
-		glViewport(Application::appSizes.sceneStart.x, Application::appSizes.sceneStart.y, Application::appSizes.sceneSize.x, Application::appSizes.sceneSize.y);
-		glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		//Renderer::Render(*Application::shader);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	*/
+
 
 	// Draw the Outline
-	void Renderer::OutlineDraw(GameObject* gameObject, Shader shader) {
+	void Renderer::OutlineDraw(GameObject* gameObject, Shader shader, glm::vec3 scale) {
 		if (gameObject->GetComponent<MeshRenderer>()) {
 			glm::mat4 modelMatrix = gameObject->transform->GetTransform(Editor::selectedGameObject->transform->worldPosition, gameObject->transform->worldScale);
+			modelMatrix = glm::scale(modelMatrix, glm::vec3(1.0f) + scale);
 			shader.setMat4("model", modelMatrix);
 			gameObject->GetComponent<MeshRenderer>()->mesh.Draw(shader);
 		}
 		for (GameObject* child : gameObject->children) {
-			Renderer::OutlineDraw(child, shader);
+			Renderer::OutlineDraw(child, shader, scale);
 		}
 	}
 }

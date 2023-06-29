@@ -37,7 +37,8 @@
 #include "Engine/Editor/Editor.h"
 #include "Engine/Application/Window.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
-
+#include "Engine/Editor/Outline/Outline.h"
+#include "Engine/Editor/Editor.h"
 
 void blurFramebuffer1();
 void blurFramebuffer2();
@@ -94,11 +95,18 @@ using namespace Editor;
 void combineBuffers() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, Application::frameBuffer);
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
+	glStencilMask(0xFF);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
 	glViewport(Application::appSizes.sceneStart.x, Application::appSizes.sceneStart.y, Application::appSizes.sceneSize.x, Application::appSizes.sceneSize.y);
 
 	//glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, Application::textureColorbuffer);
@@ -149,10 +157,8 @@ void Engine::Application::CreateApplication() {
 	Skybox::skyboxShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxFragment.glsl");
 	InitBlur();
 
-
 	//Application::InitSkybox();
-	Skybox::Init();
-
+	Skybox::Init(); 
 	//Initialize ImGui
 	Gui::Init(window);
 }
@@ -197,12 +203,14 @@ void Engine::Application::Loop() {
 		// Draw GameObjects
 		Renderer::Render(*Application::shader);
 
+		// Draw Shadows
+
 		// Update Skybox
 		glBindFramebuffer(GL_FRAMEBUFFER, Application::frameBuffer);
-		//Skybox::Update();
+		Skybox::Update();
 
 		//  Draw Outline
-		if (Editor::selectedGameObject != nullptr)
+		if (Editor::Ed::selectedGameObject != nullptr)
 		{
 			Renderer::RenderOutline(*Application::outlineShader);
 			combineBuffers();

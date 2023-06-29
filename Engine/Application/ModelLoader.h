@@ -35,7 +35,7 @@ namespace Engine {
         {
             string filename = std::filesystem::path{ directory }.parent_path().string() + "/" + path;
 
-            filename = "D:\\Work\\Cartoon Low Poly World Project\\texture\\texture_main.png";
+            //filename = "D:\\Work\\Cartoon Low Poly World Project\\texture\\texture_main.png";
             std::cout << "CAVALOLO" << std::endl;
             std::cout << filename << std::endl;
             unsigned int textureID;
@@ -114,7 +114,7 @@ namespace Engine {
             processNode(scene->mRootNode, scene, *meshes, textures_loaded, &directory, modelMainObject);
             modelMainObject->transform->UpdateChildrenTransform();
 
-            Engine::Editor::selectedGameObject = modelMainObject;
+            Editor::Ed::selectedGameObject = modelMainObject;
         }
 
         // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).

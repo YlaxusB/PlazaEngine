@@ -16,6 +16,7 @@ namespace ImGuizmo {
 namespace Engine {
 	class Camera;
 }
+
 namespace Editor {
 	namespace Gui {
 		using namespace Engine;
@@ -34,6 +35,10 @@ namespace Editor {
 	}
 }
 
+
+/// <summary>
+/// ImGui Helper
+/// </summary>
 namespace ImGui {
 	inline bool Compare(ImVec2 firstVec, ImVec2 secondVec) {
 		return firstVec.x == secondVec.x && firstVec.y == secondVec.y;

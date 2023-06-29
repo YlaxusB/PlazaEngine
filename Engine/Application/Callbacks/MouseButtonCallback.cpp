@@ -30,7 +30,7 @@ void Engine::Application::Callbacks::mouseButtonCallback(GLFWwindow* window, int
 
 	// Select the GameObject
 	// Mouse is over imguizmo but imguizmo is not drawing || Mouse inst over imguizmo and its being drawn
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && ((ImGuizmo::IsOver() && !ImGuizmo::IsDrawing) || !(ImGuizmo::IsOver() && ImGuizmo::IsDrawing)) && pickingTexture->readPixel(xposGame, yposGame) != 0) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && ((ImGuizmo::IsOver() && !ImGuizmo::IsDrawing) || !(ImGuizmo::IsOver() && ImGuizmo::IsDrawing)) && pickingTexture->readPixel(xposGame, yposGame) != 0 && (!ImGuizmo::IsOver() && !ImGuizmo::IsDrawing)) {
 		int targetName = pickingTexture->readPixel(xposGame, yposGame);
 		auto it = std::find_if(gameObjects.begin(), gameObjects.end(), [&](const GameObject* obj) {
 			return obj->id == targetName;

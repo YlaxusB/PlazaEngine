@@ -1,4 +1,8 @@
 #pragma once
+#include <imgui/imgui.h>
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
 #include "Engine/GUI/Inspector.h"
 #include "Engine/GUI/gizmo.h"
 namespace Editor {
@@ -27,7 +31,6 @@ namespace Editor {
 
 				// Calculate the new position by moving towards the target along the direction vector
 				glm::vec3 newPosition = position + scaledDisplacement;
-
 				return newPosition;
 			}
 
@@ -80,7 +83,6 @@ namespace Editor {
 					ImGui::InputFloat("Z", &rotationField.z);
 					ImGui::PopID();
 					currentRotation = glm::radians(rotationField);
-
 					ImGui::Text("Scale: ");
 					ImGui::PushID("Scale");
 					ImGui::SameLine();

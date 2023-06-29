@@ -21,7 +21,6 @@
 #include "Engine/Application/ApplicationSizes.h"
 
 using namespace Engine;
-
 namespace Editor {
 	namespace Gui {
 		class Gizmo {

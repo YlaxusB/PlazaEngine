@@ -27,7 +27,7 @@ namespace Editor {
 
 			static ImGuizmo::MODE activeMode;
 			static ImGuizmo::OPERATION activeOperation;
-			void beginTransformOverlay(Camera camera);
+			static void beginTransformOverlay(Camera camera);
 
 		private:
 			class Button {

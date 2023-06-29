@@ -51,14 +51,14 @@ void main()
     //vec4 finalColor = edgesColor * 0.5 + sceneColor * 0.5; // Example: linear interpolation
     vec4 finalColor;
     if(texture(buffer1, TexCoord) != vec4 (0.0,0.0,0.0,0.0)){
-         finalColor = texture(buffer1, TexCoord);
+        finalColor = texture(buffer1, TexCoord);
     } else {
-             finalColor = texture(buffer2, TexCoord);
+        finalColor = texture(buffer2, TexCoord);
     }
 
 
-    if(vec3(texture(buffer2, TexCoord)) != vec3(0.0, 0.0, 0.0)){
-        FragColor = vec4(0.7, 0.5, 0.5, 1.0);
+    if(texture(buffer2, TexCoord) == vec4(0.6, 0.3, 0.3, 1.0)){
+        FragColor = vec4(1.0, 0.4, 0.2, 1.0);
     } else {
         FragColor = texture(buffer1, TexCoord);
     }

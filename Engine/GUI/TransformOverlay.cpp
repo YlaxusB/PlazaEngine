@@ -1,5 +1,4 @@
 #include "Engine/GUI/TransformOverlay.h";
-
 namespace Editor {
 	ImGuizmo::MODE Gui::Overlay::activeMode = ImGuizmo::MODE::WORLD;
 	ImGuizmo::OPERATION Gui::Overlay::activeOperation = ImGuizmo::OPERATION::TRANSLATE;

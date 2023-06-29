@@ -148,6 +148,7 @@
     <ClCompile Include="Engine\Application\EditorCamera.cpp" />
     <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
     <ClCompile Include="Engine\Components\Core\Transform.cpp" />
+    <ClCompile Include="Engine\Editor\Outline\Outline.cpp" />
     <ClCompile Include="Engine\GUI\guiMain.cpp" />
     <ClCompile Include="Engine\GUI\Hierarchy\DragDrop.cpp" />
     <ClCompile Include="Engine\GUI\Hierarchy\Hierarchy.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="Engine\Components\Core\GameObject.h" />
     <ClInclude Include="Engine\Components\Core\Mesh.h" />
     <ClInclude Include="Engine\Components\Core\Model.h" />
+    <ClInclude Include="Engine\Editor\Outline\Outline.h" />
     <ClInclude Include="Engine\GUI\gizmo.h" />
     <ClInclude Include="Engine\GUI\guiMain.h" />
     <ClInclude Include="Engine\GUI\Hierarchy\Hierarchy.h" />

@@ -36,6 +36,7 @@
 //bool ImGuizmo::IsDrawing = false;
 
 using namespace Engine;
+using namespace Editor;
 //using namespace Editor;
 
 glm::vec2 curHierarchySize;
@@ -43,11 +44,10 @@ glm::vec2 curSceneSize;
 glm::vec2 curInspectorSize;
 
 // Update ImGui Windows
-void Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
-	Engine::Editor::selectedGameObject = newSelectedGameObject;
-	
-}
+void Editor::Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
+	Editor::Ed::selectedGameObject = newSelectedGameObject;
 
+}
 
 namespace Editor {
 	void Gui::Update() {
@@ -122,7 +122,6 @@ namespace Editor {
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
 			ImGui::Separator();
 			Gui::beginScene(gameFrameBuffer, camera);
-			//Gui::Overlay().beginTransformOverlay(appSizes, lastAppSizes, camera);
 			ImGui::Separator();
 			ImGui::PopStyleColor();
 
@@ -137,6 +136,8 @@ namespace Editor {
 
 			ImGui::Columns();
 		}
+
+		Gui::Overlay::beginTransformOverlay(Application::activeCamera);
 		//appSizes.sceneSize = glm::abs(glm::vec2(appSizes.appSize.x - appSizes.hierarchySize.x - appSizes.inspectorSize.x, appSizes.sceneSize.y));
 		curSceneSize = glm::abs(ImGui::glmVec2(ImGui::GetWindowSize()));
 
@@ -153,7 +154,7 @@ namespace Editor {
 	inline void Gui::beginScene(int gameFrameBuffer, Camera& camera) {
 		ApplicationSizes& appSizes = Engine::Application::appSizes;
 		ApplicationSizes& lastAppSizes = Engine::Application::lastAppSizes;
-		GameObject* selectedGameObject = Engine::Editor::selectedGameObject;
+		GameObject* selectedGameObject = Editor::Ed::selectedGameObject;
 		ImGui::SetCursorPosY(appSizes.appHeaderSize);
 		ImGui::Text("Scene");
 		//ImGui::NextColumn();
@@ -178,10 +179,10 @@ namespace Editor {
 				ImGui::SetWindowSize(ImGui::imVec2(appSizes.sceneSize));
 				ImGui::SetWindowPos(ImVec2(appSizes.hierarchySize.x, headerSize.y)); // Position it to on the center and below the header
 				//ImGui::Image(ImTextureID(Application::selectedColorBuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
-				//ImGui::Image(ImTextureID(Application::textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
-				ImGui::Image(ImTextureID(Application::edgeDetectionColorBuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+				ImGui::Image(ImTextureID(Application::textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+				//ImGui::Image(ImTextureID(Application::edgeDetectionColorBuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 				//ImGui::Image(ImTextureID(Application::blurColorBuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
-				
+
 				// Show the gizmo if there's a selected gameObject
 				if (selectedGameObject && selectedGameObject->parent) {
 					//std::cout << selectedGameObject->GetComponent<Transform>(). << std::endl;
@@ -211,7 +212,7 @@ namespace Editor {
 	void Gui::beginHierarchyView(int gameFrameBuffer) {
 		ApplicationSizes& appSizes = Engine::Application::appSizes;
 		ApplicationSizes& lastAppSizes = Engine::Application::lastAppSizes;
-		GameObject* selectedGameObject = Engine::Editor::selectedGameObject;
+		GameObject* selectedGameObject = Editor::Ed::selectedGameObject;
 
 		ImGui::SetCursorPosY(appSizes.appHeaderSize);
 		ImGui::Text("Hierarchy");
@@ -251,7 +252,7 @@ namespace Editor {
 	void Gui::beginInspector(int gameFrameBuffer, Camera camera) {
 		ApplicationSizes& appSizes = Engine::Application::appSizes;
 		ApplicationSizes& lastAppSizes = Engine::Application::lastAppSizes;
-		GameObject* selectedGameObject = Engine::Editor::selectedGameObject;
+		GameObject* selectedGameObject = Editor::Ed::selectedGameObject;
 
 		ImGui::SetCursorPosY(appSizes.appHeaderSize);
 		ImGui::Text("Inspector");

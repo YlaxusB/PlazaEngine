@@ -7,7 +7,7 @@ uniform sampler2D screenTexture;
     uniform sampler2D depthStencilTexture;
     uniform sampler2D depthStencilTexture2;
 
-const float offset = 1.0 / 300.0;  
+const float offset = 1.0 / 900.0;  
 
 void main()
 {

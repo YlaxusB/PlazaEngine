@@ -102,6 +102,9 @@
     <ClCompile Include="Engine\Application\Callbacks\ScrollCallback.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Editor\Outline\Outline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h">
@@ -237,6 +240,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Application\Callbacks\CallbacksHeader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\Outline\Outline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

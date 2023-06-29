@@ -1,10 +1,11 @@
 #pragma once
 #include "Engine/Components/Core/CoreComponents.h"
-namespace Engine {
-	class Editor
-	{
+#include "Engine/GUI/guiMain.h"
+namespace Editor
+{
+	class Ed {
 	public:
 		static GameObject* selectedGameObject;
 	};
+
 }
-inline GameObject* Engine::Editor::selectedGameObject = nullptr;

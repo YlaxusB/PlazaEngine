@@ -55,7 +55,7 @@ void Editor::Outline::BlurBuffer() {
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should pass the stencil test
 	glStencilMask(0xFF); // enable writing to the stencil buffer
-	Outline::RenderSelectedObjects2(Editor::Ed::selectedGameObject, *Application::shader);
+	Outline::RenderSelectedObjects2(Editor::Ed::selectedGameObject, *Application::singleColorShader);
 
 	// Disable stencil test for rendering the blur buffer
 	//glDisable(GL_STENCIL_TEST);

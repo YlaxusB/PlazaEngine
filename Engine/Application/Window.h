@@ -2,8 +2,12 @@
 #include <GLFW/glfw3.h>
 #include "Engine/Application/Application.h"
 namespace Engine {
-    class Application::Window {
+    class Window {
     public:
-        static GLFWwindow* InitGLFWWindow();
+        Window() {
+            glfwWindow = InitGLFWWindow();
+        }
+        GLFWwindow* glfwWindow;
+        GLFWwindow* InitGLFWWindow();
     };
 }

@@ -1,10 +1,13 @@
 #include "CallbacksHeader.h"
 #include "Engine/Vendor/imgui/ImGuizmo.h"
+#include "Engine/Application/Application.h"
+#include "Engine/Application/ApplicationSizes.h"
 #include "Engine/GUI/guiMain.h"
-using namespace Editor;
-void Engine::Application::Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-	ApplicationSizes& appSizes = Engine::Application::appSizes;
-	ApplicationSizes& lastAppSizes = Engine::Application::lastAppSizes;
+using namespace Engine::Editor;
+using namespace Engine;
+void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+	ApplicationSizes& appSizes = Application->appSizes;
+	ApplicationSizes& lastAppSizes = Application->lastAppSizes;
 
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 		// Pressing right button

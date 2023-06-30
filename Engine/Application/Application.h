@@ -9,50 +9,47 @@
 #include "Engine/Shaders/Shader.h"
 #include "Engine/GUI/guiMain.h"
 #include "Engine/Application/PickingTexture.h"
+#include "Engine/Core/Lightning/Shadows/Shadows.h"
+#include "Engine/Application/Window.h"
+#include "Engine/Editor/Editor.h"
 //#include "Engine/Application/Callbacks/CallbacksHeader.h"
 namespace Engine {
 	class Camera;
-
-	class Application {
+	class ApplicationClass {
 	public:
+		ApplicationClass();
 		static ApplicationSizes appSizes; // = new ApplicationSizes();
 		static ApplicationSizes lastAppSizes;
 
-		static Camera editorCamera;
-		static Camera& activeCamera;
+		Camera editorCamera;
+		Camera& activeCamera;
 
-		static unsigned int textureColorbuffer;
-		static unsigned int edgeDetectionColorBuffer;
-		static unsigned int edgeDetectionFramebuffer;
-		static unsigned int edgeDetectionDepthStencilRBO;
-		static unsigned int blurColorBuffer;
-		static unsigned int blurFramebuffer;
-		static unsigned int blurDepthStencilRBO;
-		static unsigned int selectedColorBuffer;
-		static unsigned int selectedFramebuffer;
-		static unsigned int selectedDepthStencilRBO;
-		static unsigned int frameBuffer;
-		static unsigned int rbo;
+		unsigned int frameBuffer, textureColorbuffer, rbo = 0;
+		unsigned int edgeDetectionFramebuffer, edgeDetectionColorBuffer, edgeDetectionDepthStencilRBO = 0;
+		unsigned int blurFramebuffer, blurColorBuffer, blurDepthStencilRBO = 0;
+		unsigned int selectedFramebuffer, selectedColorBuffer, selectedDepthStencilRBO = 0;
 
-		static unsigned int blurVAO;
-		static unsigned int blurVBO;
 
-		static unsigned int verticalBlurColorBuffer;
-		static unsigned int horizontalBlurColorBuffer;
+		// Shadows
+		Shadows Shadows;
 
-		static PickingTexture* pickingTexture;
+		 unsigned int blurVAO = 0;
+		 unsigned int blurVBO = 0;
 
-		static Shader* shader;
-		static Shader* pickingShader;
-		static Shader* outlineShader;
-		static Shader* outlineBlurShader;
-		static Shader* edgeDetectionShader;
-		static Shader* combiningShader;
-		static Shader* singleColorShader;
+		 unsigned int verticalBlurColorBuffer = 0;
+		 unsigned int horizontalBlurColorBuffer = 0;
 
-		static GLFWwindow* window;
+		 PickingTexture* pickingTexture = nullptr;
 
-		static void CreateApplication();
+		 Shader* shader = nullptr;
+		 Shader* pickingShader = nullptr;
+		 Shader* outlineShader = nullptr;
+		 Shader* outlineBlurShader = nullptr;
+		 Shader* edgeDetectionShader = nullptr;
+		 Shader* combiningShader = nullptr;
+		 Shader* singleColorShader = nullptr;
+
+		void CreateApplication();
 		static GLFWwindow* InitApplication();
 
 		static void InitOpenGL();
@@ -64,7 +61,7 @@ namespace Engine {
 		static void Terminate();
 		static void Render();
 
-		class Window;
+		Window* Window;
 		class Callbacks;
 
 		// MUST REVIEW

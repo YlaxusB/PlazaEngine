@@ -143,12 +143,14 @@
     <ClCompile Include="Engine\Application\Callbacks\ScrollCallback.cpp" />
     <ClCompile Include="Engine\Application\EntryPoint.cpp" />
     <ClCompile Include="Engine\Application\Window.cpp" />
+    <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp" />
     <ClCompile Include="Engine\Editor\Editor.cpp" />
     <ClCompile Include="Engine\Application\Application.cpp" />
     <ClCompile Include="Engine\Application\EditorCamera.cpp" />
     <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
     <ClCompile Include="Engine\Components\Core\Transform.cpp" />
     <ClCompile Include="Engine\Editor\Outline\Outline.cpp" />
+    <ClCompile Include="Engine\GUI\gizmo.cpp" />
     <ClCompile Include="Engine\GUI\guiMain.cpp" />
     <ClCompile Include="Engine\GUI\Hierarchy\DragDrop.cpp" />
     <ClCompile Include="Engine\GUI\Hierarchy\Hierarchy.cpp" />
@@ -169,7 +171,9 @@
   <ItemGroup>
     <ClInclude Include="Engine\Application\ApplicationSizes.h" />
     <ClInclude Include="Engine\Application\Callbacks\CallbacksHeader.h" />
+    <ClInclude Include="Engine\Application\EntryPoint.h" />
     <ClInclude Include="Engine\Application\Window.h" />
+    <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h" />
     <ClInclude Include="Engine\Editor\Editor.h" />
     <ClInclude Include="Engine\Application.h" />
     <ClInclude Include="Engine\Application\Application.h" />

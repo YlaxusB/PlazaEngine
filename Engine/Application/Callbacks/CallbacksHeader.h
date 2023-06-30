@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/Application/Application.h"
 namespace Engine {
-    class Application::Callbacks {
+    class ApplicationClass::Callbacks {
     public:
 		static bool rightClickPressed;
 		static bool mouseFirstCallback;

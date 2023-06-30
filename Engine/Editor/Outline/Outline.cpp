@@ -1,12 +1,12 @@
 #include "Outline.h"
 #include "Engine/Application/Application.h"
 #include "Engine/Editor/Editor.h"
-
+using namespace Engine;
+using namespace Engine::Editor;
 //using namespace Engine::Editor;
 //void Outline::CombineOutlineToScene() {
 //
 //}
-using namespace Engine;
 unsigned int Editor::Outline::quadVAO = 0;
 unsigned int Editor::Outline::quadVBO = 0;
 Shader* Editor::Outline::combiningShader = nullptr;
@@ -31,8 +31,8 @@ void Editor::Outline::BlurBuffer() {
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	// Bind the blur framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, Application::blurFramebuffer);
-	glViewport(Application::appSizes.sceneStart.x, Application::appSizes.sceneStart.y, Application::appSizes.sceneSize.x, Application::appSizes.sceneSize.y);
+	glBindFramebuffer(GL_FRAMEBUFFER, Application->blurFramebuffer);
+	glViewport(Application->appSizes.sceneStart.x, Application->appSizes.sceneStart.y, Application->appSizes.sceneSize.x, Application->appSizes.sceneSize.y);
 
 	// Clear the buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -43,26 +43,26 @@ void Editor::Outline::BlurBuffer() {
 	glStencilFunc(GL_ALWAYS, 0, 0xFF);
 	glStencilMask(0xFF);
 	// Render the cubes here
-	Application::singleColorShader->use();
-	glm::mat4 projection = Application::activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
-	glm::mat4 view = Application::activeCamera.GetViewMatrix();
-	glm::mat4 modelMatrix = Editor::Ed::selectedGameObject->transform->GetTransform();
+	Application->singleColorShader->use();
+	glm::mat4 projection = Application->activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+	glm::mat4 view = Application->activeCamera.GetViewMatrix();
+	glm::mat4 modelMatrix = Editor::selectedGameObject->transform->GetTransform();
 
-	Application::singleColorShader->setMat4("projection", projection);
-	Application::singleColorShader->setMat4("view", view);
-	Application::singleColorShader->setMat4("model", modelMatrix);
-	Application::singleColorShader->setFloat("objectID", Editor::Ed::selectedGameObject->id);
+	Application->singleColorShader->setMat4("projection", projection);
+	Application->singleColorShader->setMat4("view", view);
+	Application->singleColorShader->setMat4("model", modelMatrix);
+	Application->singleColorShader->setFloat("objectID", Editor::Ed::selectedGameObject->id);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should pass the stencil test
 	glStencilMask(0xFF); // enable writing to the stencil buffer
-	Outline::RenderSelectedObjects2(Editor::Ed::selectedGameObject, *Application::singleColorShader);
+	Outline::RenderSelectedObjects2(Editor::selectedGameObject, *Application->singleColorShader);
 
 	// Disable stencil test for rendering the blur buffer
 	//glDisable(GL_STENCIL_TEST);
 
 	// Render the blur buffer
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, Application::selectedColorBuffer);
+	glBindTexture(GL_TEXTURE_2D, Application->selectedColorBuffer);
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	glStencilMask(0x00); // disable writing to the stencil buffer
 	glDisable(GL_DEPTH_TEST);
@@ -74,32 +74,32 @@ void Editor::Outline::BlurBuffer() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, Application::edgeDetectionFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, Application->edgeDetectionFramebuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glViewport(Application::appSizes.sceneStart.x, Application::appSizes.sceneStart.y, Application::appSizes.sceneSize.x, Application::appSizes.sceneSize.y);
 	// Render the blur buffer
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	glStencilMask(0x00); // disable writing to the stencil buffer
 	glDisable(GL_DEPTH_TEST);
-	Application::singleColorShader->use();
-	Application::singleColorShader->setMat4("projection", projection);
-	Application::singleColorShader->setMat4("view", view);
-	Application::singleColorShader->setMat4("model", modelMatrix);
-	Application::singleColorShader->setFloat("objectID", Editor::Ed::selectedGameObject->id);
+	Application->singleColorShader->use();
+	Application->singleColorShader->setMat4("projection", projection);
+	Application->singleColorShader->setMat4("view", view);
+	Application->singleColorShader->setMat4("model", modelMatrix);
+	Application->singleColorShader->setFloat("objectID", Editor::selectedGameObject->id);
 	//Renderer::OutlineDraw(Editor::selectedGameObject, *Application::singleColorShader, glm::vec3(1.0f));
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, Application::blurColorBuffer);
+	glBindTexture(GL_TEXTURE_2D, Application->blurColorBuffer);
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, Application::blurDepthStencilRBO);
+	glBindTexture(GL_TEXTURE_2D, Application->blurDepthStencilRBO);
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, Application::selectedDepthStencilRBO);
-	Application::outlineBlurShader->use();
-	Application::outlineBlurShader->setInt("sceneBuffer", 0);
-	Application::outlineBlurShader->setInt("depthStencilTexture", 1);
-	Application::outlineBlurShader->setInt("depthStencilTexture2", 2);
+	glBindTexture(GL_TEXTURE_2D, Application->selectedDepthStencilRBO);
+	Application->outlineBlurShader->use();
+	Application->outlineBlurShader->setInt("sceneBuffer", 0);
+	Application->outlineBlurShader->setInt("depthStencilTexture", 1);
+	Application->outlineBlurShader->setInt("depthStencilTexture2", 2);
 
-	glBindVertexArray(Engine::Application::blurVAO);
+	glBindVertexArray(Application->blurVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	/*
@@ -123,7 +123,7 @@ void Editor::Outline::BlurBuffer() {
 namespace Editor {
 	void Outline::RenderSelectedObjects2(GameObject* gameObject, Shader shader) {
 		if (gameObject->GetComponent<MeshRenderer>()) {
-			glm::mat4 modelMatrix = gameObject->transform->GetTransform(Editor::Ed::selectedGameObject->transform->worldPosition, gameObject->transform->worldScale);
+			glm::mat4 modelMatrix = gameObject->transform->GetTransform(Editor::selectedGameObject->transform->worldPosition, gameObject->transform->worldScale);
 			shader.setMat4("model", modelMatrix);
 			gameObject->GetComponent<MeshRenderer>()->mesh.Draw(shader);
 		}

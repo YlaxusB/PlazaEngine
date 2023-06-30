@@ -1,6 +1,7 @@
 #include "CallbacksHeader.h"
 #include "Engine/Application/ModelLoader.h"
-void Engine::Application::Callbacks::dropCallback(GLFWwindow* window, int count, const char** paths) {
+#include "Engine/Application/Application.h"
+void Engine::ApplicationClass::Callbacks::dropCallback(GLFWwindow* window, int count, const char** paths) {
 	int i;
 	for (i = 0; i < count; i++) {
 		std::string fileParent = filesystem::path{ paths[i] }.parent_path().string();

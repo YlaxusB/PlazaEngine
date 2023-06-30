@@ -90,8 +90,8 @@ namespace Engine {
 			glStencilMask(0xFF);
 			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 			skyboxShader->use();
-			glm::mat4 view = glm::mat4(glm::mat3(Application::activeCamera.GetViewMatrix())); // remove translation from the view matrix
-			glm::mat4 projection = Application::activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+			glm::mat4 view = glm::mat4(glm::mat3(Application->activeCamera.GetViewMatrix())); // remove translation from the view matrix
+			glm::mat4 projection = Application->activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 			skyboxShader->setMat4("view", view);
 			skyboxShader->setMat4("projection", projection);
 			// skybox cube

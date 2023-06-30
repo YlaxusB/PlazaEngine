@@ -1,15 +1,18 @@
 #include "CallbacksHeader.h"
+#include "Engine/Application/EntryPoint.h"
+
 using namespace Engine;
-bool Application::Callbacks::rightClickPressed;
-bool Application::Callbacks::mouseFirstCallback;
-bool Application::Callbacks::firstMouse = true;
+using namespace Engine::Editor;
+bool ApplicationClass::Callbacks::rightClickPressed;
+bool ApplicationClass::Callbacks::mouseFirstCallback;
+bool ApplicationClass::Callbacks::firstMouse = true;
 
-float Application::Callbacks::lastX = Engine::Application::appSizes.appSize.x / 2.0f;
-float Application::Callbacks::lastY = Engine::Application::appSizes.appSize.y / 2.0f;
+float ApplicationClass::Callbacks::lastX = Application->appSizes.appSize.x / 2.0f;
+float ApplicationClass::Callbacks::lastY = Application->appSizes.appSize.y / 2.0f;
 
 
 
-void Engine::Application::Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double yposIn) {
+void Application->Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double yposIn) {
 	float xpos = static_cast<float>(xposIn);
 	float ypos = static_cast<float>(yposIn);
 
@@ -20,7 +23,7 @@ void Engine::Application::Callbacks::mouseCallback(GLFWwindow* window, double xp
 		mouseFirstCallback = false;
 	}
 	else if (rightClickPressed && !mouseFirstCallback) {
-		Application::activeCamera.ProcessMouseMovement(xoffset, yoffset);
+		Application->activeCamera.ProcessMouseMovement(xoffset, yoffset);
 		mouseFirstCallback = false;
 	}
 	else if (!rightClickPressed) {

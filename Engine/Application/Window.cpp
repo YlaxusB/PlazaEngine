@@ -1,17 +1,18 @@
 #include "Window.h"
 
 #include "Engine/Application/Application.h"
+#include "Engine/Application/EntryPoint.h"
 
 //#include "Engine/Application/Callbacks/Callbacks.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
 //using namespace Engine;
-//using Engine::Application;
+//using Application->;
 
 //using namespace Engine;
-//using Engine::Application;
-using Engine::Application;
+//using Application->;
+using Engine::ApplicationClass;
 namespace Engine {
-	GLFWwindow* Application::Window::InitGLFWWindow() {
+	GLFWwindow* Window::InitGLFWWindow() {
 		glfwInit();
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -25,10 +26,10 @@ namespace Engine {
 		GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
 		GLFWmonitor* secondMonitor = monitors[1];
 		const GLFWvidmode* videoMode = glfwGetVideoMode(secondMonitor);
-		GLFWwindow* window = glfwCreateWindow(appSizes.appSize.x, appSizes.appSize.y, "OpenGLEngine", secondMonitor, NULL);
+		GLFWwindow* window = glfwCreateWindow(Application->appSizes.appSize.x, Application->appSizes.appSize.y, "OpenGLEngine", secondMonitor, NULL);
 		// Make it be fullscreen
 		glfwMakeContextCurrent(window);
-		glfwSetWindowMonitor(window, nullptr, 1, 10, appSizes.appSize.x, appSizes.appSize.y, GLFW_DONT_CARE);
+		glfwSetWindowMonitor(window, nullptr, 1, 10, Application->appSizes.appSize.x, Application->appSizes.appSize.y, GLFW_DONT_CARE);
 		glfwSetWindowPos(window, -2560, 0);
 		glfwMaximizeWindow(window);
 
@@ -39,11 +40,11 @@ namespace Engine {
 			return nullptr;
 		}
 		// Set callbacks
-		glfwSetFramebufferSizeCallback(window, Callbacks::framebufferSizeCallback);
-		glfwSetCursorPosCallback(window, Callbacks::mouseCallback);
-		glfwSetScrollCallback(window, Callbacks::scrollCallback);
-		glfwSetMouseButtonCallback(window, Callbacks::mouseButtonCallback);
-		glfwSetDropCallback(window, Callbacks::dropCallback);
+		glfwSetFramebufferSizeCallback(window, ApplicationClass::Callbacks::framebufferSizeCallback);
+		glfwSetCursorPosCallback(window, ApplicationClass::Callbacks::mouseCallback);
+		glfwSetScrollCallback(window, ApplicationClass::Callbacks::scrollCallback);
+		glfwSetMouseButtonCallback(window, ApplicationClass::Callbacks::mouseButtonCallback);
+		glfwSetDropCallback(window, ApplicationClass::Callbacks::dropCallback);
 
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))

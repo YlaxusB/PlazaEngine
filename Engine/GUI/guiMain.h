@@ -17,21 +17,23 @@ namespace Engine {
 	class Camera;
 }
 
-namespace Editor {
-	namespace Gui {
-		using namespace Engine;
-		static void setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera& camera);
-		extern void changeSelectedGameObject(GameObject* newSelectedGameObject);
-		extern void Init(GLFWwindow* window);
-		extern void Delete();
-		extern void Update();
-		extern void NewFrame();
+namespace Engine {
+	namespace Editor {
+		class Gui {
+		public:
+			static void setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera& camera);
+			static void changeSelectedGameObject(GameObject* newSelectedGameObject);
+			static void Init(GLFWwindow* window);
+			static void Delete();
+			static void Update();
+			static void NewFrame();
 
-		static void beginScene(int gameFrameBuffer, Camera& camera);
-		static void beginHierarchyView(int gameFrameBuffer);
-		static void beginInspector(int gameFrameBuffer, Camera camera);
+			static void beginScene(int gameFrameBuffer, Camera& camera);
+			static void beginHierarchyView(int gameFrameBuffer);
+			static void beginInspector(int gameFrameBuffer, Camera camera);
 
-		static void UpdateSizes();
+			static void UpdateSizes();
+		};
 	}
 }
 

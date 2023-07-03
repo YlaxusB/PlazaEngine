@@ -6,7 +6,7 @@
 #include "Engine/Editor/Editor.h"
 
 namespace Engine {
-    class Shadows {
+    class ShadowsClass {
     public:
         const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 

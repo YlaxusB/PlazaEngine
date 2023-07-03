@@ -12,7 +12,7 @@
 //using Application->;
 using Engine::ApplicationClass;
 namespace Engine {
-	GLFWwindow* Window::InitGLFWWindow() {
+	GLFWwindow* WindowClass::InitGLFWWindow() {
 		glfwInit();
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -26,10 +26,10 @@ namespace Engine {
 		GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
 		GLFWmonitor* secondMonitor = monitors[1];
 		const GLFWvidmode* videoMode = glfwGetVideoMode(secondMonitor);
-		GLFWwindow* window = glfwCreateWindow(Application->appSizes.appSize.x, Application->appSizes.appSize.y, "OpenGLEngine", secondMonitor, NULL);
+		GLFWwindow* window = glfwCreateWindow(Application->appSizes->appSize.x, Application->appSizes->appSize.y, "OpenGLEngine", secondMonitor, NULL);
 		// Make it be fullscreen
 		glfwMakeContextCurrent(window);
-		glfwSetWindowMonitor(window, nullptr, 1, 10, Application->appSizes.appSize.x, Application->appSizes.appSize.y, GLFW_DONT_CARE);
+		glfwSetWindowMonitor(window, nullptr, 1, 10, Application->appSizes->appSize.x, Application->appSizes->appSize.y, GLFW_DONT_CARE);
 		glfwSetWindowPos(window, -2560, 0);
 		glfwMaximizeWindow(window);
 

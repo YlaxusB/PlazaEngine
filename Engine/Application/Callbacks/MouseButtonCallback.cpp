@@ -1,13 +1,15 @@
 #include "CallbacksHeader.h"
-#include "Engine/Vendor/imgui/ImGuizmo.h"
 #include "Engine/Application/Application.h"
 #include "Engine/Application/ApplicationSizes.h"
 #include "Engine/GUI/guiMain.h"
+
+#include <imgui/imgui.h>
+#include "Engine/Vendor/imgui/ImGuizmo.h"
 using namespace Engine::Editor;
 using namespace Engine;
 void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-	ApplicationSizes& appSizes = Application->appSizes;
-	ApplicationSizes& lastAppSizes = Application->lastAppSizes;
+	ApplicationSizes& appSizes = *Application->appSizes;
+	ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 
 	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 		// Pressing right button
@@ -26,21 +28,21 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 	yposGame = appSizes.sceneSize.y - yposGame;
 
 	// Select nothing if didnt clicked on a GameObject
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && pickingTexture->readPixel(xposGame, yposGame) == 0) {
-		Gui::changeSelectedGameObject(nullptr);
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && Application->pickingTexture->readPixel(xposGame, yposGame) == 0) {
+		Engine::Editor::Gui::changeSelectedGameObject(nullptr);
 	}
 
 
 	// Select the GameObject
 	// Mouse is over imguizmo but imguizmo is not drawing || Mouse inst over imguizmo and its being drawn
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && ((ImGuizmo::IsOver() && !ImGuizmo::IsDrawing) || !(ImGuizmo::IsOver() && ImGuizmo::IsDrawing)) && pickingTexture->readPixel(xposGame, yposGame) != 0 && (!ImGuizmo::IsOver() && !ImGuizmo::IsDrawing)) {
-		int targetName = pickingTexture->readPixel(xposGame, yposGame);
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && ((ImGuizmo::IsOver() && !ImGuizmoHelper::IsDrawing) || !(ImGuizmo::IsOver() && ImGuizmoHelper::IsDrawing)) && Application->pickingTexture->readPixel(xposGame, yposGame) != 0 && (!ImGuizmo::IsOver() && !ImGuizmoHelper::IsDrawing)) {
+		int targetName = Application->pickingTexture->readPixel(xposGame, yposGame);
 		auto it = std::find_if(gameObjects.begin(), gameObjects.end(), [&](const GameObject* obj) {
 			return obj->id == targetName;
 			});
 		if (it != gameObjects.end()) {
 			// Object with the specified name found
-			Gui::changeSelectedGameObject(*it);
+			Engine::Editor::Gui::changeSelectedGameObject(*it);
 		}
 	}
 #pragma endregion Picking

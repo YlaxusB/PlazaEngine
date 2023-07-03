@@ -17,8 +17,7 @@ const float SPEED = 2.5f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 90.0f;
 
-//using namespace Engine;
-
+using namespace Engine;
 namespace Engine {
 	class Camera {
 	public:
@@ -32,8 +31,6 @@ namespace Engine {
 			ROLLLEFT,
 			ROLLRIGHT
 		};
-
-
 
 		// camera Attributes
 		glm::vec3 Position;
@@ -63,14 +60,8 @@ namespace Engine {
 			Pitch = pitch;
 			updateCameraVectors();
 		}
-		glm::mat4 GetProjectionMatrix() {
-			return glm::perspective(glm::radians(this->Zoom), (float)(Application->appSizes.sceneSize.x / Application->appSizes.sceneSize.y), nearPlane, farPlane);
-		}
-		glm::mat4 GetProjectionMatrix(float nearPlaneCustom, float farPlaneCustom) {
-			nearPlaneCustom = nearPlaneCustom == NULL ? nearPlane : nearPlaneCustom;
-			farPlaneCustom = farPlaneCustom == NULL ? nearPlane : farPlaneCustom;
-			return glm::perspective(glm::radians(this->Zoom), (float)(Application->appSizes.sceneSize.x / Application->appSizes.sceneSize.y), nearPlaneCustom, farPlaneCustom);
-		}
+		glm::mat4 GetProjectionMatrix();
+		glm::mat4 GetProjectionMatrix(float nearPlaneCustom, float farPlaneCustom);
 
 		void updateCameraAppSizes();
 
@@ -81,45 +72,10 @@ namespace Engine {
 		}
 
 		// processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-		void ProcessKeyboard(Camera_Movement direction, float deltaTime)
-		{
-			float velocity = MovementSpeed * MovementSpeedTemporaryBoost * deltaTime;
-			if (direction == FORWARD)
-				Position += Front * velocity;
-			if (direction == BACKWARD)
-				Position -= Front * velocity;
-			if (direction == LEFT)
-				Position -= Right * velocity;
-			if (direction == RIGHT)
-				Position += Right * velocity;
-			if (direction == UP)
-				Position -= Up * velocity;
-			if (direction == DOWN)
-				Position += Up * velocity;
-
-		}
+		void ProcessKeyboard(Camera_Movement direction, float deltaTime);
 
 		// processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-		void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
-		{
-			xoffset *= MouseSensitivity;
-			yoffset *= MouseSensitivity;
-
-			Yaw += xoffset;
-			Pitch += yoffset;
-
-			// make sure that when pitch is out of bounds, screen doesn't get flipped
-			if (constrainPitch)
-			{
-				if (Pitch > 89.0f)
-					Pitch = 89.0f;
-				if (Pitch < -89.0f)
-					Pitch = -89.0f;
-			}
-
-			// update Front, Right and Up Vectors using the updated Euler angles
-			updateCameraVectors();
-		}
+		void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
 
 		// processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
 		void ProcessMouseScroll(float yoffset)

@@ -49,20 +49,22 @@ glm::vec2 curInspectorSize;
 // Update ImGui Windows
 
 namespace Engine {
-	class Gui {
-		void Update() {
+	namespace Editor {
+		class Hierarchy;
+
+		void Gui::Update() {
 			Gui::setupDockspace(Application->Window->glfwWindow, Application->textureColorbuffer, Application->activeCamera);
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		}
 
-		void NewFrame() {
+		void Gui::NewFrame() {
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 		}
 
-		void Init(GLFWwindow* window) {
+		void Gui::Init(GLFWwindow* window) {
 			ImGui::CreateContext();
 			ImGuiIO& io = ImGui::GetIO();
 			(void)io;
@@ -71,21 +73,21 @@ namespace Engine {
 			ImGui_ImplOpenGL3_Init("#version 330");
 		}
 
-		void Delete() {
+		void Gui::Delete() {
 			// Clean up ImGui
 			ImGui_ImplOpenGL3_Shutdown();
 			ImGui_ImplGlfw_Shutdown();
 			ImGui::DestroyContext();
 		}
 
-		void changeSelectedGameObject(GameObject* newSelectedGameObject) {
+		void Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
 			Editor::selectedGameObject = newSelectedGameObject;
 		}
 
 
-		void setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera& camera) {
-			ApplicationSizes& appSizes = Application->appSizes;
-			ApplicationSizes& lastAppSizes = Application->lastAppSizes;
+		void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera) {
+			ApplicationSizes& appSizes = *Application->appSizes;
+			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.hierarchyBackgroundColor);
 
@@ -123,7 +125,7 @@ namespace Engine {
 				// Set the background color for the second column
 				ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 1.0f, 0.0f, 1.0f));
 				ImGui::Separator();
-				Gui::beginScene(gameFrameBuffer, camera);
+				Gui::beginScene(gameFrameBuffer, *camera);
 				ImGui::Separator();
 				ImGui::PopStyleColor();
 
@@ -132,14 +134,14 @@ namespace Engine {
 				// Set the background color for the third column
 				ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 1.0f, 1.0f));
 				ImGui::Separator();
-				Gui::beginInspector(gameFrameBuffer, camera);
+				Gui::beginInspector(gameFrameBuffer, *camera);
 				ImGui::Separator();
 				ImGui::PopStyleColor();
 
 				ImGui::Columns();
 			}
 
-			Overlay::beginTransformOverlay(Application->activeCamera);
+			Overlay::beginTransformOverlay(*Application->activeCamera);
 			//appSizes.sceneSize = glm::abs(glm::vec2(appSizes.appSize.x - appSizes.hierarchySize.x - appSizes.inspectorSize.x, appSizes.sceneSize.y));
 			curSceneSize = glm::abs(ImGui::glmVec2(ImGui::GetWindowSize()));
 
@@ -153,9 +155,9 @@ namespace Engine {
 
 		//using namespace Editor::Gui;
 		// Create the scene view
-		inline void beginScene(int gameFrameBuffer, Camera& camera) {
-			ApplicationSizes& appSizes = Application->appSizes;
-			ApplicationSizes& lastAppSizes = Application->lastAppSizes;
+		inline void Gui::beginScene(int gameFrameBuffer, Camera& camera) {
+			ApplicationSizes& appSizes = *Application->appSizes;
+			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 			GameObject* selectedGameObject = Editor::selectedGameObject;
 			ImGui::SetCursorPosY(appSizes.appHeaderSize);
 			ImGui::Text("Scene");
@@ -191,12 +193,12 @@ namespace Engine {
 					}
 
 					if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parent != nullptr) {
-						ImGuizmo::IsDrawing = true;
-						Editor::Gizmo::Draw(selectedGameObject, camera);
+						ImGuizmoHelper::IsDrawing = true;
+						//Editor::Gizmo::Draw(selectedGameObject, camera);
 						//camera.Position = selectedGameObject->transform->worldPosition;
 					}
 					else {
-						ImGuizmo::IsDrawing = false;
+						ImGuizmoHelper::IsDrawing = false;
 					}
 
 					ImGui::EndChild();
@@ -211,9 +213,9 @@ namespace Engine {
 			ImGui::PopStyleColor();
 		}
 
-		void beginHierarchyView(int gameFrameBuffer) {
-			ApplicationSizes& appSizes = Application->appSizes;
-			ApplicationSizes& lastAppSizes = Application->lastAppSizes;
+		void Gui::beginHierarchyView(int gameFrameBuffer) {
+			ApplicationSizes& appSizes = *Application->appSizes;
+			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 			GameObject* selectedGameObject = Editor::selectedGameObject;
 
 			ImGui::SetCursorPosY(appSizes.appHeaderSize);
@@ -240,7 +242,7 @@ namespace Engine {
 
 				}
 				// Create the main collapser
-				Gui::Hierarchy::Item(gameObjects.front(), selectedGameObject);
+				Editor::Gui::Hierarchy::Item(gameObjects.front(), selectedGameObject);
 				ImGui::PopStyleColor(); // Background Color
 			}
 
@@ -251,9 +253,9 @@ namespace Engine {
 			ImGui::PopStyleVar();// End hierarchy style
 		}
 
-		void beginInspector(int gameFrameBuffer, Camera camera) {
-			ApplicationSizes& appSizes = Application->appSizes;
-			ApplicationSizes& lastAppSizes = Application->lastAppSizes;
+		void Gui::beginInspector(int gameFrameBuffer, Camera camera) {
+			ApplicationSizes& appSizes = *Application->appSizes;
+			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 			GameObject* selectedGameObject = Editor::selectedGameObject;
 
 			ImGui::SetCursorPosY(appSizes.appHeaderSize);
@@ -291,8 +293,8 @@ namespace Engine {
 
 
 		// Update appSizes
-		void UpdateSizes() {
-			ApplicationSizes& appSizes = Application->appSizes;
+		void Gui::UpdateSizes() {
+			ApplicationSizes& appSizes = *Application->appSizes;
 			//appSizes.hierarchySize = glm::abs(curHierarchySize);
 			//appSizes.inspectorSize = glm::abs(curInspectorSize);
 			//appSizes.sceneSize.x = glm::abs(appSizes.appSize.x - appSizes.hierarchySize.x - appSizes.inspectorSize.x);

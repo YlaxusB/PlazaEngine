@@ -7,17 +7,13 @@ void InsertAsChild(GameObject* payloadObj, GameObject* currentObj);
 void InsertAfter(GameObject* payloadObj, GameObject* currentObj);
 
 
-namespace Editor {
-	namespace Gui {
-		namespace Hierarchy {
-			void Item::HierarchyDragDrop(GameObject* gameObject, GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax) {
-				if (gameObject->parent && ImGui::BeginDragDropTarget()) {
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadName.c_str())) {
-						payloadDrop(gameObject, currentObj, treeNodeMin, treeNodeMax, payload);
-					}
-					ImGui::EndDragDropTarget();
-				}
+namespace Engine::Editor {
+	void Gui::Hierarchy::Item::HierarchyDragDrop(GameObject* gameObject, GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax) {
+		if (gameObject->parent && ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadName.c_str())) {
+				payloadDrop(gameObject, currentObj, treeNodeMin, treeNodeMax, payload);
 			}
+			ImGui::EndDragDropTarget();
 		}
 	}
 }

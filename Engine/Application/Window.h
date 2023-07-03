@@ -2,9 +2,9 @@
 #include <GLFW/glfw3.h>
 #include "Engine/Application/Application.h"
 namespace Engine {
-    class Window {
+    class WindowClass {
     public:
-        Window() {
+        WindowClass() {
             glfwWindow = InitGLFWWindow();
         }
         GLFWwindow* glfwWindow;

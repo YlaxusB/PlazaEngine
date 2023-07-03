@@ -1,9 +1,10 @@
 #include "Engine/GUI/TransformOverlay.h";
-namespace Editor {
-	ImGuizmo::MODE Gui::Overlay::activeMode = ImGuizmo::MODE::WORLD;
-	ImGuizmo::OPERATION Gui::Overlay::activeOperation = ImGuizmo::OPERATION::TRANSLATE;
+namespace Engine::Editor {
+	
+	ImGuizmo::MODE Editor::Overlay::activeMode = ImGuizmo::MODE::WORLD;
+	ImGuizmo::OPERATION Editor::Overlay::activeOperation = ImGuizmo::OPERATION::TRANSLATE;
 
-	void Gui::Overlay::beginTransformOverlay(Camera camera) {
+	void Editor::Overlay::beginTransformOverlay(Camera camera) {
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse;
 		if (ImGui::Begin("Transform Overlay", new bool(true), window_flags))
 		{

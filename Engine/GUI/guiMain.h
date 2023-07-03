@@ -9,7 +9,7 @@
 #include "Engine/Components/Core/GameObject.h"
 //#include "Engine/Application/Application.h"
 
-namespace ImGuizmo {
+namespace ImGuizmoHelper {
 	static bool IsDrawing;
 }
 
@@ -21,7 +21,9 @@ namespace Engine {
 	namespace Editor {
 		class Gui {
 		public:
-			static void setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera& camera);
+			class Hierarchy;
+			class TransformInspector;
+			static void setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera);
 			static void changeSelectedGameObject(GameObject* newSelectedGameObject);
 			static void Init(GLFWwindow* window);
 			static void Delete();

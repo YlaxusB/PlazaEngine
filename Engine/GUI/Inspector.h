@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/GUI/Inspector/TransformInspector.h"
 using namespace Engine::Editor;
-namespace Editor {
+namespace Engine::Editor {
 	class Inspector {
 	public:
 		void addComponentButton() {
@@ -41,7 +41,7 @@ namespace Editor {
 
 			void CreateRespectiveInspector(Component* component) {
 				if (Transform* transform = dynamic_cast<Transform*>(component)) {
-					Gui::TransformInspector inspector{ gameObject };
+					Editor::Gui::TransformInspector inspector{ gameObject };
 				}
 			}
 		};

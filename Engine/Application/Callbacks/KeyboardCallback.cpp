@@ -4,8 +4,8 @@
 #include "Engine/Application/EntryPoint.h"
 using namespace Engine;
 void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
-	ApplicationSizes& appSizes = Application->appSizes;
-	ApplicationSizes& lastAppSizes = Application->lastAppSizes;
+	ApplicationSizes& appSizes = *Application->appSizes;
+	ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
@@ -25,24 +25,24 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		Application->activeCamera.MovementSpeedTemporaryBoost = 5.0f;
+		Application->activeCamera->MovementSpeedTemporaryBoost = 5.0f;
 
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		Application->activeCamera.ProcessKeyboard(Engine::Camera::FORWARD, Time::deltaTime);
+		Application->activeCamera->ProcessKeyboard(Engine::Camera::FORWARD, Time::deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		Application->activeCamera.ProcessKeyboard(Engine::Camera::BACKWARD, Time::deltaTime);
+		Application->activeCamera->ProcessKeyboard(Engine::Camera::BACKWARD, Time::deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		Application->activeCamera.ProcessKeyboard(Engine::Camera::LEFT, Time::deltaTime);
+		Application->activeCamera->ProcessKeyboard(Engine::Camera::LEFT, Time::deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		Application->activeCamera.ProcessKeyboard(Engine::Camera::RIGHT, Time::deltaTime);
+		Application->activeCamera->ProcessKeyboard(Engine::Camera::RIGHT, Time::deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-		Application->activeCamera.ProcessKeyboard(Engine::Camera::UP, Time::deltaTime);
+		Application->activeCamera->ProcessKeyboard(Engine::Camera::UP, Time::deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-		Application->activeCamera.ProcessKeyboard(Engine::Camera::DOWN, Time::deltaTime);
+		Application->activeCamera->ProcessKeyboard(Engine::Camera::DOWN, Time::deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-		Application->activeCamera.ProcessMouseMovement(0, 0, 10);
+		Application->activeCamera->ProcessMouseMovement(0, 0, 10);
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-		Application->activeCamera.ProcessMouseMovement(0, 0, -10);
+		Application->activeCamera->ProcessMouseMovement(0, 0, -10);
 
 	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
 		appSizes.sceneSize += 1;
@@ -67,5 +67,5 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS)
-		Application->activeCamera.MovementSpeedTemporaryBoost = 1.0f;
+		Application->activeCamera->MovementSpeedTemporaryBoost = 1.0f;
 }

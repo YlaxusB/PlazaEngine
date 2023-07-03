@@ -3,7 +3,7 @@
 #include "Engine/Components/Core/CoreComponents.h"
 #include "Engine/Editor/Editor.h"
 
-namespace Editor {
+namespace Engine::Editor {
 	class Outline {
 	public:
 		static unsigned int quadVAO, quadVBO;

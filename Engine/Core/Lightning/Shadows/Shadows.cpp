@@ -3,7 +3,7 @@
 #include "Engine/Core/Renderer.h"
 #include "Engine/Application/EntryPoint.h"
 namespace Engine {
-	void Shadows::Init() {
+	void ShadowsClass::Init() {
 		glGenTextures(1, &shadowsDepthMap);
 		glBindTexture(GL_TEXTURE_2D, shadowsDepthMap);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -19,7 +19,7 @@ namespace Engine {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
-	void Shadows::GenerateDepthMap() {
+	void ShadowsClass::GenerateDepthMap() {
 		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowsFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);

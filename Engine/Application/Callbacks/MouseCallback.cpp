@@ -7,12 +7,12 @@ bool ApplicationClass::Callbacks::rightClickPressed;
 bool ApplicationClass::Callbacks::mouseFirstCallback;
 bool ApplicationClass::Callbacks::firstMouse = true;
 
-float ApplicationClass::Callbacks::lastX = Application->appSizes.appSize.x / 2.0f;
-float ApplicationClass::Callbacks::lastY = Application->appSizes.appSize.y / 2.0f;
+float ApplicationClass::Callbacks::lastX = 0;//Application->appSizes->appSize.x / 2.0f;
+float ApplicationClass::Callbacks::lastY = 0;//Application->appSizes->appSize.y / 2.0f;
 
 
 
-void Application->Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double yposIn) {
+void ApplicationClass::Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double yposIn) {
 	float xpos = static_cast<float>(xposIn);
 	float ypos = static_cast<float>(yposIn);
 
@@ -23,7 +23,7 @@ void Application->Callbacks::mouseCallback(GLFWwindow* window, double xposIn, do
 		mouseFirstCallback = false;
 	}
 	else if (rightClickPressed && !mouseFirstCallback) {
-		Application->activeCamera.ProcessMouseMovement(xoffset, yoffset);
+		Application->activeCamera->ProcessMouseMovement(xoffset, yoffset);
 		mouseFirstCallback = false;
 	}
 	else if (!rightClickPressed) {

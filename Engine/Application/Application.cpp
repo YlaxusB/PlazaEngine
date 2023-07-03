@@ -55,6 +55,12 @@ using namespace Engine;
 EditorStyle editorStyle;
 
 using namespace Engine::Editor;
+
+Engine::ApplicationClass::ApplicationClass() {
+	editorCamera = new Engine::Camera(glm::vec3(0.0f, 0.0f, 5.0f));
+	activeCamera = editorCamera;
+}
+//ApplicationClass* Application = nullptr;
 void combineBuffers() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
@@ -64,7 +70,7 @@ void combineBuffers() {
 	glStencilMask(0xFF);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-	glViewport(Application->appSizes.sceneStart.x, Application->appSizes.sceneStart.y, Application->appSizes.sceneSize.x, Application->appSizes.sceneSize.y);
+	glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
 
 	//glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
 	//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -105,7 +111,7 @@ void combineBuffers() {
 
 void ApplicationClass::CreateApplication() {
 	// Initialize GLFW (Window)
-	Application->Window = new Engine::Window();
+	Application->Window = new Engine::WindowClass();
 	// Initialize OpenGL, Shaders and Skybox
 	InitOpenGL();
 	// Initialize Shaders
@@ -132,16 +138,16 @@ void ApplicationClass::Loop() {
 		float currentFrame = static_cast<float>(glfwGetTime());
 
 		// Update Buffers
-		if (appSizes.sceneSize != lastAppSizes.sceneSize || appSizes.sceneStart != lastAppSizes.sceneStart) {
+		if (Application->appSizes->sceneSize != Application->lastAppSizes->sceneSize || Application->appSizes->sceneStart != Application->lastAppSizes->sceneStart) {
 			Application->updateBuffers(Application->textureColorbuffer, Application->rbo);
-			pickingTexture->updateSize(appSizes.sceneSize);
+			Application->pickingTexture->updateSize(Application->appSizes->sceneSize);
 		}
 
 		// Update inputs
 		Callbacks::processInput(Application->Window->glfwWindow);
 		glDisable(GL_BLEND);
 
-		pickingTexture->enableWriting();
+		Application->pickingTexture->enableWriting();
 		//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -150,7 +156,7 @@ void ApplicationClass::Loop() {
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 		Renderer::Render(*Application->pickingShader);
-		pickingTexture->disableWriting();
+		Application->pickingTexture->disableWriting();
 		glEnable(GL_BLEND);
 
 		// Imgui New Frame
@@ -167,7 +173,7 @@ void ApplicationClass::Loop() {
 
 		// Draw Shadows
 
-				// Update Skybox
+		// Update Skybox
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 		Skybox::Update();
 
@@ -240,7 +246,7 @@ void ApplicationClass::InitBlur() {
 }
 
 void ApplicationClass::InitOpenGL() {
-	ApplicationSizes& appSizes = Application->appSizes;
+	ApplicationSizes& appSizes = *Application->appSizes;
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
@@ -263,13 +269,13 @@ void ApplicationClass::InitOpenGL() {
 	blurFramebuffer1();
 	blurFramebuffer2();
 	blurFramebuffer3();
-
-	Application->Shadows.Init();
+	Application->Shadows = new ShadowsClass();
+	Application->Shadows->Init();
 
 #pragma region Framebuffer
 	unsigned int& frameBuffer = Application->frameBuffer;
 	//unsigned int& textureColorbuffer = Application->textureColorbuffer;
-	glGenFramebuffers(1, &Application->frameBuffer);
+	glGenFramebuffers(1, &Application->frameBuffer);	
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 	// create a color attachment texture
 	glGenTextures(1, &Application->textureColorbuffer);
@@ -293,8 +299,8 @@ void ApplicationClass::InitOpenGL() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 
-	pickingTexture = new PickingTexture();
-	pickingTexture->init(appSizes.sceneSize.x, appSizes.sceneSize.y);
+	Application->pickingTexture = new PickingTexture();
+	Application->pickingTexture->init(appSizes.sceneSize.x, appSizes.sceneSize.y);
 	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 #pragma endregion
 
@@ -311,7 +317,7 @@ void ApplicationClass::InitOpenGL() {
 }
 
 void blurFramebuffer1() {
-	ApplicationSizes& appSizes = Application->appSizes;
+	ApplicationSizes& appSizes = *Application->appSizes;
 	unsigned int& frameBuffer = Application->edgeDetectionFramebuffer;
 	unsigned int& textureColorbuffer = Application->edgeDetectionColorBuffer;
 	unsigned int& rbo = Application->edgeDetectionDepthStencilRBO;
@@ -341,7 +347,7 @@ void blurFramebuffer1() {
 }
 
 void blurFramebuffer2() {
-	ApplicationSizes& appSizes = Application->appSizes;
+	ApplicationSizes& appSizes = *Application->appSizes;
 	unsigned int& frameBuffer = Application->blurFramebuffer;
 	unsigned int& textureColorbuffer = Application->blurColorBuffer;
 	unsigned int& rbo = Application->blurDepthStencilRBO;
@@ -371,7 +377,7 @@ void blurFramebuffer2() {
 	Application->outlineBlurShader->setInt("sceneBuffer", 0);
 }
 void blurFramebuffer3() {
-	ApplicationSizes& appSizes = Application->appSizes;
+	ApplicationSizes& appSizes = *Application->appSizes;
 	unsigned int& frameBuffer = Application->selectedFramebuffer;
 	unsigned int& textureColorbuffer = Application->selectedColorBuffer;
 	unsigned int& rbo = Application->selectedDepthStencilRBO;
@@ -402,7 +408,7 @@ void blurFramebuffer3() {
 /* Updates ? ------------------------------------------------------------------- MUST REVIEW IT*/
 void ApplicationClass::updateBuffers(GLuint textureColorBuffer, GLuint rbo) {
 	{
-		ApplicationSizes& appSizes = Application->appSizes;
+		ApplicationSizes& appSizes = *Application->appSizes;
 		glBindTexture(GL_TEXTURE_2D, Application->textureColorbuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
 

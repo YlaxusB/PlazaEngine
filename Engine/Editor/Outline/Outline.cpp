@@ -7,14 +7,15 @@ using namespace Engine::Editor;
 //void Outline::CombineOutlineToScene() {
 //
 //}
-unsigned int Editor::Outline::quadVAO = 0;
-unsigned int Editor::Outline::quadVBO = 0;
-Shader* Editor::Outline::combiningShader = nullptr;
-Shader* Editor::Outline::blurringShader = nullptr;
+
+unsigned int Engine::Editor::Outline::quadVAO = 0;
+unsigned int Engine::Editor::Outline::quadVBO = 0;
+Shader* Engine::Editor::Outline::combiningShader = nullptr;
+Shader* Engine::Editor::Outline::blurringShader = nullptr;
 
 //using namespace Editor;
 
-void Editor::Outline::BlurBuffer() {
+void Engine::Editor::Outline::BlurBuffer() {
 	// Enable stencil testing
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF);
@@ -32,7 +33,7 @@ void Editor::Outline::BlurBuffer() {
 
 	// Bind the blur framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->blurFramebuffer);
-	glViewport(Application->appSizes.sceneStart.x, Application->appSizes.sceneStart.y, Application->appSizes.sceneSize.x, Application->appSizes.sceneSize.y);
+	glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
 
 	// Clear the buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -44,14 +45,14 @@ void Editor::Outline::BlurBuffer() {
 	glStencilMask(0xFF);
 	// Render the cubes here
 	Application->singleColorShader->use();
-	glm::mat4 projection = Application->activeCamera.GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera.Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
-	glm::mat4 view = Application->activeCamera.GetViewMatrix();
+	glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+	glm::mat4 view = Application->activeCamera->GetViewMatrix();
 	glm::mat4 modelMatrix = Editor::selectedGameObject->transform->GetTransform();
 
 	Application->singleColorShader->setMat4("projection", projection);
 	Application->singleColorShader->setMat4("view", view);
 	Application->singleColorShader->setMat4("model", modelMatrix);
-	Application->singleColorShader->setFloat("objectID", Editor::Ed::selectedGameObject->id);
+	Application->singleColorShader->setFloat("objectID", Editor::selectedGameObject->id);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should pass the stencil test
 	glStencilMask(0xFF); // enable writing to the stencil buffer
@@ -76,7 +77,7 @@ void Editor::Outline::BlurBuffer() {
 
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->edgeDetectionFramebuffer);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glViewport(Application::appSizes.sceneStart.x, Application::appSizes.sceneStart.y, Application::appSizes.sceneSize.x, Application::appSizes.sceneSize.y);
+	glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
 	// Render the blur buffer
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	glStencilMask(0x00); // disable writing to the stencil buffer
@@ -120,10 +121,10 @@ void Editor::Outline::BlurBuffer() {
 }
 
 // Draw the Outline
-namespace Editor {
+namespace Engine::Editor {
 	void Outline::RenderSelectedObjects2(GameObject* gameObject, Shader shader) {
 		if (gameObject->GetComponent<MeshRenderer>()) {
-			glm::mat4 modelMatrix = gameObject->transform->GetTransform(Editor::selectedGameObject->transform->worldPosition, gameObject->transform->worldScale);
+			glm::mat4 modelMatrix = gameObject->transform->GetTransform(selectedGameObject->transform->worldPosition, gameObject->transform->worldScale);
 			shader.setMat4("model", modelMatrix);
 			gameObject->GetComponent<MeshRenderer>()->mesh.Draw(shader);
 		}

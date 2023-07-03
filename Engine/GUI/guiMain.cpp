@@ -194,7 +194,7 @@ namespace Engine {
 
 					if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parent != nullptr) {
 						ImGuizmoHelper::IsDrawing = true;
-						//Editor::Gizmo::Draw(selectedGameObject, camera);
+						Editor::Gizmo::Draw(selectedGameObject, camera);
 						//camera.Position = selectedGameObject->transform->worldPosition;
 					}
 					else {

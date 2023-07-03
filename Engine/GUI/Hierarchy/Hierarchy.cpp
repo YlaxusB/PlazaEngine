@@ -57,7 +57,8 @@ namespace Engine::Editor {
 
 		// Change the selected gameobject if user clicked on the selectable
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			Engine::Editor::selectedGameObject = gameObject;
+			Gui::changeSelectedGameObject(gameObject);
+			//Engine::Editor::selectedGameObject = gameObject;
 
 
 

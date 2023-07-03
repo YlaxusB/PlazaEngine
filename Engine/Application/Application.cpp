@@ -176,20 +176,13 @@ void ApplicationClass::Loop() {
 		// Update Skybox
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 		Skybox::Update();
-
 		//  Draw Outline
 		if (Editor::selectedGameObject != nullptr)
 		{
+			std::cout << "drawing" << std::endl;
 			Renderer::RenderOutline(*Application->outlineShader);
 			combineBuffers();
 		}
-
-
-
-
-
-
-
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Update ImGui
@@ -270,7 +263,7 @@ void ApplicationClass::InitOpenGL() {
 	blurFramebuffer2();
 	blurFramebuffer3();
 	Application->Shadows = new ShadowsClass();
-	Application->Shadows->Init();
+	//Application->Shadows->Init();
 
 #pragma region Framebuffer
 	unsigned int& frameBuffer = Application->frameBuffer;

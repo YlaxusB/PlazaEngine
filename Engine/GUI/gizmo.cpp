@@ -2,15 +2,15 @@
 #include "Engine/GUI/guiMain.h"
 #include "Engine/GUI/TransformOverlay.h"
 
-//#include <imgui/imgui.h>
-//#include "Engine/Vendor/imgui/ImGuizmo.h"
+#include <imgui/imgui.h>
+#include "Engine/Vendor/imgui/ImGuizmo.h"
 namespace Engine::Editor {
 	void Gizmo::Draw(GameObject* gameObject, Camera camera) {
-		/*
+		
 		ApplicationSizes& appSizes = *Application->appSizes;
 		// Setup imguizmo
 		ImGuizmo::SetOrthographic(false);
-		ImGuizmo::SetDrawlist(); ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		ImGuizmo::SetDrawlist();
 		ImVec2 windowSize = ImGui::GetWindowSize();
 		ImVec2 windowPos = ImGui::GetWindowPos();
 		ImGuizmo::SetRect(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
@@ -65,7 +65,7 @@ namespace Engine::Editor {
 
 			parentTransform.UpdateChildrenTransform();
 		}
-		*/
+		
 	}
 
 

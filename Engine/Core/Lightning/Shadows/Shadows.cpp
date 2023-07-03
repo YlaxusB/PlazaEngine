@@ -16,6 +16,7 @@ namespace Engine {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowsDepthMap, 0);
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 

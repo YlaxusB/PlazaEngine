@@ -1,7 +1,6 @@
 #include "Window.h"
 
-#include "Engine/Application/Application.h"
-#include "Engine/Application/EntryPoint.h"
+#include "Engine/Core/PreCompiledHeaders.h"
 
 //#include "Engine/Application/Callbacks/Callbacks.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"

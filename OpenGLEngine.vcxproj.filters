@@ -111,6 +111,18 @@
     <ClCompile Include="Engine\GUI\gizmo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Core\PreCompiledHeaders.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\glad\glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\stb\stb_image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Components\Core\Material.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h">
@@ -257,6 +269,18 @@
     <ClInclude Include="Engine\Application\EntryPoint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Core\PreCompiledHeaders.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Vendor\glad\glad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Vendor\stb\stb_image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Components\Core\Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Engine\Shaders\skybox\skyboxVertex.glsl" />
@@ -270,5 +294,7 @@
     <None Include="Engine\Shaders\combining\combiningVertex.glsl" />
     <None Include="Engine\Shaders\singleColor\singleColorFragment.glsl" />
     <None Include="Engine\Shaders\singleColor\singleColorVertex.glsl" />
+    <None Include="Engine\Shaders\1.model_loadingVertex.glsl" />
+    <None Include="Engine\Shaders\1.model_loadingFragment.glsl" />
   </ItemGroup>
 </Project>

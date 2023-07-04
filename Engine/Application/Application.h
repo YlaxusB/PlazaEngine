@@ -1,7 +1,5 @@
 #pragma once
-#include <glm/glm.hpp>
-#include <GLFW/glfw3.h>
-
+#include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Application/ApplicationSizes.h"
 #include "Engine/Components/Core/Camera.h"
 #include "Engine/Application/Application.h"
@@ -55,6 +53,8 @@ namespace Engine {
 		Shader* edgeDetectionShader = nullptr;
 		Shader* combiningShader = nullptr;
 		Shader* singleColorShader = nullptr;
+		Shader* shadowsDepthShader = nullptr;
+		Shader* debugDepthShader = nullptr;
 
 		void CreateApplication();
 		static GLFWwindow* InitApplication();

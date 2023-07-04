@@ -1,3 +1,4 @@
+#include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/GUI/Hierarchy/Hierarchy.h"
 #include "Engine/Editor/Editor.h"
 #include "Engine/GUI/guiMain.h"

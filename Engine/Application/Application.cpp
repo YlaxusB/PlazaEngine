@@ -1,27 +1,7 @@
-#include <glad/glad.h>
-#include <glad/glad.c>
+#include "Engine/Core/PreCompiledHeaders.h"
 
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/trigonometric.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <stb/stb_image.h>
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-
-#include <iostream>
-#include <random>
-#include <unordered_map>
-#include <fileSystem>
-#include <fileSystem/fileSystem.h>
-
-
-#include "Engine/Application/Application.h"
+//#include "Engine/Application/Application.h"
 #include "Engine/GUI/guiMain.h"
 
 #include "Engine/Application/PickingTexture.h"
@@ -122,6 +102,9 @@ void ApplicationClass::CreateApplication() {
 	Application->combiningShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\combining\\combiningVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\combining\\combiningFragment.glsl");
 	Application->edgeDetectionShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\edgeDetection\\edgeDetectionVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\edgeDetection\\edgeDetectionFragment.glsl");
 	Application->singleColorShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\singleColor\\singleColorVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\singleColor\\singleColorFragment.glsl");
+	Application->shadowsDepthShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\shadows\\shadowsDepthVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\shadows\\shadowsDepthFragment.glsl");
+	Application->debugDepthShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\debug\\debugDepthVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\debug\\debugDepthFragment.glsl");
+
 	Skybox::skyboxShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxFragment.glsl");
 	InitBlur();
 
@@ -168,7 +151,12 @@ void ApplicationClass::Loop() {
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+		// Render to shadows depth map
+		Application->Shadows->GenerateDepthMap();
+
 		// Draw GameObjects
+		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 		Renderer::Render(*Application->shader);
 
 		// Draw Shadows
@@ -179,11 +167,23 @@ void ApplicationClass::Loop() {
 		//  Draw Outline
 		if (Editor::selectedGameObject != nullptr)
 		{
-			std::cout << "drawing" << std::endl;
 			Renderer::RenderOutline(*Application->outlineShader);
 			combineBuffers();
 		}
 
+		/*
+		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+		Application->debugDepthShader->use();
+		float near_plane = 0.1f, far_plane = 7.5f;
+		Application->debugDepthShader->setFloat("near_plane", near_plane);
+		Application->debugDepthShader->setFloat("far_plane", far_plane);
+		Application->debugDepthShader->setInt("depthMap", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Application->Shadows->shadowsDepthMap);
+		glBindVertexArray(Application->blurVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		*/
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Update ImGui
 		Gui::Update();
@@ -263,7 +263,7 @@ void ApplicationClass::InitOpenGL() {
 	blurFramebuffer2();
 	blurFramebuffer3();
 	Application->Shadows = new ShadowsClass();
-	//Application->Shadows->Init();
+	Application->Shadows->Init();
 
 #pragma region Framebuffer
 	unsigned int& frameBuffer = Application->frameBuffer;

@@ -111,6 +111,8 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\OpenGL\include\imgui;C:\Users\Giovane\Desktop\Workspace 2023\OpenGL\OpenGLEngine\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Engine/Core/PreCompiledHeaders.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -145,6 +147,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Engine\Application\Window.cpp" />
+    <ClCompile Include="Engine\Components\Core\Material.cpp" />
     <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp" />
     <ClCompile Include="Engine\Editor\Editor.cpp" />
     <ClCompile Include="Engine\Application\Application.cpp">
@@ -159,24 +162,52 @@
     <ClCompile Include="Engine\GUI\Hierarchy\DragDrop.cpp" />
     <ClCompile Include="Engine\GUI\Hierarchy\Hierarchy.cpp" />
     <ClCompile Include="Engine\GUI\TransformOverlay.cpp" />
-    <ClCompile Include="Engine\stb_image.cpp" />
-    <ClCompile Include="Engine\Vendor\imgui\imgui.cpp" />
-    <ClCompile Include="Engine\Vendor\imgui\ImGuizmo.cpp" />
-    <ClCompile Include="Engine\Vendor\imgui\imgui_demo.cpp" />
-    <ClCompile Include="Engine\Vendor\imgui\imgui_draw.cpp" />
-    <ClCompile Include="Engine\Vendor\imgui\imgui_impl_glfw.cpp" />
-    <ClCompile Include="Engine\Vendor\imgui\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="Engine\Vendor\imgui\imgui_tables.cpp" />
-    <ClCompile Include="Engine\Vendor\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Engine\stb_image.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\glad\glad.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\imgui\imgui.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\imgui\ImGuizmo.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\imgui\imgui_demo.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\imgui\imgui_draw.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\imgui\imgui_impl_glfw.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\imgui\imgui_impl_opengl3.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\imgui\imgui_tables.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\imgui\imgui_widgets.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Engine\Core\Time.cpp" />
     <ClCompile Include="Engine\Core\FrameBuffer.cpp" />
     <ClCompile Include="Engine\Core\Renderer.cpp" />
+    <ClCompile Include="Engine\Core\PreCompiledHeaders.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\stb\stb_image.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Application\ApplicationSizes.h" />
     <ClInclude Include="Engine\Application\Callbacks\CallbacksHeader.h" />
     <ClInclude Include="Engine\Application\EntryPoint.h" />
     <ClInclude Include="Engine\Application\Window.h" />
+    <ClInclude Include="Engine\Components\Core\Material.h" />
     <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h" />
     <ClInclude Include="Engine\Editor\Editor.h" />
     <ClInclude Include="Engine\Application.h" />
@@ -206,7 +237,9 @@
     <ClInclude Include="Engine\Utils\glmUtils.h" />
     <ClInclude Include="Engine\Utils\vectorUtils.h" />
     <ClInclude Include="Engine\Vendor\filesystem\filesys.h" />
+    <ClInclude Include="Engine\Vendor\glad\glad.h" />
     <ClInclude Include="Engine\Vendor\imgui\ImGuizmo.h" />
+    <ClInclude Include="Engine\Vendor\stb\stb_image.h" />
     <ClInclude Include="Engine\Vendor\uuid_v4\endianness.h" />
     <ClInclude Include="Engine\Vendor\uuid_v4\uuid_v4.h" />
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h" />
@@ -221,8 +254,11 @@
     <ClInclude Include="Engine\Core\Time.h" />
     <ClInclude Include="Engine\Core\FrameBuffer.h" />
     <ClInclude Include="Engine\Core\Renderer.h" />
+    <ClInclude Include="Engine\Core\PreCompiledHeaders.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Engine\Shaders\1.model_loadingFragment.glsl" />
+    <None Include="Engine\Shaders\1.model_loadingVertex.glsl" />
     <None Include="Engine\Shaders\blur\blurFragment.glsl" />
     <None Include="Engine\Shaders\blur\blurVertex.glsl" />
     <None Include="Engine\Shaders\combining\combiningFragment.glsl" />

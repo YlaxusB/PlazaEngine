@@ -13,6 +13,7 @@ namespace Engine {
         unsigned int shadowsFBO, shadowsDepthMap = 0;
         void Init();
         void GenerateDepthMap();
+        void RenderScene(Shader& shader);
         void Terminate();
     };
 }

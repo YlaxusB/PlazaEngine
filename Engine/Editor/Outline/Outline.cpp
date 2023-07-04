@@ -1,5 +1,5 @@
+#include "Engine/Core/PreCompiledHeaders.h"
 #include "Outline.h"
-#include "Engine/Application/Application.h"
 #include "Engine/Editor/Editor.h"
 using namespace Engine;
 using namespace Engine::Editor;

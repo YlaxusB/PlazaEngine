@@ -1,3 +1,4 @@
+#include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/GUI/TransformOverlay.h";
 namespace Engine::Editor {
 	

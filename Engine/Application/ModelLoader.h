@@ -18,6 +18,7 @@
 //#include "Engine/Components/Core/Model.h"
 #include "Engine/Components/Core/GameObject.h"
 #include "Engine/Editor/Editor.h"
+#include "Engine/Components/Core/Material.h"
 using namespace std;
 
 //unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
@@ -36,7 +37,6 @@ namespace Engine {
             string filename = std::filesystem::path{ directory }.parent_path().string() + "/" + path;
 
             //filename = "D:\\Work\\Cartoon Low Poly World Project\\texture\\texture_main.png";
-            std::cout << "CAVALOLO" << std::endl;
             std::cout << filename << std::endl;
             unsigned int textureID;
             glGenTextures(1, &textureID);
@@ -237,7 +237,28 @@ namespace Engine {
             textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
             // return a mesh object created from the extracted mesh data
-            return Mesh(vertices, indices, textures);
+            Material convertedMaterial;
+            if (diffuseMaps.size() > 0)
+                convertedMaterial.diffuse = &diffuseMaps[0];
+            else
+                convertedMaterial.diffuse = new Texture();
+
+            if (specularMaps.size() > 0)
+                convertedMaterial.specular = &specularMaps[0];
+            else
+                convertedMaterial.specular = new Texture();
+
+            if (normalMaps.size() > 0)
+                convertedMaterial.normal = &normalMaps[0];
+            else
+                convertedMaterial.normal = new Texture();
+
+            if (heightMaps.size() > 0)
+                convertedMaterial.height = &heightMaps[0];
+            else
+                convertedMaterial.height = new Texture();
+
+            return Mesh(vertices, indices, convertedMaterial);
         }
 
         // checks all material textures of a given type and loads the textures if they're not loaded yet.
@@ -249,7 +270,6 @@ namespace Engine {
             {
                 aiString str;
                 mat->GetTexture(type, i, &str);
-                std::cout << "AQUI" << std::endl;
                 std::cout << str.C_Str() << std::endl;
                 std::cout << directory->c_str() << std::endl;
                 // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture

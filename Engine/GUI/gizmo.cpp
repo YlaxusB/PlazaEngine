@@ -1,9 +1,8 @@
+#include "Engine/Core/PreCompiledHeaders.h"
 #include "gizmo.h"
 #include "Engine/GUI/guiMain.h"
 #include "Engine/GUI/TransformOverlay.h"
 
-#include <imgui/imgui.h>
-#include "Engine/Vendor/imgui/ImGuizmo.h"
 namespace Engine::Editor {
 	void Gizmo::Draw(GameObject* gameObject, Camera camera) {
 		

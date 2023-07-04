@@ -1,10 +1,9 @@
+#include "Engine/Core/PreCompiledHeaders.h"
 #include "CallbacksHeader.h"
-#include "Engine/Application/Application.h"
 #include "Engine/Application/ApplicationSizes.h"
 #include "Engine/GUI/guiMain.h"
 
-#include <imgui/imgui.h>
-#include "Engine/Vendor/imgui/ImGuizmo.h"
+
 using namespace Engine::Editor;
 using namespace Engine;
 void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {

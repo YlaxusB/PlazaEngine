@@ -1,20 +1,4 @@
-#include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-
-#include <imgui/imgui.h>
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-
-#include <stb/stb_image.h>
-
-#include <iostream>
-#include <random>
-#include <filesystem>
-#include <fileSystem/fileSystem.h>
+#include "Engine/Core/PreCompiledHeaders.h"
 
 #include "guiMain.h"
 

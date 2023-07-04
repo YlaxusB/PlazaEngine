@@ -1,7 +1,6 @@
+#include "Engine/Core/PreCompiledHeaders.h"
 #include "CallbacksHeader.h"
 #include "Engine/Core/Time.h"
-#include "Engine/Application/Application.h"
-#include "Engine/Application/EntryPoint.h"
 using namespace Engine;
 void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 	ApplicationSizes& appSizes = *Application->appSizes;

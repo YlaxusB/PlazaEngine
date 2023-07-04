@@ -1,5 +1,5 @@
-#include <list>
-#include <string>
+#include "Engine/Core/PreCompiledHeaders.h"
+
 #include "Engine/Components/Core/GameObject.h"
 
 GameObject::GameObject(std::string objName, GameObject* parent) {

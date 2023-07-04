@@ -1,9 +1,8 @@
+#include "Engine/Core/PreCompiledHeaders.h"
 #include "Renderer.h"
 #include "Engine/Components/Core/CoreComponents.h"
-#include "Engine/Application/Application.h"
 #include "Engine/Editor/Editor.h"
 #include "Engine/Editor/Outline/Outline.h"
-#include "Engine/Application/EntryPoint.h"
 #include "Engine/Core/Skybox.h"
 void renderFullscreenQuad() {
 	// skybox cube
@@ -32,7 +31,19 @@ namespace Engine {
 				shader.setFloat("objectID", gameObject->id);
 				// set light uniforms
 				shader.setVec3("viewPos", Application->activeCamera->Position);
-				shader.setVec3("lightPos", glm::vec3(-5000.0f, 10000.0f, -5000.0f));
+				shader.setVec3("lightPos", glm::vec3(-2.0f, 4.0f, -1.0f));
+				glActiveTexture(GL_TEXTURE30);
+				glBindTexture(GL_TEXTURE_2D, Application->Shadows->shadowsDepthMap);
+				shader.setInt("shadowsDepthMap", 30);
+
+				glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+				glm::mat4 lightProjection, lightView;
+				glm::mat4 lightSpaceMatrix;
+				float near_plane = 0.1f, far_plane = 70.5f;
+				lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+				lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+				lightSpaceMatrix = lightProjection * lightView;
+				shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 				//shader.setInt("blinn", blinn);
 
 				glStencilFunc(GL_ALWAYS, 1, 0xFF);

@@ -229,6 +229,7 @@
     <ClInclude Include="Engine\GUI\guiMain.h" />
     <ClInclude Include="Engine\GUI\Hierarchy\Hierarchy.h" />
     <ClInclude Include="Engine\GUI\Inspector.h" />
+    <ClInclude Include="Engine\GUI\Inspector\MaterialInspector.h" />
     <ClInclude Include="Engine\GUI\Inspector\TransformInspector.h" />
     <ClInclude Include="Engine\GUI\Style\EditorStyle.h" />
     <ClInclude Include="Engine\GUI\TransformOverlay.h" />

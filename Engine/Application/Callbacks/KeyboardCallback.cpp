@@ -17,6 +17,9 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 			d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);
 			d->transform->UpdateChildrenTransform();
 			Engine::Mesh* cubeMesh = Engine::Mesh::Cube();
+			cubeMesh->material.diffuse->rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
+			cubeMesh->material.specular = new Texture();
+			cubeMesh->material.specular->rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
 			MeshRenderer* meshRenderer = new MeshRenderer(*cubeMesh);
 			meshRenderer->mesh = *cubeMesh;
 			d->AddComponent<MeshRenderer>(meshRenderer);
@@ -52,8 +55,8 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 		gameObjects.back()->transform->position.x += 1;
 
 
-	if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
-		Application->shader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningFragment.glsl");
+	//if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
+	//	Application->shader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningFragment.glsl");
 
 	//gameObjects.back()->transform->position.x += 1;
 

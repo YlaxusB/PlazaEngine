@@ -22,6 +22,7 @@ namespace Engine {
 		class Gui {
 		public:
 			class Hierarchy;
+			class MaterialInspector;
 			class TransformInspector;
 			static void setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera);
 			static void changeSelectedGameObject(GameObject* newSelectedGameObject);

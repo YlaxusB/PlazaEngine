@@ -281,6 +281,9 @@
     <ClInclude Include="Engine\Components\Core\Material.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\GUI\Inspector\MaterialInspector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Engine\Shaders\skybox\skyboxVertex.glsl" />

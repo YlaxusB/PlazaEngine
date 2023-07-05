@@ -246,7 +246,6 @@ void ApplicationClass::InitOpenGL() {
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	// Init some starting shaders

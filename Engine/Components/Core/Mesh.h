@@ -35,7 +35,7 @@ namespace Engine {
 		int id = -1;
 		string type = "";
 		string path = "";
-		glm::vec4 rgba;
+		glm::vec4 rgba = glm::vec4(INFINITY);
 
 		bool IsTextureEmpty() const {
 			return this->id == -1 && this->type.empty() && this->path.empty();
@@ -57,10 +57,12 @@ namespace Engine {
 			if (material.diffuse != nullptr) {
 				this->material.diffuse = new Texture();
 				this->material.diffuse->id = material.diffuse->id;
+				this->material.diffuse->rgba = material.diffuse->rgba;
 			}
 			if (material.specular != nullptr) {
 				this->material.specular = new Texture();
 				this->material.specular->id = material.specular->id;
+				this->material.specular->rgba = material.specular->rgba;
 			}
 			if (material.normal != nullptr) {
 				this->material.normal = new Texture();
@@ -81,26 +83,36 @@ namespace Engine {
 			unsigned int normalNr = 1;
 			unsigned int heightNr = 1;
 
+			//material = gameObject->GetComponent<MeshRenderer>()->mesh.material;
 
 			bool haveRgba;
-
+			if (material.shininess != 64.0f) {
+				shader.setFloat("shininess", material.shininess);
+			}
 			if (material.diffuse != nullptr) {
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, material.diffuse->id);
 				shader.setInt("texture_diffuse", 0);
-				//glUniform1i(glGetUniformLocation(shader.ID, "texture_diffuse"), 0);
-				//glActiveTexture(GL_TEXTURE0);
-				//glBindTexture(GL_TEXTURE_2D, material->diffuse->id);
-				shader.setVec4("texture_diffuse_rgba", material.diffuse->rgba);
-			}
-			else if (material.diffuse != nullptr) {
-				shader.setVec4("texture_diffuse_rgba", material.diffuse->rgba);
+				if (material.diffuse->rgba != glm::vec4(INFINITY)) {
+					shader.setBool("texture_diffuse_rgba_bool", true);
+					shader.setVec4("texture_diffuse_rgba", material.diffuse->rgba);
+				}
+				else {
+					shader.setBool("texture_diffuse_rgba_bool", false);
+				}
 			}
 			
-			if (material.specular != nullptr && material.specular->id != -1) {
+			if (material.specular != nullptr) {
 				glUniform1i(glGetUniformLocation(shader.ID, "texture_specular"), 1);
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_2D, material.specular->id);
+				if (material.specular->rgba != glm::vec4(INFINITY)) {
+					shader.setBool("texture_specular_rgba_bool", true);
+					shader.setVec4("texture_specular_rgba", material.specular->rgba);
+				}
+				else {
+					shader.setBool("texture_specular_rgba_bool", false);
+				}
 			}
 
 			if (material.normal != nullptr && material.normal->id != -1) {
@@ -114,6 +126,8 @@ namespace Engine {
 				glActiveTexture(GL_TEXTURE3);
 				glBindTexture(GL_TEXTURE_2D, material.height->id);
 			}
+
+
 			
 			// draw mesh
 			glBindVertexArray(VAO);
@@ -175,6 +189,7 @@ namespace Engine {
 			cubeMaterial->diffuse = new Texture();
 			cubeMaterial->diffuse->type = "texture_diffuse";
 			cubeMaterial->diffuse->rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
+
 			return new Mesh(vertices, indices, *cubeMaterial);
 		}
 

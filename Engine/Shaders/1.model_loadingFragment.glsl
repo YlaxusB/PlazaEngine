@@ -2,7 +2,19 @@
 
 out vec4 FragColor;
 
+
 uniform sampler2D texture_diffuse;
+uniform sampler2D texture_specular;
+uniform sampler2D texture_normal;
+uniform sampler2D texture_height;
+uniform float shininess;
+
+uniform vec4 texture_diffuse_rgba;
+uniform bool texture_diffuse_rgba_bool;
+
+uniform vec4 texture_specular_rgba;
+uniform bool texture_specular_rgba_bool;
+
 uniform sampler2D shadowsDepthMap;
 in VS_OUT {
     vec3 FragPos;
@@ -33,8 +45,7 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
     // PCF
     float shadow = 0.0;
-    //vec2 texelSize = 1.0 / textureSize(shadowsDepthMap, 0);
-    float texelSize = 0.5f / textureSize(shadowsDepthMap, 0).x;
+    vec2 texelSize = 1.0 / textureSize(shadowsDepthMap, 0);
     for(int x = -1; x <= 1; ++x)
     {
         for(int y = -1; y <= 1; ++y)
@@ -53,25 +64,19 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 }
 
 void main()
-{           
+{       
     vec3 color = texture(texture_diffuse, fs_in.TexCoords).rgb;
-
-    /*
-    vec3 texDiffuseCol = texture2D(texture_diffuse, fs_in.TexCoords).rgb;
-    if(length(texDiffuseCol) == 0.0)
-    {
-         //FragColor = vec4(0.8, 0.3, 0.3, 1);
-         color = vec3(0.8, 0.3, 0.3);
-    } 
-    else
-    {
+    if(texture_diffuse_rgba_bool){
+         color = texture_diffuse_rgba.rgb;
+    }
+    else{
         color = texture(texture_diffuse, fs_in.TexCoords).rgb;
     }
-    */
+
     vec3 normal = normalize(fs_in.Normal);
     vec3 lightColor = vec3(1.0);
     // ambient
-    vec3 ambient = 0.35 * lightColor;
+    vec3 ambient = 0.3 * lightColor;
     // diffuse
     vec3 lightDir = normalize(lightPos - fs_in.FragPos);
     float diff = max(dot(lightDir, normal), 0.0);
@@ -82,10 +87,60 @@ void main()
     float spec = 0.0;
     vec3 halfwayDir = normalize(lightDir + viewDir);  
     spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
-    vec3 specular = spec * lightColor;    
+    vec3 texSpec;
+    if(texture_specular_rgba_bool){
+         texSpec = texture_specular_rgba.rgb;
+    }
+    else{
+        texSpec = texture(texture_specular, fs_in.TexCoords).rgb;
+    }
+    vec3 specular = (spec * texSpec) * lightColor;       
+
     // calculate shadow
     float shadow = ShadowCalculation(fs_in.FragPosLightSpace);                      
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
     
     FragColor = vec4(lighting, 1.0);
+/*
+    vec3 color = texture(texture_diffuse, fs_in.TexCoords).rgb;
+
+    
+    vec3 texDiffuseCol = texture2D(texture_diffuse, fs_in.TexCoords).rgb;
+
+    if(texture_diffuse_rgba_bool){
+         color = texture_diffuse_rgba.rgb;
+    }
+    else{
+        color = texture(texture_diffuse, fs_in.TexCoords).rgb;
+    }
+
+    vec3 normal = normalize(fs_in.Normal);
+    vec3 lightColor = vec3(1.0);
+    // ambient
+    vec3 ambient = 0.15 * lightColor;
+    // diffuse
+    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
+    float diff = max(dot(lightDir, normal), 0.0);
+    vec3 diffuse = lightColor * (diff * color);
+    // specular
+    vec3 viewDir = normalize(viewPos - fs_in.FragPos);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = 0.0;
+    vec3 halfwayDir = normalize(lightDir + viewDir);  
+    spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
+
+    vec3 texSpec;
+    if(texture_specular_rgba_bool){
+         texSpec = texture_specular_rgba.rgb;
+    }
+    else{
+        texSpec = texture(texture_specular, fs_in.TexCoords).rgb;
+    }
+    vec3 specular = (spec * texSpec) * lightColor;    
+    // calculate shadow
+    float shadow = ShadowCalculation(fs_in.FragPosLightSpace);                      
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
+    
+    FragColor = vec4(lighting, 1.0);
+    */
 }

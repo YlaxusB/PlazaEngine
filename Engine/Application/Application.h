@@ -64,7 +64,7 @@ namespace Engine {
 		static void InitSkybox();
 
 
-		static void Loop();
+		void Loop();
 		static void Terminate();
 		static void Render();
 

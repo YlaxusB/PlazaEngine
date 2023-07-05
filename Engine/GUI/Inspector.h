@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/GUI/Inspector/TransformInspector.h"
+#include "Engine/GUI/Inspector/MaterialInspector.h"
 using namespace Engine::Editor;
 namespace Engine::Editor {
 	class Inspector {
@@ -22,8 +23,6 @@ namespace Engine::Editor {
 		//class TransformInspector;
 
 		class ComponentInspector {
-
-
 		public:
 
 			GameObject*& gameObject; // The selected object
@@ -39,9 +38,13 @@ namespace Engine::Editor {
 				}
 			}
 
+
 			void CreateRespectiveInspector(Component* component) {
 				if (Transform* transform = dynamic_cast<Transform*>(component)) {
 					Editor::Gui::TransformInspector inspector{ gameObject };
+				}
+				if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {
+					Engine::Editor::MaterialInspector::MaterialInspector(gameObject);
 				}
 			}
 		};

@@ -39,7 +39,7 @@ namespace Engine {
 				glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
 				glm::mat4 lightProjection, lightView;
 				glm::mat4 lightSpaceMatrix;
-				float near_plane = 0.1f, far_plane = 70.5f;
+				float near_plane = 1.0f, far_plane = 7.5f;
 				lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
 				lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 				lightSpaceMatrix = lightProjection * lightView;

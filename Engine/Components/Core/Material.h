@@ -11,6 +11,7 @@ namespace Engine {
 		Texture* normal;
 		Texture* specular;
 		Texture* height;
+		float shininess = 64.0f;
 
 		Material() = default;
 		// Copy constructor

@@ -106,7 +106,6 @@ void ApplicationClass::CreateApplication() {
 	Application->shadowsDepthShader = new Shader((projectDirectory + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (projectDirectory + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
 	Application->debugDepthShader = new Shader((projectDirectory + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
 
-
 	// Initialize OpenGL, Shaders and Skybox
 	InitOpenGL();
 	// Initialize Shaders
@@ -116,6 +115,8 @@ void ApplicationClass::CreateApplication() {
 
 
 	Skybox::skyboxShader = new Shader((projectDirectory + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
+	Skybox::skyboxShader->use();
+	Skybox::skyboxShader->setInt("skybox", 0);
 	InitBlur();
 
 	//Application->InitSkybox();

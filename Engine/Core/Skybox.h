@@ -67,21 +67,24 @@ namespace Engine {
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
+			std::filesystem::path currentPath(__FILE__);
+			std::string projectDirectory = currentPath.parent_path().parent_path().string();
+			std::string faceDirectory = projectDirectory + "\\ExampleAssets\\skybox\\";
 			std::vector<std::string> faces
 			{
-				"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\right.jpg",
-				"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\left.jpg",
-				"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\top.jpg",
-				"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\bottom.jpg",
-				"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\front.jpg",
-				"C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\ExampleAssets\\skybox\\back.jpg"
+				faceDirectory + "right.jpg",
+				faceDirectory + "left.jpg",
+				faceDirectory + "top.jpg",
+				faceDirectory + "bottom.jpg",
+				faceDirectory + "front.jpg",
+				faceDirectory + "back.jpg",
 			};
 
 			stbi_set_flip_vertically_on_load(false);
 			cubemapTexture = loadCubemap(faces);
-			Shader skyboxShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxFragment.glsl");
-			skyboxShader.use();
-			skyboxShader.setInt("skybox", 0);
+			//Shader skyboxShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxFragment.glsl");
+			//skyboxShader.use();
+			//skyboxShader.setInt("skybox", 0);
 		}
 		static void Update() {
 			//Shader& skyboxShader = skyboxShader;

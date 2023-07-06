@@ -10,13 +10,17 @@ void Engine::Time::Update() {
 	float& lastFrame = Time::lastFrame;
 	// Measure speed
 	double currentTime = glfwGetTime();
+	float timeDifference = currentTime - previousTime;
 	frameCount++;
+
+
 	// If a second has passed.
-	if (currentTime - previousTime >= 1.0)
+	if (timeDifference >= 1.0f / 30.0f)
 	{
 		// Display the frame count here any way you want.
 		//std::cout << frameCount << std::endl;
-
+		fps = (1.0f / timeDifference) * frameCount;//frameCount;
+		msPerFrame = (timeDifference / frameCount) * 1000;
 		frameCount = 0;
 		previousTime = currentTime;
 	}

@@ -14,6 +14,7 @@
 #include "Engine/Application/EntryPoint.h"
 #include "Engine/GUI/Inspector.h"
 #include "Engine/GUI/Inspector/TransformInspector.h"
+#include "Engine/GUI/FpsCounter.h"
 //#include "Engine/Application/Application.h" //
 
 //
@@ -31,7 +32,7 @@ glm::vec2 curSceneSize;
 glm::vec2 curInspectorSize;
 
 // Update ImGui Windows
-
+FpsCounter* fpsCounter;
 namespace Engine {
 	namespace Editor {
 		class Hierarchy;
@@ -55,6 +56,8 @@ namespace Engine {
 			ImGui_ImplGlfw_InitForOpenGL(window, true);
 			io.IniFilename = NULL;
 			ImGui_ImplOpenGL3_Init("#version 330");
+
+			FpsCounter* fpsCounter = new FpsCounter();
 		}
 
 		void Gui::Delete() {
@@ -129,6 +132,7 @@ namespace Engine {
 			//appSizes.sceneSize = glm::abs(glm::vec2(appSizes.appSize.x - appSizes.hierarchySize.x - appSizes.inspectorSize.x, appSizes.sceneSize.y));
 			curSceneSize = glm::abs(ImGui::glmVec2(ImGui::GetWindowSize()));
 
+			fpsCounter->Update();
 
 			ImGui::End();
 

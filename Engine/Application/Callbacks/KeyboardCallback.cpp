@@ -46,11 +46,6 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 		Application->activeCamera->ProcessMouseMovement(0, 0, -10);
 
-	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
-		appSizes.sceneSize += 1;
-	if (glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS)
-		appSizes.sceneSize -= 1;
-
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
 		gameObjects.back()->transform->position.x += 1;
 
@@ -67,6 +62,11 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 	if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
 		Application->shader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.vs", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loading.fs");
 	}
+
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+		Application->Shadows->showDepth = true;
+	else
+		Application->Shadows->showDepth = false;
 
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS)
 		Application->activeCamera->MovementSpeedTemporaryBoost = 1.0f;

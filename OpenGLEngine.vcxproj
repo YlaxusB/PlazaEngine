@@ -234,6 +234,7 @@
     <ClInclude Include="Engine\Components\Core\Mesh.h" />
     <ClInclude Include="Engine\Components\Core\Model.h" />
     <ClInclude Include="Engine\Editor\Outline\Outline.h" />
+    <ClInclude Include="Engine\GUI\FpsCounter.h" />
     <ClInclude Include="Engine\GUI\gizmo.h" />
     <ClInclude Include="Engine\GUI\guiMain.h" />
     <ClInclude Include="Engine\GUI\Hierarchy\Hierarchy.h" />

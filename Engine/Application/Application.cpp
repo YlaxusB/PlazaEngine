@@ -103,12 +103,11 @@ void ApplicationClass::CreateApplication() {
 	Application->combiningShader = new Shader((projectDirectory + "\\Shaders\\combining\\combiningVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\combining\\combiningFragment.glsl").c_str());
 	Application->edgeDetectionShader = new Shader((projectDirectory + "\\Shaders\\edgeDetection\\edgeDetectionVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\edgeDetection\\edgeDetectionFragment.glsl").c_str());
 	Application->singleColorShader = new Shader((projectDirectory + "\\Shaders\\singleColor\\singleColorVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\singleColor\\singleColorFragment.glsl").c_str());
-	Application->shadowsDepthShader = new Shader((projectDirectory + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (projectDirectory + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
+	Application->shadowsDepthShader = new Shader((projectDirectory + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str());
 	Application->debugDepthShader = new Shader((projectDirectory + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
 
 	// Initialize OpenGL, Shaders and Skybox
 	InitOpenGL();
-	// Initialize Shaders
 
 
 
@@ -182,18 +181,20 @@ void ApplicationClass::Loop() {
 			combineBuffers();
 		}
 
-		/*
-		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-		Application->debugDepthShader->use();
-		float near_plane = 0.1f, far_plane = 7.5f;
-		Application->debugDepthShader->setFloat("near_plane", near_plane);
-		Application->debugDepthShader->setFloat("far_plane", far_plane);
-		Application->debugDepthShader->setInt("depthMap", 0);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Application->Shadows->shadowsDepthMap);
-		glBindVertexArray(Application->blurVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		*/
+		if (Application->Shadows->showDepth) {
+			glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+			Application->debugDepthShader->use();
+			float near_plane = 0.1f, far_plane = 7.5f;
+			Application->debugDepthShader->setFloat("near_plane", near_plane);
+			Application->debugDepthShader->setFloat("far_plane", far_plane);
+			Application->debugDepthShader->setInt("depthMap", 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, Application->Shadows->shadowsDepthMap);
+			glBindVertexArray(Application->blurVAO);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+
+		
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// Update ImGui

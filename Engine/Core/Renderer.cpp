@@ -39,10 +39,10 @@ namespace Engine {
 				shader.setInt("shadowMap", 30);
 
 
+
 				glm::mat4 lightProjection, lightView;
 				glm::mat4 lightSpaceMatrix;
-				float near_plane = 1.0f, far_plane = 7000.5f;
-				lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+				lightProjection = Application->Shadows->lightProjection;
 				lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 				lightSpaceMatrix = lightProjection * lightView;
 				shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);

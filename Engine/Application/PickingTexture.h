@@ -1,17 +1,17 @@
 #pragma once
 #ifndef PICKING_TEXTURE_H
 #define PICKING_TEXTURE_H
-#include <GLFW/glfw3.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "Engine/Vendor/GLFW/glfw3.h"
+#include "Engine/Vendor/glm/glm.hpp"
+#include "Engine/Vendor/glm/gtc/matrix_transform.hpp"
+#include "Engine/Vendor/glm/gtc/type_ptr.hpp"
 
-#include <stb/stb_image.h>
+#include "Engine/Vendor/stb/stb_image.h"
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include "Engine/Vendor/imgui/imgui.h"
+#include "Engine/Vendor/imgui/imgui_impl_glfw.h"
+#include "Engine/Vendor/imgui/imgui_impl_opengl3.h"
 
 #include "Engine/Application/Application.h"
 

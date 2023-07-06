@@ -6,9 +6,9 @@
 #include <typeinfo>
 #include <list>
 #include <string>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "Engine/Vendor/glm/glm.hpp"
+#include "Engine/Vendor/glm/gtc/matrix_transform.hpp"
+#include "Engine/Vendor/glm/gtc/type_ptr.hpp"
 #include "Engine/Components/Core/Mesh.h"
 #include "Engine/Vendor/uuid_v4/uuid_v4.h"
 #include "Engine/Utils/glmUtils.h"

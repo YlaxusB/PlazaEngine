@@ -1,5 +1,5 @@
 #pragma once
-#include <glm/glm.hpp>
+#include "Engine/Vendor/glm/glm.hpp"
 namespace Engine {
 	class ApplicationSizes {
 	public:

@@ -31,19 +31,28 @@ namespace Engine {
 				shader.setFloat("objectID", gameObject->id);
 				// set light uniforms
 				shader.setVec3("viewPos", Application->activeCamera->Position);
-				shader.setVec3("lightPos", glm::vec3(-2.0f, 4.0f, -1.0f));
+				glm::vec3 lightPos = Application->Shadows->lightPos;
+				shader.setVec3("lightPos", lightPos);
 				glActiveTexture(GL_TEXTURE30);
 				glBindTexture(GL_TEXTURE_2D, Application->Shadows->shadowsDepthMap);
 				shader.setInt("shadowsDepthMap", 30);
+				shader.setInt("shadowMap", 30);
 
-				glm::vec3 lightPos(-2.0f, 4.0f, -1.0f);
+
 				glm::mat4 lightProjection, lightView;
 				glm::mat4 lightSpaceMatrix;
-				float near_plane = 1.0f, far_plane = 7.5f;
+				float near_plane = 1.0f, far_plane = 7000.5f;
 				lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
 				lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 				lightSpaceMatrix = lightProjection * lightView;
 				shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+				shader.setFloat("farPlane", Application->activeCamera->farPlane);
+				std::vector<float> shadowCascadeLevels{ Application->activeCamera->farPlane / 50.0f, Application->activeCamera->farPlane / 25.0f, Application->activeCamera->farPlane / 10.0f, Application->activeCamera->farPlane / 2.0f };
+				shader.setInt("cascadeCount", shadowCascadeLevels.size());
+				for (size_t i = 0; i < shadowCascadeLevels.size(); ++i)
+				{
+					shader.setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", shadowCascadeLevels[i]);
+				}
 				//shader.setInt("blinn", blinn);
 
 				glStencilFunc(GL_ALWAYS, 1, 0xFF);

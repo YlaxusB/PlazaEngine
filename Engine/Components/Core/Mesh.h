@@ -1,9 +1,7 @@
 #pragma once
-
-#include <glad/glad.h> // holds all OpenGL type declarations
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "Engine/Vendor/glad/glad.h"
+#include "Engine/Vendor/glm/glm.hpp"
+#include "Engine/Vendor/glm/gtc/matrix_transform.hpp"
 
 #include "Engine/Shaders/Shader.h"
 

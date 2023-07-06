@@ -153,7 +153,7 @@ namespace Engine {
 			// Set the window to be the content size + header size
 			ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.sceneSize - glm::vec2(0, appSizes.sceneSize.y + headerSize.y + 100))); // REMOVE THE + glm::vec2(0.0f,50.0f) -----------------------------------
 			//ImGui::SetNextWindowPos(ImVec2(appSizes.hierarchySize.x, 0));
-			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_AlwaysAutoResize | ImGuiViewportFlags_NoFocusOnClick;
+			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_AlwaysAutoResize;
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f)); // Remove the padding of the window
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 

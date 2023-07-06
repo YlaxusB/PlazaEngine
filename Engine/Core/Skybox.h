@@ -1,10 +1,10 @@
 #pragma once
-#include <stb/stb_image.h>
+#include "Engine/Vendor/stb/stb_image.h"
 #include <iostream>
 #include <algorithm>
 #include <unordered_map>
 #include <fileSystem>
-#include <fileSystem/fileSystem.h>
+#include "Engine/Vendor/filesystem/filesys.h"
 
 #include "Engine/Shaders/Shader.h"
 namespace Engine {

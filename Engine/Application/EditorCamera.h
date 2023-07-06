@@ -1,8 +1,8 @@
 #pragma once
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "Engine/Vendor/glm/glm.hpp"
+#include "Engine/Vendor/glad/glad.h"
+#include "Engine/Vendor/glm/gtc/matrix_transform.hpp"
 #include <vector>
 
 #include "Engine/Application/Application.h"

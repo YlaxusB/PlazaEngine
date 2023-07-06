@@ -5,30 +5,30 @@
 #include <Engine/Vendor/glad/glad.h>
 //#include <Engine/Vendor/glad/glad.c>
 
-#include <glm/glm.hpp>
-#include <GLFW/glfw3.h>
+#include "Engine/Vendor/glm/glm.hpp"
+#include "Engine/Vendor/GLFW/glfw3.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/trigonometric.hpp>
-#include <glm/gtx/euler_angles.hpp>
+#include "Engine/Vendor/glm/glm.hpp"
+#include "Engine/Vendor/glm/gtc/matrix_transform.hpp"
+#include "Engine/Vendor/glm/gtc/type_ptr.hpp"
+#include "Engine/Vendor/glm/gtx/matrix_decompose.hpp"
+#include "Engine/Vendor/glm/trigonometric.hpp"
+#include "Engine/Vendor/glm/gtx/euler_angles.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
+#include "Engine/Vendor/glm/gtx/quaternion.hpp"
 //#include <stb/stb_image.h>
 #include "Engine/Vendor/stb/stb_image.h"
-#include "imgui_internal.h"
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include "Engine/Vendor/imgui/imgui_internal.h"
+#include "Engine/Vendor/imgui/imgui.h"
+#include "Engine/Vendor/imgui/imgui_impl_glfw.h"
+#include "Engine/Vendor/imgui/imgui_impl_opengl3.h"
 #include "Engine/Vendor/imgui/ImGuizmo.h"
 
 #include <iostream>
 #include <random>
 #include <unordered_map>
 #include <fileSystem>
-#include <fileSystem/fileSystem.h>
+#include "Engine/Vendor/filesystem/filesys.h"
 #include <list>
 #include <string>
 

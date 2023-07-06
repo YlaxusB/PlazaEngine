@@ -92,20 +92,30 @@ void combineBuffers() {
 void ApplicationClass::CreateApplication() {
 	// Initialize GLFW (Window)
 	Application->Window = new Engine::WindowClass();
+
+	// Initialize Shaders
+	std::filesystem::path currentPath(__FILE__);
+	std::string projectDirectory = currentPath.parent_path().parent_path().string();
+	Application->shader = new Shader((projectDirectory + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
+	Application->pickingShader = new Shader((projectDirectory + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\objectPickingFragment.glsl").c_str());
+	Application->outlineShader = new Shader((projectDirectory + "\\Shaders\\outlining\\outliningVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\outlining\\outliningFragment.glsl").c_str());
+	Application->outlineBlurShader = new Shader((projectDirectory + "\\Shaders\\blur\\blurVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\blur\\blurFragment.glsl").c_str());
+	Application->combiningShader = new Shader((projectDirectory + "\\Shaders\\combining\\combiningVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\combining\\combiningFragment.glsl").c_str());
+	Application->edgeDetectionShader = new Shader((projectDirectory + "\\Shaders\\edgeDetection\\edgeDetectionVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\edgeDetection\\edgeDetectionFragment.glsl").c_str());
+	Application->singleColorShader = new Shader((projectDirectory + "\\Shaders\\singleColor\\singleColorVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\singleColor\\singleColorFragment.glsl").c_str());
+	Application->shadowsDepthShader = new Shader((projectDirectory + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (projectDirectory + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
+	Application->debugDepthShader = new Shader((projectDirectory + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
+
+
 	// Initialize OpenGL, Shaders and Skybox
 	InitOpenGL();
 	// Initialize Shaders
-	Application->shader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loadingVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loadingFragment.glsl");
-	Application->pickingShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loadingVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\objectPickingFragment.glsl");
-	Application->outlineShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningFragment.glsl");
-	Application->outlineBlurShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\blur\\blurVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\blur\\blurFragment.glsl");
-	Application->combiningShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\combining\\combiningVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\combining\\combiningFragment.glsl");
-	Application->edgeDetectionShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\edgeDetection\\edgeDetectionVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\edgeDetection\\edgeDetectionFragment.glsl");
-	Application->singleColorShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\singleColor\\singleColorVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\singleColor\\singleColorFragment.glsl");
-	Application->shadowsDepthShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\shadows\\shadowsDepthVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\shadows\\shadowsDepthFragment.glsl");
-	Application->debugDepthShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\debug\\debugDepthVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\debug\\debugDepthFragment.glsl");
 
-	Skybox::skyboxShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxFragment.glsl");
+
+
+
+
+	Skybox::skyboxShader = new Shader((projectDirectory + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
 	InitBlur();
 
 	//Application->InitSkybox();
@@ -248,13 +258,6 @@ void ApplicationClass::InitOpenGL() {
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	// Init some starting shaders
-	Application->shader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loadingVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loadingFragment.glsl");
-	Application->pickingShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\1.model_loadingVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\objectPickingFragment.glsl");
-	Application->outlineShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningFragment.glsl");
-	Application->outlineBlurShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\blur\\blurVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\blur\\blurFragment.glsl");
-	Application->edgeDetectionShader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\edgeDetection\\edgeDetectionVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\edgeDetection\\edgeDetectionFragment.glsl");
-
 	// Create buffers
 
 			/* Edge Detection Framebuffer */
@@ -267,7 +270,7 @@ void ApplicationClass::InitOpenGL() {
 #pragma region Framebuffer
 	unsigned int& frameBuffer = Application->frameBuffer;
 	//unsigned int& textureColorbuffer = Application->textureColorbuffer;
-	glGenFramebuffers(1, &Application->frameBuffer);	
+	glGenFramebuffers(1, &Application->frameBuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 	// create a color attachment texture
 	glGenTextures(1, &Application->textureColorbuffer);

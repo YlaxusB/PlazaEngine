@@ -36,7 +36,6 @@ namespace Engine::Editor {
 
 		TransformInspector(GameObject* gameObject) {
 			if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-
 				glm::vec3 lastScale = gameObject->transform->scale;
 
 				glm::vec3& currentPosition = gameObject->GetComponent<Transform>()->relativePosition;

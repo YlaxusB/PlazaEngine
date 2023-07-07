@@ -43,7 +43,8 @@ namespace Engine {
 				glm::mat4 lightProjection, lightView;
 				glm::mat4 lightSpaceMatrix;
 				lightProjection = Application->Shadows->lightProjection;
-				lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+				lightView = Application->Shadows->lightView;
+				//lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 				lightSpaceMatrix = lightProjection * lightView;
 				shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 				shader.setFloat("farPlane", Application->activeCamera->farPlane);

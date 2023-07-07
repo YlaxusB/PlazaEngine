@@ -9,6 +9,7 @@ namespace Engine::Editor {
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse;
 		if (ImGui::Begin("Transform Overlay", new bool(true), window_flags))
 		{
+			ImGui::SetWindowPos(ImVec2(400, Application->appSizes->sceneStart.y + ImGui::GetWindowPos().y), ImGuiCond_Once);
 			Button* worldButton = new Button{ "World", ImGuizmo::OPERATION(-1), ImGuizmo::MODE::WORLD };
 			createButton(worldButton, activeMode, activeOperation);
 

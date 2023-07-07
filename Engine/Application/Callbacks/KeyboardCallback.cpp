@@ -16,6 +16,24 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 
 			d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);
 			d->transform->UpdateChildrenTransform();
+			Engine::Mesh* cubeMesh = Engine::Mesh::Sphere();//Engine::Mesh::Cube();
+			cubeMesh->material.diffuse->rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
+			cubeMesh->material.specular = new Texture();
+			cubeMesh->material.specular->rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
+			MeshRenderer* meshRenderer = new MeshRenderer(*cubeMesh);
+			meshRenderer->mesh = *cubeMesh;
+			d->AddComponent<MeshRenderer>(meshRenderer);
+		}
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
+		int size = gameObjects.size();
+		for (int i = size; i < size + 1; i++) {
+			GameObject* d = new GameObject(std::to_string(gameObjects.size()), gameObjects.front());
+			//d->AddComponent(new Transform());
+
+			d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);
+			d->transform->UpdateChildrenTransform();
 			Engine::Mesh* cubeMesh = Engine::Mesh::Cube();
 			cubeMesh->material.diffuse->rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
 			cubeMesh->material.specular = new Texture();

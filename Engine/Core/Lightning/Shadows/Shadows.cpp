@@ -31,8 +31,9 @@ namespace Engine {
 	}
 
 	void ShadowsClass::GenerateDepthMap() {
-		lightPos = lightDistance;
-
+		lightPos = lightDistance + Application->activeCamera->Position;
+		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		//lightProjection = glm::ortho(-500.0f + -Application->activeCamera->Position.x, 500.0f + Application->activeCamera->Position.x, -500.0f + -Application->activeCamera->Position.y, 500.0f + Application->activeCamera->Position.y, near_plane, far_plane);
 		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowsFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -58,7 +59,8 @@ namespace Engine {
 				glm::mat4 lightProjection, lightView;
 				glm::mat4 lightSpaceMatrix;
 				lightProjection = Application->Shadows->lightProjection;
-				lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+				lightView = Application->Shadows->lightView;
+				//lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 				lightSpaceMatrix = lightProjection * lightView;
 				shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 

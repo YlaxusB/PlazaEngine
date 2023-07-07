@@ -191,6 +191,68 @@ namespace Engine {
 			return new Mesh(vertices, indices, *cubeMaterial);
 		}
 
+		static Mesh* Sphere() {
+			std::vector<unsigned int> indices;
+			std::vector<Vertex> vertices;
+
+			// Generate sphere vertices and indices
+			const int stacks = 20;
+			const int slices = 40;
+			const float radius = 1.0f;
+			float PI = 3.14159265359f;
+
+			for (int i = 0; i <= stacks; ++i) {
+				float stackAngle = static_cast<float>(i) * PI / stacks;
+				float stackRatio = static_cast<float>(i) / stacks;
+				float phi = stackAngle - PI / 2.0f;
+
+				for (int j = 0; j <= slices; ++j) {
+					float sliceAngle = static_cast<float>(j) * 2.0f * PI / slices;
+					float sliceRatio = static_cast<float>(j) / slices;
+
+					float x = radius * std::cos(phi) * std::cos(sliceAngle);
+					float y = radius * std::sin(phi);
+					float z = radius * std::cos(phi) * std::sin(sliceAngle);
+
+					glm::vec3 position(x, y, z);
+					glm::vec3 normal = glm::normalize(position);
+					glm::vec2 texCoords(sliceRatio, stackRatio);
+					glm::vec3 tangent(0.0f);
+					glm::vec3 bitangent(0.0f);
+
+					vertices.push_back(Vertex(position, normal, texCoords, tangent, bitangent));
+				}
+			}
+
+			// Generate sphere indices
+			for (int i = 0; i < stacks; ++i) {
+				int k1 = i * (slices + 1);
+				int k2 = k1 + slices + 1;
+
+				for (int j = 0; j < slices; ++j, ++k1, ++k2) {
+					if (i != 0) {
+						indices.push_back(k1);
+						indices.push_back(k2);
+						indices.push_back(k1 + 1);
+					}
+
+					if (i != stacks - 1) {
+						indices.push_back(k1 + 1);
+						indices.push_back(k2);
+						indices.push_back(k2 + 1);
+					}
+				}
+			}
+
+			// Create sphere material
+			Material* sphereMaterial = new Material();
+			sphereMaterial->diffuse = new Texture();
+			sphereMaterial->diffuse->type = "texture_diffuse";
+			sphereMaterial->diffuse->rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
+
+			return new Mesh(vertices, indices, *sphereMaterial);
+		}
+
 	private:
 		unsigned int VBO, EBO;
 		void setupMesh() {

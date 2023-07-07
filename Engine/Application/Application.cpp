@@ -177,8 +177,8 @@ void ApplicationClass::Loop() {
 		//  Draw Outline
 		if (Editor::selectedGameObject != nullptr)
 		{
-			Renderer::RenderOutline(*Application->outlineShader);
-			combineBuffers();
+			//Renderer::RenderOutline(*Application->outlineShader);
+			//combineBuffers();
 		}
 
 		if (Application->Shadows->showDepth) {

@@ -253,6 +253,55 @@ namespace Engine {
 			return new Mesh(vertices, indices, *sphereMaterial);
 		}
 
+		static Mesh* Terrain(int width, int length, float scale, float amplitude) {
+			std::vector<unsigned int> indices;
+			std::vector<Vertex> vertices;
+
+			// Generate plane vertices and indices
+			for (int z = 0; z <= length; ++z) {
+				for (int x = 0; x <= width; ++x) {
+					float xPos = static_cast<float>(x) * scale;
+					float zPos = static_cast<float>(z) * scale;
+					float yPos = amplitude * std::sin(xPos / scale) * std::sin(zPos / scale);
+
+					glm::vec3 position(xPos, yPos, zPos);
+					glm::vec3 normal(0.0f, 1.0f, 0.0f);
+					glm::vec2 texCoords(static_cast<float>(x) / width, static_cast<float>(z) / length);
+					glm::vec3 tangent(0.0f);
+					glm::vec3 bitangent(0.0f);
+
+					vertices.push_back(Vertex(position, normal, texCoords, tangent, bitangent));
+				}
+			}
+
+			// Generate plane indices
+			for (int z = 0; z < length; ++z) {
+				for (int x = 0; x < width; ++x) {
+					int i1 = z * (width + 1) + x;
+					int i2 = i1 + 1;
+					int i3 = (z + 1) * (width + 1) + x;
+					int i4 = i3 + 1;
+
+					// Create triangles with reversed order of indices
+					indices.push_back(i1);
+					indices.push_back(i3);
+					indices.push_back(i2);
+
+					indices.push_back(i2);
+					indices.push_back(i3);
+					indices.push_back(i4);
+				}
+			}
+
+			// Create terrain material
+			Material* terrainMaterial = new Material();
+			terrainMaterial->diffuse = new Texture();
+			terrainMaterial->diffuse->type = "texture_diffuse";
+			terrainMaterial->diffuse->rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
+
+			return new Mesh(vertices, indices, *terrainMaterial);
+		}
+
 	private:
 		unsigned int VBO, EBO;
 		void setupMesh() {

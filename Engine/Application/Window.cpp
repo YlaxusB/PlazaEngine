@@ -44,6 +44,7 @@ namespace Engine {
 		glfwSetScrollCallback(window, ApplicationClass::Callbacks::scrollCallback);
 		glfwSetMouseButtonCallback(window, ApplicationClass::Callbacks::mouseButtonCallback);
 		glfwSetDropCallback(window, ApplicationClass::Callbacks::dropCallback);
+		glfwSetKeyCallback(window, ApplicationClass::Callbacks::keyCallback);
 
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))

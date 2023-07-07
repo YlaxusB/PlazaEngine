@@ -40,7 +40,7 @@ namespace Engine {
 		near_plane = 100.0f, far_plane = 250.5f;
 		float size = 50;
 
-		glm::vec3 cameraPosition = glm::vec3(0.0f);//Application->activeCamera->Position;
+		glm::vec3 cameraPosition = Application->activeCamera->Position;
 
 		lightProjection = glm::ortho(
 			cameraPosition.x - size,
@@ -50,9 +50,7 @@ namespace Engine {
 			near_plane,
 			far_plane
 		);
-
 		lightPos = Application->activeCamera->Position + lightDistance;
-		cameraPosition = Application->activeCamera->Position;
 		lightView = glm::lookAt(lightPos, cameraPosition, glm::vec3(0.0, 1.0, 0.0));
 		//lightProjection = glm::ortho(-500.0f + -Application->activeCamera->Position.x, 500.0f + Application->activeCamera->Position.x, -500.0f + -Application->activeCamera->Position.y, 500.0f + Application->activeCamera->Position.y, near_plane, far_plane);
 		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, SHADOW_WIDTH, SHADOW_HEIGHT);

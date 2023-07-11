@@ -80,7 +80,6 @@ namespace Engine {
 	}
 	bool Camera::IsInsideViewFrustum(glm::vec3 pos) {
 		glm::vec4 objectPos = glm::vec4(pos, 1.0f);
-		return true; /// TEMPORARILY DISABLED FRUSTUM CULLING -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		return
 			(glm::dot(objectPos, frustum.leftPlane) > 0.0f) &&
 			(glm::dot(objectPos, frustum.rightPlane) > 0.0f) &&

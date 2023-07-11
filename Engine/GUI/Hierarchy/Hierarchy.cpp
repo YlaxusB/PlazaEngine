@@ -62,27 +62,27 @@ namespace Engine::Editor {
 			//Engine::Editor::selectedGameObject = gameObject;
 
 
+		if (ImGui::IsItemVisible()) {
+			if (gameObject->parent) {
+				if (ImGui::BeginDragDropSource()) {
+					ImGui::SetDragDropPayload(payloadName.c_str(), &gameObject, sizeof(GameObject*));
 
-		if (gameObject->parent) {
-			if (ImGui::BeginDragDropSource()) {
-				ImGui::SetDragDropPayload(payloadName.c_str(), &gameObject, sizeof(GameObject*));
+					ImVec2 mousePos = ImGui::GetMousePos();
+					ImVec2 treeNodePos = treeNodeMin;
+					ImVec2 treeNodeSize = ImVec2(treeNodeMax.x - treeNodeMin.x, treeNodeMax.y - treeNodeMin.y);
 
-				ImVec2 mousePos = ImGui::GetMousePos();
-				ImVec2 treeNodePos = treeNodeMin;
-				ImVec2 treeNodeSize = ImVec2(treeNodeMax.x - treeNodeMin.x, treeNodeMax.y - treeNodeMin.y);
+					ImVec2 treeNodeCenter = ImVec2(treeNodePos.x, treeNodePos.y + treeNodeSize.y / 2);
 
-				ImVec2 treeNodeCenter = ImVec2(treeNodePos.x, treeNodePos.y + treeNodeSize.y / 2);
-
-				ImGui::Text("Mouse Pos: x %.1f, y %.1f", mousePos.x, mousePos.y);
-				ImGui::Text("Tree Node Pos: x %.1f, y %.1f", treeNodePos.x, treeNodePos.y);
-				ImGui::Text("Tree Node Size: x %.1f, y %.1f", treeNodeSize.x, treeNodeSize.y);
-				ImGui::Text("Tree Node Center: x %.1f, y %.1f", treeNodeCenter.x, treeNodeCenter.y);
-				ImGui::EndDragDropSource();
+					ImGui::Text("Mouse Pos: x %.1f, y %.1f", mousePos.x, mousePos.y);
+					ImGui::Text("Tree Node Pos: x %.1f, y %.1f", treeNodePos.x, treeNodePos.y);
+					ImGui::Text("Tree Node Size: x %.1f, y %.1f", treeNodeSize.x, treeNodeSize.y);
+					ImGui::Text("Tree Node Center: x %.1f, y %.1f", treeNodeCenter.x, treeNodeCenter.y);
+					ImGui::EndDragDropSource();
+				}
 			}
+
+			Hierarchy::Item::HierarchyDragDrop(gameObject, currentObj, treeNodeMin, treeNodeMax);
 		}
-
-		Hierarchy::Item::HierarchyDragDrop(gameObject, currentObj, treeNodeMin, treeNodeMax);
-
 		if (treeNodeOpen)
 		{
 			for (GameObject* child : gameObject->children)

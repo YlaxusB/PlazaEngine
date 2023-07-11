@@ -32,11 +32,13 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 	}
 
 #pragma region Picking
-	float xposGame = lastX - appSizes.hierarchySize.x;
+	float xposGame = lastX - appSizes.sceneStart.x;
 	float yposGame = lastY - appSizes.appHeaderSize;
 	yposGame = appSizes.sceneSize.y - yposGame;
 	int clickId = -1;
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+		//clickId = Application->pickingTexture->readPixel(xposGame, yposGame);
+		//Application->pickingTexture->generateTexture();
 		Application->pickingTexture->generateTexture();
 		clickId = Application->pickingTexture->readPixel(xposGame, yposGame);
 		std::cout << "ID: " << std::endl;

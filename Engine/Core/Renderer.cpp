@@ -40,17 +40,10 @@ namespace Engine {
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 		for (MeshRenderer* meshRenderer : meshRenderers) {
-				//MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
 				GameObject* gameObject = meshRenderer->gameObject;
-				//glm::mat4 modelMatrix = gameObject->transform->GetTransform();
+
 				glm::mat4 modelMatrix = gameObject->transform->modelMatrix;
-
-
-
 				shader.setMat4("model", modelMatrix);
-				// set light uniforms
-
-
 
 				meshRenderer->mesh->Draw(shader);
 				/*
@@ -62,8 +55,6 @@ namespace Engine {
 				std::cout << "Execution time: " << duration.count() << " ms" << std::endl;
 				*/
 		}
-
-
 	}
 	//void Renderer::OutlineDraw(Editor::selectedGameObject, *Application->shader);
 	void Renderer::BlurBuffer()

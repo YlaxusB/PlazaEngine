@@ -1,6 +1,4 @@
 #pragma once
-#ifndef PICKING_TEXTURE_H
-#define PICKING_TEXTURE_H
 
 #include "Engine/Vendor/GLFW/glfw3.h"
 #include "Engine/Vendor/glm/glm.hpp"
@@ -42,7 +40,7 @@ public:
 		// Disable reading
 		glReadBuffer(GL_NONE);
 		glDrawBuffer(GL_COLOR_ATTACHMENT2);
-		
+
 		// Unbind the texture and framebuffer
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -72,5 +70,8 @@ public:
 		glReadPixels(x, y, 1, 1, GL_RGB, GL_FLOAT, pixels);
 		return (int)pixels[0];
 	}
+
+	void generateTexture();
+
+	void Render(Shader& shader);
 };
-#endif

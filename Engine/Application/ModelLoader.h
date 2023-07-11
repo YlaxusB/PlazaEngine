@@ -34,10 +34,15 @@ namespace Engine {
 
         unsigned int TextureFromFile(const char* path, const string& directory, bool gamma)
         {
-            string filename = std::filesystem::path{ directory }.parent_path().string() + "/" + path;
+            string filename = std::filesystem::path{ directory }.parent_path().string() + "\\" + path;
 
             //filename = "D:\\Work\\Cartoon Low Poly World Project\\texture\\texture_main.png";
+            std::cout << "File name: " << std::endl;
             std::cout << filename << std::endl;
+            std::cout << "Directory: " << std::endl;
+            std::cout << directory << std::endl;
+            std::cout << "Path: " << std::endl;
+            std::cout << path << std::endl;
             unsigned int textureID;
             glGenTextures(1, &textureID);
             int width, height, nrComponents;
@@ -65,7 +70,7 @@ namespace Engine {
             }
             else
             {
-                std::cout << "Texture failed to load at path: " << path << std::endl;
+                std::cout << "Texture failed to load at path: " << filename << std::endl;
                 stbi_image_free(data);
             }
 
@@ -75,7 +80,7 @@ namespace Engine {
 
         bool checkFlippedTextures(const std::string& modelPath) {
             Assimp::Importer importer;
-            const aiScene* scene = importer.ReadFile(modelPath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices);
+            const aiScene* scene = importer.ReadFile(modelPath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_PreTransformVertices | aiProcess_OptimizeMeshes | aiProcess_JoinIdenticalVertices);
             if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
             {
                 cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
@@ -118,8 +123,8 @@ namespace Engine {
             modelMainObject->transform->UpdateChildrenTransform();
 
             Editor::selectedGameObject = modelMainObject;
-            //delete meshes;
-            //delete scene;
+            delete textures_loaded;
+            delete meshes;
         }
 
         // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
@@ -140,7 +145,6 @@ namespace Engine {
                 position.z = transformationMatrix.c4 * modelScale;
                 // Finds the parent Object, if its not found or there inst any, then it just assigns to the model main gameobject
                 std::string parentName = node->mParent->mName.C_Str();
-                std::cout << parentName << std::endl;
                 GameObject* parentObject = gameObjects.find(parentName);
                 if (parentName != "RootNode" || parentObject == nullptr) {
                     parentObject = modelMainObject;
@@ -151,8 +155,6 @@ namespace Engine {
                 GameObject* childObject = new GameObject(childName, parentObject);
                 childObject->AddComponent<MeshRenderer>(new MeshRenderer(&nodeMesh));
                 childObject->transform->relativePosition = position;
-
-                //delete mesh;
             }
             // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
             for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -277,18 +279,11 @@ namespace Engine {
             {
                 aiString str;
                 mat->GetTexture(type, i, &str);
-                std::cout << str.C_Str() << std::endl;
-                std::cout << directory->c_str() << std::endl;
                 // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
                 bool skip = false;
-                std::cout << "String:" << std::endl;
-                std::cout << str.C_Str() << std::endl;
-                std::cout << "Size: " << std::endl;
-                std::cout << textures_loaded.size() << std::endl;
                 for (unsigned int j = 0; j < textures_loaded.size(); j++)
                 {
                     if (textures_loaded[j].path == str.C_Str()) {
-                        std::cout << "Added" << std::endl;
                         textures.push_back(textures_loaded[j]);
                         skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
                         break;
@@ -296,8 +291,6 @@ namespace Engine {
                 }
                 if (!skip)
                 {   // if texture hasn't been loaded already, load it
-                    std::cout << "New: " << std::endl;
-                    std::cout << str.C_Str() << std::endl;
                     Texture texture;
                     texture.id = TextureFromFile(str.C_Str(), *directory, true);
                     texture.type = typeName;

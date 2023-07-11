@@ -140,6 +140,7 @@ void ApplicationClass::Loop() {
 			glBindTexture(GL_TEXTURE_2D, Application->pick);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
 		}
+		Application->pickingTexture->updateSize(Application->appSizes->sceneSize);
 		// Update inputs
 		Callbacks::processInput(Application->Window->glfwWindow);
 
@@ -148,6 +149,8 @@ void ApplicationClass::Loop() {
 
 		// Imgui New Frame
 		Gui::NewFrame();
+
+		Application->pickingTexture->generateTexture();
 
 		// Clear buffers
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);

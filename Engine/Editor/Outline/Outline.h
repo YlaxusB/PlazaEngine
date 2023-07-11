@@ -12,7 +12,7 @@ namespace Engine::Editor {
 
 		static void RenderOutline();
 		static void BlurBuffer();
-		static void RenderSelectedObjects2(GameObject* gameObject, Shader shader);
+		static void RenderSelectedObjects(GameObject* gameObject, Shader shader);
 		static void CombineOutlineToScene();
 		static void CreateScreenQuad();
 	};

@@ -151,35 +151,27 @@ void ApplicationClass::Loop() {
 
 		// Clear buffers
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-		//glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 
 
 		// Render to shadows depth map
-
 		Application->Shadows->GenerateDepthMap();
 
 		// Draw GameObjects
-		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
 		Renderer::Render(*Application->shader);
-
-		// Draw Shadows
 
 		// Update Skybox
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 		Skybox::Update();
 
 		//  Draw Outline
-		if (Editor::selectedGameObject != nullptr)
+		if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth)
 		{
-			//sRenderer::RenderOutline(*Application->outlineShader);
-			//combineBuffers();
+			Renderer::RenderOutline(*Application->outlineShader);
+			combineBuffers();
 		}
 
 		if (Application->Shadows->showDepth) {

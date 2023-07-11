@@ -12,7 +12,7 @@ namespace Engine::Editor {
 		ImGui::PushStyleColor(ImGuiCol_HeaderActive, editorStyle.treeNodeActiveBackgroundColor);
 
 		bool itemIsSelectedObject = false;
-		if (selectedGameObject) itemIsSelectedObject = gameObject->id == selectedGameObject->id;
+		if (selectedGameObject && gameObject->id == selectedGameObject->id) itemIsSelectedObject = true;
 
 		if (itemIsSelectedObject) {// Selected background
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, editorStyle.selectedTreeNodeBackgroundColor);

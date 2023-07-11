@@ -71,7 +71,14 @@ public:
 		return (int)pixels[0];
 	}
 
-	void generateTexture();
+	/// <summary>
+	/// Generates the picking texture, every object is rendered and each pixel have its id
+	/// </summary>
+	void GenerateTexture();
 
+	/// <summary>
+	/// Render the scene with Object ID
+	/// </summary>
+	/// <param name="shader"></param>
 	void Render(Shader& shader);
 };

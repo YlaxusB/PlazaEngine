@@ -19,10 +19,10 @@ uniform float pixelObjectID;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
-uniform mat4 lightSpaceMatrix;
 
 void main()
 {
+    vs_out.FragPos = vec3(model * vec4(aPos, 1.0));
     gl_Position = projection * view * vec4(vs_out.FragPos, 1.0);
     objectID = pixelObjectID;
 }

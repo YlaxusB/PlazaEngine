@@ -1,9 +1,9 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "PickingTexture.h"
-void PickingTexture::generateTexture() {
+
+void PickingTexture::GenerateTexture() {
 	glDisable(GL_BLEND);
 	Application->pickingTexture->enableWriting();
-//	glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -15,6 +15,7 @@ void PickingTexture::generateTexture() {
 	glEnable(GL_BLEND);
 }
 
+
 void PickingTexture::Render(Shader& shader) {
 	shader.use();
 
@@ -22,7 +23,6 @@ void PickingTexture::Render(Shader& shader) {
 	glm::mat4 view = Application->activeCamera->GetViewMatrix();
 	shader.setMat4("projection", projection);
 	shader.setMat4("view", view);
-	shader.setVec3("viewPos", Application->activeCamera->Position);
 	for (MeshRenderer* meshRenderer : meshRenderers) {
 		GameObject* gameObject = meshRenderer->gameObject;
 

@@ -37,7 +37,7 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 	yposGame = appSizes.sceneSize.y - yposGame;
 	int clickId = -1;
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		Application->pickingTexture->generateTexture();
+		Application->pickingTexture->GenerateTexture();
 		clickId = Application->pickingTexture->readPixel(xposGame, yposGame);
 		std::cout << "ID: " << std::endl;
 		std::cout << clickId << std::endl;

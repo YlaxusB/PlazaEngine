@@ -48,15 +48,14 @@ void Engine::Editor::Outline::BlurBuffer() {
 	glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 	glm::mat4 view = Application->activeCamera->GetViewMatrix();
 	glm::mat4 modelMatrix = Editor::selectedGameObject->transform->GetTransform();
-
 	Application->singleColorShader->setMat4("projection", projection);
 	Application->singleColorShader->setMat4("view", view);
 	Application->singleColorShader->setMat4("model", modelMatrix);
-	Application->singleColorShader->setFloat("objectID", Editor::selectedGameObject->id);
+
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glStencilFunc(GL_ALWAYS, 1, 0xFF); // all fragments should pass the stencil test
 	glStencilMask(0xFF); // enable writing to the stencil buffer
-	Outline::RenderSelectedObjects2(Editor::selectedGameObject, *Application->singleColorShader);
+	Outline::RenderSelectedObjects(Editor::selectedGameObject, *Application->singleColorShader);
 
 	// Disable stencil test for rendering the blur buffer
 	//glDisable(GL_STENCIL_TEST);
@@ -122,14 +121,15 @@ void Engine::Editor::Outline::BlurBuffer() {
 
 // Draw the Outline
 namespace Engine::Editor {
-	void Outline::RenderSelectedObjects2(GameObject* gameObject, Shader shader) {
-		if (gameObject->GetComponent<MeshRenderer>()) {
-			glm::mat4 modelMatrix = gameObject->transform->GetTransform(selectedGameObject->transform->worldPosition, gameObject->transform->worldScale);
+	void Outline::RenderSelectedObjects(GameObject* gameObject, Shader shader) {
+		MeshRenderer* mr = gameObject->GetComponent<MeshRenderer>();
+		if (mr) {
+			glm::mat4 modelMatrix = gameObject->transform->modelMatrix;
 			shader.setMat4("model", modelMatrix);
-			gameObject->GetComponent<MeshRenderer>()->mesh->Draw(shader);
+			mr->mesh->Draw(shader);
 		}
 		for (GameObject* child : gameObject->children) {
-			Outline::RenderSelectedObjects2(child, shader);
+			Outline::RenderSelectedObjects(child, shader);
 		}
 	}
 }

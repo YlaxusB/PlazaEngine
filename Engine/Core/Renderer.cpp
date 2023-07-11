@@ -81,11 +81,7 @@ namespace Engine {
 		//DetectEdges();
 
 		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
-		//glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-		// Clear the buffers
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		// Enable stencil test
@@ -97,14 +93,12 @@ namespace Engine {
 		glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 		glm::mat4 view = Application->activeCamera->GetViewMatrix();
 		glm::mat4 modelMatrix = Editor::selectedGameObject->transform->GetTransform();
-
 		Application->singleColorShader->setMat4("projection", projection);
 		Application->singleColorShader->setMat4("view", view);
-		Application->singleColorShader->setMat4("model", modelMatrix);
 		Application->singleColorShader->setFloat("objectID", Editor::selectedGameObject->id);
 		glStencilFunc(GL_ALWAYS, 0, 0x00);
 		glStencilMask(0x00);
-		Editor::Outline::RenderSelectedObjects2(Editor::selectedGameObject, *Application->singleColorShader);
+		//Editor::Outline::RenderSelectedObjects(Editor::selectedGameObject, *Application->singleColorShader);
 		glDisable(GL_DEPTH_TEST);
 
 		glStencilFunc(GL_EQUAL, 1, 0xFF);

@@ -38,6 +38,16 @@ namespace Engine::Editor {
 			if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
 				glm::vec3 lastScale = gameObject->transform->scale;
 
+
+				glm::vec3 startingPosition = gameObject->GetComponent<Transform>()->relativePosition;
+				glm::vec3 startingRotation = gameObject->GetComponent<Transform>()->rotation;
+				glm::vec3 startingRotationDegress = glm::degrees(startingRotation);
+				glm::vec3 startingScale = gameObject->GetComponent<Transform>()->scale;
+
+
+
+
+
 				glm::vec3& currentPosition = gameObject->GetComponent<Transform>()->relativePosition;
 				glm::vec3& currentRotation = gameObject->GetComponent<Transform>()->rotation;
 				glm::vec3 rotationField = glm::degrees(currentRotation);
@@ -49,8 +59,7 @@ namespace Engine::Editor {
 
 				}
 
-				gameObject->transform->UpdateChildrenTransform();
-				gameObject->transform->UpdateChildrenScale();
+
 				ImGui::Text("Position: ");
 
 				ImGui::SameLine();
@@ -94,6 +103,11 @@ namespace Engine::Editor {
 				ImGui::SameLine();
 				ImGui::SetNextItemWidth(75);
 				ImGui::InputFloat("Z", &currentScale.z);
+
+				if (currentPosition != startingPosition || currentRotation != startingRotation || currentScale != startingScale) {
+					gameObject->transform->UpdateChildrenTransform();
+					gameObject->transform->UpdateChildrenScale();
+				}
 
 				for (GameObject* child : gameObject->children) {
 					ImGui::Text(child->name.c_str());

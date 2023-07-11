@@ -18,6 +18,18 @@ const float SENSITIVITY = 0.1f;
 const float ZOOM = 90.0f;
 
 using namespace Engine;
+
+struct ViewFrustum {
+	glm::mat4 viewProjectionMatrix;
+	glm::vec4 leftPlane;
+	glm::vec4 rightPlane;
+	glm::vec4 bottomPlane;
+	glm::vec4 topPlane;
+	glm::vec4 nearPlaneFrustum;
+	glm::vec4 farPlaneFrustum;
+};
+
+
 namespace Engine {
 	class Camera {
 	public:
@@ -31,6 +43,9 @@ namespace Engine {
 			ROLLLEFT,
 			ROLLRIGHT
 		};
+
+		ViewFrustum frustum = ViewFrustum();
+
 
 		// camera Attributes
 		glm::vec3 Position;
@@ -71,6 +86,11 @@ namespace Engine {
 			return glm::lookAt(Position, Position + Front, Up);
 		}
 
+
+		void UpdateFrustum();
+
+		bool IsInsideViewFrustum(glm::vec3 pos);
+
 		// processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
 		void ProcessKeyboard(Camera_Movement direction, float deltaTime);
 
@@ -85,6 +105,8 @@ namespace Engine {
 				Zoom = 1.0f;
 			if (Zoom > 90.0f)
 				Zoom = 90.0f;
+
+			UpdateFrustum();
 		}
 
 	private:

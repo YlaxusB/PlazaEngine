@@ -73,15 +73,18 @@ namespace Engine {
 		//lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 		lightSpaceMatrix = lightProjection * lightView;
 		shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
 		for (MeshRenderer* meshRenderer : meshRenderers) {
-			//MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
-			GameObject* gameObject = meshRenderer->gameObject;
-			glm::mat4 modelMatrix = gameObject->transform->modelMatrix;
+			Transform* transform = meshRenderer->gameObject->transform;
 
-			shader.setMat4("model", modelMatrix);
+			// Check if the object is inside the view frustum
+			if (Application->activeCamera->IsInsideViewFrustum(transform->position)) {
 
-			meshRenderer->mesh->Draw(shader);
+				glm::mat4 modelMatrix = transform->modelMatrix;
+				shader.setMat4("model", modelMatrix);
 
+				meshRenderer->mesh->Draw(shader);
+			}
 		}
 	}
 }

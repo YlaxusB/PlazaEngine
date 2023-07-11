@@ -74,7 +74,7 @@ namespace Engine {
 			setupMesh();
 		}
 
-		void Draw(Shader& shader) {
+		void BindTextures(Shader& shader) {
 			if (material.shininess != 64.0f) {
 				shader.setFloat("shininess", material.shininess);
 			}
@@ -86,9 +86,10 @@ namespace Engine {
 					glActiveTexture(GL_TEXTURE0);
 					glBindTexture(GL_TEXTURE_2D, material.diffuse->id);
 					shader.setInt("texture_diffuse", 0);
+					shader.setVec4("texture_diffuse_rgba", glm::vec4(300, 300, 300, 300));
 				}
 			}
-			
+
 			if (material.specular != nullptr) {
 				if (material.specular->rgba != glm::vec4(INFINITY)) {
 					shader.setVec4("texture_specular_rgba", material.specular->rgba);
@@ -97,6 +98,7 @@ namespace Engine {
 					glUniform1i(glGetUniformLocation(shader.ID, "texture_specular"), 1);
 					glActiveTexture(GL_TEXTURE1);
 					glBindTexture(GL_TEXTURE_2D, material.specular->id);
+					shader.setVec4("texture_specular_rgba", glm::vec4(300, 300, 300, 300));
 				}
 			}
 
@@ -111,9 +113,9 @@ namespace Engine {
 				glActiveTexture(GL_TEXTURE3);
 				glBindTexture(GL_TEXTURE_2D, material.height->id);
 			}
+		}
 
-
-			
+		void Draw(Shader& shader) {
 			// draw mesh
 			glBindVertexArray(VAO);
 			glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);

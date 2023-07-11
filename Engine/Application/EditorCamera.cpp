@@ -57,5 +57,35 @@ namespace Engine {
 
 		// update Front, Right and Up Vectors using the updated Euler angles
 		updateCameraVectors();
+
+		UpdateFrustum();
+	}
+
+	void Camera::UpdateFrustum() {
+		glm::mat4 viewProjectionMatrix = GetProjectionMatrix() * GetViewMatrix();
+		glm::vec4 leftPlane = viewProjectionMatrix[3] + viewProjectionMatrix[0];
+		glm::vec4 rightPlane = viewProjectionMatrix[3] - viewProjectionMatrix[0];
+		glm::vec4 bottomPlane = viewProjectionMatrix[3] + viewProjectionMatrix[1];
+		glm::vec4 topPlane = viewProjectionMatrix[3] - viewProjectionMatrix[1];
+		glm::vec4 nearPlaneFrustum = viewProjectionMatrix[3] + viewProjectionMatrix[2];
+		glm::vec4 farPlaneFrustum = viewProjectionMatrix[3] - viewProjectionMatrix[2];
+
+		// Normalize the planes
+		frustum.leftPlane = glm::normalize(leftPlane);
+		frustum.rightPlane = glm::normalize(rightPlane);
+		frustum.bottomPlane = glm::normalize(bottomPlane);
+		frustum.topPlane = glm::normalize(topPlane);
+		frustum.nearPlaneFrustum = glm::normalize(nearPlaneFrustum);
+		frustum.farPlaneFrustum = glm::normalize(farPlaneFrustum);
+	}
+	bool Camera::IsInsideViewFrustum(glm::vec3 pos) {
+		glm::vec4 objectPos = glm::vec4(pos, 1.0f);
+		return
+			(glm::dot(objectPos, frustum.leftPlane) > 0.0f) &&
+			(glm::dot(objectPos, frustum.rightPlane) > 0.0f) &&
+			(glm::dot(objectPos, frustum.bottomPlane) > 0.0f) &&
+			(glm::dot(objectPos, frustum.topPlane) > 0.0f) &&
+			(glm::dot(objectPos, frustum.nearPlaneFrustum) > 0.0f) &&
+			(glm::dot(objectPos, frustum.farPlaneFrustum) > 0.0f);
 	}
 }

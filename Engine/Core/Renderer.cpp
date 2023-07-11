@@ -39,13 +39,19 @@ namespace Engine {
 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
+
+		Application->activeCamera->UpdateFrustum();
 		for (MeshRenderer* meshRenderer : meshRenderers) {
-				GameObject* gameObject = meshRenderer->gameObject;
+				Transform* transform = meshRenderer->gameObject->transform;
 
-				glm::mat4 modelMatrix = gameObject->transform->modelMatrix;
-				shader.setMat4("model", modelMatrix);
+				if (Application->activeCamera->IsInsideViewFrustum(transform->position)) {
 
-				meshRenderer->mesh->Draw(shader);
+					glm::mat4 modelMatrix = transform->modelMatrix;
+					shader.setMat4("model", modelMatrix);
+
+					meshRenderer->mesh->BindTextures(shader);
+					meshRenderer->mesh->Draw(shader);
+				}
 				/*
 				auto startTime = std::chrono::high_resolution_clock::now();
 				// End measuring time and calculate duration

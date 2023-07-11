@@ -10,7 +10,7 @@ namespace Engine::Editor {
 		MaterialInspector(GameObject* gameObject) {
 			if (ImGui::TreeNodeEx("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
 				ImGui::PushID("MaterialInspector");
-				Material material = gameObject->GetComponent<MeshRenderer>()->mesh.material;
+				Material material = gameObject->GetComponent<MeshRenderer>()->mesh->material;
 				glm::vec4& diffuse = material.diffuse->rgba;
 				glm::vec4& specular = material.specular->rgba;
 				float shininess = material.shininess;

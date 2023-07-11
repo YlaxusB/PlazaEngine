@@ -75,41 +75,28 @@ namespace Engine {
 		}
 
 		void Draw(Shader& shader) {
-			// bind appropriate textures
-			unsigned int diffuseNr = 1;
-			unsigned int specularNr = 1;
-			unsigned int normalNr = 1;
-			unsigned int heightNr = 1;
-
-			//material = gameObject->GetComponent<MeshRenderer>()->mesh.material;
-
-			bool haveRgba;
 			if (material.shininess != 64.0f) {
 				shader.setFloat("shininess", material.shininess);
 			}
 			if (material.diffuse != nullptr) {
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, material.diffuse->id);
-				shader.setInt("texture_diffuse", 0);
 				if (material.diffuse->rgba != glm::vec4(INFINITY)) {
-					shader.setBool("texture_diffuse_rgba_bool", true);
 					shader.setVec4("texture_diffuse_rgba", material.diffuse->rgba);
 				}
 				else {
-					shader.setBool("texture_diffuse_rgba_bool", false);
+					glActiveTexture(GL_TEXTURE0);
+					glBindTexture(GL_TEXTURE_2D, material.diffuse->id);
+					shader.setInt("texture_diffuse", 0);
 				}
 			}
 			
 			if (material.specular != nullptr) {
-				glUniform1i(glGetUniformLocation(shader.ID, "texture_specular"), 1);
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_2D, material.specular->id);
 				if (material.specular->rgba != glm::vec4(INFINITY)) {
-					shader.setBool("texture_specular_rgba_bool", true);
 					shader.setVec4("texture_specular_rgba", material.specular->rgba);
 				}
 				else {
-					shader.setBool("texture_specular_rgba_bool", false);
+					glUniform1i(glGetUniformLocation(shader.ID, "texture_specular"), 1);
+					glActiveTexture(GL_TEXTURE1);
+					glBindTexture(GL_TEXTURE_2D, material.specular->id);
 				}
 			}
 
@@ -188,7 +175,9 @@ namespace Engine {
 			cubeMaterial->diffuse->type = "texture_diffuse";
 			cubeMaterial->diffuse->rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
 
-			return new Mesh(vertices, indices, *cubeMaterial);
+			Mesh* newMesh = new Mesh(vertices, indices, *cubeMaterial);
+			delete cubeMaterial;
+			return newMesh;
 		}
 
 		static Mesh* Sphere() {

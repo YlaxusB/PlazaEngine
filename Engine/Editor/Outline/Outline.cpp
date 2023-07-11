@@ -126,7 +126,7 @@ namespace Engine::Editor {
 		if (gameObject->GetComponent<MeshRenderer>()) {
 			glm::mat4 modelMatrix = gameObject->transform->GetTransform(selectedGameObject->transform->worldPosition, gameObject->transform->worldScale);
 			shader.setMat4("model", modelMatrix);
-			gameObject->GetComponent<MeshRenderer>()->mesh.Draw(shader);
+			gameObject->GetComponent<MeshRenderer>()->mesh->Draw(shader);
 		}
 		for (GameObject* child : gameObject->children) {
 			Outline::RenderSelectedObjects2(child, shader);

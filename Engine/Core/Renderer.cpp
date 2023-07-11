@@ -15,53 +15,55 @@ void renderFullscreenQuad() {
 namespace Engine {
 	// Render all GameObjects
 	void Renderer::Render(Shader& shader) {
+
 		shader.use();
-		for (GameObject* gameObject : gameObjects) {
-			MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
-			if (meshRenderer && gameObject->parent != nullptr) {
-				glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
-				glm::mat4 view = Application->activeCamera->GetViewMatrix();
-				glm::mat4 modelMatrix = gameObject->transform->GetTransform();
+
+		glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+		glm::mat4 view = Application->activeCamera->GetViewMatrix();
+		shader.setMat4("projection", projection);
+		shader.setMat4("view", view);
+		shader.setVec3("viewPos", Application->activeCamera->Position);
+		glm::vec3 lightPos = Application->Shadows->lightPos;
+		shader.setVec3("lightPos", lightPos);
+		glActiveTexture(GL_TEXTURE30);
+		glBindTexture(GL_TEXTURE_2D, Application->Shadows->shadowsDepthMap);
+		shader.setInt("shadowsDepthMap", 30);
+		shader.setInt("shadowMap", 30);
+		glm::mat4 lightProjection, lightView;
+		glm::mat4 lightSpaceMatrix;
+		lightProjection = Application->Shadows->lightProjection;
+		lightView = Application->Shadows->lightView;
+		//lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		lightSpaceMatrix = lightProjection * lightView;
+		shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
+		for (MeshRenderer* meshRenderer : meshRenderers) {
+				//MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
+				GameObject* gameObject = meshRenderer->gameObject;
+				//glm::mat4 modelMatrix = gameObject->transform->GetTransform();
+				glm::mat4 modelMatrix = gameObject->transform->modelMatrix;
 
 
 
-				shader.setMat4("projection", projection);
-				shader.setMat4("view", view);
 				shader.setMat4("model", modelMatrix);
-				shader.setFloat("objectID", gameObject->id);
 				// set light uniforms
-				shader.setVec3("viewPos", Application->activeCamera->Position);
-				glm::vec3 lightPos = Application->Shadows->lightPos;
-				shader.setVec3("lightPos", lightPos);
-				glActiveTexture(GL_TEXTURE30);
-				glBindTexture(GL_TEXTURE_2D, Application->Shadows->shadowsDepthMap);
-				shader.setInt("shadowsDepthMap", 30);
-				shader.setInt("shadowMap", 30);
 
 
 
-				glm::mat4 lightProjection, lightView;
-				glm::mat4 lightSpaceMatrix;
-				lightProjection = Application->Shadows->lightProjection;
-				lightView = Application->Shadows->lightView;
-				//lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-				lightSpaceMatrix = lightProjection * lightView;
-				shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-				shader.setFloat("farPlane", Application->activeCamera->farPlane);
-				std::vector<float> shadowCascadeLevels{ Application->activeCamera->farPlane / 50.0f, Application->activeCamera->farPlane / 25.0f, Application->activeCamera->farPlane / 10.0f, Application->activeCamera->farPlane / 2.0f };
-				shader.setInt("cascadeCount", shadowCascadeLevels.size());
-				for (size_t i = 0; i < shadowCascadeLevels.size(); ++i)
-				{
-					shader.setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", shadowCascadeLevels[i]);
-				}
-				//shader.setInt("blinn", blinn);
-
-				glStencilFunc(GL_ALWAYS, 1, 0xFF);
-				glStencilMask(0xFF);
-
-				meshRenderer->mesh.Draw(shader);
-			}
+				meshRenderer->mesh->Draw(shader);
+				/*
+				auto startTime = std::chrono::high_resolution_clock::now();
+				// End measuring time and calculate duration
+				auto endTime = std::chrono::high_resolution_clock::now();
+				auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+				// Print the execution time
+				std::cout << "Execution time: " << duration.count() << " ms" << std::endl;
+				*/
 		}
+
+
 	}
 	//void Renderer::OutlineDraw(Editor::selectedGameObject, *Application->shader);
 	void Renderer::BlurBuffer()

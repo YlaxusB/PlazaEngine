@@ -42,10 +42,11 @@ public:
 
 	GameObject(std::string objName, GameObject* parent = sceneObject);
 
-	std::list<Component*> components;
+	std::vector<Component*> components;
 	template<typename T>
 	T* AddComponent(T* component) {
 		components.push_back(component);
+		component->gameObject = this;
 		return component;
 	}
 
@@ -62,10 +63,15 @@ public:
 
 //extern std::list<GameObject*> gameObjects;
 
-
+class MeshRenderer;
+extern std::vector<MeshRenderer*> meshRenderers;
 class MeshRenderer : public Component {
 public:
-	Engine::Mesh mesh;
-	MeshRenderer(const Engine::Mesh& initialMesh) : mesh(initialMesh) {
+	Engine::Mesh* mesh;
+	Transform* transform;
+	MeshRenderer(Engine::Mesh* initialMesh) : mesh(initialMesh) {
+		this->mesh = new Engine::Mesh(initialMesh->vertices, initialMesh->indices, initialMesh->material);
+		meshRenderers.emplace_back(this);
 	}
+	~MeshRenderer() = default;
 };

@@ -62,10 +62,13 @@ glm::vec3 newWorldRotation(GameObject* gameObject) {
 
 }
 
+
+
 void UpdateObjectTransform(GameObject* gameObject) {
 	gameObject->transform->worldScale = gameObject->transform->scale * gameObject->parent->transform->worldScale;
 	gameObject->transform->worldRotation = newWorldRotation(gameObject);
 	gameObject->transform->worldPosition = newWorldPosition(gameObject);
+	gameObject->transform->modelMatrix = gameObject->transform->GetTransform();
 }
 
 

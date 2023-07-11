@@ -27,9 +27,9 @@ using Engine::Mesh;
 namespace Engine {
     namespace ModelLoader
     {
-        vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture> textures_loaded, string* directory);
-        void processNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture> textures_loaded, string* directory, GameObject* modelMainObject);
-        Mesh processMesh(aiMesh* mesh, const aiScene* scene, vector<Texture> textures_loaded, string* directory, aiNode* node);
+        vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture>& textures_loaded, string* directory);
+        void processNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, string* directory, GameObject* modelMainObject);
+        Mesh processMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node);
         double modelScale = 0.01;
 
         unsigned int TextureFromFile(const char* path, const string& directory, bool gamma)
@@ -94,8 +94,11 @@ namespace Engine {
 
 
         // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-        void loadModel(string const& path, string directory, vector<Mesh>* meshes, vector<Texture> textures_loaded, std::string modelName)
+        void loadModel(string const& path, std::string modelName)
         {
+            vector<Texture>* textures_loaded = new vector<Texture>;
+            vector<Mesh>* meshes = new vector<Mesh>;
+            string directory;
             // read file via ASSIMP
             Assimp::Importer importer;
             const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
@@ -111,14 +114,16 @@ namespace Engine {
             // process ASSIMP's root node recursively
             GameObject* modelMainObject = new GameObject(modelName, sceneObject);
             //modelMainObject->AddComponent(new Transform());
-            processNode(scene->mRootNode, scene, *meshes, textures_loaded, &directory, modelMainObject);
+            processNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject);
             modelMainObject->transform->UpdateChildrenTransform();
 
             Editor::selectedGameObject = modelMainObject;
+            //delete meshes;
+            //delete scene;
         }
 
         // processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
-        void processNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture> textures_loaded, string* directory, GameObject* modelMainObject)
+        void processNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, string* directory, GameObject* modelMainObject)
         {
             for (unsigned int i = 0; i < node->mNumMeshes; i++)
             {
@@ -144,8 +149,10 @@ namespace Engine {
                     parentObject = sceneObject;
                 }
                 GameObject* childObject = new GameObject(childName, parentObject);
-                childObject->AddComponent<MeshRenderer>(new MeshRenderer(nodeMesh));
+                childObject->AddComponent<MeshRenderer>(new MeshRenderer(&nodeMesh));
                 childObject->transform->relativePosition = position;
+
+                //delete mesh;
             }
             // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
             for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -154,7 +161,7 @@ namespace Engine {
             }
         }
 
-        Mesh processMesh(aiMesh* mesh, const aiScene* scene, vector<Texture> textures_loaded, string* directory, aiNode* node)
+        Mesh processMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node)
         {
             // data to fill
             vector<Vertex> vertices;
@@ -263,7 +270,7 @@ namespace Engine {
 
         // checks all material textures of a given type and loads the textures if they're not loaded yet.
     // the required info is returned as a Texture struct.
-        vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture> textures_loaded, string* directory)
+        vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture>& textures_loaded, string* directory)
         {
             vector<Texture> textures;
             for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
@@ -274,10 +281,14 @@ namespace Engine {
                 std::cout << directory->c_str() << std::endl;
                 // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
                 bool skip = false;
+                std::cout << "String:" << std::endl;
+                std::cout << str.C_Str() << std::endl;
+                std::cout << "Size: " << std::endl;
+                std::cout << textures_loaded.size() << std::endl;
                 for (unsigned int j = 0; j < textures_loaded.size(); j++)
                 {
-                    if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0)
-                    {
+                    if (textures_loaded[j].path == str.C_Str()) {
+                        std::cout << "Added" << std::endl;
                         textures.push_back(textures_loaded[j]);
                         skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
                         break;
@@ -285,6 +296,8 @@ namespace Engine {
                 }
                 if (!skip)
                 {   // if texture hasn't been loaded already, load it
+                    std::cout << "New: " << std::endl;
+                    std::cout << str.C_Str() << std::endl;
                     Texture texture;
                     texture.id = TextureFromFile(str.C_Str(), *directory, true);
                     texture.type = typeName;

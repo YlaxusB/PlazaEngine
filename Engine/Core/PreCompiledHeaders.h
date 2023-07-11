@@ -31,6 +31,7 @@
 #include "Engine/Vendor/filesystem/filesys.h"
 #include <list>
 #include <string>
+#include <chrono>
 
 #include "Engine/Application/Application.h"
 #include "Engine/Application/EntryPoint.h"

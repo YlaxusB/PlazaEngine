@@ -85,6 +85,10 @@ namespace Engine {
 			//Shader skyboxShader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\skybox\\skyboxFragment.glsl");
 			//skyboxShader.use();
 			//skyboxShader.setInt("skybox", 0);
+			skyboxShader->use();
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+			skyboxShader->setInt("skybox", 0);
 		}
 		static void Update() {
 			//Shader& skyboxShader = skyboxShader;
@@ -99,8 +103,7 @@ namespace Engine {
 			skyboxShader->setMat4("projection", projection);
 			// skybox cube
 			glBindVertexArray(vao);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 			glBindVertexArray(0);
 			glDepthFunc(GL_LESS); // set depth function back to default

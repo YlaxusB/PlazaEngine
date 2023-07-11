@@ -31,14 +31,9 @@ namespace Engine {
 	}
 
 	void ShadowsClass::GenerateDepthMap() {
-		std::cout << "Inicio" << std::endl;
-		std::cout << Application->activeCamera->Position.x << std::endl;
-		std::cout << Application->activeCamera->Position.y << std::endl;
-		std::cout << Application->activeCamera->Position.z << std::endl;
-		std::cout << "Fim" << std::endl;
-		lightDistance = glm::vec3(50.0f, 150.0f, 0.0f);
+		lightDistance = glm::vec3(80.0f, 120.0f, 0.0f); //* glm::vec3(glfwGetTime());
 		near_plane = 100.0f, far_plane = 250.5f;
-		float size = 50;
+		float size = 100.0f;
 
 		glm::vec3 cameraPosition = glm::vec3(0.0f);//Application->activeCamera->Position;
 
@@ -69,24 +64,24 @@ namespace Engine {
 
 	void ShadowsClass::RenderScene(Shader& shader) {
 		shader.use();
-		for (GameObject* gameObject : gameObjects) {
-			MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
-			if (meshRenderer && gameObject->parent != nullptr) {
-				glm::mat4 modelMatrix = gameObject->transform->GetTransform();
 
-				shader.setMat4("model", modelMatrix);
+		glm::vec3 lightPos = Application->Shadows->lightPos;
+		glm::mat4 lightProjection, lightView;
+		glm::mat4 lightSpaceMatrix;
+		lightProjection = Application->Shadows->lightProjection;
+		lightView = Application->Shadows->lightView;
+		//lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		lightSpaceMatrix = lightProjection * lightView;
+		shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+		for (MeshRenderer* meshRenderer : meshRenderers) {
+			//MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
+			GameObject* gameObject = meshRenderer->gameObject;
+			glm::mat4 modelMatrix = gameObject->transform->modelMatrix;
 
-				glm::vec3 lightPos = Application->Shadows->lightPos;
-				glm::mat4 lightProjection, lightView;
-				glm::mat4 lightSpaceMatrix;
-				lightProjection = Application->Shadows->lightProjection;
-				lightView = Application->Shadows->lightView;
-				//lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-				lightSpaceMatrix = lightProjection * lightView;
-				shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+			shader.setMat4("model", modelMatrix);
 
-				meshRenderer->mesh.Draw(shader);
-			}
+			meshRenderer->mesh->Draw(shader);
+
 		}
 	}
 }

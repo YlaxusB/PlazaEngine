@@ -37,4 +37,6 @@ GameObject* GameObjectList::find(std::string findName) {;
 GameObjectList gameObjects;
 std::unordered_map<std::string, GameObject*> gameObjectsMap;
 
+std::vector<MeshRenderer*> meshRenderers;
+
 GameObject* sceneObject = new GameObject("Scene Objects", nullptr);

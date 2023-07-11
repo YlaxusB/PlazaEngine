@@ -15,7 +15,7 @@ void Engine::Time::Update() {
 
 
 	// If a second has passed.
-	if (timeDifference >= 1.0f / 30.0f)
+	if (timeDifference >= 1.0f / 20.0f)
 	{
 		// Display the frame count here any way you want.
 		//std::cout << frameCount << std::endl;

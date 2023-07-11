@@ -90,6 +90,8 @@ void combineBuffers() {
 }
 
 void ApplicationClass::CreateApplication() {
+	//gameObjects.reserve(5000);
+
 	// Initialize GLFW (Window)
 	Application->Window = new Engine::WindowClass();
 
@@ -126,6 +128,7 @@ void ApplicationClass::CreateApplication() {
 
 void ApplicationClass::Loop() {
 	while (!glfwWindowShouldClose(Application->Window->glfwWindow)) {
+
 		// Update time
 		Time::Update();
 		float currentFrame = static_cast<float>(glfwGetTime());
@@ -134,11 +137,14 @@ void ApplicationClass::Loop() {
 		if (Application->appSizes->sceneSize != Application->lastAppSizes->sceneSize || Application->appSizes->sceneStart != Application->lastAppSizes->sceneStart) {
 			Application->updateBuffers(Application->textureColorbuffer, Application->rbo);
 			Application->pickingTexture->updateSize(Application->appSizes->sceneSize);
+			glBindTexture(GL_TEXTURE_2D, Application->pick);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
 		}
 
 		// Update inputs
 		Callbacks::processInput(Application->Window->glfwWindow);
 		glDisable(GL_BLEND);
+
 
 		Application->pickingTexture->enableWriting();
 		//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -148,9 +154,10 @@ void ApplicationClass::Loop() {
 		// Render with Picking Shader
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
-		Renderer::Render(*Application->pickingShader);
+		//Renderer::Render(*Application->pickingShader);
 		Application->pickingTexture->disableWriting();
 		glEnable(GL_BLEND);
+
 
 		// Imgui New Frame
 		Gui::NewFrame();
@@ -162,11 +169,15 @@ void ApplicationClass::Loop() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		// Render to shadows depth map
+
 		Application->Shadows->GenerateDepthMap();
 
 		// Draw GameObjects
 		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
 		Renderer::Render(*Application->shader);
 
 		// Draw Shadows
@@ -174,6 +185,7 @@ void ApplicationClass::Loop() {
 		// Update Skybox
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 		Skybox::Update();
+
 		//  Draw Outline
 		if (Editor::selectedGameObject != nullptr)
 		{
@@ -197,6 +209,9 @@ void ApplicationClass::Loop() {
 		
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+
 		// Update ImGui
 		Gui::Update();
 
@@ -282,6 +297,15 @@ void ApplicationClass::InitOpenGL() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Application->textureColorbuffer, 0);
 
+	glGenTextures(1, &Application->pick);
+	glBindTexture(GL_TEXTURE_2D, Application->pick);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, NULL);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, Application->pick, 0);
+	//glReadBuffer(GL_NONE);
+	//glDrawBuffer(GL_COLOR_ATTACHMENT4);
+
 	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
 	glGenRenderbuffers(1, &Application->rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, Application->rbo);
@@ -289,8 +313,12 @@ void ApplicationClass::InitOpenGL() {
 	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, Application->rbo); // now actually attach it
 
-	GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_RED_INTEGER };
-	glDrawBuffers(3, attachments);
+	// Disable reading
+	glReadBuffer(GL_NONE);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_RED_INTEGER, GL_COLOR_ATTACHMENT4 };
+	glDrawBuffers(4, attachments);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -310,7 +338,7 @@ void ApplicationClass::InitOpenGL() {
 	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 
 	Application->shader->use();
-	Application->shader->setInt("texture1", 0);
+	Application->shader->setInt("texture_diffuse", 0);
 }
 
 void blurFramebuffer1() {

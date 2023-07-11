@@ -1,10 +1,8 @@
-#ifndef COMPONENT_H
-#define COMPONENT_H
+#pragma once
+#include "Engine/Components/Core/GameObject.h"
+class GameObject;
 class Component {
 public:
+	GameObject* gameObject;
 	virtual ~Component() {}  // virtual destructor is necessary for derived classes
-	void asd() {
-
-	}
 };
-#endif

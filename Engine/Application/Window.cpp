@@ -46,6 +46,7 @@ namespace Engine {
 		glfwSetDropCallback(window, ApplicationClass::Callbacks::dropCallback);
 		glfwSetKeyCallback(window, ApplicationClass::Callbacks::keyCallback);
 
+		glfwSwapInterval(0);
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{

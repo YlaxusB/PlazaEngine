@@ -32,7 +32,7 @@ namespace Engine {
 
 	void ShadowsClass::GenerateDepthMap() {
 		lightDistance = glm::vec3(80.0f, 120.0f, 0.0f); //* glm::vec3(glfwGetTime());
-		near_plane = 100.0f, far_plane = 250.5f;
+		near_plane = 1.0f, far_plane = lightDistance.x + lightDistance.y;
 		float size = 100.0f;
 
 		glm::vec3 cameraPosition = glm::vec3(0.0f);//Application->activeCamera->Position;

@@ -36,28 +36,14 @@ namespace Engine::Editor {
 
 		TransformInspector(GameObject* gameObject) {
 			if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-				glm::vec3 lastScale = gameObject->transform->scale;
-
-
 				glm::vec3 startingPosition = gameObject->GetComponent<Transform>()->relativePosition;
 				glm::vec3 startingRotation = gameObject->GetComponent<Transform>()->rotation;
-				glm::vec3 startingRotationDegress = glm::degrees(startingRotation);
 				glm::vec3 startingScale = gameObject->GetComponent<Transform>()->scale;
-
-
-
-
 
 				glm::vec3& currentPosition = gameObject->GetComponent<Transform>()->relativePosition;
 				glm::vec3& currentRotation = gameObject->GetComponent<Transform>()->rotation;
 				glm::vec3 rotationField = glm::degrees(currentRotation);
-
-				//currentRotation = glm::degrees(currentRotation);
 				glm::vec3& currentScale = gameObject->GetComponent<Transform>()->scale;
-
-				if (currentScale.x != lastScale.x) {
-
-				}
 
 
 				ImGui::Text("Position: ");
@@ -106,7 +92,6 @@ namespace Engine::Editor {
 
 				if (currentPosition != startingPosition || currentRotation != startingRotation || currentScale != startingScale) {
 					gameObject->transform->UpdateChildrenTransform();
-					gameObject->transform->UpdateChildrenScale();
 				}
 
 				for (GameObject* child : gameObject->children) {

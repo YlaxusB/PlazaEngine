@@ -62,7 +62,7 @@ namespace Engine::Editor {
 			// --- Scale
 			transform.scale = scale / parentTransform.worldScale;
 
-			parentTransform.UpdateChildrenTransform();
+			transform.UpdateChildrenTransform();
 		}
 		
 	}

@@ -52,10 +52,6 @@ void combineBuffers() {
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
 
-	//glClearColor(0.1f, 0.3f, 0.4f, 1.0f);
-	//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, Application->textureColorbuffer);
 	glActiveTexture(GL_TEXTURE1);
@@ -108,6 +104,10 @@ void ApplicationClass::CreateApplication() {
 	Application->shadowsDepthShader = new Shader((projectDirectory + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str());
 	Application->debugDepthShader = new Shader((projectDirectory + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
 
+	Application->outlineBlurShader->use();
+	Application->outlineBlurShader->setInt("sceneBuffer", 0);
+	Application->outlineBlurShader->setInt("depthStencilTexture", 1);
+	Application->outlineBlurShader->setInt("depthStencilTexture2", 2);
 	// Initialize OpenGL, Shaders and Skybox
 	InitOpenGL();
 

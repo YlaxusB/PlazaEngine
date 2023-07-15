@@ -5,7 +5,7 @@
 namespace Engine {
     class ShadowsClass {
     public:
-        const unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
+        unsigned int SHADOW_WIDTH = 2048, SHADOW_HEIGHT = 2048;
         const glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
         glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
         glm::vec3 lightPos;

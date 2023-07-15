@@ -73,7 +73,6 @@ namespace Engine {
                 std::cout << "Texture failed to load at path: " << filename << std::endl;
                 stbi_image_free(data);
             }
-
             return textureID;
         }
 

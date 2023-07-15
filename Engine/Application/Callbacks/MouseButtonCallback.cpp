@@ -6,15 +6,6 @@
 
 using namespace Engine::Editor;
 using namespace Engine;
-int id(int x, int y) {
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, Application->frameBuffer);
-	glReadBuffer(GL_COLOR_ATTACHMENT4);
-	float pixels[3];
-	glReadPixels(x, y, 1, 1, GL_RGB, GL_FLOAT, pixels);
-	std::cout << (int)pixels[0] << std::endl;
-	return (int)pixels[0];
-}
-
 
 void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 	ApplicationSizes& appSizes = *Application->appSizes;
@@ -36,11 +27,9 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 	float yposGame = lastY - appSizes.appHeaderSize;
 	yposGame = appSizes.sceneSize.y - yposGame;
 	int clickId = -1;
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && (!ImGuizmo::IsUsing() || (ImGuizmo::IsOver() && !ImGuizmo::IsUsing))) {
 		Application->pickingTexture->GenerateTexture();
 		clickId = Application->pickingTexture->readPixel(xposGame, yposGame);
-		std::cout << "ID: " << std::endl;
-		std::cout << clickId << std::endl;
 	}
 
 

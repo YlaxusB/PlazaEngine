@@ -62,7 +62,6 @@ namespace Engine {
 				*/
 		}
 	}
-	//void Renderer::OutlineDraw(Editor::selectedGameObject, *Application->shader);
 	void Renderer::BlurBuffer()
 	{
 
@@ -98,7 +97,6 @@ namespace Engine {
 		Application->singleColorShader->setFloat("objectID", Editor::selectedGameObject->id);
 		glStencilFunc(GL_ALWAYS, 0, 0x00);
 		glStencilMask(0x00);
-		//Editor::Outline::RenderSelectedObjects(Editor::selectedGameObject, *Application->singleColorShader);
 		glDisable(GL_DEPTH_TEST);
 
 		glStencilFunc(GL_EQUAL, 1, 0xFF);
@@ -107,15 +105,9 @@ namespace Engine {
 		glDisable(GL_STENCIL_TEST);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glBindTexture(GL_TEXTURE_2D, 0);
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0x00);
-
-
-
 		glDisable(GL_DEPTH_TEST);
-
-
 	}
 
 

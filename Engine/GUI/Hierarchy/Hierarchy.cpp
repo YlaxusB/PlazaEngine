@@ -72,11 +72,6 @@ namespace Engine::Editor {
 					ImVec2 treeNodeSize = ImVec2(treeNodeMax.x - treeNodeMin.x, treeNodeMax.y - treeNodeMin.y);
 
 					ImVec2 treeNodeCenter = ImVec2(treeNodePos.x, treeNodePos.y + treeNodeSize.y / 2);
-
-					ImGui::Text("Mouse Pos: x %.1f, y %.1f", mousePos.x, mousePos.y);
-					ImGui::Text("Tree Node Pos: x %.1f, y %.1f", treeNodePos.x, treeNodePos.y);
-					ImGui::Text("Tree Node Size: x %.1f, y %.1f", treeNodeSize.x, treeNodeSize.y);
-					ImGui::Text("Tree Node Center: x %.1f, y %.1f", treeNodeCenter.x, treeNodeCenter.y);
 					ImGui::EndDragDropSource();
 				}
 			}

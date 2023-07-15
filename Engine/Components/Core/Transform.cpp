@@ -92,13 +92,3 @@ void Transform::UpdateChildrenTransform() {
 		UpdateChildrenTransform(gameObject);
 	}
 }
-
-
-void Transform::UpdateChildrenScale(GameObject* gameObject) {
-
-}
-
-void Transform::UpdateChildrenScale() {
-	if (gameObject != nullptr)
-		UpdateChildrenScale(gameObject);
-}

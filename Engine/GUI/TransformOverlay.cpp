@@ -6,7 +6,8 @@ namespace Engine::Editor {
 	ImGuizmo::OPERATION Editor::Overlay::activeOperation = ImGuizmo::OPERATION::TRANSLATE;
 
 	void Editor::Overlay::beginTransformOverlay(Camera camera) {
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse;
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse 
+			| ImGuiWindowFlags_NoDocking;
 		if (ImGui::Begin("Transform Overlay", new bool(true), window_flags))
 		{
 			ImGui::SetWindowPos(ImVec2(400, Application->appSizes->sceneStart.y + ImGui::GetWindowPos().y), ImGuiCond_Once);

@@ -12,7 +12,7 @@ namespace Engine::Editor {
 		ImGuizmo::SetDrawlist();
 		ImVec2 windowSize = ImGui::GetWindowSize();
 		ImVec2 windowPos = ImGui::GetWindowPos();
-		ImGuizmo::SetRect(windowPos.x, windowPos.y, windowSize.x, windowSize.y);
+		ImGuizmo::SetRect(appSizes.sceneImageStart.x, appSizes.sceneImageStart.y, appSizes.sceneSize.x, appSizes.sceneSize.y);
 
 		// Get the object transform and camera matrices
 		auto& parentTransform = *gameObject->parent->GetComponent<Transform>();

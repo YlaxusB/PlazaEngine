@@ -11,13 +11,13 @@ namespace Engine {
 	}
 
 	glm::mat4 Camera::GetProjectionMatrix() {
-		return glm::perspective(glm::radians(this->Zoom), (float)(Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), nearPlane, farPlane);
+		return glm::perspective(glm::radians(this->Zoom), (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), nearPlane, farPlane);
 	}
 
 	glm::mat4 Camera::GetProjectionMatrix(float nearPlaneCustom, float farPlaneCustom) {
 		nearPlaneCustom = nearPlaneCustom == NULL ? nearPlane : nearPlaneCustom;
 		farPlaneCustom = farPlaneCustom == NULL ? nearPlane : farPlaneCustom;
-		return glm::perspective(glm::radians(this->Zoom), (float)(Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), nearPlaneCustom, farPlaneCustom);
+		return glm::perspective(this->Zoom, (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), nearPlaneCustom, farPlaneCustom);
 	}
 
 	void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)

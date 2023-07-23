@@ -11,6 +11,7 @@
 #include "Engine/Core/Lightning/Shadows/Shadows.h"
 #include "Engine/Application/Window.h"
 #include "Engine/Editor/Editor.h"
+#include "Engine/GUI/ProjectManager/ProjectManager.h"
 //#include "Engine/Application/Callbacks/CallbacksHeader.h"
 
 
@@ -26,7 +27,7 @@ namespace Engine {
 		ApplicationClass(); // Initialize the activeCamera reference
 		ApplicationSizes* appSizes = new ApplicationSizes(); // = new ApplicationSizes();
 		ApplicationSizes* lastAppSizes = appSizes;
-
+		Engine::Editor::ProjectManagerGui* projectManagerGui = new Engine::Editor::ProjectManagerGui();
 
 
 		unsigned int frameBuffer, textureColorbuffer, rbo = 0;
@@ -56,6 +57,9 @@ namespace Engine {
 		Shader* shadowsDepthShader = nullptr;
 		Shader* debugDepthShader = nullptr;
 
+		bool runProjectManagerGui = true;
+		bool runEngine = false;
+
 		void CreateApplication();
 		static GLFWwindow* InitApplication();
 
@@ -63,6 +67,9 @@ namespace Engine {
 
 		static void InitSkybox();
 
+
+		static void UpdateEngine();
+		static void UpdateProjectManagerGui();
 
 		void Loop();
 		static void Terminate();

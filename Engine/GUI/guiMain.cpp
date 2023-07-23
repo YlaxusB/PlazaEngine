@@ -15,6 +15,7 @@
 #include "Engine/GUI/Inspector.h"
 #include "Engine/GUI/Inspector/TransformInspector.h"
 #include "Engine/GUI/FpsCounter.h"
+#include "Engine/GUI/MenuBar.h"
 //#include "Engine/Application/Application.h" //
 
 //
@@ -31,7 +32,7 @@ glm::vec2 curInspectorSize;
 bool Engine::Editor::Gui::isHierarchyOpen = true;
 bool Engine::Editor::Gui::isSceneOpen = true;
 bool Engine::Editor::Gui::isInspectorOpen = true;
-
+bool windowVisible = true;
 // Update ImGui Windows
 FpsCounter* fpsCounter;
 namespace Engine {
@@ -58,6 +59,8 @@ namespace Engine {
 			io.IniFilename = "Engine/imgui.ini";
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 			ImGui_ImplOpenGL3_Init("#version 330");
+			io.Fonts->AddFontFromFileTTF("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf", 18);
+			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
 
 			FpsCounter* fpsCounter = new FpsCounter();
 		}
@@ -103,7 +106,10 @@ namespace Engine {
 
 				// Submit the DockSpace
 				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-				ImGui::SetWindowPos(ImVec2(0, 0));
+
+				Gui::MainMenuBar::Begin();
+
+				//ImGui::SetWindowPos(ImVec2(0, 0));
 
 				//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
 				Gui::beginHierarchyView(gameFrameBuffer);
@@ -149,6 +155,43 @@ namespace Engine {
 				ImVec2 uv1(1, 0); // top-right corner
 				appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 				ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+				std::cout << ImGui::GetItemRectSize().x << std::endl;
+
+
+
+
+
+
+
+
+				ImVec2 imageDisplayedSize;
+				// Calculate the size of the image
+				imageDisplayedSize = ImGui::GetItemRectSize();
+
+				// Get the available width and height in the current window/viewport
+				ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+
+				// Calculate the displayed size considering the available space
+				imageDisplayedSize.x = std::min(imageDisplayedSize.x, availableSpace.x);
+				imageDisplayedSize.y = std::min(imageDisplayedSize.y, availableSpace.y);
+
+				//appSizes.sceneSize = ImGui::glmVec2(imageDisplayedSize);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 				curSceneSize = glm::abs(ImGui::glmVec2(ImGui::GetWindowSize()));
 				// Show the gizmo if there's a selected gameObject
 				if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parent != nullptr) {
@@ -159,7 +202,7 @@ namespace Engine {
 					ImGuizmoHelper::IsDrawing = false;
 				}
 
-			//	appSizes.sceneStart = ImGui::glmVec2(ImGui::GetWindowPos());
+				//	appSizes.sceneStart = ImGui::glmVec2(ImGui::GetWindowPos());
 
 			}
 

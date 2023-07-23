@@ -1,0 +1,3 @@
+[submodule "Engine/Vendor/yaml-cpp/yaml-cpp"]
+	path = Engine/Vendor/yaml-cpp/yaml-cpp
+	url = https://github.com/TheCherno/yaml-cpp.git

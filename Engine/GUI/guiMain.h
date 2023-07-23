@@ -21,6 +21,7 @@ namespace Engine {
 	namespace Editor {
 		class Gui {
 		public:
+			class MainMenuBar;
 			class Hierarchy;
 			class MaterialInspector;
 			class TransformInspector;

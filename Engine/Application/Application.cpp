@@ -126,87 +126,102 @@ void ApplicationClass::CreateApplication() {
 	Editor::Gui::Init(Application->Window->glfwWindow);
 }
 
+
+void ApplicationClass::UpdateProjectManagerGui() {
+	Application->projectManagerGui->Update();
+}
+
 void ApplicationClass::Loop() {
 	while (!glfwWindowShouldClose(Application->Window->glfwWindow)) {
 
-		// Update time
-		Time::Update();
-		float currentFrame = static_cast<float>(glfwGetTime());
-
-		// Update Buffers
-		if (Application->appSizes->sceneSize != Application->lastAppSizes->sceneSize || Application->appSizes->sceneStart != Application->lastAppSizes->sceneStart) {
-			Application->updateBuffers(Application->textureColorbuffer, Application->rbo);
-			Application->pickingTexture->updateSize(Application->appSizes->sceneSize);
-			glBindTexture(GL_TEXTURE_2D, Application->pick);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
+		// Run the Engine (Update Time, Shadows, Inputs, Buffers, Rendering, etc.)
+		if (Application->runEngine) {
+			Application->UpdateEngine();
+		} // Run the Gui for selecting a project
+		else if (Application->runProjectManagerGui) {
+			Application->UpdateProjectManagerGui();
 		}
-		// Update inputs
-		Callbacks::processInput(Application->Window->glfwWindow);
-
-		glEnable(GL_BLEND);
-
-
-		// Imgui New Frame
-		Gui::NewFrame();
-
-		// Clear buffers
-		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-
-
-		// Render to shadows depth map
-		Application->Shadows->GenerateDepthMap();
-
-		// Draw GameObjects
-		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-		Renderer::Render(*Application->shader);
-
-		// Update Skybox
-		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-		Skybox::Update();
-
-		//  Draw Outline
-		if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth)
-		{
-			Renderer::RenderOutline(*Application->outlineShader);
-			combineBuffers();
-		}
-
-		if (Application->Shadows->showDepth) {
-			glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-			Application->debugDepthShader->use();
-			float near_plane = 0.1f, far_plane = 7.5f;
-			Application->debugDepthShader->setFloat("near_plane", near_plane);
-			Application->debugDepthShader->setFloat("far_plane", far_plane);
-			Application->debugDepthShader->setInt("depthMap", 0);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, Application->Shadows->shadowsDepthMap);
-			glBindVertexArray(Application->blurVAO);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-		}
-
-		
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-
-		// Update ImGui
-		Gui::Update();
-
-		// Update last frame
-
-		Time::lastFrame = currentFrame;
 
 		// GLFW
 		glfwSwapBuffers(Application->Window->glfwWindow);
 		glfwPollEvents();
-
-		// Update lastSizes
-		Application->lastAppSizes = Application->appSizes;
 	}
+}
+
+void ApplicationClass::UpdateEngine() {
+	// Update time
+	Time::Update();
+	float currentFrame = static_cast<float>(glfwGetTime());
+
+	// Update Buffers
+	if (Application->appSizes->sceneSize != Application->lastAppSizes->sceneSize || Application->appSizes->sceneStart != Application->lastAppSizes->sceneStart) {
+		Application->updateBuffers(Application->textureColorbuffer, Application->rbo);
+		Application->pickingTexture->updateSize(Application->appSizes->sceneSize);
+		glBindTexture(GL_TEXTURE_2D, Application->pick);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
+	}
+	// Update Keyboard inputs
+	Callbacks::processInput(Application->Window->glfwWindow);
+
+	glEnable(GL_BLEND);
+
+
+	// Imgui New Frame
+	Gui::NewFrame();
+
+	// Clear buffers
+	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+
+
+	// Render to shadows depth map
+	Application->Shadows->GenerateDepthMap();
+
+	// Draw GameObjects
+	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+	Renderer::Render(*Application->shader);
+
+	// Update Skybox
+	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+	Skybox::Update();
+
+	//  Draw Outline
+	if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth)
+	{
+		Renderer::RenderOutline(*Application->outlineShader);
+		combineBuffers();
+	}
+
+	if (Application->Shadows->showDepth) {
+		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+		Application->debugDepthShader->use();
+		float near_plane = 0.1f, far_plane = 7.5f;
+		Application->debugDepthShader->setFloat("near_plane", near_plane);
+		Application->debugDepthShader->setFloat("far_plane", far_plane);
+		Application->debugDepthShader->setInt("depthMap", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Application->Shadows->shadowsDepthMap);
+		glBindVertexArray(Application->blurVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+	}
+
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+
+	// Update ImGui
+	Gui::Update();
+
+	// Update last frame
+
+	Time::lastFrame = currentFrame;
+
+	// Update lastSizes
+	Application->lastAppSizes = Application->appSizes;
 }
 
 void ApplicationClass::Terminate() {

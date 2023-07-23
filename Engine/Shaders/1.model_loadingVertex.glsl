@@ -12,10 +12,6 @@ out VS_OUT {
     vec4 FragPosLightSpace;
 } vs_out;
 
-
-out float objectID;
-
-uniform float pixelObjectID;
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
@@ -28,5 +24,4 @@ void main()
     vs_out.TexCoords = aTexCoords;
     vs_out.FragPosLightSpace = lightSpaceMatrix * vec4(vs_out.FragPos, 1.0);
     gl_Position = projection * view * vec4(vs_out.FragPos, 1.0);
-    objectID = 3; //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }

@@ -109,7 +109,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./Engine/Vendor/imgui;./;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>./Engine/Vendor/imgui;./;./Engine/Vendor/yaml-cpp;C:\Users\Giovane\Desktop\Workspace 2023\OpenGL\OpenGLEngine\Engine\Vendor\yaml\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Engine/Core/PreCompiledHeaders.h</PrecompiledHeaderFile>
@@ -147,6 +147,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Engine\Application\Callbacks\KeyCallback.cpp" />
+    <ClCompile Include="Engine\Application\FileDialog\OpenDialog.cpp" />
+    <ClCompile Include="Engine\Application\FileDialog\SaveDialog.cpp" />
     <ClCompile Include="Engine\Application\PickingTexture.cpp" />
     <ClCompile Include="Engine\Application\Window.cpp" />
     <ClCompile Include="Engine\Components\Core\Material.cpp" />
@@ -163,6 +165,10 @@
     <ClCompile Include="Engine\GUI\guiMain.cpp" />
     <ClCompile Include="Engine\GUI\Hierarchy\DragDrop.cpp" />
     <ClCompile Include="Engine\GUI\Hierarchy\Hierarchy.cpp" />
+    <ClCompile Include="Engine\GUI\MenuBar.cpp" />
+    <ClCompile Include="Engine\GUI\ProjectManager\NewProjectClick.cpp" />
+    <ClCompile Include="Engine\GUI\ProjectManager\ProjectItem.cpp" />
+    <ClCompile Include="Engine\GUI\ProjectManager\ProjectManager.cpp" />
     <ClCompile Include="Engine\GUI\TransformOverlay.cpp" />
     <ClCompile Include="Engine\stb_image.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -212,11 +218,103 @@
     <ClCompile Include="Engine\Vendor\stb\stb_image.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Engine\Application\Serializer\SceneSerializer.cpp" />
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\binary.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\contrib\graphbuilder.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\convert.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\depthguard.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\directives.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\emit.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\emitfromevents.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\emitter.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\emitterstate.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\emitterutils.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\exceptions.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\exp.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\memory.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\node.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\nodebuilder.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\nodeevents.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\node_data.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\null.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\ostream_wrapper.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\parse.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\parser.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\regex_yaml.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\scanner.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\scanscalar.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\scantag.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\scantoken.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\simplekey.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\singledocparser.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\stream.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\tag.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Application\ApplicationSizes.h" />
     <ClInclude Include="Engine\Application\Callbacks\CallbacksHeader.h" />
     <ClInclude Include="Engine\Application\EntryPoint.h" />
+    <ClInclude Include="Engine\Application\FileDialog\FileDialog.h" />
     <ClInclude Include="Engine\Application\Window.h" />
     <ClInclude Include="Engine\Components\Core\Material.h" />
     <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h" />
@@ -243,6 +341,9 @@
     <ClInclude Include="Engine\GUI\Inspector.h" />
     <ClInclude Include="Engine\GUI\Inspector\MaterialInspector.h" />
     <ClInclude Include="Engine\GUI\Inspector\TransformInspector.h" />
+    <ClInclude Include="Engine\GUI\MenuBar.h" />
+    <ClInclude Include="Engine\GUI\ProjectManager\ProjectItem.h" />
+    <ClInclude Include="Engine\GUI\ProjectManager\ProjectManager.h" />
     <ClInclude Include="Engine\GUI\Style\EditorStyle.h" />
     <ClInclude Include="Engine\GUI\TransformOverlay.h" />
     <ClInclude Include="Engine\Shaders\Shader.h" />
@@ -638,6 +739,84 @@
     <ClInclude Include="Engine\Core\FrameBuffer.h" />
     <ClInclude Include="Engine\Core\Renderer.h" />
     <ClInclude Include="Engine\Core\PreCompiledHeaders.h" />
+    <ClInclude Include="Engine\Application\Serializer\SceneSerializer.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\anchor.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\binary.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\depthguard.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\dll.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\emitfromevents.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\emitter.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\emitterdef.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\emittermanip.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\emitterstyle.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\eventhandler.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\exceptions.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\mark.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\noexcept.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\null.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\ostream_wrapper.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\parser.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\stlemitter.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\traits.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\include\yaml-cpp\yaml.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\collectionstack.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\directives.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\emitterstate.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\emitterutils.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\exp.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\indentation.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\nodebuilder.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\nodeevents.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\ptr_vector.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\regeximpl.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\regex_yaml.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\scanner.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\scanscalar.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\scantag.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\setting.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\singledocparser.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\stream.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\streamcharsource.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\stringsource.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\tag.h" />
+    <ClInclude Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\token.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\anchor.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\binary.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\contrib\anchordict.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\contrib\graphbuilder.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\depthguard.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\dll.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\emitfromevents.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\emitter.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\emitterdef.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\emittermanip.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\emitterstyle.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\eventhandler.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\exceptions.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\mark.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\convert.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\detail\impl.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\detail\iterator.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\detail\iterator_fwd.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\detail\memory.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\detail\node.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\detail\node_data.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\detail\node_iterator.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\detail\node_ref.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\emit.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\impl.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\iterator.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\node.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\parse.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\ptr.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\node\type.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\noexcept.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\null.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\ostream_wrapper.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\parser.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\stlemitter.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\traits.h" />
+    <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\yaml.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Engine\Shaders\1.model_loadingFragment.glsl" />

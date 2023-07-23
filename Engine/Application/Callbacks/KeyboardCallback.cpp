@@ -14,7 +14,16 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 			GameObject* d = new GameObject(std::to_string(gameObjects.size()), gameObjects.front());
 			//d->AddComponent(new Transform());
 
-			d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);
+
+
+			std::random_device rd;
+			std::mt19937 gen(rd());
+
+			// Define the range for the random numbers (-20 to 20)
+			int min = -20;
+			int max = 20;
+			std::uniform_int_distribution<int> distribution(min, max);
+			d->GetComponent<Transform>()->relativePosition = glm::vec3(distribution(gen), distribution(gen), distribution(gen)) + Application->activeCamera->Position;
 			d->transform->UpdateChildrenTransform();
 			Engine::Mesh* cubeMesh = Engine::Mesh::Sphere();//Engine::Mesh::Cube();
 			cubeMesh->material.diffuse->rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);

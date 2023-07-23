@@ -1,11 +1,25 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "MenuBar.h"
-
+#include "Engine/Application/FileDialog/FileDialog.h"
+#include "Engine/Application/Serializer/SceneSerializer.h"
 namespace Engine {
 	namespace Editor {
 		void Gui::MainMenuBar::Begin() {
 			// MenuBar / TitleBar
 			if (ImGui::BeginMainMenuBar()) {
+				if (ImGui::BeginMenu("File")) {
+					if (ImGui::Button("Save")) {
+						Serializer::Serialize(FileDialog::SaveFileDialog("Engine (*.engine)"));
+					}
+					if(ImGui::Button("Open")){
+						Serializer::DeSerialize(FileDialog::OpenFileDialog("Engine (*.engine)"));
+					}
+					ImGui::EndMenu();
+				}
+
+
+
+
 				// Create an invisible margin to align the buttons to the right
 				float spacingX = ImGui::GetWindowSize().x - ImGui::GetCursorPosX() - ImGui::GetStyle().ItemSpacing.x * 3;
 				spacingX -= 300;

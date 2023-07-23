@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "CallbacksHeader.h"
+#include "Engine/Application/Serializer/SceneSerializer.h"
 using namespace Engine;
 
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -16,7 +17,11 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 		Application->activeCamera->Position = Engine::Editor::selectedGameObject->transform->position;
 
 
+	if (key == GLFW_KEY_H && action == GLFW_PRESS)
+		Serializer::Serialize("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\teste.engine");
 
+	if (key == GLFW_KEY_Y && action == GLFW_PRESS)
+		Serializer::DeSerialize("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\teste.engine");
 
 	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
 		int size = gameObjects.size();

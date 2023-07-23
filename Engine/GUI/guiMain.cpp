@@ -155,7 +155,6 @@ namespace Engine {
 				ImVec2 uv1(1, 0); // top-right corner
 				appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 				ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
-				std::cout << ImGui::GetItemRectSize().x << std::endl;
 
 
 

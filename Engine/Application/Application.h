@@ -57,8 +57,8 @@ namespace Engine {
 		Shader* shadowsDepthShader = nullptr;
 		Shader* debugDepthShader = nullptr;
 
-		bool runProjectManagerGui = true;
-		bool runEngine = false;
+		bool runProjectManagerGui = false;
+		bool runEngine = true;
 
 		void CreateApplication();
 		static GLFWwindow* InitApplication();

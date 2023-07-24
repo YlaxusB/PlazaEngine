@@ -1,5 +1,5 @@
 #include "Engine/Core/PreCompiledHeaders.h"
-#include "Engine/GUI/Hierarchy/Hierarchy.h"
+#include "Editor/GUI/Hierarchy/Hierarchy.h"
 #include "Engine/Utils/vectorUtils.h"
 
 void payloadDrop(GameObject* gameObject, GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, const ImGuiPayload* payload);

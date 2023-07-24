@@ -1,5 +1,5 @@
 #include "Engine/Core/PreCompiledHeaders.h"
-#include "Engine/GUI/TransformOverlay.h";
+#include "Editor/GUI/TransformOverlay.h";
 namespace Engine::Editor {
 	
 	ImGuizmo::MODE Editor::Overlay::activeMode = ImGuizmo::MODE::WORLD;

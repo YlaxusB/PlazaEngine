@@ -3,7 +3,7 @@
 
 #include "Engine/Components/Core/Material.h"
 #include "Engine/Components/Core/GameObject.h"
-#include "Engine/GUI/Inspector.h"
+#include "Editor/GUI/Inspector.h"
 namespace Engine::Editor {
 	static class MaterialInspector {
 	public:

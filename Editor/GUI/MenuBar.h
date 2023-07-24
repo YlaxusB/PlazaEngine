@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/GUI/guiMain.h"
+#include "Editor/GUI/guiMain.h"
 namespace Engine {
 	namespace Editor {
 		class Gui::MainMenuBar {

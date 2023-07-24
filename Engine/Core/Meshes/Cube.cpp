@@ -25,7 +25,7 @@
 
 
 #include "Engine/Components/Core/GameObject.h"
-#include "Engine/GUI/Style/EditorStyle.h"
+#include "Editor/GUI/Style/EditorStyle.h"
 
 /*
 namespace Engine {

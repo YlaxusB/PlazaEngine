@@ -1,6 +1,5 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "FileDialog.h"
-// Function to open the file dialog and get the selected file path
 namespace Engine {
     std::string FileDialog::SaveFileDialog(const char* filter) {
         OPENFILENAMEA  ofn;

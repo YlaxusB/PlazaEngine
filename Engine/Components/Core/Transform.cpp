@@ -4,7 +4,7 @@
 
 
 #include "Engine/Components/Core/Transform.h"
-//#include "Engine/GUI/gizmo.h"
+//#include "Editor/GUI/gizmo.h"
 //#include "Engine/Components/Core/GameObject.h"
 
 Transform::Transform() {};
@@ -65,10 +65,12 @@ glm::vec3 newWorldRotation(GameObject* gameObject) {
 
 
 void UpdateObjectTransform(GameObject* gameObject) {
-	gameObject->transform->worldScale = gameObject->transform->scale * gameObject->parent->transform->worldScale;
-	gameObject->transform->worldRotation = newWorldRotation(gameObject);
-	gameObject->transform->worldPosition = newWorldPosition(gameObject);
-	gameObject->transform->modelMatrix = gameObject->transform->GetTransform();
+	if (gameObject->parent != nullptr) {
+		gameObject->transform->worldScale = gameObject->transform->scale * gameObject->parent->transform->worldScale;
+		gameObject->transform->worldRotation = newWorldRotation(gameObject);
+		gameObject->transform->worldPosition = newWorldPosition(gameObject);
+		gameObject->transform->modelMatrix = gameObject->transform->GetTransform();
+	}
 }
 
 

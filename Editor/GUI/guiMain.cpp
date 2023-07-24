@@ -4,18 +4,18 @@
 
 
 #include "Engine/Components/Core/GameObject.h"
-#include "Engine/GUI/Hierarchy/Hierarchy.h"
-#include "Engine/GUI/Inspector.h"
-#include "Engine/GUI/gizmo.h"
-#include "Engine/GUI/TransformOverlay.h"
+#include "Editor/GUI/Hierarchy/Hierarchy.h"
+#include "Editor/GUI/Inspector.h"
+#include "Editor/GUI/gizmo.h"
+#include "Editor/GUI/TransformOverlay.h"
 #include "Engine/Components/Core/GameObject.h"
 #include "Engine/Application/ApplicationSizes.h"
 #include "Engine/Editor/Editor.h"
 #include "Engine/Application/EntryPoint.h"
-#include "Engine/GUI/Inspector.h"
-#include "Engine/GUI/Inspector/TransformInspector.h"
-#include "Engine/GUI/FpsCounter.h"
-#include "Engine/GUI/MenuBar.h"
+#include "Editor/GUI/Inspector.h"
+#include "Editor/GUI/Inspector/TransformInspector.h"
+#include "Editor/GUI/FpsCounter.h"
+#include "Editor/GUI/MenuBar.h"
 //#include "Engine/Application/Application.h" //
 
 //

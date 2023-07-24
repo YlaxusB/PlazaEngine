@@ -15,10 +15,10 @@
 #include <float.h>
 #include <glm/gtx/euler_angles.hpp>
 
-#include "Engine/GUI/TransformOverlay.h"
-#include "Engine/GUI/guiMain.h"
+#include "Editor/GUI/TransformOverlay.h"
+#include "Editor/GUI/guiMain.h"
 #include "Engine/Application/ApplicationSizes.h"
-#include "Engine/GUI/TransformOverlay.h"
+#include "Editor/GUI/TransformOverlay.h"
 
 using namespace Engine;
 using namespace Engine::Editor;

@@ -1,6 +1,6 @@
 #pragma once
-#include "Engine/GUI/Inspector/TransformInspector.h"
-#include "Engine/GUI/Inspector/MaterialInspector.h"
+#include "Editor/GUI/Inspector/TransformInspector.h"
+#include "Editor/GUI/Inspector/MaterialInspector.h"
 using namespace Engine::Editor;
 namespace Engine::Editor {
 	class Inspector {

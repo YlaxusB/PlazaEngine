@@ -6,15 +6,15 @@
 
 #include "Engine/Application/EditorCamera.h"
 #include "Engine/Shaders/Shader.h"
-#include "Engine/GUI/guiMain.h"
+#include "Editor/GUI/guiMain.h"
 #include "Engine/Application/PickingTexture.h"
 #include "Engine/Core/Lightning/Shadows/Shadows.h"
 #include "Engine/Application/Window.h"
 #include "Engine/Editor/Editor.h"
-#include "Engine/GUI/ProjectManager/ProjectManager.h"
+#include "Editor/GUI/ProjectManager/ProjectManager.h"
 //#include "Engine/Application/Callbacks/CallbacksHeader.h"
 
-
+#include "Editor/Project.h"
 namespace Engine {
 	class Camera;
 	class WindowClass;
@@ -22,6 +22,8 @@ namespace Engine {
 	//class WindowClass;
 	class ApplicationClass {
 	public:
+		Editor::Project* activeProject = nullptr;
+
 		Camera* editorCamera;
 		Camera* activeCamera;
 		ApplicationClass(); // Initialize the activeCamera reference
@@ -57,8 +59,8 @@ namespace Engine {
 		Shader* shadowsDepthShader = nullptr;
 		Shader* debugDepthShader = nullptr;
 
-		bool runProjectManagerGui = false;
-		bool runEngine = true;
+		bool runProjectManagerGui = true;
+		bool runEngine = false;
 
 		void CreateApplication();
 		static GLFWwindow* InitApplication();

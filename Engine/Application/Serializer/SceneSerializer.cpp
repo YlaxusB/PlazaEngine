@@ -1,22 +1,8 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "SceneSerializer.h"
 #include "Engine/Vendor/yaml/include/yaml-cpp/yaml.h"
-namespace YAML {
-	template<>
-	struct convert<glm::vec3> {
-		static bool decode(const Node& node, glm::vec3& rhs) {
-			if (!node.IsSequence() || node.size() != 3)
-				return false;
+#include "Engine/Utils/yamlUtils.h"
 
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			rhs.z = node[2].as<float>();
-			return true;
-		}
-	};
-
-
-}
 namespace Engine {
 	YAML::Emitter& operator <<(YAML::Emitter& out, const glm::vec3& v) {
 		out << YAML::Flow;

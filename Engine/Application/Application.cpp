@@ -2,7 +2,7 @@
 
 
 //#include "Engine/Application/Application.h"
-#include "Engine/GUI/guiMain.h"
+#include "Editor/GUI/guiMain.h"
 
 #include "Engine/Application/PickingTexture.h"
 #include "Engine/Components/Core/Camera.h"
@@ -10,7 +10,7 @@
 #include "Engine/Components/Core/GameObject.h"
 #include "Engine/Shaders/Shader.h"
 
-#include "Engine/GUI/Style/EditorStyle.h"
+#include "Editor/GUI/Style/EditorStyle.h"
 #include "Engine/Core/Skybox.h"
 #include "Engine/Core/Time.h"
 #include "Engine/Core/Renderer.h"

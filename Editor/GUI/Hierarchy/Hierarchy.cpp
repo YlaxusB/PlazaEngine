@@ -1,7 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
-#include "Engine/GUI/Hierarchy/Hierarchy.h"
+#include "Editor/GUI/Hierarchy/Hierarchy.h"
 #include "Engine/Editor/Editor.h"
-#include "Engine/GUI/guiMain.h"
+#include "Editor/GUI/guiMain.h"
 
 namespace Engine::Editor {
 	Gui::Hierarchy::Item::Item(GameObject* gameObject, GameObject*& selectedGameObject) : currentObj(gameObject), selectedGameObject(selectedGameObject) {

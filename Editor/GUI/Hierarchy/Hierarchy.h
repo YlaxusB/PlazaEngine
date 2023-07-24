@@ -2,8 +2,8 @@
 #include <imgui/imgui.h>
 
 #include "Engine/Components/Core/GameObject.h"
-#include "Engine/GUI/guiMain.h"
-#include "Engine/GUI/Style/EditorStyle.h"
+#include "Editor/GUI/guiMain.h"
+#include "Editor/GUI/Style/EditorStyle.h"
 namespace Engine::Editor {
 	class Gui::Hierarchy {
 	public:

@@ -42,7 +42,7 @@
     <ClCompile Include="Engine\Components\Core\GameObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\GUI\guiMain.cpp">
+    <ClCompile Include="Editor\GUI\guiMain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Application\Application.cpp">
@@ -57,13 +57,13 @@
     <ClCompile Include="Engine\Components\Core\Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\GUI\TransformOverlay.cpp">
+    <ClCompile Include="Editor\GUI\TransformOverlay.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\GUI\Hierarchy\Hierarchy.cpp">
+    <ClCompile Include="Editor\GUI\Hierarchy\Hierarchy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\GUI\Hierarchy\DragDrop.cpp">
+    <ClCompile Include="Editor\GUI\Hierarchy\DragDrop.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Core\Time.cpp">
@@ -108,7 +108,7 @@
     <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\GUI\gizmo.cpp">
+    <ClCompile Include="Editor\GUI\gizmo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Core\PreCompiledHeaders.cpp">
@@ -138,16 +138,16 @@
     <ClCompile Include="Engine\Application\PickingTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\GUI\ProjectManager\ProjectManager.cpp">
+    <ClCompile Include="Editor\GUI\ProjectManager\ProjectManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\GUI\MenuBar.cpp">
+    <ClCompile Include="Editor\GUI\MenuBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\GUI\ProjectManager\ProjectItem.cpp">
+    <ClCompile Include="Editor\GUI\ProjectManager\ProjectItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\GUI\ProjectManager\NewProjectClick.cpp">
+    <ClCompile Include="Editor\GUI\ProjectManager\NewProjectClick.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Application\FileDialog\OpenDialog.cpp">
@@ -249,6 +249,15 @@
     <ClCompile Include="Engine\Vendor\yaml-example\third-party\yaml-cpp\src\contrib\graphbuilder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Application\Serializer\ProjectSerializer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\Project.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Application\FileDialog\OpenFolderDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h">
@@ -293,7 +302,7 @@
     <ClInclude Include="Engine\Components\Core\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\guiMain.h">
+    <ClInclude Include="Editor\GUI\guiMain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Shaders\Shader.h">
@@ -311,13 +320,13 @@
     <ClInclude Include="Engine\Vendor\uuid_v4\uuid_v4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\Hierarchy\Hierarchy.h">
+    <ClInclude Include="Editor\GUI\Hierarchy\Hierarchy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\Inspector.h">
+    <ClInclude Include="Editor\GUI\Inspector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\Inspector\TransformInspector.h">
+    <ClInclude Include="Editor\GUI\Inspector\TransformInspector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Application\EditorCamera.h">
@@ -326,7 +335,7 @@
     <ClInclude Include="Engine\Vendor\imgui\ImGuizmo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\gizmo.h">
+    <ClInclude Include="Editor\GUI\gizmo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Vendor\filesystem\filesys.h">
@@ -347,10 +356,10 @@
     <ClInclude Include="Engine\Components\Core\Component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\TransformOverlay.h">
+    <ClInclude Include="Editor\GUI\TransformOverlay.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\Style\EditorStyle.h">
+    <ClInclude Include="Editor\GUI\Style\EditorStyle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Utils\vectorUtils.h">
@@ -407,7 +416,7 @@
     <ClInclude Include="Engine\Components\Core\Material.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\Inspector\MaterialInspector.h">
+    <ClInclude Include="Editor\GUI\Inspector\MaterialInspector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Vendor\include\assimp\Compiler\poppack1.h">
@@ -1520,16 +1529,16 @@
     <ClInclude Include="Engine\Vendor\include\stb\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\FpsCounter.h">
+    <ClInclude Include="Editor\GUI\FpsCounter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\MenuBar.h">
+    <ClInclude Include="Editor\GUI\MenuBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\ProjectManager\ProjectManager.h">
+    <ClInclude Include="Editor\GUI\ProjectManager\ProjectManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\GUI\ProjectManager\ProjectItem.h">
+    <ClInclude Include="Editor\GUI\ProjectManager\ProjectItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Application\FileDialog\FileDialog.h">
@@ -1767,6 +1776,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Vendor\yaml\include\yaml-cpp\yaml.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Application\Serializer\ProjectSerializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Utils\yamlUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Project.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

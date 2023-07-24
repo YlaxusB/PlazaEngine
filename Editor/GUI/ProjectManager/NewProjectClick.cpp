@@ -6,9 +6,11 @@
 namespace Engine {
 	namespace Editor {
 		void ProjectManagerGui::NewProjectClick() {
-			std::string filePath = FileDialog::SaveFileDialog("");
-            std::cout << filePath << std::endl;
-			Serializer::Serialize(filePath);
+			std::string filePath = FileDialog::OpenFolderDialog();
+			Application->activeProject = new Project();
+			Application->activeProject->name;
+			Application->activeProject->directory = filePath;
+			this->currentContent = new NewProjectContent();
 		}
 	}
 }

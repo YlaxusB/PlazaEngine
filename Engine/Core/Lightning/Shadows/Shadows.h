@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/GUI/guiMain.h"
+#include "Editor/GUI/guiMain.h"
 #include "Engine/Editor/Editor.h"
 
 namespace Engine {

@@ -1,7 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "CallbacksHeader.h"
 #include "Engine/Application/ApplicationSizes.h"
-#include "Engine/GUI/guiMain.h"
+#include "Editor/GUI/guiMain.h"
 
 
 using namespace Engine::Editor;

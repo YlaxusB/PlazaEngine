@@ -1,14 +1,46 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ProjectManager.h"
 
-#include "Engine/GUI/MenuBar.h"
-#include "Engine/GUI/ProjectManager/ProjectItem.h"
-#include "Engine/GUI/Style/EditorStyle.h"
+#include "Editor/GUI/MenuBar.h"
+#include "Editor/GUI/ProjectManager/ProjectItem.h"
+#include "Editor/GUI/Style/EditorStyle.h"
+#include "Engine/Application/Serializer/ProjectSerializer.h"
 namespace Engine {
 	namespace Editor {
+		void ProjectManagerGui::ProjectManagerContent::UpdateContent(ProjectManagerGui& projectManagerGui) {
+			projectManagerGui.NewProjectButton();
+			ProjectManagerGui::SetupProjectsTreeNode();
+		}
+		/// <summary>
+		/// Update the content of dockspace to show the New Project window
+		/// </summary>
+		/// <param name="projectManagerGui"></param>
+		void ProjectManagerGui::NewProjectContent::UpdateContent(ProjectManagerGui& projectManagerGui){
+			ImGuiWindowFlags containerFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNavFocus;
+			if (ImGui::Begin("New Project Container", nullptr, containerFlags)) {
+				// Make the: input text, create project button and cancel button
+				static char name[256] = "";
+				ImGui::InputText("##InputText", name, IM_ARRAYSIZE(name));
+				if (ImGui::Button("Create Project") && std::string(name) != "") {
+					Application->activeProject->name = std::string(name);
+
+					Application->runEngine = true;
+					Application->runProjectManagerGui = false;
+
+					ProjectSerializer::Serialize(Application->activeProject->directory + "\\" + Application->activeProject->name + ".engPrj");
+				}
+				if (ImGui::Button("Cancel")) {
+					projectManagerGui.currentContent = new ProjectManagerContent();
+				}
+				
+				ImGui::End();
+			}
+		}
+
 		void ProjectManagerGui::Update() {
 			ProjectManagerGui::SetupDockspace();
 		}
+
 
 		void ProjectManagerGui::SetupDockspace() {
 			// Imgui New Frame
@@ -38,9 +70,7 @@ namespace Engine {
 
 				Gui::MainMenuBar::Begin(); // Title bar
 
-				NewProjectButton();
-
-				SetupProjectsTreeNode();
+				this->currentContent->UpdateContent(*this);
 
 				ImGui::End();
 
@@ -69,12 +99,11 @@ namespace Engine {
 				bool newProjectButton = ImGui::Button("New Project", ImVec2(500, 100));
 
 				if (newProjectButton) {
-					NewProjectClick();
+					ProjectManagerGui::NewProjectClick();
 				}
 
 			}
 			ImGui::End();
-
 		}
 	}
 }

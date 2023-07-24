@@ -3,8 +3,8 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-#include "Engine/GUI/Inspector.h"
-#include "Engine/GUI/gizmo.h"
+#include "Editor/GUI/Inspector.h"
+#include "Editor/GUI/gizmo.h"
 namespace Engine::Editor {
 	class Gui::TransformInspector {
 	public:

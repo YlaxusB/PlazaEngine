@@ -113,6 +113,9 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Engine/Core/PreCompiledHeaders.h</PrecompiledHeaderFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <ForcedIncludeFiles>
+      </ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,6 +140,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Editor\Project.cpp" />
     <ClCompile Include="Engine\Application\Callbacks\DropCallback.cpp" />
     <ClCompile Include="Engine\Application\Callbacks\FramebufferSizeCallback.cpp" />
     <ClCompile Include="Engine\Application\Callbacks\KeyboardCallback.cpp" />
@@ -148,8 +152,10 @@
     </ClCompile>
     <ClCompile Include="Engine\Application\Callbacks\KeyCallback.cpp" />
     <ClCompile Include="Engine\Application\FileDialog\OpenDialog.cpp" />
+    <ClCompile Include="Engine\Application\FileDialog\OpenFolderDialog.cpp" />
     <ClCompile Include="Engine\Application\FileDialog\SaveDialog.cpp" />
     <ClCompile Include="Engine\Application\PickingTexture.cpp" />
+    <ClCompile Include="Engine\Application\Serializer\ProjectSerializer.cpp" />
     <ClCompile Include="Engine\Application\Window.cpp" />
     <ClCompile Include="Engine\Components\Core\Material.cpp" />
     <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp" />
@@ -161,15 +167,15 @@
     <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
     <ClCompile Include="Engine\Components\Core\Transform.cpp" />
     <ClCompile Include="Engine\Editor\Outline\Outline.cpp" />
-    <ClCompile Include="Engine\GUI\gizmo.cpp" />
-    <ClCompile Include="Engine\GUI\guiMain.cpp" />
-    <ClCompile Include="Engine\GUI\Hierarchy\DragDrop.cpp" />
-    <ClCompile Include="Engine\GUI\Hierarchy\Hierarchy.cpp" />
-    <ClCompile Include="Engine\GUI\MenuBar.cpp" />
-    <ClCompile Include="Engine\GUI\ProjectManager\NewProjectClick.cpp" />
-    <ClCompile Include="Engine\GUI\ProjectManager\ProjectItem.cpp" />
-    <ClCompile Include="Engine\GUI\ProjectManager\ProjectManager.cpp" />
-    <ClCompile Include="Engine\GUI\TransformOverlay.cpp" />
+    <ClCompile Include="Editor\GUI\gizmo.cpp" />
+    <ClCompile Include="Editor\GUI\guiMain.cpp" />
+    <ClCompile Include="Editor\GUI\Hierarchy\DragDrop.cpp" />
+    <ClCompile Include="Editor\GUI\Hierarchy\Hierarchy.cpp" />
+    <ClCompile Include="Editor\GUI\MenuBar.cpp" />
+    <ClCompile Include="Editor\GUI\ProjectManager\NewProjectClick.cpp" />
+    <ClCompile Include="Editor\GUI\ProjectManager\ProjectItem.cpp" />
+    <ClCompile Include="Editor\GUI\ProjectManager\ProjectManager.cpp" />
+    <ClCompile Include="Editor\GUI\TransformOverlay.cpp" />
     <ClCompile Include="Engine\stb_image.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -205,6 +211,8 @@
     <ClCompile Include="Engine\Core\Renderer.cpp" />
     <ClCompile Include="Engine\Core\PreCompiledHeaders.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
     </ClCompile>
     <ClCompile Include="Engine\Vendor\include\glad\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -311,10 +319,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Editor\Project.h" />
     <ClInclude Include="Engine\Application\ApplicationSizes.h" />
     <ClInclude Include="Engine\Application\Callbacks\CallbacksHeader.h" />
     <ClInclude Include="Engine\Application\EntryPoint.h" />
     <ClInclude Include="Engine\Application\FileDialog\FileDialog.h" />
+    <ClInclude Include="Engine\Application\Serializer\ProjectSerializer.h" />
     <ClInclude Include="Engine\Application\Window.h" />
     <ClInclude Include="Engine\Components\Core\Material.h" />
     <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h" />
@@ -334,22 +344,23 @@
     <ClInclude Include="Engine\Components\Core\Mesh.h" />
     <ClInclude Include="Engine\Components\Core\Model.h" />
     <ClInclude Include="Engine\Editor\Outline\Outline.h" />
-    <ClInclude Include="Engine\GUI\FpsCounter.h" />
-    <ClInclude Include="Engine\GUI\gizmo.h" />
-    <ClInclude Include="Engine\GUI\guiMain.h" />
-    <ClInclude Include="Engine\GUI\Hierarchy\Hierarchy.h" />
-    <ClInclude Include="Engine\GUI\Inspector.h" />
-    <ClInclude Include="Engine\GUI\Inspector\MaterialInspector.h" />
-    <ClInclude Include="Engine\GUI\Inspector\TransformInspector.h" />
-    <ClInclude Include="Engine\GUI\MenuBar.h" />
-    <ClInclude Include="Engine\GUI\ProjectManager\ProjectItem.h" />
-    <ClInclude Include="Engine\GUI\ProjectManager\ProjectManager.h" />
-    <ClInclude Include="Engine\GUI\Style\EditorStyle.h" />
-    <ClInclude Include="Engine\GUI\TransformOverlay.h" />
+    <ClInclude Include="Editor\GUI\FpsCounter.h" />
+    <ClInclude Include="Editor\GUI\gizmo.h" />
+    <ClInclude Include="Editor\GUI\guiMain.h" />
+    <ClInclude Include="Editor\GUI\Hierarchy\Hierarchy.h" />
+    <ClInclude Include="Editor\GUI\Inspector.h" />
+    <ClInclude Include="Editor\GUI\Inspector\MaterialInspector.h" />
+    <ClInclude Include="Editor\GUI\Inspector\TransformInspector.h" />
+    <ClInclude Include="Editor\GUI\MenuBar.h" />
+    <ClInclude Include="Editor\GUI\ProjectManager\ProjectItem.h" />
+    <ClInclude Include="Editor\GUI\ProjectManager\ProjectManager.h" />
+    <ClInclude Include="Editor\GUI\Style\EditorStyle.h" />
+    <ClInclude Include="Editor\GUI\TransformOverlay.h" />
     <ClInclude Include="Engine\Shaders\Shader.h" />
     <ClInclude Include="Engine\stb_image.h" />
     <ClInclude Include="Engine\Utils\glmUtils.h" />
     <ClInclude Include="Engine\Utils\vectorUtils.h" />
+    <ClInclude Include="Engine\Utils\yamlUtils.h" />
     <ClInclude Include="Engine\Vendor\filesystem\filesys.h" />
     <ClInclude Include="Engine\Vendor\glad\glad.h" />
     <ClInclude Include="Engine\Vendor\imgui\ImGuizmo.h" />

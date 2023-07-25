@@ -19,7 +19,7 @@ namespace Engine {
 					if (extension == Standards::projectExtName) {
 						std::cout << filePath + "\\" + fileName << std::endl;
 						ProjectSerializer::DeSerialize(filePath + "\\" + fileName);
-
+						//
 						Application->activeProject = new Project();
 						Application->activeProject->name = fileName;
 						Application->activeProject->directory = filePath;

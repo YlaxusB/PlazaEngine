@@ -1,5 +1,4 @@
 #pragma once
-#include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Components/Core/Component.h"
 #include "Engine/Components/Core/Mesh.h"
 namespace Engine {

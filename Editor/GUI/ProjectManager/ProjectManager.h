@@ -15,7 +15,8 @@ namespace Engine {
 
 			void NewProjectButton();
 			void NewProjectClick();
-
+			void OpenProjectButton();
+			void OpenProjectClick();
 			class ProjectManagerContent {
 			public:
 				/// <summary>

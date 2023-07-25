@@ -29,3 +29,4 @@
 
 #include "Engine/Application/Application.h"
 #include "Engine/Application/EntryPoint.h"
+#include "Engine/Core/Standards.h"

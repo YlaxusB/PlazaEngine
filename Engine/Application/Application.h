@@ -24,6 +24,8 @@ namespace Engine {
 	public:
 		Editor::Project* activeProject = nullptr;
 
+		std::string focusedMenu = "";
+
 		Camera* editorCamera;
 		Camera* activeCamera;
 		ApplicationClass(); // Initialize the activeCamera reference
@@ -76,6 +78,8 @@ namespace Engine {
 		void Loop();
 		static void Terminate();
 		static void Render();
+
+		std::vector<Material> materials = std::vector<Material>();
 
 		WindowClass* Window;
 		class Callbacks;

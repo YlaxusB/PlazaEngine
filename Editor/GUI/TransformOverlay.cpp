@@ -8,7 +8,8 @@ namespace Engine::Editor {
 	void Editor::Overlay::beginTransformOverlay(Camera camera) {
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse 
 			| ImGuiWindowFlags_NoDocking;
-		if (ImGui::Begin("Transform Overlay", new bool(true), window_flags))
+		bool showOverlay = true;
+		if (ImGui::Begin("Transform Overlay", &showOverlay, window_flags))
 		{
 			ImGui::SetWindowPos(ImVec2(400, Application->appSizes->sceneStart.y + ImGui::GetWindowPos().y), ImGuiCond_Once);
 			Button* worldButton = new Button{ "World", ImGuizmo::OPERATION(-1), ImGuizmo::MODE::WORLD };
@@ -29,7 +30,15 @@ namespace Engine::Editor {
 			Button* universalButton = new Button{ "Universal", ImGuizmo::OPERATION::UNIVERSAL, ImGuizmo::MODE(-1) };
 			createButton(universalButton, activeMode, activeOperation);
 
+			delete worldButton;
+			delete localButton;
+			delete translateButton;
+			delete rotationButton;
+			delete scaleButton;
+			delete universalButton;
 			ImGui::End();
 		}
+
+
 	}
 }

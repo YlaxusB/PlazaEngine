@@ -21,6 +21,7 @@ namespace Engine {
 	namespace Editor {
 		class Gui {
 		public:
+			class FileExplorer;
 			class MainMenuBar;
 			class Hierarchy;
 			class MaterialInspector;
@@ -39,6 +40,7 @@ namespace Engine {
 			static bool isHierarchyOpen;
 			static bool isSceneOpen;
 			static bool isInspectorOpen;
+			static bool isFileExplorerOpen;
 
 			static void UpdateSizes();
 		};

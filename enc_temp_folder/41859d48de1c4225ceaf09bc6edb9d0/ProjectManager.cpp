@@ -15,7 +15,7 @@ namespace Engine {
 		/// Update the content of dockspace to show the New Project window
 		/// </summary>
 		/// <param name="projectManagerGui"></param>
-		void ProjectManagerGui::NewProjectContent::UpdateContent(ProjectManagerGui& projectManagerGui) {
+		void ProjectManagerGui::NewProjectContent::UpdateContent(ProjectManagerGui& projectManagerGui){
 			ImGuiWindowFlags containerFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoNavFocus;
 			if (ImGui::Begin("New Project Container", nullptr, containerFlags)) {
 				// Make the: input text, create project button and cancel button
@@ -32,7 +32,7 @@ namespace Engine {
 				if (ImGui::Button("Cancel")) {
 					projectManagerGui.currentContent = new ProjectManagerContent();
 				}
-
+				
 				ImGui::End();
 			}
 		}
@@ -102,19 +102,23 @@ namespace Engine {
 					ProjectManagerGui::NewProjectClick();
 				}
 
-				ProjectManagerGui::OpenProjectButton();
-
 			}
 			ImGui::End();
 		}
 
 		void ProjectManagerGui::OpenProjectButton() {
+			ImGuiWindowFlags containerFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_AlwaysAutoResize;
+			ImGui::SetNextWindowPos(ImVec2(800, 500));
+			if (ImGui::Begin("Buttons Container", nullptr, containerFlags)) {
 
-			bool openProjectButton = ImGui::Button("Open Project", ImVec2(500, 100));
-			if (openProjectButton) {
-				ProjectManagerGui::OpenProjectClick();
+				bool openProjectButton = ImGui::Button("Open Project", ImVec2(500, 100));
+
+				if (openProjectButton) {
+					ProjectManagerGui::NewProjectClick();
+				}
+
 			}
-
+			ImGui::End();
 		}
 	}
 }

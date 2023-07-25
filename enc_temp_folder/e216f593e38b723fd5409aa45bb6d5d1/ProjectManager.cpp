@@ -112,7 +112,7 @@ namespace Engine {
 
 			bool openProjectButton = ImGui::Button("Open Project", ImVec2(500, 100));
 			if (openProjectButton) {
-				ProjectManagerGui::OpenProjectClick();
+				ProjectManagerGui::NewProjectClick();
 			}
 
 		}

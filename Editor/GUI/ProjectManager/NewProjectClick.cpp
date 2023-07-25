@@ -7,10 +7,12 @@ namespace Engine {
 	namespace Editor {
 		void ProjectManagerGui::NewProjectClick() {
 			std::string filePath = FileDialog::OpenFolderDialog();
-			Application->activeProject = new Project();
-			Application->activeProject->name;
-			Application->activeProject->directory = filePath;
-			this->currentContent = new NewProjectContent();
+			if (filePath != "") {
+				Application->activeProject = new Project();
+				Application->activeProject->name;
+				Application->activeProject->directory = filePath;
+				this->currentContent = new NewProjectContent();
+			}
 		}
 	}
 }

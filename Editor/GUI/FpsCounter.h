@@ -10,7 +10,8 @@ namespace Engine::Editor {
 		void Update() {
 			ImGuiWindowFlags windowflags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
 			windowflags |= ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking;
-			if (ImGui::Begin("FPS Overlay", new bool(true), windowflags))
+			bool showFPSCounter = true;
+			if (ImGui::Begin("FPS Overlay", &showFPSCounter, windowflags))
 			{
 				ImGui::SetWindowPos(ImVec2(Application->appSizes->sceneStart.x + Application->appSizes->sceneSize.x + (ImGui::GetWindowSize().x / 2), Application->appSizes->sceneStart.y + ImGui::GetWindowPos().y), ImGuiCond_Once);
 				ImGui::Text(("MS/Frame:" + std::to_string(Time::msPerFrame)).c_str());

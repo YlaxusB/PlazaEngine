@@ -140,6 +140,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Editor\GUI\FileExplorer\File.cpp" />
+    <ClCompile Include="Editor\GUI\FileExplorer\FileExplorer.cpp" />
+    <ClCompile Include="Editor\GUI\ProjectManager\OpenProjectClick.cpp" />
     <ClCompile Include="Editor\Project.cpp" />
     <ClCompile Include="Engine\Application\Callbacks\DropCallback.cpp" />
     <ClCompile Include="Engine\Application\Callbacks\FramebufferSizeCallback.cpp" />
@@ -158,7 +161,9 @@
     <ClCompile Include="Engine\Application\Serializer\ProjectSerializer.cpp" />
     <ClCompile Include="Engine\Application\Window.cpp" />
     <ClCompile Include="Engine\Components\Core\Material.cpp" />
+    <ClCompile Include="Engine\Components\Rendering\Prefab.cpp" />
     <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp" />
+    <ClCompile Include="Engine\Core\Standards.cpp" />
     <ClCompile Include="Engine\Editor\Editor.cpp" />
     <ClCompile Include="Engine\Application\Application.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -319,6 +324,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Editor\GUI\FileExplorer\File.h" />
+    <ClInclude Include="Editor\GUI\FileExplorer\FileExplorer.h" />
     <ClInclude Include="Editor\Project.h" />
     <ClInclude Include="Engine\Application\ApplicationSizes.h" />
     <ClInclude Include="Engine\Application\Callbacks\CallbacksHeader.h" />
@@ -327,7 +334,9 @@
     <ClInclude Include="Engine\Application\Serializer\ProjectSerializer.h" />
     <ClInclude Include="Engine\Application\Window.h" />
     <ClInclude Include="Engine\Components\Core\Material.h" />
+    <ClInclude Include="Engine\Components\Rendering\Prefab.h" />
     <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h" />
+    <ClInclude Include="Engine\Core\Standards.h" />
     <ClInclude Include="Engine\Editor\Editor.h" />
     <ClInclude Include="Engine\Application.h" />
     <ClInclude Include="Engine\Application\Application.h" />

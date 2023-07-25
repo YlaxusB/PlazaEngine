@@ -16,6 +16,7 @@
 #include "Editor/GUI/Inspector/TransformInspector.h"
 #include "Editor/GUI/FpsCounter.h"
 #include "Editor/GUI/MenuBar.h"
+#include "Editor/GUI/FileExplorer/FileExplorer.h"
 //#include "Engine/Application/Application.h" //
 
 //
@@ -32,6 +33,7 @@ glm::vec2 curInspectorSize;
 bool Engine::Editor::Gui::isHierarchyOpen = true;
 bool Engine::Editor::Gui::isSceneOpen = true;
 bool Engine::Editor::Gui::isInspectorOpen = true;
+bool Engine::Editor::Gui::isFileExplorerOpen = true;
 bool windowVisible = true;
 // Update ImGui Windows
 FpsCounter* fpsCounter;
@@ -62,6 +64,8 @@ namespace Engine {
 			io.Fonts->AddFontFromFileTTF("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf", 18);
 			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
 
+			Icon::Init();
+
 			FpsCounter* fpsCounter = new FpsCounter();
 		}
 
@@ -75,7 +79,7 @@ namespace Engine {
 		void Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
 			Editor::selectedGameObject = newSelectedGameObject;
 		}
-
+		unsigned int asd = 0;
 
 		void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera) {
 
@@ -93,7 +97,8 @@ namespace Engine {
 			//			windowFlags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoTitleBar;
 				//		windowFlags |= ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_NoScrollbar;
 
-			if (ImGui::Begin("Main DockSpace", new bool(true), windowFlags)) {
+			bool showDockspace = true;
+			if (ImGui::Begin("Main DockSpace", &showDockspace, windowFlags)) {
 				ImGui::SetWindowPos(ImVec2(0, 0));
 
 
@@ -119,6 +124,13 @@ namespace Engine {
 				//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
 				Gui::beginInspector(gameFrameBuffer, *camera);
 
+
+
+				FileExplorer::UpdateGui();
+
+				if (asd % 1000 == 0)
+					FileExplorer::UpdateContent(Application->activeProject->directory);
+				asd++;
 				ImGui::End();
 			}
 
@@ -128,6 +140,7 @@ namespace Engine {
 			Overlay::beginTransformOverlay(*Application->activeCamera);
 			fpsCounter->Update();
 			// Update the sizes after resizing
+
 			Gui::UpdateSizes();
 		}
 
@@ -150,7 +163,8 @@ namespace Engine {
 
 			ImGui::SetNextWindowSize(ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y));
 			if (ImGui::Begin("Scene", &Gui::isSceneOpen, windowFlags)) {
-
+				if (ImGui::IsWindowFocused())
+					Application->focusedMenu = "Scene";
 				ImVec2 uv0(0, 1); // bottom-left corner
 				ImVec2 uv1(1, 0); // top-right corner
 				appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
@@ -224,6 +238,8 @@ namespace Engine {
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.treeNodeBackgroundColor);
 			ImGui::SetNextWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y));
 			if (ImGui::Begin("Hierarchy", &Gui::isHierarchyOpen, sceneWindowFlags)) {
+				if (ImGui::IsWindowFocused())
+					Application->focusedMenu = "Hierarchy";
 				ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.treeNodeBackgroundColor);
 
 
@@ -253,6 +269,10 @@ namespace Engine {
 			//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
 			ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.inspectorSize));
 			if (ImGui::Begin("Inspector", &Gui::isInspectorOpen, sceneWindowFlags)) {
+				if (ImGui::IsWindowFocused())
+					Application->focusedMenu = "Inspector";
+
+
 
 				// Handle size changes
 				const ImVec2& CurSize = ImGui::GetWindowSize();

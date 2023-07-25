@@ -11,7 +11,6 @@ namespace Engine {
 			std::string filePath = FileDialog::OpenFolderDialog();
 			// If user didnt canceled, loop through all items found on the directory path and check for the first that haves the project extension. 
 			if (filePath != "") {
-				bool foundProject = false;
 				for (const auto& entry : fs::directory_iterator(filePath)) {
 					std::string fileName = entry.path().filename().string();
 					std::string extension = entry.path().extension().string();
@@ -29,13 +28,11 @@ namespace Engine {
 
 						this->currentContent = new NewProjectContent();
 
-						foundProject = true;
+
 						break;
 					}
 				}
-				if (!foundProject) {
-					std::cout << "Project hasnt been found!" << std::endl;
-				}
+
 			}
 
 		}

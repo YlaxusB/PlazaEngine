@@ -22,6 +22,9 @@ namespace Engine {
 	//class WindowClass;
 	class ApplicationClass {
 	public:
+		std::string projectPath;
+		std::string enginePath;
+		std::string editorPath;
 		Editor::Project* activeProject = nullptr;
 
 		std::string focusedMenu = "";

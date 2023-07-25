@@ -8,35 +8,29 @@ namespace Engine {
 	namespace Editor {
 		namespace fs = std::filesystem;
 		void ProjectManagerGui::OpenProjectClick() {
-			std::string filePath = FileDialog::OpenFolderDialog();
+			std::string filePath = FileDialog::OpenFileDialog(Standards::projectExtName.c_str());
 			// If user didnt canceled, loop through all items found on the directory path and check for the first that haves the project extension. 
 			if (filePath != "") {
-				bool foundProject = false;
-				for (const auto& entry : fs::directory_iterator(filePath)) {
-					std::string fileName = entry.path().filename().string();
-					std::string extension = entry.path().extension().string();
-					// Check if its a folder
-					if (extension == Standards::projectExtName) {
-						std::cout << filePath + "\\" + fileName << std::endl;
-						ProjectSerializer::DeSerialize(filePath + "\\" + fileName);
+				fs::path projectFile(filePath);
 
-						///asdsadsa
-						Application->activeProject = new Project();
-						Application->activeProject->name = fileName;
-						Application->activeProject->directory = filePath;
+				std::string fileName = projectFile.filename().string();
+				std::string extension = projectFile.extension().string();
+				// Check if its extension is the project extension
+				if (extension == Standards::projectExtName) {
+					std::cout << filePath << std::endl;
+					ProjectSerializer::DeSerialize(filePath);
 
-						Application->runEngine = true;
-						Application->runProjectManagerGui = false;
+					Application->activeProject = new Project();
+					Application->activeProject->name = fileName;
+					Application->activeProject->directory = projectFile.parent_path().string();
 
-						this->currentContent = new NewProjectContent();
+					Application->runEngine = true;
+					Application->runProjectManagerGui = false;
 
-						foundProject = true;
-						break;
-					}
+					this->currentContent = new NewProjectContent();
+					return;
 				}
-				if (!foundProject) {
-					std::cout << "Project hasnt been found!" << std::endl;
-				}
+				std::cout << "Project hasnt been found!" << std::endl;
 			}
 
 		}

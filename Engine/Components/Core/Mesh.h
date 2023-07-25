@@ -43,6 +43,7 @@ namespace Engine {
 
 	class Mesh {
 	public:
+		std::string id;
 		vector<Vertex> vertices;
 		vector<unsigned int> indices;
 		vector<Texture> textures;

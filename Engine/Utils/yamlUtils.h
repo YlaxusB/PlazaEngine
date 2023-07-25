@@ -1,7 +1,10 @@
 #pragma once
 #include "Engine/Core/PreCompiledHeaders.h"
-#include "Engine/Vendor/yaml/include/yaml-cpp/yaml.h"
+
 namespace YAML {
+	extern YAML::Emitter& operator <<(YAML::Emitter& out, const glm::vec3& v);
+
+
 	template<>
 	struct convert<glm::vec3> {
 		static bool decode(const Node& node, glm::vec3& rhs) {

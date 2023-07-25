@@ -1,6 +1,9 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "CallbacksHeader.h"
 #include "Engine/Core/Time.h"
+
+#include "Engine/Application/Serializer/Components/MeshSerializer.h"
+
 using namespace Engine;
 void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 	if (Application->focusedMenu == "Scene") {
@@ -31,8 +34,13 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 				cubeMesh->material.specular = new Texture();
 				cubeMesh->material.specular->rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
 				MeshRenderer* meshRenderer = new MeshRenderer(cubeMesh);
+				
 				meshRenderer->mesh = cubeMesh;
+				std::cout << Application->activeProject->directory << std::endl;
+				MeshSerializer::Serialize(Application->activeProject->directory + "\\teste.yaml", *cubeMesh);
 				d->AddComponent<MeshRenderer>(meshRenderer);
+
+
 			}
 		}
 

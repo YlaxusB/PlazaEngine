@@ -67,9 +67,7 @@ namespace Engine {
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-			std::filesystem::path currentPath(__FILE__);
-			std::string projectDirectory = currentPath.parent_path().parent_path().string();
-			std::string faceDirectory = projectDirectory + "\\ExampleAssets\\skybox\\";
+			std::string faceDirectory = Application->enginePath + "\\ExampleAssets\\skybox\\";
 			std::vector<std::string> faces
 			{
 				faceDirectory + "right.jpg",

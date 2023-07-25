@@ -16,6 +16,9 @@
 #include <Engine/Vendor/imgui/imgui_impl_glfw.h>
 #include <Engine/Vendor/imgui/imgui_impl_opengl3.h>
 #include <Engine/Vendor/imgui/ImGuizmo.h>
+#include "Engine/Vendor/yaml/include/yaml-cpp/yaml.h"
+
+#include "Engine/Utils/yamlUtils.h"
 
 
 #include <iostream>

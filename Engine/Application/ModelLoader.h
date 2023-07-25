@@ -19,6 +19,8 @@
 #include "Engine/Components/Core/GameObject.h"
 #include "Engine/Editor/Editor.h"
 #include "Engine/Components/Core/Material.h"
+
+#include "Engine/Application/Serializer/Components/MeshSerializer.h"
 using namespace std;
 
 //unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
@@ -122,6 +124,7 @@ namespace Engine {
             modelMainObject->transform->UpdateChildrenTransform();
 
             Editor::selectedGameObject = modelMainObject;
+            MeshSerializer::Serialize(Application->activeProject->directory + "\\teste.yaml", *modelMainObject->children.front()->GetComponent<MeshRenderer>()->mesh);
             delete textures_loaded;
             delete meshes;
         }

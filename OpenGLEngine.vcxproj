@@ -158,6 +158,8 @@
     <ClCompile Include="Engine\Application\FileDialog\OpenFolderDialog.cpp" />
     <ClCompile Include="Engine\Application\FileDialog\SaveDialog.cpp" />
     <ClCompile Include="Engine\Application\PickingTexture.cpp" />
+    <ClCompile Include="Engine\Application\Serializer\Components\ComponentSerializer.cpp" />
+    <ClCompile Include="Engine\Application\Serializer\Components\MeshSerializer.cpp" />
     <ClCompile Include="Engine\Application\Serializer\ProjectSerializer.cpp" />
     <ClCompile Include="Engine\Application\Window.cpp" />
     <ClCompile Include="Engine\Components\Core\Material.cpp" />
@@ -184,6 +186,7 @@
     <ClCompile Include="Engine\stb_image.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Engine\Utils\yamlUtils.cpp" />
     <ClCompile Include="Engine\Vendor\glad\glad.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -324,6 +327,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Editor\Editor.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\File.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\FileExplorer.h" />
     <ClInclude Include="Editor\Project.h" />
@@ -331,6 +335,8 @@
     <ClInclude Include="Engine\Application\Callbacks\CallbacksHeader.h" />
     <ClInclude Include="Engine\Application\EntryPoint.h" />
     <ClInclude Include="Engine\Application\FileDialog\FileDialog.h" />
+    <ClInclude Include="Engine\Application\Serializer\Components\ComponentSerializer.h" />
+    <ClInclude Include="Engine\Application\Serializer\Components\MeshSerializer.h" />
     <ClInclude Include="Engine\Application\Serializer\ProjectSerializer.h" />
     <ClInclude Include="Engine\Application\Window.h" />
     <ClInclude Include="Engine\Components\Core\Material.h" />

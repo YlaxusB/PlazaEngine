@@ -86,23 +86,25 @@ void combineBuffers() {
 }
 
 void ApplicationClass::CreateApplication() {
+	std::filesystem::path currentPath(__FILE__);
+	Application->projectPath = currentPath.parent_path().parent_path().parent_path().string();
+	Application->enginePath = currentPath.parent_path().parent_path().string();
+	Application->editorPath = currentPath.parent_path().parent_path().parent_path().string() + "\\Editor";
 	//gameObjects.reserve(5000);
 
 	// Initialize GLFW (Window)
 	Application->Window = new Engine::WindowClass();
 
 	// Initialize Shaders
-	std::filesystem::path currentPath(__FILE__);
-	std::string projectDirectory = currentPath.parent_path().parent_path().string();
-	Application->shader = new Shader((projectDirectory + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
-	Application->pickingShader = new Shader((projectDirectory + "\\Shaders\\picking\\pickingVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\picking\\pickingFragment.glsl").c_str());
-	Application->outlineShader = new Shader((projectDirectory + "\\Shaders\\outlining\\outliningVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\outlining\\outliningFragment.glsl").c_str());
-	Application->outlineBlurShader = new Shader((projectDirectory + "\\Shaders\\blur\\blurVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\blur\\blurFragment.glsl").c_str());
-	Application->combiningShader = new Shader((projectDirectory + "\\Shaders\\combining\\combiningVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\combining\\combiningFragment.glsl").c_str());
-	Application->edgeDetectionShader = new Shader((projectDirectory + "\\Shaders\\edgeDetection\\edgeDetectionVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\edgeDetection\\edgeDetectionFragment.glsl").c_str());
-	Application->singleColorShader = new Shader((projectDirectory + "\\Shaders\\singleColor\\singleColorVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\singleColor\\singleColorFragment.glsl").c_str());
-	Application->shadowsDepthShader = new Shader((projectDirectory + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str());
-	Application->debugDepthShader = new Shader((projectDirectory + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
+	Application->shader = new Shader((Application->enginePath + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
+	Application->pickingShader = new Shader((Application->enginePath + "\\Shaders\\picking\\pickingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\picking\\pickingFragment.glsl").c_str());
+	Application->outlineShader = new Shader((Application->enginePath + "\\Shaders\\outlining\\outliningVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\outlining\\outliningFragment.glsl").c_str());
+	Application->outlineBlurShader = new Shader((Application->enginePath + "\\Shaders\\blur\\blurVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\blur\\blurFragment.glsl").c_str());
+	Application->combiningShader = new Shader((Application->enginePath + "\\Shaders\\combining\\combiningVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\combining\\combiningFragment.glsl").c_str());
+	Application->edgeDetectionShader = new Shader((Application->enginePath + "\\Shaders\\edgeDetection\\edgeDetectionVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\edgeDetection\\edgeDetectionFragment.glsl").c_str());
+	Application->singleColorShader = new Shader((Application->enginePath + "\\Shaders\\singleColor\\singleColorVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\singleColor\\singleColorFragment.glsl").c_str());
+	Application->shadowsDepthShader = new Shader((Application->enginePath + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str());
+	Application->debugDepthShader = new Shader((Application->enginePath + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
 
 	Application->outlineBlurShader->use();
 	Application->outlineBlurShader->setInt("sceneBuffer", 0);
@@ -115,7 +117,7 @@ void ApplicationClass::CreateApplication() {
 
 
 
-	Skybox::skyboxShader = new Shader((projectDirectory + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (projectDirectory + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
+	Skybox::skyboxShader = new Shader((Application->enginePath + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
 	Skybox::skyboxShader->use();
 	Skybox::skyboxShader->setInt("skybox", 0);
 	InitBlur();

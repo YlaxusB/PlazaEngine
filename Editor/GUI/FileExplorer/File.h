@@ -16,7 +16,10 @@ namespace Engine {
 			static std::vector<unsigned int> textures;
 			static void Init() {
 				unsigned int imageTextureID = 0;
-				LoadImageToImGuiTexture("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Editor\\Images\\FileIcons\\folderIcon.png", &imageTextureID);
+				std::filesystem::path currentPath(__FILE__);
+				std::string projectDirectory = currentPath.parent_path().parent_path().parent_path().string();
+				std::cout << projectDirectory << std::endl;
+				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/folderIcon.png").c_str(), &imageTextureID);
 				textures.push_back(imageTextureID);
 			}
 			static void Update(std::string directory, std::string extension, std::string fileName) {

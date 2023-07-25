@@ -61,7 +61,10 @@ namespace Engine {
 			io.IniFilename = "Engine/imgui.ini";
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 			ImGui_ImplOpenGL3_Init("#version 330");
-			io.Fonts->AddFontFromFileTTF("C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf", 18);
+			std::filesystem::path currentPath(__FILE__);
+			std::string projectDirectory = currentPath.parent_path().parent_path().parent_path().string();
+			//C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
+			io.Fonts->AddFontFromFileTTF((projectDirectory + "/Engine/Font/Poppins-Regular.ttf").c_str(), 18);
 			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
 
 			Icon::Init();

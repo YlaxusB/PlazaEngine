@@ -8,7 +8,7 @@ using namespace Engine::Editor;
 using namespace Engine;
 
 void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-	if (Application->focusedMenu == "Scene") {
+	if (Application->hoveredMenu == "Scene") {
 		ApplicationSizes& appSizes = *Application->appSizes;
 		ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 
@@ -43,6 +43,7 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 		// Select the GameObject
 		// Mouse is over imguizmo but imguizmo is not drawing || Mouse inst over imguizmo and its being drawn
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && ((ImGuizmo::IsOver() && !ImGuizmoHelper::IsDrawing) || !(ImGuizmo::IsOver() && ImGuizmoHelper::IsDrawing)) && clickId != 0 && (!ImGuizmo::IsOver() && !ImGuizmoHelper::IsDrawing)) {
+			//
 			//int targetName = Application->pickingTexture->readPixel(xposGame, yposGame);
 
 
@@ -55,5 +56,9 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 			}
 		}
 #pragma endregion Picking
+	}
+	else if (rightClickPressed == true) {
+		rightClickPressed = false;
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	}
 }

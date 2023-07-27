@@ -20,6 +20,8 @@ namespace Engine {
 			if (ImGui::Begin("File Explorer", &Gui::isFileExplorerOpen, windowFlags)) {
 				if (ImGui::IsWindowFocused())
 					Application->focusedMenu = "File Explorer";
+				if (ImGui::IsWindowHovered())
+					Application->hoveredMenu = "File Explorer";
 				Icon::currentPos = ImVec2(-1.0f, 1.0f);
 				ImGui::BeginGroup();
 				for (File file : files) {

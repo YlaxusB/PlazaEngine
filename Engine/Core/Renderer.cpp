@@ -26,7 +26,7 @@ namespace Engine {
 		glm::vec3 lightPos = Application->Shadows->lightPos;
 		shader.setVec3("lightPos", lightPos);
 		glActiveTexture(GL_TEXTURE30);
-		glBindTexture(GL_TEXTURE_2D, Application->Shadows->shadowsDepthMap);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, Application->Shadows->shadowsDepthMap);
 		shader.setInt("shadowsDepthMap", 30);
 		shader.setInt("shadowMap", 30);
 		glm::mat4 lightProjection, lightView;
@@ -36,6 +36,15 @@ namespace Engine {
 		//lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 		lightSpaceMatrix = lightProjection * lightView;
 		shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+		shader.setVec3("lightDir", Application->Shadows->lightDir);
+		shader.setFloat("farPlane", Application->activeCamera->farPlane);
+		shader.setInt("cascadeCount", Application->Shadows->shadowCascadeLevels.size());
+		for (size_t i = 0; i < Application->Shadows->shadowCascadeLevels.size(); ++i)
+		{
+			shader.setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", Application->Shadows->shadowCascadeLevels[i]);
+		}
+
 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);

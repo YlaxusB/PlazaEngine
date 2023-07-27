@@ -15,7 +15,18 @@ uniform bool texture_diffuse_rgba_bool;
 uniform vec4 texture_specular_rgba = vec4(300, 300, 300, 300);
 uniform bool texture_specular_rgba_bool;
 
-uniform sampler2D shadowsDepthMap;
+uniform sampler2DArray shadowsDepthMap;
+uniform float farPlane;
+uniform float cascadePlaneDistances[32];
+uniform int cascadeCount;   // number of frusta - 1
+uniform mat4 view;
+uniform vec3 lightDir;
+
+layout (std140) uniform LightSpaceMatrices
+{
+    mat4 lightSpaceMatrices[32];
+};
+
 in VS_OUT {
     vec3 FragPos;
     vec3 Normal;
@@ -30,40 +41,69 @@ uniform float objectID;
 out vec3 pixelObjectID;
 
 
-float ShadowCalculation(vec4 fragPosLightSpace)
+float ShadowCalculation(vec3 fragPosWorldSpace)
 {
+    // select cascade layer
+    vec4 fragPosViewSpace = view * vec4(fragPosWorldSpace, 1.0);
+    float depthValue = abs(fragPosViewSpace.z);
+    int layer = -1;
+    for (int i = 0; i < cascadeCount; ++i)
+    {
+        if (depthValue < cascadePlaneDistances[i])
+        {
+            layer = i;
+            break;
+        }
+    }
+    if (layer == -1)
+    {
+        layer = cascadeCount;
+    }
+
+    vec4 fragPosLightSpace = lightSpaceMatrices[layer] * vec4(fragPosWorldSpace, 1.0);
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // transform to [0,1] range
     projCoords = projCoords * 0.5 + 0.5;
-    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(shadowsDepthMap, projCoords.xy).r; 
+
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
+
+    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    if (currentDepth > 1.0)
+    {
+        return 0.0;
+    }
     // calculate bias (based on depth map resolution and slope)
     vec3 normal = normalize(fs_in.Normal);
-    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.002);
-    // check whether current frag pos is in shadow
-    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    const float biasModifier = 0.5f;
+    if (layer == cascadeCount)
+    {
+        bias *= 1 / (farPlane * biasModifier);
+    }
+    else
+    {
+        bias *= 1 / (cascadePlaneDistances[layer] * biasModifier);
+    }
+
+    int pcfCount = 5;
+    float mapSize = 4096.0 * 4;
+    float texelSize = 1.0 / mapSize;
+    float total = 0.0;
+    float totalTexels = (pcfCount * 2.0 + 1.0) * (pcfCount * 2.0 + 1.0);
     // PCF
     float shadow = 0.0;
-
-    vec2 texelSize = 0.5 / textureSize(shadowsDepthMap, 0);
-    //vec2 texelSize = (currentDepth - closestDepth) * 200.0 / textureSize(shadowsDepthMap, 0);
-    for(int x = -1; x <= 1; ++x)
+    //vec2 texelSize = 1.0 / vec2(textureSize(shadowsDepthMap, 0));
+    for(int x = -pcfCount; x <= pcfCount; ++x)
     {
-        for(int y = -1; y <= 1; ++y)
+        for(int y = -pcfCount; y <= pcfCount; ++y)
         {
-            float pcfDepth = texture(shadowsDepthMap, projCoords.xy + vec2(x, y) * texelSize).r; 
-            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
+            float pcfDepth = texture(shadowsDepthMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
+            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
         }    
     }
-    shadow /= 9.0;
-    
-    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
-    if(projCoords.z > 1.0)
-        shadow = 0.0;
+    shadow /= totalTexels;
         
     return shadow;
 }
@@ -102,7 +142,7 @@ void main()
     vec3 specular = (spec * texSpec) * lightColor;       
 
     // calculate shadow
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace);                      
+    float shadow = ShadowCalculation(fs_in.FragPos);                      
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
     
     FragColor = vec4(lighting, 1.0);

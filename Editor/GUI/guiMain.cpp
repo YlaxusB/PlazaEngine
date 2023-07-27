@@ -166,6 +166,8 @@ namespace Engine {
 			if (ImGui::Begin("Scene", &Gui::isSceneOpen, windowFlags)) {
 				if (ImGui::IsWindowFocused())
 					Application->focusedMenu = "Scene";
+				if (ImGui::IsWindowHovered())
+					Application->hoveredMenu = "Scene";
 				ImVec2 uv0(0, 1); // bottom-left corner
 				ImVec2 uv1(1, 0); // top-right corner
 				appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
@@ -241,6 +243,8 @@ namespace Engine {
 			if (ImGui::Begin("Hierarchy", &Gui::isHierarchyOpen, sceneWindowFlags)) {
 				if (ImGui::IsWindowFocused())
 					Application->focusedMenu = "Hierarchy";
+				if (ImGui::IsWindowHovered())
+					Application->hoveredMenu = "Hierarchy";
 				ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.treeNodeBackgroundColor);
 
 
@@ -272,7 +276,8 @@ namespace Engine {
 			if (ImGui::Begin("Inspector", &Gui::isInspectorOpen, sceneWindowFlags)) {
 				if (ImGui::IsWindowFocused())
 					Application->focusedMenu = "Inspector";
-
+				if (ImGui::IsWindowHovered())
+					Application->hoveredMenu = "Inspector";
 
 
 				// Handle size changes

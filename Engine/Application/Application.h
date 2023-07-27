@@ -29,6 +29,7 @@ namespace Engine {
 		Editor::Project* activeProject = nullptr;
 
 		std::string focusedMenu = "";
+		std::string hoveredMenu = "";
 
 		Camera* editorCamera;
 		Camera* activeCamera;

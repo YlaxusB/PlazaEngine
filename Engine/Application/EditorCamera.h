@@ -91,6 +91,8 @@ namespace Engine {
 
 		bool IsInsideViewFrustum(glm::vec3 pos);
 
+		std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view);
+
 		// processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
 		void ProcessKeyboard(Camera_Movement direction, float deltaTime);
 

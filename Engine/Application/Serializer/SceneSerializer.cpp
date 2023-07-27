@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "SceneSerializer.h"
 
+#include "Editor/Settings/EditorSettings.h"
 
 namespace Engine {
 	void SerializeGameObject(YAML::Emitter& out, GameObject* gameObject) {

@@ -40,6 +40,7 @@ namespace Engine {
 		}
 	};
 
+	
 
 	class Mesh {
 	public:
@@ -48,6 +49,7 @@ namespace Engine {
 		vector<unsigned int> indices;
 		vector<Texture> textures;
 		Material material;
+		glm::vec4 infVec = glm::vec4(INFINITY);
 		unsigned int VAO;
 
 		Mesh(vector<Vertex> vertices, vector<unsigned int> indices, Material material) {
@@ -76,42 +78,57 @@ namespace Engine {
 		}
 
 		void BindTextures(Shader& shader) {
+			constexpr const char* shininessUniform = "shininess";
+			constexpr const char* textureDiffuseRGBAUniform = "texture_diffuse_rgba";
+			constexpr const char* textureDiffuseUniform = "texture_diffuse";
+			constexpr const char* textureSpecularRGBAUniform = "texture_specular_rgba";
+			constexpr const char* textureSpecularUniform = "texture_specular";
+			constexpr const char* textureNormalUniform = "texture_normal";
+			constexpr const char* textureHeightUniform = "texture_height";
+
 			if (material.shininess != 64.0f) {
-				shader.setFloat("shininess", material.shininess);
+				shader.setFloat(shininessUniform, material.shininess);
 			}
+
 			if (material.diffuse != nullptr) {
-				if (material.diffuse->rgba != glm::vec4(INFINITY)) {
-					shader.setVec4("texture_diffuse_rgba", material.diffuse->rgba);
+				const glm::vec4& diffuseRGBA = material.diffuse->rgba;
+				if (diffuseRGBA != infVec) {
+					shader.setVec4(textureDiffuseRGBAUniform, diffuseRGBA);
 				}
 				else {
-					glActiveTexture(GL_TEXTURE0);
+					constexpr GLint textureDiffuseUnit = 0;
+					glActiveTexture(GL_TEXTURE0 + textureDiffuseUnit);
 					glBindTexture(GL_TEXTURE_2D, material.diffuse->id);
-					shader.setInt("texture_diffuse", 0);
-					shader.setVec4("texture_diffuse_rgba", glm::vec4(300, 300, 300, 300));
+					shader.setInt(textureDiffuseUniform, textureDiffuseUnit);
+					shader.setVec4(textureDiffuseRGBAUniform, glm::vec4(300, 300, 300, 300));
 				}
 			}
 
 			if (material.specular != nullptr) {
-				if (material.specular->rgba != glm::vec4(INFINITY)) {
-					shader.setVec4("texture_specular_rgba", material.specular->rgba);
+				const glm::vec4& specularRGBA = material.specular->rgba;
+				if (specularRGBA != glm::vec4(INFINITY)) {
+					shader.setVec4(textureSpecularRGBAUniform, specularRGBA);
 				}
 				else {
-					glUniform1i(glGetUniformLocation(shader.ID, "texture_specular"), 1);
-					glActiveTexture(GL_TEXTURE1);
+					constexpr GLint textureSpecularUnit = 1;
+					glUniform1i(glGetUniformLocation(shader.ID, textureSpecularUniform), textureSpecularUnit);
+					glActiveTexture(GL_TEXTURE0 + textureSpecularUnit);
 					glBindTexture(GL_TEXTURE_2D, material.specular->id);
-					shader.setVec4("texture_specular_rgba", glm::vec4(300, 300, 300, 300));
+					shader.setVec4(textureSpecularRGBAUniform, glm::vec4(300, 300, 300, 300));
 				}
 			}
 
 			if (material.normal != nullptr && material.normal->id != -1) {
-				glUniform1i(glGetUniformLocation(shader.ID, "texture_normal"), 2);
-				glActiveTexture(GL_TEXTURE2);
+				constexpr GLint textureNormalUnit = 2;
+				glUniform1i(glGetUniformLocation(shader.ID, textureNormalUniform), textureNormalUnit);
+				glActiveTexture(GL_TEXTURE0 + textureNormalUnit);
 				glBindTexture(GL_TEXTURE_2D, material.normal->id);
 			}
 
 			if (material.height != nullptr && material.height->id && material.height->id != -1) {
-				glUniform1i(glGetUniformLocation(shader.ID, "texture_height"), 3);
-				glActiveTexture(GL_TEXTURE3);
+				constexpr GLint textureHeightUnit = 3;
+				glUniform1i(glGetUniformLocation(shader.ID, textureHeightUniform), textureHeightUnit);
+				glActiveTexture(GL_TEXTURE0 + textureHeightUnit);
 				glBindTexture(GL_TEXTURE_2D, material.height->id);
 			}
 		}

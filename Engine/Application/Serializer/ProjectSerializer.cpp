@@ -23,8 +23,10 @@ namespace Engine {
 		strStream << stream.rdbuf();
 
 		YAML::Node data = YAML::Load(strStream.str());
-		if (!data["Scene"])
-			std::cout << "No Scene" << std::endl;
+		if (!data) {
+			std::cout << "File is empty!" << std::endl;
+			return;
+		}
 
 		std::string name = data["Project"].as<std::string>();
 		std::string directory = data["Directory"].as<std::string>();

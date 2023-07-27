@@ -144,6 +144,8 @@
     <ClCompile Include="Editor\GUI\FileExplorer\FileExplorer.cpp" />
     <ClCompile Include="Editor\GUI\ProjectManager\OpenProjectClick.cpp" />
     <ClCompile Include="Editor\Project.cpp" />
+    <ClCompile Include="Editor\Settings\EditorSettings.cpp" />
+    <ClCompile Include="Editor\Settings\SettingsSerializer.cpp" />
     <ClCompile Include="Engine\Application\Callbacks\DropCallback.cpp" />
     <ClCompile Include="Engine\Application\Callbacks\FramebufferSizeCallback.cpp" />
     <ClCompile Include="Engine\Application\Callbacks\KeyboardCallback.cpp" />
@@ -331,6 +333,8 @@
     <ClInclude Include="Editor\GUI\FileExplorer\File.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\FileExplorer.h" />
     <ClInclude Include="Editor\Project.h" />
+    <ClInclude Include="Editor\Settings\EditorSettings.h" />
+    <ClInclude Include="Editor\Settings\SettingsSerializer.h" />
     <ClInclude Include="Engine\Application\ApplicationSizes.h" />
     <ClInclude Include="Engine\Application\Callbacks\CallbacksHeader.h" />
     <ClInclude Include="Engine\Application\EntryPoint.h" />

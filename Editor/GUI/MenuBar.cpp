@@ -9,10 +9,10 @@ namespace Engine {
 			if (ImGui::BeginMainMenuBar()) {
 				if (ImGui::BeginMenu("File")) {
 					if (ImGui::Button("Save")) {
-						Serializer::Serialize(FileDialog::SaveFileDialog("Engine (*.engine)"));
+						Serializer::Serialize(FileDialog::SaveFileDialog(("Engine (*.%s)", Standards::engineExtName).c_str()));
 					}
 					if(ImGui::Button("Open")){
-						Serializer::DeSerialize(FileDialog::OpenFileDialog("Engine (*.engine)"));
+						Serializer::DeSerialize(FileDialog::OpenFileDialog(("Engine (*.%s)", Standards::engineExtName).c_str()));
 					}
 					ImGui::EndMenu();
 				}

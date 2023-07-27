@@ -21,6 +21,16 @@
 #include "Engine/Editor/Editor.h"
 
 #include "Engine/Application/EntryPoint.h"
+
+#include <cstdlib> // Include the appropriate header for _dupenv_s
+
+// ...
+
+char* appdataValue;
+size_t len;
+errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");
+
+
 //Engine::ApplicationClass* Application;
 
 void blurFramebuffer1();
@@ -90,6 +100,8 @@ void ApplicationClass::CreateApplication() {
 	Application->projectPath = currentPath.parent_path().parent_path().parent_path().string();
 	Application->enginePath = currentPath.parent_path().parent_path().string();
 	Application->editorPath = currentPath.parent_path().parent_path().parent_path().string() + "\\Editor";
+	Application->enginePathAppData = std::string(appdataValue) + "\\Plaza Engine\\";
+	free(appdataValue);
 	//gameObjects.reserve(5000);
 
 	// Initialize GLFW (Window)

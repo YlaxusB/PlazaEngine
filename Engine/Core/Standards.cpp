@@ -1,7 +1,8 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Standards.h"
 namespace Engine {
-	string Standards::projectExtName = ".engprj";
-	string Standards::sceneExtName = ".scene";
-	string Standards::materialExtName = ".material";
+	string Standards::engineExtName = ".plz";
+	string Standards::projectExtName = engineExtName + "prj";
+	string Standards::sceneExtName = engineExtName + "scn";
+	string Standards::materialExtName = engineExtName + "mat";
 }

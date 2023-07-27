@@ -25,6 +25,7 @@ namespace Engine {
 		std::string projectPath;
 		std::string enginePath;
 		std::string editorPath;
+		std::string enginePathAppData;
 		Editor::Project* activeProject = nullptr;
 
 		std::string focusedMenu = "";

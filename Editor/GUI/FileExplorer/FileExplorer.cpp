@@ -20,9 +20,12 @@ namespace Engine {
 			if (ImGui::Begin("File Explorer", &Gui::isFileExplorerOpen, windowFlags)) {
 				if (ImGui::IsWindowFocused())
 					Application->focusedMenu = "File Explorer";
+				Icon::currentPos = ImVec2(-1.0f, 1.0f);
+				ImGui::BeginGroup();
 				for (File file : files) {
 					Icon::Update(file.directory, file.extension, file.name);
 				}
+				ImGui::EndGroup();
 			}
 
 			ImGui::End();
@@ -37,7 +40,7 @@ namespace Engine {
 			for (const auto& entry : fs::directory_iterator(folderPath)) {
 				std::string filename = entry.path().filename().string();
 				std::string extension = entry.path().extension().string();
-				std::cout << "File: " << filename << "  Extension: " << extension << std::endl;
+				//std::cout << "File: " << filename << "  Extension: " << extension << std::endl;
 				// Check if its a folder
 				if (fs::is_directory(entry)) {
 					File newFile = File();

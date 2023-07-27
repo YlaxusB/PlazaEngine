@@ -11,7 +11,7 @@ void renderFullscreenQuad() {
 	//glBindVertexArray(0);
 
 }
-
+int i = 0;
 namespace Engine {
 	// Render all GameObjects
 	void Renderer::Render(Shader& shader) {
@@ -40,26 +40,34 @@ namespace Engine {
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 
+		// End measuring time and calculate duration
+
+
+		//auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+		//// Print the execution time
+		//std::cout << "Execution time: " << duration.count() << " ms" << std::endl;
+
 		Application->activeCamera->UpdateFrustum();
 		for (MeshRenderer* meshRenderer : meshRenderers) {
-				Transform* transform = meshRenderer->gameObject->transform;
+			Transform* transform = meshRenderer->gameObject->transform;
 
-				if (Application->activeCamera->IsInsideViewFrustum(transform->position)) {
+			if (Application->activeCamera->IsInsideViewFrustum(transform->position)) {
 
-					glm::mat4 modelMatrix = transform->modelMatrix;
-					shader.setMat4("model", modelMatrix);
 
-					meshRenderer->mesh->BindTextures(shader);
-					meshRenderer->mesh->Draw(shader);
-				}
-				/*
-				auto startTime = std::chrono::high_resolution_clock::now();
-				// End measuring time and calculate duration
-				auto endTime = std::chrono::high_resolution_clock::now();
-				auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-				// Print the execution time
-				std::cout << "Execution time: " << duration.count() << " ms" << std::endl;
-				*/
+
+				glm::mat4 modelMatrix = transform->modelMatrix;
+				shader.setMat4("model", modelMatrix);
+				meshRenderer->mesh->BindTextures(shader);
+				meshRenderer->mesh->Draw(shader);
+			}
+			/*
+			auto startTime = std::chrono::high_resolution_clock::now();
+			// End measuring time and calculate duration
+			auto endTime = std::chrono::high_resolution_clock::now();
+			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+			// Print the execution time
+			std::cout << "Execution time: " << duration.count() << " ms" << std::endl;
+			*/
 		}
 	}
 	void Renderer::BlurBuffer()

@@ -63,4 +63,5 @@ namespace ImGui {
 	inline glm::vec2 glmVec2(ImVec2 imguiVec) {
 		return glm::vec2(imguiVec.x, imguiVec.y);
 	}
+
 }

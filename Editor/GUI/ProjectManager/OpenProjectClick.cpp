@@ -30,7 +30,7 @@ namespace Engine {
 					this->currentContent = new NewProjectContent();
 					return;
 				}
-				std::cout << "Project hasnt been found!" << std::endl;
+				std::cout << "Project has not been found!" << std::endl;
 			}
 
 		}

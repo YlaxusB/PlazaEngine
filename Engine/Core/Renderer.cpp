@@ -23,20 +23,12 @@ namespace Engine {
 		shader.setMat4("projection", projection);
 		shader.setMat4("view", view);
 		shader.setVec3("viewPos", Application->activeCamera->Position);
-		glm::vec3 lightPos = Application->Shadows->lightPos;
-		shader.setVec3("lightPos", lightPos);
 		glActiveTexture(GL_TEXTURE30);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, Application->Shadows->shadowsDepthMap);
 		shader.setInt("shadowsDepthMap", 30);
 		shader.setInt("shadowMap", 30);
-		glm::mat4 lightProjection, lightView;
-		glm::mat4 lightSpaceMatrix;
-		lightProjection = Application->Shadows->lightProjection;
-		lightView = Application->Shadows->lightView;
-		//lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-		lightSpaceMatrix = lightProjection * lightView;
-		shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
+		glm::vec3 lightPos = Application->Shadows->lightPos;
+		shader.setVec3("lightPos", lightPos);
 		shader.setVec3("lightDir", Application->Shadows->lightDir);
 		shader.setFloat("farPlane", Application->activeCamera->farPlane);
 		shader.setInt("cascadeCount", Application->Shadows->shadowCascadeLevels.size());

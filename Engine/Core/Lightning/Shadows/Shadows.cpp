@@ -13,7 +13,8 @@ namespace Engine {
 		glGenTextures(1, &shadowsDepthMap);
 		glBindTexture(GL_TEXTURE_2D_ARRAY, shadowsDepthMap);
 		//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-		shadowCascadeLevels = vector{ Application->activeCamera->farPlane / 50.0f, Application->activeCamera->farPlane / 25.0f, Application->activeCamera->farPlane / 10.0f, Application->activeCamera->farPlane / 2.0f };
+		float mult = 1.0f;
+		shadowCascadeLevels = vector{ Application->activeCamera->farPlane / (9000.0f * mult), Application->activeCamera->farPlane / (3000.0f * mult), Application->activeCamera->farPlane / (1000.0f * mult), Application->activeCamera->farPlane / (500.0f * mult), Application->activeCamera->farPlane / (100.0f * mult), Application->activeCamera->farPlane / (35.0f * mult),Application->activeCamera->farPlane / (10.0f * mult), Application->activeCamera->farPlane / (2.0f * mult), Application->activeCamera->farPlane / (1.0f * mult) };
 		std::cout << "aiaiaiaiaia:" << std::endl;
 		std::cout << shadowCascadeLevels.size() << std::endl;
 		glTexImage3D(
@@ -51,6 +52,7 @@ namespace Engine {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// 0. UBO setup
+		Application->shadowsDepthShader->use();
 		const auto lightMatrices = ShadowsClass::GetLightSpaceMatrices();
 		glBindBuffer(GL_UNIFORM_BUFFER, matricesUBO);
 		for (size_t i = 0; i < lightMatrices.size(); ++i)
@@ -58,35 +60,16 @@ namespace Engine {
 			glBufferSubData(GL_UNIFORM_BUFFER, i * sizeof(glm::mat4x4), sizeof(glm::mat4x4), &lightMatrices[i]);
 		}
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+
 		Application->shadowsDepthShader->use();
-
-		float mult = 1.0f;
-		shadowCascadeLevels = vector{ Application->activeCamera->farPlane / (9000.0f * mult), Application->activeCamera->farPlane / (3000.0f * mult), Application->activeCamera->farPlane / (1000.0f * mult), Application->activeCamera->farPlane / (500.0f * mult), Application->activeCamera->farPlane / (250.0f * mult), Application->activeCamera->farPlane / (100.0f * mult), Application->activeCamera->farPlane / (2.0f * mult) };
-
-		lightDistance = glm::vec3(80.0f, 120.0f, 0.0f); //* glm::vec3(glfwGetTime());
-		near_plane = 1.0f, far_plane = lightDistance.x + lightDistance.y;
-		float size = 100.0f;
-
-		glm::vec3 cameraPosition = glm::vec3(0.0f);//Application->activeCamera->Position;
-
-		lightProjection = glm::ortho(
-			cameraPosition.x - size,
-			cameraPosition.x + size,
-			cameraPosition.y - size,
-			cameraPosition.y + size,
-			near_plane,
-			far_plane
-		);
-
 		lightPos = Application->activeCamera->Position + lightDistance;
-		cameraPosition = Application->activeCamera->Position;
-		lightView = glm::lookAt(lightPos, cameraPosition, glm::vec3(0.0, 1.0, 0.0));
-		//lightProjection = glm::ortho(-500.0f + -Application->activeCamera->Position.x, 500.0f + Application->activeCamera->Position.x, -500.0f + -Application->activeCamera->Position.y, 500.0f + Application->activeCamera->Position.y, near_plane, far_plane);
-		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, depthMapResolution, depthMapResolution);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowsFBO);
+		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, depthMapResolution, depthMapResolution);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		//glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
 		ShadowsClass::RenderScene(*Application->shadowsDepthShader);;
+		glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// reset viewport
@@ -96,16 +79,6 @@ namespace Engine {
 
 	void ShadowsClass::RenderScene(Shader& shader) {
 		shader.use();
-
-		glm::vec3 lightPos = Application->Shadows->lightPos;
-		glm::mat4 lightProjection, lightView;
-		glm::mat4 lightSpaceMatrix;
-		lightProjection = Application->Shadows->lightProjection;
-		lightView = Application->Shadows->lightView;
-		//lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-		lightSpaceMatrix = lightProjection * lightView;
-		shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
 		for (MeshRenderer* meshRenderer : meshRenderers) {
 			Transform* transform = meshRenderer->gameObject->transform;
 
@@ -133,27 +106,28 @@ namespace Engine {
 			center += glm::vec3(v);
 		}
 		center /= corners.size();
-		const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::lowest());
+		const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::min());
 		const auto lightView = glm::lookAt(center + lightDir, center, glm::vec3(0.0f, 1.0f, 0.0f));
-		float minX = LARGE_CONSTANT;
+		float minX = std::numeric_limits<float>::max();
 		float maxX = std::numeric_limits<float>::lowest();
-		float minY = LARGE_CONSTANT;
+		float minY = std::numeric_limits<float>::max();
 		float maxY = std::numeric_limits<float>::lowest();
-		float minZ = LARGE_CONSTANT;
+		float minZ = std::numeric_limits<float>::max();
 		float maxZ = std::numeric_limits<float>::lowest();
 		for (const auto& v : corners)
 		{
 			const auto trf = lightView * v;
-			minX = min(minX, trf.x);
-			maxX = max(maxX, trf.x);
-			minY = min(minY, trf.y);
-			maxY = max(maxY, trf.y);
-			minZ = min(minZ, trf.z);
-			maxZ = max(maxZ, trf.z);
+			minX = std::min(minX, trf.x);
+			maxX = std::max(maxX, trf.x);
+			minY = std::min(minY, trf.y);
+			maxY = std::max(maxY, trf.y);
+			minZ = std::min(minZ, trf.z);
+			maxZ = std::max(maxZ, trf.z);
 		}
 
 		// Tune this parameter according to the scene
-		constexpr float zMult = 10.0f;
+
+		constexpr float zMult = 22.0f;
 		if (minZ < 0)
 		{
 			minZ *= zMult;
@@ -171,9 +145,9 @@ namespace Engine {
 			maxZ *= zMult;
 		}
 		const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+
 		return lightProjection * lightView;
 	}
-
 
 	std::vector<glm::mat4> ShadowsClass::GetLightSpaceMatrices()
 	{
@@ -187,10 +161,6 @@ namespace Engine {
 			else if (i < shadowCascadeLevels.size())
 			{
 				ret.push_back(getLightSpaceMatrix(shadowCascadeLevels[i - 1], shadowCascadeLevels[i]));
-			}
-			else
-			{
-				ret.push_back(getLightSpaceMatrix(shadowCascadeLevels[i - 1], Application->editorCamera->farPlane));
 			}
 		}
 		return ret;

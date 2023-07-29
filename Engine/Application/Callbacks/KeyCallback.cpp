@@ -34,5 +34,17 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 				d->AddComponent<MeshRenderer>(meshRenderer);
 			}
 		}
+
+
+		if (glfwGetKey(window, GLFW_KEY_INSERT) == GLFW_PRESS) {
+			Application->Shadows->debugLayer += 1;
+			if (Application->Shadows->debugLayer > Application->Shadows->shadowCascadeLevels.size()) {
+				Application->Shadows->debugLayer = 0;
+			}
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS) {
+			Application->shadowsDepthShader = new Shader((Application->enginePath + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
+		}
 	}
 }

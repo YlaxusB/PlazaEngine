@@ -1,11 +1,11 @@
 #version 410 core
 
-layout(triangles, invocations = 5) in;
+layout(triangles, invocations = 10) in;
 layout(triangle_strip, max_vertices = 3) out;
 
 layout (std140) uniform LightSpaceMatrices
 {
-    mat4 lightSpaceMatrices[16];
+    mat4 lightSpaceMatrices[32];
 };
 /*
 uniform mat4 lightSpaceMatrices[16];

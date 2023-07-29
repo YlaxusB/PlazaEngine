@@ -31,15 +31,10 @@ in VS_OUT {
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
-    vec4 FragPosLightSpace;
 } fs_in;
 
 uniform vec3 lightPos;
 uniform vec3 viewPos;
-
-uniform float objectID;
-out vec3 pixelObjectID;
-
 
 float ShadowCalculation(vec3 fragPosWorldSpace)
 {
@@ -76,7 +71,7 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
     }
     // calculate bias (based on depth map resolution and slope)
     vec3 normal = normalize(fs_in.Normal);
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    float bias = max(0.0005 * (1.0 - dot(normal, lightDir)), 0.00005);
     const float biasModifier = 0.5f;
     if (layer == cascadeCount)
     {
@@ -86,9 +81,9 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
     {
         bias *= 1 / (cascadePlaneDistances[layer] * biasModifier);
     }
-
-    int pcfCount = 5;
-    float mapSize = 4096.0 * 4;
+    float floatVal = 1 + texture(shadowsDepthMap, vec3(projCoords.xy, layer)).r;
+    int pcfCount = 16;
+    float mapSize = 4096.0 * 12;
     float texelSize = 1.0 / mapSize;
     float total = 0.0;
     float totalTexels = (pcfCount * 2.0 + 1.0) * (pcfCount * 2.0 + 1.0);
@@ -146,8 +141,6 @@ void main()
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
     
     FragColor = vec4(lighting, 1.0);
-
-        pixelObjectID = vec3(3, 3, 3);
 /*
     vec3 color = texture(texture_diffuse, fs_in.TexCoords).rgb;
 

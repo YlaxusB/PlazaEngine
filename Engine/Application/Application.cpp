@@ -212,11 +212,12 @@ void ApplicationClass::UpdateEngine() {
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 		Application->debugDepthShader->use();
 		float near_plane = 0.1f, far_plane = 7.5f;
+		Application->debugDepthShader->setInt("layer", Application->Shadows->debugLayer);
 		Application->debugDepthShader->setFloat("near_plane", near_plane);
 		Application->debugDepthShader->setFloat("far_plane", far_plane);
 		Application->debugDepthShader->setInt("depthMap", 0);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Application->Shadows->shadowsDepthMap);
+		glBindTexture(GL_TEXTURE_2D_ARRAY, Application->Shadows->shadowsDepthMap);
 		glBindVertexArray(Application->blurVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}

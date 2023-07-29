@@ -61,7 +61,7 @@ namespace Engine {
 		float MovementSpeedTemporaryBoost;
 		float MouseSensitivity;
 		float Zoom;
-		float nearPlane = 0.1f;
+		float nearPlane = 0.01f;
 		float farPlane = 15000.0f;
 
 		// constructor with vectors

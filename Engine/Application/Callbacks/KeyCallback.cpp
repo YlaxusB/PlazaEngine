@@ -16,9 +16,9 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 			Application->activeCamera->Position = Engine::Editor::selectedGameObject->transform->position;
 
 		if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-			int size = gameObjects.size();
+			int size = Application->actScn->gameObjects.size();
 			for (int i = size; i < size + 3000; i++) {
-				GameObject* d = new GameObject(std::to_string(gameObjects.size()), gameObjects.front());
+				GameObject* d = new GameObject(std::to_string(Application->actScn->gameObjects.size()), Application->actScn->gameObjects.front());
 				//d->AddComponent(new Transform());
 
 				d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);
@@ -45,6 +45,26 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 
 		if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS) {
 			Application->shadowsDepthShader = new Shader((Application->enginePath + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+			if (Application->runningScene) {
+				std::cout << "Stopped" << std::endl;
+				Application->actScn = Application->edtScene;
+				Application->runtScene = nullptr;
+				Application->runningScene = false;
+				if (Editor::selectedGameObject)
+					Engine::Editor::Gui::changeSelectedGameObject(Application->actScn->gameObjects.find(Editor::selectedGameObject->name));
+			}
+			else {
+				std::cout << "Started" << std::endl;
+				Application->runtScene = Scene::Copy(Application->edtScene);
+				Application->actScn = Application->runtScene;
+				if (Editor::selectedGameObject)
+					Engine::Editor::Gui::changeSelectedGameObject(Application->actScn->gameObjects.find(Editor::selectedGameObject->name));
+
+				Application->runningScene = true;
+			}
 		}
 	}
 }

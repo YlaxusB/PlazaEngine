@@ -31,7 +31,7 @@ namespace Engine {
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
 		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
-		for (GameObject* gameObject : gameObjects) {
+		for (GameObject* gameObject : Application->actScn->gameObjects) {
 			SerializeGameObject(out, gameObject);
 		}
 		out << YAML::EndSeq;
@@ -57,7 +57,7 @@ namespace Engine {
 			for (auto gameObject : gameObjectsDeserialized) {
 				std::string name = gameObject["Name"].as<std::string>();
 				GameObject* newGameObject = new GameObject(name);
-				newGameObject->parent = gameObjects.find((gameObject["ParentID"].as<std::string>()));
+				newGameObject->parent = Application->actScn->gameObjects.find((gameObject["ParentID"].as<std::string>()));
 				newGameObject->transform->relativePosition = gameObject["TransformComponent"]["Position"].as<glm::vec3>();
 				newGameObject->transform->rotation = gameObject["TransformComponent"]["Rotation"].as<glm::vec3>();
 				newGameObject->transform->scale = gameObject["TransformComponent"]["Scale"].as<glm::vec3>();

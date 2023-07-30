@@ -20,8 +20,9 @@ public:
 	glm::vec3 scale = { 1,1,1, };
 	glm::vec3 worldScale = { 1, 1, 1 };
 	glm::mat4 modelMatrix;
-
+	std::string scene = "Editor Scene";
 	Transform();
+	Transform(const Transform&) = default;
 	glm::mat4 GetTransform(glm::vec3 position, glm::vec3 scale);
 	glm::mat4 GetTransform(glm::vec3 position);
 	glm::mat4 GetTransform();

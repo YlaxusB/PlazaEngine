@@ -20,15 +20,7 @@
 class Transform;
 class GameObject;
 
-class GameObjectList : public std::vector<GameObject*> {
-public:
-	void push_back(GameObject* obj);
-	GameObject* find(std::string findName);
-};
 
-extern GameObjectList gameObjects;
-
-extern std::unordered_map<std::string, GameObject*> gameObjectsMap;
 extern GameObject* sceneObject;
 
 class GameObject {
@@ -40,6 +32,7 @@ public:
 	int id;
 
 	GameObject(std::string objName, GameObject* parent = sceneObject);
+	GameObject(const GameObject&) = default; 
 
 	std::vector<Component*> components;
 	template<typename T>
@@ -58,19 +51,29 @@ public:
 		}
 		return nullptr;
 	}
+
+	template<typename T>
+	T* ReplaceComponent(T* oldComponent, T* newComponent) {
+		for (size_t i = 0; i < components.size(); i++) {
+			if (components[i] == oldComponent) {
+				components.erase(components.begin() + i);
+				newComponent->gameObject = this;
+				components.push_back(newComponent);
+				return newComponent;
+			}
+		}
+		return nullptr; // Old component not found in the list
+	}
 };
 
 //extern std::list<GameObject*> gameObjects;
 
 class MeshRenderer;
-extern std::vector<MeshRenderer*> meshRenderers;
 class MeshRenderer : public Component {
 public:
 	Engine::Mesh* mesh;
 	Transform* transform;
-	MeshRenderer(Engine::Mesh* initialMesh) : mesh(initialMesh) {
-		this->mesh = new Engine::Mesh(initialMesh->vertices, initialMesh->indices, initialMesh->material);
-		meshRenderers.emplace_back(this);
-	}
+	MeshRenderer(Engine::Mesh* initialMesh);
 	~MeshRenderer() = default;
+	MeshRenderer(const MeshRenderer&) = default;
 };

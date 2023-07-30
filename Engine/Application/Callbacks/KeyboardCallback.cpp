@@ -13,9 +13,9 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, true);
 		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-			int size = gameObjects.size();
+			int size = Application->actScn->gameObjects.size();
 			for (int i = size; i < size + 100; i++) {
-				GameObject* d = new GameObject(std::to_string(gameObjects.size()), gameObjects.front());
+				GameObject* d = new GameObject(std::to_string(Application->actScn->gameObjects.size()), Application->actScn->gameObjects.front());
 				//d->AddComponent(new Transform());
 
 
@@ -45,9 +45,9 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
-			int size = gameObjects.size();
+			int size = Application->actScn->gameObjects.size();
 			for (int i = size; i < size + 100; i++) {
-				GameObject* d = new GameObject(std::to_string(gameObjects.size()), gameObjects.front());
+				GameObject* d = new GameObject(std::to_string(Application->actScn->gameObjects.size()), Application->actScn->gameObjects.front());
 				//d->AddComponent(new Transform());
 
 				d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);
@@ -83,7 +83,7 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 			Application->activeCamera->ProcessMouseMovement(0, 0, -10);
 
 		if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-			gameObjects.back()->transform->position.x += 1;
+			Application->actScn->gameObjects.back()->transform->position.x += 1;
 
 
 		//if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)

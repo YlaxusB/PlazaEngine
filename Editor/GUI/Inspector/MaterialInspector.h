@@ -27,6 +27,9 @@ namespace Engine::Editor {
 
 				material.shininess = shininess;
 
+				ImGui::Text("Active Scene: ");
+				ImGui::Text(Editor::selectedGameObject->transform->scene.c_str());
+
 				ImGui::PopID();
 				ImGui::TreePop();
 			}

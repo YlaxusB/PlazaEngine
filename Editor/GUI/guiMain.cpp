@@ -210,6 +210,7 @@ namespace Engine {
 
 				curSceneSize = glm::abs(ImGui::glmVec2(ImGui::GetWindowSize()));
 				// Show the gizmo if there's a selected gameObject
+				selectedGameObject = Editor::selectedGameObject;
 				if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parent != nullptr) {
 					ImGuizmoHelper::IsDrawing = true;
 					Editor::Gizmo::Draw(selectedGameObject, camera);
@@ -249,7 +250,7 @@ namespace Engine {
 
 
 				// Create the main collapser
-				Editor::Gui::Hierarchy::Item(gameObjects.front(), selectedGameObject);
+				Editor::Gui::Hierarchy::Item(Application->actScn->gameObjects.front(), selectedGameObject);
 				ImGui::PopStyleColor(); // Background Color
 			}
 

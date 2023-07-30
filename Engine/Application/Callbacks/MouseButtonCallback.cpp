@@ -47,10 +47,10 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 			//int targetName = Application->pickingTexture->readPixel(xposGame, yposGame);
 
 
-			auto it = std::find_if(gameObjects.begin(), gameObjects.end(), [&](const GameObject* obj) {
+			auto it = std::find_if(Application->actScn->gameObjects.begin(), Application->actScn->gameObjects.end(), [&](const GameObject* obj) {
 				return obj->id == clickId;
 				});
-			if (it != gameObjects.end()) {
+			if (it != Application->actScn->gameObjects.end()) {
 				// Object with the specified name found
 				Engine::Editor::Gui::changeSelectedGameObject(*it);
 			}

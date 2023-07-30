@@ -49,7 +49,7 @@ namespace Engine {
 		//std::cout << "Execution time: " << duration.count() << " ms" << std::endl;
 
 		Application->activeCamera->UpdateFrustum();
-		for (MeshRenderer* meshRenderer : meshRenderers) {
+		for (MeshRenderer* meshRenderer : Application->actScn->meshRenderers) {
 			Transform* transform = meshRenderer->gameObject->transform;
 
 			if (Application->activeCamera->IsInsideViewFrustum(transform->position)) {

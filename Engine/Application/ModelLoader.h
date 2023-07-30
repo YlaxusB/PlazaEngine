@@ -147,7 +147,7 @@ namespace Engine {
                 position.z = transformationMatrix.c4 * modelScale;
                 // Finds the parent Object, if its not found or there inst any, then it just assigns to the model main gameobject
                 std::string parentName = node->mParent->mName.C_Str();
-                GameObject* parentObject = gameObjects.find(parentName);
+                GameObject* parentObject = Application->actScn->gameObjects.find(parentName);
                 if (parentName != "RootNode" || parentObject == nullptr) {
                     parentObject = modelMainObject;
                 }

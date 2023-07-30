@@ -13,7 +13,7 @@
 #include "Engine/Editor/Editor.h"
 #include "Editor/GUI/ProjectManager/ProjectManager.h"
 //#include "Engine/Application/Callbacks/CallbacksHeader.h"
-
+#include "Engine/Core/Scene.h"
 #include "Editor/Project.h"
 namespace Engine {
 	class Camera;
@@ -22,6 +22,12 @@ namespace Engine {
 	//class WindowClass;
 	class ApplicationClass {
 	public:
+		Scene* edtScene = new Scene();
+		Scene* runtScene;
+		Scene* actScn = edtScene;
+		bool runningScene = false;
+
+
 		std::string projectPath;
 		std::string enginePath;
 		std::string editorPath;

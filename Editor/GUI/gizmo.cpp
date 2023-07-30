@@ -15,6 +15,8 @@ namespace Engine::Editor {
 		ImGuizmo::SetRect(appSizes.sceneImageStart.x, appSizes.sceneImageStart.y, appSizes.sceneSize.x, appSizes.sceneSize.y);
 
 		// Get the object transform and camera matrices
+		Transform& a = *gameObject->GetComponent<Transform>();
+		Transform& b = *gameObject->transform;
 		auto& parentTransform = *gameObject->parent->GetComponent<Transform>();
 		auto& transform = *gameObject->GetComponent<Transform>();
 

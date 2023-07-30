@@ -167,6 +167,7 @@
     <ClCompile Include="Engine\Components\Core\Material.cpp" />
     <ClCompile Include="Engine\Components\Rendering\Prefab.cpp" />
     <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp" />
+    <ClCompile Include="Engine\Core\Scene.cpp" />
     <ClCompile Include="Engine\Core\Standards.cpp" />
     <ClCompile Include="Engine\Editor\Editor.cpp" />
     <ClCompile Include="Engine\Application\Application.cpp">
@@ -346,6 +347,7 @@
     <ClInclude Include="Engine\Components\Core\Material.h" />
     <ClInclude Include="Engine\Components\Rendering\Prefab.h" />
     <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h" />
+    <ClInclude Include="Engine\Core\Scene.h" />
     <ClInclude Include="Engine\Core\Standards.h" />
     <ClInclude Include="Engine\Editor\Editor.h" />
     <ClInclude Include="Engine\Application.h" />

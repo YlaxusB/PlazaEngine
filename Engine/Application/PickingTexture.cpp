@@ -23,7 +23,7 @@ void PickingTexture::Render(Shader& shader) {
 	glm::mat4 view = Application->activeCamera->GetViewMatrix();
 	shader.setMat4("projection", projection);
 	shader.setMat4("view", view);
-	for (MeshRenderer* meshRenderer : Application->actScn->meshRenderers) {
+	for (const auto& meshRenderer : Application->activeScene->meshRenderers) {
 		GameObject* gameObject = meshRenderer->gameObject;
 
 		glm::mat4 modelMatrix = gameObject->transform->modelMatrix;

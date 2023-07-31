@@ -147,7 +147,7 @@ namespace Engine {
                 position.z = transformationMatrix.c4 * modelScale;
                 // Finds the parent Object, if its not found or there inst any, then it just assigns to the model main gameobject
                 std::string parentName = node->mParent->mName.C_Str();
-                GameObject* parentObject = Application->actScn->gameObjects.find(parentName);
+                GameObject* parentObject = Application->activeScene->gameObjects.find(parentName);
                 if (parentName != "RootNode" || parentObject == nullptr) {
                     parentObject = modelMainObject;
                 }
@@ -155,7 +155,7 @@ namespace Engine {
                     parentObject = sceneObject;
                 }
                 GameObject* childObject = new GameObject(childName, parentObject);
-                childObject->AddComponent<MeshRenderer>(new MeshRenderer(&nodeMesh));
+                childObject->AddComponent<MeshRenderer>(new MeshRenderer(nodeMesh));
                 childObject->transform->relativePosition = position;
             }
             // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
@@ -250,24 +250,24 @@ namespace Engine {
             // return a mesh object created from the extracted mesh data
             Material convertedMaterial;
             if (diffuseMaps.size() > 0)
-                convertedMaterial.diffuse = &diffuseMaps[0];
+                convertedMaterial.diffuse = diffuseMaps[0];
             else
-                convertedMaterial.diffuse = new Texture();
+                convertedMaterial.diffuse = Texture();
 
             if (specularMaps.size() > 0)
-                convertedMaterial.specular = &specularMaps[0];
+                convertedMaterial.specular = specularMaps[0];
             else
-                convertedMaterial.specular = new Texture();
+                convertedMaterial.specular = Texture();
 
             if (normalMaps.size() > 0)
-                convertedMaterial.normal = &normalMaps[0];
+                convertedMaterial.normal = normalMaps[0];
             else
-                convertedMaterial.normal = new Texture();
+                convertedMaterial.normal = Texture();
 
             if (heightMaps.size() > 0)
-                convertedMaterial.height = &heightMaps[0];
+                convertedMaterial.height = heightMaps[0];
             else
-                convertedMaterial.height = new Texture();
+                convertedMaterial.height = Texture();
 
             return Mesh(vertices, indices, convertedMaterial);
         }

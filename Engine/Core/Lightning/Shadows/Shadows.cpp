@@ -79,7 +79,7 @@ namespace Engine {
 
 	void ShadowsClass::RenderScene(Shader& shader) {
 		shader.use();
-		for (MeshRenderer* meshRenderer : Application->actScn->meshRenderers) {
+		for (const auto& meshRenderer : Application->activeScene->meshRenderers) {
 			Transform* transform = meshRenderer->gameObject->transform;
 
 			// Check if the object is inside the view frustum

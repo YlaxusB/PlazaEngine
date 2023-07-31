@@ -13,9 +13,9 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 			glfwSetWindowShouldClose(window, true);
 		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-			int size = Application->actScn->gameObjects.size();
+			int size = Application->activeScene->gameObjects.size();
 			for (int i = size; i < size + 100; i++) {
-				GameObject* d = new GameObject(std::to_string(Application->actScn->gameObjects.size()), Application->actScn->gameObjects.front());
+				GameObject* d = new GameObject(std::to_string(Application->activeScene->gameObjects.size()), Application->activeScene->gameObjects.front().get());
 				//d->AddComponent(new Transform());
 
 
@@ -29,13 +29,13 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 				std::uniform_int_distribution<int> distribution(min, max);
 				d->GetComponent<Transform>()->relativePosition = glm::vec3(distribution(gen), distribution(gen), distribution(gen)) + Application->activeCamera->Position;
 				d->transform->UpdateChildrenTransform();
-				Engine::Mesh* cubeMesh = Engine::Mesh::Sphere();//Engine::Mesh::Cube();
-				cubeMesh->material.diffuse->rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
-				cubeMesh->material.specular = new Texture();
-				cubeMesh->material.specular->rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
+				Mesh cubeMesh = Engine::Mesh::Sphere();//Engine::Mesh::Cube();
+				cubeMesh.material.diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
+				cubeMesh.material.specular = Texture();
+				cubeMesh.material.specular.rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
 				MeshRenderer* meshRenderer = new MeshRenderer(cubeMesh);
 				
-				meshRenderer->mesh = cubeMesh;
+				meshRenderer->mesh = std::make_unique<Mesh>(cubeMesh);
 				std::cout << Application->activeProject->directory << std::endl;
 				//MeshSerializer::Serialize(Application->activeProject->directory + "\\teste.yaml", *cubeMesh);
 				d->AddComponent<MeshRenderer>(meshRenderer);
@@ -45,19 +45,19 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
-			int size = Application->actScn->gameObjects.size();
+			int size = Application->activeScene->gameObjects.size();
 			for (int i = size; i < size + 100; i++) {
-				GameObject* d = new GameObject(std::to_string(Application->actScn->gameObjects.size()), Application->actScn->gameObjects.front());
+				std::unique_ptr<GameObject> d = std::make_unique<GameObject>(std::to_string(Application->activeScene->gameObjects.size()), Application->activeScene->gameObjects.front().get());
 				//d->AddComponent(new Transform());
 
 				d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);
 				d->transform->UpdateChildrenTransform();
-				Engine::Mesh* cubeMesh = Engine::Mesh::Cube();
-				cubeMesh->material.diffuse->rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
-				cubeMesh->material.specular = new Texture();
-				cubeMesh->material.specular->rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
+				Mesh cubeMesh = Engine::Mesh::Cube();
+				cubeMesh.material.diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
+				cubeMesh.material.specular = Texture();
+				cubeMesh.material.specular.rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
 				MeshRenderer* meshRenderer = new MeshRenderer(cubeMesh);
-				meshRenderer->mesh = cubeMesh;
+				//meshRenderer->mesh = std::move(cubeMesh);
 				d->AddComponent<MeshRenderer>(meshRenderer);
 			}
 		}
@@ -83,7 +83,7 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 			Application->activeCamera->ProcessMouseMovement(0, 0, -10);
 
 		if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-			Application->actScn->gameObjects.back()->transform->position.x += 1;
+			Application->activeScene->gameObjects.back()->transform->position.x += 1;
 
 
 		//if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)

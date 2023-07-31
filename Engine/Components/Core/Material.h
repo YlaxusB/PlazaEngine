@@ -1,18 +1,19 @@
 #pragma once
 #include "Engine/Components/Core/Component.h"
 #include "Engine/Components/Core/Mesh.h"
+#include "Engine/Components/Core/Texture.h"
 namespace Engine {
-	struct Texture;
-	struct Material : public Component {
+	class Material : public Component {
 	public:
-		Texture* diffuse;
-		Texture* albedo;
-		Texture* normal;
-		Texture* specular;
-		Texture* height;
+		Texture diffuse;
+		Texture albedo;
+		Texture normal;
+		Texture specular;
+		Texture height;
 		float shininess = 64.0f;
 
 		Material() = default;
+		~Material() = default;
 		// Copy constructor
 		/**/
 		Material(const Material& other) {

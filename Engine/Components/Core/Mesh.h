@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "Engine/Components/Core/Material.h"
-
+#include "Engine/Components/Core/Texture.h"
 using namespace std;
 
 
@@ -20,7 +20,7 @@ namespace Engine {
 		glm::vec2 texCoords;
 		glm::vec3 tangent;
 		glm::vec3 bitangent;
-
+		~Vertex() = default;
 		Vertex(const glm::vec3& pos)
 			: Vertex(pos, glm::vec3(0.0f), glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)) {}
 
@@ -28,17 +28,7 @@ namespace Engine {
 			: position(pos), normal(norm), texCoords(tex), tangent(tan), bitangent(bitan) {}
 	};
 
-	struct Texture {
-	public:
-		int id = -1;
-		string type = "";
-		string path = "";
-		glm::vec4 rgba = glm::vec4(INFINITY);
 
-		bool IsTextureEmpty() const {
-			return this->id == -1 && this->type.empty() && this->path.empty();
-		}
-	};
 
 	
 
@@ -51,27 +41,28 @@ namespace Engine {
 		Material material;
 		glm::vec4 infVec = glm::vec4(INFINITY);
 		unsigned int VAO;
-
+		Mesh(const Mesh&) = default;
+		~Mesh() = default;
 		Mesh(vector<Vertex> vertices, vector<unsigned int> indices, Material material) {
 			this->vertices = vertices;
 			this->indices = indices;
-			if (material.diffuse != nullptr) {
-				this->material.diffuse = new Texture();
-				this->material.diffuse->id = material.diffuse->id;
-				this->material.diffuse->rgba = material.diffuse->rgba;
+			if (!material.diffuse.IsTextureEmpty()) {
+				this->material.diffuse = Texture();
+				this->material.diffuse.id = material.diffuse.id;
+				this->material.diffuse.rgba = material.diffuse.rgba;
 			}
-			if (material.specular != nullptr) {
-				this->material.specular = new Texture();
-				this->material.specular->id = material.specular->id;
-				this->material.specular->rgba = material.specular->rgba;
+			if (!material.specular.IsTextureEmpty()) {
+				this->material.specular =Texture();
+				this->material.specular.id = material.specular.id;
+				this->material.specular.rgba = material.specular.rgba;
 			}
-			if (material.normal != nullptr) {
-				this->material.normal = new Texture();
-				this->material.normal->id = material.normal->id;
+			if (!material.normal.IsTextureEmpty()) {
+				this->material.normal = Texture();
+				this->material.normal.id = material.normal.id;
 			}
-			if (material.height != nullptr) {
-				this->material.height = new Texture();
-				this->material.height->id = material.height->id;
+			if (!material.height.IsTextureEmpty()) {
+				this->material.height = Texture();
+				this->material.height.id = material.height.id;
 			}
 
 			setupMesh();
@@ -90,22 +81,22 @@ namespace Engine {
 				shader.setFloat(shininessUniform, material.shininess);
 			}
 
-			if (material.diffuse != nullptr) {
-				const glm::vec4& diffuseRGBA = material.diffuse->rgba;
+			if (!material.diffuse.IsTextureEmpty()) {
+				const glm::vec4& diffuseRGBA = material.diffuse.rgba;
 				if (diffuseRGBA != infVec) {
 					shader.setVec4(textureDiffuseRGBAUniform, diffuseRGBA);
 				}
 				else {
 					constexpr GLint textureDiffuseUnit = 0;
 					glActiveTexture(GL_TEXTURE0 + textureDiffuseUnit);
-					glBindTexture(GL_TEXTURE_2D, material.diffuse->id);
+					glBindTexture(GL_TEXTURE_2D, material.diffuse.id);
 					shader.setInt(textureDiffuseUniform, textureDiffuseUnit);
 					shader.setVec4(textureDiffuseRGBAUniform, glm::vec4(300, 300, 300, 300));
 				}
 			}
 
-			if (material.specular != nullptr) {
-				const glm::vec4& specularRGBA = material.specular->rgba;
+			if (!material.specular.IsTextureEmpty()) {
+				const glm::vec4& specularRGBA = material.specular.rgba;
 				if (specularRGBA != glm::vec4(INFINITY)) {
 					shader.setVec4(textureSpecularRGBAUniform, specularRGBA);
 				}
@@ -113,23 +104,23 @@ namespace Engine {
 					constexpr GLint textureSpecularUnit = 1;
 					glUniform1i(glGetUniformLocation(shader.ID, textureSpecularUniform), textureSpecularUnit);
 					glActiveTexture(GL_TEXTURE0 + textureSpecularUnit);
-					glBindTexture(GL_TEXTURE_2D, material.specular->id);
+					glBindTexture(GL_TEXTURE_2D, material.specular.id);
 					shader.setVec4(textureSpecularRGBAUniform, glm::vec4(300, 300, 300, 300));
 				}
 			}
 
-			if (material.normal != nullptr && material.normal->id != -1) {
+			if (!material.normal.IsTextureEmpty()) {
 				constexpr GLint textureNormalUnit = 2;
 				glUniform1i(glGetUniformLocation(shader.ID, textureNormalUniform), textureNormalUnit);
 				glActiveTexture(GL_TEXTURE0 + textureNormalUnit);
-				glBindTexture(GL_TEXTURE_2D, material.normal->id);
+				glBindTexture(GL_TEXTURE_2D, material.normal.id);
 			}
 
-			if (material.height != nullptr && material.height->id && material.height->id != -1) {
+			if (!material.height.IsTextureEmpty()) {
 				constexpr GLint textureHeightUnit = 3;
 				glUniform1i(glGetUniformLocation(shader.ID, textureHeightUniform), textureHeightUnit);
 				glActiveTexture(GL_TEXTURE0 + textureHeightUnit);
-				glBindTexture(GL_TEXTURE_2D, material.height->id);
+				glBindTexture(GL_TEXTURE_2D, material.height.id);
 			}
 		}
 
@@ -143,7 +134,7 @@ namespace Engine {
 			glActiveTexture(GL_TEXTURE0);
 		}
 
-		static Mesh* Cube() {
+		static Mesh Cube() {
 			std::vector<unsigned int> indices = {
 0, 1, 2,  // Front face
 2, 1, 3,  // Front face
@@ -191,16 +182,16 @@ namespace Engine {
 				Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(1, 0, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0))
 			};
 			Material* cubeMaterial = new Material();
-			cubeMaterial->diffuse = new Texture();
-			cubeMaterial->diffuse->type = "texture_diffuse";
-			cubeMaterial->diffuse->rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
+			cubeMaterial->diffuse = Texture();
+			cubeMaterial->diffuse.type = "texture_diffuse";
+			cubeMaterial->diffuse.rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
 
-			Mesh* newMesh = new Mesh(vertices, indices, *cubeMaterial);
+			Mesh newMesh = Mesh(vertices, indices, *cubeMaterial);
 			delete cubeMaterial;
 			return newMesh;
 		}
 
-		static Mesh* Sphere() {
+		static Mesh Sphere() {
 			std::vector<unsigned int> indices;
 			std::vector<Vertex> vertices;
 
@@ -255,11 +246,11 @@ namespace Engine {
 
 			// Create sphere material
 			Material* sphereMaterial = new Material();
-			sphereMaterial->diffuse = new Texture();
-			sphereMaterial->diffuse->type = "texture_diffuse";
-			sphereMaterial->diffuse->rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
+			sphereMaterial->diffuse = Texture();
+			sphereMaterial->diffuse.type = "texture_diffuse";
+			sphereMaterial->diffuse.rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
 
-			return new Mesh(vertices, indices, *sphereMaterial);
+			return Mesh(vertices, indices, *sphereMaterial);
 		}
 
 		static Mesh* Terrain(int width, int length, float scale, float amplitude) {
@@ -304,9 +295,9 @@ namespace Engine {
 
 			// Create terrain material
 			Material* terrainMaterial = new Material();
-			terrainMaterial->diffuse = new Texture();
-			terrainMaterial->diffuse->type = "texture_diffuse";
-			terrainMaterial->diffuse->rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
+			terrainMaterial->diffuse = Texture();
+			terrainMaterial->diffuse.type = "texture_diffuse";
+			terrainMaterial->diffuse.rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
 
 			return new Mesh(vertices, indices, *terrainMaterial);
 		}

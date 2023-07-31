@@ -4,15 +4,15 @@
 #include "Editor/GUI/guiMain.h"
 
 namespace Engine::Editor {
-	Gui::Hierarchy::Item::Item(GameObject* gameObject, GameObject*& selectedGameObject) : currentObj(gameObject), selectedGameObject(selectedGameObject) {
+	Gui::Hierarchy::Item::Item(GameObject& gameObject, GameObject*& selectedGameObject) : currentObj(gameObject), selectedGameObject(*selectedGameObject) {
 		// Push the gameObject id, to prevent it to collpases all the treenodes with same id
-		ImGui::PushID(gameObject->id);
+		ImGui::PushID(gameObject.id);
 		// Start the treenode before the component selectable, but only assign its values after creating the button
 
 		ImGui::PushStyleColor(ImGuiCol_HeaderActive, editorStyle.treeNodeActiveBackgroundColor);
 
 		bool itemIsSelectedObject = false;
-		if (selectedGameObject && gameObject->id == selectedGameObject->id) itemIsSelectedObject = true;
+		if (selectedGameObject && gameObject.id == selectedGameObject->id) itemIsSelectedObject = true;
 
 		if (itemIsSelectedObject) {// Selected background
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, editorStyle.selectedTreeNodeBackgroundColor);
@@ -34,14 +34,14 @@ namespace Engine::Editor {
 
 		ImGui::Indent(11.0f);
 		//ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetTreeNodeToLabelSpacing() + 3.0f); // Decrease the indentation spacing
-		if (gameObject->children.size() > 0) {
-			treeNodeOpen = ImGui::TreeNodeEx(gameObject->name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen);
+		if (gameObject.children.size() > 0) {
+			treeNodeOpen = ImGui::TreeNodeEx(gameObject.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen);
 		}
 		else {
 
 			//ImGui::Selectable(gameObject->name.c_str(), ImGuiTreeNodeFlags_Framed);
 			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetTreeNodeToLabelSpacing());
-			treeNodeOpen = ImGui::TreeNodeEx(gameObject->name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf);
+			treeNodeOpen = ImGui::TreeNodeEx(gameObject.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf);
 		}
 
 		//ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x - 1.0f, ImGui::GetWindowPos().y));
@@ -58,12 +58,12 @@ namespace Engine::Editor {
 
 		// Change the selected gameobject if user clicked on the selectable
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			Gui::changeSelectedGameObject(gameObject);
+			Gui::changeSelectedGameObject(&gameObject);
 			//Engine::Editor::selectedGameObject = gameObject;
 
 
 		if (ImGui::IsItemVisible()) {
-			if (gameObject->parent) {
+			if (gameObject.parent) {
 				if (ImGui::BeginDragDropSource()) {
 					ImGui::SetDragDropPayload(payloadName.c_str(), &gameObject, sizeof(GameObject*));
 
@@ -76,13 +76,13 @@ namespace Engine::Editor {
 				}
 			}
 
-			Hierarchy::Item::HierarchyDragDrop(gameObject, currentObj, treeNodeMin, treeNodeMax);
+			Hierarchy::Item::HierarchyDragDrop(gameObject, &currentObj, treeNodeMin, treeNodeMax);
 		}
 		if (treeNodeOpen)
 		{
-			for (GameObject* child : gameObject->children)
+			for (GameObject* child : gameObject.children)
 			{
-				Gui::Hierarchy::Item(child, selectedGameObject);
+				Gui::Hierarchy::Item(*child, selectedGameObject);
 			}
 			ImGui::TreePop();
 

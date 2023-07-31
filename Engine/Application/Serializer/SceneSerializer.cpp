@@ -4,7 +4,7 @@
 #include "Editor/Settings/EditorSettings.h"
 
 namespace Engine {
-	void SerializeGameObject(YAML::Emitter& out, GameObject* gameObject) {
+	void SerializeGameObject(YAML::Emitter& out, std::unique_ptr<GameObject>& gameObject) {
 		out << YAML::BeginMap;
 		out << YAML::Key << "GameObject" << YAML::Value << gameObject->id;
 		out << YAML::Key << "Name" << YAML::Value << gameObject->name;
@@ -31,7 +31,7 @@ namespace Engine {
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
 		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
-		for (GameObject* gameObject : Application->actScn->gameObjects) {
+		for (std::unique_ptr<GameObject>& gameObject : Application->activeScene->gameObjects) {
 			SerializeGameObject(out, gameObject);
 		}
 		out << YAML::EndSeq;
@@ -57,19 +57,18 @@ namespace Engine {
 			for (auto gameObject : gameObjectsDeserialized) {
 				std::string name = gameObject["Name"].as<std::string>();
 				GameObject* newGameObject = new GameObject(name);
-				newGameObject->parent = Application->actScn->gameObjects.find((gameObject["ParentID"].as<std::string>()));
+				newGameObject->parent = Application->activeScene->gameObjects.find((gameObject["ParentID"].as<std::string>()));
 				newGameObject->transform->relativePosition = gameObject["TransformComponent"]["Position"].as<glm::vec3>();
 				newGameObject->transform->rotation = gameObject["TransformComponent"]["Rotation"].as<glm::vec3>();
 				newGameObject->transform->scale = gameObject["TransformComponent"]["Scale"].as<glm::vec3>();
 
 				newGameObject->transform->UpdateChildrenTransform();
-				Engine::Mesh* cubeMesh = Engine::Mesh::Sphere();
-				cubeMesh->material.diffuse->rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
-				cubeMesh->material.specular = new Texture();
-				cubeMesh->material.specular->rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
+				Mesh cubeMesh = Engine::Mesh::Sphere();
+				cubeMesh.material.diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
+				cubeMesh.material.specular = Texture();
+				cubeMesh.material.specular.rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
 				MeshRenderer* meshRenderer = new MeshRenderer(cubeMesh);
 				//meshRenderer->mesh = cubeMesh;
-				delete cubeMesh;
 				//delete meshRenderer;
 				newGameObject->AddComponent<MeshRenderer>(meshRenderer);
 			}

@@ -78,7 +78,7 @@ namespace Engine {
 		}
 
 		void Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
-			Editor::selectedGameObject = newSelectedGameObject;
+			selectedGameObject = newSelectedGameObject;
 		}
 		unsigned int asd = 0;
 
@@ -250,7 +250,7 @@ namespace Engine {
 
 
 				// Create the main collapser
-				Editor::Gui::Hierarchy::Item(Application->actScn->gameObjects.front(), selectedGameObject);
+				Editor::Gui::Hierarchy::Item(*Application->activeScene->gameObjects.front().get(), selectedGameObject);
 				ImGui::PopStyleColor(); // Background Color
 			}
 

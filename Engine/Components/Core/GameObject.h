@@ -32,8 +32,12 @@ public:
 	int id;
 
 	GameObject(std::string objName, GameObject* parent = sceneObject);
-	GameObject(const GameObject&) = default; 
-
+	GameObject(const GameObject&) = default;
+	~GameObject() {
+		for (Component* component : components) {
+			delete(component);
+		}
+	};
 	std::vector<Component*> components;
 	template<typename T>
 	T* AddComponent(T* component) {
@@ -71,9 +75,9 @@ public:
 class MeshRenderer;
 class MeshRenderer : public Component {
 public:
-	Engine::Mesh* mesh;
+	std::unique_ptr<Engine::Mesh> mesh;
 	Transform* transform;
-	MeshRenderer(Engine::Mesh* initialMesh);
-	~MeshRenderer() = default;
+	MeshRenderer(Mesh initialMesh);
 	MeshRenderer(const MeshRenderer&) = default;
+	~MeshRenderer() = default;
 };

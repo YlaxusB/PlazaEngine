@@ -345,6 +345,7 @@
     <ClInclude Include="Engine\Application\Serializer\ProjectSerializer.h" />
     <ClInclude Include="Engine\Application\Window.h" />
     <ClInclude Include="Engine\Components\Core\Material.h" />
+    <ClInclude Include="Engine\Components\Core\Texture.h" />
     <ClInclude Include="Engine\Components\Rendering\Prefab.h" />
     <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h" />
     <ClInclude Include="Engine\Core\Scene.h" />

@@ -22,9 +22,9 @@ namespace Engine {
 	//class WindowClass;
 	class ApplicationClass {
 	public:
-		Scene* edtScene = new Scene();
-		Scene* runtScene;
-		Scene* actScn = edtScene;
+		Scene* editorScene = new Scene();
+		Scene* runtimeScene = new Scene();
+		Scene* activeScene = editorScene;
 		bool runningScene = false;
 
 

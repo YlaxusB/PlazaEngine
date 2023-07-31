@@ -4,5 +4,5 @@ class GameObject;
 class Component {
 public:
 	GameObject* gameObject;
-	virtual ~Component() {}  // virtual destructor is necessary for derived classes
+	virtual ~Component() = default;  // virtual destructor is necessary for derived classes
 };

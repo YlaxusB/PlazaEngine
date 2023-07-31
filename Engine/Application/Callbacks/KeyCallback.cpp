@@ -14,26 +14,27 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 
 		if (key == GLFW_KEY_U && action == GLFW_PRESS)
 			Application->activeCamera->Position = Engine::Editor::selectedGameObject->transform->position;
-
+		/*
 		if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
-			int size = Application->actScn->gameObjects.size();
+			int size = Application->activeScene->gameObjects.size();
 			for (int i = size; i < size + 3000; i++) {
-				GameObject* d = new GameObject(std::to_string(Application->actScn->gameObjects.size()), Application->actScn->gameObjects.front());
+				GameObject* d = new GameObject(std::to_string(Application->activeScene->gameObjects.size()), Application->activeScene->gameObjects.front().get());
 				//d->AddComponent(new Transform());
 
 				d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);
 				d->transform->UpdateChildrenTransform();
-				Engine::Mesh* cubeMesh = Engine::Mesh::Sphere();
-				cubeMesh->material.diffuse->rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
-				cubeMesh->material.specular = new Texture();
-				cubeMesh->material.specular->rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
+				Mesh cubeMesh = Engine::Mesh::Sphere();
+				cubeMesh.material.diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
+				cubeMesh.material.specular = Texture();
+				cubeMesh.material.specular.rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
 				MeshRenderer* meshRenderer = new MeshRenderer(cubeMesh);
 				//meshRenderer->mesh = cubeMesh;
-				delete cubeMesh;
+
 				//delete meshRenderer;
 				d->AddComponent<MeshRenderer>(meshRenderer);
 			}
 		}
+		*/
 
 
 		if (glfwGetKey(window, GLFW_KEY_INSERT) == GLFW_PRESS) {
@@ -48,20 +49,22 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+			// Stop
 			if (Application->runningScene) {
-				std::cout << "Stopped" << std::endl;
-				Application->actScn = Application->edtScene;
-				Application->runtScene = nullptr;
+				// Change active scene, update the selected object scene, delete runtime and set running to false.
+				Application->activeScene = Application->editorScene;
+				if (Editor::selectedGameObject)
+					Engine::Editor::Gui::changeSelectedGameObject(Application->activeScene->gameObjects.find(Editor::selectedGameObject->name));
+				delete(Application->runtimeScene);
 				Application->runningScene = false;
-				if (Editor::selectedGameObject)
-					Engine::Editor::Gui::changeSelectedGameObject(Application->actScn->gameObjects.find(Editor::selectedGameObject->name));
-			}
+			} // Play
 			else {
-				std::cout << "Started" << std::endl;
-				Application->runtScene = Scene::Copy(Application->edtScene);
-				Application->actScn = Application->runtScene;
+				// Create a new empty Scene, change active scene to runtime, copy the contents of editor scene into runtime scene and update the selected object scene
+				Application->runtimeScene = new Scene();
+				Application->activeScene = Application->runtimeScene;
+				Application->runtimeScene = Scene::Copy(Application->runtimeScene, Application->editorScene);
 				if (Editor::selectedGameObject)
-					Engine::Editor::Gui::changeSelectedGameObject(Application->actScn->gameObjects.find(Editor::selectedGameObject->name));
+					Engine::Editor::Gui::changeSelectedGameObject(Application->activeScene->gameObjects.find(Editor::selectedGameObject->name));
 
 				Application->runningScene = true;
 			}

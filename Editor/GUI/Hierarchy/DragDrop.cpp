@@ -9,10 +9,10 @@ void InsertAfter(GameObject* payloadObj, GameObject* currentObj);
 
 
 namespace Engine::Editor {
-	void Gui::Hierarchy::Item::HierarchyDragDrop(GameObject* gameObject, GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax) {
-		if (gameObject->parent && ImGui::BeginDragDropTarget()) {
+	void Gui::Hierarchy::Item::HierarchyDragDrop(GameObject& gameObject, GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax) {
+		if (gameObject.parent && ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadName.c_str())) {
-				payloadDrop(gameObject, currentObj, treeNodeMin, treeNodeMax, payload);
+				payloadDrop(&gameObject, currentObj, treeNodeMin, treeNodeMax, payload);
 			}
 			ImGui::EndDragDropTarget();
 		}

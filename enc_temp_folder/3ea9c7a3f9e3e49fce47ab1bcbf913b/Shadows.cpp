@@ -156,11 +156,11 @@ namespace Engine {
 		{
 			if (i == 0)
 			{
-				ret.push_back(getLightSpaceMatrix(Application->editorCamera->nearPlane - 1.0f, shadowCascadeLevels[i]));
+				ret.push_back(getLightSpaceMatrix(Application->editorCamera->nearPlane - 3.0f, shadowCascadeLevels[i]));
 			}
 			else if (i < shadowCascadeLevels.size())
 			{
-				ret.push_back(getLightSpaceMatrix(shadowCascadeLevels[i - 1] - 1.0f, shadowCascadeLevels[i]));
+				ret.push_back(getLightSpaceMatrix(shadowCascadeLevels[i - 1] - 3.0f, shadowCascadeLevels[i]));
 			}
 		}
 		return ret;

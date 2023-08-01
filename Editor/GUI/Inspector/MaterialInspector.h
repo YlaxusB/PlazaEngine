@@ -25,6 +25,10 @@ namespace Engine::Editor {
 				ImGui::SetNextItemWidth(225);
 				ImGui::SliderFloat("Shininess", &shininess, 0.0f, 100.0f);
 
+				ImGui::Text("Diffuse Path: ");
+				ImGui::SameLine();
+				ImGui::Text(material.diffuse.path.c_str());
+
 				material.shininess = shininess;
 
 				ImGui::Text("Active Scene: ");

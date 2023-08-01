@@ -81,10 +81,11 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
     {
         bias *= 1 / (cascadePlaneDistances[layer] * biasModifier);
     }
-    float floatVal = 1 + texture(shadowsDepthMap, vec3(projCoords.xy, layer)).r;
-    int pcfCount = 16;
+    bias*= 2 - (texture(shadowsDepthMap, vec3(projCoords.xyz)).r * 4);
+    float floatVal = 3 - (texture(shadowsDepthMap, vec3(projCoords.xyz)).r * 0.3);
+    int pcfCount = 11;// + int(floatVal);
     float mapSize = 4096.0 * 12;
-    float texelSize = 1.0 / mapSize;
+    float texelSize = (1.0 / mapSize) * floatVal;
     float total = 0.0;
     float totalTexels = (pcfCount * 2.0 + 1.0) * (pcfCount * 2.0 + 1.0);
     // PCF

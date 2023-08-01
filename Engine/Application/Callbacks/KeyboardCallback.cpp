@@ -47,7 +47,7 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 		if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
 			int size = Application->activeScene->gameObjects.size();
 			for (int i = size; i < size + 100; i++) {
-				std::unique_ptr<GameObject> d = std::make_unique<GameObject>(std::to_string(Application->activeScene->gameObjects.size()), Application->activeScene->gameObjects.front().get());
+				GameObject* d = new GameObject(std::to_string(Application->activeScene->gameObjects.size()), Application->activeScene->gameObjects.front().get());
 				//d->AddComponent(new Transform());
 
 				d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);

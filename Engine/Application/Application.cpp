@@ -241,6 +241,11 @@ void ApplicationClass::UpdateEngine() {
 }
 
 void ApplicationClass::Terminate() {
+	for (const auto& meshRenderer : Application->activeScene->meshRenderers) {
+		meshRenderer->mesh->Terminate();
+	}
+	delete(Application->editorScene);
+	delete(Application->runtimeScene);
 	Skybox::Terminate();
 	Gui::Delete();
 	glfwTerminate();
@@ -287,6 +292,7 @@ void ApplicationClass::InitOpenGL() {
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+	glEnable(GL_MULTISAMPLE);
 	// Create buffers
 
 			/* Edge Detection Framebuffer */

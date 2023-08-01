@@ -46,24 +46,7 @@ namespace Engine {
 		Mesh(vector<Vertex> vertices, vector<unsigned int> indices, Material material) {
 			this->vertices = vertices;
 			this->indices = indices;
-			if (!material.diffuse.IsTextureEmpty()) {
-				this->material.diffuse = Texture();
-				this->material.diffuse.id = material.diffuse.id;
-				this->material.diffuse.rgba = material.diffuse.rgba;
-			}
-			if (!material.specular.IsTextureEmpty()) {
-				this->material.specular =Texture();
-				this->material.specular.id = material.specular.id;
-				this->material.specular.rgba = material.specular.rgba;
-			}
-			if (!material.normal.IsTextureEmpty()) {
-				this->material.normal = Texture();
-				this->material.normal.id = material.normal.id;
-			}
-			if (!material.height.IsTextureEmpty()) {
-				this->material.height = Texture();
-				this->material.height.id = material.height.id;
-			}
+			this->material = material;
 
 			setupMesh();
 		}
@@ -302,6 +285,10 @@ namespace Engine {
 			return new Mesh(vertices, indices, *terrainMaterial);
 		}
 
+		void Terminate() {
+			glDeleteVertexArrays(1, &VAO);
+			glDeleteBuffers(1, &VBO);
+		}
 	private:
 		unsigned int VBO, EBO;
 		void setupMesh() {

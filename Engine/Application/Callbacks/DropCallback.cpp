@@ -1,11 +1,23 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "CallbacksHeader.h"
-#include "Engine/Application/ModelLoader.h"
+#include "Engine/Core/ModelLoader/ModelLoader.h"
 #include "Engine/Application/Application.h"
+#include "Editor/ModelImporter/ModelImporter.h"
+#include "Editor/Gui/FileExplorer/FileExplorer.h"
+#include "Editor/GUI/guiMain.h"
+using Engine::Editor::Gui;
 void Engine::ApplicationClass::Callbacks::dropCallback(GLFWwindow* window, int count, const char** paths) {
 	for (unsigned int i = 0; i < count; i++) {
-		std::string fileParent = filesystem::path{ paths[i] }.parent_path().string();
-		std::string fileName = filesystem::path{ paths[i] }.filename().string();
-		ModelLoader::loadModel(paths[i], fileName);
+		vector<string> supportedFormats = ModelLoader::supportedFormats;
+		string fileExtension = filesystem::path{ paths[i] }.extension().string();
+		bool foundMatch = std::any_of(supportedFormats.begin(), supportedFormats.end(),
+			[&fileExtension](const std::string& str) {
+				return str == fileExtension;
+			});
+		//if (foundMatch) {
+			std::string fileName = filesystem::path{ paths[i] }.stem().string();
+			//ModelLoader::LoadModelToGame(paths[i], fileName);
+			Editor::ModelImporter::ImportModel(Gui::FileExplorer::currentDirectory, fileName, fileExtension, paths[i]);
+		//}
 	}
 }

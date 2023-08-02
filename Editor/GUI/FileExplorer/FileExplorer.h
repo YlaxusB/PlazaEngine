@@ -6,7 +6,7 @@ namespace Engine {
 		class Gui::FileExplorer {
 		public:
 			static std::vector<File> files;
-			static std::string directory;
+			static std::string currentDirectory;
 			static void Init();
 			static void UpdateGui();
 			/// <summary>

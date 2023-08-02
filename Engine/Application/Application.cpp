@@ -235,7 +235,7 @@ void ApplicationClass::UpdateEngine() {
 	// Update last frame
 
 	Time::lastFrame = currentFrame;
-
+	Time::drawCalls = 0;
 	// Update lastSizes
 	Application->lastAppSizes = Application->appSizes;
 }

@@ -83,7 +83,7 @@ namespace Engine {
 			Transform* transform = meshRenderer->gameObject->transform;
 
 			// Check if the object is inside the view frustum
-			if (Application->activeCamera->IsInsideViewFrustum(transform->position)) {
+			if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
 
 				glm::mat4 modelMatrix = transform->modelMatrix;
 				shader.setMat4("model", modelMatrix);

@@ -81,7 +81,6 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
     {
         bias *= 1 / (cascadePlaneDistances[layer] * biasModifier);
     }
-    bias*= 2 - (texture(shadowsDepthMap, vec3(projCoords.xyz)).r * 4);
     float floatVal = 3 - (texture(shadowsDepthMap, vec3(projCoords.xyz)).r * 0.3);
     int pcfCount = 11;// + int(floatVal);
     float mapSize = 4096.0 * 12;
@@ -127,7 +126,7 @@ void main()
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = 0.0;
     vec3 halfwayDir = normalize(lightDir + viewDir);  
-    spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
+    spec = pow(max(dot(normal, halfwayDir), 0.0), shininess + 5.0);
     vec3 texSpec;
     if(texture_specular_rgba != vec4(300, 300, 300, 300)){
          texSpec = texture_specular_rgba.rgb;
@@ -142,46 +141,5 @@ void main()
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
     
     FragColor = vec4(lighting, 1.0);
-/*
-    vec3 color = texture(texture_diffuse, fs_in.TexCoords).rgb;
 
-    
-    vec3 texDiffuseCol = texture2D(texture_diffuse, fs_in.TexCoords).rgb;
-
-    if(texture_diffuse_rgba_bool){
-         color = texture_diffuse_rgba.rgb;
-    }
-    else{
-        color = texture(texture_diffuse, fs_in.TexCoords).rgb;
-    }
-
-    vec3 normal = normalize(fs_in.Normal);
-    vec3 lightColor = vec3(1.0);
-    // ambient
-    vec3 ambient = 0.15 * lightColor;
-    // diffuse
-    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
-    float diff = max(dot(lightDir, normal), 0.0);
-    vec3 diffuse = lightColor * (diff * color);
-    // specular
-    vec3 viewDir = normalize(viewPos - fs_in.FragPos);
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = 0.0;
-    vec3 halfwayDir = normalize(lightDir + viewDir);  
-    spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
-
-    vec3 texSpec;
-    if(texture_specular_rgba_bool){
-         texSpec = texture_specular_rgba.rgb;
-    }
-    else{
-        texSpec = texture(texture_specular, fs_in.TexCoords).rgb;
-    }
-    vec3 specular = (spec * texSpec) * lightColor;    
-    // calculate shadow
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace);                      
-    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
-    
-    FragColor = vec4(lighting, 1.0);
-    */
 }

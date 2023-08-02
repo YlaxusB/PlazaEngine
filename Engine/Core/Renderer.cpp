@@ -52,10 +52,7 @@ namespace Engine {
 		for (const auto& meshRenderer : Application->activeScene->meshRenderers) {
 			Transform* transform = meshRenderer->gameObject->transform;
 
-			if (Application->activeCamera->IsInsideViewFrustum(transform->position)) {
-
-
-
+			if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
 				glm::mat4 modelMatrix = transform->modelMatrix;
 				shader.setMat4("model", modelMatrix);
 				meshRenderer->mesh->BindTextures(shader);

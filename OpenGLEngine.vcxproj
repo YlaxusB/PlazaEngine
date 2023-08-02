@@ -143,6 +143,7 @@
     <ClCompile Include="Editor\GUI\FileExplorer\File.cpp" />
     <ClCompile Include="Editor\GUI\FileExplorer\FileExplorer.cpp" />
     <ClCompile Include="Editor\GUI\ProjectManager\OpenProjectClick.cpp" />
+    <ClCompile Include="Editor\ModelImporter\ModelImporter.cpp" />
     <ClCompile Include="Editor\Project.cpp" />
     <ClCompile Include="Editor\Settings\EditorSettings.cpp" />
     <ClCompile Include="Editor\Settings\SettingsSerializer.cpp" />
@@ -166,7 +167,10 @@
     <ClCompile Include="Engine\Application\Window.cpp" />
     <ClCompile Include="Engine\Components\Core\Material.cpp" />
     <ClCompile Include="Engine\Components\Rendering\Prefab.cpp" />
+    <ClCompile Include="Engine\Core\Engine.cpp" />
     <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp" />
+    <ClCompile Include="Engine\Core\ModelLoader\ModelLoader.cpp" />
+    <ClCompile Include="Engine\Core\ModelLoader\TexturesHandler.cpp" />
     <ClCompile Include="Engine\Core\Scene.cpp" />
     <ClCompile Include="Engine\Core\Standards.cpp" />
     <ClCompile Include="Engine\Editor\Editor.cpp" />
@@ -331,8 +335,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor\Editor.h" />
+    <ClInclude Include="Editor\GUI\FileExplorer\CreateFile.h" />
+    <ClInclude Include="Editor\GUI\FileExplorer\CreateFolder.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\File.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\FileExplorer.h" />
+    <ClInclude Include="Editor\ModelImporter\ModelImporter.h" />
     <ClInclude Include="Editor\Project.h" />
     <ClInclude Include="Editor\Settings\EditorSettings.h" />
     <ClInclude Include="Editor\Settings\SettingsSerializer.h" />
@@ -347,7 +354,10 @@
     <ClInclude Include="Engine\Components\Core\Material.h" />
     <ClInclude Include="Engine\Components\Core\Texture.h" />
     <ClInclude Include="Engine\Components\Rendering\Prefab.h" />
+    <ClInclude Include="Engine\Core\Engine.h" />
     <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h" />
+    <ClInclude Include="Engine\Core\ModelLoader\Model.h" />
+    <ClInclude Include="Engine\Core\ModelLoader\ModelLoader.h" />
     <ClInclude Include="Engine\Core\Scene.h" />
     <ClInclude Include="Engine\Core\Standards.h" />
     <ClInclude Include="Engine\Editor\Editor.h" />
@@ -380,6 +390,7 @@
     <ClInclude Include="Editor\GUI\TransformOverlay.h" />
     <ClInclude Include="Engine\Shaders\Shader.h" />
     <ClInclude Include="Engine\stb_image.h" />
+    <ClInclude Include="Engine\Utils\fileUtils.h" />
     <ClInclude Include="Engine\Utils\glmUtils.h" />
     <ClInclude Include="Engine\Utils\vectorUtils.h" />
     <ClInclude Include="Engine\Utils\yamlUtils.h" />

@@ -15,6 +15,7 @@
 //#include "Engine/Application/Callbacks/CallbacksHeader.h"
 #include "Engine/Core/Scene.h"
 #include "Editor/Project.h"
+#include "Engine/Core/Engine.h"
 namespace Engine {
 	class Camera;
 	class WindowClass;
@@ -26,7 +27,7 @@ namespace Engine {
 		Scene* runtimeScene = new Scene();
 		Scene* activeScene = editorScene;
 		bool runningScene = false;
-
+		int drawCalls = 0;
 
 		std::string projectPath;
 		std::string enginePath;
@@ -92,6 +93,7 @@ namespace Engine {
 
 		std::vector<Material> materials = std::vector<Material>();
 
+		EngineClass* engine = new EngineClass();
 		WindowClass* Window;
 		class Callbacks;
 

@@ -10,6 +10,7 @@
 
 #include "Engine/Components/Core/Material.h"
 #include "Engine/Components/Core/Texture.h"
+#include "Engine/Core/Time.h"
 using namespace std;
 
 
@@ -34,6 +35,7 @@ namespace Engine {
 
 	class Mesh {
 	public:
+		float farthestVertex = 0.0f;
 		std::string id;
 		vector<Vertex> vertices;
 		vector<unsigned int> indices;
@@ -115,6 +117,7 @@ namespace Engine {
 
 			// always good practice to set everything back to defaults once configured.
 			glActiveTexture(GL_TEXTURE0);
+			Time::drawCalls += 1;
 		}
 
 		static Mesh Cube() {
@@ -326,6 +329,13 @@ namespace Engine {
 			glEnableVertexAttribArray(4);
 			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
 			glBindVertexArray(0);
+
+			for (Vertex vertex : vertices) {
+				glm::vec3 absoluteVertex = glm::vec3(glm::abs(vertex.position.x), glm::abs(vertex.position.y), glm::abs(vertex.position.z));
+				float absoluteSum = absoluteVertex.x + absoluteVertex.y + absoluteVertex.z;
+				if (absoluteSum > farthestVertex)
+					farthestVertex = absoluteSum;
+			}
 		}
 	};
 }

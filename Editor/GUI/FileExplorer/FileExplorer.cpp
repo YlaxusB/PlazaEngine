@@ -4,7 +4,7 @@
 
 namespace Engine {
 	namespace Editor {
-		std::string Gui::FileExplorer::directory = "";
+		std::string Gui::FileExplorer::currentDirectory = "";
 		void Gui::FileExplorer::UpdateGui() {
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
@@ -36,7 +36,7 @@ namespace Engine {
 		std::vector<File> Gui::FileExplorer::files = std::vector<File>();
 		void Gui::FileExplorer::UpdateContent(std::string folderPath) {
 			files.clear();
-			directory = Application->activeProject->directory;
+			currentDirectory = Application->activeProject->directory;
 
 			namespace fs = std::filesystem;
 			for (const auto& entry : fs::directory_iterator(folderPath)) {

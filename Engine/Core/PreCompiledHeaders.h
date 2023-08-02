@@ -1,5 +1,7 @@
 #pragma once
-
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <Windows.h>
 #include <Engine/Vendor/glad/glad.h>
 #include <Engine/Vendor/glm/glm.hpp>

@@ -163,9 +163,11 @@
     <ClCompile Include="Engine\Application\PickingTexture.cpp" />
     <ClCompile Include="Engine\Application\Serializer\Components\ComponentSerializer.cpp" />
     <ClCompile Include="Engine\Application\Serializer\Components\MeshSerializer.cpp" />
+    <ClCompile Include="Engine\Application\Serializer\ModelSerializer.cpp" />
     <ClCompile Include="Engine\Application\Serializer\ProjectSerializer.cpp" />
     <ClCompile Include="Engine\Application\Window.cpp" />
     <ClCompile Include="Engine\Components\Core\Material.cpp" />
+    <ClCompile Include="Engine\Components\Core\ModelComponent.cpp" />
     <ClCompile Include="Engine\Components\Rendering\Prefab.cpp" />
     <ClCompile Include="Engine\Core\Engine.cpp" />
     <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp" />
@@ -173,6 +175,7 @@
     <ClCompile Include="Engine\Core\ModelLoader\TexturesHandler.cpp" />
     <ClCompile Include="Engine\Core\Scene.cpp" />
     <ClCompile Include="Engine\Core\Standards.cpp" />
+    <ClCompile Include="Engine\Core\UUID.cpp" />
     <ClCompile Include="Engine\Editor\Editor.cpp" />
     <ClCompile Include="Engine\Application\Application.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -349,9 +352,11 @@
     <ClInclude Include="Engine\Application\FileDialog\FileDialog.h" />
     <ClInclude Include="Engine\Application\Serializer\Components\ComponentSerializer.h" />
     <ClInclude Include="Engine\Application\Serializer\Components\MeshSerializer.h" />
+    <ClInclude Include="Engine\Application\Serializer\ModelSerializer.h" />
     <ClInclude Include="Engine\Application\Serializer\ProjectSerializer.h" />
     <ClInclude Include="Engine\Application\Window.h" />
     <ClInclude Include="Engine\Components\Core\Material.h" />
+    <ClInclude Include="Engine\Components\Core\ModelComponent.h" />
     <ClInclude Include="Engine\Components\Core\Texture.h" />
     <ClInclude Include="Engine\Components\Rendering\Prefab.h" />
     <ClInclude Include="Engine\Core\Engine.h" />
@@ -360,6 +365,7 @@
     <ClInclude Include="Engine\Core\ModelLoader\ModelLoader.h" />
     <ClInclude Include="Engine\Core\Scene.h" />
     <ClInclude Include="Engine\Core\Standards.h" />
+    <ClInclude Include="Engine\Core\UUID.h" />
     <ClInclude Include="Engine\Editor\Editor.h" />
     <ClInclude Include="Engine\Application.h" />
     <ClInclude Include="Engine\Application\Application.h" />
@@ -373,7 +379,6 @@
     <ClInclude Include="Engine\Components\Core\Component.h" />
     <ClInclude Include="Engine\Components\Core\Transform.h" />
     <ClInclude Include="Engine\Components\Core\GameObject.h" />
-    <ClInclude Include="Engine\Components\Core\Mesh.h" />
     <ClInclude Include="Engine\Components\Core\Model.h" />
     <ClInclude Include="Engine\Editor\Outline\Outline.h" />
     <ClInclude Include="Editor\GUI\FpsCounter.h" />

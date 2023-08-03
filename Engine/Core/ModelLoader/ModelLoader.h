@@ -7,8 +7,8 @@ namespace Engine {
 		static double modelScale;
 		static vector<string> supportedFormats;
 
-		static void LoadModelToGame(string const& path, std::string modelName);
-		static void LoadModelToGame(string const& path, std::string modelName, aiScene const* scene);
+		static GameObject* LoadModelToGame(string const& path, std::string modelName);
+		static GameObject* LoadModelToGame(string const& path, std::string modelName, aiScene const* scene);
 		static void ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, string* directory, GameObject* modelMainObject);
 		static Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node);
 		

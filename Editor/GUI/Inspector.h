@@ -26,7 +26,6 @@ namespace Engine::Editor {
 		public:
 
 			GameObject*& gameObject; // The selected object
-
 			ComponentInspector(GameObject*& gameObject) : gameObject(gameObject) {
 
 				if (ImGui::TreeNodeEx(gameObject->name.c_str())) {

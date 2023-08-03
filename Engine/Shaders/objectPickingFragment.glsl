@@ -1,12 +1,8 @@
 #version 330 core
-
-// Ouput data
-
-
-// Values that stay constant for the whole mesh.
-uniform float objectID;
-out vec3 pixelObjectID;
+#extension GL_NV_gpu_shader5 : enable
+uniform uint64_t objectID;
+out uint64_t pixelObjectID;
 
 void main(){
-    pixelObjectID = vec3(objectID, objectID, objectID);
+    pixelObjectID = objectID;
 }

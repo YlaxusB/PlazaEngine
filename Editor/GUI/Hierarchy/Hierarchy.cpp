@@ -6,15 +6,15 @@
 namespace Engine::Editor {
 	Gui::Hierarchy::Item::Item(GameObject& gameObject, GameObject*& selectedGameObject) : currentObj(gameObject), selectedGameObject(*selectedGameObject) {
 		// Push the gameObject id, to prevent it to collpases all the treenodes with same id
-		ImGui::PushID(gameObject.id);
+		ImGui::PushID(gameObject.uuid);
 		// Start the treenode before the component selectable, but only assign its values after creating the button
 
 		ImGui::PushStyleColor(ImGuiCol_HeaderActive, editorStyle.treeNodeActiveBackgroundColor);
 
 		bool itemIsSelectedObject = false;
-		if (selectedGameObject && gameObject.id == selectedGameObject->id) itemIsSelectedObject = true;
+		if (selectedGameObject && gameObject.uuid == selectedGameObject->uuid) itemIsSelectedObject = true;
 
-		if (itemIsSelectedObject) {// Selected background
+		if (itemIsSelectedObject) {// Selected backgroundde
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, editorStyle.selectedTreeNodeBackgroundColor);
 			ImGui::PushStyleColor(ImGuiCol_Header, editorStyle.selectedTreeNodeBackgroundColor);
 		}

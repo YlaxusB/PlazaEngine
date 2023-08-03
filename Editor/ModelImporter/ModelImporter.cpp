@@ -4,6 +4,7 @@
 #include "Engine/Core/ModelLoader/Model.h"
 #include "Engine/Core/Engine.h"
 #include "Editor/GUI/FileExplorer/CreateFolder.h"
+#include "Engine/Application/Serializer/ModelSerializer.h"
 namespace Engine::Editor {
 	vector<aiTextureType> types = { aiTextureType_DIFFUSE, aiTextureType_HEIGHT, aiTextureType_AMBIENT, aiTextureType_NORMALS, aiTextureType_SPECULAR };
 	void ModelImporter::ImportModel(string const& path, std::string modelName, std::string extension, std::string modelPath) {
@@ -53,6 +54,7 @@ namespace Engine::Editor {
 			//std::filesystem::copy(texturesOriginalPath + "\\" + isFbx + texturePath, texturesFolderPath + "\\" + texturePath);
 		}
 		//std::filesystem::copy(modelPath, sourcesFolderPath + "\\" + modelName + extension);
-		ModelLoader::LoadModelToGame(modelPath, modelName, scene);
+		GameObject* mainObject = ModelLoader::LoadModelToGame(modelPath, modelName, scene);
+		ModelSerializer::SerializeModel(mainObject, Application->activeProject->directory + "\\teste.yaml");
 	}
 }

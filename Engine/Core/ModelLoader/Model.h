@@ -4,6 +4,10 @@
 using namespace std;
 namespace Engine {
 	class Model {
-		vector<Mesh> meshes;
+		vector<shared_ptr<GameObject>> gameObjects;
+		string modelName;
+		vector<string> texturesPaths;
+		vector<string> materialsPaths;
+		vector<Material> materials;
 	};
 }

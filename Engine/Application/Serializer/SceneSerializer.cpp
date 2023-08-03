@@ -6,7 +6,7 @@
 namespace Engine {
 	void SerializeGameObject(YAML::Emitter& out, std::unique_ptr<GameObject>& gameObject) {
 		out << YAML::BeginMap;
-		out << YAML::Key << "GameObject" << YAML::Value << gameObject->id;
+		out << YAML::Key << "GameObject" << YAML::Value << gameObject->uuid;
 		out << YAML::Key << "Name" << YAML::Value << gameObject->name;
 		out << YAML::Key << "ParentID" << YAML::Value << (gameObject->parent != nullptr ? gameObject->parent->name : "");
 		if (gameObject->GetComponent<Transform>()) {

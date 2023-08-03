@@ -1,7 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ModelLoader.h"
 namespace Engine {
-	void ModelLoader::LoadModelToGame(string const& path, std::string modelName) {
+	GameObject* ModelLoader::LoadModelToGame(string const& path, std::string modelName) {
 		vector<Texture>* textures_loaded = new vector<Texture>;
 		vector<Mesh>* meshes = new vector<Mesh>;
 		string directory;
@@ -12,7 +12,7 @@ namespace Engine {
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
 		{
 			cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
-			return;
+			return nullptr;
 		}
 		// retrieve the directory path of the filepath
 		directory = path.substr(0, path.find_last_of('/'));
@@ -26,9 +26,10 @@ namespace Engine {
 		Editor::selectedGameObject = modelMainObject;
 		delete textures_loaded;
 		delete meshes;
+		return modelMainObject;
 	}
 
-	void ModelLoader::LoadModelToGame(string const& path, std::string modelName, aiScene const* scene) {
+	GameObject* ModelLoader::LoadModelToGame(string const& path, std::string modelName, aiScene const* scene) {
 		vector<Texture>* textures_loaded = new vector<Texture>;
 		vector<Mesh>* meshes = new vector<Mesh>;
 		string directory;
@@ -44,6 +45,7 @@ namespace Engine {
 		Editor::selectedGameObject = modelMainObject;
 		delete textures_loaded;
 		delete meshes;
+		return modelMainObject;
 	}
 
 	// processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).

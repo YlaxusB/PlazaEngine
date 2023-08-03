@@ -40,7 +40,7 @@ FpsCounter* fpsCounter;
 namespace Engine {
 	namespace Editor {
 		class Hierarchy;
-
+		string Gui::scenePayloadName = "scenePayloadName";
 		void Gui::Update() {
 			Gui::setupDockspace(Application->Window->glfwWindow, Application->textureColorbuffer, Application->activeCamera);
 			ImGui::Render();
@@ -80,8 +80,6 @@ namespace Engine {
 		void Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
 			selectedGameObject = newSelectedGameObject;
 		}
-		unsigned int asd = 0;
-
 		void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera) {
 
 			ApplicationSizes& appSizes = *Application->appSizes;
@@ -128,10 +126,6 @@ namespace Engine {
 
 
 				FileExplorer::UpdateGui();
-
-				if (asd % 1000 == 0)
-					FileExplorer::UpdateContent(Application->activeProject->directory);
-				asd++;
 				ImGui::End();
 			}
 
@@ -168,16 +162,14 @@ namespace Engine {
 					Application->focusedMenu = "Scene";
 				if (ImGui::IsWindowHovered())
 					Application->hoveredMenu = "Scene";
+
+
+
+
 				ImVec2 uv0(0, 1); // bottom-left corner
 				ImVec2 uv1(1, 0); // top-right corner
 				appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 				ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
-
-
-
-
-
-
 
 
 				ImVec2 imageDisplayedSize;
@@ -195,19 +187,6 @@ namespace Engine {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 				curSceneSize = glm::abs(ImGui::glmVec2(ImGui::GetWindowSize()));
 				// Show the gizmo if there's a selected gameObject
 				selectedGameObject = Editor::selectedGameObject;
@@ -220,6 +199,15 @@ namespace Engine {
 				}
 
 				//	appSizes.sceneStart = ImGui::glmVec2(ImGui::GetWindowPos());
+				if (ImGui::BeginDragDropTarget()) {
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(scenePayloadName.c_str())) {
+						if (payload->DataSize == sizeof(File)) {
+							File& file = *static_cast<File*>(payload->Data);
+							std::cout << file.name << std::endl;
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
 
 			}
 
@@ -292,6 +280,7 @@ namespace Engine {
 
 				if (selectedGameObject && selectedGameObject->parent) {
 					Editor::Inspector::ComponentInspector inspector(selectedGameObject);
+					ImGui::Text(std::to_string(selectedGameObject->uuid).c_str());
 					Editor::Inspector* asd = new Inspector();
 					asd->addComponentButton();
 					//Gui::Inspector::addComponentButton(appSizes);

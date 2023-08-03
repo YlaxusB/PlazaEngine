@@ -10,6 +10,7 @@ GameObject::GameObject(std::string objName, GameObject* parent) {
 	UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
 	name = objName;
 	id = Application->activeScene->gameObjects.size() > 0 ? Application->activeScene->gameObjects.back()->id + 1 : 1; // IT WILL PROBABLY BREAK IN THE NEAR FUTURE
+	uuid = Engine::UUID::NewUUID();
 
 	// Set the new parent
 	this->parent = parent;

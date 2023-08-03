@@ -4,6 +4,7 @@
 #include "Engine/Application/FileDialog/FileDialog.h"
 #include "Engine/Application/Serializer/SceneSerializer.h"
 #include "Engine/Application/Serializer/ProjectSerializer.h"
+#include "Editor/GUI/FileExplorer/FileExplorer.h"
 namespace Engine {
 	namespace Editor {
 		namespace fs = std::filesystem;
@@ -28,6 +29,8 @@ namespace Engine {
 					Application->runProjectManagerGui = false;
 
 					this->currentContent = new NewProjectContent();
+					Gui::FileExplorer::currentDirectory = Application->activeProject->directory;
+					Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 					return;
 				}
 				std::cout << "Project has not been found!" << std::endl;

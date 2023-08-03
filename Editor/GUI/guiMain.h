@@ -37,6 +37,8 @@ namespace Engine {
 			static void beginHierarchyView(int gameFrameBuffer);
 			static void beginInspector(int gameFrameBuffer, Camera camera);
 
+			static string scenePayloadName;
+
 			static bool isHierarchyOpen;
 			static bool isSceneOpen;
 			static bool isInspectorOpen;

@@ -100,7 +100,7 @@ namespace Engine {
 		glm::mat4 modelMatrix = Editor::selectedGameObject->transform->GetTransform();
 		Application->singleColorShader->setMat4("projection", projection);
 		Application->singleColorShader->setMat4("view", view);
-		Application->singleColorShader->setFloat("objectID", Editor::selectedGameObject->id);
+		Application->singleColorShader->setFloat("objectID", Editor::selectedGameObject->uuid);
 		glStencilFunc(GL_ALWAYS, 0, 0x00);
 		glStencilMask(0x00);
 		glDisable(GL_DEPTH_TEST);

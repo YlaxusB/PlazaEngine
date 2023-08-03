@@ -30,6 +30,7 @@ public:
 	Transform* transform = nullptr;// = new Transform();
 	std::string name = "";
 	int id;
+	uint64_t uuid;
 
 	GameObject(std::string objName, GameObject* parent = sceneObject);
 	GameObject(const GameObject&) = default;

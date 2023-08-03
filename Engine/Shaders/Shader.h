@@ -102,6 +102,11 @@ public:
 		glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
 	}
 	// ------------------------------------------------------------------------
+	void setUInt64(const std::string& name, uint64_t value) const
+	{
+		glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+	}
+	// ------------------------------------------------------------------------
 	void setFloat(const std::string& name, float value) const
 	{
 		glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
@@ -132,6 +137,11 @@ public:
 	void setVec4(const std::string& name, float x, float y, float z, float w)
 	{
 		glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
+	}
+	// ------------------------------------------------------------------------
+	void setUVec2(const std::string& name, const glm::vec2& value) const
+	{
+		glUniform4fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
 	}
 	// ------------------------------------------------------------------------
 	void setMat2(const std::string& name, const glm::mat2& mat) const

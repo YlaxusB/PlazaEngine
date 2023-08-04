@@ -5,7 +5,16 @@
 #include "Engine/Core/Engine.h"
 #include "Editor/GUI/FileExplorer/CreateFolder.h"
 #include "Engine/Application/Serializer/ModelSerializer.h"
+#include "Editor/GUI/FileExplorer/FileExplorer.h"
 namespace Engine::Editor {
+	void DeleteChildrene(GameObject* gameObject) {
+		for (GameObject* child : gameObject->children) {
+			DeleteChildrene(child);
+		}
+		delete(gameObject);
+	}
+
+
 	vector<aiTextureType> types = { aiTextureType_DIFFUSE, aiTextureType_HEIGHT, aiTextureType_AMBIENT, aiTextureType_NORMALS, aiTextureType_SPECULAR };
 	void ModelImporter::ImportModel(string const& path, std::string modelName, std::string extension, std::string modelPath) {
 		vector<string> loadedTextures;
@@ -53,8 +62,14 @@ namespace Engine::Editor {
 		for (string texturePath : loadedTextures) {
 			//std::filesystem::copy(texturesOriginalPath + "\\" + isFbx + texturePath, texturesFolderPath + "\\" + texturePath);
 		}
-		//std::filesystem::copy(modelPath, sourcesFolderPath + "\\" + modelName + extension);
+		std::filesystem::copy(modelPath, sourcesFolderPath + "\\" + modelName + extension);
 		GameObject* mainObject = ModelLoader::LoadModelToGame(modelPath, modelName, scene);
 		ModelSerializer::SerializeModel(mainObject, Application->activeProject->directory + "\\teste.yaml");
+		Editor::selectedGameObject = nullptr;
+		Gui::changeSelectedGameObject(nullptr);
+		mainObject->Delete();
+		//delete(mainObject);
+		DeleteChildrene(mainObject);
+		Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 	}
 }

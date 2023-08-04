@@ -97,7 +97,7 @@ namespace Engine {
 		Application->singleColorShader->use();
 		glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 		glm::mat4 view = Application->activeCamera->GetViewMatrix();
-		glm::mat4 modelMatrix = Editor::selectedGameObject->transform->GetTransform();
+		glm::mat4 modelMatrix = Editor::selectedGameObject->transform->modelMatrix;
 		Application->singleColorShader->setMat4("projection", projection);
 		Application->singleColorShader->setMat4("view", view);
 		Application->singleColorShader->setFloat("objectID", Editor::selectedGameObject->uuid);

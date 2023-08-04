@@ -5,6 +5,23 @@
 #include "Engine/Application/Serializer/Components/MeshSerializer.h"
 
 using namespace Engine;
+void DeleteChildrene(GameObject* gameObject) {
+		uint64_t uuid = Editor::selectedGameObject->uuid;
+	if (gameObject != reinterpret_cast<GameObject*>(0xdddddddddddddddd)) {
+		for (GameObject* child : gameObject->children) {
+			DeleteChildrene(child);
+		}
+	}
+	//delete(gameObject);
+	auto it = std::find_if(Application->activeScene->gameObjects.begin(), Application->activeScene->gameObjects.end(), [uuid](const std::unique_ptr<GameObject>& gameObject) {
+		return gameObject->uuid == uuid;
+		});
+
+	if (it != Application->activeScene->gameObjects.end()) {
+		Application->activeScene->gameObjects.erase(it);
+	}
+
+}
 void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 	if (Application->focusedMenu == "Scene") {
 		ApplicationSizes& appSizes = *Application->appSizes;
@@ -34,7 +51,7 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 				cubeMesh.material.specular = Texture();
 				cubeMesh.material.specular.rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
 				MeshRenderer* meshRenderer = new MeshRenderer(cubeMesh);
-				
+
 				meshRenderer->mesh = std::make_unique<Mesh>(cubeMesh);
 				std::cout << Application->activeProject->directory << std::endl;
 				//MeshSerializer::Serialize(Application->activeProject->directory + "\\teste.yaml", *cubeMesh);
@@ -101,5 +118,22 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 
 		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS)
 			Application->activeCamera->MovementSpeedTemporaryBoost = 1.0f;
+
+
+		if (glfwGetKey(window, GLFW_KEY_DELETE) == GLFW_PRESS && Editor::selectedGameObject) {
+			Editor::selectedGameObject->Delete();
+			/*
+			uint64_t uuid = Editor::selectedGameObject->uuid;
+			DeleteChildrene(Editor::selectedGameObject);
+			auto it = std::find_if(Application->activeScene->gameObjects.begin(), Application->activeScene->gameObjects.end(), [uuid](const std::unique_ptr<GameObject>& gameObject) {
+				return gameObject->uuid == uuid;
+				});
+
+			if (it != Application->activeScene->gameObjects.end()) {
+				Application->activeScene->gameObjects.erase(it);
+			}
+			*/
+			Editor::selectedGameObject = nullptr;
+		}
 	}
 }

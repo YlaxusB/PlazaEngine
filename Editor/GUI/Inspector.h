@@ -32,8 +32,8 @@ namespace Engine::Editor {
 					ImGui::TreePop();
 				}
 
-				for (Component*& component : gameObject->components) {
-					CreateRespectiveInspector(component);
+				for (shared_ptr<Component>& component : gameObject->components) {
+					CreateRespectiveInspector(component.get());
 				}
 			}
 

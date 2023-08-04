@@ -41,7 +41,7 @@ namespace Engine {
 				// Create all the icons
 				for (File file : files) {
 					if (file.name != "")
-						Icon::Update(file.directory, file.extension, file.name, file);
+						Icon::Update(file.directory, file.extension, file.name, File(file));
 				}
 				ImGui::EndGroup();
 			}
@@ -58,7 +58,6 @@ namespace Engine {
 			for (const auto& entry : fs::directory_iterator(folderPath)) {
 				std::string filename = entry.path().filename().string();
 				std::string extension = entry.path().extension().string();
-				std::string deb = entry.path().stem().string();
 				if (entry.path().stem().string() == filename)
 					extension = filename;
 				// Check if its a folder

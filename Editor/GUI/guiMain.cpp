@@ -17,6 +17,7 @@
 #include "Editor/GUI/FpsCounter.h"
 #include "Editor/GUI/MenuBar.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
+#include "Engine/Core/ModelLoader/ModelLoader.h"
 //#include "Engine/Application/Application.h" //
 
 //
@@ -201,9 +202,17 @@ namespace Engine {
 				//	appSizes.sceneStart = ImGui::glmVec2(ImGui::GetWindowPos());
 				if (ImGui::BeginDragDropTarget()) {
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(scenePayloadName.c_str())) {
-						if (payload->DataSize == sizeof(File)) {
-							File& file = *static_cast<File*>(payload->Data);
-							std::cout << file.name << std::endl;
+						if (payload->DataSize == sizeof(Editor::File)) {
+							File* file = *static_cast<File**>(payload->Data);
+							//if (file->extension == Standards::modelExtName) {
+							if (file->extension == ".obj" || file->extension == ".fbx") {
+									ModelLoader::LoadModelToGame(file->directory, file->name);
+							}
+							//for (string format : ModelLoader::supportedFormats) {
+							//	if (file->extension == format) {
+							//	}
+							//}
+							delete(file);
 						}
 					}
 					ImGui::EndDragDropTarget();

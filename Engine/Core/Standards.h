@@ -7,5 +7,6 @@ namespace Engine {
 		static string projectExtName;
 		static string sceneExtName;
 		static string materialExtName;
+		static string modelExtName;
 	};
 }

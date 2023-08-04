@@ -30,6 +30,7 @@
 #include <list>
 #include <string>
 #include <chrono>
+#include <variant>
 
 #include "Engine/Application/Application.h"
 #include "Engine/Application/EntryPoint.h"

@@ -22,7 +22,6 @@ class GameObject;
 
 
 extern GameObject* sceneObject;
-
 class GameObject {
 public:
 	std::vector<GameObject*> children;
@@ -32,26 +31,36 @@ public:
 	int id;
 	uint64_t uuid;
 
+	void DeleteChildren(GameObject* gameObject) {
+		for (GameObject* gameObject : gameObject->children) {
+			DeleteChildren(gameObject);
+		}
+
+		delete(gameObject);
+	}
+
 	GameObject(std::string objName, GameObject* parent = sceneObject);
 	GameObject(const GameObject&) = default;
-	~GameObject() {
-		for (Component* component : components) {
-			delete(component);
-		}
-	};
-	std::vector<Component*> components;
+	~GameObject() = default;
+	void Delete();
+
+
+
+
+	vector<shared_ptr<Component>> components;
 	template<typename T>
 	T* AddComponent(T* component) {
-		components.push_back(component);
+		components.push_back(shared_ptr<Component>(component));
 		component->gameObject = this;
+		component->gameObjectUUID = this->uuid;
 		return component;
 	}
 
 	template<typename T>
 	T* GetComponent() {
-		for (Component* component : components) {
+		for (shared_ptr<Component> component : components) {
 			if (typeid(*component) == typeid(T)) {
-				return static_cast<T*>(component);
+				return static_cast<T*>(component.get());
 			}
 		}
 		return nullptr;
@@ -60,10 +69,10 @@ public:
 	template<typename T>
 	T* ReplaceComponent(T* oldComponent, T* newComponent) {
 		for (size_t i = 0; i < components.size(); i++) {
-			if (components[i] == oldComponent) {
+			if (components[i].get() == oldComponent) {
 				components.erase(components.begin() + i);
 				newComponent->gameObject = this;
-				components.push_back(newComponent);
+				components.push_back(shared_ptr<Component>(newComponent));
 				return newComponent;
 			}
 		}
@@ -80,5 +89,5 @@ public:
 	Transform* transform;
 	MeshRenderer(Mesh initialMesh);
 	MeshRenderer(const MeshRenderer&) = default;
-	~MeshRenderer() = default;
+	~MeshRenderer();
 };

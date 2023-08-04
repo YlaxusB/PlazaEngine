@@ -1,6 +1,9 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ModelLoader.h"
 namespace Engine {
+	GameObject* ModelLoader::LoadImportedModel() {
+		return nullptr;
+	}
 	GameObject* ModelLoader::LoadModelToGame(string const& path, std::string modelName) {
 		vector<Texture>* textures_loaded = new vector<Texture>;
 		vector<Mesh>* meshes = new vector<Mesh>;

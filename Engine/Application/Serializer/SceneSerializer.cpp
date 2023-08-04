@@ -57,7 +57,7 @@ namespace Engine {
 			for (auto gameObject : gameObjectsDeserialized) {
 				std::string name = gameObject["Name"].as<std::string>();
 				GameObject* newGameObject = new GameObject(name);
-				newGameObject->parent = Application->activeScene->gameObjects.find((gameObject["ParentID"].as<std::string>()));
+				newGameObject->parent = Application->activeScene->gameObjects.find((gameObject["ParentID"].as<std::uint64_t>()));
 				newGameObject->transform->relativePosition = gameObject["TransformComponent"]["Position"].as<glm::vec3>();
 				newGameObject->transform->rotation = gameObject["TransformComponent"]["Rotation"].as<glm::vec3>();
 				newGameObject->transform->scale = gameObject["TransformComponent"]["Scale"].as<glm::vec3>();

@@ -177,7 +177,7 @@ void ApplicationClass::UpdateEngine() {
 	// Update Keyboard inputs
 	Callbacks::processInput(Application->Window->glfwWindow);
 	glEnable(GL_BLEND);
-	if (Application->runningScene && Editor::selectedGameObject) {
+	if (Application->runningScene && Editor::selectedGameObject && Editor::selectedGameObject->parent != nullptr) {
 		selectedGameObject->transform->relativePosition.y += -1.0f * Time::deltaTime;
 		selectedGameObject->transform->UpdateChildrenTransform();
 	}

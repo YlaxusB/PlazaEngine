@@ -11,6 +11,8 @@ namespace Engine {
 			std::string directory;
 			std::string extension;
 
+			File() = default;
+			File(const File&) = default;
 			~File() = default;
 		};
 
@@ -47,8 +49,12 @@ namespace Engine {
 				// Yaml Icon
 				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/yamlIcon.png").c_str(), &imageTextureID);
 				textures.push_back(IconTexture(imageTextureID, ".yaml"));
+
+				// Obj Icon
+				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/objIcon.png").c_str(), &imageTextureID);
+				textures.push_back(IconTexture(imageTextureID, ".obj"));
 			}
-			static void Update(std::string directory, std::string extension, std::string fileName, File& file);
+			static void Update(std::string directory, std::string extension, std::string fileName, File file);
 
 			static void LoadImageToImGuiTexture(const char* path, unsigned int* out_textureID) {
 				int width, height, channels;

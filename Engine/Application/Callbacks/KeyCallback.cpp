@@ -51,12 +51,13 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
 			// Stop
 			if (Application->runningScene) {
-				// Change active scene, update the selected object scene, delete runtime and set running to false.
-				Application->activeScene = Application->editorScene;
+				Editor::selectedGameObject = nullptr;
 				if (Editor::selectedGameObject)
-					Engine::Editor::Gui::changeSelectedGameObject(Application->activeScene->gameObjects.find(Editor::selectedGameObject->name));
+					Engine::Editor::Gui::changeSelectedGameObject(Application->editorScene->gameObjects.find(Editor::selectedGameObject->uuid));
+				// Change active scene, update the selected object scene, delete runtime and set running to false.
 				delete(Application->runtimeScene);
 				Application->runningScene = false;
+				Application->activeScene = Application->editorScene;
 			} // Play
 			else {
 				// Create a new empty Scene, change active scene to runtime, copy the contents of editor scene into runtime scene and update the selected object scene

@@ -16,16 +16,18 @@ GameObject::GameObject(std::string objName, GameObject* parent) {
 	this->parent = parent;
 	if (parent != nullptr) {
 		parent->children.push_back(this);
-	}
-	// Add to the gameobjects list
+	}	// Add to the gameobjects list
 	Application->activeScene->gameObjects.push_back(std::unique_ptr<GameObject>(this));
 }
 
 void GameObjectList::push_back(std::unique_ptr<GameObject> obj) {
-	Application->activeScene->gameObjectsMap.emplace(obj->name, obj.get());
+	std::variant<uint64_t, string> variant; //= { obj.get()->uuid, obj.get()->name };
+	variant = obj.get()->uuid;
+	Application->activeScene->gameObjectsMap.emplace(variant, obj.get());
+	//Application->activeScene->gameObjectsMap.emplace(obj.get()->name, obj.get());
 	std::vector<std::unique_ptr<GameObject>>::push_back(std::move(obj));
 }
-GameObject* GameObjectList::find(std::string findName) {;
+GameObject* GameObjectList::find(std::string findName) {
 	auto it = Application->activeScene->gameObjectsMap.find(findName);
 	if (it != Application->activeScene->gameObjectsMap.end()) {
 		GameObject* obj = it->second;
@@ -34,6 +36,46 @@ GameObject* GameObjectList::find(std::string findName) {;
 	return nullptr;
 }
 
+GameObject* GameObjectList::find(uint64_t findUuid) {
+	return Application->activeScene->gameObjectsMap[findUuid];
+}
+
+void GameObject::Delete() {
+	uint64_t uuid = this->uuid;
+	
+
+	
+	if (this->children.size() > 0) {
+		for (GameObject* child : this->children) {
+			child->parent = nullptr;
+			child->Delete();
+		}
+	}
+	if (this->parent) {
+		auto it = std::find_if(this->parent->children.begin(), this->parent->children.end(), [uuid](GameObject* gameObject) {
+			return gameObject->uuid == uuid;
+			});
+
+		if (it != this->parent->children.end()) {
+			this->parent->children.erase(it);
+		}
+
+	}
+	// Remove from the active scene game objects vector
+	auto it = std::find_if(Application->activeScene->gameObjects.begin(), Application->activeScene->gameObjects.end(), [uuid](const std::unique_ptr<GameObject>& gameObject) {
+		if (gameObject != nullptr)
+			return gameObject->uuid == uuid;
+		});
+
+	if (it != Application->activeScene->gameObjects.end()) {
+		Application->activeScene->gameObjectsMap.erase(uuid);
+		Application->activeScene->gameObjects.erase(it);
+		std::variant<uint64_t, std::string> uuidVariant = uuid;
+
+	}
+
+	//delete(this);
+}
 
 GameObjectList gameObjects;
 std::unordered_map<std::string, GameObject*> gameObjectsMap;
@@ -46,3 +88,20 @@ MeshRenderer::MeshRenderer(Engine::Mesh initialMesh) {
 	this->mesh = std::make_unique<Mesh>(initialMesh);
 	Application->activeScene->meshRenderers.emplace_back(this);
 }
+
+MeshRenderer::~MeshRenderer() {
+	Application->activeScene->RemoveMeshRenderer(this->gameObjectUUID);
+}
+
+/*
+
+	void Scene::RemoveMeshRenderer(uint64_t uuid) {
+		auto it = std::find_if(meshRenderers.begin(), meshRenderers.end(), [uuid](MeshRenderer* meshRenderer) {
+			return meshRenderer->gameObjectUUID == uuid;
+			});
+
+		if (it != meshRenderers.end()) {
+			meshRenderers.erase(it);
+		}
+	}
+*/

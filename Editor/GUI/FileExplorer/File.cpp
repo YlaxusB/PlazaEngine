@@ -8,7 +8,8 @@ namespace Engine {
 		float Icon::spacing = 5.0f;
 		ImVec2 Icon::currentPos = ImVec2(-1.0f, 1.0f);
 
-		void Editor::Icon::Update(std::string directory, std::string extension, std::string fileName, File& file) {
+		void Editor::Icon::Update(std::string directory, std::string extension, std::string fileName, File file) {
+			
 			if (currentPos.x == -1.0f) {
 				currentPos = ImGui::GetCursorScreenPos();
 			}
@@ -24,9 +25,11 @@ namespace Engine {
 					backgroundColor = editorStyle.treeNodeHoverBackgroundColor;
 				}
 
-				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-					ImGui::Text("Drag the image file here!");
-					ImGui::SetDragDropPayload(Gui::scenePayloadName.c_str(), &file, sizeof(Editor::File));
+				if (ImGui::BeginDragDropSource()) {
+					File* filePtr = new File(file);
+					ImGui::Text(filePtr->name.c_str());
+					ImGui::Text(filePtr->directory.c_str());
+					ImGui::SetDragDropPayload(Gui::scenePayloadName.c_str(), &filePtr, sizeof(Editor::File&));
 					ImGui::EndDragDropSource();
 				}
 				ImDrawList* drawList = ImGui::GetWindowDrawList();

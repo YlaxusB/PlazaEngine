@@ -5,4 +5,5 @@ namespace Engine {
 	string Standards::projectExtName = engineExtName + "prj";
 	string Standards::sceneExtName = engineExtName + "scn";
 	string Standards::materialExtName = engineExtName + "mat";
+	string Standards::modelExtName = engineExtName + "mod";
 }

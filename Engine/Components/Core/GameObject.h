@@ -30,6 +30,7 @@ public:
 	std::string name = "";
 	int id;
 	uint64_t uuid;
+	std::string scene = "";
 
 	void DeleteChildren(GameObject* gameObject) {
 		for (GameObject* gameObject : gameObject->children) {

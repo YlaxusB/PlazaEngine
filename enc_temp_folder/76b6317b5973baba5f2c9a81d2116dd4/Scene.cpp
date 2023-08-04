@@ -2,6 +2,7 @@
 #include "Scene.h"
 namespace Engine {
 	Scene* Scene::Copy(Scene* newScene, Scene* copyScene) {
+		int ind = 0;
 		for (auto& gameObj : copyScene->gameObjects) {
 			std::unique_ptr<GameObject> newObj = make_unique<GameObject>(*gameObj);
 			newObj->transform = new Transform(*gameObj->transform);
@@ -21,9 +22,10 @@ namespace Engine {
 
 			newObj->transform->UpdateChildrenTransform();
 
-			//newScene->gameObjectsMap.emplace(newObj->uuid, newObj.get());
+			newScene->gameObjectsMap.emplace(newObj->uuid, newObj.get());
 			newScene->gameObjects.push_back(std::move(newObj));
 			//newScene->gameObjects.push_back(std::make_unique<GameObject>(newObj.get()));
+			ind++;
 			//delete(newObj);
 		}
 		for (auto& gameObj : copyScene->gameObjects) {

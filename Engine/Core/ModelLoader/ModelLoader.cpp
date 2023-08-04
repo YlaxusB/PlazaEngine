@@ -21,7 +21,7 @@ namespace Engine {
 		directory = path.substr(0, path.find_last_of('/'));
 
 		// process ASSIMP's root node recursively
-		GameObject* modelMainObject = new GameObject(modelName, sceneObject);
+		GameObject* modelMainObject = new GameObject(modelName, Application->activeScene->gameObjects.front().get());
 		//modelMainObject->AddComponent(new Transform());
 		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject);
 		modelMainObject->transform->UpdateChildrenTransform();
@@ -40,7 +40,7 @@ namespace Engine {
 		directory = path.substr(0, path.find_last_of('/'));
 
 		// process ASSIMP's root node recursively
-		GameObject* modelMainObject = new GameObject(modelName, sceneObject);
+		GameObject* modelMainObject = new GameObject(modelName, Application->activeScene->gameObjects.front().get());
 		//modelMainObject->AddComponent(new Transform());
 		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject);
 		modelMainObject->transform->UpdateChildrenTransform();
@@ -74,7 +74,7 @@ namespace Engine {
 				parentObject = modelMainObject;
 			}
 			else {
-				parentObject = sceneObject;
+				parentObject = Application->activeScene->gameObjects.front().get();
 			}
 			GameObject* childObject = new GameObject(childName, parentObject);
 			childObject->AddComponent<MeshRenderer>(new MeshRenderer(nodeMesh));

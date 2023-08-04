@@ -43,8 +43,6 @@ GameObject* GameObjectList::find(uint64_t findUuid) {
 void GameObject::Delete() {
 	uint64_t uuid = this->uuid;
 	
-
-	
 	if (this->children.size() > 0) {
 		for (GameObject* child : this->children) {
 			child->parent = nullptr;

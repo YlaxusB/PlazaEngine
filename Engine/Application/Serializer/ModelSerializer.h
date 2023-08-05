@@ -2,7 +2,8 @@
 namespace Engine {
 	class ModelSerializer {
 	public:
-		static void SerializeModel(GameObject* mainObject, string filePath);
-		static void DeSerializeModel(string filePath);
+		static void SerializeModel(GameObject* mainObject, string filePath, string modelFilePath);
+		static Model* DeSerializeModel(string filePath);
+		static uint64_t ReadUUID(string filePath);
 	};
 }

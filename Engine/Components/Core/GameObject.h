@@ -40,7 +40,7 @@ public:
 		delete(gameObject);
 	}
 
-	GameObject(std::string objName, GameObject* parent = sceneObject);
+	GameObject(std::string objName, GameObject* parent = sceneObject, bool addToScene = true);
 	GameObject(const GameObject&) = default;
 	~GameObject() = default;
 	void Delete();
@@ -86,9 +86,15 @@ public:
 class MeshRenderer;
 class MeshRenderer : public Component {
 public:
+	string aiMeshName;
+	uint64_t uuid;
+	std::string meshName;
 	std::unique_ptr<Engine::Mesh> mesh;
 	Transform* transform;
-	MeshRenderer(Mesh initialMesh);
+	MeshRenderer(Mesh initialMesh, bool addToScene = false);
 	MeshRenderer(const MeshRenderer&) = default;
 	~MeshRenderer();
+	MeshRenderer() {
+		uuid = Engine::UUID::NewUUID();
+	}
 };

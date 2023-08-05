@@ -18,6 +18,7 @@
 #include "Editor/GUI/MenuBar.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Engine/Core/ModelLoader/ModelLoader.h"
+#include "Engine/Application/Serializer/ModelSerializer.h"
 //#include "Engine/Application/Application.h" //
 
 //
@@ -205,8 +206,10 @@ namespace Engine {
 						if (payload->DataSize == sizeof(Editor::File)) {
 							File* file = *static_cast<File**>(payload->Data);
 							//if (file->extension == Standards::modelExtName) {
-							if (file->extension == ".obj" || file->extension == ".fbx") {
-									ModelLoader::LoadModelToGame(file->directory, file->name);
+							if (file->extension == Standards::modelExtName) {
+								//file->directory, file->name
+
+								ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID(file->directory), file->directory);
 							}
 							//for (string format : ModelLoader::supportedFormats) {
 							//	if (file->extension == format) {

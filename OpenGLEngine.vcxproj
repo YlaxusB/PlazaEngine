@@ -162,7 +162,10 @@
     <ClCompile Include="Engine\Application\FileDialog\SaveDialog.cpp" />
     <ClCompile Include="Engine\Application\PickingTexture.cpp" />
     <ClCompile Include="Engine\Application\Serializer\Components\ComponentSerializer.cpp" />
+    <ClCompile Include="Engine\Application\Serializer\Components\MaterialSerializer.cpp" />
     <ClCompile Include="Engine\Application\Serializer\Components\MeshSerializer.cpp" />
+    <ClCompile Include="Engine\Application\Serializer\Components\TextureSerializer.cpp" />
+    <ClCompile Include="Engine\Application\Serializer\Components\TransformSerializer.cpp" />
     <ClCompile Include="Engine\Application\Serializer\ModelSerializer.cpp" />
     <ClCompile Include="Engine\Application\Serializer\ProjectSerializer.cpp" />
     <ClCompile Include="Engine\Application\Window.cpp" />
@@ -351,7 +354,10 @@
     <ClInclude Include="Engine\Application\EntryPoint.h" />
     <ClInclude Include="Engine\Application\FileDialog\FileDialog.h" />
     <ClInclude Include="Engine\Application\Serializer\Components\ComponentSerializer.h" />
+    <ClInclude Include="Engine\Application\Serializer\Components\MaterialSerializer.h" />
     <ClInclude Include="Engine\Application\Serializer\Components\MeshSerializer.h" />
+    <ClInclude Include="Engine\Application\Serializer\Components\TextureSerializer.h" />
+    <ClInclude Include="Engine\Application\Serializer\Components\TransformSerializer.h" />
     <ClInclude Include="Engine\Application\Serializer\ModelSerializer.h" />
     <ClInclude Include="Engine\Application\Serializer\ProjectSerializer.h" />
     <ClInclude Include="Engine\Application\Window.h" />

@@ -3,7 +3,7 @@
 namespace Engine {
 	static class EngineClass {
 	public:
-		static std::vector<std::unique_ptr<Model>> models;
+		static std::unordered_map<uint64_t, std::unique_ptr<Model>> models;
 	};
 }
-inline std::vector<std::unique_ptr<Model>> EngineClass::models = std::vector<std::unique_ptr<Model>>();
+inline std::unordered_map<uint64_t, std::unique_ptr<Model>> EngineClass::models = std::unordered_map<uint64_t, std::unique_ptr<Model>>();

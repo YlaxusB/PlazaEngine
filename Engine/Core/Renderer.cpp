@@ -49,15 +49,19 @@ namespace Engine {
 		//std::cout << "Execution time: " << duration.count() << " ms" << std::endl;
 
 		Application->activeCamera->UpdateFrustum();
-		for (const auto& meshRenderer : Application->activeScene->meshRenderers) {
-			Transform* transform = meshRenderer->gameObject->transform;
+		for (const auto& gameObject : Application->activeScene->gameObjects) {
+			MeshRenderer* meshRenderer = gameObject.get()->GetComponent<MeshRenderer>();
+			if (meshRenderer) {
+				Transform* transform = gameObject.get()->transform;
 
-			if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
-				glm::mat4 modelMatrix = transform->modelMatrix;
-				shader.setMat4("model", modelMatrix);
-				meshRenderer->mesh->BindTextures(shader);
-				meshRenderer->mesh->Draw(shader);
+				if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
+					glm::mat4 modelMatrix = transform->modelMatrix;
+					shader.setMat4("model", modelMatrix);
+					meshRenderer->mesh->BindTextures(shader);
+					meshRenderer->mesh->Draw(shader);
+				}
 			}
+
 			/*
 			auto startTime = std::chrono::high_resolution_clock::now();
 			// End measuring time and calculate duration

@@ -312,6 +312,15 @@
     <ClCompile Include="Engine\Components\Core\ModelComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Application\Serializer\Components\MaterialSerializer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Application\Serializer\Components\TransformSerializer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Application\Serializer\Components\TextureSerializer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h">
@@ -1899,6 +1908,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Components\Core\ModelComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Application\Serializer\Components\MaterialSerializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Application\Serializer\Components\TransformSerializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Application\Serializer\Components\TextureSerializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,14 +2,14 @@
 
 #include "Engine/Components/Core/GameObject.h"
 
-GameObject::GameObject(std::string objName, GameObject* parent) {
+GameObject::GameObject(std::string objName, GameObject* parent, bool addToScene) {
 	this->transform = this->AddComponent<Transform>(new Transform());
 	transform->gameObject = this;
 	//transform->gameObject = this;
 	//this->AddComponent<Transform>(this->transform);
 	UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
 	name = objName;
-	id = Application->activeScene->gameObjects.size() > 0 ? Application->activeScene->gameObjects.back()->id + 1 : 1; // IT WILL PROBABLY BREAK IN THE NEAR FUTURE
+	id = Application->activeScene->gameObjects.size() > 0 ? Application->activeScene->gameObjects.back()->id + 1 : 1; // IT WILL PROBABLY BREAK IN THE NEAR FUTURE 
 	uuid = Engine::UUID::NewUUID();
 
 	// Set the new parent
@@ -17,7 +17,8 @@ GameObject::GameObject(std::string objName, GameObject* parent) {
 	if (parent != nullptr) {
 		parent->children.push_back(this);
 	}	// Add to the gameobjects list
-	Application->activeScene->gameObjects.push_back(std::unique_ptr<GameObject>(this));
+	if (addToScene)
+		Application->activeScene->gameObjects.push_back(std::unique_ptr<GameObject>(this));
 }
 
 void GameObjectList::push_back(std::unique_ptr<GameObject> obj) {
@@ -42,7 +43,7 @@ GameObject* GameObjectList::find(uint64_t findUuid) {
 
 void GameObject::Delete() {
 	uint64_t uuid = this->uuid;
-	
+
 	if (this->children.size() > 0) {
 		for (GameObject* child : this->children) {
 			child->parent = nullptr;
@@ -82,9 +83,11 @@ std::vector<MeshRenderer*> meshRenderers;
 
 GameObject* sceneObject = new GameObject("Scene Objects", nullptr);
 
-MeshRenderer::MeshRenderer(Engine::Mesh initialMesh) {
+MeshRenderer::MeshRenderer(Engine::Mesh initialMesh, bool addToScene) {
+	this->uuid = Engine::UUID::NewUUID();
 	this->mesh = std::make_unique<Mesh>(initialMesh);
-	Application->activeScene->meshRenderers.emplace_back(this);
+	if (addToScene)
+		Application->activeScene->meshRenderers.emplace_back(this);
 }
 
 MeshRenderer::~MeshRenderer() {

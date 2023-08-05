@@ -64,12 +64,12 @@ namespace Engine::Editor {
 		}
 		std::filesystem::copy(modelPath, sourcesFolderPath + "\\" + modelName + extension);
 		GameObject* mainObject = ModelLoader::LoadModelToGame(modelPath, modelName, scene);
-		ModelSerializer::SerializeModel(mainObject, Application->activeProject->directory + "\\teste.yaml");
+		ModelSerializer::SerializeModel(mainObject, modelPathInEngine + "\\" + filesystem::path(modelPath).stem().string() + Standards::modelExtName, modelPath);
 		Editor::selectedGameObject = nullptr;
 		Gui::changeSelectedGameObject(nullptr);
-		mainObject->Delete();
+		//mainObject->Delete();
 		//delete(mainObject);
-		DeleteChildrene(mainObject);
+		//DeleteChildrene(mainObject);
 		Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 	}
 }

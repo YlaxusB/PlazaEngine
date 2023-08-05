@@ -1,9 +1,48 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ModelLoader.h"
+#include "Engine/Core/Engine.h"
+#include "Engine/Application/Serializer/ModelSerializer.h"
+#include "Engine/Core/ModelLoader/Model.h"
 namespace Engine {
-	GameObject* ModelLoader::LoadImportedModel() {
+	GameObject* ModelLoader::LoadImportedModelToScene(uint64_t modelUuid, string filePath) {
+		Model* model = nullptr;
+		auto it = EngineClass::models.find(modelUuid);
+		if (it != EngineClass::models.end()) {
+			model = it->second.get();
+			//GameObject* mainObject = model->gameObjects.front().get();
+			for (const auto& gameObjectSharedPointer : model->gameObjects) {
+				GameObject* gameObject = gameObjectSharedPointer.get();
+				GameObject* newGameObject = new GameObject(gameObject->name);
+
+				MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
+				if (meshRenderer) {
+					newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
+				}
+				std::cout << "ok" << std::endl;
+				/*
+				for (shared_ptr component : gameObject->components) {
+					newGameObject->AddComponent<Component>(component.get());
+				}
+				*/
+			}
+		}
+		else {
+			if (!filePath.empty()) ModelLoader::LoadImportedModelToMemory(filePath);
+			return nullptr;
+		}
+	}
+
+	GameObject* ModelLoader::LoadImportedModelToMemory(string filePath) {
+		unique_ptr<Model> model = make_unique<Model>(*ModelSerializer::DeSerializeModel(filePath));
+		model.get()->meshRenderers;
+		uint64_t uuid = model->uuid;
+		LoadModelMeshes(model.get()->modelFilePath, model.get()->meshRenderers);
+		EngineClass::models.emplace(model->uuid, move(model));
+		LoadImportedModelToScene(uuid);
+		// delete(model)   //////////////////////////////////////////////////////////////////////////////////////////////
 		return nullptr;
 	}
+
 	GameObject* ModelLoader::LoadModelToGame(string const& path, std::string modelName) {
 		vector<Texture>* textures_loaded = new vector<Texture>;
 		vector<Mesh>* meshes = new vector<Mesh>;
@@ -30,6 +69,20 @@ namespace Engine {
 		delete textures_loaded;
 		delete meshes;
 		return modelMainObject;
+	}
+
+	void ModelLoader::LoadModelMeshes(string filePath, unordered_map<string, shared_ptr<MeshRenderer>>& meshRenderers) {
+		vector<Texture>* texturesLoaded = new vector<Texture>;
+		vector<Mesh>* meshes = new vector<Mesh>;
+		string directory;
+		// read file via ASSIMP
+		Assimp::Importer importer;
+		const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+		for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
+			aiMesh* aiMesh = scene->mMeshes[i];
+			Mesh mesh = ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr);
+			meshRenderers.emplace(string(aiMesh->mName.C_Str()), make_shared<MeshRenderer>(mesh));
+		}
 	}
 
 	GameObject* ModelLoader::LoadModelToGame(string const& path, std::string modelName, aiScene const* scene) {
@@ -77,7 +130,9 @@ namespace Engine {
 				parentObject = Application->activeScene->gameObjects.front().get();
 			}
 			GameObject* childObject = new GameObject(childName, parentObject);
-			childObject->AddComponent<MeshRenderer>(new MeshRenderer(nodeMesh));
+			MeshRenderer* childMeshRenderer = new MeshRenderer(nodeMesh);
+			childMeshRenderer->aiMeshName = string(mesh->mName.C_Str());
+			childObject->AddComponent<MeshRenderer>(childMeshRenderer);
 			childObject->transform->relativePosition = position;
 		}
 		// after we've processed all of the meshes (if any) we then recursively process each of the children nodes

@@ -11,6 +11,7 @@
 #include "Engine/Components/Core/Material.h"
 #include "Engine/Components/Core/Texture.h"
 #include "Engine/Core/Time.h"
+#include "Engine/Core/UUID.h"
 using namespace std;
 
 
@@ -35,6 +36,8 @@ namespace Engine {
 
 	class Mesh {
 	public:
+		uint64_t uuid;
+		uint64_t meshId;
 		float farthestVertex = 0.0f;
 		std::string id;
 		vector<Vertex> vertices;
@@ -49,8 +52,12 @@ namespace Engine {
 			this->vertices = vertices;
 			this->indices = indices;
 			this->material = material;
-
+			this->uuid = Engine::UUID::NewUUID();
 			setupMesh();
+		}
+
+		Mesh() {
+			uuid = Engine::UUID::NewUUID();
 		}
 
 		void BindTextures(Shader& shader) {

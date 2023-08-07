@@ -7,7 +7,7 @@ namespace Engine {
 		//out << YAML::BeginMap;
 		out << YAML::BeginMap;
 		out << YAML::Key << "GameObject" << gameObject->uuid;
-		out << YAML::Key << "Uuid" <<YAML::Value << gameObject->uuid;
+		out << YAML::Key << "Uuid" << YAML::Value << gameObject->uuid;
 		out << YAML::Key << "Name" << YAML::Value << gameObject->name;
 		out << YAML::Key << "ParentID" << YAML::Value << (gameObject->parent != nullptr ? gameObject->parent->uuid : 0);
 		out << YAML::Key << "Components" << YAML::Value << YAML::BeginMap;
@@ -59,6 +59,58 @@ namespace Engine {
 		fout << out.c_str();
 	}
 
+	void DeSerializeTexture(Material& material, const auto& textureNode) {
+		if (textureNode) {
+			material.diffuse.path = textureNode["Path"].as<string>();
+			material.diffuse.rgba = textureNode["Rgba"].as<glm::vec4>();
+			//glm::vec4& rgba = material.diffuse.rgba;
+			//rgba.x = textureNode["Rgba"][0].as<float>();
+			//rgba.y = textureNode["Rgba"][1].as<float>();
+			//rgba.z = textureNode["Rgba"][2].as<float>();
+			//rgba.a = textureNode["Rgba"][3].as<float>();
+		}
+	}
+
+	void DeSerializeMaterial(const auto& materialNode, Model* model, MeshRenderer* meshRenderer) {
+		if (meshRenderer->mesh != nullptr) {
+			Material* material = &meshRenderer->mesh.get()->material;
+			material->shininess = materialNode["Shininess"].as<float>();
+			const auto& textureDiffuseNode = materialNode["texture_diffuse"];
+			DeSerializeTexture(*material, textureDiffuseNode);
+			const auto& textureSpecularNode = materialNode["texture_specular"];
+			DeSerializeTexture(*material, textureSpecularNode);
+			const auto& textureNormalNode = materialNode["texture_normal"];
+			DeSerializeTexture(*material, textureNormalNode);
+			const auto& textureHeightNode = materialNode["texture_height"];
+			DeSerializeTexture(*material, textureHeightNode);
+		}
+	}
+	void DeSerializeGameObject(const auto& gameObjectEntry, Model* model) {
+		const auto& componentsEntry = gameObjectEntry["Components"];
+		GameObject* gameObject = new GameObject(gameObjectEntry["Name"].as<string>(), nullptr, false);
+		gameObject->uuid = gameObjectEntry["Uuid"].as<uint64_t>();
+		uint64_t parentUuid = gameObjectEntry["ParentID"].as<uint64_t>();
+		for (const auto& modelGameObject : model->gameObjects) {
+			if (parentUuid == modelGameObject.get()->uuid) {
+				gameObject->parent = modelGameObject.get();
+			}
+		}
+		if (gameObject->parent == nullptr) {
+			gameObject->parent = Application->activeScene->gameObjects.front().get();
+		}
+		gameObject->transform = ComponentSerializer::TransformSerializer::DeSerialize(componentsEntry["TransformComponent"]);
+		gameObject->ReplaceComponent<Transform>(gameObject->GetComponent<Transform>(), gameObject->transform);
+		if (componentsEntry["MeshComponent"]) {
+			MeshRenderer* oldMeshRenderer = gameObject->GetComponent<MeshRenderer>();
+			MeshRenderer* newMeshRenderer = new MeshRenderer();
+			newMeshRenderer->aiMeshName = componentsEntry["MeshComponent"]["AiMeshName"].as<string>();
+			DeSerializeMaterial(componentsEntry["MeshComponent"]["MaterialComponent"], model, newMeshRenderer);
+			gameObject->AddComponent<MeshRenderer>(newMeshRenderer);
+		}
+		model->gameObjects.push_back(make_shared<GameObject>(*gameObject));
+	}
+
+
 	Model* ModelSerializer::DeSerializeModel(string filePath) {
 		std::ifstream stream(filePath);
 		std::stringstream strStream;
@@ -68,19 +120,13 @@ namespace Engine {
 		model->modelName = data["Model"].as<string>();
 		model->uuid = data["ModelUuid"].as<uint64_t>();
 		model->modelFilePath = data["ModelFilePath"].as<string>();
+		// DeSerialize the model's main object
+		DeSerializeGameObject(data["MainObject"][0], model);
+
+		// DeSerialize the model's GameObjects
 		const YAML::Node& gameObjects = data["GameObjects"];
 		for (const auto& gameObjectEntry : gameObjects) {
-			const auto& componentsEntry = gameObjectEntry["Components"];
-			GameObject* gameObject = new GameObject(gameObjectEntry["Name"].as<string>(), nullptr, false);
-			gameObject->transform = ComponentSerializer::TransformSerializer::DeSerialize(componentsEntry["TransformComponent"]);
-			gameObject->ReplaceComponent<Transform>(gameObject->GetComponent<Transform>(), gameObject->transform);
-			if(componentsEntry["MeshComponent"]) {
-				MeshRenderer* oldMeshRenderer = gameObject->GetComponent<MeshRenderer>();
-				MeshRenderer* newMeshRenderer = new MeshRenderer();
-				newMeshRenderer->aiMeshName = componentsEntry["MeshComponent"]["AiMeshName"].as<string>();
-				gameObject->AddComponent<MeshRenderer>(newMeshRenderer);
-			}
-			model->gameObjects.push_back(make_shared<GameObject>(*gameObject));
+			DeSerializeGameObject(gameObjectEntry, model);
 		}
 		return model;
 	}

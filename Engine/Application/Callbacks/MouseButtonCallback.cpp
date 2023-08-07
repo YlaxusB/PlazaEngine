@@ -25,8 +25,9 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 
 #pragma region Picking
 		float xposGame = lastX - appSizes.hierarchySize.x;
-		float yposGame = lastY - appSizes.appHeaderSize;
+		float yposGame = lastY - appSizes.appHeaderSize + 5;
 		yposGame = appSizes.sceneSize.y - yposGame;
+		yposGame = appSizes.sceneSize.y - (lastY - appSizes.sceneImageStart.y);
 		int clickId = -1;
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && (!ImGuizmo::IsUsing() || (ImGuizmo::IsOver() && !ImGuizmo::IsUsing))) {
 			Application->pickingTexture->GenerateTexture();

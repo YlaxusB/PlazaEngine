@@ -120,7 +120,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -1031,11 +1031,11 @@
     <None Include="Engine\Vendor\include\glm\gtx\vector_angle.inl" />
     <None Include="Engine\Vendor\include\glm\gtx\vector_query.inl" />
     <None Include="Engine\Vendor\include\glm\gtx\wrap.inl" />
-    <None Include="lib\assimp-vc143-mtd.exp" />
+    <None Include="lib\assimp-vc143-mt.exp" />
     <None Include="lib\glfw3.pdb" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="lib\assimp-vc143-mtd.lib" />
+    <Library Include="lib\assimp-vc143-mt.lib" />
     <Library Include="lib\glfw3.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

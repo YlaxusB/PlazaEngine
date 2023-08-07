@@ -10,21 +10,30 @@ namespace Engine {
 		if (it != EngineClass::models.end()) {
 			model = it->second.get();
 			//GameObject* mainObject = model->gameObjects.front().get();
+			unordered_map<uint64_t, GameObject*> modelInstanceGameObjects = unordered_map<uint64_t, GameObject*>();
+			modelInstanceGameObjects.clear();
 			for (const auto& gameObjectSharedPointer : model->gameObjects) {
 				GameObject* gameObject = gameObjectSharedPointer.get();
-				GameObject* newGameObject = new GameObject(gameObject->name);
-
+				uint64_t parentUuid = gameObject->parent->uuid;
+				GameObject* newGameObject = new GameObject(gameObject->name, modelInstanceGameObjects[parentUuid]);
+				newGameObject->modelUuid = gameObject->uuid;
+				newGameObject->parent = modelInstanceGameObjects[parentUuid];
+				if (newGameObject->parent == nullptr) {
+					newGameObject->parent = Application->activeScene->gameObjects.front().get();
+				}
 				MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
 				if (meshRenderer) {
 					newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
 				}
-				std::cout << "ok" << std::endl;
+				newGameObject->transform->UpdateChildrenTransform();
+				modelInstanceGameObjects.emplace(newGameObject->modelUuid, newGameObject);
 				/*
 				for (shared_ptr component : gameObject->components) {
 					newGameObject->AddComponent<Component>(component.get());
 				}
 				*/
 			}
+			Application->activeScene->gameObjects.front().get()->children.push_back(modelInstanceGameObjects[model->gameObjects.front().get()->uuid]);
 		}
 		else {
 			if (!filePath.empty()) ModelLoader::LoadImportedModelToMemory(filePath);
@@ -36,7 +45,7 @@ namespace Engine {
 		unique_ptr<Model> model = make_unique<Model>(*ModelSerializer::DeSerializeModel(filePath));
 		model.get()->meshRenderers;
 		uint64_t uuid = model->uuid;
-		LoadModelMeshes(model.get()->modelFilePath, model.get()->meshRenderers);
+		LoadModelMeshes(model.get()->modelFilePath, model.get()->meshRenderers, model.get());
 		EngineClass::models.emplace(model->uuid, move(model));
 		LoadImportedModelToScene(uuid);
 		// delete(model)   //////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,10 +80,10 @@ namespace Engine {
 		return modelMainObject;
 	}
 
-	void ModelLoader::LoadModelMeshes(string filePath, unordered_map<string, shared_ptr<MeshRenderer>>& meshRenderers) {
+	void ModelLoader::LoadModelMeshes(string filePath, unordered_map<string, shared_ptr<MeshRenderer>>& meshRenderers, Model* model) {
 		vector<Texture>* texturesLoaded = new vector<Texture>;
 		vector<Mesh>* meshes = new vector<Mesh>;
-		string directory;
+		string directory = filesystem::path{ model->modelFilePath }.parent_path().string() + "\\textures";
 		// read file via ASSIMP
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);

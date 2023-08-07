@@ -79,16 +79,19 @@ namespace Engine {
 
 	void ShadowsClass::RenderScene(Shader& shader) {
 		shader.use();
-		for (const auto& meshRenderer : Application->activeScene->meshRenderers) {
-			Transform* transform = meshRenderer->gameObject->transform;
 
-			// Check if the object is inside the view frustum
-			if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
+		for (const auto& gameObject : Application->activeScene->gameObjects) {
+			MeshRenderer* meshRenderer = gameObject.get()->GetComponent<MeshRenderer>();
+			if (meshRenderer) {
+				Transform* transform = gameObject.get()->transform;
+				// Check if the object is inside the view frustum
+				if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
 
-				glm::mat4 modelMatrix = transform->modelMatrix;
-				shader.setMat4("model", modelMatrix);
+					glm::mat4 modelMatrix = transform->modelMatrix;
+					shader.setMat4("model", modelMatrix);
 
-				meshRenderer->mesh->Draw(shader);
+					meshRenderer->mesh->Draw(shader);
+				}
 			}
 		}
 	}

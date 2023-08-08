@@ -12,10 +12,18 @@ namespace Engine {
 			//GameObject* mainObject = model->gameObjects.front().get();
 			unordered_map<uint64_t, GameObject*> modelInstanceGameObjects = unordered_map<uint64_t, GameObject*>();
 			modelInstanceGameObjects.clear();
+			unsigned int index = 0;
 			for (const auto& gameObjectSharedPointer : model->gameObjects) {
 				GameObject* gameObject = gameObjectSharedPointer.get();
 				uint64_t parentUuid = gameObject->parent->uuid;
 				GameObject* newGameObject = new GameObject(gameObject->name, modelInstanceGameObjects[parentUuid]);
+				Transform* newTransform = new Transform(*gameObject->transform);
+				newTransform->relativePosition = gameObject->transform->relativePosition;
+				newTransform->gameObject = newGameObject;
+
+
+				newGameObject->ReplaceComponent<Transform>(newGameObject->GetComponent<Transform>(), newTransform);
+				newGameObject->transform = newTransform;
 				newGameObject->modelUuid = gameObject->uuid;
 				newGameObject->parent = modelInstanceGameObjects[parentUuid];
 				if (newGameObject->parent == nullptr) {
@@ -25,13 +33,15 @@ namespace Engine {
 				if (meshRenderer) {
 					newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
 				}
-				newGameObject->transform->UpdateChildrenTransform();
+				newGameObject->parent->transform->UpdateChildrenTransform();
 				modelInstanceGameObjects.emplace(newGameObject->modelUuid, newGameObject);
 				/*
 				for (shared_ptr component : gameObject->components) {
 					newGameObject->AddComponent<Component>(component.get());
 				}
 				*/
+
+				index++;
 			}
 			Application->activeScene->gameObjects.front().get()->children.push_back(modelInstanceGameObjects[model->gameObjects.front().get()->uuid]);
 		}
@@ -45,7 +55,7 @@ namespace Engine {
 		unique_ptr<Model> model = make_unique<Model>(*ModelSerializer::DeSerializeModel(filePath));
 		model.get()->meshRenderers;
 		uint64_t uuid = model->uuid;
-		LoadModelMeshes(model.get()->modelFilePath, model.get()->meshRenderers, model.get());
+		LoadModelMeshes(filePath, model.get()->meshRenderers, model.get());
 		EngineClass::models.emplace(model->uuid, move(model));
 		LoadImportedModelToScene(uuid);
 		// delete(model)   //////////////////////////////////////////////////////////////////////////////////////////////
@@ -71,7 +81,8 @@ namespace Engine {
 		// process ASSIMP's root node recursively
 		GameObject* modelMainObject = new GameObject(modelName, Application->activeScene->gameObjects.front().get());
 		//modelMainObject->AddComponent(new Transform());
-		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject);
+		unsigned int index = 0;
+		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject, index);
 		modelMainObject->transform->UpdateChildrenTransform();
 
 		Editor::selectedGameObject = modelMainObject;
@@ -83,14 +94,16 @@ namespace Engine {
 	void ModelLoader::LoadModelMeshes(string filePath, unordered_map<string, shared_ptr<MeshRenderer>>& meshRenderers, Model* model) {
 		vector<Texture>* texturesLoaded = new vector<Texture>;
 		vector<Mesh>* meshes = new vector<Mesh>;
-		string directory = filesystem::path{ model->modelFilePath }.parent_path().string() + "\\textures";
+		string directory = filesystem::path{ filePath }.parent_path().string() + "\\textures";
 		// read file via ASSIMP
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+		const aiScene* scene = importer.ReadFile(model->modelFilePath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+		unsigned int index = 0;
 		for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 			aiMesh* aiMesh = scene->mMeshes[i];
 			Mesh mesh = ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr);
-			meshRenderers.emplace(string(aiMesh->mName.C_Str()), make_shared<MeshRenderer>(mesh));
+			meshRenderers.emplace(string(aiMesh->mName.C_Str() + to_string(index)), make_shared<MeshRenderer>(mesh));
+			index++;
 		}
 	}
 
@@ -104,7 +117,8 @@ namespace Engine {
 		// process ASSIMP's root node recursively
 		GameObject* modelMainObject = new GameObject(modelName, Application->activeScene->gameObjects.front().get());
 		//modelMainObject->AddComponent(new Transform());
-		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject);
+		unsigned int index = 0;
+		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject, index);
 		modelMainObject->transform->UpdateChildrenTransform();
 
 		Editor::selectedGameObject = modelMainObject;
@@ -114,7 +128,7 @@ namespace Engine {
 	}
 
 	// processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
-	void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, string* directory, GameObject* modelMainObject)
+	void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, string* directory, GameObject* modelMainObject, unsigned int& index)
 	{
 		for (unsigned int i = 0; i < node->mNumMeshes; i++)
 		{
@@ -140,14 +154,16 @@ namespace Engine {
 			}
 			GameObject* childObject = new GameObject(childName, parentObject);
 			MeshRenderer* childMeshRenderer = new MeshRenderer(nodeMesh);
-			childMeshRenderer->aiMeshName = string(mesh->mName.C_Str());
+			childMeshRenderer->aiMeshName = string(mesh->mName.C_Str()) + to_string(index);
 			childObject->AddComponent<MeshRenderer>(childMeshRenderer);
 			childObject->transform->relativePosition = position;
+
+			index++;
 		}
 		// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
 		for (unsigned int i = 0; i < node->mNumChildren; i++)
 		{
-			ProcessNode(node->mChildren[i], scene, meshes, textures_loaded, directory, modelMainObject);
+			ProcessNode(node->mChildren[i], scene, meshes, textures_loaded, directory, modelMainObject, index);
 		}
 	}
 

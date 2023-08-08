@@ -33,36 +33,54 @@ namespace Engine {
 
 	unsigned int ModelLoader::TextureFromFile(const char* path, const string& directory, bool gamma)
 	{
-		string filename = std::filesystem::path{ directory }.parent_path().string() + "\\" + path;
+		string aed = std::filesystem::path{ directory }.parent_path().string();
+		string texturesPath = std::filesystem::path{ directory }.string();
+		string textureName = filesystem::path{ path }.filename().string();
+		string fileName;
+		if (filesystem::is_directory(texturesPath)) {
+			fileName = texturesPath + "\\" + textureName;
+		}
+		else {
+			fileName = filesystem::path{ texturesPath }.parent_path().string() + "\\" + textureName;
+		}
+		int width, height, nrComponents;
+		std::cout << fileName << std::endl;
+		unsigned char* data = stbi_load(fileName.c_str(), &width, &height, &nrComponents, 4);
 		unsigned int textureID;
 		glGenTextures(1, &textureID);
-		int width, height, nrComponents;
-		std::cout << filename << std::endl;
-		unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
 		if (data)
 		{
+
 			GLenum format;
 			if (nrComponents == 1)
 				format = GL_RED;
+			else if (nrComponents == 2)
+				format = GL_RG;
 			else if (nrComponents == 3)
 				format = GL_RGB;
 			else if (nrComponents == 4)
 				format = GL_RGBA;
-
+			format = GL_RGBA;
 			glBindTexture(GL_TEXTURE_2D, textureID);
 			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+			GLenum error = glGetError();
+			if (error != GL_NO_ERROR) {
+				std::cerr << "OpenGL error after glTexImage2D: " << error << std::endl;
+			}
 			glGenerateMipmap(GL_TEXTURE_2D);
-
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+
 			stbi_image_free(data);
+
+
 		}
 		else
 		{
-			std::cout << "Texture failed to load at path: " << filename << std::endl;
+			std::cout << "Texture failed to load at path: " << fileName << std::endl;
 			stbi_image_free(data);
 		}
 		return textureID;

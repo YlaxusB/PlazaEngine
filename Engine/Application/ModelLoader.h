@@ -33,7 +33,7 @@ namespace Engine {
 		vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture>& textures_loaded, string* directory);
 		void processNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, string* directory, GameObject* modelMainObject);
 		Mesh processMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node);
-		double modelScale = 0.01;
+		double modelScale = 1.0;
 
 
 

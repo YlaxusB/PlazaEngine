@@ -140,6 +140,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Editor\DefaultAssets\Models\DefaultModels.cpp" />
     <ClCompile Include="Editor\GUI\FileExplorer\File.cpp" />
     <ClCompile Include="Editor\GUI\FileExplorer\FileExplorer.cpp" />
     <ClCompile Include="Editor\GUI\ProjectManager\OpenProjectClick.cpp" />
@@ -340,6 +341,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Editor\DefaultAssets\DefaultAssets.h" />
+    <ClInclude Include="Editor\DefaultAssets\Models\Cube.h" />
+    <ClInclude Include="Editor\DefaultAssets\Models\DefaultModels.h" />
     <ClInclude Include="Editor\Editor.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\CreateFile.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\CreateFolder.h" />

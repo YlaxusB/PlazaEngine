@@ -3,7 +3,7 @@
 #include "Engine/Core/Time.h"
 
 #include "Engine/Application/Serializer/Components/MeshSerializer.h"
-
+#include "Editor/DefaultAssets/Models/DefaultModels.h"
 using namespace Engine;
 void DeleteChildrene(GameObject* gameObject) {
 		uint64_t uuid = Editor::selectedGameObject->uuid;
@@ -31,7 +31,7 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 			glfwSetWindowShouldClose(window, true);
 		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
 			int size = Application->activeScene->gameObjects.size();
-			for (int i = size; i < size + 100; i++) {
+			for (int i = size; i < size + 1000; i++) {
 				GameObject* d = new GameObject(std::to_string(Application->activeScene->gameObjects.size()), Application->activeScene->gameObjects.front().get());
 				//d->AddComponent(new Transform());
 
@@ -51,8 +51,9 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 				cubeMesh.material.specular = Texture();
 				cubeMesh.material.specular.rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
 				MeshRenderer* meshRenderer = new MeshRenderer(cubeMesh);
-
-				meshRenderer->mesh = std::make_unique<Mesh>(cubeMesh);
+				meshRenderer->instanced = true;
+				//meshRenderer->mesh = std::make_unique<Mesh>(cubeMesh);
+				meshRenderer->mesh = Editor::DefaultModels::Cube();
 				std::cout << Application->activeProject->directory << std::endl;
 				//MeshSerializer::Serialize(Application->activeProject->directory + "\\teste.yaml", *cubeMesh);
 				d->AddComponent<MeshRenderer>(meshRenderer);

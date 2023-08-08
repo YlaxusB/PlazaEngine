@@ -7,14 +7,18 @@
 
 ApplicationClass* Engine::Application = new Engine::ApplicationClass();
 using namespace Engine;
+
+
+#include "Editor/DefaultAssets/Models/DefaultModels.h"
+
+
+
 int main() {
 	//Application = new Engine::ApplicationClass();
-	std::cout << "1" << std::endl;
 	Application->CreateApplication();
-	std::cout << "2" << std::endl;
+
+	Editor::DefaultModels::Init();
 	Application->Loop();
-	std::cout << "3" << std::endl;
 	Application->Terminate();
-	std::cout << "4" << std::endl;
 	return 0;
 }

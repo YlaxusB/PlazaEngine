@@ -5,6 +5,7 @@ namespace Engine {
 	{
 	public:
 		static int drawCalls;
+		static int addInstanceCalls;
 		static int frameCount;
 		static float previousTime;
 		static float deltaTime;
@@ -17,6 +18,7 @@ namespace Engine {
 
 
 inline int Engine::Time::drawCalls = 0;
+inline int Engine::Time::addInstanceCalls = 0;
 inline int Engine::Time::frameCount = 0;
 inline float Engine::Time::previousTime = 0;
 inline float Engine::Time::deltaTime = 0;

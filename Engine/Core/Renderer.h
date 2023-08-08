@@ -11,6 +11,11 @@ namespace Engine {
 		static void Render(Shader& shader);
 
 		/// <summary>
+		/// Loops  through the meshes list of the active scene and Draw all instanced meshes
+		/// </summary>
+		static void RenderInstances(Shader& shader);
+
+		/// <summary>
 		/// Renders the Outline of the Selected GameObject and its children
 		/// </summary>
 		/// <param name="outlineShader"></param>

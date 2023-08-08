@@ -56,9 +56,15 @@ namespace Engine {
 
 				if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
 					glm::mat4 modelMatrix = transform->modelMatrix;
-					shader.setMat4("model", modelMatrix);
-					meshRenderer->mesh->BindTextures(shader);
-					meshRenderer->mesh->Draw(shader);
+					if (meshRenderer->instanced) {
+						meshRenderer->mesh->AddInstance(shader, modelMatrix);
+					}
+					else {
+						shader.setMat4("model", modelMatrix);
+						meshRenderer->mesh->BindTextures(shader);
+						meshRenderer->mesh->Draw(shader);
+
+					}
 				}
 			}
 
@@ -72,6 +78,15 @@ namespace Engine {
 			*/
 		}
 	}
+
+	void Renderer::RenderInstances(Shader& shader) {
+		for (shared_ptr<Mesh> mesh : Application->activeScene->meshes) {
+			if (mesh->instanceModelMatrices.size() > 0) {
+				mesh->DrawInstanced(shader);
+			}
+		}
+	}
+
 	void Renderer::BlurBuffer()
 	{
 

@@ -197,6 +197,7 @@ void ApplicationClass::UpdateEngine() {
 	// Draw GameObjects
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 	Renderer::Render(*Application->shader);
+	Renderer::RenderInstances(*Application->shader);
 
 	// Update Skybox
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
@@ -236,6 +237,7 @@ void ApplicationClass::UpdateEngine() {
 
 	Time::lastFrame = currentFrame;
 	Time::drawCalls = 0;
+	Time::addInstanceCalls = 0;
 	// Update lastSizes
 	Application->lastAppSizes = Application->appSizes;
 }

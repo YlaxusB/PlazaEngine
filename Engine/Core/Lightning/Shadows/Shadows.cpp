@@ -68,7 +68,8 @@ namespace Engine {
 		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, depthMapResolution, depthMapResolution);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glCullFace(GL_FRONT);
-		ShadowsClass::RenderScene(*Application->shadowsDepthShader);;
+		ShadowsClass::RenderScene(*Application->shadowsDepthShader);
+		Renderer::RenderInstances(*Application->shader);
 		glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -86,11 +87,15 @@ namespace Engine {
 				Transform* transform = gameObject.get()->transform;
 				// Check if the object is inside the view frustum
 				if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
-
 					glm::mat4 modelMatrix = transform->modelMatrix;
-					shader.setMat4("model", modelMatrix);
+					if (meshRenderer->instanced) {
+						meshRenderer->mesh->AddInstance(shader, modelMatrix);
+					}
+					else {
+						shader.setMat4("model", modelMatrix);
+						meshRenderer->mesh->Draw(shader);
+					}
 
-					meshRenderer->mesh->Draw(shader);
 				}
 			}
 		}

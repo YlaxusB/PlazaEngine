@@ -51,18 +51,19 @@ public:
 
 	vector<shared_ptr<Component>> components;
 	template<typename T>
-	T* AddComponent(T* component) {
-		components.push_back(shared_ptr<Component>(component));
-		component->gameObject = this;
-		component->gameObjectUUID = this->uuid;
-		return component;
-	}
+	T* AddComponent(T* component);
+	Component* AddComponent(Component* component);
 
+	Component* cachedComponent = nullptr;
 	template<typename T>
 	T* GetComponent() {
-		for (shared_ptr<Component> component : components) {
-			if (typeid(*component) == typeid(T)) {
-				return static_cast<T*>(component.get());
+		const std::type_info& type = typeid(T);
+		if (cachedComponent && type == typeid(*cachedComponent))
+			return static_cast<T*>(cachedComponent);
+		for (const std::shared_ptr<Component>& component : components) {
+			if (typeid(*component) == type) {
+				cachedComponent = component.get();
+				return static_cast<T*>(cachedComponent);
 			}
 		}
 		return nullptr;
@@ -90,8 +91,9 @@ public:
 	string aiMeshName;
 	uint64_t uuid;
 	std::string meshName;
-	std::unique_ptr<Engine::Mesh> mesh;
+	std::shared_ptr<Engine::Mesh> mesh;
 	Transform* transform;
+	bool instanced = false;
 	MeshRenderer(Mesh initialMesh, bool addToScene = false);
 	MeshRenderer(const MeshRenderer&) = default;
 	~MeshRenderer();

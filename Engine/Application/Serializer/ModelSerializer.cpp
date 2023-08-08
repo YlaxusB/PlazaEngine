@@ -103,6 +103,7 @@ namespace Engine {
 		if (componentsEntry["MeshComponent"]) {
 			MeshRenderer* oldMeshRenderer = gameObject->GetComponent<MeshRenderer>();
 			MeshRenderer* newMeshRenderer = new MeshRenderer();
+			newMeshRenderer->instanced = true;
 			newMeshRenderer->aiMeshName = componentsEntry["MeshComponent"]["AiMeshName"].as<string>();
 			DeSerializeMaterial(componentsEntry["MeshComponent"]["MaterialComponent"], model, newMeshRenderer);
 			gameObject->AddComponent<MeshRenderer>(newMeshRenderer);

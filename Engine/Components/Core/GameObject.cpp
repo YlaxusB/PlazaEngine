@@ -1,6 +1,31 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 
 #include "Engine/Components/Core/GameObject.h"
+#include "Engine/Core/Scene.h"
+
+template<typename T> T* GameObject::AddComponent(T* component) {
+	components.push_back(shared_ptr<Component>(component));
+	component->gameObject = this;
+	component->gameObjectUUID = this->uuid;
+	if (typeid(component) == typeid(MeshRenderer)) {
+		Application->activeScene->meshRendererComponents.emplace(this->uuid, static_cast<MeshRenderer*>(components.back().get()));
+	}
+	else if (typeid(component) == typeid(Transform)) {
+		Application->activeScene->transformComponents.emplace(this->uuid, static_cast<Transform*>(components.back().get()));
+	
+	}
+	return component;
+}
+
+
+template MeshRenderer* GameObject::AddComponent(MeshRenderer* component);
+
+Component* GameObject::AddComponent(Component* component) {
+	components.push_back(shared_ptr<Component>(component));
+	component->gameObject = this;
+	component->gameObjectUUID = this->uuid;
+	return component;
+}
 
 GameObject::GameObject(std::string objName, GameObject* parent, bool addToScene) {
 	this->transform = this->AddComponent<Transform>(new Transform());

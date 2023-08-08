@@ -321,6 +321,9 @@
     <ClCompile Include="Engine\Application\Serializer\Components\TextureSerializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\DefaultAssets\Models\DefaultModels.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h">
@@ -1919,6 +1922,15 @@
     <ClInclude Include="Engine\Application\Serializer\Components\TextureSerializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Editor\DefaultAssets\Models\Cube.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\DefaultAssets\Models\DefaultModels.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\DefaultAssets\DefaultAssets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Engine\Shaders\skybox\skyboxVertex.glsl" />
@@ -2366,11 +2378,11 @@
     <None Include="Engine\Vendor\include\glm\gtx\wrap.inl">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="lib\assimp-vc143-mtd.exp" />
     <None Include="lib\glfw3.pdb" />
+    <None Include="lib\assimp-vc143-mt.exp" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="lib\assimp-vc143-mtd.lib" />
     <Library Include="lib\glfw3.lib" />
+    <Library Include="lib\assimp-vc143-mt.lib" />
   </ItemGroup>
 </Project>

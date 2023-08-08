@@ -31,6 +31,7 @@ namespace Engine {
 				}
 				MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
 				if (meshRenderer) {
+					model->meshRenderers.find(meshRenderer->aiMeshName)->second.get()->instanced = true;
 					newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
 				}
 				newGameObject->parent->transform->UpdateChildrenTransform();
@@ -154,6 +155,7 @@ namespace Engine {
 			}
 			GameObject* childObject = new GameObject(childName, parentObject);
 			MeshRenderer* childMeshRenderer = new MeshRenderer(nodeMesh);
+			childMeshRenderer->instanced = true;
 			childMeshRenderer->aiMeshName = string(mesh->mName.C_Str()) + to_string(index);
 			childObject->AddComponent<MeshRenderer>(childMeshRenderer);
 			childObject->transform->relativePosition = position;

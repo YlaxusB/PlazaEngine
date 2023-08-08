@@ -59,7 +59,7 @@ namespace Engine::Editor {
 		// Change the selected gameobject if user clicked on the selectable
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 			Gui::changeSelectedGameObject(Application->activeScene->gameObjectsMap[gameObject.uuid]);
-			//Engine::Editor::selectedGameObject = gameObject;
+		//Engine::Editor::selectedGameObject = gameObject;
 
 
 		if (ImGui::IsItemVisible()) {
@@ -80,9 +80,12 @@ namespace Engine::Editor {
 		}
 		if (treeNodeOpen)
 		{
-			for (GameObject* child : gameObject.children)
+			if (ImGui::IsItemVisible()) // Check if the item is visible
 			{
-				Gui::Hierarchy::Item(*child, selectedGameObject);
+				for (GameObject* child : gameObject.children)
+				{
+					Gui::Hierarchy::Item(*child, selectedGameObject);
+				}
 			}
 			ImGui::TreePop();
 

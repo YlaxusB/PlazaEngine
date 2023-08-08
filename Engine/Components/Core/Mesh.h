@@ -32,10 +32,12 @@ namespace Engine {
 
 
 
-	
+
 
 	class Mesh {
 	public:
+		unsigned int instanceBuffer;
+		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
 		uint64_t uuid;
 		uint64_t meshId;
 		float farthestVertex = 0.0f;
@@ -125,6 +127,32 @@ namespace Engine {
 			// always good practice to set everything back to defaults once configured.
 			glActiveTexture(GL_TEXTURE0);
 			Time::drawCalls += 1;
+		}
+
+		void AddInstance(Shader& shader, glm::mat4 model) {
+			Time::addInstanceCalls += 1;
+			instanceModelMatrices.push_back(model);
+		}
+
+		void DrawInstanced(Shader& shader) {
+			if (instanceModelMatrices.size() > 0) {
+				BindTextures(shader);
+				// Setup instance buffer
+				glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
+				glBufferData(GL_ARRAY_BUFFER, instanceModelMatrices.size() * sizeof(glm::mat4), &instanceModelMatrices[0], GL_STATIC_DRAW);
+				// draw mesh
+				glBindVertexArray(VAO);
+				//glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
+				glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, instanceModelMatrices.size());
+				glBindVertexArray(0);
+
+				// always good practice to set everything back to defaults once configured.
+				glActiveTexture(GL_TEXTURE0);
+				Time::drawCalls += 1;
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+				instanceModelMatrices.clear();
+				//instanceModelMatrices.resize(0);
+			}
 		}
 
 		static Mesh Cube() {
@@ -335,7 +363,33 @@ namespace Engine {
 			// vertex bitangent
 			glEnableVertexAttribArray(4);
 			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+			
+
+			// Generate instanced array
+			glGenBuffers(1, &instanceBuffer);
+			glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
+			// set attribute pointers for matrix (4 times vec4)
+			glEnableVertexAttribArray(7);
+			glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+
+
+			glEnableVertexAttribArray(8);
+			glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4)));
+
+			glEnableVertexAttribArray(9);
+			glVertexAttribPointer(9, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+
+
+			glEnableVertexAttribArray(10);
+			glVertexAttribPointer(10, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+
+			glVertexAttribDivisor(7, 1);
+			glVertexAttribDivisor(8, 1);
+			glVertexAttribDivisor(9, 1);
+			glVertexAttribDivisor(10, 1);
 			glBindVertexArray(0);
+
 
 			for (Vertex vertex : vertices) {
 				glm::vec3 absoluteVertex = glm::vec3(glm::abs(vertex.position.x), glm::abs(vertex.position.y), glm::abs(vertex.position.z));

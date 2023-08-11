@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/Core/PreCompiledHeaders.h"
 
-#include "Engine/Components/Core/Material.h"
+#include "Engine/Components/Rendering/Material.h"
 #include "Engine/Components/Core/GameObject.h"
 #include "Editor/GUI/Inspector.h"
 namespace Engine::Editor {

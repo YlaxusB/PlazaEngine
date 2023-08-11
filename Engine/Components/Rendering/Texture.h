@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 namespace Engine {
-	struct Texture {
+	class Texture {
 	public:
 		int id = -1;
 		std::string type = "";

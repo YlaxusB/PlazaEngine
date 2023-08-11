@@ -19,6 +19,8 @@
 #include <Engine/Vendor/imgui/imgui_impl_opengl3.h>
 #include <Engine/Vendor/imgui/ImGuizmo.h>
 #include "Engine/Vendor/yaml/include/yaml-cpp/yaml.h"
+#include "Engine/Vendor/assimp/Importer.hpp"
+#include "Engine/Vendor/assimp/postprocess.h"
 #include "Engine/Vendor/Json/json.hpp" // Include the nlohmann/json library
 #include "Engine/Utils/yamlUtils.h"
 
@@ -38,3 +40,4 @@
 #include "Engine/Application/EntryPoint.h"
 #include "Engine/Core/Standards.h"
 #include "Engine/Core/UUID.h"
+#include "Engine/Components/Core/Entity.h"

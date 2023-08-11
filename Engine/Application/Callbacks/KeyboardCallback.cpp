@@ -5,22 +5,24 @@
 #include "Engine/Application/Serializer/Components/MeshSerializer.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 using namespace Engine;
-void DeleteChildrene(GameObject* gameObject) {
+namespace Engine {
+	void DeleteChildrene(GameObject* gameObject) {
 		uint64_t uuid = Editor::selectedGameObject->uuid;
-	if (gameObject != reinterpret_cast<GameObject*>(0xdddddddddddddddd)) {
-		for (GameObject* child : gameObject->children) {
-			DeleteChildrene(child);
+		if (gameObject != reinterpret_cast<GameObject*>(0xdddddddddddddddd)) {
+			for (uint64_t child : gameObject->childrenUuid) {
+				DeleteChildrene(&Application->activeScene->entities[child]);
+			}
 		}
-	}
-	//delete(gameObject);
-	auto it = std::find_if(Application->activeScene->gameObjects.begin(), Application->activeScene->gameObjects.end(), [uuid](const std::unique_ptr<GameObject>& gameObject) {
-		return gameObject->uuid == uuid;
-		});
+		//delete(gameObject);
+		auto it = std::find_if(Application->activeScene->gameObjects.begin(), Application->activeScene->gameObjects.end(), [uuid](const std::unique_ptr<GameObject>& gameObject) {
+			return gameObject->uuid == uuid;
+			});
 
-	if (it != Application->activeScene->gameObjects.end()) {
-		Application->activeScene->gameObjects.erase(it);
-	}
+		if (it != Application->activeScene->gameObjects.end()) {
+			Application->activeScene->gameObjects.erase(it);
+		}
 
+	}
 }
 void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 	if (Application->focusedMenu == "Scene") {
@@ -45,8 +47,8 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 				int max = 20;
 				std::uniform_int_distribution<int> distribution(min, max);
 				d->GetComponent<Transform>()->relativePosition = glm::vec3(distribution(gen), distribution(gen), distribution(gen)) + Application->activeCamera->Position;
-				d->transform->UpdateChildrenTransform();
-				Mesh cubeMesh = Engine::Mesh::Sphere();//Engine::Mesh::Cube();
+				d->GetComponent<Transform>()->UpdateChildrenTransform();
+				Mesh cubeMesh = Engine::Mesh();//Engine::Mesh::Cube();
 				cubeMesh.material.diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
 				cubeMesh.material.specular = Texture();
 				cubeMesh.material.specular.rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
@@ -58,24 +60,6 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 				d->AddComponent<MeshRenderer>(meshRenderer);
 
 
-			}
-		}
-
-		if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
-			int size = Application->activeScene->gameObjects.size();
-			for (int i = size; i < size + 100; i++) {
-				GameObject* d = new GameObject(std::to_string(Application->activeScene->gameObjects.size()), Application->activeScene->gameObjects.front().get());
-				//d->AddComponent(new Transform());
-
-				d->GetComponent<Transform>()->relativePosition = glm::vec3(4, 0, 0);
-				d->transform->UpdateChildrenTransform();
-				Mesh cubeMesh = Engine::Mesh::Cube();
-				cubeMesh.material.diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
-				cubeMesh.material.specular = Texture();
-				cubeMesh.material.specular.rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
-				MeshRenderer* meshRenderer = new MeshRenderer(cubeMesh);
-				//meshRenderer->mesh = std::move(cubeMesh);
-				d->AddComponent<MeshRenderer>(meshRenderer);
 			}
 		}
 
@@ -99,9 +83,6 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
 			Application->activeCamera->ProcessMouseMovement(0, 0, -10);
 
-		if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-			Application->activeScene->gameObjects.back()->transform->position.x += 1;
-
 
 		//if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
 		//	Application->shader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningFragment.glsl");
@@ -121,7 +102,7 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 
 
 		if (glfwGetKey(window, GLFW_KEY_DELETE) == GLFW_PRESS && Editor::selectedGameObject) {
-			Editor::selectedGameObject->Delete();
+			//Editor::selectedGameObject->Delete();
 			/*
 			uint64_t uuid = Editor::selectedGameObject->uuid;
 			DeleteChildrene(Editor::selectedGameObject);

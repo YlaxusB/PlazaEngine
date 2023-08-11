@@ -43,14 +43,14 @@ namespace Engine {
 
 		Application->activeCamera->UpdateFrustum();
 		for (const auto& meshRendererPair : Application->activeScene->meshRendererComponents) {
-			MeshRenderer* meshRenderer = meshRendererPair.second;
-			if (!meshRenderer->instanced) {
-				Transform* transform = Application->activeScene->transformComponents[meshRendererPair.first];
+			MeshRenderer meshRenderer = (meshRendererPair.second);
+			if (!meshRenderer.instanced) {
+				Transform* transform = &Application->activeScene->transformComponents[meshRendererPair.first];
 				if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
 					glm::mat4 modelMatrix = transform->modelMatrix;
 					shader.setMat4("model", modelMatrix);
-					meshRenderer->mesh->BindTextures(shader);
-					meshRenderer->mesh->Draw(shader);
+					meshRenderer.mesh->BindTextures(shader);
+					meshRenderer.mesh->Draw(shader);
 				}
 			}
 		}
@@ -104,7 +104,7 @@ namespace Engine {
 		Application->singleColorShader->use();
 		glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 		glm::mat4 view = Application->activeCamera->GetViewMatrix();
-		glm::mat4 modelMatrix = Editor::selectedGameObject->transform->modelMatrix;
+		glm::mat4 modelMatrix = Editor::selectedGameObject->GetComponent<Transform>()->modelMatrix;
 		Application->singleColorShader->setMat4("projection", projection);
 		Application->singleColorShader->setMat4("view", view);
 		Application->singleColorShader->setFloat("objectID", Editor::selectedGameObject->uuid);

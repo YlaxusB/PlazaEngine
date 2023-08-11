@@ -1,20 +1,9 @@
 #pragma once
-#include "Engine/Vendor/glad/glad.h"
-#include "Engine/Vendor/glm/glm.hpp"
-#include "Engine/Vendor/glm/gtc/matrix_transform.hpp"
-
-#include "Engine/Shaders/Shader.h"
-
-#include <string>
-#include <vector>
-
-#include "Engine/Components/Core/Material.h"
-#include "Engine/Components/Core/Texture.h"
-#include "Engine/Core/Time.h"
-#include "Engine/Core/UUID.h"
+#include "Engine/Core/PreCompiledHeaders.h"
+#include "Engine/Components/Component.h"
+#include "Engine/Components/Rendering/Texture.h"
+#include "Engine/Components/Rendering/Material.h"
 using namespace std;
-
-
 namespace Engine {
 	struct Vertex {
 		glm::vec3 position;
@@ -29,10 +18,6 @@ namespace Engine {
 		Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const glm::vec3& bitan)
 			: position(pos), normal(norm), texCoords(tex), tangent(tan), bitangent(bitan) {}
 	};
-
-
-
-
 
 	class Mesh {
 	public:
@@ -55,7 +40,7 @@ namespace Engine {
 			this->indices = indices;
 			this->material = material;
 			this->uuid = Engine::UUID::NewUUID();
-			setupMesh();
+			//setupMesh();
 		}
 
 		Mesh() {
@@ -172,178 +157,11 @@ namespace Engine {
 			}
 		}
 
-		static Mesh Cube() {
-			std::vector<unsigned int> indices = {
-0, 1, 2,  // Front face
-2, 1, 3,  // Front face
-4, 5, 6,  // Back face
-6, 5, 7,  // Back face
-8, 9, 10, // Top face
-10, 9, 11,// Top face
-12, 13, 14,// Bottom face
-14, 13, 15,// Bottom face
-16, 17, 18,// Left face
-18, 17, 19,// Left face
-20, 21, 22,// Right face
-22, 21, 23 // Right face
-			};
-			std::vector<Vertex> vertices = {
-				// Front face vertices
-				Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				// Back face vertices
-				Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				// Top face vertices
-				Vertex(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 1, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				// Bottom face vertices
-				Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0, -1, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0, -1, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0, -1, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0, -1, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				// Left face vertices
-				Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-1, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(-1, 0, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(-1, 0, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(-1, 0, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				// Right face vertices
-				Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(1, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1, 0, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1, 0, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-				Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(1, 0, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0))
-			};
-			Material* cubeMaterial = new Material();
-			cubeMaterial->diffuse = Texture();
-			cubeMaterial->diffuse.type = "texture_diffuse";
-			cubeMaterial->diffuse.rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
-
-			Mesh newMesh = Mesh(vertices, indices, *cubeMaterial);
-			delete cubeMaterial;
-			return newMesh;
-		}
-
-		static Mesh Sphere() {
-			std::vector<unsigned int> indices;
-			std::vector<Vertex> vertices;
-
-			// Generate sphere vertices and indices
-			const int stacks = 20;
-			const int slices = 40;
-			const float radius = 1.0f;
-			float PI = 3.14159265359f;
-
-			for (int i = 0; i <= stacks; ++i) {
-				float stackAngle = static_cast<float>(i) * PI / stacks;
-				float stackRatio = static_cast<float>(i) / stacks;
-				float phi = stackAngle - PI / 2.0f;
-
-				for (int j = 0; j <= slices; ++j) {
-					float sliceAngle = static_cast<float>(j) * 2.0f * PI / slices;
-					float sliceRatio = static_cast<float>(j) / slices;
-
-					float x = radius * std::cos(phi) * std::cos(sliceAngle);
-					float y = radius * std::sin(phi);
-					float z = radius * std::cos(phi) * std::sin(sliceAngle);
-
-					glm::vec3 position(x, y, z);
-					glm::vec3 normal = glm::normalize(position);
-					glm::vec2 texCoords(sliceRatio, stackRatio);
-					glm::vec3 tangent(0.0f);
-					glm::vec3 bitangent(0.0f);
-
-					vertices.push_back(Vertex(position, normal, texCoords, tangent, bitangent));
-				}
-			}
-
-			// Generate sphere indices
-			for (int i = 0; i < stacks; ++i) {
-				int k1 = i * (slices + 1);
-				int k2 = k1 + slices + 1;
-
-				for (int j = 0; j < slices; ++j, ++k1, ++k2) {
-					if (i != 0) {
-						indices.push_back(k1);
-						indices.push_back(k2);
-						indices.push_back(k1 + 1);
-					}
-
-					if (i != stacks - 1) {
-						indices.push_back(k1 + 1);
-						indices.push_back(k2);
-						indices.push_back(k2 + 1);
-					}
-				}
-			}
-
-			// Create sphere material
-			Material* sphereMaterial = new Material();
-			sphereMaterial->diffuse = Texture();
-			sphereMaterial->diffuse.type = "texture_diffuse";
-			sphereMaterial->diffuse.rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
-
-			return Mesh(vertices, indices, *sphereMaterial);
-		}
-
-		static Mesh* Terrain(int width, int length, float scale, float amplitude) {
-			std::vector<unsigned int> indices;
-			std::vector<Vertex> vertices;
-
-			// Generate plane vertices and indices
-			for (int z = 0; z <= length; ++z) {
-				for (int x = 0; x <= width; ++x) {
-					float xPos = static_cast<float>(x) * scale;
-					float zPos = static_cast<float>(z) * scale;
-					float yPos = amplitude * std::sin(xPos / scale) * std::sin(zPos / scale);
-
-					glm::vec3 position(xPos, yPos, zPos);
-					glm::vec3 normal(0.0f, 1.0f, 0.0f);
-					glm::vec2 texCoords(static_cast<float>(x) / width, static_cast<float>(z) / length);
-					glm::vec3 tangent(0.0f);
-					glm::vec3 bitangent(0.0f);
-
-					vertices.push_back(Vertex(position, normal, texCoords, tangent, bitangent));
-				}
-			}
-
-			// Generate plane indices
-			for (int z = 0; z < length; ++z) {
-				for (int x = 0; x < width; ++x) {
-					int i1 = z * (width + 1) + x;
-					int i2 = i1 + 1;
-					int i3 = (z + 1) * (width + 1) + x;
-					int i4 = i3 + 1;
-
-					// Create triangles with reversed order of indices
-					indices.push_back(i1);
-					indices.push_back(i3);
-					indices.push_back(i2);
-
-					indices.push_back(i2);
-					indices.push_back(i3);
-					indices.push_back(i4);
-				}
-			}
-
-			// Create terrain material
-			Material* terrainMaterial = new Material();
-			terrainMaterial->diffuse = Texture();
-			terrainMaterial->diffuse.type = "texture_diffuse";
-			terrainMaterial->diffuse.rgba = glm::vec4(0.6f, 0.3f, 0.3f, 1.0f);
-
-			return new Mesh(vertices, indices, *terrainMaterial);
-		}
-
 		void Terminate() {
 			glDeleteVertexArrays(1, &VAO);
 			glDeleteBuffers(1, &VBO);
 		}
+
 	private:
 		unsigned int VBO, EBO;
 		void setupMesh() {
@@ -380,7 +198,7 @@ namespace Engine {
 			// vertex bitangent
 			glEnableVertexAttribArray(4);
 			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
-			
+
 
 			// Generate instanced array
 			glGenBuffers(1, &instanceBuffer);

@@ -16,7 +16,7 @@ namespace ImGuizmoHelper {
 namespace Engine {
 	class Camera;
 }
-
+using namespace std;
 namespace Engine {
 	namespace Editor {
 		class Gui {

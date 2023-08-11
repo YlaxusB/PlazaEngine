@@ -6,11 +6,13 @@
 #include "Editor/GUI/FileExplorer/CreateFolder.h"
 #include "Engine/Application/Serializer/ModelSerializer.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
-
+#include "Engine/Vendor/assimp/Importer.hpp"
+#include "Engine/Vendor/assimp/scene.h"
+#include "Engine/Vendor/assimp/postprocess.h"
 namespace Engine::Editor {
 	void DeleteChildrene(GameObject* gameObject) {
-		for (GameObject* child : gameObject->children) {
-			DeleteChildrene(child);
+		for (uint64_t child : gameObject->childrenUuid) {
+			DeleteChildrene(&Application->activeScene->entities[child]);
 		}
 		delete(gameObject);
 	}

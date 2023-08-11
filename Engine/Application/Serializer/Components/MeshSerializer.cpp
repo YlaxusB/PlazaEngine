@@ -2,7 +2,7 @@
 #include "MeshSerializer.h"
 #include "ComponentSerializer.h"
 
-#include "Engine/Components/Core/Mesh.h"
+#include "Engine/Components/Rendering/Mesh.h"
 
 // Move the operator<< function definition here
 YAML::Emitter& operator <<(YAML::Emitter& out, const Vertex& v) {

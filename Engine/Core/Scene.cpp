@@ -2,18 +2,18 @@
 #include "Scene.h"
 namespace Engine {
 	Scene* Scene::Copy(Scene* newScene, Scene* copyScene) {
+		/*
 		for (auto& gameObj : copyScene->gameObjects) {
 			std::unique_ptr<GameObject> newObj = make_unique<GameObject>(*gameObj);
 			newObj->transform = new Transform(*gameObj->transform);
-			newObj->transform->gameObject = newObj.get();
+			newObj->transform->uuid = newObj.get()->uuid;
 			newObj->transform->scene = "Runtime Scene";
 			newObj->scene = "Runtime Scene";
 			newObj->ReplaceComponent<Transform>(newObj->GetComponent<Transform>(), newObj->transform);
 			MeshRenderer* meshRenderer = gameObj->GetComponent<MeshRenderer>();
 			if (gameObj->GetComponent<MeshRenderer>()) {
 				MeshRenderer* newMeshRenderer = new MeshRenderer(*(gameObj->GetComponent<MeshRenderer>()->mesh));
-				newMeshRenderer->gameObject = newObj.get();
-				newMeshRenderer->gameObjectUUID = gameObj->uuid;
+				newMeshRenderer->uuid = newObj.get()->uuid;
 				newObj->ReplaceComponent<MeshRenderer>(newObj->GetComponent<MeshRenderer>(), newMeshRenderer);
 				//newScene->meshRenderers.push_back(newMeshRenderer);
 			}
@@ -33,11 +33,13 @@ namespace Engine {
 				Application->activeScene->gameObjects.find(gameObj->uuid)->parent = copyScene->gameObjects.front().get();
 		}
 		return newScene;
+		*/
+		return new Scene();
 	}
 
 	void Scene::RemoveMeshRenderer(uint64_t uuid) {
 		auto it = std::find_if(meshRenderers.begin(), meshRenderers.end(), [uuid](MeshRenderer* meshRenderer) {
-			return meshRenderer->gameObjectUUID == uuid;
+			return meshRenderer->uuid == uuid;
 			});
 
 		if (it != meshRenderers.end()) {

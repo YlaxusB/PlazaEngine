@@ -16,13 +16,13 @@ namespace Engine::Editor {
 
 		// Get the object transform and camera matrices
 		Transform& a = *gameObject->GetComponent<Transform>();
-		Transform& b = *gameObject->transform;
-		auto& parentTransform = *gameObject->parent->GetComponent<Transform>();
+		Transform& b = *gameObject->GetComponent<Transform>();
+		auto& parentTransform = *Application->activeScene->entities[gameObject->parentUuid].GetComponent<Transform>();
 		auto& transform = *gameObject->GetComponent<Transform>();
 
 		glm::mat4 projection = camera.GetProjectionMatrix();
 		glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 gizmoTransform = transform.GetTransform(gameObject->transform->worldPosition);
+		glm::mat4 gizmoTransform = transform.GetTransform(gameObject->GetComponent<Transform>()->worldPosition);
 		ImGuizmo::OPERATION activeOperation = Overlay::activeOperation; // Operation is translate, rotate, scale
 		ImGuizmo::MODE activeMode = Overlay::activeMode; // Mode is world or local
 

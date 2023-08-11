@@ -1,6 +1,6 @@
 #pragma once
 #include "ComponentSerializer.h"
-#include "Engine/Components/Core/Material.h"
+#include "Engine/Components/Rendering/Material.h"
 namespace Engine {
 	class ComponentSerializer;
 	class ComponentSerializer::MaterialSerializer {

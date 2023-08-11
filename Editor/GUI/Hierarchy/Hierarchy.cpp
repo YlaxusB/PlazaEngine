@@ -34,7 +34,7 @@ namespace Engine::Editor {
 
 		ImGui::Indent(11.0f);
 		//ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetTreeNodeToLabelSpacing() + 3.0f); // Decrease the indentation spacing
-		if (gameObject.children.size() > 0) {
+		if (gameObject.childrenUuid.size() > 0) {
 			treeNodeOpen = ImGui::TreeNodeEx(gameObject.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen);
 		}
 		else {
@@ -63,7 +63,7 @@ namespace Engine::Editor {
 
 
 		if (ImGui::IsItemVisible()) {
-			if (gameObject.parent) {
+			if (gameObject.parentUuid) {
 				if (ImGui::BeginDragDropSource()) {
 					ImGui::SetDragDropPayload(payloadName.c_str(), &gameObject, sizeof(GameObject*));
 
@@ -82,9 +82,9 @@ namespace Engine::Editor {
 		{
 			if (ImGui::IsItemVisible()) // Check if the item is visible
 			{
-				for (GameObject* child : gameObject.children)
+				for (uint64_t child : gameObject.childrenUuid)
 				{
-					Gui::Hierarchy::Item(*child, selectedGameObject);
+					Gui::Hierarchy::Item(Application->activeScene->entities[child], selectedGameObject);
 				}
 			}
 			ImGui::TreePop();

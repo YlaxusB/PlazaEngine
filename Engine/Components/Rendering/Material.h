@@ -1,9 +1,9 @@
 #pragma once
-#include "Engine/Components/Core/Component.h"
-#include "Engine/Components/Core/Mesh.h"
-#include "Engine/Components/Core/Texture.h"
+#include "Engine/Components/Component.h"
+#include "Engine/Components/Rendering/Mesh.h"
+#include "Engine/Components/Rendering/Texture.h"
 namespace Engine {
-	class Material : public Component {
+	struct Material : public Component {
 	public:
 		Texture diffuse;
 		Texture albedo;
@@ -24,8 +24,5 @@ namespace Engine {
 			specular = other.specular;
 			height = other.height;
 		}
-
 	};
-
-
 }

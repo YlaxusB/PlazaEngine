@@ -6,7 +6,7 @@
 
 #include "Engine/Application/PickingTexture.h"
 #include "Engine/Components/Core/Camera.h"
-#include "Engine/Components/Core/Mesh.h"
+#include "Engine/Components/Rendering/Mesh.h"
 #include "Engine/Components/Core/GameObject.h"
 #include "Engine/Shaders/Shader.h"
 

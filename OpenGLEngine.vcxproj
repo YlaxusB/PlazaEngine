@@ -170,8 +170,12 @@
     <ClCompile Include="Engine\Application\Serializer\ModelSerializer.cpp" />
     <ClCompile Include="Engine\Application\Serializer\ProjectSerializer.cpp" />
     <ClCompile Include="Engine\Application\Window.cpp" />
-    <ClCompile Include="Engine\Components\Core\Material.cpp" />
+    <ClCompile Include="Engine\Components\Core\Entity.cpp" />
+    <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
     <ClCompile Include="Engine\Components\Core\ModelComponent.cpp" />
+    <ClCompile Include="Engine\Components\Rendering\MeshRenderer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Engine\Components\Rendering\Prefab.cpp" />
     <ClCompile Include="Engine\Core\Engine.cpp" />
     <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp" />
@@ -185,7 +189,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Engine\Application\EditorCamera.cpp" />
-    <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
     <ClCompile Include="Engine\Components\Core\Transform.cpp" />
     <ClCompile Include="Engine\Editor\Outline\Outline.cpp" />
     <ClCompile Include="Editor\GUI\gizmo.cpp" />
@@ -368,9 +371,12 @@
     <ClInclude Include="Engine\Application\Serializer\ModelSerializer.h" />
     <ClInclude Include="Engine\Application\Serializer\ProjectSerializer.h" />
     <ClInclude Include="Engine\Application\Window.h" />
-    <ClInclude Include="Engine\Components\Core\Material.h" />
+    <ClInclude Include="Engine\Components\Core\Entity.h" />
+    <ClInclude Include="Engine\Components\Core\GameObject.h" />
+    <ClInclude Include="Engine\Components\Rendering\Material.h" />
     <ClInclude Include="Engine\Components\Core\ModelComponent.h" />
-    <ClInclude Include="Engine\Components\Core\Texture.h" />
+    <ClInclude Include="Engine\Components\Rendering\Mesh.h" />
+    <ClInclude Include="Engine\Components\Rendering\MeshRenderer.h" />
     <ClInclude Include="Engine\Components\Rendering\Prefab.h" />
     <ClInclude Include="Engine\Core\Engine.h" />
     <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h" />
@@ -389,9 +395,8 @@
     <ClInclude Include="Engine\Core\Meshes\Cube.cpp" />
     <ClInclude Include="Engine\Core\Skybox.h" />
     <ClInclude Include="Engine\Components\Core\Camera.h" />
-    <ClInclude Include="Engine\Components\Core\Component.h" />
+    <ClInclude Include="Engine\Components\Component.h" />
     <ClInclude Include="Engine\Components\Core\Transform.h" />
-    <ClInclude Include="Engine\Components\Core\GameObject.h" />
     <ClInclude Include="Engine\Components\Core\Model.h" />
     <ClInclude Include="Engine\Editor\Outline\Outline.h" />
     <ClInclude Include="Editor\GUI\FpsCounter.h" />

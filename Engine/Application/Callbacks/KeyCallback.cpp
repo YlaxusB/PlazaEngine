@@ -13,7 +13,7 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 			Application->shader = new Shader((Application->enginePath + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
 
 		if (key == GLFW_KEY_U && action == GLFW_PRESS)
-			Application->activeCamera->Position = Engine::Editor::selectedGameObject->transform->position;
+			Application->activeCamera->Position = Engine::Editor::selectedGameObject->GetComponent<Transform>()->position;
 		/*
 		if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS) {
 			int size = Application->activeScene->gameObjects.size();

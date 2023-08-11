@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Engine/Components/Core/Material.h"
+#include "Engine/Components/Rendering/Material.h"
 using namespace std;
 namespace Engine {
 	class Model {

@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "DefaultModels.h"
-#include "Engine/Components/Core/Mesh.h"
+#include "Engine/Components/Rendering/Mesh.h"
 namespace Engine::Editor {
 	vector<Mesh*> DefaultModels::meshes = vector<Mesh*>();
 	void DefaultModels::Init() {

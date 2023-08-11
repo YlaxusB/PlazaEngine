@@ -91,11 +91,11 @@ namespace Engine::Editor {
 				ImGui::InputFloat("Z", &currentScale.z);
 
 				if (currentPosition != startingPosition || currentRotation != startingRotation || currentScale != startingScale) {
-					gameObject->transform->UpdateChildrenTransform();
+					gameObject->GetComponent<Transform>()->UpdateChildrenTransform();
 				}
 
-				for (GameObject* child : gameObject->children) {
-					ImGui::Text(child->name.c_str());
+				for (uint64_t child : gameObject->childrenUuid) {
+					ImGui::Text(Application->activeScene->entities[child].name.c_str());
 				}
 
 				ImGui::PopID();

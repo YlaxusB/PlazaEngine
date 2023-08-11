@@ -193,6 +193,8 @@ namespace Engine {
 
 				curSceneSize = glm::abs(ImGui::glmVec2(ImGui::GetWindowSize()));
 				// Show the gizmo if there's a selected gameObject
+
+				/*
 				selectedGameObject = Editor::selectedGameObject;
 				if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parent != nullptr) {
 					ImGuizmoHelper::IsDrawing = true;
@@ -201,6 +203,9 @@ namespace Engine {
 				else {
 					ImGuizmoHelper::IsDrawing = false;
 				}
+				*/
+
+
 
 				//	appSizes.sceneStart = ImGui::glmVec2(ImGui::GetWindowPos());
 				if (ImGui::BeginDragDropTarget()) {
@@ -292,6 +297,7 @@ namespace Engine {
 					//ImGui::SetWindowPos(ImVec2(appSizes.appSize.x - appSizes.inspectorSize.x, 0));
 				}
 
+				/*
 				if (selectedGameObject && selectedGameObject->parent) {
 					Editor::Inspector::ComponentInspector inspector(selectedGameObject);
 					ImGui::Text(std::to_string(selectedGameObject->uuid).c_str());
@@ -300,7 +306,7 @@ namespace Engine {
 					//Gui::Inspector::addComponentButton(appSizes);
 				}
 
-
+				*/
 			}
 
 			curInspectorSize = ImGui::glmVec2(ImGui::GetWindowSize());

@@ -82,17 +82,17 @@ namespace Engine {
 	void ShadowsClass::RenderScene(Shader& shader) {
 		shader.use();
 		for (const auto& meshRendererPair : Application->activeScene->meshRendererComponents) {
-			MeshRenderer* meshRenderer = meshRendererPair.second;
-			Transform* transform = Application->activeScene->transformComponents[meshRendererPair.first];
+			MeshRenderer meshRenderer = (meshRendererPair.second);
+			Transform* transform = &Application->activeScene->transformComponents[meshRendererPair.first];
 			if (transform) {
 				if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
 					glm::mat4 modelMatrix = transform->modelMatrix;
-					if (meshRenderer->instanced) {
-						meshRenderer->mesh->AddInstance(shader, modelMatrix);
+					if (meshRenderer.instanced) {
+						meshRenderer.mesh->AddInstance(shader, modelMatrix);
 					}
 					else {
 						shader.setMat4("model", modelMatrix);
-						meshRenderer->mesh->Draw(shader);
+						meshRenderer.mesh->Draw(shader);
 					}
 				}
 			}

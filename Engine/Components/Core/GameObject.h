@@ -1,5 +1,42 @@
 #pragma  once
+#include <variant>
+#include "Engine/Components/Component.h"
+namespace Engine {
+	class GameObject {
+	public:
+		uint64_t uuid;
+		uint64_t parentUuid;
+		std::vector<uint64_t> childrenUuid;
+		std::string name;
 
+
+		GameObject(std::string objName, GameObject* parent = nullptr, bool addToScene = true);
+		GameObject(const GameObject&) = default;
+		~GameObject() = default;
+
+		template<typename T>
+		T* GetComponent();
+
+		template<typename T>
+		T* AddComponent(T* component, bool addToComponentsList = true);
+		//Component* AddComponent(Component* component, bool addToComponentsList = true);
+
+		template <typename T>
+		void RemoveComponent() {
+			//static_assert(std::is_base_of<Component, T>::value, "T must be a subclass of Component");
+
+			//auto it = std::remove_if(this->components.begin(), this->components.end(),
+			//	[](const std::shared_ptr<Component>& comp) {
+			//		return dynamic_cast<T*>(comp.get()) != nullptr;
+			//	});
+
+			//this->components.erase(it, this->components.end());
+		}
+
+		GameObject& GetParent();
+	};
+}
+/*
 #include <iostream>
 #include <random>
 #include <filesystem>
@@ -9,103 +46,91 @@
 #include "Engine/Vendor/glm/glm.hpp"
 #include "Engine/Vendor/glm/gtc/matrix_transform.hpp"
 #include "Engine/Vendor/glm/gtc/type_ptr.hpp"
-#include "Engine/Components/Core/Mesh.h"
 #include "Engine/Vendor/uuid_v4/uuid_v4.h"
 #include "Engine/Utils/glmUtils.h"
-#include "Engine/Components/Core/Component.h"
+#include "Engine/Components/Component.h"
 #include "Engine/Components/Core/Transform.h"
 #include <random>
 #include <unordered_map>
+#include "Engine/Components/Rendering/Mesh.h"
 //UUIDv4::UUID uuid = uuidGenerator.getUUID();
-class Transform;
-class GameObject;
+#include "Engine/Components/Component.h"
+
+namespace Engine {
+	class Transform;
+	class GameObject;
 
 
-extern GameObject* sceneObject;
-class GameObject {
-public:
-	std::vector<GameObject*> children;
-	GameObject* parent = nullptr;
-	Transform* transform = nullptr;// = new Transform();
-	std::string name = "";
-	int id;
-	uint64_t uuid;
-	uint64_t modelUuid = 0;
-	std::string scene = "";
+	extern GameObject* sceneObject;
+	class GameObject {
+	public:
+		std::vector<GameObject*> children;
+		GameObject* parent = nullptr;
+		Transform* transform = nullptr;// = new Transform();
+		std::string name = "";
+		int id;
+		uint64_t uuid;
+		uint64_t modelUuid = 0;
+		std::string scene = "";
 
-	void DeleteChildren(GameObject* gameObject) {
-		for (GameObject* gameObject : gameObject->children) {
-			DeleteChildren(gameObject);
-		}
-
-		delete(gameObject);
-	}
-
-	GameObject(std::string objName, GameObject* parent = sceneObject, bool addToScene = true);
-	GameObject(const GameObject&) = default;
-	~GameObject() = default;
-	void Delete();
-
-
-
-
-	vector<shared_ptr<Component>> components;
-	template<typename T>
-	T* AddComponent(T* component, bool addToComponentsList = true);
-	Component* AddComponent(Component* component, bool addToComponentsList = true);
-
-	Component* cachedComponent = nullptr;
-	template<typename T>
-	T* GetComponent() {
-		for (shared_ptr<Component> component : components) {
-			if (typeid(*component) == typeid(T)) {
-				return static_cast<T*>(component.get());
+		void DeleteChildren(GameObject* gameObject) {
+			for (GameObject* gameObject : gameObject->children) {
+				DeleteChildren(gameObject);
 			}
-		}
-		return nullptr;
-	}
 
-	template<typename T>
-	T* ReplaceComponent(T* oldComponent, T* newComponent) {
-		for (size_t i = 0; i < components.size(); i++) {
-			if (components[i].get() == oldComponent) {
-				components.erase(components.begin() + i);
-				newComponent->gameObject = this;
-				components.push_back(shared_ptr<Component>(newComponent));
-				return newComponent;
+			delete(gameObject);
+		}
+
+		GameObject(std::string objName, GameObject* parent = sceneObject, bool addToScene = true);
+		GameObject(const GameObject&) = default;
+		~GameObject() = default;
+		void Delete();
+
+
+
+
+		vector<shared_ptr<Component>> components;
+		template<typename T>
+		T* AddComponent(T* component, bool addToComponentsList = true);
+		Component* AddComponent(Component* component, bool addToComponentsList = true);
+
+		Component* cachedComponent = nullptr;
+		template<typename T>
+		T* GetComponent() {
+			for (shared_ptr<Component> component : components) {
+				if (typeid(*component) == typeid(T)) {
+					return static_cast<T*>(component.get());
+				}
 			}
+			return nullptr;
 		}
-		return nullptr; // Old component not found in the list
-	}
 
-	template <typename T>
-	void RemoveComponent() {
-		static_assert(std::is_base_of<Component, T>::value, "T must be a subclass of Component");
+		template<typename T>
+		T* ReplaceComponent(T* oldComponent, T* newComponent) {
+			for (size_t i = 0; i < components.size(); i++) {
+				if (components[i].get() == oldComponent) {
+					components.erase(components.begin() + i);
+					newComponent->uuid = this->uuid;
+					components.push_back(shared_ptr<Component>(newComponent));
+					return newComponent;
+				}
+			}
+			return nullptr; // Old component not found in the list
+		}
 
-		auto it = std::remove_if(this->components.begin(), this->components.end(),
-			[](const std::shared_ptr<Component>& comp) {
-				return dynamic_cast<T*>(comp.get()) != nullptr;
-			});
+		template <typename T>
+		void RemoveComponent() {
+			static_assert(std::is_base_of<Component, T>::value, "T must be a subclass of Component");
 
-		this->components.erase(it, this->components.end());
-	}
-};
+			auto it = std::remove_if(this->components.begin(), this->components.end(),
+				[](const std::shared_ptr<Component>& comp) {
+					return dynamic_cast<T*>(comp.get()) != nullptr;
+				});
 
+			this->components.erase(it, this->components.end());
+		}
+	};
+}
 //extern std::list<GameObject*> gameObjects;
 
-class MeshRenderer;
-class MeshRenderer : public Component {
-public:
-	string aiMeshName;
-	uint64_t uuid;
-	std::string meshName;
-	std::shared_ptr<Engine::Mesh> mesh;
-	Transform* transform;
-	bool instanced = false;
-	MeshRenderer(Mesh initialMesh, bool addToScene = false);
-	MeshRenderer(const MeshRenderer&) = default;
-	~MeshRenderer();
-	MeshRenderer() {
-		uuid = Engine::UUID::NewUUID();
-	}
-};
+*/

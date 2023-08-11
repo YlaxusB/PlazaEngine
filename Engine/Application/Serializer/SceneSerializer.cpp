@@ -8,16 +8,16 @@ namespace Engine {
 		out << YAML::BeginMap;
 		out << YAML::Key << "GameObject" << YAML::Value << gameObject->uuid;
 		out << YAML::Key << "Name" << YAML::Value << gameObject->name;
-		out << YAML::Key << "ParentID" << YAML::Value << (gameObject->parent != nullptr ? gameObject->parent->name : "");
+		out << YAML::Key << "ParentID" << YAML::Value << (!gameObject->parentUuid ? gameObject->GetParent().name : "");
 		if (gameObject->GetComponent<Transform>()) {
 			out << YAML::Key << "TransformComponent";
 			out << YAML::BeginMap;
 
-			glm::vec3& relativePosition = gameObject->transform->relativePosition;
+			glm::vec3& relativePosition = gameObject->GetComponent<Transform>()->relativePosition;
 			out << YAML::Key << "Position" << YAML::Value << relativePosition;
-			glm::vec3& relativeRotation = gameObject->transform->rotation;
+			glm::vec3& relativeRotation = gameObject->GetComponent<Transform>()->rotation;
 			out << YAML::Key << "Rotation" << YAML::Value << relativeRotation;
-			glm::vec3& scale = gameObject->transform->scale;
+			glm::vec3& scale = gameObject->GetComponent<Transform>()->scale;
 			out << YAML::Key << "Scale" << YAML::Value << scale;
 
 			out << YAML::EndMap;
@@ -57,13 +57,13 @@ namespace Engine {
 			for (auto gameObject : gameObjectsDeserialized) {
 				std::string name = gameObject["Name"].as<std::string>();
 				GameObject* newGameObject = new GameObject(name);
-				newGameObject->parent = Application->activeScene->gameObjects.find((gameObject["ParentID"].as<std::uint64_t>()));
-				newGameObject->transform->relativePosition = gameObject["TransformComponent"]["Position"].as<glm::vec3>();
-				newGameObject->transform->rotation = gameObject["TransformComponent"]["Rotation"].as<glm::vec3>();
-				newGameObject->transform->scale = gameObject["TransformComponent"]["Scale"].as<glm::vec3>();
+				newGameObject->parentUuid = gameObject["ParentID"].as<std::uint64_t>();
+				newGameObject->GetComponent<Transform>()->relativePosition = gameObject["TransformComponent"]["Position"].as<glm::vec3>();
+				newGameObject->GetComponent<Transform>()->rotation = gameObject["TransformComponent"]["Rotation"].as<glm::vec3>();
+				newGameObject->GetComponent<Transform>()->scale = gameObject["TransformComponent"]["Scale"].as<glm::vec3>();
 
-				newGameObject->transform->UpdateChildrenTransform();
-				Mesh cubeMesh = Engine::Mesh::Sphere();
+				newGameObject->GetComponent<Transform>()->UpdateChildrenTransform();
+				Mesh cubeMesh = Engine::Mesh();
 				cubeMesh.material.diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
 				cubeMesh.material.specular = Texture();
 				cubeMesh.material.specular.rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);

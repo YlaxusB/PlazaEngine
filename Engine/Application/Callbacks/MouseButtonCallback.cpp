@@ -49,7 +49,7 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 
 
 			auto it = std::find_if(Application->activeScene->gameObjects.begin(), Application->activeScene->gameObjects.end(), [&](const std::unique_ptr<GameObject>& obj) {
-				return obj->id == clickId;
+				return obj->uuid == clickId;
 				});
 			if (it != Application->activeScene->gameObjects.end()) {
 				// Object with the specified name found

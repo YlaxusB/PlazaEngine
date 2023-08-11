@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/Components/Core/Mesh.h"
+#include "Engine/Components/Rendering/Mesh.h"
 namespace Engine {
 	class Prefab : public Component {
 	public:

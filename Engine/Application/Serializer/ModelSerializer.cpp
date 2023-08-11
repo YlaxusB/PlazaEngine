@@ -2,8 +2,10 @@
 #include "ModelSerializer.h"
 #include "Engine/Application/Serializer/Components/MaterialSerializer.h"
 #include "Engine/Application/Serializer/Components/TransformSerializer.h"
+
 namespace Engine {
 	void SerializeGameObject(YAML::Emitter& out, GameObject* gameObject) {
+		/*
 		//out << YAML::BeginMap;
 		out << YAML::BeginMap;
 		out << YAML::Key << "GameObject" << gameObject->uuid;
@@ -37,9 +39,11 @@ namespace Engine {
 		}
 		out << YAML::EndMap;
 		out << YAML::EndMap;
+		*/
 	}
 
 	void ModelSerializer::SerializeModel(GameObject* mainObject, string filePath, string modelFilePath) {
+		/*
 		uint64_t modelUuid = Engine::UUID::NewUUID();
 		YAML::Emitter out;
 		out << YAML::BeginMap;
@@ -57,6 +61,7 @@ namespace Engine {
 		out << YAML::EndMap;
 		std::ofstream fout(filePath);
 		fout << out.c_str();
+		*/
 	}
 
 	void DeSerializeTexture(Material& material, const auto& textureNode) {
@@ -86,13 +91,14 @@ namespace Engine {
 		}
 	}
 	void DeSerializeGameObject(const auto& gameObjectEntry, Model* model) {
+		/*
 		const auto& componentsEntry = gameObjectEntry["Components"];
 		GameObject* gameObject = new GameObject(gameObjectEntry["Name"].as<string>(), nullptr, false);
 		gameObject->uuid = gameObjectEntry["Uuid"].as<uint64_t>();
 		uint64_t parentUuid = gameObjectEntry["ParentID"].as<uint64_t>();
 		for (const auto& modelGameObject : model->gameObjects) {
 			if (parentUuid == modelGameObject.get()->uuid) {
-				gameObject->parent = modelGameObject.get();
+				gameObject->parentUuid = modelGameObject.get()->uuid;
 			}
 		}
 		if (gameObject->parent == nullptr) {
@@ -111,6 +117,7 @@ namespace Engine {
 			gameObject->AddComponent<MeshRenderer>(newMeshRenderer, false);
 		}
 		model->gameObjects.push_back(make_shared<GameObject>(*gameObject));
+		*/
 	}
 
 

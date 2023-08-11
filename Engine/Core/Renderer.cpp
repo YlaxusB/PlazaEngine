@@ -15,7 +15,7 @@ int i = 0;
 namespace Engine {
 	// Render all GameObjects
 	void Renderer::Render(Shader& shader) {
-
+		static constexpr tracy::SourceLocationData __tracy_source_location18{ "Render", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Renderer.cpp", (uint32_t)18, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location18, true);
 		shader.use();
 
 		glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
@@ -41,48 +41,36 @@ namespace Engine {
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 
-		// End measuring time and calculate duration
-
-
-		//auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-		//// Print the execution time
-		//std::cout << "Execution time: " << duration.count() << " ms" << std::endl;
-
 		Application->activeCamera->UpdateFrustum();
-		for (const auto& gameObject : Application->activeScene->gameObjects) {
-			MeshRenderer* meshRenderer = gameObject.get()->GetComponent<MeshRenderer>();
-			if (meshRenderer) {
-				Transform* transform = gameObject.get()->transform;
-
+		for (const auto& meshRendererPair : Application->activeScene->meshRendererComponents) {
+			MeshRenderer* meshRenderer = meshRendererPair.second;
+			if (!meshRenderer->instanced) {
+				Transform* transform = Application->activeScene->transformComponents[meshRendererPair.first];
 				if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
 					glm::mat4 modelMatrix = transform->modelMatrix;
-					if (meshRenderer->instanced) {
-						meshRenderer->mesh->AddInstance(shader, modelMatrix);
-					}
-					else {
-						shader.setMat4("model", modelMatrix);
-						meshRenderer->mesh->BindTextures(shader);
-						meshRenderer->mesh->Draw(shader);
-
-					}
+					shader.setMat4("model", modelMatrix);
+					meshRenderer->mesh->BindTextures(shader);
+					meshRenderer->mesh->Draw(shader);
 				}
 			}
-
-			/*
-			auto startTime = std::chrono::high_resolution_clock::now();
-			// End measuring time and calculate duration
-			auto endTime = std::chrono::high_resolution_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-			// Print the execution time
-			std::cout << "Execution time: " << duration.count() << " ms" << std::endl;
-			*/
 		}
 	}
 
 	void Renderer::RenderInstances(Shader& shader) {
+		static constexpr tracy::SourceLocationData __tracy_source_location109{ "Render Instances", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Renderer.cpp", (uint32_t)109, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location109, true);
 		for (shared_ptr<Mesh> mesh : Application->activeScene->meshes) {
 			if (mesh->instanceModelMatrices.size() > 0) {
 				mesh->DrawInstanced(shader);
+			}
+		}
+	}
+
+	void Renderer::RenderInstancesShadowMap(Shader& shader) {
+		shader.use();
+		static constexpr tracy::SourceLocationData __tracy_source_location109{ "Render Instances", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Renderer.cpp", (uint32_t)109, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location109, true);
+		for (shared_ptr<Mesh> mesh : Application->activeScene->meshes) {
+			if (mesh->instanceModelMatrices.size() > 0) {
+				mesh->DrawInstancedToShadowMap(shader);
 			}
 		}
 	}

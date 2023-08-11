@@ -14,6 +14,7 @@ namespace Engine {
 		/// Loops  through the meshes list of the active scene and Draw all instanced meshes
 		/// </summary>
 		static void RenderInstances(Shader& shader);
+		static void RenderInstancesShadowMap(Shader& shader);
 
 		/// <summary>
 		/// Renders the Outline of the Selected GameObject and its children

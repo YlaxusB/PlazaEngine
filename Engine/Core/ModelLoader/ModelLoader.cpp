@@ -3,6 +3,7 @@
 #include "Engine/Core/Engine.h"
 #include "Engine/Application/Serializer/ModelSerializer.h"
 #include "Engine/Core/ModelLoader/Model.h"
+#include "Engine/Components/Core/GameObject.h"
 namespace Engine {
 	GameObject* ModelLoader::LoadImportedModelToScene(uint64_t modelUuid, string filePath) {
 		Model* model = nullptr;
@@ -13,6 +14,7 @@ namespace Engine {
 			unordered_map<uint64_t, GameObject*> modelInstanceGameObjects = unordered_map<uint64_t, GameObject*>();
 			modelInstanceGameObjects.clear();
 			unsigned int index = 0;
+			GameObject* mainModelObject = nullptr;
 			for (const auto& gameObjectSharedPointer : model->gameObjects) {
 				GameObject* gameObject = gameObjectSharedPointer.get();
 				uint64_t parentUuid = gameObject->parent->uuid;
@@ -22,19 +24,28 @@ namespace Engine {
 				newTransform->gameObject = newGameObject;
 
 
-				newGameObject->ReplaceComponent<Transform>(newGameObject->GetComponent<Transform>(), newTransform);
+				//newGameObject->ReplaceComponent<Transform>(newGameObject->GetComponent<Transform>(), newTransform);
+				newGameObject->RemoveComponent<Transform>();
+				//newGameObject->components.erase(newGameObject->GetComponent<Transform>());
+
 				newGameObject->transform = newTransform;
 				newGameObject->modelUuid = gameObject->uuid;
 				newGameObject->parent = modelInstanceGameObjects[parentUuid];
 				if (newGameObject->parent == nullptr) {
 					newGameObject->parent = Application->activeScene->gameObjects.front().get();
 				}
+
+				newGameObject->transform->UpdateChildrenTransform();
+				newGameObject->AddComponent<Transform>(newTransform);
 				MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
 				if (meshRenderer) {
 					model->meshRenderers.find(meshRenderer->aiMeshName)->second.get()->instanced = true;
-					newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
+					MeshRenderer* newMeshRenderer = new MeshRenderer();
+					newMeshRenderer->instanced = true;
+					newMeshRenderer->mesh = model->meshRenderers.find(meshRenderer->aiMeshName)->second.get()->mesh;
+					newGameObject->AddComponent<MeshRenderer>(newMeshRenderer);
+					//newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
 				}
-				newGameObject->parent->transform->UpdateChildrenTransform();
 				modelInstanceGameObjects.emplace(newGameObject->modelUuid, newGameObject);
 				/*
 				for (shared_ptr component : gameObject->components) {
@@ -43,8 +54,15 @@ namespace Engine {
 				*/
 
 				index++;
+
+				if (!mainModelObject) {
+					mainModelObject = newGameObject;
+				}
 			}
+			mainModelObject->transform->UpdateChildrenTransform();
+
 			Application->activeScene->gameObjects.front().get()->children.push_back(modelInstanceGameObjects[model->gameObjects.front().get()->uuid]);
+
 		}
 		else {
 			if (!filePath.empty()) ModelLoader::LoadImportedModelToMemory(filePath);
@@ -102,8 +120,12 @@ namespace Engine {
 		unsigned int index = 0;
 		for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 			aiMesh* aiMesh = scene->mMeshes[i];
-			Mesh mesh = ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr);
-			meshRenderers.emplace(string(aiMesh->mName.C_Str() + to_string(index)), make_shared<MeshRenderer>(mesh));
+			Mesh* mesh = new Mesh(ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr));
+			Application->editorScene->meshes.push_back(make_shared<Mesh>(*mesh));
+			MeshRenderer* meshRenderer = new MeshRenderer();
+			meshRenderer->instanced = true;
+			meshRenderer->mesh = shared_ptr<Mesh>(Application->editorScene->meshes.back());
+			meshRenderers.emplace(string(aiMesh->mName.C_Str() + to_string(index)), make_shared<MeshRenderer>(*meshRenderer));
 			index++;
 		}
 	}

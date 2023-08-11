@@ -23,7 +23,9 @@
 #include "Engine/Application/EntryPoint.h"
 
 #include <cstdlib> // Include the appropriate header for _dupenv_s
-
+#include "Engine/Vendor/Tracy/tracy/Tracy.hpp"
+//#include "Engine/Vendor/Tracy/tracy/TracyC.h"
+//TRACY_ENABLE = true;
 // ...
 
 char* appdataValue;
@@ -146,8 +148,11 @@ void ApplicationClass::UpdateProjectManagerGui() {
 }
 
 void ApplicationClass::Loop() {
+	static constexpr tracy::SourceLocationData __tracy_source_location151{ "MainLoop", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)151, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location151, true);
+	//ZoneScoped;
 	while (!glfwWindowShouldClose(Application->Window->glfwWindow)) {
-
+		//static constexpr tracy::SourceLocationData __tracy_source_location153{ "Main Loop", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)153, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location153, true);
+		//ZoneScopedN("Main Loop");
 		// Run the Engine (Update Time, Shadows, Inputs, Buffers, Rendering, etc.)
 		if (Application->runEngine) {
 			Application->UpdateEngine();
@@ -155,14 +160,15 @@ void ApplicationClass::Loop() {
 		else if (Application->runProjectManagerGui) {
 			Application->UpdateProjectManagerGui();
 		}
-
 		// GLFW
 		glfwSwapBuffers(Application->Window->glfwWindow);
 		glfwPollEvents();
+		FrameMark;
 	}
 }
 
 void ApplicationClass::UpdateEngine() {
+	static constexpr tracy::SourceLocationData __tracy_source_location171{ "Update Engine", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)171, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location171, true);
 	// Update time
 	Time::Update();
 	float currentFrame = static_cast<float>(glfwGetTime());
@@ -181,6 +187,7 @@ void ApplicationClass::UpdateEngine() {
 		selectedGameObject->transform->relativePosition.y += -1.0f * Time::deltaTime;
 		selectedGameObject->transform->UpdateChildrenTransform();
 	}
+
 	// Imgui New Frame
 	Gui::NewFrame();
 
@@ -190,22 +197,20 @@ void ApplicationClass::UpdateEngine() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 
-
 	// Render to shadows depth map
 	Application->Shadows->GenerateDepthMap();
-
 	// Draw GameObjects
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 	Renderer::Render(*Application->shader);
 	Renderer::RenderInstances(*Application->shader);
-
 	// Update Skybox
+	Profiler skyboxProfiler = Profiler("Skybox");
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 	Skybox::Update();
-
 	//  Draw Outline
 	if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth)
 	{
+		static constexpr tracy::SourceLocationData __tracy_source_location213{ "Render Outline", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)213, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location213, true);
 		Renderer::RenderOutline(*Application->outlineShader);
 		combineBuffers();
 	}
@@ -224,11 +229,8 @@ void ApplicationClass::UpdateEngine() {
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
-
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
 
 	// Update ImGui
 	Gui::Update();
@@ -240,6 +242,7 @@ void ApplicationClass::UpdateEngine() {
 	Time::addInstanceCalls = 0;
 	// Update lastSizes
 	Application->lastAppSizes = Application->appSizes;
+	//FrameMark;
 }
 
 void ApplicationClass::Terminate() {

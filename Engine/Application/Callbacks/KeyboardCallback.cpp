@@ -31,7 +31,7 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 			glfwSetWindowShouldClose(window, true);
 		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
 			int size = Application->activeScene->gameObjects.size();
-			for (int i = size; i < size + 1000; i++) {
+			for (int i = size; i < size + 10000; i++) {
 				GameObject* d = new GameObject(std::to_string(Application->activeScene->gameObjects.size()), Application->activeScene->gameObjects.front().get());
 				//d->AddComponent(new Transform());
 
@@ -54,7 +54,6 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 				meshRenderer->instanced = true;
 				//meshRenderer->mesh = std::make_unique<Mesh>(cubeMesh);
 				meshRenderer->mesh = Editor::DefaultModels::Cube();
-				std::cout << Application->activeProject->directory << std::endl;
 				//MeshSerializer::Serialize(Application->activeProject->directory + "\\teste.yaml", *cubeMesh);
 				d->AddComponent<MeshRenderer>(meshRenderer);
 

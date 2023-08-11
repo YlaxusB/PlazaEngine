@@ -49,6 +49,7 @@ namespace Engine {
 	}
 
 	void ShadowsClass::GenerateDepthMap() {
+		static constexpr tracy::SourceLocationData __tracy_source_location52{ "Generate Depth Map", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Lightning\\Shadows\\Shadows.cpp", (uint32_t)52, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location52, true);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// 0. UBO setup
@@ -69,7 +70,7 @@ namespace Engine {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glCullFace(GL_FRONT);
 		ShadowsClass::RenderScene(*Application->shadowsDepthShader);
-		Renderer::RenderInstances(*Application->shader);
+		Renderer::RenderInstancesShadowMap(*Application->shadowsDepthShader);
 		glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -80,12 +81,10 @@ namespace Engine {
 
 	void ShadowsClass::RenderScene(Shader& shader) {
 		shader.use();
-
-		for (const auto& gameObject : Application->activeScene->gameObjects) {
-			MeshRenderer* meshRenderer = gameObject.get()->GetComponent<MeshRenderer>();
-			if (meshRenderer) {
-				Transform* transform = gameObject.get()->transform;
-				// Check if the object is inside the view frustum
+		for (const auto& meshRendererPair : Application->activeScene->meshRendererComponents) {
+			MeshRenderer* meshRenderer = meshRendererPair.second;
+			Transform* transform = Application->activeScene->transformComponents[meshRendererPair.first];
+			if (transform) {
 				if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
 					glm::mat4 modelMatrix = transform->modelMatrix;
 					if (meshRenderer->instanced) {
@@ -95,7 +94,6 @@ namespace Engine {
 						shader.setMat4("model", modelMatrix);
 						meshRenderer->mesh->Draw(shader);
 					}
-
 				}
 			}
 		}

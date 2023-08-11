@@ -3,39 +3,46 @@
 #include "Engine/Components/Core/GameObject.h"
 #include "Engine/Core/Scene.h"
 
-template<typename T> T* GameObject::AddComponent(T* component) {
+template<typename T> T* GameObject::AddComponent(T* component, bool addToComponentsList) {
 	components.push_back(shared_ptr<Component>(component));
 	component->gameObject = this;
 	component->gameObjectUUID = this->uuid;
-	if (typeid(component) == typeid(MeshRenderer)) {
-		Application->activeScene->meshRendererComponents.emplace(this->uuid, static_cast<MeshRenderer*>(components.back().get()));
-	}
-	else if (typeid(component) == typeid(Transform)) {
-		Application->activeScene->transformComponents.emplace(this->uuid, static_cast<Transform*>(components.back().get()));
-	
+	if (addToComponentsList) {
+		if (typeid(component) == typeid(MeshRenderer*)) {
+			Application->activeScene->meshRendererComponents.emplace(this->uuid, static_cast<MeshRenderer*>(components.back().get()));
+		}
+		if (typeid(component) == typeid(Transform*)) {
+			Application->activeScene->transformComponents.emplace(this->uuid, static_cast<Transform*>(components.back().get()));
+		}
 	}
 	return component;
 }
 
 
-template MeshRenderer* GameObject::AddComponent(MeshRenderer* component);
+template MeshRenderer* GameObject::AddComponent(MeshRenderer* component, bool addToComponentsList);
+template Transform* GameObject::AddComponent(Transform* component, bool addToComponentsList);
 
-Component* GameObject::AddComponent(Component* component) {
+Component* GameObject::AddComponent(Component* component, bool addToComponentsList) {
 	components.push_back(shared_ptr<Component>(component));
 	component->gameObject = this;
 	component->gameObjectUUID = this->uuid;
+	if (addToComponentsList) {
+		if (typeid(component) == typeid(Transform*)) {
+			Application->activeScene->transformComponents.emplace(this->uuid, static_cast<Transform*>(components.back().get()));
+		}
+	}
 	return component;
 }
 
 GameObject::GameObject(std::string objName, GameObject* parent, bool addToScene) {
-	this->transform = this->AddComponent<Transform>(new Transform());
+	uuid = Engine::UUID::NewUUID();
+	this->transform = this->AddComponent<Transform>(new Transform(), addToScene);
 	transform->gameObject = this;
 	//transform->gameObject = this;
 	//this->AddComponent<Transform>(this->transform);
 	UUIDv4::UUIDGenerator<std::mt19937_64> uuidGenerator;
 	name = objName;
 	id = Application->activeScene->gameObjects.size() > 0 ? Application->activeScene->gameObjects.back()->id + 1 : 1; // IT WILL PROBABLY BREAK IN THE NEAR FUTURE 
-	uuid = Engine::UUID::NewUUID();
 
 	// Set the new parent
 	this->parent = parent;

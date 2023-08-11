@@ -11,8 +11,8 @@ using namespace Engine;
 
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 
-
-
+#include "Engine/Vendor/Tracy/tracy/Tracy.hpp"
+#ifdef TRACY_ENABLE
 int main() {
 	//Application = new Engine::ApplicationClass();
 	Application->CreateApplication();
@@ -22,3 +22,4 @@ int main() {
 	Application->Terminate();
 	return 0;
 }
+#endif

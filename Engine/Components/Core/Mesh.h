@@ -134,6 +134,23 @@ namespace Engine {
 			instanceModelMatrices.push_back(model);
 		}
 
+		void DrawInstancedToShadowMap(Shader& shader) {
+			if (instanceModelMatrices.size() > 0) {
+				// Setup instance buffer
+				glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
+				glBufferData(GL_ARRAY_BUFFER, instanceModelMatrices.size() * sizeof(glm::mat4), &instanceModelMatrices[0], GL_STATIC_DRAW);
+				// draw mesh
+				glBindVertexArray(VAO);
+				//glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
+				glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, instanceModelMatrices.size());
+				glBindVertexArray(0);
+
+				// always good practice to set everything back to defaults once configured.
+				Time::drawCalls += 1;
+				glBindBuffer(GL_ARRAY_BUFFER, 0);
+			}
+		}
+
 		void DrawInstanced(Shader& shader) {
 			if (instanceModelMatrices.size() > 0) {
 				BindTextures(shader);

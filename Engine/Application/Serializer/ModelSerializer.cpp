@@ -100,13 +100,15 @@ namespace Engine {
 		}
 		gameObject->transform = ComponentSerializer::TransformSerializer::DeSerialize(componentsEntry["TransformComponent"]);
 		gameObject->ReplaceComponent<Transform>(gameObject->GetComponent<Transform>(), gameObject->transform);
+		//gameObject->RemoveComponent<Transform>();
+		//gameObject->AddComponent<Transform>(gameObject->transform);
 		if (componentsEntry["MeshComponent"]) {
 			MeshRenderer* oldMeshRenderer = gameObject->GetComponent<MeshRenderer>();
 			MeshRenderer* newMeshRenderer = new MeshRenderer();
 			newMeshRenderer->instanced = true;
 			newMeshRenderer->aiMeshName = componentsEntry["MeshComponent"]["AiMeshName"].as<string>();
 			DeSerializeMaterial(componentsEntry["MeshComponent"]["MaterialComponent"], model, newMeshRenderer);
-			gameObject->AddComponent<MeshRenderer>(newMeshRenderer);
+			gameObject->AddComponent<MeshRenderer>(newMeshRenderer, false);
 		}
 		model->gameObjects.push_back(make_shared<GameObject>(*gameObject));
 	}

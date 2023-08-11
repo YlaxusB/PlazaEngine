@@ -51,19 +51,15 @@ public:
 
 	vector<shared_ptr<Component>> components;
 	template<typename T>
-	T* AddComponent(T* component);
-	Component* AddComponent(Component* component);
+	T* AddComponent(T* component, bool addToComponentsList = true);
+	Component* AddComponent(Component* component, bool addToComponentsList = true);
 
 	Component* cachedComponent = nullptr;
 	template<typename T>
 	T* GetComponent() {
-		const std::type_info& type = typeid(T);
-		if (cachedComponent && type == typeid(*cachedComponent))
-			return static_cast<T*>(cachedComponent);
-		for (const std::shared_ptr<Component>& component : components) {
-			if (typeid(*component) == type) {
-				cachedComponent = component.get();
-				return static_cast<T*>(cachedComponent);
+		for (shared_ptr<Component> component : components) {
+			if (typeid(*component) == typeid(T)) {
+				return static_cast<T*>(component.get());
 			}
 		}
 		return nullptr;
@@ -80,6 +76,18 @@ public:
 			}
 		}
 		return nullptr; // Old component not found in the list
+	}
+
+	template <typename T>
+	void RemoveComponent() {
+		static_assert(std::is_base_of<Component, T>::value, "T must be a subclass of Component");
+
+		auto it = std::remove_if(this->components.begin(), this->components.end(),
+			[](const std::shared_ptr<Component>& comp) {
+				return dynamic_cast<T*>(comp.get()) != nullptr;
+			});
+
+		this->components.erase(it, this->components.end());
 	}
 };
 

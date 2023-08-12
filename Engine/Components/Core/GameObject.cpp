@@ -52,10 +52,8 @@ namespace Engine {
 	template<typename T>
 	T* GameObject::AddComponent(T* component, bool addToComponentsList) {
 		component->uuid = this->uuid;
-		std::cout << "adding" << std::endl;
 		if (addToComponentsList) {
 			if constexpr (std::is_same_v<T, Transform>) {
-				std::cout << "adding 2" << std::endl;
 				Application->activeScene->transformComponents.emplace(component->uuid, *component);
 			}
 			else if constexpr (std::is_same_v<T, MeshRenderer>) {

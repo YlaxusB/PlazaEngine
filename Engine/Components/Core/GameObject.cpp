@@ -5,6 +5,15 @@
 #include "Engine/Components/Core/Transform.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
 namespace Engine {
+	Transform;
+	GameObject::GameObject() {
+		// Default constructor implementation
+		uuid = Engine::UUID::NewUUID();
+		this->AddComponent<Transform>(new Transform(), true);
+		this->name = "";
+		//Application->activeScene->entities.emplace(this->uuid, std::unique_ptr<GameObject>(this));
+		Application->activeScene->entities.emplace(this->uuid, *this);
+	}
 	GameObject::GameObject(std::string objName, GameObject* parent, bool addToScene) {
 		uuid = Engine::UUID::NewUUID();
 		this->AddComponent<Transform>(new Transform(), addToScene);
@@ -12,38 +21,49 @@ namespace Engine {
 		//id = Application->activeScene->gameObjects.size() > 0 ? Application->activeScene->gameObjects.back()->id + 1 : 1; // IT WILL PROBABLY BREAK IN THE NEAR FUTURE
 
 		// Set the new parent
-		this->parentUuid = parent->uuid;
 		if (parent != nullptr) {
+			this->parentUuid = parent->uuid;
 			Application->activeScene->entities[parentUuid].childrenUuid.push_back(this->uuid);
-		}	// Add to the gameobjects list
-		if (addToScene)
-			Application->activeScene->entities.emplace(this->uuid, std::unique_ptr<GameObject>(this));
+		}
+		// Add to the gameobjects list
+		//if (addToScene)
+			//Application->activeScene->entities.emplace(this->uuid, this);
 		//Application->activeScene->gameObjects.push_back(std::unique_ptr<GameObject>(this));
+		Application->activeScene->entities.emplace(this->uuid, *this);
 	}
 
-
+	template Transform* GameObject::GetComponent<Transform>(); // Replace 'Transform' with the actual type
+	template MeshRenderer* GameObject::GetComponent<MeshRenderer>(); // Replace 'MeshRenderer' with the actual type
 	template<typename T>
-	T* GetComponent() {
-		if (typeid(T) == typeid(Engine::Transform*)) {
-			return Application->activeScene->transformComponents[this->uuid];
+	T* GameObject::GetComponent() {
+		Component* component = nullptr;
+		if (typeid(T*) == typeid(Transform*)) {
+			component = &Application->activeScene->transformComponents[this->uuid];
 		}
-		else if (typeid(T) == typeid(MeshRenderer*)) {
-			return Application->activeScene->meshRendererComponents[this->uuid];
+		else if (typeid(T*) == typeid(MeshRenderer*)) {
+			component = &Application->activeScene->meshRendererComponents[this->uuid];
 		}
-		return nullptr;
+
+		return dynamic_cast<T*>(component);
 	}
 
-
+	template Transform* GameObject::AddComponent<Transform>(Transform* component, bool addToComponentsList); // Replace 'Transform' with the actual type
+	template MeshRenderer* GameObject::AddComponent<MeshRenderer>(MeshRenderer* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
 	template<typename T>
-	T* GameObject::AddComponent(T* component, bool addToScene) {
+	T* GameObject::AddComponent(T* component, bool addToComponentsList) {
 		component->uuid = this->uuid;
-		if (typeid(component) == typeid(Tranform*)) {
-			Application->activeScene->transformComponents.emplace({ component->uuid, component })
+		std::cout << "adding" << std::endl;
+		if (addToComponentsList) {
+			if constexpr (std::is_same_v<T, Transform>) {
+				std::cout << "adding 2" << std::endl;
+				Application->activeScene->transformComponents.emplace(component->uuid, *component);
+			}
+			else if constexpr (std::is_same_v<T, MeshRenderer>) {
+				Application->activeScene->meshRendererComponents.emplace(component->uuid, *component);
+			}
 		}
-		else if (typeid(component) == typeid(MeshRenderer*)) {
-			Application->activeScene->meshRendererComponents.emplace({ component->uuid, component })
-		}
-		return nullptr;
+
+		return component;
 	}
 
 	GameObject& GameObject::GetParent() {

@@ -18,13 +18,13 @@ namespace Engine {
 	/// <returns></returns>
 	glm::mat4 Transform::GetTransform(glm::vec3 position, glm::vec3 scale)
 	{
-		if (!Application->activeScene->gameObjects[this->uuid]->parentUuid) {
+		if (Application->activeScene->entities[this->uuid].parentUuid == 0) {
 			return glm::mat4(0.0f);
 		}
 		glm::mat4 rot = glm::toMat4(glm::quat(rotation));
 
 		glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), this->worldPosition)
-			* glm::toMat4(glm::quat(Application->activeScene->gameObjects[this->uuid]->GetComponent<Transform>()->worldRotation))
+			* glm::toMat4(glm::quat(Application->activeScene->entities[this->uuid].GetComponent<Transform>()->worldRotation))
 			* glm::scale(glm::mat4(1.0f), scale);
 
 		//gizmoMatrix = glm::scale(gizmoMatrix, gameObject->transform->worldScale);
@@ -64,8 +64,8 @@ namespace Engine {
 
 
 
-	void UpdateObjectTransform(GameObject* gameObject) {
-		if (!gameObject->parentUuid) {
+	void Transform::UpdateObjectTransform(GameObject* gameObject) {
+		if (gameObject->parentUuid) {
 			gameObject->GetComponent<Transform>()->worldScale = gameObject->GetComponent<Transform>()->scale * Application->activeScene->entities[gameObject->parentUuid].GetComponent<Transform>()->worldScale;
 			gameObject->GetComponent<Transform>()->worldRotation = newWorldRotation(gameObject);
 			gameObject->GetComponent<Transform>()->worldPosition = newWorldPosition(gameObject);
@@ -90,7 +90,7 @@ namespace Engine {
 
 
 	void Transform::UpdateChildrenTransform() {
-		if (!uuid) {
+		if (uuid) {
 			UpdateChildrenTransform(&Application->activeScene->entities[uuid]);
 		}
 	}

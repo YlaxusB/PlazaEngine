@@ -1,3 +1,4 @@
+#include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
 namespace Engine {
 	MeshRenderer::MeshRenderer(Engine::Mesh initialMesh, bool addToScene) {

@@ -23,7 +23,7 @@ void Engine::Editor::Outline::BlurBuffer() {
 	Application->singleColorShader->use();
 	glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 	glm::mat4 view = Application->activeCamera->GetViewMatrix();
-	glm::mat4 modelMatrix = Editor::selectedGameObject->transform->GetTransform();
+	glm::mat4 modelMatrix = Editor::selectedGameObject->GetComponent<Transform>()->GetTransform();
 	Application->singleColorShader->setMat4("projection", projection);
 	Application->singleColorShader->setMat4("view", view);
 	Application->singleColorShader->setMat4("model", modelMatrix);
@@ -65,12 +65,12 @@ namespace Engine::Editor {
 	void Outline::RenderSelectedObjects(GameObject* gameObject, Shader shader) {
 		MeshRenderer* mr = gameObject->GetComponent<MeshRenderer>();
 		if (mr) {
-			glm::mat4 modelMatrix = gameObject->transform->modelMatrix;
+			glm::mat4 modelMatrix = gameObject->GetComponent<Transform>()->modelMatrix;
 			shader.setMat4("model", modelMatrix);
 			mr->mesh->Draw(shader);
 		}
-		for (GameObject* child : gameObject->children) {
-			Outline::RenderSelectedObjects(child, shader);
+		for (uint64_t child : gameObject->childrenUuid) {
+			Outline::RenderSelectedObjects(&Application->activeScene->entities[child], shader);
 		}
 	}
 }

@@ -52,8 +52,8 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 			// Stop
 			if (Application->runningScene) {
 				Editor::selectedGameObject = nullptr;
-				if (Editor::selectedGameObject)
-					Engine::Editor::Gui::changeSelectedGameObject(Application->editorScene->gameObjects.find(Editor::selectedGameObject->uuid));
+				//if (Editor::selectedGameObject)
+				//	Engine::Editor::Gui::changeSelectedGameObject(Application->editorScene->gameObjects.find(Editor::selectedGameObject->uuid));
 				// Change active scene, update the selected object scene, delete runtime and set running to false.
 				delete(Application->runtimeScene);
 				Application->runningScene = false;
@@ -64,8 +64,8 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 				Application->runtimeScene = new Scene();
 				Application->activeScene = Application->runtimeScene;
 				Application->runtimeScene = Scene::Copy(Application->runtimeScene, Application->editorScene);
-				if (Editor::selectedGameObject)
-					Engine::Editor::Gui::changeSelectedGameObject(Application->activeScene->gameObjects.find(Editor::selectedGameObject->name));
+				//if (Editor::selectedGameObject)
+				//	Engine::Editor::Gui::changeSelectedGameObject(Application->activeScene->gameObjects.find(Editor::selectedGameObject->name));
 
 				Application->runningScene = true;
 			}

@@ -1,5 +1,4 @@
 #pragma once
-#include "Engine/Components/Core/GameObject.h"
 #include "Engine/Core/Time.h"
 #include "Engine/Vendor/GLFW/glfw3.h"
 #include <string>

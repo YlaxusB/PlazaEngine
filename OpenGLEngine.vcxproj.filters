@@ -407,9 +407,6 @@
     <ClInclude Include="Engine\Vendor\filesystem\filesys.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Application\ModelLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Utils\glmUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>

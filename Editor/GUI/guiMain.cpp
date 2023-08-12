@@ -257,7 +257,7 @@ namespace Engine {
 
 
 				// Create the main collapser
-				Editor::Gui::Hierarchy::Item(*Application->activeScene->gameObjects.front().get(), selectedGameObject);
+				Editor::Gui::Hierarchy::Item(*Application->activeScene->mainSceneEntity, selectedGameObject);
 				ImGui::PopStyleColor(); // Background Color
 			}
 

@@ -1,6 +1,8 @@
 #pragma  once
 #include <variant>
 #include "Engine/Components/Component.h"
+#include <vector>
+#include <string>
 namespace Engine {
 	class GameObject {
 	public:
@@ -9,7 +11,7 @@ namespace Engine {
 		std::vector<uint64_t> childrenUuid;
 		std::string name;
 
-
+		GameObject();
 		GameObject(std::string objName, GameObject* parent = nullptr, bool addToScene = true);
 		GameObject(const GameObject&) = default;
 		~GameObject() = default;
@@ -19,6 +21,7 @@ namespace Engine {
 
 		template<typename T>
 		T* AddComponent(T* component, bool addToComponentsList = true);
+
 		//Component* AddComponent(Component* component, bool addToComponentsList = true);
 
 		template <typename T>

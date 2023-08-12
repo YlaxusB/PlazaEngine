@@ -183,9 +183,9 @@ void ApplicationClass::UpdateEngine() {
 	// Update Keyboard inputs
 	Callbacks::processInput(Application->Window->glfwWindow);
 	glEnable(GL_BLEND);
-	if (Application->runningScene && Editor::selectedGameObject && Editor::selectedGameObject->parent != nullptr) {
-		selectedGameObject->transform->relativePosition.y += -1.0f * Time::deltaTime;
-		selectedGameObject->transform->UpdateChildrenTransform();
+	if (Application->runningScene && Editor::selectedGameObject && !Editor::selectedGameObject->parentUuid) {
+		selectedGameObject->GetComponent<Transform>()->relativePosition.y += -1.0f * Time::deltaTime;
+		selectedGameObject->GetComponent<Transform>()->UpdateChildrenTransform();
 	}
 
 	// Imgui New Frame

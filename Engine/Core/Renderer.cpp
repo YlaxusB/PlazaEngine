@@ -43,11 +43,11 @@ namespace Engine {
 
 		Application->activeCamera->UpdateFrustum();
 		for (const auto& meshRendererPair : Application->activeScene->meshRendererComponents) {
-			MeshRenderer meshRenderer = (meshRendererPair.second);
+			const MeshRenderer& meshRenderer = (meshRendererPair.second);
 			if (!meshRenderer.instanced) {
-				Transform* transform = &Application->activeScene->transformComponents[meshRendererPair.first];
-				if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
-					glm::mat4 modelMatrix = transform->modelMatrix;
+				const Transform& transform = Application->activeScene->transformComponents[meshRendererPair.first];
+				if (Application->activeCamera->IsInsideViewFrustum(transform.worldPosition)) {
+					glm::mat4 modelMatrix = transform.modelMatrix;
 					shader.setMat4("model", modelMatrix);
 					meshRenderer.mesh->BindTextures(shader);
 					meshRenderer.mesh->Draw(shader);

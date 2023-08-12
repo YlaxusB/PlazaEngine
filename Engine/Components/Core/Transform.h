@@ -8,7 +8,7 @@
 #include "Engine/Components/Component.h"
 
 namespace Engine {
-	class Transform : public Component {
+	class Transform : public Engine::Component {
 	public:
 		uint64_t uuid;
 		glm::vec3 position = { 0,0,0 };
@@ -25,6 +25,7 @@ namespace Engine {
 		glm::mat4 GetTransform(glm::vec3 position, glm::vec3 scale);
 		glm::mat4 GetTransform(glm::vec3 position);
 		glm::mat4 GetTransform();
+		void UpdateObjectTransform(GameObject* gameObject);
 		void UpdateChildrenTransform(GameObject* gameObject);
 		void UpdateChildrenTransform();
 		void UpdateChildrenScale(GameObject* gameObject);

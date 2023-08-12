@@ -4,6 +4,7 @@
 #include "Engine/Components/Rendering/Texture.h"
 #include "Engine/Components/Rendering/Material.h"
 using namespace std;
+using namespace Engine;
 namespace Engine {
 	struct Vertex {
 		glm::vec3 position;
@@ -40,7 +41,7 @@ namespace Engine {
 			this->indices = indices;
 			this->material = material;
 			this->uuid = Engine::UUID::NewUUID();
-			//setupMesh();
+			setupMesh();
 		}
 
 		Mesh() {

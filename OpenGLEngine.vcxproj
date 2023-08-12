@@ -174,7 +174,7 @@
     <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
     <ClCompile Include="Engine\Components\Core\ModelComponent.cpp" />
     <ClCompile Include="Engine\Components\Rendering\MeshRenderer.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Engine\Components\Rendering\Prefab.cpp" />
     <ClCompile Include="Engine\Core\Engine.cpp" />
@@ -389,7 +389,6 @@
     <ClInclude Include="Engine\Application.h" />
     <ClInclude Include="Engine\Application\Application.h" />
     <ClInclude Include="Engine\Application\EditorCamera.h" />
-    <ClInclude Include="Engine\Application\ModelLoader.h" />
     <ClInclude Include="Engine\Application\PickingTexture.h" />
     <ClInclude Include="Engine\Components\Core\CoreComponents.h" />
     <ClInclude Include="Engine\Core\Meshes\Cube.cpp" />

@@ -34,7 +34,7 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
 			int size = Application->activeScene->gameObjects.size();
 			for (int i = size; i < size + 10000; i++) {
-				GameObject* d = new GameObject(std::to_string(Application->activeScene->gameObjects.size()), Application->activeScene->gameObjects.front().get());
+				GameObject* d = new GameObject(std::to_string(Application->activeScene->gameObjects.size()), Application->activeScene->mainSceneEntity);
 				//d->AddComponent(new Transform());
 
 
@@ -46,6 +46,7 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 				int min = -20;
 				int max = 20;
 				std::uniform_int_distribution<int> distribution(min, max);
+				Transform& test = *d->GetComponent<Transform>();
 				d->GetComponent<Transform>()->relativePosition = glm::vec3(distribution(gen), distribution(gen), distribution(gen)) + Application->activeCamera->Position;
 				d->GetComponent<Transform>()->UpdateChildrenTransform();
 				Mesh cubeMesh = Engine::Mesh();//Engine::Mesh::Cube();

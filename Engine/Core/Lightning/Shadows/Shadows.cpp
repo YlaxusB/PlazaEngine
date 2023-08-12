@@ -3,6 +3,11 @@
 
 #include "Engine/Core/Renderer.h"
 
+#include <iostream>
+#include <unordered_map>
+#include <algorithm>
+#include <execution>
+
 const glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
 
 namespace Engine {
@@ -81,20 +86,39 @@ namespace Engine {
 
 	void ShadowsClass::RenderScene(Shader& shader) {
 		shader.use();
-		for (const auto& meshRendererPair : Application->activeScene->meshRendererComponents) {
-			MeshRenderer meshRenderer = (meshRendererPair.second);
-			Transform* transform = &Application->activeScene->transformComponents[meshRendererPair.first];
-			if (transform) {
-				if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
-					glm::mat4 modelMatrix = transform->modelMatrix;
-					if (meshRenderer.instanced) {
-						meshRenderer.mesh->AddInstance(shader, modelMatrix);
-					}
-					else {
-						shader.setMat4("model", modelMatrix);
-						meshRenderer.mesh->Draw(shader);
-					}
+		/*
+		std::for_each(std::execution::par, Application->activeScene->meshRendererComponents.begin(), Application->activeScene->meshRendererComponents.end(), [&shader](const auto& pair) {
+			// Process each pair in parallel
+			const MeshRenderer& meshRenderer = pair.second;
+			const Transform& transform = Application->activeScene->transformComponents[pair.first];
+			if (Application->activeCamera->IsInsideViewFrustum(transform.worldPosition)) {
+				//Application->activeScene->entities[transform->uuid].GetComponent<Transform>()->UpdateObjectTransform(&Application->activeScene->entities[meshRendererPair.first]);
+				glm::mat4 modelMatrix = transform.modelMatrix;
+				if (meshRenderer.instanced) {
+					meshRenderer.mesh->AddInstance(shader, modelMatrix);
 				}
+				else {
+					shader.setMat4("model", modelMatrix);
+					meshRenderer.mesh->Draw(shader);
+				}
+
+			}
+			});
+		*/
+		for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
+			const MeshRenderer& meshRenderer = value;
+			const Transform& transform = Application->activeScene->transformComponents.at(key);
+			if (Application->activeCamera->IsInsideViewFrustum(transform.worldPosition)) {
+				//Application->activeScene->entities[transform->uuid].GetComponent<Transform>()->UpdateObjectTransform(&Application->activeScene->entities[meshRendererPair.first]);
+				glm::mat4 modelMatrix = transform.modelMatrix;
+				if (meshRenderer.instanced) {
+					meshRenderer.mesh->AddInstance(shader, modelMatrix);
+				}
+				else {
+					shader.setMat4("model", modelMatrix);
+					meshRenderer.mesh->Draw(shader);
+				}
+
 			}
 		}
 	}

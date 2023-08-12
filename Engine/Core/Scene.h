@@ -4,6 +4,8 @@
 #include <vector>
 #include <variant>
 #include "Engine/Components/Core/Entity.h"
+#include <unordered_map>
+using namespace std;
 namespace Engine {
 	class GameObjectList : public std::vector<std::unique_ptr<GameObject>> {
 	public:
@@ -17,6 +19,7 @@ namespace Engine {
 		GameObjectList gameObjects;
 		std::unordered_map<std::variant<uint64_t, std::string>, GameObject*> gameObjectsMap;
 
+		GameObject* mainSceneEntity;
 		unordered_map<uint64_t, GameObject> entities;
 		unordered_map<uint64_t, Transform> transformComponents;
 		unordered_map<uint64_t, MeshRenderer> meshRendererComponents;
@@ -27,7 +30,9 @@ namespace Engine {
 
 		static Scene* Copy(Scene* newScene, Scene* copyScn);
 		~Scene() = default;
-		Scene() {}
+		Scene() {
+
+		}
 
 		void RemoveMeshRenderer(uint64_t uuid);
 	};

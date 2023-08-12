@@ -16,7 +16,7 @@ using namespace Engine;
 int main() {
 	//Application = new Engine::ApplicationClass();
 	Application->CreateApplication();
-
+	Application->activeScene->mainSceneEntity = new GameObject("Scene");
 	Editor::DefaultModels::Init();
 	Application->Loop();
 	Application->Terminate();

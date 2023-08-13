@@ -294,10 +294,11 @@ namespace Engine {
 
 
 			if (selectedGameObject && selectedGameObject->parentUuid) {
-				Editor::Inspector::ComponentInspector inspector(selectedGameObject);
+				Inspector::ComponentInspector::UpdateComponents();
+				Editor::Inspector::ComponentInspector::CreateInspector();
 				ImGui::Text(std::to_string(selectedGameObject->uuid).c_str());
-				Editor::Inspector* asd = new Inspector();
-				asd->addComponentButton();
+				//Editor::Inspector* asd = new Inspector();
+				//asd->addComponentButton();
 				//Gui::Inspector::addComponentButton(appSizes);
 			}
 

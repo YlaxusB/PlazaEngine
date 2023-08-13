@@ -27,27 +27,11 @@ namespace Engine {
 				//Application->activeScene->entities.at(newGameObject->parentUuid).childrenUuid.push_back(newGameObject->uuid);
 
 				GameObject* newGameObject = new GameObject(gameObject->name, &Application->activeScene->entities.at(parentUuid));
-				Transform* transform = gameObject->GetComponent<Transform>();
-				Transform* newTransform = nullptr;
-				if (transform != nullptr) {
-					newTransform = new Transform(*transform);
-				}
-				else {
-					newTransform = new Transform();
-				}
-				newTransform->uuid = newGameObject->uuid;
-				newGameObject->AddComponent<Transform>(newTransform);
-				newTransform->relativePosition = newGameObject->GetComponent<Transform>()->relativePosition;
-				newTransform->uuid = newGameObject->uuid;
+				Transform* transform = model->transforms.at(gameObject->uuid).get();//gameObject->GetComponent<Transform>();
+				newGameObject->GetComponent<Transform>()->relativePosition = transform->relativePosition;
+				newGameObject->GetComponent<Transform>()->rotation = transform->rotation;
+				newGameObject->GetComponent<Transform>()->scale = transform->scale;
 
-
-				//newGameObject->ReplaceComponent<Transform>(newGameObject->GetComponent<Transform>(), newTransform);
-				newGameObject->RemoveComponent<Transform>();
-				//newGameObject->components.erase(newGameObject->GetComponent<Transform>());
-
-
-				newGameObject->GetComponent<Transform>()->UpdateChildrenTransform();
-				newGameObject->AddComponent<Transform>(newTransform);
 				const auto& it = model->meshRenderers.find(gameObject->uuid);
 				if (it != model->meshRenderers.end()) {
 					MeshRenderer* meshRenderer = model->meshRenderers.at(gameObject->uuid).get();
@@ -71,10 +55,9 @@ namespace Engine {
 					mainModelObject = newGameObject;
 				}
 			}
-			mainModelObject->GetComponent<Transform>()->UpdateChildrenTransform();
-
+			modelInstanceGameObjects[model->gameObjects.front().get()->uuid]->GetComponent<Transform>()->UpdateChildrenTransform();
 			Application->activeScene->mainSceneEntity->childrenUuid.push_back(modelInstanceGameObjects[model->gameObjects.front().get()->uuid]->uuid);
-
+			Application->activeScene->mainSceneEntity->GetComponent<Transform>()->UpdateChildrenTransform();
 		}
 		else {
 			if (!filePath.empty()) ModelLoader::LoadImportedModelToMemory(filePath);

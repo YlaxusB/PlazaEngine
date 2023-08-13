@@ -115,6 +115,7 @@ namespace Engine {
 			newMeshRenderer->uuid = gameObject->uuid;
 			model->meshRenderers.emplace(gameObject->uuid, newMeshRenderer);
 		}
+		model->transforms.emplace(gameObject->uuid, newTransform);
 		model->gameObjects.push_back(make_shared<GameObject>(*gameObject));
 		
 	}

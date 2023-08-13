@@ -24,28 +24,12 @@ namespace Engine::Editor {
 
 		class ComponentInspector {
 		public:
+			static vector<Component*> components;
 
-			GameObject*& gameObject; // The selected object
-			ComponentInspector(GameObject*& gameObject) : gameObject(gameObject) {
+			static void CreateInspector();
+			static void UpdateComponents();
 
-				if (ImGui::TreeNodeEx(gameObject->name.c_str())) {
-					ImGui::TreePop();
-				}
-
-				/*for (shared_ptr<Component>& component : gameObject->components) {
-					CreateRespectiveInspector(component.get());
-				}*/
-			}
-
-
-			void CreateRespectiveInspector(Component* component) {
-				if (Transform* transform = dynamic_cast<Transform*>(component)) {
-					Editor::Gui::TransformInspector inspector{ gameObject };
-				}
-				if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {
-					Engine::Editor::MaterialInspector::MaterialInspector(gameObject);
-				}
-			}
+			static void CreateRespectiveInspector(Component* component);
 		};
 
 

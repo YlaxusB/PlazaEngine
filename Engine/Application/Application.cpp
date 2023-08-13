@@ -212,7 +212,8 @@ void ApplicationClass::UpdateEngine() {
 	//  Draw Outline
 	if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth)
 	{
-		static constexpr tracy::SourceLocationData __tracy_source_location213{ "Render Outline", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)213, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location213, true);
+		static constexpr tracy::SourceLocationData __tracy_source_location215{ "2", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)215, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location215, true);
+		//static constexpr tracy::SourceLocationData __tracy_source_location213{ "Render Outline", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)213, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location213, true);
 		Renderer::RenderOutline(*Application->outlineShader);
 		combineBuffers();
 	}

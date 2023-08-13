@@ -27,12 +27,12 @@ namespace Engine::Editor {
 
 		ImGuiStyle& style = ImGui::GetStyle();
 
-		style.IndentSpacing = 11.0f;
+		style.IndentSpacing = 3.0f;
 		//ImGui::SetCursorPosX(ImGui::GetCursorPosX());
 		const float indentSpacing = ImGui::GetStyle().IndentSpacing;
 		const int depth = 1.0f / indentSpacing;
 
-		ImGui::Indent(11.0f);
+		ImGui::Indent(3.0f);
 		//ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetTreeNodeToLabelSpacing() + 3.0f); // Decrease the indentation spacing
 		if (gameObject.childrenUuid.size() > 0) {
 			treeNodeOpen = ImGui::TreeNodeEx(gameObject.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen);
@@ -58,41 +58,34 @@ namespace Engine::Editor {
 
 		// Change the selected gameobject if user clicked on the selectable
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			Gui::changeSelectedGameObject(Application->activeScene->gameObjectsMap[gameObject.uuid]);
+			Gui::changeSelectedGameObject(&Application->activeScene->entities[gameObject.uuid]);
 		//Engine::Editor::selectedGameObject = gameObject;
 
 
 		if (ImGui::IsItemVisible()) {
-			if (gameObject.parentUuid) {
-				if (ImGui::BeginDragDropSource()) {
-					ImGui::SetDragDropPayload(payloadName.c_str(), &gameObject, sizeof(GameObject*));
+			if (gameObject.parentUuid && ImGui::BeginDragDropSource()) {
+				ImGui::SetDragDropPayload(payloadName.c_str(), &gameObject, sizeof(GameObject*));
 
-					ImVec2 mousePos = ImGui::GetMousePos();
-					ImVec2 treeNodePos = treeNodeMin;
-					ImVec2 treeNodeSize = ImVec2(treeNodeMax.x - treeNodeMin.x, treeNodeMax.y - treeNodeMin.y);
+				ImVec2 mousePos = ImGui::GetMousePos();
+				ImVec2 treeNodePos = treeNodeMin;
+				ImVec2 treeNodeSize = ImVec2(treeNodeMax.x - treeNodeMin.x, treeNodeMax.y - treeNodeMin.y);
 
-					ImVec2 treeNodeCenter = ImVec2(treeNodePos.x, treeNodePos.y + treeNodeSize.y / 2);
-					ImGui::EndDragDropSource();
-				}
+				ImVec2 treeNodeCenter = ImVec2(treeNodePos.x, treeNodePos.y + treeNodeSize.y / 2);
+				ImGui::EndDragDropSource();
 			}
 
 			Hierarchy::Item::HierarchyDragDrop(gameObject, &currentObj, treeNodeMin, treeNodeMax);
 		}
 		if (treeNodeOpen)
 		{
-			if (ImGui::IsItemVisible()) // Check if the item is visible
+			for (uint64_t child : gameObject.childrenUuid)
 			{
-				for (uint64_t child : gameObject.childrenUuid)
-				{
-					Gui::Hierarchy::Item(Application->activeScene->entities[child], selectedGameObject);
-				}
+				Gui::Hierarchy::Item(Application->activeScene->entities[child], selectedGameObject);
 			}
 			ImGui::TreePop();
-
 		}
 		ImGui::Unindent(indentSpacing * depth);
 
 		ImGui::PopID();
-
 	};
 };

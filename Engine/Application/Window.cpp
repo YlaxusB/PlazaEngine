@@ -13,12 +13,12 @@ using Engine::ApplicationClass;
 namespace Engine {
 	GLFWwindow* WindowClass::InitGLFWWindow() {
 		glfwInit();
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+		glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
 		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-		glfwWindowHint(GLFW_SAMPLES, 1);
+		glfwWindowHint(GLFW_SAMPLES, 4);
 
 		// --------- MUST CHANGE THE WAY IT'S STARTING ON SECOND MONITOR --------- //
 
@@ -26,13 +26,22 @@ namespace Engine {
 		int monitorCount;
 		GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
 		GLFWmonitor* secondMonitor = monitors[1];
-		const GLFWvidmode* videoMode = glfwGetVideoMode(secondMonitor);
-		GLFWwindow* window = glfwCreateWindow(Application->appSizes->appSize.x, Application->appSizes->appSize.y, "OpenGLEngine", secondMonitor, NULL);
+		//const GLFWvidmode* videoMode = glfwGetVideoMode(secondMonitor);
+		const GLFWvidmode* mode = glfwGetVideoMode(secondMonitor);
+
+		glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+		glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+		glfwWindowHint(GLFW_REFRESH_RATE, 5000);
+		GLFWwindow* window = glfwCreateWindow(Application->appSizes->appSize.x, Application->appSizes->appSize.y, "Plaza Engine", NULL, NULL);
 		// Make it be fullscreen
 		glfwMakeContextCurrent(window);
-		glfwSetWindowMonitor(window, nullptr, 1, 10, Application->appSizes->appSize.x, Application->appSizes->appSize.y, GLFW_DONT_CARE);
-		glfwSetWindowPos(window, -2560, 0);
+		glfwSetWindowMonitor(window, NULL, 0, 0, Application->appSizes->appSize.x, Application->appSizes->appSize.y, GLFW_DONT_CARE);
+		//glfwSetWindowPos(window, -2560, 0);
+		//glfwMaximizeWindow(window);
 		glfwMaximizeWindow(window);
+		glfwSetWindowPos(window, -Application->appSizes->appSize.x, 0);
+
 
 		if (window == NULL)
 		{

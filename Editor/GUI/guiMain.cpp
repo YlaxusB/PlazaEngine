@@ -45,7 +45,11 @@ namespace Engine {
 		string Gui::scenePayloadName = "scenePayloadName";
 		void Gui::Update() {
 			static constexpr tracy::SourceLocationData __tracy_source_location47{ "Gui Update", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Editor\\GUI\\guiMain.cpp", (uint32_t)47, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location47, true);
+			
+			ImGuiIO& io = ImGui::GetIO();
+			io.DeltaTime = Time::deltaTime;
 			Gui::setupDockspace(Application->Window->glfwWindow, Application->textureColorbuffer, Application->activeCamera);
+			ImGui::ShowDemoWindow();
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		}
@@ -64,7 +68,7 @@ namespace Engine {
 			ImGui_ImplGlfw_InitForOpenGL(window, true);
 			io.IniFilename = "Engine/imgui.ini";
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-			ImGui_ImplOpenGL3_Init("#version 330");
+			ImGui_ImplOpenGL3_Init("#version 410");
 			//C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
 			io.Fonts->AddFontFromFileTTF((Application->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
 			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
@@ -85,7 +89,7 @@ namespace Engine {
 			selectedGameObject = newSelectedGameObject;
 		}
 		void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera) {
-
+			static constexpr tracy::SourceLocationData __tracy_source_location88{ "Setup Dockspace", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Editor\\GUI\\guiMain.cpp", (uint32_t)88, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location88, true);
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 
@@ -101,37 +105,37 @@ namespace Engine {
 				//		windowFlags |= ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_NoScrollbar;
 
 			bool showDockspace = true;
-			if (ImGui::Begin("Main DockSpace", &showDockspace, windowFlags)) {
-				ImGui::SetWindowPos(ImVec2(0, 0));
+			ImGui::Begin("Main DockSpace", &showDockspace, windowFlags);
+
+			//ImGui::SetWindowPos(ImVec2(0, 0));
+
+			// Submit the DockSpace
+			ImGuiIO& io = ImGui::GetIO();
+			ImGuiID dockspace_id = ImGui::GetID("Main DockSpace");
+			ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+			dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+			dockspace_flags |= ImGuiDockNodeFlags_NoDockingInCentralNode;
+
+			// Submit the DockSpace
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+
+			Gui::MainMenuBar::Begin();
+
+			//ImGui::SetWindowPos(ImVec2(0, 0));
+
+			//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
+			Gui::beginHierarchyView(gameFrameBuffer);
+
+			//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
+			Gui::beginScene(gameFrameBuffer, *camera);
+			//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
+			Gui::beginInspector(gameFrameBuffer, *camera);
 
 
-				// Submit the DockSpace
-				ImGuiIO& io = ImGui::GetIO();
-				ImGuiID dockspace_id = ImGui::GetID("Main DockSpace");
-				ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-				dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
-				dockspace_flags |= ImGuiDockNodeFlags_NoDockingInCentralNode;
 
-				// Submit the DockSpace
-				ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+			FileExplorer::UpdateGui();
+			ImGui::End();
 
-				Gui::MainMenuBar::Begin();
-
-				//ImGui::SetWindowPos(ImVec2(0, 0));
-
-				//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
-				Gui::beginHierarchyView(gameFrameBuffer);
-
-				//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
-				Gui::beginScene(gameFrameBuffer, *camera);
-				//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
-				Gui::beginInspector(gameFrameBuffer, *camera);
-
-
-
-				FileExplorer::UpdateGui();
-				ImGui::End();
-			}
 
 			ImGui::PopStyleColor();
 
@@ -140,7 +144,7 @@ namespace Engine {
 			fpsCounter->Update();
 			// Update the sizes after resizing
 
-			Gui::UpdateSizes();
+			//Gui::UpdateSizes();
 		}
 
 
@@ -161,74 +165,66 @@ namespace Engine {
 			windowFlags |= ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_NoScrollbar;*/
 
 			ImGui::SetNextWindowSize(ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y));
-			if (ImGui::Begin("Scene", &Gui::isSceneOpen, windowFlags)) {
-				if (ImGui::IsWindowFocused())
-					Application->focusedMenu = "Scene";
-				if (ImGui::IsWindowHovered())
-					Application->hoveredMenu = "Scene";
+			ImGui::Begin("Scene", &Gui::isSceneOpen, windowFlags);
+			if (ImGui::IsWindowFocused())
+				Application->focusedMenu = "Scene";
+			if (ImGui::IsWindowHovered())
+				Application->hoveredMenu = "Scene";
 
 
 
 
-				ImVec2 uv0(0, 1); // bottom-left corner
-				ImVec2 uv1(1, 0); // top-right corner
-				appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
-				ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+			ImVec2 uv0(0, 1); // bottom-left corner
+			ImVec2 uv1(1, 0); // top-right corner
+			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
+			ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 
 
-				ImVec2 imageDisplayedSize;
-				// Calculate the size of the image
-				imageDisplayedSize = ImGui::GetItemRectSize();
+			ImVec2 imageDisplayedSize;
+			// Calculate the size of the image
+			imageDisplayedSize = ImGui::GetItemRectSize();
 
-				// Get the available width and height in the current window/viewport
-				ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+			// Get the available width and height in the current window/viewport
+			ImVec2 availableSpace = ImGui::GetContentRegionAvail();
 
-				// Calculate the displayed size considering the available space
-				imageDisplayedSize.x = std::min(imageDisplayedSize.x, availableSpace.x);
-				imageDisplayedSize.y = std::min(imageDisplayedSize.y, availableSpace.y);
+			// Calculate the displayed size considering the available space
+			imageDisplayedSize.x = std::min(imageDisplayedSize.x, availableSpace.x);
+			imageDisplayedSize.y = std::min(imageDisplayedSize.y, availableSpace.y);
 
-				//appSizes.sceneSize = ImGui::glmVec2(imageDisplayedSize);
+			//appSizes.sceneSize = ImGui::glmVec2(imageDisplayedSize);
 
-
-
-				curSceneSize = glm::abs(ImGui::glmVec2(ImGui::GetWindowSize()));
-				// Show the gizmo if there's a selected gameObject
-
-				/*
-				selectedGameObject = Editor::selectedGameObject;
-				if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parent != nullptr) {
-					ImGuizmoHelper::IsDrawing = true;
-					Editor::Gizmo::Draw(selectedGameObject, camera);
-				}
-				else {
-					ImGuizmoHelper::IsDrawing = false;
-				}
-				*/
+			// Show the gizmo if there's a selected gameObject
 
 
-
-				//	appSizes.sceneStart = ImGui::glmVec2(ImGui::GetWindowPos());
-				if (ImGui::BeginDragDropTarget()) {
-					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(scenePayloadName.c_str())) {
-						if (payload->DataSize == sizeof(Editor::File)) {
-							File* file = *static_cast<File**>(payload->Data);
-							//if (file->extension == Standards::modelExtName) {
-							if (file->extension == Standards::modelExtName) {
-								//file->directory, file->name
-
-								ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID(file->directory), file->directory);
-							}
-							//for (string format : ModelLoader::supportedFormats) {
-							//	if (file->extension == format) {
-							//	}
-							//}
-							delete(file);
-						}
-					}
-					ImGui::EndDragDropTarget();
-				}
-
+			selectedGameObject = Editor::selectedGameObject;
+			if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parentUuid != 0) {
+				ImGuizmoHelper::IsDrawing = true;
+				Editor::Gizmo::Draw(selectedGameObject, camera);
 			}
+			else {
+				ImGuizmoHelper::IsDrawing = false;
+			}
+
+
+
+
+			//	appSizes.sceneStart = ImGui::glmVec2(ImGui::GetWindowPos());
+			if (ImGui::BeginDragDropTarget()) {
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(scenePayloadName.c_str())) {
+					if (payload->DataSize == sizeof(Editor::File)) {
+						File* file = *static_cast<File**>(payload->Data);
+						//if (file->extension == Standards::modelExtName) {
+						if (file->extension == Standards::modelExtName) {
+							//file->directory, file->name
+
+							ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID(file->directory), file->directory);
+						}
+						delete(file);
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
+
 
 
 
@@ -243,23 +239,22 @@ namespace Engine {
 			GameObject* selectedGameObject = Editor::selectedGameObject;
 			//ImGui::SetNextWindowPos(ImVec2(0, 0));
 			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoFocusOnAppearing | ImGuiConfigFlags_DockingEnable;
-			ImGuiID dockspace_id = ImGui::GetID("Main DockSpace");
 
 			//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.treeNodeBackgroundColor);
 			ImGui::SetNextWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y));
-			if (ImGui::Begin("Hierarchy", &Gui::isHierarchyOpen, sceneWindowFlags)) {
-				if (ImGui::IsWindowFocused())
-					Application->focusedMenu = "Hierarchy";
-				if (ImGui::IsWindowHovered())
-					Application->hoveredMenu = "Hierarchy";
-				ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.treeNodeBackgroundColor);
+			ImGui::Begin("Hierarchy", &Gui::isHierarchyOpen, sceneWindowFlags);
+			if (ImGui::IsWindowFocused())
+				Application->focusedMenu = "Hierarchy";
+			if (ImGui::IsWindowHovered())
+				Application->hoveredMenu = "Hierarchy";
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.treeNodeBackgroundColor);
 
 
-				// Create the main collapser
-				Editor::Gui::Hierarchy::Item(*Application->activeScene->mainSceneEntity, selectedGameObject);
-				ImGui::PopStyleColor(); // Background Color
-			}
+			// Create the main collapser
+			Editor::Gui::Hierarchy::Item(Application->activeScene->entities[Application->activeScene->mainSceneEntity->uuid], selectedGameObject);
+			ImGui::PopStyleColor(); // Background Color
+
 
 
 			curHierarchySize = ImGui::glmVec2(ImGui::GetWindowSize());
@@ -281,33 +276,31 @@ namespace Engine {
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f)); // Remove the padding of the window
 			//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
 			ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.inspectorSize));
-			if (ImGui::Begin("Inspector", &Gui::isInspectorOpen, sceneWindowFlags)) {
-				if (ImGui::IsWindowFocused())
-					Application->focusedMenu = "Inspector";
-				if (ImGui::IsWindowHovered())
-					Application->hoveredMenu = "Inspector";
+			ImGui::Begin("Inspector", &Gui::isInspectorOpen, sceneWindowFlags);
+			if (ImGui::IsWindowFocused())
+				Application->focusedMenu = "Inspector";
+			if (ImGui::IsWindowHovered())
+				Application->hoveredMenu = "Inspector";
 
 
-				// Handle size changes
-				const ImVec2& CurSize = ImGui::GetWindowSize();
-				if (!ImGui::Compare(CurSize, ImGui::imVec2(lastAppSizes.inspectorSize))) {
-					//appSizes.inspectorSize = ImGui::glmVec2(CurSize);
-					lastAppSizes.inspectorSize = appSizes.inspectorSize;
-					ImGui::SetWindowSize(ImGui::imVec2(appSizes.inspectorSize), ImGuiCond_Always);
-					//ImGui::SetWindowPos(ImVec2(appSizes.appSize.x - appSizes.inspectorSize.x, 0));
-				}
+			//// Handle size changes
+			//const ImVec2& CurSize = ImGui::GetWindowSize();
+			//if (!ImGui::Compare(CurSize, ImGui::imVec2(lastAppSizes.inspectorSize))) {
+			//	//appSizes.inspectorSize = ImGui::glmVec2(CurSize);
+			//	lastAppSizes.inspectorSize = appSizes.inspectorSize;
+			//	ImGui::SetWindowSize(ImGui::imVec2(appSizes.inspectorSize), ImGuiCond_Always);
+			//	//ImGui::SetWindowPos(ImVec2(appSizes.appSize.x - appSizes.inspectorSize.x, 0));
+			//}
 
-				/*
-				if (selectedGameObject && selectedGameObject->parent) {
-					Editor::Inspector::ComponentInspector inspector(selectedGameObject);
-					ImGui::Text(std::to_string(selectedGameObject->uuid).c_str());
-					Editor::Inspector* asd = new Inspector();
-					asd->addComponentButton();
-					//Gui::Inspector::addComponentButton(appSizes);
-				}
 
-				*/
+			if (selectedGameObject && selectedGameObject->parentUuid) {
+				Editor::Inspector::ComponentInspector inspector(selectedGameObject);
+				ImGui::Text(std::to_string(selectedGameObject->uuid).c_str());
+				Editor::Inspector* asd = new Inspector();
+				asd->addComponentButton();
+				//Gui::Inspector::addComponentButton(appSizes);
 			}
+
 
 			curInspectorSize = ImGui::glmVec2(ImGui::GetWindowSize());
 			ImGui::End();

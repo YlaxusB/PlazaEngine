@@ -119,11 +119,14 @@ void ApplicationClass::CreateApplication() {
 	Application->singleColorShader = new Shader((Application->enginePath + "\\Shaders\\singleColor\\singleColorVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\singleColor\\singleColorFragment.glsl").c_str());
 	Application->shadowsDepthShader = new Shader((Application->enginePath + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
 	Application->debugDepthShader = new Shader((Application->enginePath + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
-
 	Application->outlineBlurShader->use();
 	Application->outlineBlurShader->setInt("sceneBuffer", 0);
 	Application->outlineBlurShader->setInt("depthStencilTexture", 1);
 	Application->outlineBlurShader->setInt("depthStencilTexture2", 2);
+
+	Skybox::skyboxShader = new Shader((Application->enginePath + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
+	Skybox::skyboxShader->use();
+	Skybox::skyboxShader->setInt("skybox", 0);
 	// Initialize OpenGL, Shaders and Skybox
 	InitOpenGL();
 
@@ -131,9 +134,6 @@ void ApplicationClass::CreateApplication() {
 
 
 
-	Skybox::skyboxShader = new Shader((Application->enginePath + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
-	Skybox::skyboxShader->use();
-	Skybox::skyboxShader->setInt("skybox", 0);
 	InitBlur();
 
 	//Application->InitSkybox();
@@ -160,6 +160,7 @@ void ApplicationClass::Loop() {
 		else if (Application->runProjectManagerGui) {
 			Application->UpdateProjectManagerGui();
 		}
+		
 		// GLFW
 		glfwSwapBuffers(Application->Window->glfwWindow);
 		glfwPollEvents();
@@ -169,6 +170,7 @@ void ApplicationClass::Loop() {
 
 void ApplicationClass::UpdateEngine() {
 	static constexpr tracy::SourceLocationData __tracy_source_location171{ "Update Engine", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)171, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location171, true);
+	
 	// Update time
 	Time::Update();
 	float currentFrame = static_cast<float>(glfwGetTime());
@@ -235,6 +237,7 @@ void ApplicationClass::UpdateEngine() {
 	// Update ImGui
 	Gui::Update();
 
+
 	// Update last frame
 
 	Time::lastFrame = currentFrame;
@@ -243,6 +246,7 @@ void ApplicationClass::UpdateEngine() {
 	// Update lastSizes
 	Application->lastAppSizes = Application->appSizes;
 	//FrameMark;
+	
 }
 
 void ApplicationClass::Terminate() {

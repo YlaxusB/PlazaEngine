@@ -106,6 +106,8 @@ namespace Engine {
 
 		void Draw(Shader& shader) {
 			// draw mesh
+			unsigned int ver = vertices.size();
+			unsigned int test = VAO;
 			glBindVertexArray(VAO);
 			glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
@@ -116,7 +118,7 @@ namespace Engine {
 		}
 
 		void AddInstance(Shader& shader, glm::mat4 model) {
-			Time::addInstanceCalls += 1;
+			//Time::addInstanceCalls += 1;
 			instanceModelMatrices.push_back(model);
 		}
 
@@ -153,6 +155,7 @@ namespace Engine {
 				glActiveTexture(GL_TEXTURE0);
 				Time::drawCalls += 1;
 				glBindBuffer(GL_ARRAY_BUFFER, 0);
+				Time::addInstanceCalls += instanceModelMatrices.size();
 				instanceModelMatrices.clear();
 				//instanceModelMatrices.resize(0);
 			}

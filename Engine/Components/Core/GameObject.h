@@ -37,7 +37,10 @@ namespace Engine {
 		}
 
 		GameObject& GetParent();
+		template<typename T>
+		T* ReplaceComponent(T* newComponent);
 	};
+
 }
 /*
 #include <iostream>

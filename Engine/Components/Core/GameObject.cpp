@@ -13,6 +13,7 @@ namespace Engine {
 		this->name = "";
 		//Application->activeScene->entities.emplace(this->uuid, std::unique_ptr<GameObject>(this));
 		Application->activeScene->entities.emplace(this->uuid, *this);
+		Application->activeScene->mainSceneEntity->childrenUuid.push_back(this->uuid);
 	}
 	GameObject::GameObject(std::string objName, GameObject* parent, bool addToScene) {
 		uuid = Engine::UUID::NewUUID();
@@ -38,10 +39,16 @@ namespace Engine {
 	T* GameObject::GetComponent() {
 		Component* component = nullptr;
 		if (typeid(T*) == typeid(Transform*)) {
-			component = &Application->activeScene->transformComponents[this->uuid];
+			auto it = Application->activeScene->transformComponents.find(this->uuid);
+			if (it != Application->activeScene->transformComponents.end()) {
+				component = &(it->second);
+			}
 		}
 		else if (typeid(T*) == typeid(MeshRenderer*)) {
-			component = &Application->activeScene->meshRendererComponents[this->uuid];
+			auto it = Application->activeScene->meshRendererComponents.find(this->uuid);
+			if (it != Application->activeScene->meshRendererComponents.end()) {
+				component = &(it->second);
+			}
 		}
 
 		return dynamic_cast<T*>(component);
@@ -57,6 +64,7 @@ namespace Engine {
 				Application->activeScene->transformComponents.emplace(component->uuid, *component);
 			}
 			else if constexpr (std::is_same_v<T, MeshRenderer>) {
+				std::cout << "adding mesh renderer" << std::endl;
 				Application->activeScene->meshRendererComponents.emplace(component->uuid, *component);
 			}
 		}
@@ -66,6 +74,49 @@ namespace Engine {
 
 	GameObject& GameObject::GetParent() {
 		return Application->activeScene->entities[parentUuid];
+	}
+
+	template Transform* GameObject::ReplaceComponent<Transform>(Transform* newComponent); // Replace 'Transform' with the actual type
+	template MeshRenderer* GameObject::ReplaceComponent<MeshRenderer>(MeshRenderer* newComponent);
+	template <typename T>
+	T* GameObject::ReplaceComponent(T* newComponent) {
+		T* existingComponent = GetComponent<T>();
+
+		if (existingComponent) {
+			// Copy over the UUID from the existing component to the new one
+			newComponent->uuid = existingComponent->uuid;
+
+			// Replace the component in the appropriate components list
+			if constexpr (std::is_same_v<T, Transform>) {
+				Application->activeScene->transformComponents[newComponent->uuid] = *newComponent;
+			}
+			else if constexpr (std::is_same_v<T, MeshRenderer>) {
+				Application->activeScene->meshRendererComponents[newComponent->uuid] = *newComponent;
+			}
+
+			// Clean up and delete the old component
+			if constexpr (std::is_base_of_v<Component, T>) {
+				if (existingComponent->uuid == this->uuid) {
+					existingComponent->uuid = UUID::NewUUID();
+				}
+
+				if constexpr (std::is_base_of_v<Transform, T> || std::is_base_of_v<MeshRenderer, T>) {
+					if (existingComponent->uuid != newComponent->uuid) {
+						if constexpr (std::is_base_of_v<Transform, T>) {
+							Application->activeScene->transformComponents.erase(existingComponent->uuid);
+						}
+						else if constexpr (std::is_base_of_v<MeshRenderer, T>) {
+							Application->activeScene->meshRendererComponents.erase(existingComponent->uuid);
+						}
+					}
+				}
+			}
+
+			//delete existingComponent;
+			return newComponent;
+		}
+
+		return nullptr; // Component to replace not found
 	}
 }
 /*

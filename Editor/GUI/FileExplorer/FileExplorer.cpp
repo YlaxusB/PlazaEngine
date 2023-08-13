@@ -20,18 +20,10 @@ namespace Engine {
 					Application->focusedMenu = "File Explorer";
 				if (ImGui::IsWindowHovered())
 					Application->hoveredMenu = "File Explorer";
-				Icon::currentPos = ImVec2(-1.0f, 1.0f);
+				File::currentPos = ImVec2(-1.0f, 1.0f);
 
 				ImGui::BeginGroup();
 
-				// Back Button
-				std::string currentDirectory = Gui::FileExplorer::currentDirectory;
-				const std::string& currentDirectoryPath = filesystem::path{ currentDirectory }.string();
-				File backFile = File();
-				backFile.directory = currentDirectory + "\\asd.back";
-				backFile.extension = ".back";
-				backFile.name = ".back";
-				Editor::Icon::Update(currentDirectory + "\\asd.back", ".back", ".back", backFile);
 				// Back Button Click
 				if (ImGui::IsItemClicked() && filesystem::path{ currentDirectory }.parent_path().string().starts_with(Application->activeProject->directory)) {
 					Editor::Gui::FileExplorer::currentDirectory = filesystem::path{ currentDirectory }.parent_path().string();
@@ -41,7 +33,7 @@ namespace Engine {
 				// Create all the icons
 				for (File file : files) {
 					if (file.name != "")
-						Icon::Update(file.directory, file.extension, file.name, File(file));
+						file.Update();
 				}
 				ImGui::EndGroup();
 			}
@@ -55,6 +47,17 @@ namespace Engine {
 		void Gui::FileExplorer::UpdateContent(std::string folderPath) {
 			files.clear();
 			namespace fs = std::filesystem;
+
+			// Back Button
+			std::string currentDirectory = Gui::FileExplorer::currentDirectory;
+			const std::string& currentDirectoryPath = filesystem::path{ currentDirectory }.string();
+			File backFile = File();
+			backFile.directory = currentDirectory + "\\asd.back";
+			backFile.extension = ".back";
+			backFile.name = ".back";
+			backFile.textureId = Icon::textures.at("").id;
+			files.push_back(backFile);
+
 			for (const auto& entry : fs::directory_iterator(folderPath)) {
 				std::string filename = entry.path().filename().string();
 				std::string extension = entry.path().extension().string();
@@ -66,6 +69,7 @@ namespace Engine {
 					newFile.directory = entry.path().string();
 					newFile.name = filename;
 					newFile.extension = extension;
+					newFile.textureId = Icon::textures.at("").id;
 					files.push_back(newFile);
 				}
 				else {
@@ -73,6 +77,13 @@ namespace Engine {
 					newFile.directory = entry.path().string();
 					newFile.name = filename;
 					newFile.extension = extension;
+					const auto& it = Icon::textures.find(extension);
+					if (it != Icon::textures.end()) {
+						newFile.textureId = it->second.id;
+					}
+					else {
+						newFile.textureId = Icon::textures.at(".notFound").id;
+					}
 					files.push_back(newFile);
 				}
 			}

@@ -5,23 +5,22 @@
 
 namespace Engine {
 	void SerializeGameObject(YAML::Emitter& out, GameObject* gameObject) {
-		/*
 		//out << YAML::BeginMap;
 		out << YAML::BeginMap;
 		out << YAML::Key << "GameObject" << gameObject->uuid;
 		out << YAML::Key << "Uuid" << YAML::Value << gameObject->uuid;
 		out << YAML::Key << "Name" << YAML::Value << gameObject->name;
-		out << YAML::Key << "ParentID" << YAML::Value << (gameObject->parent != nullptr ? gameObject->parent->uuid : 0);
+		out << YAML::Key << "ParentID" << YAML::Value << (gameObject->parentUuid != 0 ? gameObject->parentUuid : 0);
 		out << YAML::Key << "Components" << YAML::Value << YAML::BeginMap;
 		if (gameObject->GetComponent<Transform>()) {
 			out << YAML::Key << "TransformComponent";
 			out << YAML::BeginMap;
 
-			glm::vec3& relativePosition = gameObject->transform->relativePosition;
+			glm::vec3& relativePosition = gameObject->GetComponent<Transform>()->relativePosition;
 			out << YAML::Key << "Position" << YAML::Value << relativePosition;
-			glm::vec3& relativeRotation = gameObject->transform->rotation;
+			glm::vec3& relativeRotation = gameObject->GetComponent<Transform>()->rotation;
 			out << YAML::Key << "Rotation" << YAML::Value << relativeRotation;
-			glm::vec3& scale = gameObject->transform->scale;
+			glm::vec3& scale = gameObject->GetComponent<Transform>()->scale;
 			out << YAML::Key << "Scale" << YAML::Value << scale;
 
 			out << YAML::EndMap;
@@ -39,11 +38,10 @@ namespace Engine {
 		}
 		out << YAML::EndMap;
 		out << YAML::EndMap;
-		*/
 	}
 
 	void ModelSerializer::SerializeModel(GameObject* mainObject, string filePath, string modelFilePath) {
-		/*
+		
 		uint64_t modelUuid = Engine::UUID::NewUUID();
 		YAML::Emitter out;
 		out << YAML::BeginMap;
@@ -54,14 +52,14 @@ namespace Engine {
 		SerializeGameObject(out, mainObject);
 		out << YAML::EndSeq;
 		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
-		for (GameObject* gameObject : mainObject->children) {
-			SerializeGameObject(out, gameObject);
+		for (uint64_t childUuuid : mainObject->childrenUuid) {
+			SerializeGameObject(out, &Application->activeScene->entities[childUuuid]);
 		}
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
 		std::ofstream fout(filePath);
 		fout << out.c_str();
-		*/
+		
 	}
 
 	void DeSerializeTexture(Material& material, const auto& textureNode) {
@@ -91,7 +89,7 @@ namespace Engine {
 		}
 	}
 	void DeSerializeGameObject(const auto& gameObjectEntry, Model* model) {
-		/*
+		
 		const auto& componentsEntry = gameObjectEntry["Components"];
 		GameObject* gameObject = new GameObject(gameObjectEntry["Name"].as<string>(), nullptr, false);
 		gameObject->uuid = gameObjectEntry["Uuid"].as<uint64_t>();
@@ -101,11 +99,11 @@ namespace Engine {
 				gameObject->parentUuid = modelGameObject.get()->uuid;
 			}
 		}
-		if (gameObject->parent == nullptr) {
-			gameObject->parent = Application->activeScene->gameObjects.front().get();
+		if (gameObject->parentUuid == 0) {
+			gameObject->parentUuid = Application->activeScene->mainSceneEntity->uuid;
 		}
-		gameObject->transform = ComponentSerializer::TransformSerializer::DeSerialize(componentsEntry["TransformComponent"]);
-		gameObject->ReplaceComponent<Transform>(gameObject->GetComponent<Transform>(), gameObject->transform);
+		Transform* newTransform = ComponentSerializer::TransformSerializer::DeSerialize(componentsEntry["TransformComponent"]);
+		gameObject->ReplaceComponent<Transform>(newTransform);
 		//gameObject->RemoveComponent<Transform>();
 		//gameObject->AddComponent<Transform>(gameObject->transform);
 		if (componentsEntry["MeshComponent"]) {
@@ -114,10 +112,11 @@ namespace Engine {
 			newMeshRenderer->instanced = true;
 			newMeshRenderer->aiMeshName = componentsEntry["MeshComponent"]["AiMeshName"].as<string>();
 			DeSerializeMaterial(componentsEntry["MeshComponent"]["MaterialComponent"], model, newMeshRenderer);
-			gameObject->AddComponent<MeshRenderer>(newMeshRenderer, false);
+			newMeshRenderer->uuid = gameObject->uuid;
+			model->meshRenderers.emplace(gameObject->uuid, newMeshRenderer);
 		}
 		model->gameObjects.push_back(make_shared<GameObject>(*gameObject));
-		*/
+		
 	}
 
 

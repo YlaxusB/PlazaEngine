@@ -7,13 +7,19 @@ namespace Engine {
 	namespace Editor {
 		class File {
 		public:
+			static float iconSize;
+			static float spacing;
+			static ImVec2 currentPos;
+
 			std::string name;
 			std::string directory;
 			std::string extension;
+			unsigned int textureId;
 
 			File() = default;
 			File(const File&) = default;
 			~File() = default;
+			void Update();
 		};
 
 		class IconTexture {
@@ -25,10 +31,7 @@ namespace Engine {
 
 		class Icon {
 		public:
-			static float iconSize; // Adjust the size as needed
-			static float spacing; // Adjust the spacing between icons as needed
-			static ImVec2 currentPos;
-			static std::vector<IconTexture> textures;
+			static std::map<std::string, IconTexture> textures;
 			static void Init() {
 				unsigned int imageTextureID = 0;
 				std::filesystem::path currentPath(__FILE__);
@@ -36,25 +39,24 @@ namespace Engine {
 				std::cout << projectDirectory << std::endl;
 				// Folder Icon
 				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/folderIcon.png").c_str(), &imageTextureID);
-				textures.push_back(IconTexture(imageTextureID, ""));
+				textures.emplace("", IconTexture(imageTextureID, ""));
 
 				// Icon for unsupported extensions
 				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/blankFileIcon.png").c_str(), &imageTextureID);
-				textures.push_back(IconTexture(imageTextureID, ".notFound"));
+				textures.emplace(".notFound", IconTexture(imageTextureID, ".notFound"));
 
 				// Back button Icon
 				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/backArrowIcon.png").c_str(), &imageTextureID);
-				textures.push_back(IconTexture(imageTextureID, ".back"));
+				textures.emplace(".back", IconTexture(imageTextureID, ".back"));
 
 				// Yaml Icon
 				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/yamlIcon.png").c_str(), &imageTextureID);
-				textures.push_back(IconTexture(imageTextureID, ".yaml"));
+				textures.emplace(".yaml", IconTexture(imageTextureID, ".yaml"));
 
 				// Obj Icon
 				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/objIcon.png").c_str(), &imageTextureID);
-				textures.push_back(IconTexture(imageTextureID, ".obj"));
+				textures.emplace(".obj", IconTexture(imageTextureID, ".obj"));
 			}
-			static void Update(std::string directory, std::string extension, std::string fileName, File file);
 
 			static void LoadImageToImGuiTexture(const char* path, unsigned int* out_textureID) {
 				int width, height, channels;

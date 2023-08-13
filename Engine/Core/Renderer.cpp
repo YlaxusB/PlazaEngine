@@ -49,8 +49,8 @@ namespace Engine {
 				if (Application->activeCamera->IsInsideViewFrustum(transform.worldPosition)) {
 					glm::mat4 modelMatrix = transform.modelMatrix;
 					shader.setMat4("model", modelMatrix);
-					meshRenderer.mesh->BindTextures(shader);
-					meshRenderer.mesh->Draw(shader);
+					//meshRenderer.mesh->BindTextures(shader);
+					//meshRenderer.mesh->Draw(shader);
 				}
 			}
 		}

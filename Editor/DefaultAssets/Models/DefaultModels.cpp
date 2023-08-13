@@ -5,9 +5,17 @@ namespace Engine::Editor {
 	vector<Mesh*> DefaultModels::meshes = vector<Mesh*>();
 	void DefaultModels::Init() {
 		InitCube();
+		InitSphere();
+		InitPlane();
 	}
 	shared_ptr<Mesh> DefaultModels::Cube() {
-		return Application->editorScene->meshes.front();//make_shared<Mesh>(*(new Mesh(*Application->editorScene->meshes.front())));
+		return Application->editorScene->meshes.front();
+	}
+	shared_ptr<Mesh> DefaultModels::Sphere() {
+		return Application->editorScene->meshes.at(1);
+	}
+	shared_ptr<Mesh> DefaultModels::Plane() {
+		return Application->editorScene->meshes.at(2);
 	}
 
 	void DefaultModels::InitCube() {
@@ -65,7 +73,93 @@ namespace Engine::Editor {
 		Mesh* newMesh = new Mesh(vertices, indices, *cubeMaterial);
 		delete cubeMaterial;
 		Application->editorScene->meshes.push_back(make_shared<Mesh>(*newMesh));
-		//meshes.push_back(newMesh);
-		//Application->editorScene->meshes.push_back(new Mesh(*meshes.front()));
+	}
+
+	void DefaultModels::InitSphere() {
+		std::vector<unsigned int> indices;
+		std::vector<Vertex> vertices;
+
+		// Generate sphere vertices and indices
+		const int stacks = 20;
+		const int slices = 40;
+		const float radius = 1.0f;
+		float PI = 3.14159265359f;
+
+		for (int i = 0; i <= stacks; ++i) {
+			float stackAngle = static_cast<float>(i) * PI / stacks;
+			float stackRatio = static_cast<float>(i) / stacks;
+			float phi = stackAngle - PI / 2.0f;
+
+			for (int j = 0; j <= slices; ++j) {
+				float sliceAngle = static_cast<float>(j) * 2.0f * PI / slices;
+				float sliceRatio = static_cast<float>(j) / slices;
+
+				float x = radius * std::cos(phi) * std::cos(sliceAngle);
+				float y = radius * std::sin(phi);
+				float z = radius * std::cos(phi) * std::sin(sliceAngle);
+
+				glm::vec3 position(x, y, z);
+				glm::vec3 normal = glm::normalize(position);
+				glm::vec2 texCoords(sliceRatio, stackRatio);
+				glm::vec3 tangent(0.0f);
+				glm::vec3 bitangent(0.0f);
+
+				vertices.push_back(Vertex(position, normal, texCoords, tangent, bitangent));
+			}
+		}
+
+		// Generate sphere indices
+		for (int i = 0; i < stacks; ++i) {
+			int k1 = i * (slices + 1);
+			int k2 = k1 + slices + 1;
+
+			for (int j = 0; j < slices; ++j, ++k1, ++k2) {
+				if (i != 0) {
+					indices.push_back(k1);
+					indices.push_back(k2);
+					indices.push_back(k1 + 1);
+				}
+
+				if (i != stacks - 1) {
+					indices.push_back(k1 + 1);
+					indices.push_back(k2);
+					indices.push_back(k2 + 1);
+				}
+			}
+		}
+
+		// Create sphere material
+		Material* sphereMaterial = new Material();
+		sphereMaterial->diffuse = Texture();
+		sphereMaterial->diffuse.type = "texture_diffuse";
+		sphereMaterial->diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
+
+		Mesh* newMesh = new Mesh(vertices, indices, *sphereMaterial);
+		delete sphereMaterial;
+		Application->editorScene->meshes.push_back(make_shared<Mesh>(*newMesh));
+	}
+
+	void DefaultModels::InitPlane() {
+		std::vector<unsigned int> indices = {
+			0, 1, 2,
+			2, 3, 0
+		};
+
+		std::vector<Vertex> vertices = {
+			Vertex(glm::vec3(-0.5f, 0.0f, 0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 0), glm::vec3(0), glm::vec3(0)),
+			Vertex(glm::vec3(0.5f, 0.0f, 0.5f), glm::vec3(0, 1, 0), glm::vec2(1, 0), glm::vec3(0), glm::vec3(0)),
+			Vertex(glm::vec3(0.5f, 0.0f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(1, 1), glm::vec3(0), glm::vec3(0)),
+			Vertex(glm::vec3(-0.5f, 0.0f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 1), glm::vec3(0), glm::vec3(0))
+		};
+
+		// Create sphere material
+		Material* material = new Material();
+		material->diffuse = Texture();
+		material->diffuse.type = "texture_diffuse";
+		material->diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
+
+		Mesh* newMesh = new Mesh(vertices, indices, *material);
+		delete material;
+		Application->editorScene->meshes.push_back(make_shared<Mesh>(*newMesh));
 	}
 }

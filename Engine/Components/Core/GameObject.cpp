@@ -64,7 +64,6 @@ namespace Engine {
 				Application->activeScene->transformComponents.emplace(component->uuid, *component);
 			}
 			else if constexpr (std::is_same_v<T, MeshRenderer>) {
-				std::cout << "adding mesh renderer" << std::endl;
 				Application->activeScene->meshRendererComponents.emplace(component->uuid, *component);
 			}
 		}

@@ -22,6 +22,20 @@ namespace Engine {
 		/// <param name="outlineShader"></param>
 		static void RenderOutline(Shader outlineShader);
 
+		/// <summary>
+		/// Renders the plane with HDR using the scene color buffer
+		/// </summary>
+		static void RenderHDR();
+
+		/// <summary>
+		/// <p>Renders a full quad on the screen with a Shader</p>
+		/// <p>Optimal for Post-Processing</p>
+		/// </summary>
+		static void RenderQuadOnScreen();
+
+		static unsigned int quadVAO;
+		static unsigned int quadVBO;
+		static void InitQuad();
 	private:
 		static void BlurBuffer();
 	};

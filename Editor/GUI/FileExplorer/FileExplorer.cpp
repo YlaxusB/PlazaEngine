@@ -24,16 +24,19 @@ namespace Engine {
 
 				ImGui::BeginGroup();
 
-				// Back Button Click
-				if (ImGui::IsItemClicked() && filesystem::path{ currentDirectory }.parent_path().string().starts_with(Application->activeProject->directory)) {
-					Editor::Gui::FileExplorer::currentDirectory = filesystem::path{ currentDirectory }.parent_path().string();
-					Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
-				}
-
 				// Create all the icons
+				unsigned int index = 0;
 				for (File file : files) {
 					if (file.name != "")
 						file.Update();
+					if (index == 0) {
+						// Back Button Click
+						if (ImGui::IsItemClicked() && filesystem::path{ currentDirectory }.parent_path().string().starts_with(Application->activeProject->directory)) {
+							Editor::Gui::FileExplorer::currentDirectory = filesystem::path{ currentDirectory }.parent_path().string();
+							Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+						}
+					}
+					index++;
 				}
 				ImGui::EndGroup();
 			}

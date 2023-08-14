@@ -67,10 +67,10 @@ namespace Engine {
 	void Transform::UpdateObjectTransform(GameObject* gameObject) {
 		if (gameObject->parentUuid) {
 			Transform& transform = *gameObject->GetComponent<Transform>();
-			transform.worldScale = gameObject->GetComponent<Transform>()->scale * Application->activeScene->entities[gameObject->parentUuid].GetComponent<Transform>()->worldScale;
+			transform.worldScale = transform.scale * Application->activeScene->entities[gameObject->parentUuid].GetComponent<Transform>()->worldScale;
 			transform.worldRotation = newWorldRotation(gameObject);
 			transform.worldPosition = newWorldPosition(gameObject);
-			transform.modelMatrix = gameObject->GetComponent<Transform>()->GetTransform();
+			transform.modelMatrix = transform.GetTransform();
 		}
 	}
 

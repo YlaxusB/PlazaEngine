@@ -1,7 +1,9 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "DefaultModels.h"
 #include "Engine/Components/Rendering/Mesh.h"
+#include "Engine/Core/ModelLoader/ModelLoader.h"
 namespace Engine::Editor {
+
 	vector<Mesh*> DefaultModels::meshes = vector<Mesh*>();
 	void DefaultModels::Init() {
 		InitCube();
@@ -65,12 +67,13 @@ namespace Engine::Editor {
 			Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1, 0, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
 			Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(1, 0, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0))
 		};
+
 		Material* cubeMaterial = new Material();
 		cubeMaterial->diffuse = Texture();
 		cubeMaterial->diffuse.type = "texture_diffuse";
 		cubeMaterial->diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
-
 		Mesh* newMesh = new Mesh(vertices, indices, *cubeMaterial);
+		newMesh->usingNormal = false;
 		delete cubeMaterial;
 		Application->editorScene->meshes.push_back(make_shared<Mesh>(*newMesh));
 	}
@@ -135,6 +138,7 @@ namespace Engine::Editor {
 		sphereMaterial->diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
 
 		Mesh* newMesh = new Mesh(vertices, indices, *sphereMaterial);
+		newMesh->usingNormal = false;
 		delete sphereMaterial;
 		Application->editorScene->meshes.push_back(make_shared<Mesh>(*newMesh));
 	}
@@ -159,6 +163,7 @@ namespace Engine::Editor {
 		material->diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
 
 		Mesh* newMesh = new Mesh(vertices, indices, *material);
+		newMesh->usingNormal = false;
 		delete material;
 		Application->editorScene->meshes.push_back(make_shared<Mesh>(*newMesh));
 	}

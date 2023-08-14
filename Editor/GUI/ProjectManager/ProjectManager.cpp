@@ -5,6 +5,7 @@
 #include "Editor/GUI/ProjectManager/ProjectItem.h"
 #include "Editor/GUI/Style/EditorStyle.h"
 #include "Engine/Application/Serializer/ProjectSerializer.h"
+#include "Editor/GUI/FileExplorer/FileExplorer.h"
 namespace Engine {
 	namespace Editor {
 		void ProjectManagerGui::ProjectManagerContent::UpdateContent(ProjectManagerGui& projectManagerGui) {
@@ -27,7 +28,8 @@ namespace Engine {
 					Application->runEngine = true;
 					Application->runProjectManagerGui = false;
 
-					ProjectSerializer::Serialize(Application->activeProject->directory + "\\" + Application->activeProject->name + ".engprj");
+					ProjectSerializer::Serialize(Application->activeProject->directory + "\\" + Application->activeProject->name + Standards::projectExtName);
+					Editor::Gui::FileExplorer::UpdateContent(Application->activeProject->directory);
 				}
 				if (ImGui::Button("Cancel")) {
 					projectManagerGui.currentContent = new ProjectManagerContent();

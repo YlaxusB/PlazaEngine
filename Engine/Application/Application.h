@@ -72,6 +72,7 @@ namespace Engine {
 		Shader* singleColorShader = nullptr;
 		Shader* shadowsDepthShader = nullptr;
 		Shader* debugDepthShader = nullptr;
+		Shader* hdrShader = nullptr;
 
 		bool runProjectManagerGui = true;
 		bool runEngine = false;

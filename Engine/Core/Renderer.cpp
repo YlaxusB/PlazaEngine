@@ -58,6 +58,8 @@ namespace Engine {
 
 	void Renderer::RenderInstances(Shader& shader) {
 		static constexpr tracy::SourceLocationData __tracy_source_location109{ "Render Instances", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Renderer.cpp", (uint32_t)109, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location109, true);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		for (shared_ptr<Mesh> mesh : Application->activeScene->meshes) {
 			if (mesh->instanceModelMatrices.size() > 0) {
 				mesh->DrawInstanced(shader);
@@ -123,7 +125,45 @@ namespace Engine {
 		glDisable(GL_DEPTH_TEST);
 	}
 
+	void Renderer::RenderHDR() {
+		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		Application->hdrShader->use();
+		Application->hdrShader->setInt("hdr", 5);
+		Application->hdrShader->setFloat("exposure", 0.30f);
+		Application->hdrShader->setInt("hdrBuffer", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, Application->textureColorbuffer);
+		Renderer::RenderQuadOnScreen();
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//renderFullscreenQuad();
+	}
 
-
+	unsigned int Renderer::quadVAO = 0;
+	unsigned int Renderer::quadVBO = 0;
+	void Renderer::InitQuad() {
+		float quadVertices[] = {
+			// positions        // texture Coords
+			-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+			-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+			 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+			 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+		};
+		// setup plane VAO
+		glGenVertexArrays(1, &quadVAO);
+		glGenBuffers(1, &quadVBO);
+		glBindVertexArray(quadVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	}
+	void Renderer::RenderQuadOnScreen() {
+		glBindVertexArray(quadVAO);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		glBindVertexArray(0);
+	}
 
 }

@@ -2,7 +2,7 @@
 
 out vec4 FragColor;
 
-
+uniform bool usingNormal;
 uniform sampler2D texture_diffuse;
 uniform sampler2D texture_specular;
 uniform sampler2D texture_normal;
@@ -31,6 +31,9 @@ in VS_OUT {
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
+    vec3 TangentLightPos;
+    vec3 TangentViewPos;
+    vec3 TangentFragPos;
 } fs_in;
 
 uniform vec3 lightPos;
@@ -70,7 +73,14 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
         return 0.0;
     }
     // calculate bias (based on depth map resolution and slope)
-    vec3 normal = normalize(fs_in.Normal);
+    vec3 normal;
+    if(usingNormal){
+        normal = texture(texture_normal, fs_in.TexCoords).rgb;
+        normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space
+    } else {
+        normal = normalize(fs_in.Normal);
+    }
+    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
     float bias = max(0.0005 * (1.0 - dot(normal, lightDir)), 0.00005);
     const float biasModifier = 0.5f;
     if (layer == cascadeCount)
@@ -99,7 +109,6 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
         }    
     }
     shadow /= totalTexels;
-        
     return shadow;
 }
 
@@ -113,19 +122,34 @@ void main()
         color = texture(texture_diffuse, fs_in.TexCoords).rgb;
     }
 
-    vec3 normal = normalize(fs_in.Normal);
     vec3 lightColor = vec3(1.0);
     // ambient
-    vec3 ambient = 0.3 * lightColor;
+    vec3 ambient = 0.36 * lightColor;
     // diffuse
-    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
-    float diff = max(dot(lightDir, normal), 0.0);
-    vec3 diffuse = diff * lightColor;
-    // specular
-    vec3 viewDir = normalize(viewPos - fs_in.FragPos);
+
+    vec3 normal;
+    vec3 lightDir;
+    float diff;
+    vec3 diffuse;
+    vec3 viewDir;
+    if(usingNormal){
+        normal = texture(texture_normal, fs_in.TexCoords).rgb;
+        normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space
+        lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
+        diff = max(dot(lightDir, normal), 0.0);
+        // specular
+        viewDir = normalize(fs_in.TangentViewPos - fs_in.TangentFragPos);
+    } else {
+        normal = normalize(fs_in.Normal);
+        vec3 lightDir = normalize(lightPos - fs_in.FragPos);
+        diff = max(dot(lightDir, normal), 0.0);
+        viewDir = normalize(viewPos - fs_in.FragPos);
+    }
+    diffuse = diff * lightColor;
+
     vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = 0.0;
     vec3 halfwayDir = normalize(lightDir + viewDir);  
+    float spec = 0.0;
     spec = pow(max(dot(normal, halfwayDir), 0.0), shininess + 5.0);
     vec3 texSpec;
     if(texture_specular_rgba != vec4(300, 300, 300, 300)){

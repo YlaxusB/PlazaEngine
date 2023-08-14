@@ -32,6 +32,7 @@ namespace Engine {
 		vector<unsigned int> indices;
 		vector<Texture> textures;
 		Material material;
+		bool usingNormal;
 		glm::vec4 infVec = glm::vec4(INFINITY);
 		unsigned int VAO;
 		Mesh(const Mesh&) = default;
@@ -57,6 +58,7 @@ namespace Engine {
 			constexpr const char* textureNormalUniform = "texture_normal";
 			constexpr const char* textureHeightUniform = "texture_height";
 
+			shader.setBool("usingNormal", usingNormal);
 			if (material.shininess != 64.0f) {
 				shader.setFloat(shininessUniform, material.shininess);
 			}
@@ -153,6 +155,12 @@ namespace Engine {
 
 				// always good practice to set everything back to defaults once configured.
 				glActiveTexture(GL_TEXTURE0);
+				glActiveTexture(GL_TEXTURE0 + 1);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glActiveTexture(GL_TEXTURE0 + 2);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glActiveTexture(GL_TEXTURE0 + 3);
+				glBindTexture(GL_TEXTURE_2D, 0);
 				Time::drawCalls += 1;
 				glBindBuffer(GL_ARRAY_BUFFER, 0);
 				Time::addInstanceCalls += instanceModelMatrices.size();

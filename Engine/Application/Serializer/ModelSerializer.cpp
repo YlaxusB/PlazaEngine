@@ -15,7 +15,6 @@ namespace Engine {
 		if (gameObject->GetComponent<Transform>()) {
 			out << YAML::Key << "TransformComponent";
 			out << YAML::BeginMap;
-
 			glm::vec3& relativePosition = gameObject->GetComponent<Transform>()->relativePosition;
 			out << YAML::Key << "Position" << YAML::Value << relativePosition;
 			glm::vec3& relativeRotation = gameObject->GetComponent<Transform>()->rotation;

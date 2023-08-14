@@ -56,7 +56,7 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 				MeshRenderer* meshRenderer = new MeshRenderer(cubeMesh);
 				meshRenderer->instanced = true;
 				//meshRenderer->mesh = std::make_unique<Mesh>(cubeMesh);
-				Editor::DefaultModels::Init();
+				//Editor::DefaultModels::Init();
 				meshRenderer->mesh = Editor::DefaultModels::Cube();
 				//MeshSerializer::Serialize(Application->activeProject->directory + "\\teste.yaml", *cubeMesh);
 				d->AddComponent<MeshRenderer>(meshRenderer);

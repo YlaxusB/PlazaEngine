@@ -118,10 +118,8 @@ namespace Engine {
 			Mesh* mesh = new Mesh(ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr));
 			Application->editorScene->meshes.push_back(make_shared<Mesh>(*mesh));
 			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), Application->editorScene->meshes.back());
-			//MeshRenderer* meshRenderer = new MeshRenderer();
-			//meshRenderer->instanced = true;
-			//meshRenderer->mesh = shared_ptr<Mesh>(Application->editorScene->meshes.back());
-			//meshRenderers.emplace(string(aiMesh->mName.C_Str() + to_string(index)), make_shared<MeshRenderer>(*meshRenderer));
+			if(Application->runningScene)
+				Application->runtimeScene->meshes.push_back(Application->editorScene->meshes.back());
 			index++;
 		}
 	}
@@ -134,7 +132,7 @@ namespace Engine {
 		directory = path.substr(0, path.find_last_of('/'));
 
 		// process ASSIMP's root node recursively
-		GameObject* modelMainObject = new GameObject(modelName, Application->activeScene->gameObjects.front().get());
+		GameObject* modelMainObject = new GameObject(modelName, Application->activeScene->mainSceneEntity);
 		//modelMainObject->AddComponent(new Transform());
 		unsigned int index = 0;
 		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject, index);
@@ -177,7 +175,7 @@ namespace Engine {
 			childMeshRenderer->aiMeshName = string(mesh->mName.C_Str()) + to_string(index);
 			childObject->AddComponent<MeshRenderer>(childMeshRenderer);
 			childObject->GetComponent<Transform>()->relativePosition = position;
-
+			parentObject->childrenUuid.push_back(childObject->uuid);
 			index++;
 		}
 		// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
@@ -196,6 +194,7 @@ namespace Engine {
 		aiColor3D color(0.f, 0.f, 0.f);
 		scene->mMaterials[mesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, color);
 
+		bool usingNormal = false;
 		// walk through each of the mesh's vertices
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 		{
@@ -214,6 +213,7 @@ namespace Engine {
 				vector.z = mesh->mNormals[i].z * modelScale;
 				vertex->normal = vector;
 			}
+
 			// texture coordinates
 			if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
 			{
@@ -223,6 +223,13 @@ namespace Engine {
 				vec.x = mesh->mTextureCoords[0][i].x;
 				vec.y = mesh->mTextureCoords[0][i].y;
 				vertex->texCoords = vec;
+
+			}
+			else
+				vertex->texCoords = glm::vec2(0.0f, 0.0f);
+
+			if (mesh->HasTangentsAndBitangents()) {
+				usingNormal = true;
 				// tangent
 				vector.x = mesh->mTangents[i].x * modelScale;
 				vector.y = mesh->mTangents[i].y * modelScale;
@@ -234,8 +241,6 @@ namespace Engine {
 				vector.z = mesh->mBitangents[i].z * modelScale;
 				vertex->bitangent = vector;
 			}
-			else
-				vertex->texCoords = glm::vec2(0.0f, 0.0f);
 
 			vertices.push_back(*vertex);
 		}
@@ -291,6 +296,8 @@ namespace Engine {
 		else
 			convertedMaterial.height = Texture();
 
-		return Mesh(vertices, indices, convertedMaterial);
+		Mesh finalMesh = Mesh(vertices, indices, convertedMaterial);
+		finalMesh.usingNormal = usingNormal;
+		return finalMesh;
 	}
 }

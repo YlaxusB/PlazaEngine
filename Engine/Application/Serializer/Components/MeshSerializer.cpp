@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "MeshSerializer.h"
-#include "ComponentSerializer.h"
+//#include "ComponentSerializer.h"
 
 #include "Engine/Components/Rendering/Mesh.h"
 
@@ -12,30 +12,14 @@ YAML::Emitter& operator <<(YAML::Emitter& out, const Vertex& v) {
 }
 
 namespace Engine {
-	void MeshSerializer::Serialize(std::string path, Mesh& mesh)
+	void ComponentSerializer::MeshSerializer::Serialize(YAML::Emitter& out, Mesh& mesh)
 	{
-		YAML::Emitter out;
-		out << YAML::BeginMap;
-		out << YAML::Key << "MeshId" << YAML::Value << mesh.id;
-		out << YAML::Key << "Vertices";
-		out << YAML::BeginMap;
-		for (Vertex vertex : mesh.vertices) {
-			out << YAML::Key << "Vertex" << YAML::Value << vertex;
-		}
+		out << YAML::Value << "MeshComponent" << YAML::BeginMap;
+		out << YAML::Key << "MeshId" << YAML::Value << mesh.meshId;
 		out << YAML::EndMap;
-		out << YAML::Key << "Indices";
-		out << YAML::Flow << YAML::BeginSeq;
-		for (unsigned int index : mesh.indices) {
-			out << index;
-		}
-		out << YAML::EndSeq;
-
-		out << YAML::EndMap;
-		std::ofstream fout(path);
-		fout << out.c_str();
 	}
 
-	void MeshSerializer::DeSerialize(std::string path)
+	void ComponentSerializer::MeshSerializer::DeSerialize(std::string path)
 	{
 
 	}

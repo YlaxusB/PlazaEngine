@@ -1,15 +1,22 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Inspector.h"
 
+#include "Editor/GUI/Inspector/RigidBodyInspector.h"
+#include "Editor/GUI/Inspector/SceneInspector.h"
+
 namespace Engine::Editor {
 	std::vector<Component*> Inspector::ComponentInspector::components;
 	void Inspector::ComponentInspector::CreateInspector() {
-		if (ImGui::TreeNodeEx(Editor::selectedGameObject->name.c_str())) {
-			ImGui::TreePop();
+		ImGui::SetCursorPosY(50);
+		ImGui::Indent(10);
+		if (Editor::selectedGameObject->uuid == Application->activeScene->mainSceneEntity->uuid) {
+			SceneInspector::SceneInspector(Application->activeScene);
 		}
-
-		for (Component* component : components) {
-			CreateRespectiveInspector(component);
+		else {
+			ImGui::Text(Editor::selectedGameObject->name.c_str());
+			for (Component* component : components) {
+				CreateRespectiveInspector(component);
+			}
 		}
 	}
 	void Inspector::ComponentInspector::UpdateComponents() {
@@ -22,6 +29,9 @@ namespace Engine::Editor {
 
 		if (activeScene->meshRendererComponents.contains(uuid))
 			components.push_back(&activeScene->meshRendererComponents.at(uuid));
+
+		if (activeScene->rigidBodyComponents.contains(uuid))
+			components.push_back(&activeScene->rigidBodyComponents.at(uuid));
 	}
 
 	void Inspector::ComponentInspector::CreateRespectiveInspector(Component* component) {
@@ -30,6 +40,9 @@ namespace Engine::Editor {
 		}
 		if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {
 			Engine::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
+		}
+		if (RigidBody* rigidBody = dynamic_cast<RigidBody*>(component)) {
+			Engine::Editor::RigidBodyInspector::RigidBodyInspector(rigidBody);
 		}
 	}
 }

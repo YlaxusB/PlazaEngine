@@ -12,10 +12,16 @@ using namespace Engine;
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 
 #include "Engine/Vendor/Tracy/tracy/Tracy.hpp"
+
+#include "Engine/Core/Physics.h"
 #ifdef TRACY_ENABLE
 int main() {
+	// Start
+
+
 	//Application = new Engine::ApplicationClass();
 	Application->CreateApplication();
+	Physics::Init();
 	Application->activeScene->mainSceneEntity = new GameObject("Scene");
 	Editor::DefaultModels::Init();
 	Application->Loop();

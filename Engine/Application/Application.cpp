@@ -27,7 +27,8 @@
 //#include "Engine/Vendor/Tracy/tracy/TracyC.h"
 //TRACY_ENABLE = true;
 // ...
-
+#include "Engine/Components/Physics/RigidBody.h"
+#include "Engine/Core/Physics.h"
 char* appdataValue;
 size_t len;
 errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");
@@ -74,7 +75,7 @@ void combineBuffers() {
 	// Load depth data into the texture
 
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, Application->blurDepthStencilRBO);
+	glBindTexture(GL_TEXTURE_2D, Outline::blurringBuffer->depthBuffer);
 
 	Application->combiningShader->use();
 	Application->combiningShader->setInt("buffer1", 0);
@@ -111,30 +112,30 @@ void ApplicationClass::CreateApplication() {
 
 	// Initialize Shaders
 	Application->shader = new Shader((Application->enginePath + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
-	
+
 	Application->pickingShader = new Shader((Application->enginePath + "\\Shaders\\picking\\pickingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\picking\\pickingFragment.glsl").c_str());
-	
+
 	Application->outlineShader = new Shader((Application->enginePath + "\\Shaders\\outlining\\outliningVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\outlining\\outliningFragment.glsl").c_str());
-	
+
 	Application->outlineBlurShader = new Shader((Application->enginePath + "\\Shaders\\blur\\blurVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\blur\\blurFragment.glsl").c_str());
-	
+
 	Application->outlineBlurShader->use();
-	
+
 	Application->outlineBlurShader->setInt("sceneBuffer", 0);
-	
+
 	Application->outlineBlurShader->setInt("depthStencilTexture", 1);
-	
+
 	Application->outlineBlurShader->setInt("depthStencilTexture2", 2);
-	
+
 	Application->combiningShader = new Shader((Application->enginePath + "\\Shaders\\combining\\combiningVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\combining\\combiningFragment.glsl").c_str());
 	Application->edgeDetectionShader = new Shader((Application->enginePath + "\\Shaders\\edgeDetection\\edgeDetectionVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\edgeDetection\\edgeDetectionFragment.glsl").c_str());
-	
+
 	Application->singleColorShader = new Shader((Application->enginePath + "\\Shaders\\singleColor\\singleColorVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\singleColor\\singleColorFragment.glsl").c_str());
-	
+
 	Application->shadowsDepthShader = new Shader((Application->enginePath + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
-	
+
 	Application->debugDepthShader = new Shader((Application->enginePath + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
-	
+
 	Application->hdrShader = new Shader((Application->enginePath + "\\Shaders\\hdr\\hdrVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\hdr\\hdrFragment.glsl").c_str());
 
 	Skybox::skyboxShader = new Shader((Application->enginePath + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
@@ -171,7 +172,7 @@ void ApplicationClass::Loop() {
 		else if (Application->runProjectManagerGui) {
 			Application->UpdateProjectManagerGui();
 		}
-		
+
 		// GLFW
 		glfwSwapBuffers(Application->Window->glfwWindow);
 		glfwPollEvents();
@@ -181,7 +182,7 @@ void ApplicationClass::Loop() {
 
 void ApplicationClass::UpdateEngine() {
 	static constexpr tracy::SourceLocationData __tracy_source_location171{ "Update Engine", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)171, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location171, true);
-	
+
 	// Update time
 	Time::Update();
 	float currentFrame = static_cast<float>(glfwGetTime());
@@ -196,11 +197,13 @@ void ApplicationClass::UpdateEngine() {
 	// Update Keyboard inputs
 	Callbacks::processInput(Application->Window->glfwWindow);
 	glEnable(GL_BLEND);
-	if (Application->runningScene && Editor::selectedGameObject && Editor::selectedGameObject->parentUuid) {
-		selectedGameObject->GetComponent<Transform>()->relativePosition.y += -1.0f * Time::deltaTime;
-		selectedGameObject->GetComponent<Transform>()->UpdateChildrenTransform();
-	}
 
+	//Physics::m_scene->simulate(1/60.0f);
+	//Physics::m_scene->fetchResults(true);
+	if (Application->runningScene) {
+		Physics::Advance(Time::deltaTime);
+		Physics::Update();
+	}
 	// Imgui New Frame
 	Gui::NewFrame();
 
@@ -210,13 +213,15 @@ void ApplicationClass::UpdateEngine() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 
+
+
 	// Render to shadows depth map
 	Application->Shadows->GenerateDepthMap();
 	// Draw GameObjects
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 	Renderer::Render(*Application->shader);
 	Renderer::RenderInstances(*Application->shader);
-	
+
 
 
 
@@ -250,7 +255,7 @@ void ApplicationClass::UpdateEngine() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// Render HDR
-	Renderer::RenderHDR();
+	//Renderer::RenderHDR();
 
 	// Update ImGui
 	Gui::Update();
@@ -264,7 +269,7 @@ void ApplicationClass::UpdateEngine() {
 	// Update lastSizes
 	Application->lastAppSizes = Application->appSizes;
 	//FrameMark;
-	
+
 }
 
 void ApplicationClass::Terminate() {
@@ -322,10 +327,12 @@ void ApplicationClass::InitOpenGL() {
 	glEnable(GL_MULTISAMPLE);
 	// Create buffers
 
+	glPointSize(15);
+
 			/* Edge Detection Framebuffer */
 	blurFramebuffer1();
+	Outline::Init();
 	blurFramebuffer2();
-	blurFramebuffer3();
 	Application->Shadows = new ShadowsClass();
 	Application->Shadows->Init();
 

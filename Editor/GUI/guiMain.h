@@ -24,7 +24,7 @@ namespace Engine {
 			class FileExplorer;
 			class MainMenuBar;
 			class Hierarchy;
-			class MaterialInspector;
+			//class MaterialInspector;
 			class TransformInspector;
 			static void setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera);
 			static void changeSelectedGameObject(GameObject* newSelectedGameObject);

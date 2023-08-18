@@ -35,9 +35,18 @@ namespace Engine {
 			//newScene->gameObjects.push_back(std::make_unique<GameObject>(newObj.get()));
 			//delete(newObj);
 		}
-		newScene->meshes = vector<shared_ptr<Mesh>>(copyScene->meshes);
+		newScene->meshes = map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
 		newScene->transformComponents = std::unordered_map<uint64_t, Transform>(copyScene->transformComponents);
 		newScene->meshRendererComponents = std::unordered_map<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
+
+		for (auto& [key, value] : copyScene->rigidBodyComponents) {
+			RigidBody* rigidBody = new RigidBody(value);
+			rigidBody->Init();
+			//RigidBody* rigidBody = new RigidBody(value);
+			rigidBody->uuid = key;
+			newScene->rigidBodyComponents.emplace(key, *rigidBody);
+		}
+		//newScene->rigidBodyComponents = std::unordered_map<uint64_t, RigidBody>(copyScene->rigidBodyComponents);
 		for (auto& gameObj : copyScene->gameObjects) {
 			if (gameObj->parentUuid != 0 && copyScene->entities.find(gameObj->parentUuid) != copyScene->entities.end())
 				Application->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->entities.find(gameObj->parentUuid)->second.uuid;
@@ -45,6 +54,14 @@ namespace Engine {
 				Application->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->mainSceneEntity->uuid;
 		}
 		return newScene;
+	}
+
+	Scene::Scene() {
+		componentMaps.emplace("class Engine::Transform", transformComponents);
+		componentMaps.emplace("class Engine::MeshRenderer", meshRendererComponents);
+		componentMaps.emplace("class Engine::RigidBody", rigidBodyComponents);
+		componentMaps.emplace("class Engine::Collider", colliderComponents);
+
 	}
 
 	void Scene::RemoveMeshRenderer(uint64_t uuid) {

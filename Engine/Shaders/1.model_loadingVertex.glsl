@@ -24,15 +24,26 @@ uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform bool usingNormal;
 
+
 void main()
 {
-    vec4 model = aInstanceMatrix * vec4(aPos, 1.0);
+/*
+    vec3 objectPosition = vec3(0.0, 0.0, 0.0);
+    mat4 translationMatrix = mat4(
+        vec4(1.0, 0.0, 0.0, 0.0),
+        vec4(0.0, 1.0, 0.0, 0.0),
+        vec4(0.0, 0.0, 1.0, 0.0),
+        vec4(objectPosition, 1.0)
+    );
+*/
+    mat4 finalInstanceMatrix = aInstanceMatrix;
+    vec4 model = finalInstanceMatrix * vec4(aPos, 1.0);
     vs_out.FragPos = vec3(model);
     //vs_out.Normal = transpose(inverse(mat3(aInstanceMatrix))) * aNormal;
     vs_out.TexCoords = aTexCoords;
 
     if(usingNormal){
-        mat3 normalMatrix = transpose(inverse(mat3(aInstanceMatrix)));
+        mat3 normalMatrix = transpose(inverse(mat3(finalInstanceMatrix)));
         vec3 T = normalize(normalMatrix * aTangent);
         vec3 N = normalize(normalMatrix * aNormal);
         T = normalize(T - dot(T, N) * N);
@@ -42,7 +53,7 @@ void main()
         vs_out.TangentViewPos  = TBN * viewPos;
         vs_out.TangentFragPos  = TBN * vs_out.FragPos;
     } else{
-        vs_out.Normal = transpose(inverse(mat3(aInstanceMatrix))) * aNormal;
+        vs_out.Normal = transpose(inverse(mat3(finalInstanceMatrix))) * aNormal;
     }
-    gl_Position = projection * view * model;
+    gl_Position = projection * (view) * model;
 }

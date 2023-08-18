@@ -23,6 +23,11 @@
 #include "Engine/Vendor/assimp/postprocess.h"
 #include "Engine/Vendor/Json/json.hpp" // Include the nlohmann/json library
 #include "Engine/Utils/yamlUtils.h"
+//#include "Engine/Vendor/physx/PxPhysicsAPI.h"
+//#include "Engine/Vendor/physx/PxConfig.h"
+//#include "Engine/Vendor/physx/PxPhysicsAPI.h"
+//#include "Engine/Vendor/physx/vehicle/PxVehicleSDK.h"
+#include <physx/PxPhysicsAPI.h>
 
 #include <iostream>
 #include <random>

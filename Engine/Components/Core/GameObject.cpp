@@ -4,7 +4,33 @@
 #include "Engine/Core/Scene.h"
 #include "Engine/Components/Core/Transform.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
+
+
+
+
 namespace Engine {
+	template <typename T>
+	std::unordered_map<uint64_t, T>& GetComponentMap() {
+		if constexpr (std::is_same_v<T, Transform>) {
+			return Application->activeScene->transformComponents;
+		}
+		else if constexpr (std::is_same_v<T, MeshRenderer>) {
+			return Application->activeScene->meshRendererComponents;
+		}
+		else if constexpr (std::is_same_v<T, RigidBody>) {
+			return Application->activeScene->rigidBodyComponents;
+		}
+		else if constexpr (std::is_same_v<T, Collider>) {
+			return Application->activeScene->colliderComponents;
+		}
+		else if constexpr (std::is_same_v<T, BoxCollider>) {
+			return Application->activeScene->boxColliderComponents;
+		}
+		else {
+			return Application->activeScene->transformComponents;
+		}
+	}
+
 	Transform;
 	GameObject::GameObject() {
 		// Default constructor implementation
@@ -35,20 +61,16 @@ namespace Engine {
 
 	template Transform* GameObject::GetComponent<Transform>(); // Replace 'Transform' with the actual type
 	template MeshRenderer* GameObject::GetComponent<MeshRenderer>(); // Replace 'MeshRenderer' with the actual type
+	template RigidBody* GameObject::GetComponent<RigidBody>(); // Replace 'MeshRenderer' with the actual type
+	template BoxCollider* GameObject::GetComponent<BoxCollider>(); // Replace 'MeshRenderer' with the actual type
 	template<typename T>
 	T* GameObject::GetComponent() {
 		Component* component = nullptr;
-		if (typeid(T*) == typeid(Transform*)) {
-			auto it = Application->activeScene->transformComponents.find(this->uuid);
-			if (it != Application->activeScene->transformComponents.end()) {
-				component = &(it->second);
-			}
-		}
-		else if (typeid(T*) == typeid(MeshRenderer*)) {
-			auto it = Application->activeScene->meshRendererComponents.find(this->uuid);
-			if (it != Application->activeScene->meshRendererComponents.end()) {
-				component = &(it->second);
-			}
+
+		std::unordered_map<uint64_t, T>& components = GetComponentMap<T>();
+		auto it = components.find(this->uuid);
+		if (it != components.end()) {
+			component = &(it->second);
 		}
 
 		return dynamic_cast<T*>(component);
@@ -56,16 +78,15 @@ namespace Engine {
 
 	template Transform* GameObject::AddComponent<Transform>(Transform* component, bool addToComponentsList); // Replace 'Transform' with the actual type
 	template MeshRenderer* GameObject::AddComponent<MeshRenderer>(MeshRenderer* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
-	template<typename T>
+	template RigidBody* GameObject::AddComponent<RigidBody>(RigidBody* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
+	template BoxCollider* GameObject::AddComponent<BoxCollider>(BoxCollider* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
+	template <typename T>
 	T* GameObject::AddComponent(T* component, bool addToComponentsList) {
 		component->uuid = this->uuid;
+
 		if (addToComponentsList) {
-			if constexpr (std::is_same_v<T, Transform>) {
-				Application->activeScene->transformComponents.emplace(component->uuid, *component);
-			}
-			else if constexpr (std::is_same_v<T, MeshRenderer>) {
-				Application->activeScene->meshRendererComponents.emplace(component->uuid, *component);
-			}
+			std::unordered_map<uint64_t, T>& components = GetComponentMap<T>();
+			components.emplace(component->uuid, *component);
 		}
 
 		return component;

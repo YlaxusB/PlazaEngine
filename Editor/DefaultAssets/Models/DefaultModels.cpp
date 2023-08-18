@@ -5,19 +5,29 @@
 namespace Engine::Editor {
 
 	vector<Mesh*> DefaultModels::meshes = vector<Mesh*>();
+	uint64_t DefaultModels::cubeUuid = 1;
+	uint64_t DefaultModels::sphereUuid = 2;
+	uint64_t DefaultModels::planeUuid = 3;
+	uint64_t DefaultModels::cylinderUuid = 4;
+
 	void DefaultModels::Init() {
 		InitCube();
 		InitSphere();
 		InitPlane();
+		InitCylinder();
 	}
 	shared_ptr<Mesh> DefaultModels::Cube() {
-		return Application->editorScene->meshes.front();
+		return Application->editorScene->meshes.at(cubeUuid);
 	}
 	shared_ptr<Mesh> DefaultModels::Sphere() {
-		return Application->editorScene->meshes.at(1);
+		return Application->editorScene->meshes.at(sphereUuid);
 	}
 	shared_ptr<Mesh> DefaultModels::Plane() {
-		return Application->editorScene->meshes.at(2);
+		return Application->editorScene->meshes.at(planeUuid);
+	}
+
+	shared_ptr<Mesh> DefaultModels::Cylinder() {
+		return Application->editorScene->meshes.at(cylinderUuid);
 	}
 
 	void DefaultModels::InitCube() {
@@ -68,14 +78,10 @@ namespace Engine::Editor {
 			Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(1, 0, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0))
 		};
 
-		Material* cubeMaterial = new Material();
-		cubeMaterial->diffuse = Texture();
-		cubeMaterial->diffuse.type = "texture_diffuse";
-		cubeMaterial->diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
-		Mesh* newMesh = new Mesh(vertices, indices, *cubeMaterial);
+		Mesh* newMesh = new Mesh(vertices, indices);
 		newMesh->usingNormal = false;
-		delete cubeMaterial;
-		Application->editorScene->meshes.push_back(make_shared<Mesh>(*newMesh));
+		newMesh->meshId = cubeUuid;
+		Application->editorScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
 	}
 
 	void DefaultModels::InitSphere() {
@@ -131,16 +137,10 @@ namespace Engine::Editor {
 			}
 		}
 
-		// Create sphere material
-		Material* sphereMaterial = new Material();
-		sphereMaterial->diffuse = Texture();
-		sphereMaterial->diffuse.type = "texture_diffuse";
-		sphereMaterial->diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
-
-		Mesh* newMesh = new Mesh(vertices, indices, *sphereMaterial);
+		shared_ptr<Mesh> newMesh = make_shared<Mesh>(vertices, indices);
 		newMesh->usingNormal = false;
-		delete sphereMaterial;
-		Application->editorScene->meshes.push_back(make_shared<Mesh>(*newMesh));
+		newMesh->meshId = sphereUuid;
+		Application->editorScene->meshes.emplace(newMesh->meshId, newMesh);
 	}
 
 	void DefaultModels::InitPlane() {
@@ -156,15 +156,48 @@ namespace Engine::Editor {
 			Vertex(glm::vec3(-0.5f, 0.0f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 1), glm::vec3(0), glm::vec3(0))
 		};
 
-		// Create sphere material
-		Material* material = new Material();
-		material->diffuse = Texture();
-		material->diffuse.type = "texture_diffuse";
-		material->diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
-
-		Mesh* newMesh = new Mesh(vertices, indices, *material);
+		Mesh* newMesh = new Mesh(vertices, indices);
 		newMesh->usingNormal = false;
-		delete material;
-		Application->editorScene->meshes.push_back(make_shared<Mesh>(*newMesh));
+		newMesh->meshId = planeUuid;
+		Application->editorScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+	}
+
+	void DefaultModels::InitCylinder() {
+		float radius = 0.5f;
+		float height = 1.0f;
+		int slices = 20;
+		int stacks = 20;
+		vector<Vertex> vertices;
+		vector<unsigned int> indices;
+
+		float pi = 3.14159265359;
+		//Vertex(glm::vec3(x, y, z), glm::vec3(0, 0, 1), glm::vec2(s, 1 - i / stacks), glm::vec3(0.0f), glm::vec3(0.0f))
+		for (unsigned int i = 1; i < slices; i++) {
+			float x = glm::cos((slices / i)) * radius;
+			float z = glm::sin((slices / i)) * radius;
+			float y = 0;
+			vertices.push_back(Vertex(glm::vec3(x, y, z), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)));
+			vertices.push_back(Vertex(glm::vec3(x, y + height, z), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)));
+		}
+
+		for (unsigned int i = 0; i < slices; i += 2) {
+			indices.push_back(i);
+			indices.push_back(i + slices / 2);
+			indices.push_back(i + 1);
+
+			indices.push_back(i + 1);
+			indices.push_back(i + slices / 2);
+			indices.push_back(i + slices / 2 + 1);
+
+			//indices.push_back(i);
+			//indices.push_back(i + slices + 1);
+			//indices.push_back(i + slices + 2);
+		}
+
+		// Create the cylinder mesh and add it to the scene
+		Mesh* newMesh = new Mesh(vertices, indices);
+		newMesh->usingNormal = false; // You probably want to set this to true for the cylinder
+		newMesh->meshId = cylinderUuid;
+		Application->editorScene->meshes.emplace(newMesh->meshId, std::make_shared<Mesh>(*newMesh));
 	}
 }

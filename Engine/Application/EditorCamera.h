@@ -63,7 +63,9 @@ namespace Engine {
 		float Zoom;
 		float nearPlane = 0.01f;
 		float farPlane = 15000.0f;
+		float aspectRatio = 1;
 
+		Camera(Camera& other) = default;
 		// constructor with vectors
 		Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH);
 		// constructor with scalar values
@@ -109,6 +111,10 @@ namespace Engine {
 				Zoom = 90.0f;
 
 			UpdateFrustum();
+		}
+
+		void Upd() {
+			updateCameraVectors();
 		}
 
 	private:

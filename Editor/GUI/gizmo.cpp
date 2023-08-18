@@ -5,7 +5,7 @@
 
 namespace Engine::Editor {
 	void Gizmo::Draw(GameObject* gameObject, Camera camera) {
-		
+
 		ApplicationSizes& appSizes = *Application->appSizes;
 		// Setup imguizmo
 		ImGuizmo::SetOrthographic(false);
@@ -27,6 +27,12 @@ namespace Engine::Editor {
 		ImGuizmo::MODE activeMode = Overlay::activeMode; // Mode is world or local
 
 		ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), activeOperation, activeMode, glm::value_ptr(gizmoTransform));
+
+		RigidBody* rigidBody = gameObject->GetComponent<RigidBody>();
+		if (rigidBody && rigidBody->m_rigidBody) {
+			rigidBody->m_rigidBody->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, true);
+			rigidBody->canUpdate = false;
+		}
 
 		if (ImGuizmo::IsUsing())
 		{
@@ -64,9 +70,28 @@ namespace Engine::Editor {
 			// --- Scale
 			transform.scale = scale / parentTransform.worldScale;
 
+
+
+			// Update Rigid Body Position
+			if (rigidBody && rigidBody->m_rigidBody && ImGuizmo::IsUsing()) {
+				//glm::quat quaternion = glm::quat_cast(glm::eulerAngleYXZ(transform.rotation.y, transform.rotation.x, transform.rotation.z));
+				glm::quat quaternion = transform.GetWorldQuaternion();
+				physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+
+				physx::PxTransform* pxTransform = new physx::PxTransform(
+					transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
+					pxQuaternion);
+
+				rigidBody->m_rigidBody->setGlobalPose(*pxTransform);
+			}
+
 			transform.UpdateChildrenTransform();
+
 		}
-		
+		if (rigidBody && rigidBody->m_rigidBody && !ImGuizmo::IsUsing()) {
+			rigidBody->m_rigidBody->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, false);
+			rigidBody->canUpdate = true;
+		}
 	}
 
 
@@ -124,8 +149,8 @@ namespace Engine::Editor {
 			{
 				scale[i] *= static_cast<T>(-1);
 				Row[i] *= static_cast<T>(-1);
-			}
-		}
+	}
+}
 #endif
 
 		rotation.y = asin(-Row[0][2]);

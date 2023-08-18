@@ -5,6 +5,14 @@
 #include "Engine/Core/ModelLoader/Model.h"
 #include "Engine/Components/Core/GameObject.h"
 namespace Engine {
+	Material DefaultMaterial() {
+		Material material;
+		material.diffuse.rgba = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
+		material.specular.rgba = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+		material.shininess = 3.0f;
+		return material;
+	}
+
 	GameObject* ModelLoader::LoadImportedModelToScene(uint64_t modelUuid, string filePath) {
 		Model* model = nullptr;
 		auto it = EngineClass::models.find(modelUuid);
@@ -82,7 +90,7 @@ namespace Engine {
 		string directory;
 		// read file via ASSIMP
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_GenUVCoords | aiProcess_TransformUVCoords);
 		// check for errors
 		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
 		{
@@ -111,15 +119,15 @@ namespace Engine {
 		string directory = filesystem::path{ filePath }.parent_path().string() + "\\textures";
 		// read file via ASSIMP
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(model->modelFilePath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+		const aiScene* scene = importer.ReadFile(model->modelFilePath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_GenUVCoords | aiProcess_TransformUVCoords);
 		unsigned int index = 0;
 		for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 			aiMesh* aiMesh = scene->mMeshes[i];
 			Mesh* mesh = new Mesh(ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr));
-			Application->editorScene->meshes.push_back(make_shared<Mesh>(*mesh));
-			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), Application->editorScene->meshes.back());
+			Application->editorScene->meshes.emplace(mesh->meshId, make_shared<Mesh>(*mesh));
+			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), Application->editorScene->meshes.at(mesh->meshId));
 			if(Application->runningScene)
-				Application->runtimeScene->meshes.push_back(Application->editorScene->meshes.back());
+				Application->runtimeScene->meshes.emplace(mesh->meshId, Application->editorScene->meshes.at(mesh->meshId));
 			index++;
 		}
 	}
@@ -275,26 +283,18 @@ namespace Engine {
 		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
 		// return a mesh object created from the extracted mesh data
-		Material convertedMaterial;
-		if (diffuseMaps.size() > 0)
+		Material convertedMaterial = DefaultMaterial();
+		if (diffuseMaps.size() > 0 && diffuseMaps[0].id != 0)
 			convertedMaterial.diffuse = diffuseMaps[0];
-		else
-			convertedMaterial.diffuse = Texture();
 
 		if (specularMaps.size() > 0)
 			convertedMaterial.specular = specularMaps[0];
-		else
-			convertedMaterial.specular = Texture();
 
 		if (normalMaps.size() > 0)
 			convertedMaterial.normal = normalMaps[0];
-		else
-			convertedMaterial.normal = Texture();
 
 		if (heightMaps.size() > 0)
 			convertedMaterial.height = heightMaps[0];
-		else
-			convertedMaterial.height = Texture();
 
 		Mesh finalMesh = Mesh(vertices, indices, convertedMaterial);
 		finalMesh.usingNormal = usingNormal;

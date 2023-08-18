@@ -22,6 +22,8 @@ namespace Engine {
 		std::string scene = "Editor Scene";
 		Transform();
 		Transform(const Transform&) = default;
+		glm::quat GetLocalQuaternion();
+		glm::quat GetWorldQuaternion();
 		glm::mat4 GetTransform(glm::vec3 position, glm::vec3 scale);
 		glm::mat4 GetTransform(glm::vec3 position);
 		glm::mat4 GetTransform();

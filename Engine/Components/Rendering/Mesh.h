@@ -3,6 +3,8 @@
 #include "Engine/Components/Component.h"
 #include "Engine/Components/Rendering/Texture.h"
 #include "Engine/Components/Rendering/Material.h"
+
+
 using namespace std;
 using namespace Engine;
 namespace Engine {
@@ -31,7 +33,7 @@ namespace Engine {
 		vector<Vertex> vertices;
 		vector<unsigned int> indices;
 		vector<Texture> textures;
-		Material material;
+		Material material = DefaultMaterial();
 		bool usingNormal;
 		glm::vec4 infVec = glm::vec4(INFINITY);
 		unsigned int VAO;
@@ -42,6 +44,17 @@ namespace Engine {
 			this->indices = indices;
 			this->material = material;
 			this->uuid = Engine::UUID::NewUUID();
+			if (this->meshId == 0)
+				this->meshId = Engine::UUID::NewUUID();
+			setupMesh();
+		}
+
+		Mesh(vector<Vertex> vertices, vector<unsigned int> indices) {
+			this->vertices = vertices;
+			this->indices = indices;
+			this->uuid = Engine::UUID::NewUUID();
+			if (this->meshId == 0)
+				this->meshId = Engine::UUID::NewUUID();
 			setupMesh();
 		}
 
@@ -244,6 +257,14 @@ namespace Engine {
 				if (absoluteSum > farthestVertex)
 					farthestVertex = absoluteSum;
 			}
+		}
+
+		Material DefaultMaterial() {
+			Material material;
+			material.diffuse.rgba = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
+			material.specular.rgba = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+			material.shininess = 2.0f;
+			return material;
 		}
 	};
 }

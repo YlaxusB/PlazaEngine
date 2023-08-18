@@ -10,7 +10,7 @@ namespace Engine {
 		Texture normal;
 		Texture specular;
 		Texture height;
-		float shininess = 64.0f;
+		float shininess = 3.0f;
 
 		Material() = default;
 		~Material() = default;

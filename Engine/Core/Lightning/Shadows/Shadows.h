@@ -10,7 +10,7 @@ namespace Engine {
 		std::vector<float> shadowCascadeLevels;
 		unsigned int matricesUBO;unsigned int maximumCascades = 32;
 		unsigned int shadowWidth = 2048, shadowHeight = 2048;
-		const glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
+		glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
 		glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
 		glm::vec3 lightPos;
 		float near_plane = -500.0f, far_plane = 500.0f;

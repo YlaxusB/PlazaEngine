@@ -19,6 +19,8 @@
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Engine/Core/ModelLoader/ModelLoader.h"
 #include "Engine/Application/Serializer/ModelSerializer.h"
+
+#include "Editor/GUI/Hierarchy/HierarchyPopup.h"
 //#include "Engine/Application/Application.h" //
 
 //
@@ -246,10 +248,12 @@ namespace Engine {
 			ImGui::Begin("Hierarchy", &Gui::isHierarchyOpen, sceneWindowFlags);
 			if (ImGui::IsWindowFocused())
 				Application->focusedMenu = "Hierarchy";
-			if (ImGui::IsWindowHovered())
+			if (ImGui::IsWindowHovered()) {
 				Application->hoveredMenu = "Hierarchy";
+			}
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.treeNodeBackgroundColor);
 
+			HierarchyPopup::Update();
 
 			// Create the main collapser
 			Editor::Gui::Hierarchy::Item(Application->activeScene->entities[Application->activeScene->mainSceneEntity->uuid], selectedGameObject);
@@ -293,7 +297,8 @@ namespace Engine {
 			//}
 
 
-			if (selectedGameObject && selectedGameObject->parentUuid) {
+			if (selectedGameObject) {
+				if(selectedGameObject->parentUuid)
 				Inspector::ComponentInspector::UpdateComponents();
 				Editor::Inspector::ComponentInspector::CreateInspector();
 				ImGui::Text(std::to_string(selectedGameObject->uuid).c_str());

@@ -2,7 +2,10 @@
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 #include "Engine/Editor/Editor.h"
 #include "Editor/GUI/guiMain.h"
+#include "Editor/GUI/Hierarchy/HierarchyPopup.h"
+#include "Editor/DefaultAssets/DefaultAssets.h"
 
+#include "Editor/GUI/Popups/NewEntityPopup.h"
 namespace Engine::Editor {
 	Gui::Hierarchy::Item::Item(GameObject& gameObject, GameObject*& selectedGameObject) : currentObj(gameObject), selectedGameObject(*selectedGameObject) {
 		// Push the gameObject id, to prevent it to collpases all the treenodes with same id
@@ -22,6 +25,8 @@ namespace Engine::Editor {
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, editorStyle.treeNodeHoverBackgroundColor);
 			ImGui::PushStyleColor(ImGuiCol_Header, editorStyle.treeNodeBackgroundColor);
 		}
+
+
 
 		bool treeNodeOpen = false;
 
@@ -76,6 +81,14 @@ namespace Engine::Editor {
 
 			Hierarchy::Item::HierarchyDragDrop(gameObject, &currentObj, treeNodeMin, treeNodeMax);
 		}
+		if (ImGui::IsItemHovered() || ImGui::IsPopupOpen("ItemPopup")) {
+			Gui::Hierarchy::Item::ItemPopup(gameObject);
+		}
+
+		if (ImGui::IsPopupOpen("ItemPopup")) {
+			Gui::changeSelectedGameObject(&Application->activeScene->entities[gameObject.uuid]);
+		}
+
 		if (treeNodeOpen)
 		{
 			for (uint64_t child : gameObject.childrenUuid)
@@ -86,6 +99,47 @@ namespace Engine::Editor {
 		}
 		ImGui::Unindent(indentSpacing * depth);
 
+
 		ImGui::PopID();
 	};
+
+	void Gui::Hierarchy::Item::ItemPopup(GameObject& gameObject) {
+		if (ImGui::BeginPopupContextWindow("ItemPopup"))
+		{
+			if (ImGui::BeginMenu("Add Component"))
+			{
+				if (ImGui::MenuItem("Mesh Renderer"))
+				{
+					MeshRenderer* meshRenderer = new MeshRenderer(*Editor::DefaultModels::Cube());
+					meshRenderer->instanced = true;
+					meshRenderer->mesh = DefaultModels::Cube();
+					gameObject.AddComponent<MeshRenderer>(meshRenderer);
+				}
+
+				if (ImGui::MenuItem("Rigid Body Dynamic"))
+				{
+					RigidBody* rigidBody = new RigidBody(gameObject.uuid, Application->runningScene);
+					rigidBody->uuid = gameObject.uuid;
+					BoxCollider* boxCollider = new BoxCollider();
+					gameObject.AddComponent<BoxCollider>(boxCollider);
+					gameObject.GetComponent<BoxCollider>()->Init();
+					gameObject.AddComponent<RigidBody>(rigidBody);
+				}
+
+				if (ImGui::MenuItem("Rigid Body Non Dynamic"))
+				{
+					RigidBody* rigidBody = new RigidBody(gameObject.uuid, Application->runningScene, false);
+					rigidBody->dynamic = false;
+					rigidBody->uuid = gameObject.uuid;
+					gameObject.AddComponent<RigidBody>(rigidBody);
+				}
+
+				ImGui::EndMenu();
+			}
+
+			Popup::NewEntityPopup::Init(&gameObject, &gameObject);
+
+			ImGui::EndPopup();
+		}
+	}
 };

@@ -37,6 +37,24 @@ namespace Engine {
 	glm::mat4 Transform::GetTransform(glm::vec3 position) {
 		return GetTransform(position, this->worldScale);
 	}
+
+	/// <summary>
+	/// Returns the Quaternion of the Transform Local Rotation in radians
+	/// </summary>
+	/// <returns></returns>
+	glm::quat Transform::GetLocalQuaternion() {
+		return glm::quat(this->rotation);
+	}
+
+	/// <summary>
+	/// Returns the Quaternion of the Transform World Rotation in radians
+	/// </summary>
+	/// <returns></returns>
+	glm::quat Transform::GetWorldQuaternion() {
+		return glm::quat(this->worldRotation);
+	}
+
+
 	/// <summary>
 	/// Rotates around parent, then positionates its relative position based on the rotation and returns this position.
 	/// </summary>

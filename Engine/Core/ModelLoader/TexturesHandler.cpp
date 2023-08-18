@@ -46,10 +46,10 @@ namespace Engine {
 		int width, height, nrComponents;
 		std::cout << fileName << std::endl;
 		unsigned char* data = stbi_load(fileName.c_str(), &width, &height, &nrComponents, 4);
-		unsigned int textureID;
-		glGenTextures(1, &textureID);
+		unsigned int textureID = 0;
 		if (data)
 		{
+			glGenTextures(1, &textureID);
 
 			GLenum format;
 			if (nrComponents == 1)

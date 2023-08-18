@@ -73,7 +73,7 @@ namespace Engine {
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowsFBO);
 		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, depthMapResolution, depthMapResolution);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		glCullFace(GL_FRONT);
+		glCullFace(GL_BACK);
 		ShadowsClass::RenderScene(*Application->shadowsDepthShader);
 		Renderer::RenderInstancesShadowMap(*Application->shadowsDepthShader);
 		glCullFace(GL_BACK);
@@ -121,7 +121,7 @@ namespace Engine {
 		}
 		center /= corners.size();
 		const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::min());
-		const auto lightView = glm::lookAt(center + lightDir, center, glm::vec3(0.0f, 1.0f, 0.0f));
+		const auto lightView = glm::lookAt(center + glm::radians(Application->Shadows->lightDir), center, glm::vec3(0.0f, 1.0f, 0.0f));
 		float minX = std::numeric_limits<float>::max();
 		float maxX = std::numeric_limits<float>::lowest();
 		float minY = std::numeric_limits<float>::max();

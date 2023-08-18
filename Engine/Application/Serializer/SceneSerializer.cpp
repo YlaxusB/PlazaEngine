@@ -3,25 +3,23 @@
 
 #include "Editor/Settings/EditorSettings.h"
 
+#include "Engine/Application/Serializer/Components/TransformSerializer.h"
+#include "Engine/Application/Serializer/Components/MeshRendererSerializer.h"
 namespace Engine {
-	void SerializeGameObject(YAML::Emitter& out, std::unique_ptr<GameObject>& gameObject) {
+	void SerializeGameObjectd(YAML::Emitter& out, GameObject* gameObject) {
 		out << YAML::BeginMap;
 		out << YAML::Key << "GameObject" << YAML::Value << gameObject->uuid;
 		out << YAML::Key << "Name" << YAML::Value << gameObject->name;
 		out << YAML::Key << "ParentID" << YAML::Value << (!gameObject->parentUuid ? gameObject->GetParent().name : "");
-		if (gameObject->GetComponent<Transform>()) {
-			out << YAML::Key << "TransformComponent";
-			out << YAML::BeginMap;
-
-			glm::vec3& relativePosition = gameObject->GetComponent<Transform>()->relativePosition;
-			out << YAML::Key << "Position" << YAML::Value << relativePosition;
-			glm::vec3& relativeRotation = gameObject->GetComponent<Transform>()->rotation;
-			out << YAML::Key << "Rotation" << YAML::Value << relativeRotation;
-			glm::vec3& scale = gameObject->GetComponent<Transform>()->scale;
-			out << YAML::Key << "Scale" << YAML::Value << scale;
-
-			out << YAML::EndMap;
+		out << YAML::Key << "Components" << YAML::BeginMap;
+		if (Transform* transform = gameObject->GetComponent<Transform>()) {
+			ComponentSerializer::TransformSerializer::Serialize(out, *transform);
 		}
+		if (MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>()) {
+			ComponentSerializer::MeshRendererSerializer::Serialize(out, *meshRenderer);
+		}
+		out << YAML::EndMap;
+
 		out << YAML::EndMap;
 	}
 
@@ -31,8 +29,8 @@ namespace Engine {
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
 		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
-		for (std::unique_ptr<GameObject>& gameObject : Application->activeScene->gameObjects) {
-			SerializeGameObject(out, gameObject);
+		for (auto& [key, value] : Application->activeScene->entities) {
+			SerializeGameObjectd(out, &value);
 		}
 		out << YAML::EndSeq;
 		out << YAML::EndMap;

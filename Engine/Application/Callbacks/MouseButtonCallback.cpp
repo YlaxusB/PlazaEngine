@@ -36,7 +36,7 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 
 
 		// Select nothing if didnt clicked on a GameObject
-		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && clickId == 0) {
+		if (button == GLFW_MOUSE_BUTTON_LEFT && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && clickId <= 0) {
 			Engine::Editor::Gui::changeSelectedGameObject(nullptr);
 		}
 

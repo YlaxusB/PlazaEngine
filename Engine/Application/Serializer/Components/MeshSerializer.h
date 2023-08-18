@@ -1,8 +1,9 @@
 #pragma once
+#include "ComponentSerializer.h"
 namespace Engine {
-	class MeshSerializer {
+	class ComponentSerializer::MeshSerializer {
 	public:
-		static void Serialize(std::string path, Mesh& mesh);
+		static void Serialize(YAML::Emitter& out, Mesh& mesh);
 		static void DeSerialize(std::string path);
 	};
 }

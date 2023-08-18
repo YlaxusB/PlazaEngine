@@ -15,6 +15,8 @@ namespace Engine::Editor {
 
 			Item(GameObject& gameObject, GameObject*& selectedGameObject);
 			void HierarchyDragDrop(GameObject& gameObject, GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax);
+
+			static void ItemPopup(GameObject& gameObject);
 		};
 	};
 }

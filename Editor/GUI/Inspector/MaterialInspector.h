@@ -3,7 +3,8 @@
 
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Components/Core/GameObject.h"
-#include "Editor/GUI/Inspector.h"
+
+
 namespace Engine::Editor {
 	static class MaterialInspector {
 	public:
@@ -23,7 +24,7 @@ namespace Engine::Editor {
 				ImGui::SliderFloat3("Specular", &specular.x, 0, 1.0f);
 
 				ImGui::SetNextItemWidth(225);
-				ImGui::SliderFloat("Shininess", &shininess, 0.0f, 100.0f);
+				ImGui::DragFloat("Shininess", &shininess, 0.01f, 0.0f, 10.0f);
 
 				ImGui::Text("Diffuse Path: ");
 				ImGui::SameLine();

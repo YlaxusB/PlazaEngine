@@ -5,6 +5,9 @@
 #include <variant>
 #include "Engine/Components/Core/Entity.h"
 #include <unordered_map>
+#include "Engine/Components/Physics/RigidBody.h"
+
+#include "Engine/Components/Physics/BoxCollider.h"
 using namespace std;
 namespace Engine {
 	struct Uint64Hash {
@@ -39,22 +42,23 @@ namespace Engine {
 
 		GameObject* mainSceneEntity;
 
-
-
+		std::unordered_map<std::string, std::any> componentMaps;
 
 		std::unordered_map<uint64_t, GameObject> entities;
 		std::unordered_map<uint64_t, Transform> transformComponents;
 		std::unordered_map<uint64_t, MeshRenderer> meshRendererComponents;
+		std::unordered_map<uint64_t, RigidBody> rigidBodyComponents;
+		std::unordered_map<uint64_t, Collider> colliderComponents;
+		std::unordered_map<uint64_t, BoxCollider> boxColliderComponents;
 		std::vector<MeshRenderer*> meshRenderers;
-		std::vector<shared_ptr<Mesh>> meshes;
+		std::map<uint64_t, shared_ptr<Mesh>> meshes;
+
+		Scene();
 
 		//unordered_map<uint64_t, Transform*> meshRenderersComponents;
 
 		static Scene* Copy(Scene* newScene, Scene* copyScn);
 		~Scene() = default;
-		Scene() {
-
-		}
 
 		void RemoveMeshRenderer(uint64_t uuid);
 	};

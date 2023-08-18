@@ -14,18 +14,23 @@ namespace Engine {
 		glFramebufferRenderbuffer(this->target, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, this->renderBufferObject);
 	}
 
-	void FrameBuffer::InitColorAttachment(GLint level, GLenum internalFormat, int width, int height, GLenum format, GLenum type, GLint param) {
+	void FrameBuffer::InitColorAttachment(GLenum textureTarget, GLenum internalFormat, int width, int height, GLenum format, GLenum type, GLint param) {
 		glGenTextures(1, &this->colorBuffer);
-		glBindTexture(this->target, this->colorBuffer);
-		glTexImage2D(this->target, 0, internalFormat, width, height, 0, format, type, NULL);
-		glTexParameteri(this->target, GL_TEXTURE_MIN_FILTER, param);
-		glTexParameteri(this->target, GL_TEXTURE_MAG_FILTER, param);
-		glFramebufferTexture2D(this->target, GL_COLOR_ATTACHMENT0, target, this->colorBuffer, 0);
+		glBindTexture(textureTarget, this->colorBuffer);
+		glTexImage2D(textureTarget, 0, internalFormat, width, height, 0, format, type, NULL);
+		glTexParameteri(textureTarget, GL_TEXTURE_MIN_FILTER, param);
+		glTexParameteri(textureTarget, GL_TEXTURE_MAG_FILTER, param);
+		glFramebufferTexture2D(textureTarget, GL_COLOR_ATTACHMENT0, textureTarget, this->colorBuffer, 0);
 		glBindTexture(this->target, 0);
 	}
 
 	void FrameBuffer::InitDepthAttachment(GLint level, GLenum internalFormat, int width, int height, GLenum format, GLenum type) {
 
+	}
+
+	void FrameBuffer::DrawAttachments(GLenum attachments[]) {
+		glDrawBuffers(sizeof(attachments) / sizeof(attachments[0]), attachments);
+		std::cout << sizeof(attachments) / sizeof(attachments[0]) << std::endl;
 	}
 
 	void FrameBuffer::UpdateSize()

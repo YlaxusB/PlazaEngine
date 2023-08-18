@@ -38,7 +38,6 @@ in VS_OUT {
 
 uniform vec3 lightPos;
 uniform vec3 viewPos;
-
 float ShadowCalculation(vec3 fragPosWorldSpace)
 {
     // select cascade layer
@@ -91,6 +90,9 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
     {
         bias *= 1 / ((cascadePlaneDistances[layer]) * biasModifier);
     }
+    float distanceToCamera = distance(viewPos, projCoords.xyz);
+
+    bias = 0.0001;
     float floatVal = 3 - (texture(shadowsDepthMap, vec3(projCoords.xyz)).r * 2.3);
     int pcfCount = 11;// + int(floatVal);
     float mapSize = 4096.0 * 12;
@@ -150,7 +152,7 @@ void main()
     vec3 reflectDir = reflect(-lightDir, normal);
     vec3 halfwayDir = normalize(lightDir + viewDir);  
     float spec = 0.0;
-    spec = pow(max(dot(normal, halfwayDir), 0.0), shininess + 5.0);
+    spec = pow(max(dot(normal, halfwayDir), 0.0), shininess * 100);
     vec3 texSpec;
     if(texture_specular_rgba != vec4(300, 300, 300, 300)){
          texSpec = texture_specular_rgba.rgb;

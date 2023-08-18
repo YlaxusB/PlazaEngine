@@ -92,11 +92,17 @@ namespace Engine::Editor {
 
 				if (currentPosition != startingPosition || currentRotation != startingRotation || currentScale != startingScale) {
 					gameObject->GetComponent<Transform>()->UpdateChildrenTransform();
+					if (Application->activeScene->rigidBodyComponents.find(gameObject->uuid) != Application->activeScene->rigidBodyComponents.end()) {
+						RigidBody* rigidBody = &Application->activeScene->rigidBodyComponents.at(gameObject->uuid);
+						rigidBody->UpdateGlobalPose();
+					}
 				}
 
 				for (uint64_t child : gameObject->childrenUuid) {
 					ImGui::Text(Application->activeScene->entities[child].name.c_str());
 				}
+
+
 
 				ImGui::PopID();
 				ImGui::TreePop();

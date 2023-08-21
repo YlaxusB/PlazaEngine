@@ -8,11 +8,17 @@
 *.suo
 *.user
 *.userosscache
-*.dll
 *Engine/ExampleAssets
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+PhysX_64.dll
+PhysXCommon_64.dll
+PhysXCooking_64.dll
+PhysXDevice64.dll
+PhysXFoundation_64.dll
+PhysXGpu_64.dll
+PVDRuntime_64.dll
 
 # Mono auto generated files
 mono_crash.*

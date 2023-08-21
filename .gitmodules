@@ -1,3 +1,6 @@
 [submodule "Engine/Vendor/yaml-cpp/yaml-cpp"]
 	path = Engine/Vendor/yaml-cpp/yaml-cpp
 	url = https://github.com/TheCherno/yaml-cpp.git
+[submodule "PhysX"]
+	path = PhysX
+	url = https://github.com/NVIDIA-Omniverse/PhysX

@@ -134,9 +134,11 @@ void ApplicationClass::CreateApplication() {
 
 	Application->shadowsDepthShader = new Shader((Application->enginePath + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
 
-	Application->debugDepthShader = new Shader((Application->enginePath + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
+	//Application->debugDepthShader = new Shader((Application->enginePath + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
 
 	Application->hdrShader = new Shader((Application->enginePath + "\\Shaders\\hdr\\hdrVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\hdr\\hdrFragment.glsl").c_str());
+
+	Application->distortionCorrectionShader = new Shader((Application->enginePath + "\\Shaders\\distortionCorrection\\distortionCorrectionVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\distortionCorrection\\distortionCorrectionFragment.glsl").c_str());
 
 	Skybox::skyboxShader = new Shader((Application->enginePath + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
 	Skybox::skyboxShader->use();
@@ -147,6 +149,51 @@ void ApplicationClass::CreateApplication() {
 	Renderer::InitQuad();
 
 	InitBlur();
+
+	Application->distortionCorrectionFrameBuffer = new FrameBuffer(GL_FRAMEBUFFER);
+	Application->distortionCorrectionFrameBuffer->InitColorAttachment(GL_TEXTURE_2D, GL_RGBA32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, GL_RGBA, GL_FLOAT, GL_LINEAR);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	/*
+		unsigned int& frameBuffer = Application->frameBuffer;
+	//unsigned int& textureColorbuffer = Application->textureColorbuffer;
+	glGenFramebuffers(1, &Application->frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+	// create a color attachment texture
+	glGenTextures(1, &Application->textureColorbuffer);
+	glBindTexture(GL_TEXTURE_2D, Application->textureColorbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Application->textureColorbuffer, 0);
+
+	glGenTextures(1, &Application->pick);
+	glBindTexture(GL_TEXTURE_2D, Application->pick);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, NULL);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, Application->pick, 0);
+	//glReadBuffer(GL_NONE);
+	//glDrawBuffer(GL_COLOR_ATTACHMENT4);
+
+	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+	glGenRenderbuffers(1, &Application->rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, Application->rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, appSizes.sceneSize.x, appSizes.sceneSize.y); // use a single renderbuffer object for both a depth AND stencil buffer.
+	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, Application->rbo); // now actually attach it
+
+	// Disable reading
+	glReadBuffer(GL_NONE);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+	GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_RED_INTEGER, GL_COLOR_ATTACHMENT4 };
+	glDrawBuffers(4, attachments);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
+	*/
+
 
 	//Application->InitSkybox();
 	Skybox::Init();
@@ -226,7 +273,6 @@ void ApplicationClass::UpdateEngine() {
 
 
 	// Update Skybox
-	Profiler skyboxProfiler = Profiler("Skybox");
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 	Skybox::Update();
 	//  Draw Outline
@@ -253,7 +299,19 @@ void ApplicationClass::UpdateEngine() {
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	// Apply Distortion Correction
+	glBindFramebuffer(GL_FRAMEBUFFER, Application->distortionCorrectionFrameBuffer->buffer);
+	Application->distortionCorrectionShader->use();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, Application->textureColorbuffer);
+	Application->distortionCorrectionShader->setInt("sceneTexture", 0);
+	glBindVertexArray(Application->blurVAO);
+	int w = Application->appSizes->sceneSize.x;
+	int h = Application->appSizes->sceneSize.y;
+	glViewport(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// Render HDR
 	//Renderer::RenderHDR();
 
@@ -332,7 +390,7 @@ void ApplicationClass::InitOpenGL() {
 			/* Edge Detection Framebuffer */
 	blurFramebuffer1();
 	Outline::Init();
-	blurFramebuffer2();
+	//blurFramebuffer2();
 	Application->Shadows = new ShadowsClass();
 	Application->Shadows->Init();
 
@@ -490,10 +548,10 @@ void ApplicationClass::updateBuffers(GLuint textureColorBuffer, GLuint rbo) {
 	{
 		ApplicationSizes& appSizes = *Application->appSizes;
 		glBindTexture(GL_TEXTURE_2D, Application->textureColorbuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
 
 		glBindTexture(GL_TEXTURE_2D, Application->edgeDetectionColorBuffer);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
 
 		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, appSizes.sceneSize.x, appSizes.sceneSize.y);

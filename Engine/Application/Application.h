@@ -16,6 +16,7 @@
 #include "Engine/Core/Scene.h"
 #include "Editor/Project.h"
 #include "Engine/Core/Engine.h"
+#include "Engine/Core/FrameBuffer.h"
 namespace Engine {
 	class Camera;
 	class WindowClass;
@@ -51,6 +52,9 @@ namespace Engine {
 		unsigned int blurFramebuffer, blurColorBuffer, blurDepthStencilRBO = 0;
 		unsigned int selectedFramebuffer, selectedColorBuffer, selectedDepthStencilRBO = 0;
 		unsigned int pick = 0;
+
+		FrameBuffer* distortionCorrectionFrameBuffer = nullptr;
+		Shader* distortionCorrectionShader = nullptr;
 
 		// Shadows
 		ShadowsClass* Shadows;

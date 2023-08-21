@@ -3,6 +3,8 @@
 #include "Engine/Application/Serializer/SceneSerializer.h"
 #include "Engine/Core/Physics.h"
 #include "Editor/DefaultAssets/DefaultAssets.h"
+
+#include "Engine/Core/Skybox.h"
 using namespace Engine;
 
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -99,6 +101,8 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 			Application->shadowsDepthShader = new Shader((Application->enginePath + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
 			Application->debugDepthShader = new Shader((Application->enginePath + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
 			Application->hdrShader = new Shader((Application->enginePath + "\\Shaders\\hdr\\hdrVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\hdr\\hdrFragment.glsl").c_str());
+			Skybox::skyboxShader = new Shader((Application->enginePath + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
+			Application->distortionCorrectionShader = new Shader((Application->enginePath + "\\Shaders\\distortionCorrection\\distortionCorrectionVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\distortionCorrection\\distortionCorrectionFragment.glsl").c_str());
 		}
 	}
 }

@@ -8,6 +8,7 @@
 *.suo
 *.user
 *.userosscache
+*.dll
 *Engine/ExampleAssets
 
 # User-specific files (MonoDevelop/Xamarin Studio)
@@ -17,8 +18,6 @@
 mono_crash.*
 
 # Build results
-[Dd]ebug/
-[Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
 x64/

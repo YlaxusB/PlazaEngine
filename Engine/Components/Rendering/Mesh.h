@@ -121,8 +121,6 @@ namespace Engine {
 
 		void Draw(Shader& shader) {
 			// draw mesh
-			unsigned int ver = vertices.size();
-			unsigned int test = VAO;
 			glBindVertexArray(VAO);
 			glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);

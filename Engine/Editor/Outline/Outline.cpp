@@ -20,12 +20,12 @@ namespace Engine::Editor {
 
 	void Outline::Init() {
 		blurringBuffer = new FrameBuffer(GL_FRAMEBUFFER);
-		int width = Application->appSizes->appSize.x;
-		int height = Application->appSizes->appSize.y;
+		int width = Application->appSizes->sceneSize.x;
+		int height = Application->appSizes->sceneSize.y;
 		blurringBuffer->InitColorAttachment(GL_TEXTURE_2D, GL_RGB32F, width, height, GL_RGB, GL_FLOAT, GL_LINEAR);
 		blurringBuffer->InitRenderBufferObject(GL_DEPTH24_STENCIL8, width, height);
 		GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_RED_INTEGER };
-		blurringBuffer->DrawAttachments(attachments);
+		blurringBuffer->DrawAttachments(attachments, width, height);
 		Application->outlineBlurShader->setInt("sceneBuffer", 0);
 	}
 

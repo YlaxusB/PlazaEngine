@@ -11,7 +11,7 @@ namespace Engine {
 	}
 
 	glm::mat4 Camera::GetProjectionMatrix() {
-		return glm::perspective(glm::radians(this->Zoom), this->aspectRatio, nearPlane, farPlane);
+		return glm::perspective(glm::radians(this->Zoom), (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), nearPlane, farPlane);
 	}
 
 	glm::mat4 Camera::GetProjectionMatrix(float nearPlaneCustom, float farPlaneCustom) {

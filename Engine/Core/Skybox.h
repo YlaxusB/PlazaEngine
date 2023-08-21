@@ -67,7 +67,7 @@ namespace Engine {
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-			std::string faceDirectory = Application->enginePath + "\\ExampleAssets\\skybox\\";
+			std::string faceDirectory = Application->enginePath + "\\DefaultAssets\\Skybox\\";
 			std::vector<std::string> faces
 			{
 				faceDirectory + "right.jpg",
@@ -97,7 +97,8 @@ namespace Engine {
 			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 			skyboxShader->use();
 			glm::mat4 view = glm::mat4(glm::mat3(Application->activeCamera->GetViewMatrix())); // remove translation from the view matrix
-			glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+			glm::mat4 projection = glm::perspective(glm::radians(90.0f), (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), Application->activeCamera->nearPlane, Application->activeCamera->farPlane);;//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+			//glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 			skyboxShader->setMat4("view", view);
 			skyboxShader->setMat4("projection", projection);
 			// skybox cube

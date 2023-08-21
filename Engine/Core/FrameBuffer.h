@@ -21,7 +21,7 @@ namespace Engine {
 		void InitColorAttachment(GLenum textureTarget, GLenum internalFormat, int width, int height, GLenum format, GLenum type, GLint param);
 		void InitDepthAttachment(GLint level, GLenum internalFormat, int width, int height, GLenum format, GLenum type);
 
-		void DrawAttachments(GLenum attachments[]);
+		void DrawAttachments(GLenum attachments[], int width, int height);
 		void UpdateSize();
 		void Terminate();
 	};

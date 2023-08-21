@@ -13,7 +13,7 @@ void Engine::ApplicationClass::Callbacks::scrollCallback(GLFWwindow* window, dou
 			Application->activeCamera->MovementSpeed += Application->activeCamera->MovementSpeed * (yoffset * 3) * Time::deltaTime;
 		}
 
-		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS)
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
 			Application->activeCamera->ProcessMouseScroll(static_cast<float>(yoffset));
 	}
 }

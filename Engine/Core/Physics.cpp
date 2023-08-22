@@ -21,6 +21,8 @@ namespace Engine {
 	physx::PxMaterial* Physics::m_material = NULL;
 	physx::PxPvd* Physics::m_pvd = NULL;
 
+	physx::PxMaterial* Physics::defaultMaterial = nullptr;
+
 	const float Physics::maxFrameAdvance = 0.1f;
 	float Physics::accumulatedTime = 0.0f;
 	float Physics::stepSize = 1/60.0f;
@@ -62,11 +64,18 @@ namespace Engine {
 		m_scene = m_physics->createScene(sceneDesc);
 
 		std::cout << "Physics Initialized" << std::endl;
+
+		Physics::defaultMaterial = Physics::m_physics->createMaterial(0.0f, 1.0f, 0.5f);
 	}
 
 	void Physics::Update() {
 		for (auto& [key, value] : Application->runtimeScene->rigidBodyComponents) {
 			value.Update();
 		}
+		//for (auto& [key, value] : Application->runtimeScene->colliderComponents) {
+		//	if (Application->runtimeScene->rigidBodyComponents.find(key) == Application->runtimeScene->rigidBodyComponents.end()) {
+		//		value.Update();
+		//	}
+		//}
 	}
 }

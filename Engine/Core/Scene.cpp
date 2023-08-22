@@ -41,11 +41,23 @@ namespace Engine {
 
 		for (auto& [key, value] : copyScene->rigidBodyComponents) {
 			RigidBody* rigidBody = new RigidBody(value);
-			rigidBody->Init();
 			//RigidBody* rigidBody = new RigidBody(value);
 			rigidBody->uuid = key;
 			newScene->rigidBodyComponents.emplace(key, *rigidBody);
+			newScene->rigidBodyComponents.at(key).Init();
 		}
+		for (auto& [key, value] : copyScene->colliderComponents) {
+			// RigidBody* rig = &copyScene->rigidBodyComponents.at(key);
+			if (copyScene->rigidBodyComponents.find(key) == copyScene->rigidBodyComponents.end()) {
+				Collider* collider = new Collider(value);
+				collider->Init(nullptr);
+				newScene->colliderComponents.emplace(key, *collider);
+			}
+			else {
+				newScene->colliderComponents.emplace(key, value);
+			}
+		}
+		//newScene->colliderComponents = std::unordered_map<uint64_t, Collider>(copyScene->colliderComponents);
 		//newScene->rigidBodyComponents = std::unordered_map<uint64_t, RigidBody>(copyScene->rigidBodyComponents);
 		for (auto& gameObj : copyScene->gameObjects) {
 			if (gameObj->parentUuid != 0 && copyScene->entities.find(gameObj->parentUuid) != copyScene->entities.end())

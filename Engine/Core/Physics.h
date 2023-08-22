@@ -9,6 +9,8 @@ namespace Engine {
 		static physx::PxFoundation* m_foundation;
 		static physx::PxPhysics* m_physics;
 
+		static physx::PxMaterial* defaultMaterial;
+
 		static physx::PxScene* m_scene;
 		static physx::PxMaterial* m_material;
 		static physx::PxPvd* m_pvd;

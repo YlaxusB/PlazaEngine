@@ -16,5 +16,6 @@ void main()
     vec2 correctedCoords = normalizedCoords * distortionFactor * 0.5 + 0.5;
 
     // Sample the scene texture using the corrected coordinates
-    FragColor = texture(sceneTexture, correctedCoords);
+    vec4 frag = texture(sceneTexture, correctedCoords);
+    FragColor = vec4(pow(frag.rgb, vec3(1.0f / 2.2f)), 1.0f);
 }

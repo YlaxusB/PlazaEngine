@@ -3,6 +3,7 @@
 
 #include "Editor/GUI/Inspector/RigidBodyInspector.h"
 #include "Editor/GUI/Inspector/SceneInspector.h"
+#include "Editor/GUI/Inspector/ColliderInspector.h"
 
 namespace Engine::Editor {
 	std::vector<Component*> Inspector::ComponentInspector::components;
@@ -32,6 +33,9 @@ namespace Engine::Editor {
 
 		if (activeScene->rigidBodyComponents.contains(uuid))
 			components.push_back(&activeScene->rigidBodyComponents.at(uuid));
+
+		if (activeScene->colliderComponents.contains(uuid))
+			components.push_back(&activeScene->colliderComponents.at(uuid));
 	}
 
 	void Inspector::ComponentInspector::CreateRespectiveInspector(Component* component) {
@@ -43,6 +47,9 @@ namespace Engine::Editor {
 		}
 		if (RigidBody* rigidBody = dynamic_cast<RigidBody*>(component)) {
 			Engine::Editor::RigidBodyInspector::RigidBodyInspector(rigidBody);
+		}
+		if (Collider* collider = dynamic_cast<Collider*>(component)) {
+			Engine::Editor::ColliderInspector::ColliderInspector(collider);
 		}
 	}
 }

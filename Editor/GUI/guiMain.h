@@ -44,6 +44,8 @@ namespace Engine {
 			static bool isInspectorOpen;
 			static bool isFileExplorerOpen;
 
+			static unsigned int playPauseButtonImageId;
+
 			static void UpdateSizes();
 		};
 	}

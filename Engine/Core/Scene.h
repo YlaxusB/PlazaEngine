@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include "Engine/Components/Physics/RigidBody.h"
 
-#include "Engine/Components/Physics/BoxCollider.h"
+#include "Engine/Components/Physics/Collider.h"
 using namespace std;
 namespace Engine {
 	struct Uint64Hash {
@@ -49,7 +49,6 @@ namespace Engine {
 		std::unordered_map<uint64_t, MeshRenderer> meshRendererComponents;
 		std::unordered_map<uint64_t, RigidBody> rigidBodyComponents;
 		std::unordered_map<uint64_t, Collider> colliderComponents;
-		std::unordered_map<uint64_t, BoxCollider> boxColliderComponents;
 		std::vector<MeshRenderer*> meshRenderers;
 		std::map<uint64_t, shared_ptr<Mesh>> meshes;
 

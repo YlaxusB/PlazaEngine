@@ -191,7 +191,7 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Engine\Components\Core\Entity.cpp" />
     <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
     <ClCompile Include="Engine\Components\Core\ModelComponent.cpp" />
-    <ClCompile Include="Engine\Components\Physics\BoxCollider.cpp" />
+    <ClCompile Include="Engine\Components\Physics\Collider.cpp" />
     <ClCompile Include="Engine\Components\Physics\RigidBody.cpp" />
     <ClCompile Include="Engine\Components\Rendering\MeshRenderer.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -377,11 +377,13 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Editor\GUI\FileExplorer\File.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\FileExplorer.h" />
     <ClInclude Include="Editor\GUI\Hierarchy\HierarchyPopup.h" />
+    <ClInclude Include="Editor\GUI\Inspector\ColliderInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\RigidBodyInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\SceneInspector.h" />
     <ClInclude Include="Editor\GUI\Popups\NewEntityPopup.h" />
     <ClInclude Include="Editor\GUI\Popups\Popup.h" />
     <ClInclude Include="Editor\GUI\Utils\DataVisualizer.h" />
+    <ClInclude Include="Editor\GUI\Utils\ImageLoader.h" />
     <ClInclude Include="Editor\ModelImporter\ModelImporter.h" />
     <ClInclude Include="Editor\Project.h" />
     <ClInclude Include="Editor\Settings\EditorSettings.h" />
@@ -401,7 +403,6 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Application\Window.h" />
     <ClInclude Include="Engine\Components\Core\Entity.h" />
     <ClInclude Include="Engine\Components\Core\GameObject.h" />
-    <ClInclude Include="Engine\Components\Physics\BoxCollider.h" />
     <ClInclude Include="Engine\Components\Physics\Collider.h" />
     <ClInclude Include="Engine\Components\Physics\RigidBody.h" />
     <ClInclude Include="Engine\Components\Rendering\Material.h" />

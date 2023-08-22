@@ -120,9 +120,9 @@ namespace Engine::Editor {
 				{
 					RigidBody* rigidBody = new RigidBody(gameObject.uuid, Application->runningScene);
 					rigidBody->uuid = gameObject.uuid;
-					BoxCollider* boxCollider = new BoxCollider();
-					gameObject.AddComponent<BoxCollider>(boxCollider);
-					gameObject.GetComponent<BoxCollider>()->Init();
+					//Collider* collider = new Collider(gameObject.uuid);
+					//gameObject.AddComponent<Collider>(collider);
+					//gameObject.GetComponent<Collider>()->Init();
 					gameObject.AddComponent<RigidBody>(rigidBody);
 				}
 
@@ -132,6 +132,12 @@ namespace Engine::Editor {
 					rigidBody->dynamic = false;
 					rigidBody->uuid = gameObject.uuid;
 					gameObject.AddComponent<RigidBody>(rigidBody);
+				}
+
+				if (ImGui::MenuItem("Collider"))
+				{
+					Collider* collider = new Collider(gameObject.uuid);
+					gameObject.AddComponent<Collider>(collider);
 				}
 
 				ImGui::EndMenu();

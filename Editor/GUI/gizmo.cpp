@@ -29,9 +29,14 @@ namespace Engine::Editor {
 		ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), activeOperation, activeMode, glm::value_ptr(gizmoTransform));
 
 		RigidBody* rigidBody = gameObject->GetComponent<RigidBody>();
-		if (rigidBody && rigidBody->m_rigidBody) {
-			rigidBody->m_rigidBody->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, true);
+		Collider* collider = gameObject->GetComponent<Collider>();
+		if (rigidBody && rigidBody->mRigidActor) {
+			rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, true);
 			rigidBody->canUpdate = false;
+		}
+
+		if (collider && !collider->mDynamic && collider->mStaticPxRigidBody) {
+			collider->mStaticPxRigidBody->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, false);
 		}
 
 		if (ImGuizmo::IsUsing())
@@ -69,12 +74,12 @@ namespace Engine::Editor {
 
 			// --- Scale
 			transform.scale = scale / parentTransform.worldScale;
+			transform.UpdateChildrenTransform();
 
 
 
 			// Update Rigid Body Position
-			if (rigidBody && rigidBody->m_rigidBody && ImGuizmo::IsUsing()) {
-				//glm::quat quaternion = glm::quat_cast(glm::eulerAngleYXZ(transform.rotation.y, transform.rotation.x, transform.rotation.z));
+			if (ImGuizmo::IsUsing()) {
 				glm::quat quaternion = transform.GetWorldQuaternion();
 				physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
@@ -82,15 +87,21 @@ namespace Engine::Editor {
 					transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
 					pxQuaternion);
 
-				rigidBody->m_rigidBody->setGlobalPose(*pxTransform);
+				// Apply scaling to the existing pxTransform
+				if (rigidBody && rigidBody->mRigidActor)
+					rigidBody->mRigidActor->setGlobalPose(*pxTransform);
+				else if (collider && !collider->mDynamic && collider->mStaticPxRigidBody)
+					collider->mStaticPxRigidBody->setGlobalPose(*pxTransform);
 			}
-
-			transform.UpdateChildrenTransform();
-
 		}
-		if (rigidBody && rigidBody->m_rigidBody && !ImGuizmo::IsUsing()) {
-			rigidBody->m_rigidBody->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, false);
+
+		if (rigidBody && rigidBody->mRigidActor && !ImGuizmo::IsUsing()) {
+			rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, false);
 			rigidBody->canUpdate = true;
+		}
+
+		if (collider && !collider->mDynamic && collider->mStaticPxRigidBody) {
+			collider->mStaticPxRigidBody->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
 		}
 	}
 
@@ -149,8 +160,8 @@ namespace Engine::Editor {
 			{
 				scale[i] *= static_cast<T>(-1);
 				Row[i] *= static_cast<T>(-1);
-	}
-}
+			}
+		}
 #endif
 
 		rotation.y = asin(-Row[0][2]);

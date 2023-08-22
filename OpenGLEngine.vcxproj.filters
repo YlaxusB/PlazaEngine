@@ -345,10 +345,10 @@
     <ClCompile Include="Engine\Application\Serializer\Components\MeshRendererSerializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Components\Physics\BoxCollider.cpp">
+    <ClCompile Include="Editor\GUI\Popups\NewEntityPopup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Editor\GUI\Popups\NewEntityPopup.cpp">
+    <ClCompile Include="Engine\Components\Physics\Collider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1982,9 +1982,6 @@
     <ClInclude Include="Engine\Components\Physics\Collider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Components\Physics\BoxCollider.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Application\Serializer\Components\MeshRendererSerializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1992,6 +1989,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Editor\GUI\Popups\Popup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\GUI\Inspector\ColliderInspector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\GUI\Utils\ImageLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

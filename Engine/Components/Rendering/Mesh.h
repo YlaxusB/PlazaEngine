@@ -259,7 +259,7 @@ namespace Engine {
 
 		Material DefaultMaterial() {
 			Material material;
-			material.diffuse.rgba = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
+			material.diffuse.rgba = glm::vec4(glm::pow(0.7f, 2.2f), glm::pow(0.7f, 2.2f), glm::pow(0.7f, 2.2f), glm::pow(0.7f, 2.2f));
 			material.specular.rgba = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
 			material.shininess = 2.0f;
 			return material;

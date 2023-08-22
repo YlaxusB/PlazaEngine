@@ -23,40 +23,35 @@ namespace Engine {
 		physx::PxTransform* pxTransform = new PxTransform(
 			transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
 			pxQuaternion);
-		physx::PxBoxGeometry boxGeometry(transform.scale.x / 2.1, transform.scale.y / 2.1, transform.scale.z / 2.1);
 		physx::PxMaterial* defaultMaterial = Physics::m_physics->createMaterial(mStaticFriction, mDynamicFriction, mRestitution);
-		physx::PxRigidBody* pxRigidBody;
-		if (dynamic)
-			pxRigidBody = physx::PxCreateDynamic(*Physics::m_physics, *pxTransform, boxGeometry, *defaultMaterial, density);
-		else
-			pxRigidBody = physx::PxCreateKinematic(*Physics::m_physics, *pxTransform, boxGeometry, *defaultMaterial, density);
+		physx::PxRigidActor* rigidActor = Physics::m_physics->createRigidDynamic(*pxTransform);
+		if (!dynamic)
+			rigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
 
-		if (Application->activeScene->colliderComponents.find(this->uuid) != Application->activeScene->colliderComponents.end())
-			pxRigidBody->attachShape(*Application->activeScene->colliderComponents.at(this->uuid).m_shape);
 		// Add the rigid body to the scene
-		Physics::m_scene->addActor(*pxRigidBody);
-		//Physics::m_scene->setGravity(PxVec3(gravity.x, gravity.y, gravity.z));
-		//pxRigidBody->addForce(PxVec3(0.0f, 30000.0f, 0.0f));
+		Physics::m_scene->addActor(*rigidActor);
 		// Store the PhysX rigid body reference
-		m_rigidBody = pxRigidBody;
+		mRigidActor = rigidActor;
+		if (Application->activeScene->colliderComponents.find(this->uuid) != Application->activeScene->colliderComponents.end())
+			Application->activeScene->colliderComponents.at(this->uuid).Init(this);
 	}
 
 	void RigidBody::UpdateRigidBody() {
-		if (this->m_rigidBody) {
-			Physics::m_scene->removeActor(*m_rigidBody);
+		if (this->mRigidActor) {
+			Physics::m_scene->removeActor(*mRigidActor);
 			this->Init();
 		}
 	}
 
 	RigidBody::~RigidBody() {
-		if (m_rigidBody)
-			Physics::m_scene->removeActor(*m_rigidBody);
+		if (mRigidActor)
+			Physics::m_scene->removeActor(*mRigidActor);
 	}
 
 	void RigidBody::Update() {
 		if (canUpdate) {
 			Transform& transform = *Application->activeScene->entities.at(this->uuid).GetComponent<Transform>();
-			physx::PxTransform pxTransform = m_rigidBody->getGlobalPose();
+			physx::PxTransform pxTransform = mRigidActor->getGlobalPose();
 			PxQuat rotationQuaternion = pxTransform.q;
 			glm::quat glmQuaternion(rotationQuaternion.w, rotationQuaternion.x, rotationQuaternion.y, rotationQuaternion.z);
 			glm::vec3 eulerAngles = glm::eulerAngles(glmQuaternion);
@@ -66,7 +61,7 @@ namespace Engine {
 		}
 	}
 	void RigidBody::UpdateGlobalPose() {
-		if (this->m_rigidBody) {
+		if (this->mRigidActor) {
 			Transform& transform = *Application->activeScene->entities.at(this->uuid).GetComponent<Transform>();
 			glm::quat quaternion = transform.GetWorldQuaternion();
 			physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
@@ -75,13 +70,13 @@ namespace Engine {
 				transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
 				pxQuaternion);
 
-			this->m_rigidBody->setGlobalPose(*pxTransform);
+			this->mRigidActor->setGlobalPose(*pxTransform);
 		}
 	}
 
 	void RigidBody::ApplyForce(glm::vec3 force) {
-		if (this->m_rigidBody) {
-			this->m_rigidBody->addForce(PxVec3(force.x, force.y, force.z), physx::PxForceMode::eFORCE);
+		if (this->mRigidActor) {
+			this->mRigidActor->is<PxRigidDynamic>()->addForce(PxVec3(force.x, force.y, force.z), physx::PxForceMode::eFORCE);
 		}
 	}
 

@@ -60,9 +60,9 @@ namespace Engine {
 				format = GL_RGB;
 			else if (nrComponents == 4)
 				format = GL_RGBA;
-			format = GL_RGBA;
+			format = GL_SRGB8_ALPHA8;
 			glBindTexture(GL_TEXTURE_2D, textureID);
-			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 			GLenum error = glGetError();
 			if (error != GL_NO_ERROR) {
 				std::cerr << "OpenGL error after glTexImage2D: " << error << std::endl;

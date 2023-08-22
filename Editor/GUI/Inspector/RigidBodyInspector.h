@@ -21,7 +21,7 @@ namespace Engine::Editor {
 				ImGui::PushID("RigidBodyInspector");
 
 				currentBody = rigidBody;
-				physx::PxRigidBody& body = *rigidBody->m_rigidBody;
+				physx::PxRigidActor& body = *rigidBody->mRigidActor;
 				bool dynamic = rigidBody->dynamic;
 				glm::vec3& gravity = rigidBody->gravity;
 				float& dynamicFriction = rigidBody->mDynamicFriction;

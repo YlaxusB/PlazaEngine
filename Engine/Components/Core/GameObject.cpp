@@ -23,9 +23,6 @@ namespace Engine {
 		else if constexpr (std::is_same_v<T, Collider>) {
 			return Application->activeScene->colliderComponents;
 		}
-		else if constexpr (std::is_same_v<T, BoxCollider>) {
-			return Application->activeScene->boxColliderComponents;
-		}
 		else {
 			return Application->activeScene->transformComponents;
 		}
@@ -62,7 +59,7 @@ namespace Engine {
 	template Transform* GameObject::GetComponent<Transform>(); // Replace 'Transform' with the actual type
 	template MeshRenderer* GameObject::GetComponent<MeshRenderer>(); // Replace 'MeshRenderer' with the actual type
 	template RigidBody* GameObject::GetComponent<RigidBody>(); // Replace 'MeshRenderer' with the actual type
-	template BoxCollider* GameObject::GetComponent<BoxCollider>(); // Replace 'MeshRenderer' with the actual type
+	template Collider* GameObject::GetComponent<Collider>(); // Replace 'MeshRenderer' with the actual type
 	template<typename T>
 	T* GameObject::GetComponent() {
 		Component* component = nullptr;
@@ -79,7 +76,7 @@ namespace Engine {
 	template Transform* GameObject::AddComponent<Transform>(Transform* component, bool addToComponentsList); // Replace 'Transform' with the actual type
 	template MeshRenderer* GameObject::AddComponent<MeshRenderer>(MeshRenderer* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
 	template RigidBody* GameObject::AddComponent<RigidBody>(RigidBody* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
-	template BoxCollider* GameObject::AddComponent<BoxCollider>(BoxCollider* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
+	template Collider* GameObject::AddComponent<Collider>(Collider* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
 	template <typename T>
 	T* GameObject::AddComponent(T* component, bool addToComponentsList) {
 		component->uuid = this->uuid;

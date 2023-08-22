@@ -59,6 +59,11 @@ namespace Engine {
 				-1.0f, -1.0f,  1.0f,
 				 1.0f, -1.0f,  1.0f
 			};
+
+			for (unsigned int i = 0; i < sizeof(skyboxVertices) / sizeof(float); i++) {
+				skyboxVertices[i] = skyboxVertices[i] * 200;
+			}
+
 			glGenVertexArrays(1, &vao);
 			glGenBuffers(1, &vbo);
 			glBindVertexArray(vao);
@@ -97,8 +102,8 @@ namespace Engine {
 			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 			skyboxShader->use();
 			glm::mat4 view = glm::mat4(glm::mat3(Application->activeCamera->GetViewMatrix())); // remove translation from the view matrix
-			glm::mat4 projection = glm::perspective(glm::radians(90.0f), (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), Application->activeCamera->nearPlane, Application->activeCamera->farPlane);;//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
-			//glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+			//glm::mat4 projection = glm::perspective(glm::radians(90.0f), (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), Application->activeCamera->nearPlane, Application->activeCamera->farPlane);;//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+			glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 			skyboxShader->setMat4("view", view);
 			skyboxShader->setMat4("projection", projection);
 			// skybox cube
@@ -133,7 +138,7 @@ namespace Engine {
 				unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
 				if (data)
 				{
-					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 					stbi_image_free(data);
 				}
 				else

@@ -4,8 +4,17 @@
 namespace Engine {
 	class Collider : public Component {
 	public:
-		physx::PxShape* m_shape;
-		virtual void Init() {};
-		virtual void Update() {};
+		vector<physx::PxShape*> mShapes;
+		physx::PxActor* mActor;
+		physx::PxRigidBody* mStaticPxRigidBody;
+		bool mDynamic = false;
+		Collider(std::uint64_t uuid, RigidBody* rigidBody = nullptr);
+		~Collider();
+		void Init(RigidBody* rigidBody);
+		void InitDynamic(RigidBody* rigidBody = nullptr);
+		void InitStatic();
+		void Update();
+
+		void AddShape(physx::PxShape* shape);
 	};
 }

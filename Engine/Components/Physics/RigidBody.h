@@ -28,7 +28,7 @@ namespace Engine {
 		float density = 50.0f;
 		glm::vec3 gravity = glm::vec3(0.0f, -9.81f, 0.0f);
 
-		physx::PxRigidBody* m_rigidBody;
+		physx::PxRigidActor* mRigidActor;
 
 		void CopyValuesFrom(const RigidBody& other) {
 			dynamic = other.dynamic;

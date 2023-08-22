@@ -38,7 +38,7 @@ void main()
 */
     mat4 finalInstanceMatrix = aInstanceMatrix;
     vec4 model = finalInstanceMatrix * vec4(aPos, 1.0);
-    vs_out.FragPos= vec3(model * vec4(aPos, 1.0));
+    vs_out.FragPos= vec3(model);
     //vs_out.Normal = transpose(inverse(mat3(aInstanceMatrix))) * aNormal;
     vs_out.TexCoords = aTexCoords;
 

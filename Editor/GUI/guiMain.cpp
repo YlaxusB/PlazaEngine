@@ -21,6 +21,7 @@
 #include "Engine/Application/Serializer/ModelSerializer.h"
 
 #include "Editor/GUI/Hierarchy/HierarchyPopup.h"
+#include "Editor/GUI/Utils/ImageLoader.h"
 //#include "Engine/Application/Application.h" //
 
 //
@@ -38,6 +39,7 @@ bool Engine::Editor::Gui::isHierarchyOpen = true;
 bool Engine::Editor::Gui::isSceneOpen = true;
 bool Engine::Editor::Gui::isInspectorOpen = true;
 bool Engine::Editor::Gui::isFileExplorerOpen = true;
+
 bool windowVisible = true;
 // Update ImGui Windows
 FpsCounter* fpsCounter;
@@ -45,9 +47,11 @@ namespace Engine {
 	namespace Editor {
 		class Hierarchy;
 		string Gui::scenePayloadName = "scenePayloadName";
+
+		unsigned int Gui::playPauseButtonImageId;
 		void Gui::Update() {
 			static constexpr tracy::SourceLocationData __tracy_source_location47{ "Gui Update", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Editor\\GUI\\guiMain.cpp", (uint32_t)47, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location47, true);
-			
+
 			ImGuiIO& io = ImGui::GetIO();
 			io.DeltaTime = Time::deltaTime;
 			Gui::setupDockspace(Application->Window->glfwWindow, Application->textureColorbuffer, Application->activeCamera);
@@ -78,6 +82,9 @@ namespace Engine {
 			Icon::Init();
 
 			FpsCounter* fpsCounter = new FpsCounter();
+
+			// Load Icons
+			playPauseButtonImageId = Utils::LoadImageToImGuiTexture(std::string(Application->editorPath + "\\Images\\Other\\playPauseButton.png").c_str());
 		}
 
 		void Gui::Delete() {
@@ -161,7 +168,7 @@ namespace Engine {
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
 			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
-			windowFlags |= ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar;
+			windowFlags |= ImGuiWindowFlags_NoScrollbar;
 
 			/*			windowFlags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoTitleBar;
 			windowFlags |= ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_NoScrollbar;*/
@@ -173,8 +180,39 @@ namespace Engine {
 			if (ImGui::IsWindowHovered())
 				Application->hoveredMenu = "Scene";
 
+			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x / 2, 25));
 
+			ImGuiStyle& style = ImGui::GetStyle();
 
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.30f, 0.30f, 0.30f, 1.0f));
+
+			// Change the background color of the button
+			if (Application->runningScene) {
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+			}
+			else {
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+			}
+
+			if (ImGui::ImageButton("PlayPauseButton", ImTextureID(playPauseButtonImageId), ImVec2(25, 25))) {
+				if (Application->runningScene) {
+					Editor::selectedGameObject = nullptr;
+					// Change active scene, update the selected object scene, delete runtime and set running to false.
+					delete(Application->runtimeScene);
+					Application->runningScene = false;
+					Application->activeScene = Application->editorScene;
+				}
+				else {
+					Application->runtimeScene = new Scene();
+					Application->runtimeScene = Scene::Copy(Application->runtimeScene, Application->editorScene);
+					Application->activeScene = Application->runtimeScene;
+					Application->runningScene = true;
+				}
+			}
+			ImGui::PopStyleColor();
+			ImGui::PopStyleColor();
+			ImGui::PopStyleColor();
 
 			ImVec2 uv0(0, 1); // bottom-left corner
 			ImVec2 uv1(1, 0); // top-right corner
@@ -299,8 +337,8 @@ namespace Engine {
 
 
 			if (selectedGameObject) {
-				if(selectedGameObject->parentUuid)
-				Inspector::ComponentInspector::UpdateComponents();
+				if (selectedGameObject->parentUuid)
+					Inspector::ComponentInspector::UpdateComponents();
 				Editor::Inspector::ComponentInspector::CreateInspector();
 				ImGui::Text(std::to_string(selectedGameObject->uuid).c_str());
 				//Editor::Inspector* asd = new Inspector();

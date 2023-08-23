@@ -31,27 +31,12 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 			Application->shadowsDepthShader = new Shader((Application->enginePath + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
 		}
 
+		// Play and Pause
 		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-			// Stop
-			if (Application->runningScene) {
-				Editor::selectedGameObject = nullptr;
-				//if (Editor::selectedGameObject)
-				//	Engine::Editor::Gui::changeSelectedGameObject(Application->editorScene->gameObjects.find(Editor::selectedGameObject->uuid));
-				// Change active scene, update the selected object scene, delete runtime and set running to false.
-				delete(Application->runtimeScene);
-				Application->runningScene = false;
-				Application->activeScene = Application->editorScene;
-			} // Play
-			else {
-				// Create a new empty Scene, change active scene to runtime, copy the contents of editor scene into runtime scene and update the selected object scene
-				Application->runtimeScene = new Scene();
-				Application->runtimeScene = Scene::Copy(Application->runtimeScene, Application->editorScene);
-				Application->activeScene = Application->runtimeScene;
-				//if (Editor::selectedGameObject)
-				//	Engine::Editor::Gui::changeSelectedGameObject(Application->activeScene->gameObjects.find(Editor::selectedGameObject->name));
-
-				Application->runningScene = true;
-			}
+			if (Application->runningScene)
+				Scene::Stop();
+			else
+				Scene::Play();
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
@@ -89,6 +74,12 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 			}
 		}
 
+		if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS) {
+			if (Application->activeCamera->isEditorCamera && Application->activeScene->cameraComponents.size() > 0)
+				Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
+			else
+				Application->activeCamera = Application->editorCamera;
+		}
 
 		if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
 			Application->shader = new Shader((Application->enginePath + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\1.model_loadingFragment.glsl").c_str());

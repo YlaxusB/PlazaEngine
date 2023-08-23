@@ -10,7 +10,6 @@
 namespace Engine {
 	class Transform : public Engine::Component {
 	public:
-		uint64_t uuid;
 		glm::vec3 position = { 0,0,0 };
 		glm::vec3 worldPosition = { 0, 0, 0 };
 		glm::vec3 relativePosition = { 0, 0, 0 };
@@ -32,5 +31,16 @@ namespace Engine {
 		void UpdateChildrenTransform();
 		void UpdateChildrenScale(GameObject* gameObject);
 		void UpdateChildrenScale();
+		void MoveTowards(glm::vec3 vector);
+
+		void SetRelativePosition(glm::vec3 vector);
+		void SetRelativeRotation(glm::vec3 vector);
+		void SetRelativeScale(glm::vec3 vector);
+		
+		void SetWorldPosition(glm::vec3 vector);
+		void SetWorldRotation(glm::vec3 vector);
+		void SetWorldScale(glm::vec3 vector);
+
+		void UpdatePhysics();
 	};
 }

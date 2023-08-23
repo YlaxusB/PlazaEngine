@@ -70,23 +70,53 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 			Application->activeCamera->MovementSpeedTemporaryBoost = 5.0f;
 
-		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-			Application->activeCamera->ProcessKeyboard(Engine::Camera::FORWARD, Time::deltaTime);
-		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-			Application->activeCamera->ProcessKeyboard(Engine::Camera::BACKWARD, Time::deltaTime);
-		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-			Application->activeCamera->ProcessKeyboard(Engine::Camera::LEFT, Time::deltaTime);
-		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-			Application->activeCamera->ProcessKeyboard(Engine::Camera::RIGHT, Time::deltaTime);
-		if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-			Application->activeCamera->ProcessKeyboard(Engine::Camera::UP, Time::deltaTime);
-		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-			Application->activeCamera->ProcessKeyboard(Engine::Camera::DOWN, Time::deltaTime);
-		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-			Application->activeCamera->ProcessMouseMovement(0, 0, 10);
-		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-			Application->activeCamera->ProcessMouseMovement(0, 0, -10);
+		if (Application->activeCamera->isEditorCamera) {
+			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+				Application->activeCamera->ProcessKeyboard(Engine::Camera::FORWARD, Time::deltaTime);
+			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+				Application->activeCamera->ProcessKeyboard(Engine::Camera::BACKWARD, Time::deltaTime);
+			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+				Application->activeCamera->ProcessKeyboard(Engine::Camera::LEFT, Time::deltaTime);
+			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+				Application->activeCamera->ProcessKeyboard(Engine::Camera::RIGHT, Time::deltaTime);
+			if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
+				Application->activeCamera->ProcessKeyboard(Engine::Camera::UP, Time::deltaTime);
+			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+				Application->activeCamera->ProcessKeyboard(Engine::Camera::DOWN, Time::deltaTime);
+			if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+				Application->activeCamera->ProcessKeyboard(Engine::Camera::UP, Time::deltaTime);
+			if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+				Application->activeCamera->ProcessKeyboard(Engine::Camera::DOWN, Time::deltaTime);
+		}
+		else if (Application->activeScene->rigidBodyComponents.find(Application->activeCamera->uuid) != Application->activeScene->rigidBodyComponents.end()){
+			Transform* transform = &Application->activeScene->transformComponents.at(Application->activeCamera->uuid);
+			RigidBody* rigidbody = &Application->activeScene->rigidBodyComponents.at(Application->activeCamera->uuid);
+			float speed = 10;
+			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+				transform->MoveTowards(glm::vec3(-1.0f * speed * Time::deltaTime, 0.0f, 0.0f));
+			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+				transform->MoveTowards(glm::vec3(1.0f * speed * Time::deltaTime, 0.0f, 0.0f));
+			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+				transform->MoveTowards(glm::vec3(0.0f, 0.0f, -1.0f * speed * Time::deltaTime));
+			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+				transform->MoveTowards(glm::vec3(0.0f, 0.0f, 1.0f * speed * Time::deltaTime));
+			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+				transform->MoveTowards(glm::vec3(0.0f, 1.0f * speed * Time::deltaTime, 0.0f));
+			glm::quat quaternion = transform->GetWorldQuaternion();
+			physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
+			physx::PxTransform* pxTransform = new physx::PxTransform(
+				transform->worldPosition.x, transform->worldPosition.y, transform->worldPosition.z,
+				pxQuaternion);
+
+			RigidBody* rigidBody = &Application->activeScene->rigidBodyComponents.at(Application->activeCamera->uuid);
+			Collider* collider = &Application->activeScene->colliderComponents.at(Application->activeCamera->uuid);
+			// Apply scaling to the existing pxTransform
+			if (rigidBody && rigidBody->mRigidActor)
+				rigidBody->mRigidActor->setGlobalPose(*pxTransform);
+			else if (collider && !collider->mDynamic && collider->mStaticPxRigidBody)
+				collider->mStaticPxRigidBody->setGlobalPose(*pxTransform);
+		}
 
 		//if (glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS)
 		//	Application->shader = new Shader("C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningVertex.glsl", "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Shaders\\outlining\\outliningFragment.glsl");
@@ -110,6 +140,41 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 			}
 		}
 
+
+		/* Dumb moving */
+		if (Editor::selectedGameObject && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+			Editor::selectedGameObject->GetComponent<Transform>()->relativePosition.x -= 10.0f * Time::deltaTime;
+		}
+		if (Editor::selectedGameObject && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+			Editor::selectedGameObject->GetComponent<Transform>()->relativePosition.x += 10.0f * Time::deltaTime;
+		}
+		if (Editor::selectedGameObject && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+			Editor::selectedGameObject->GetComponent<Transform>()->relativePosition.z -= 10.0f * Time::deltaTime;
+		}
+		if (Editor::selectedGameObject && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+			Editor::selectedGameObject->GetComponent<Transform>()->relativePosition.z += 10.0f * Time::deltaTime;
+		}
+		if (Editor::selectedGameObject && glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS) {
+			Editor::selectedGameObject->GetComponent<Transform>()->relativePosition.y += 20.0f * Time::deltaTime;
+		}
+		if (Editor::selectedGameObject) {
+			Editor::selectedGameObject->GetComponent<Transform>()->UpdateChildrenTransform();
+			Transform transform = *Editor::selectedGameObject->GetComponent<Transform>();
+			glm::quat quaternion = transform.GetWorldQuaternion();
+			physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+
+			physx::PxTransform* pxTransform = new physx::PxTransform(
+				transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
+				pxQuaternion);
+
+			RigidBody* rigidBody = Editor::selectedGameObject->GetComponent<RigidBody>();
+			Collider* collider = Editor::selectedGameObject->GetComponent<Collider>();
+			// Apply scaling to the existing pxTransform
+			if (rigidBody && rigidBody->mRigidActor)
+				rigidBody->mRigidActor->setGlobalPose(*pxTransform);
+			else if (collider && !collider->mDynamic && collider->mStaticPxRigidBody)
+				collider->mStaticPxRigidBody->setGlobalPose(*pxTransform);
+		}
 
 		if (glfwGetKey(window, GLFW_KEY_DELETE) == GLFW_PRESS && Editor::selectedGameObject) {
 			Editor::selectedGameObject->~GameObject();

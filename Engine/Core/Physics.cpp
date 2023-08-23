@@ -78,4 +78,13 @@ namespace Engine {
 		//	}
 		//}
 	}
+
+	physx::PxTransform* Physics::GetPxTransform(Transform& transform) {
+		// Create a dynamic rigid body
+		glm::quat quaternion = transform.GetWorldQuaternion();
+		physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+		return new physx::PxTransform(
+			transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
+			pxQuaternion);
+	}
 }

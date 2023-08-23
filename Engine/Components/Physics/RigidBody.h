@@ -25,6 +25,8 @@ namespace Engine {
 		float mDynamicFriction = 1.0f;
 		float mRestitution = 0.5f;
 
+		bool lockRotation = false;
+
 		float density = 50.0f;
 		glm::vec3 gravity = glm::vec3(0.0f, -9.81f, 0.0f);
 

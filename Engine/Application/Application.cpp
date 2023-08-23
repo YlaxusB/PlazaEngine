@@ -29,6 +29,7 @@
 // ...
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Core/Physics.h"
+#include "Engine/Components/Core/Camera.h"
 char* appdataValue;
 size_t len;
 errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");
@@ -51,6 +52,7 @@ using namespace Engine::Editor;
 
 Engine::ApplicationClass::ApplicationClass() {
 	editorCamera = new Engine::Camera(glm::vec3(0.0f, 0.0f, 5.0f));
+	editorCamera->isEditorCamera = true;
 	activeCamera = editorCamera;
 }
 //ApplicationClass* Application = nullptr;
@@ -203,6 +205,9 @@ void ApplicationClass::UpdateEngine() {
 	// Update Keyboard inputs
 	Callbacks::processInput(Application->Window->glfwWindow);
 	glEnable(GL_BLEND);
+
+	// Update Camera Position and Rotation
+	Application->activeCamera->Update();
 
 	//Physics::m_scene->simulate(1/60.0f);
 	//Physics::m_scene->fetchResults(true);

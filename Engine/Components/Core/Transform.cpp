@@ -89,6 +89,7 @@ namespace Engine {
 			transform.worldRotation = newWorldRotation(gameObject);
 			transform.worldPosition = newWorldPosition(gameObject);
 			transform.modelMatrix = transform.GetTransform();
+			transform.UpdatePhysics();
 		}
 	}
 
@@ -111,6 +112,46 @@ namespace Engine {
 	void Transform::UpdateChildrenTransform() {
 		if (uuid) {
 			UpdateChildrenTransform(&Application->activeScene->entities[uuid]);
+		}
+	}
+
+	void Transform::MoveTowards(glm::vec3 vector) {
+		glm::mat4 matrix = this->GetTransform();
+		glm::vec3 currentPosition = glm::vec3(matrix[3]);
+		// Extract the forward, left, and up vectors from the matrix
+		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
+		glm::vec3 leftVector = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
+		glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
+		this->relativePosition += forwardVector * vector.x + leftVector * vector.z + upVector * vector.y;
+		this->UpdateChildrenTransform();
+	}
+
+	// Set Functions
+	void Transform::SetRelativePosition(glm::vec3 vector) {
+		this->relativePosition = vector;
+		this->UpdateChildrenTransform();
+		if (Collider* collider = GetGameObject()->GetComponent<Collider>()) {
+			collider->UpdatePose(this);
+		}
+	}
+
+	void Transform::SetRelativeRotation(glm::vec3 vector) {
+		this->rotation = vector;
+		this->UpdateChildrenTransform();
+	}
+
+	void Transform::SetRelativeScale(glm::vec3 vector) {
+		this->scale = vector;
+		this->UpdateChildrenTransform();
+		if (Collider* collider = GetGameObject()->GetComponent<Collider>()) {
+			collider->UpdateShapeScale(this->worldScale);
+		}
+	}
+
+	void Transform::UpdatePhysics() {
+		if (Collider* collider = GetGameObject()->GetComponent<Collider>()) {
+			collider->UpdatePose(this);
+			collider->UpdateShapeScale(this->worldScale);
 		}
 	}
 }

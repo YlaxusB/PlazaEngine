@@ -37,6 +37,7 @@ namespace Engine {
 		}
 		newScene->meshes = map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
 		newScene->transformComponents = std::unordered_map<uint64_t, Transform>(copyScene->transformComponents);
+		newScene->cameraComponents = std::unordered_map<uint64_t, Camera>(copyScene->cameraComponents);
 		newScene->meshRendererComponents = std::unordered_map<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
 
 		for (auto& [key, value] : copyScene->rigidBodyComponents) {
@@ -84,5 +85,26 @@ namespace Engine {
 		if (it != meshRenderers.end()) {
 			meshRenderers.erase(it);
 		}
+	}
+
+	void Scene::Play() {
+		// Create a new empty Scene, change active scene to runtime, copy the contents of editor scene into runtime scene and update the selected object scene
+		Application->runtimeScene = new Scene();
+		Application->copyingScene = true;
+		Application->runtimeScene = Scene::Copy(Application->runtimeScene, Application->editorScene);
+		Application->activeScene = Application->runtimeScene;
+		Application->copyingScene = false;
+		Application->runningScene = true;
+	}
+	void Scene::Stop() {
+		// Change active scene, update the selected object scene, delete runtime and set running to false.
+		Editor::selectedGameObject = nullptr;
+		delete(Application->runtimeScene);
+		Application->runningScene = false;
+		Application->activeScene = Application->editorScene;
+		Application->activeCamera = Application->editorCamera;
+	}
+	void Scene::Pause() {
+
 	}
 }

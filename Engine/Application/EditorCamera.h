@@ -8,30 +8,14 @@
 #include "Engine/Application/Application.h"
 #include "Engine/Application/EntryPoint.h"
 #include "Engine/Application/ApplicationSizes.h"
+#include "Engine/Components/Core/Camera.h"
 
-
-// Default camera values
-const float YAW = -90.0f;
-const float PITCH = 0.0f;
-const float SPEED = 2.5f;
-const float SENSITIVITY = 0.1f;
-const float ZOOM = 60.0f;
 
 using namespace Engine;
 
-struct ViewFrustum {
-	glm::mat4 viewProjectionMatrix;
-	glm::vec4 leftPlane;
-	glm::vec4 rightPlane;
-	glm::vec4 bottomPlane;
-	glm::vec4 topPlane;
-	glm::vec4 nearPlaneFrustum;
-	glm::vec4 farPlaneFrustum;
-};
-
 
 namespace Engine {
-	class Camera {
+	class EditorCamera {
 	public:
 		enum Camera_Movement {
 			FORWARD,
@@ -44,7 +28,7 @@ namespace Engine {
 			ROLLRIGHT
 		};
 
-		ViewFrustum frustum = ViewFrustum();
+		Engine::ViewFrustum frustum = Engine::ViewFrustum();
 
 
 		// camera Attributes
@@ -65,11 +49,11 @@ namespace Engine {
 		float farPlane = 15000.0f;
 		float aspectRatio = 1;
 
-		Camera(Camera& other) = default;
+		EditorCamera(EditorCamera& other) = default;
 		// constructor with vectors
-		Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH);
+		EditorCamera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH);
 		// constructor with scalar values
-		Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+		EditorCamera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
 		{
 			Position = glm::vec3(posX, posY, posZ);
 			WorldUp = glm::vec3(upX, upY, upZ);

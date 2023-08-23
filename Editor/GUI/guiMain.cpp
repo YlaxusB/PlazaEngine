@@ -136,7 +136,7 @@ namespace Engine {
 			Gui::beginHierarchyView(gameFrameBuffer);
 
 			//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
-			Gui::beginScene(gameFrameBuffer, *camera);
+			Gui::beginScene(gameFrameBuffer, *Application->activeCamera);
 			//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
 			Gui::beginInspector(gameFrameBuffer, *camera);
 
@@ -196,19 +196,10 @@ namespace Engine {
 			}
 
 			if (ImGui::ImageButton("PlayPauseButton", ImTextureID(playPauseButtonImageId), ImVec2(25, 25))) {
-				if (Application->runningScene) {
-					Editor::selectedGameObject = nullptr;
-					// Change active scene, update the selected object scene, delete runtime and set running to false.
-					delete(Application->runtimeScene);
-					Application->runningScene = false;
-					Application->activeScene = Application->editorScene;
-				}
-				else {
-					Application->runtimeScene = new Scene();
-					Application->runtimeScene = Scene::Copy(Application->runtimeScene, Application->editorScene);
-					Application->activeScene = Application->runtimeScene;
-					Application->runningScene = true;
-				}
+				if (Application->runningScene)
+					Scene::Stop();
+				else
+					Scene::Play();
 			}
 			ImGui::PopStyleColor();
 			ImGui::PopStyleColor();

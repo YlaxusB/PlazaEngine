@@ -39,6 +39,8 @@ namespace Engine {
 		std::string focusedMenu = "";
 		std::string hoveredMenu = "";
 
+		bool copyingScene = false;
+
 		Camera* editorCamera;
 		Camera* activeCamera;
 		ApplicationClass(); // Initialize the activeCamera reference

@@ -1,7 +1,7 @@
-#include "EditorCamera.h"
 #include "Engine/Core/PreCompiledHeaders.h"
+#include "Camera.h"
 namespace Engine {
-	EditorCamera::EditorCamera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
+	Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
 	{
 		Position = position;
 		WorldUp = up;
@@ -10,17 +10,23 @@ namespace Engine {
 		updateCameraVectors();
 	}
 
-	glm::mat4 EditorCamera::GetProjectionMatrix() {
+	void Camera::Update() {
+		if (!this->isEditorCamera)
+			Position = Application->activeScene->transformComponents.at(this->uuid).worldPosition;
+		updateCameraVectors();
+	}
+
+	glm::mat4 Camera::GetProjectionMatrix() {
 		return glm::perspective(glm::radians(this->Zoom), (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), nearPlane, farPlane);
 	}
 
-	glm::mat4 EditorCamera::GetProjectionMatrix(float nearPlaneCustom, float farPlaneCustom) {
+	glm::mat4 Camera::GetProjectionMatrix(float nearPlaneCustom, float farPlaneCustom) {
 		nearPlaneCustom = nearPlaneCustom == NULL ? nearPlane : nearPlaneCustom;
 		farPlaneCustom = farPlaneCustom == NULL ? nearPlane : farPlaneCustom;
 		return glm::perspective(this->Zoom, (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), nearPlaneCustom, farPlaneCustom);
 	}
 
-	void EditorCamera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
+	void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
 	{
 		float velocity = MovementSpeed * MovementSpeedTemporaryBoost * deltaTime;
 		if (direction == FORWARD)
@@ -38,7 +44,7 @@ namespace Engine {
 
 	}
 
-	void EditorCamera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)
+	void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)
 	{
 		xoffset *= MouseSensitivity;
 		yoffset *= MouseSensitivity;
@@ -61,7 +67,7 @@ namespace Engine {
 		UpdateFrustum();
 	}
 
-	void EditorCamera::UpdateFrustum() {
+	void Camera::UpdateFrustum() {
 		glm::mat4 viewProjectionMatrix = GetProjectionMatrix() * GetViewMatrix();
 		glm::vec4 leftPlane = viewProjectionMatrix[3] + viewProjectionMatrix[0];
 		glm::vec4 rightPlane = viewProjectionMatrix[3] - viewProjectionMatrix[0];
@@ -78,7 +84,7 @@ namespace Engine {
 		frustum.nearPlaneFrustum = glm::normalize(nearPlaneFrustum);
 		frustum.farPlaneFrustum = glm::normalize(farPlaneFrustum);
 	}
-	bool EditorCamera::IsInsideViewFrustum(glm::vec3 pos) {
+	bool Camera::IsInsideViewFrustum(glm::vec3 pos) {
 		glm::vec4 objectPos = glm::vec4(pos, 1.0f);
 		return true; /// TEMPORARILY DISABLED FRUSTUM CULLING -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 		return
@@ -90,7 +96,7 @@ namespace Engine {
 			(glm::dot(objectPos, frustum.farPlaneFrustum) > 0.0f);
 	}
 
-	std::vector<glm::vec4> EditorCamera::getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
+	std::vector<glm::vec4> Camera::getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
 	{
 		const auto inv = glm::inverse(proj * view);
 
@@ -113,5 +119,43 @@ namespace Engine {
 		}
 
 		return frustumCorners;
-	}
+	};
+
+	void Camera::updateCameraVectors()
+	{
+		if (this->isEditorCamera) {
+			// calculate the new Front vector
+			glm::vec3 front;
+			front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+			front.y = sin(glm::radians(Pitch));
+			front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+			Front = glm::normalize(front);
+			// also re-calculate the Right and Up vector
+			Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+			Up = glm::normalize(glm::cross(Right, Front));
+		}
+		else {
+			if (this->uuid && Application && Application->activeScene->transformComponents.find(this->uuid) != Application->activeScene->transformComponents.end()) {
+				Transform* transform = &Application->activeScene->transformComponents.at(this->uuid);
+				glm::mat4 transformationMatrix = transform->GetTransform(); // Assuming you have a transformation matrix
+
+				glm::vec3 upVector = glm::normalize(glm::vec3(transformationMatrix[1])); // The second column is the up vector
+				glm::vec3 frontVector = -glm::normalize(glm::vec3(transformationMatrix[2])); // The third column is the negative forward vector
+				glm::vec3 rightVector = glm::normalize(glm::vec3(transformationMatrix[0])); // The first column is the right vector
+
+				Front = glm::normalize(frontVector);
+				// also re-calculate the Right and Up vector
+				Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+				Up = glm::normalize(glm::cross(Right, Front));
+			}
+		}
+		/*
+		if (!this->isEditorCamera && this->uuid && Application) {
+			if (Application->activeScene->transformComponents.find(this->uuid) != Application->activeScene->transformComponents.end()) {
+				Transform* transform = &Application->activeScene->transformComponents.at(this->uuid);
+				transform->rotation = GetEulerAnglesIgnoreY();
+				transform->UpdateChildrenTransform();
+			}
+		}*/
+	};
 }

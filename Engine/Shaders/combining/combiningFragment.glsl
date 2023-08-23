@@ -58,7 +58,7 @@ void main()
 
 
     if(texture(buffer2, TexCoord) == vec4(0.6, 0.3, 0.3, 1.0)){
-        FragColor = vec4(1.0, 0.4, 0.2, 1.0);
+        FragColor = vec4(pow(vec3(1.0, 0.4f, 0.2f), vec3(2.2f)), 1.0f);
     } else {
         FragColor = texture(buffer1, TexCoord);
     }

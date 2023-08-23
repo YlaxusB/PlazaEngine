@@ -7,7 +7,7 @@
 bool visualizingNormals = false;
 namespace Engine::Editor {
 	void callback(float) {
-		Application->editorCamera->Upd();
+		Application->editorCamera->Update();
 		//Application->editorCamera = new Engine::Camera(*Application->editorCamera);
 		//Application->activeCamera = Application->editorCamera;
 	}
@@ -15,7 +15,7 @@ namespace Engine::Editor {
 
 	}
 	void callbacke2(glm::vec3) {
-		Application->editorCamera->Upd();
+		Application->editorCamera->Update();
 	}
 	static class SceneInspector {
 	public:

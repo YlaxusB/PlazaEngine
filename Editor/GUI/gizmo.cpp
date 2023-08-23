@@ -36,7 +36,7 @@ namespace Engine::Editor {
 		}
 
 		if (collider && !collider->mDynamic && collider->mStaticPxRigidBody) {
-			collider->mStaticPxRigidBody->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, false);
+			collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, false);
 		}
 
 		if (ImGuizmo::IsUsing())
@@ -79,20 +79,22 @@ namespace Engine::Editor {
 
 
 			// Update Rigid Body Position
-			if (ImGuizmo::IsUsing()) {
-				glm::quat quaternion = transform.GetWorldQuaternion();
-				physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+			//if (ImGuizmo::IsUsing()) {
+			//	glm::quat quaternion = transform.GetWorldQuaternion();
+			//	physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
-				physx::PxTransform* pxTransform = new physx::PxTransform(
-					transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
-					pxQuaternion);
+			//	physx::PxTransform* pxTransform = new physx::PxTransform(
+			//		transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
+			//		pxQuaternion);
 
-				// Apply scaling to the existing pxTransform
-				if (rigidBody && rigidBody->mRigidActor)
-					rigidBody->mRigidActor->setGlobalPose(*pxTransform);
-				else if (collider && !collider->mDynamic && collider->mStaticPxRigidBody)
-					collider->mStaticPxRigidBody->setGlobalPose(*pxTransform);
-			}
+			//	// Apply scaling to the existing pxTransform
+			//	if (rigidBody && rigidBody->mRigidActor)
+			//		rigidBody->mRigidActor->setGlobalPose(*pxTransform);
+			//	else if (collider && !collider->mDynamic && collider->mStaticPxRigidBody)
+			//		collider->mStaticPxRigidBody->setGlobalPose(*pxTransform);
+
+
+			//}
 		}
 
 		if (rigidBody && rigidBody->mRigidActor && !ImGuizmo::IsUsing()) {
@@ -101,7 +103,12 @@ namespace Engine::Editor {
 		}
 
 		if (collider && !collider->mDynamic && collider->mStaticPxRigidBody) {
-			collider->mStaticPxRigidBody->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
+			collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
+		}
+
+		if (Application->runningScene && !ImGuizmo::IsUsing()) {
+			//collider->UpdateShapeScale(transform.worldScale);
+			transform.SetRelativeScale(transform.worldScale);
 		}
 	}
 
@@ -161,7 +168,7 @@ namespace Engine::Editor {
 				scale[i] *= static_cast<T>(-1);
 				Row[i] *= static_cast<T>(-1);
 			}
-		}
+	}
 #endif
 
 		rotation.y = asin(-Row[0][2]);
@@ -176,5 +183,5 @@ namespace Engine::Editor {
 
 
 		return true;
-	}
+}
 }

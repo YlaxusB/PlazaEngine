@@ -23,6 +23,9 @@ namespace Engine {
 		else if constexpr (std::is_same_v<T, Collider>) {
 			return Application->activeScene->colliderComponents;
 		}
+		else if constexpr (std::is_same_v<T, Camera>) {
+			return Application->activeScene->cameraComponents;
+		}
 		else {
 			return Application->activeScene->transformComponents;
 		}
@@ -57,6 +60,7 @@ namespace Engine {
 	}
 
 	template Transform* GameObject::GetComponent<Transform>(); // Replace 'Transform' with the actual type
+	template Camera* GameObject::GetComponent<Camera>(); // Replace 'Transform' with the actual type
 	template MeshRenderer* GameObject::GetComponent<MeshRenderer>(); // Replace 'MeshRenderer' with the actual type
 	template RigidBody* GameObject::GetComponent<RigidBody>(); // Replace 'MeshRenderer' with the actual type
 	template Collider* GameObject::GetComponent<Collider>(); // Replace 'MeshRenderer' with the actual type
@@ -74,6 +78,7 @@ namespace Engine {
 	}
 
 	template Transform* GameObject::AddComponent<Transform>(Transform* component, bool addToComponentsList); // Replace 'Transform' with the actual type
+	template Camera* GameObject::AddComponent<Camera>(Camera* component, bool addToComponentsList); // Replace 'Transform' with the actual type
 	template MeshRenderer* GameObject::AddComponent<MeshRenderer>(MeshRenderer* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
 	template RigidBody* GameObject::AddComponent<RigidBody>(RigidBody* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
 	template Collider* GameObject::AddComponent<Collider>(Collider* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
@@ -134,6 +139,14 @@ namespace Engine {
 		}
 
 		return nullptr; // Component to replace not found
+	}
+
+	template <typename T>
+	bool GameObject::HasComponent(T* component) {
+		std::unordered_map<uint64_t, T>& components = GetComponentMap<T>();
+		if (components.find(this->uuid) != components.end())
+			return true;
+		return false;
 	}
 }
 /*

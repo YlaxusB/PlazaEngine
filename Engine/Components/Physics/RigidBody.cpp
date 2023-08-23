@@ -14,26 +14,41 @@ namespace Engine {
 	}
 
 	void RigidBody::Init() {
-		Transform& transform = *Application->activeScene->entities.at(uuid).GetComponent<Transform>();
-		this->transform = make_shared<Transform>(*Application->activeScene->entities.at(uuid).GetComponent<Transform>());
-		// Create a dynamic rigid body
-		glm::quat quaternion = transform.GetWorldQuaternion();
-		physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+		Collider* collider = this->GetGameObject()->GetComponent<Collider>();
+		//if (collider->mStaticPxRigidBody) {
+		//	for (physx::PxShape* shape : collider->mShapes) {
+		//		collider->mStaticPxRigidBody->detachShape(*shape);
+		//		Physics::m_scene->removeActor(*collider->mStaticPxRigidBody);
+		//		collider->mStaticPxRigidBody->release();
+		//		collider->mStaticPxRigidBody = nullptr;
+		//	}
+		//}
+		//Transform& transform = *Application->activeScene->entities.at(uuid).GetComponent<Transform>();
+		//this->transform = make_shared<Transform>(*Application->activeScene->entities.at(uuid).GetComponent<Transform>());
+		//// Create a dynamic rigid body
+		//glm::quat quaternion = transform.GetWorldQuaternion();
+		//physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
-		physx::PxTransform* pxTransform = new PxTransform(
-			transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
-			pxQuaternion);
-		physx::PxMaterial* defaultMaterial = Physics::m_physics->createMaterial(mStaticFriction, mDynamicFriction, mRestitution);
-		physx::PxRigidActor* rigidActor = Physics::m_physics->createRigidDynamic(*pxTransform);
-		if (!dynamic)
-			rigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
+		//physx::PxTransform* pxTransform = new PxTransform(
+		//	transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
+		//	pxQuaternion);
+		//physx::PxMaterial* defaultMaterial = Physics::m_physics->createMaterial(mStaticFriction, mDynamicFriction, mRestitution);
+		//physx::PxRigidActor* rigidActor = Physics::m_physics->createRigidDynamic(*pxTransform);
+		//if (!dynamic)
+		//	rigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
 
-		// Add the rigid body to the scene
-		Physics::m_scene->addActor(*rigidActor);
-		// Store the PhysX rigid body reference
-		mRigidActor = rigidActor;
+		//if (dynamic) {
+		//	rigidActor->is<PxRigidDynamic>()->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, true);
+		//	rigidActor->is<PxRigidDynamic>()->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, true);
+		//	rigidActor->is<PxRigidDynamic>()->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, true);
+		//}
+		//// Add the rigid body to the scene
+		//Physics::m_scene->addActor(*rigidActor);
+		//// Store the PhysX rigid body reference
+		//mRigidActor = rigidActor;
 		if (Application->activeScene->colliderComponents.find(this->uuid) != Application->activeScene->colliderComponents.end())
 			Application->activeScene->colliderComponents.at(this->uuid).Init(this);
+		mRigidActor = collider->mRigidActor;
 	}
 
 	void RigidBody::UpdateRigidBody() {

@@ -140,6 +140,13 @@ namespace Engine::Editor {
 					gameObject.AddComponent<Collider>(collider);
 				}
 
+				if (ImGui::MenuItem("Camera"))
+				{
+					Camera* camera = new Camera();
+					camera->uuid = gameObject.uuid;
+					gameObject.AddComponent<Camera>(camera);
+				}
+
 				ImGui::EndMenu();
 			}
 

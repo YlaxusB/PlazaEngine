@@ -8,9 +8,11 @@
 
 
 namespace Engine {
+	class GameObject;
 	class Component {
 	public:
 		uint64_t uuid;
 		virtual ~Component() = default;
+		GameObject* GetGameObject();
 	};
 }

@@ -39,6 +39,10 @@ namespace Engine {
 		GameObject& GetParent();
 		template<typename T>
 		T* ReplaceComponent(T* newComponent);
+
+		// Check if the GameObject haves the Component
+		template<typename T>
+		bool HasComponent(T* component);
 	};
 
 }

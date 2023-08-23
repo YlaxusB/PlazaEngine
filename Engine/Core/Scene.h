@@ -46,6 +46,7 @@ namespace Engine {
 
 		std::unordered_map<uint64_t, GameObject> entities;
 		std::unordered_map<uint64_t, Transform> transformComponents;
+		std::unordered_map<uint64_t, Camera> cameraComponents;
 		std::unordered_map<uint64_t, MeshRenderer> meshRendererComponents;
 		std::unordered_map<uint64_t, RigidBody> rigidBodyComponents;
 		std::unordered_map<uint64_t, Collider> colliderComponents;
@@ -57,6 +58,9 @@ namespace Engine {
 		//unordered_map<uint64_t, Transform*> meshRenderersComponents;
 
 		static Scene* Copy(Scene* newScene, Scene* copyScn);
+		static void Play(); // Starts the game
+		static void Stop(); // Finishes the game
+		static void Pause(); // Just pauses the game
 		~Scene() = default;
 
 		void RemoveMeshRenderer(uint64_t uuid);

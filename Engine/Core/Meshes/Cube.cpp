@@ -24,11 +24,11 @@
 #include "Engine/Components/Core/Mesh.h"
 
 
-#include "Engine/Components/Core/GameObject.h"
+#include "Engine/Components/Core/Entity.h"
 #include "Editor/GUI/Style/EditorStyle.h"
 
 /*
-namespace Engine {
+namespace Plaza {
 	Mesh* Mesh::Cube() {
 		std::vector<unsigned int> indices = {
 	0, 1, 2,  // Front face

@@ -1,8 +1,8 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Component.h"
 
-namespace Engine {
-	GameObject* Component::GetGameObject() {
+namespace Plaza {
+	Entity* Component::GetGameObject() {
 		return &Application->activeScene->entities.at(this->uuid);
 	}
 }

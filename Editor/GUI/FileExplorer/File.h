@@ -3,7 +3,7 @@
 #include "Editor/GUI/guiMain.h"
 
 
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		class File {
 		public:

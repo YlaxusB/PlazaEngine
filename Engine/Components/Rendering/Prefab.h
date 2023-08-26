@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine/Components/Rendering/Mesh.h"
-namespace Engine {
+namespace Plaza {
 	class Prefab : public Component {
 	public:
 		class Child;

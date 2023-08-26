@@ -7,19 +7,32 @@
 #include <iostream>
 
 #include "Engine/Core/Physics.h"
-namespace Engine::Editor {
+namespace Plaza::Editor {
 
 
 	static class ColliderInspector {
 	public:
 		ColliderInspector(Collider* collider) {
-			if (ImGui::TreeNodeEx("Collider", ImGuiTreeNodeFlags_DefaultOpen)) {
+			ImGui::SetNextItemOpen(true);
+			ImVec2 oldCursorPos = ImGui::GetCursorPos();
+			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 150.0f, ImGui::GetCursorPosY()));
+			if (ImGui::Button("Remove Component")) {
+				collider->GetGameObject()->RemoveComponent<Collider>();
+			}
+			ImGui::SameLine();
+			ImGui::SetCursorPos(oldCursorPos);
+			bool header = ImGui::CollapsingHeader("Collider", ImGuiTreeNodeFlags_DefaultOpen);
+			if (header) {
 				ImGui::PushID("ColliderInspector");
 
 				// Button for opening collider popup
 				if (ImGui::Button("Add Shape"))
 				{
 					ImGui::OpenPopup("AddShapeContexMenu"); // Open the popup when the button is clicked
+				}
+
+				for (physx::PxShape* shape : collider->mShapes) {
+					ImGui::Text("Shape");
 				}
 
 				// Check if the context menu is open
@@ -52,7 +65,10 @@ namespace Engine::Editor {
 						physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
 						collider->AddShape(shape);
 					}
-
+					if (ImGui::MenuItem("Mesh"))
+					{
+						collider->AddMeshShape(new Mesh(*Application->activeScene->meshRendererComponents.at(collider->uuid).mesh));
+					}
 
 					ImGui::EndPopup();
 				}
@@ -64,9 +80,11 @@ namespace Engine::Editor {
 				//}
 
 				ImGui::PopID();
-				ImGui::TreePop();
 			}
-
+			// Button outside the header
+			if (ImGui::Button("Button Outside Header")) {
+				std::cout << "Button outside header clicked" << std::endl;
+			}
 		}
 	};
 }

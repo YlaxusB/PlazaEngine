@@ -3,8 +3,8 @@
 #include "Engine/Core/Engine.h"
 #include "Engine/Application/Serializer/ModelSerializer.h"
 #include "Engine/Core/ModelLoader/Model.h"
-#include "Engine/Components/Core/GameObject.h"
-namespace Engine {
+#include "Engine/Components/Core/Entity.h"
+namespace Plaza {
 	Material DefaultMaterial() {
 		Material material;
 		material.diffuse.rgba = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
@@ -13,46 +13,49 @@ namespace Engine {
 		return material;
 	}
 
-	GameObject* ModelLoader::LoadImportedModelToScene(uint64_t modelUuid, string filePath) {
+	Entity* ModelLoader::LoadImportedModelToScene(uint64_t modelUuid, string filePath) {
 		Model* model = nullptr;
 		auto it = EngineClass::models.find(modelUuid);
 		if (it != EngineClass::models.end()) {
 			model = it->second.get();
-			//GameObject* mainObject = model->gameObjects.front().get();
-			unordered_map<uint64_t, GameObject*> modelInstanceGameObjects = unordered_map<uint64_t, GameObject*>();
+			//Entity* mainObject = model->gameObjects.front().get();
+			unordered_map<uint64_t, Entity*> modelInstanceGameObjects = unordered_map<uint64_t, Entity*>();
 			modelInstanceGameObjects.clear();
 			unsigned int index = 0;
-			GameObject* mainModelObject = nullptr;
+			Entity* mainModelObject = nullptr;
 			for (const auto& gameObjectSharedPointer : model->gameObjects) {
-				GameObject* gameObject = gameObjectSharedPointer.get();
+				Entity* entity = gameObjectSharedPointer.get();
 				uint64_t parentUuid = 0;
-				if (modelInstanceGameObjects.contains(gameObject->parentUuid)) {
-					parentUuid = modelInstanceGameObjects.at(gameObject->parentUuid)->uuid;
+				if (modelInstanceGameObjects.contains(entity->parentUuid)) {
+					parentUuid = modelInstanceGameObjects.at(entity->parentUuid)->uuid;
 				}
 				if (parentUuid == 0) {
 					parentUuid = Application->activeScene->mainSceneEntity->uuid;
 				}
 				//Application->activeScene->entities.at(newGameObject->parentUuid).childrenUuid.push_back(newGameObject->uuid);
 
-				GameObject* newGameObject = new GameObject(gameObject->name, &Application->activeScene->entities.at(parentUuid));
-				Transform* transform = model->transforms.at(gameObject->uuid).get();//gameObject->GetComponent<Transform>();
+				Entity* newGameObject = new Entity(entity->name, &Application->activeScene->entities.at(parentUuid));
+				Transform* transform = model->transforms.at(entity->uuid).get();//entity->GetComponent<Transform>();
 				newGameObject->GetComponent<Transform>()->relativePosition = transform->relativePosition;
 				newGameObject->GetComponent<Transform>()->rotation = transform->rotation;
 				newGameObject->GetComponent<Transform>()->scale = transform->scale;
 
-				const auto& it = model->meshRenderers.find(gameObject->uuid);
+				const auto& it = model->meshRenderers.find(entity->uuid);
 				if (it != model->meshRenderers.end()) {
-					MeshRenderer* meshRenderer = model->meshRenderers.at(gameObject->uuid).get();
+					MeshRenderer* meshRenderer = model->meshRenderers.at(entity->uuid).get();
 					MeshRenderer* newMeshRenderer = new MeshRenderer();
 					newMeshRenderer->instanced = true;
 					newMeshRenderer->uuid = newGameObject->uuid;
 					newMeshRenderer->mesh = shared_ptr<Mesh>(model->meshes.at(meshRenderer->aiMeshName));
 					newGameObject->AddComponent<MeshRenderer>(newMeshRenderer, true);
 					//newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
+					Collider* collider = new Collider(newGameObject->uuid);
+					collider->AddMeshShape(new Mesh(*newMeshRenderer->mesh));
+					newGameObject->AddComponent<Collider>(collider);
 				}
-				modelInstanceGameObjects.emplace(gameObject->uuid, newGameObject);
+				modelInstanceGameObjects.emplace(entity->uuid, newGameObject);
 				/*
-				for (shared_ptr component : gameObject->components) {
+				for (shared_ptr component : entity->components) {
 					newGameObject->AddComponent<Component>(component.get());
 				}
 				*/
@@ -73,7 +76,7 @@ namespace Engine {
 		}
 	}
 
-	GameObject* ModelLoader::LoadImportedModelToMemory(string filePath) {
+	Entity* ModelLoader::LoadImportedModelToMemory(string filePath) {
 		unique_ptr<Model> model = make_unique<Model>(*ModelSerializer::DeSerializeModel(filePath));
 		model.get()->meshRenderers;
 		uint64_t uuid = model->uuid;
@@ -84,7 +87,7 @@ namespace Engine {
 		return nullptr;
 	}
 
-	GameObject* ModelLoader::LoadModelToGame(string const& path, std::string modelName) {
+	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName) {
 		vector<Texture>* textures_loaded = new vector<Texture>;
 		vector<Mesh>* meshes = new vector<Mesh>;
 		string directory;
@@ -101,7 +104,7 @@ namespace Engine {
 		directory = path.substr(0, path.find_last_of('/'));
 
 		// process ASSIMP's root node recursively
-		GameObject* modelMainObject = new GameObject(modelName, Application->activeScene->gameObjects.front().get());
+		Entity* modelMainObject = new Entity(modelName, Application->activeScene->gameObjects.front().get());
 		//modelMainObject->AddComponent(new Transform());
 		unsigned int index = 0;
 		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject, index);
@@ -132,7 +135,7 @@ namespace Engine {
 		}
 	}
 
-	GameObject* ModelLoader::LoadModelToGame(string const& path, std::string modelName, aiScene const* scene) {
+	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName, aiScene const* scene) {
 		vector<Texture>* textures_loaded = new vector<Texture>;
 		vector<Mesh>* meshes = new vector<Mesh>;
 		string directory;
@@ -140,7 +143,7 @@ namespace Engine {
 		directory = path.substr(0, path.find_last_of('/'));
 
 		// process ASSIMP's root node recursively
-		GameObject* modelMainObject = new GameObject(modelName, Application->activeScene->mainSceneEntity);
+		Entity* modelMainObject = new Entity(modelName, Application->activeScene->mainSceneEntity);
 		//modelMainObject->AddComponent(new Transform());
 		unsigned int index = 0;
 		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject, index);
@@ -153,7 +156,7 @@ namespace Engine {
 	}
 
 	// processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
-	void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, string* directory, GameObject* modelMainObject, unsigned int& index)
+	void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, string* directory, Entity* modelMainObject, unsigned int& index)
 	{
 		for (unsigned int i = 0; i < node->mNumMeshes; i++)
 		{
@@ -168,16 +171,16 @@ namespace Engine {
 			position.x = transformationMatrix.a4 * modelScale;
 			position.y = transformationMatrix.b4 * modelScale;
 			position.z = transformationMatrix.c4 * modelScale;
-			// Finds the parent Object, if its not found or there inst any, then it just assigns to the model main gameobject
+			// Finds the parent Object, if its not found or there inst any, then it just assigns to the model main entity
 			std::string parentName = node->mParent->mName.C_Str();
-			GameObject* parentObject = nullptr;
+			Entity* parentObject = nullptr;
 			if (parentName != "RootNode" || parentObject == nullptr) {
 				parentObject = modelMainObject;
 			}
 			else {
 				parentObject = Application->activeScene->gameObjects.front().get();
 			}
-			GameObject* childObject = new GameObject(childName, parentObject);
+			Entity* childObject = new Entity(childName, parentObject);
 			MeshRenderer* childMeshRenderer = new MeshRenderer(nodeMesh);
 			childMeshRenderer->instanced = true;
 			childMeshRenderer->aiMeshName = string(mesh->mName.C_Str()) + to_string(index);

@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "FrameBuffer.h"
-namespace Engine {
+namespace Plaza {
 	void FrameBuffer::Init() {
 		glGenFramebuffers(1, &this->buffer);
 		glBindFramebuffer(this->target, this->buffer);
@@ -11,7 +11,7 @@ namespace Engine {
 		glBindRenderbuffer(GL_RENDERBUFFER, this->renderBufferObject);
 		glRenderbufferStorage(GL_RENDERBUFFER, internalFormat, width, height);
 		glViewport(0, 0, width, height);
-		glFramebufferRenderbuffer(this->target, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, this->renderBufferObject);
+		glFramebufferRenderbuffer(this->target, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, this->renderBufferObject);
 	}
 
 	/*

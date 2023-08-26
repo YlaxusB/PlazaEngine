@@ -6,7 +6,7 @@
 #include "Editor/GUI/Style/EditorStyle.h"
 #include "Engine/Application/Serializer/ProjectSerializer.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		void ProjectManagerGui::ProjectManagerContent::UpdateContent(ProjectManagerGui& projectManagerGui) {
 			projectManagerGui.NewProjectButton();

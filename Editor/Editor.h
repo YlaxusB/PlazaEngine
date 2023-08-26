@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		class Editor {
 		public:

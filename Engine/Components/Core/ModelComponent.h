@@ -1,5 +1,5 @@
 #pragma once
-namespace Engine {
+namespace Plaza {
 	class ModelComponent : public Component {
 		shared_ptr<Model> model;
 	};

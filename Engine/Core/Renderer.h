@@ -1,11 +1,17 @@
 #pragma once
 #include "Engine/Shaders/Shader.h"
-#include "Engine/Components/Core/GameObject.h"
-namespace Engine {
+#include "Engine/Components/Core/Entity.h"
+
+namespace Plaza {
 	class Renderer {
 	public:
+		static FrameBuffer* hdrFramebuffer;
 		/// <summary>
-		/// Loops through the GameObjects list, if GameObject haves a MeshRenderer then it draws it with its transformation
+		/// Init the HDR framebuffer and others
+		/// </summary>
+		static void Init();
+		/// <summary>
+		/// Loops through the GameObjects list, if Entity haves a MeshRenderer then it draws it with its transformation
 		/// </summary>
 		/// <param name="shader"></param>
 		static void Render(Shader& shader);
@@ -17,7 +23,7 @@ namespace Engine {
 		static void RenderInstancesShadowMap(Shader& shader);
 
 		/// <summary>
-		/// Renders the Outline of the Selected GameObject and its children
+		/// Renders the Outline of the Selected Entity and its children
 		/// </summary>
 		/// <param name="outlineShader"></param>
 		static void RenderOutline(Shader outlineShader);

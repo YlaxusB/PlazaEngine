@@ -10,7 +10,7 @@
 
 const glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
 
-namespace Engine {
+namespace Plaza {
 
 
 	void ShadowsClass::Init() {

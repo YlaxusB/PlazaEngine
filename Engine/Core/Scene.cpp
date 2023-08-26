@@ -1,10 +1,10 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Scene.h"
-namespace Engine {
+namespace Plaza {
 	Scene* Scene::Copy(Scene* newScene, Scene* copyScene) {
-		newScene->mainSceneEntity = new GameObject(*copyScene->mainSceneEntity);
+		newScene->mainSceneEntity = new Entity(*copyScene->mainSceneEntity);
 		for (auto& gameObj : copyScene->entities) {
-			GameObject* newObj = new GameObject(gameObj.second);
+			Entity* newObj = new Entity(gameObj.second);
 			const auto& it = copyScene->transformComponents.find(gameObj.second.uuid);
 			if (it != copyScene->transformComponents.end()) {
 				Transform* transform = new Transform(*gameObj.second.GetComponent<Transform>());
@@ -20,7 +20,7 @@ namespace Engine {
 			if (gameObj.second.GetComponent<MeshRenderer>()) {
 				MeshRenderer* newMeshRenderer = new MeshRenderer(*(gameObj.second.GetComponent<MeshRenderer>()->mesh));
 				newMeshRenderer->uuid = newObj->uuid;
-				newObj->RemoveComponent<MeshRenderer>();
+				//newObj->RemoveComponent<MeshRenderer>();
 				newObj->AddComponent<MeshRenderer>(newMeshRenderer);
 				//newObj->ReplaceComponent<MeshRenderer>(newObj->GetComponent<MeshRenderer>(), newMeshRenderer);
 				//newScene->meshRenderers.push_back(newMeshRenderer);
@@ -32,7 +32,7 @@ namespace Engine {
 			//newScene->gameObjectsMap.emplace(newObj->uuid, newObj.get());
 			uint64_t uuid = newObj->uuid;
 			newScene->entities.emplace(uuid, std::move(*newObj));
-			//newScene->gameObjects.push_back(std::make_unique<GameObject>(newObj.get()));
+			//newScene->gameObjects.push_back(std::make_unique<Entity>(newObj.get()));
 			//delete(newObj);
 		}
 		newScene->meshes = map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
@@ -70,10 +70,10 @@ namespace Engine {
 	}
 
 	Scene::Scene() {
-		componentMaps.emplace("class Engine::Transform", transformComponents);
-		componentMaps.emplace("class Engine::MeshRenderer", meshRendererComponents);
-		componentMaps.emplace("class Engine::RigidBody", rigidBodyComponents);
-		componentMaps.emplace("class Engine::Collider", colliderComponents);
+		componentMaps.emplace("class Plaza::Transform", transformComponents);
+		componentMaps.emplace("class Plaza::MeshRenderer", meshRendererComponents);
+		componentMaps.emplace("class Plaza::RigidBody", rigidBodyComponents);
+		componentMaps.emplace("class Plaza::Collider", colliderComponents);
 
 	}
 

@@ -11,7 +11,7 @@ YAML::Emitter& operator <<(YAML::Emitter& out, const Vertex& v) {
 	return out;
 }
 
-namespace Engine {
+namespace Plaza {
 	void ComponentSerializer::MeshSerializer::Serialize(YAML::Emitter& out, Mesh& mesh)
 	{
 		out << YAML::Value << "MeshComponent" << YAML::BeginMap;

@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/Vendor/physx/PxPhysicsAPI.h"
 #include "Engine/Components/Component.h"
-namespace Engine {
+namespace Plaza {
 	class Collider : public Component {
 	public:
 		vector<physx::PxShape*> mShapes;
@@ -20,6 +20,8 @@ namespace Engine {
 
 
 		void AddShape(physx::PxShape* shape);
+		void AddConvexMeshShape(Mesh* mesh);
+		void AddMeshShape(Mesh* mesh);
 		void UpdateShapeScale(glm::vec3 scale);
 		void UpdateAllShapesScale();
 		template <typename EnumType>

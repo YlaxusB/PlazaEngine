@@ -4,7 +4,7 @@
 #include <chrono>
 using namespace std;
 using namespace std::chrono;
-namespace Engine {
+namespace Plaza {
 	class Time
 	{
 	public:
@@ -51,11 +51,11 @@ namespace Engine {
 }
 
 
-inline int Engine::Time::drawCalls = 0;
-inline int Engine::Time::addInstanceCalls = 0;
-inline int Engine::Time::frameCount = 0;
-inline float Engine::Time::previousTime = 0;
-inline float Engine::Time::deltaTime = 0;
-inline float Engine::Time::lastFrame = 0;
-inline float Engine::Time::fps = 0;
-inline float Engine::Time::msPerFrame = 0;
+inline int Plaza::Time::drawCalls = 0;
+inline int Plaza::Time::addInstanceCalls = 0;
+inline int Plaza::Time::frameCount = 0;
+inline float Plaza::Time::previousTime = 0;
+inline float Plaza::Time::deltaTime = 0;
+inline float Plaza::Time::lastFrame = 0;
+inline float Plaza::Time::fps = 0;
+inline float Plaza::Time::msPerFrame = 0;

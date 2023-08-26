@@ -4,19 +4,20 @@
 
 #include "Engine/Application/Serializer/Components/MeshSerializer.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
+#include "Engine/Core/Physics.h"
 
-using namespace Engine;
-namespace Engine {
-	void DeleteChildrene(GameObject* gameObject) {
+using namespace Plaza;
+namespace Plaza {
+	void DeleteChildrene(Entity* entity) {
 		uint64_t uuid = Editor::selectedGameObject->uuid;
-		if (gameObject != reinterpret_cast<GameObject*>(0xdddddddddddddddd)) {
-			for (uint64_t child : gameObject->childrenUuid) {
+		if (entity != reinterpret_cast<Entity*>(0xdddddddddddddddd)) {
+			for (uint64_t child : entity->childrenUuid) {
 				DeleteChildrene(&Application->activeScene->entities[child]);
 			}
 		}
-		//delete(gameObject);
-		auto it = std::find_if(Application->activeScene->gameObjects.begin(), Application->activeScene->gameObjects.end(), [uuid](const std::unique_ptr<GameObject>& gameObject) {
-			return gameObject->uuid == uuid;
+		//delete(entity);
+		auto it = std::find_if(Application->activeScene->gameObjects.begin(), Application->activeScene->gameObjects.end(), [uuid](const std::unique_ptr<Entity>& entity) {
+			return entity->uuid == uuid;
 			});
 
 		if (it != Application->activeScene->gameObjects.end()) {
@@ -37,7 +38,7 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 		if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
 			int size = Application->activeScene->gameObjects.size();
 			for (int i = size; i < size + 10; i++) {
-				GameObject* d = new GameObject(std::to_string(Application->activeScene->entities.size()), Application->activeScene->mainSceneEntity);
+				Entity* d = new Entity(std::to_string(Application->activeScene->entities.size()), Application->activeScene->mainSceneEntity);
 				//d->AddComponent(new Transform());
 
 
@@ -52,7 +53,7 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 				Transform& test = *d->GetComponent<Transform>();
 				d->GetComponent<Transform>()->relativePosition = glm::vec3(distribution(gen), distribution(gen), distribution(gen)) + Application->activeCamera->Position;
 				d->GetComponent<Transform>()->UpdateChildrenTransform();
-				Mesh cubeMesh = Engine::Mesh();//Engine::Mesh::Cube();
+				Mesh cubeMesh = Plaza::Mesh();//Plaza::Mesh::Cube();
 				cubeMesh.material.diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
 				cubeMesh.material.specular = Texture();
 				cubeMesh.material.specular.rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
@@ -72,21 +73,21 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 
 		if (Application->activeCamera->isEditorCamera) {
 			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-				Application->activeCamera->ProcessKeyboard(Engine::Camera::FORWARD, Time::deltaTime);
+				Application->activeCamera->ProcessKeyboard(Plaza::Camera::FORWARD, Time::deltaTime);
 			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-				Application->activeCamera->ProcessKeyboard(Engine::Camera::BACKWARD, Time::deltaTime);
+				Application->activeCamera->ProcessKeyboard(Plaza::Camera::BACKWARD, Time::deltaTime);
 			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-				Application->activeCamera->ProcessKeyboard(Engine::Camera::LEFT, Time::deltaTime);
+				Application->activeCamera->ProcessKeyboard(Plaza::Camera::LEFT, Time::deltaTime);
 			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-				Application->activeCamera->ProcessKeyboard(Engine::Camera::RIGHT, Time::deltaTime);
+				Application->activeCamera->ProcessKeyboard(Plaza::Camera::RIGHT, Time::deltaTime);
 			if (glfwGetKey(window, GLFW_KEY_C) == GLFW_PRESS)
-				Application->activeCamera->ProcessKeyboard(Engine::Camera::UP, Time::deltaTime);
+				Application->activeCamera->ProcessKeyboard(Plaza::Camera::UP, Time::deltaTime);
 			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-				Application->activeCamera->ProcessKeyboard(Engine::Camera::DOWN, Time::deltaTime);
+				Application->activeCamera->ProcessKeyboard(Plaza::Camera::DOWN, Time::deltaTime);
 			if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-				Application->activeCamera->ProcessKeyboard(Engine::Camera::UP, Time::deltaTime);
+				Application->activeCamera->ProcessKeyboard(Plaza::Camera::UP, Time::deltaTime);
 			if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-				Application->activeCamera->ProcessKeyboard(Engine::Camera::DOWN, Time::deltaTime);
+				Application->activeCamera->ProcessKeyboard(Plaza::Camera::DOWN, Time::deltaTime);
 		}
 		else if (Application->activeScene->rigidBodyComponents.find(Application->activeCamera->uuid) != Application->activeScene->rigidBodyComponents.end()){
 			Transform* transform = &Application->activeScene->transformComponents.at(Application->activeCamera->uuid);
@@ -171,19 +172,19 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 			Collider* collider = Editor::selectedGameObject->GetComponent<Collider>();
 			// Apply scaling to the existing pxTransform
 			if (rigidBody && rigidBody->mRigidActor)
-				rigidBody->mRigidActor->setGlobalPose(*pxTransform);
+				rigidBody->mRigidActor->setGlobalPose(*Physics::GetPxTransform(transform));
 			else if (collider && !collider->mDynamic && collider->mStaticPxRigidBody)
-				collider->mStaticPxRigidBody->setGlobalPose(*pxTransform);
+				collider->mStaticPxRigidBody->setGlobalPose(*Physics::GetPxTransform(transform));
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_DELETE) == GLFW_PRESS && Editor::selectedGameObject) {
-			Editor::selectedGameObject->~GameObject();
+			Editor::selectedGameObject->~Entity();
 			//Editor::selectedGameObject->Delete();
 			/*
 			uint64_t uuid = Editor::selectedGameObject->uuid;
 			DeleteChildrene(Editor::selectedGameObject);
-			auto it = std::find_if(Application->activeScene->gameObjects.begin(), Application->activeScene->gameObjects.end(), [uuid](const std::unique_ptr<GameObject>& gameObject) {
-				return gameObject->uuid == uuid;
+			auto it = std::find_if(Application->activeScene->gameObjects.begin(), Application->activeScene->gameObjects.end(), [uuid](const std::unique_ptr<Entity>& entity) {
+				return entity->uuid == uuid;
 				});
 
 			if (it != Application->activeScene->gameObjects.end()) {

@@ -4,13 +4,13 @@
 
 //#include "Engine/Application/Callbacks/Callbacks.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
-//using namespace Engine;
+//using namespace Plaza;
 //using Application->;
 
-//using namespace Engine;
+//using namespace Plaza;
 //using Application->;
-using Engine::ApplicationClass;
-namespace Engine {
+using Plaza::ApplicationClass;
+namespace Plaza {
 	GLFWwindow* WindowClass::InitGLFWWindow() {
 		glfwInit();
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);

@@ -4,8 +4,8 @@
 #include "Editor/GUI/guiMain.h"
 
 
-using namespace Engine::Editor;
-using namespace Engine;
+using namespace Plaza::Editor;
+using namespace Plaza;
 
 void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 	if (Application->hoveredMenu == "Scene") {
@@ -35,25 +35,25 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 		}
 
 
-		// Select nothing if didnt clicked on a GameObject
+		// Select nothing if didnt clicked on a Entity
 		if (button == GLFW_MOUSE_BUTTON_LEFT && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && clickId <= 0) {
-			Engine::Editor::Gui::changeSelectedGameObject(nullptr);
+			Plaza::Editor::Gui::changeSelectedGameObject(nullptr);
 		}
 
 
-		// Select the GameObject
+		// Select the Entity
 		// Mouse is over imguizmo but imguizmo is not drawing || Mouse inst over imguizmo and its being drawn
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && ((ImGuizmo::IsOver() && !ImGuizmoHelper::IsDrawing) || !(ImGuizmo::IsOver() && ImGuizmoHelper::IsDrawing)) && clickId != 0 && (!ImGuizmo::IsOver() && !ImGuizmoHelper::IsDrawing)) {
 			//
 			//int targetName = Application->pickingTexture->readPixel(xposGame, yposGame);
 
 
-			auto it = std::find_if(Application->activeScene->gameObjects.begin(), Application->activeScene->gameObjects.end(), [&](const std::unique_ptr<GameObject>& obj) {
+			auto it = std::find_if(Application->activeScene->gameObjects.begin(), Application->activeScene->gameObjects.end(), [&](const std::unique_ptr<Entity>& obj) {
 				return obj->uuid == clickId;
 				});
 			if (it != Application->activeScene->gameObjects.end()) {
 				// Object with the specified name found
-				Engine::Editor::Gui::changeSelectedGameObject(it->get());
+				Plaza::Editor::Gui::changeSelectedGameObject(it->get());
 			}
 		}
 #pragma endregion Picking

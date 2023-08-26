@@ -7,12 +7,12 @@
 #include "Engine/Vendor/glad/glad.h"
 
 
-namespace Engine {
-	class GameObject;
+namespace Plaza {
+	class Entity;
 	class Component {
 	public:
 		uint64_t uuid;
 		virtual ~Component() = default;
-		GameObject* GetGameObject();
+		Entity* GetGameObject();
 	};
 }

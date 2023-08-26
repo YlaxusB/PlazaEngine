@@ -1,5 +1,5 @@
 #pragma once
-namespace Engine {
+namespace Plaza {
 	class Physics {
 	public:
 		static physx::PxDefaultAllocator m_defaultAllocatorCallback;
@@ -25,5 +25,6 @@ namespace Engine {
 		static void Update();
 
 		static physx::PxTransform* GetPxTransform(Transform& transform);
+		static physx::PxTransform* ConvertMat4ToPxTransform(const glm::mat4& mat);
 	};
 }

@@ -5,7 +5,7 @@
 #include "Editor/DefaultAssets/DefaultAssets.h"
 
 #include "Engine/Core/Skybox.h"
-using namespace Engine;
+using namespace Plaza;
 
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (Application->focusedMenu == "Scene") {
@@ -17,7 +17,7 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 			Application->shader = new Shader((Application->enginePath + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
 
 		if (key == GLFW_KEY_U && action == GLFW_PRESS)
-			Application->activeCamera->Position = Engine::Editor::selectedGameObject->GetComponent<Transform>()->worldPosition;
+			Application->activeCamera->Position = Plaza::Editor::selectedGameObject->GetComponent<Transform>()->GetWorldPosition();
 
 
 		if (glfwGetKey(window, GLFW_KEY_INSERT) == GLFW_PRESS) {
@@ -42,7 +42,7 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
 			int size = Application->activeScene->gameObjects.size();
 			for (int i = size; i < size + 1; i++) {
-				GameObject* d = new GameObject(std::to_string(Application->activeScene->entities.size()), Application->activeScene->mainSceneEntity);
+				Entity* d = new Entity(std::to_string(Application->activeScene->entities.size()), Application->activeScene->mainSceneEntity);
 				//d->AddComponent(new Transform());
 
 
@@ -57,7 +57,7 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 				Transform& test = *d->GetComponent<Transform>();
 				d->GetComponent<Transform>()->relativePosition = glm::vec3(distribution(gen), distribution(gen), distribution(gen)) + Application->activeCamera->Position;
 				d->GetComponent<Transform>()->UpdateChildrenTransform();
-				Mesh cubeMesh = Engine::Mesh();//Engine::Mesh::Cube();
+				Mesh cubeMesh = Plaza::Mesh();//Plaza::Mesh::Cube();
 				cubeMesh.material.diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
 				cubeMesh.material.specular = Texture();
 				cubeMesh.material.specular.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
@@ -82,18 +82,7 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
-			Application->shader = new Shader((Application->enginePath + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
-			Application->pickingShader = new Shader((Application->enginePath + "\\Shaders\\picking\\pickingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\picking\\pickingFragment.glsl").c_str());
-			Application->outlineShader = new Shader((Application->enginePath + "\\Shaders\\outlining\\outliningVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\outlining\\outliningFragment.glsl").c_str());
-			Application->outlineBlurShader = new Shader((Application->enginePath + "\\Shaders\\blur\\blurVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\blur\\blurFragment.glsl").c_str());
-			Application->combiningShader = new Shader((Application->enginePath + "\\Shaders\\combining\\combiningVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\combining\\combiningFragment.glsl").c_str());
-			Application->edgeDetectionShader = new Shader((Application->enginePath + "\\Shaders\\edgeDetection\\edgeDetectionVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\edgeDetection\\edgeDetectionFragment.glsl").c_str());
-			Application->singleColorShader = new Shader((Application->enginePath + "\\Shaders\\singleColor\\singleColorVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\singleColor\\singleColorFragment.glsl").c_str());
-			Application->shadowsDepthShader = new Shader((Application->enginePath + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
-			Application->debugDepthShader = new Shader((Application->enginePath + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
-			Application->hdrShader = new Shader((Application->enginePath + "\\Shaders\\hdr\\hdrVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\hdr\\hdrFragment.glsl").c_str());
-			Skybox::skyboxShader = new Shader((Application->enginePath + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
-			Application->distortionCorrectionShader = new Shader((Application->enginePath + "\\Shaders\\distortionCorrection\\distortionCorrectionVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\distortionCorrection\\distortionCorrectionFragment.glsl").c_str());
+			Application->InitShaders();
 		}
 	}
 }

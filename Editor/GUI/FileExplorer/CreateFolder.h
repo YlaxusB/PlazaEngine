@@ -2,8 +2,8 @@
 #include <string>
 #include <filesystem>
 #include "Engine/Utils/fileUtils.h"
-using namespace Engine;
-namespace Engine::Editor {
+using namespace Plaza;
+namespace Plaza::Editor {
 
 	string CreateFolder(std::string path, std::string name) {
 		string newPath;

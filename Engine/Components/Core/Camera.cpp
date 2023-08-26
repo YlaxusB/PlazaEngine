@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Camera.h"
-namespace Engine {
+namespace Plaza {
 	Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
 	{
 		Position = position;
@@ -12,7 +12,7 @@ namespace Engine {
 
 	void Camera::Update() {
 		if (!this->isEditorCamera)
-			Position = Application->activeScene->transformComponents.at(this->uuid).worldPosition;
+			Position = Application->activeScene->transformComponents.at(this->uuid).GetWorldPosition();
 		updateCameraVectors();
 	}
 

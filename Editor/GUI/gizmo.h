@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine/Application/EditorCamera.h"
-#include "Engine/Components/Core/GameObject.h"
+#include "Engine/Components/Core/Entity.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -20,12 +20,12 @@
 #include "Engine/Application/ApplicationSizes.h"
 #include "Editor/GUI/TransformOverlay.h"
 
-using namespace Engine;
-using namespace Engine::Editor;
-namespace Engine::Editor {
+using namespace Plaza;
+using namespace Plaza::Editor;
+namespace Plaza::Editor {
 	class Gizmo {
 	public:
-		static void Draw(GameObject* gameObject, Camera camera);
+		static void Draw(Entity* entity, Camera camera);
 
 	private:
 

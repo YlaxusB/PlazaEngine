@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine/Core/ModelLoader/Model.h"
-namespace Engine {
+namespace Plaza {
 	static class EngineClass {
 	public:
 		static std::unordered_map<uint64_t, std::unique_ptr<Model>> models;

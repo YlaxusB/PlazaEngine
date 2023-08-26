@@ -4,15 +4,21 @@
 #include "Engine/Editor/Editor.h"
 #include "Engine/Editor/Outline/Outline.h"
 #include "Engine/Core/Skybox.h"
+#include "Engine/Core/FrameBuffer.h"
 void renderFullscreenQuad() {
 	// skybox cube
-	glBindVertexArray(Engine::Application->blurVAO);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(Plaza::Application->blurVAO);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 	//glBindVertexArray(0);
 
 }
 int i = 0;
-namespace Engine {
+namespace Plaza {
+	FrameBuffer* Renderer::hdrFramebuffer = nullptr;
+	void Renderer::Init() {
+		//hdrFramebuffer.
+		InitQuad();
+	}
 	// Render all GameObjects
 	void Renderer::Render(Shader& shader) {
 		static constexpr tracy::SourceLocationData __tracy_source_location18{ "Render", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Renderer.cpp", (uint32_t)18, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location18, true);
@@ -133,7 +139,7 @@ namespace Engine {
 		Application->hdrShader->setFloat("exposure", 0.30f);
 		Application->hdrShader->setInt("hdrBuffer", 0);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Application->textureColorbuffer);
+		glBindTexture(GL_TEXTURE_2D, Application->distortionCorrectionFrameBuffer->colorBuffer);
 		Renderer::RenderQuadOnScreen();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		//renderFullscreenQuad();
@@ -161,9 +167,7 @@ namespace Engine {
 		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	}
 	void Renderer::RenderQuadOnScreen() {
-		glBindVertexArray(quadVAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		renderFullscreenQuad();
 	}
 
 }

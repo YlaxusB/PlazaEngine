@@ -5,10 +5,10 @@
 
 #include "Engine/Application/EditorCamera.h"
 bool visualizingNormals = false;
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	void callback(float) {
 		Application->editorCamera->Update();
-		//Application->editorCamera = new Engine::Camera(*Application->editorCamera);
+		//Application->editorCamera = new Plaza::Camera(*Application->editorCamera);
 		//Application->activeCamera = Application->editorCamera;
 	}
 	void callbacke(glm::vec3) {

@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/Components/Core/GameObject.h"
+#include "Engine/Components/Core/Entity.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
 #include <vector>
 #include <variant>
@@ -9,7 +9,7 @@
 
 #include "Engine/Components/Physics/Collider.h"
 using namespace std;
-namespace Engine {
+namespace Plaza {
 	struct Uint64Hash {
 		size_t operator()(uint64_t key) const {
 			uint64_t v = key * 3935559000370003845 + 2691343689449507681;
@@ -28,23 +28,23 @@ namespace Engine {
 		}
 	};
 
-	class GameObjectList : public std::vector<std::unique_ptr<GameObject>> {
+	class GameObjectList : public std::vector<std::unique_ptr<Entity>> {
 	public:
-		void push_back(std::unique_ptr<GameObject> obj);
-		GameObject* find(std::string findName);
-		GameObject* find(uint64_t findUuid);
+		void push_back(std::unique_ptr<Entity> obj);
+		Entity* find(std::string findName);
+		Entity* find(uint64_t findUuid);
 		~GameObjectList() = default;
 	};
 	class Scene {
 	public:
 		GameObjectList gameObjects;
-		std::unordered_map<std::variant<uint64_t, std::string>, GameObject*> gameObjectsMap;
+		std::unordered_map<std::variant<uint64_t, std::string>, Entity*> gameObjectsMap;
 
-		GameObject* mainSceneEntity;
+		Entity* mainSceneEntity;
 
 		std::unordered_map<std::string, std::any> componentMaps;
 
-		std::unordered_map<uint64_t, GameObject> entities;
+		std::unordered_map<uint64_t, Entity> entities;
 		std::unordered_map<uint64_t, Transform> transformComponents;
 		std::unordered_map<uint64_t, Camera> cameraComponents;
 		std::unordered_map<uint64_t, MeshRenderer> meshRendererComponents;

@@ -1,8 +1,8 @@
 #pragma once
 #include "Engine/Components/Core/CoreComponents.h"
-namespace Engine {
+namespace Plaza {
 	namespace Editor
 	{
-		extern GameObject* selectedGameObject;
+		extern Entity* selectedGameObject;
 	}
 }

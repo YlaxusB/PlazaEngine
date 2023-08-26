@@ -3,9 +3,9 @@
 
 #include "Editor/DefaultAssets/DefaultAssets.h"
 #include "Engine/Core/Physics.h"
-namespace Engine::Editor {
-	GameObject* NewEntity(string name, GameObject* parent, shared_ptr<Mesh> mesh, bool instanced = true, bool addToScene = true) {
-		GameObject* obj = new GameObject(name, parent, addToScene);
+namespace Plaza::Editor {
+	Entity* NewEntity(string name, Entity* parent, shared_ptr<Mesh> mesh, bool instanced = true, bool addToScene = true) {
+		Entity* obj = new Entity(name, parent, addToScene);
 		obj->GetComponent<Transform>()->UpdateChildrenTransform();
 		MeshRenderer* meshRenderer = new MeshRenderer();
 		meshRenderer->instanced = true;
@@ -14,7 +14,7 @@ namespace Engine::Editor {
 		Editor::selectedGameObject = obj;
 		return obj;
 	}
-	void Popup::NewEntityPopup::Init(GameObject* obj, GameObject* parent) {
+	void Popup::NewEntityPopup::Init(Entity* obj, Entity* parent) {
 		if (!parent) {
 			parent = Application->activeScene->mainSceneEntity;
 		}
@@ -22,14 +22,14 @@ namespace Engine::Editor {
 		{
 			if (ImGui::MenuItem("Empty Entity"))
 			{
-				obj = new GameObject("New Entity", parent, true);
+				obj = new Entity("New Entity", parent, true);
 				obj->GetComponent<Transform>()->UpdateChildrenTransform();
 				Editor::selectedGameObject = obj;
 			}
 
 			if (ImGui::MenuItem("Cube"))
 			{
-				GameObject* obj = NewEntity("Cube", parent, DefaultModels::Cube(), true, true);
+				Entity* obj = NewEntity("Cube", parent, DefaultModels::Cube(), true, true);
 				Transform* transform = obj->GetComponent<Transform>();
 				Collider* collider = new Collider(obj->uuid);
 				physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
@@ -39,7 +39,7 @@ namespace Engine::Editor {
 
 			if (ImGui::MenuItem("Sphere"))
 			{
-				GameObject* obj = NewEntity("Sphere", parent, DefaultModels::Sphere(), true, true);
+				Entity* obj = NewEntity("Sphere", parent, DefaultModels::Sphere(), true, true);
 				Transform* transform = obj->GetComponent<Transform>();
 				Collider* collider = new Collider(obj->uuid);
 				physx::PxSphereGeometry geometry(1.0f);
@@ -49,7 +49,7 @@ namespace Engine::Editor {
 
 			if (ImGui::MenuItem("Plane"))
 			{
-				GameObject* obj = NewEntity("Plane", parent, DefaultModels::Plane(), true, true);
+				Entity* obj = NewEntity("Plane", parent, DefaultModels::Plane(), true, true);
 				Transform* transform = obj->GetComponent<Transform>();
 				transform->scale = glm::vec3(10.0f, 0.05f, 10.0f);
 				transform->UpdateChildrenTransform();

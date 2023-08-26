@@ -4,11 +4,11 @@
 #include "Engine/Vendor/glm/gtc/type_ptr.hpp"
 
 
-#include "Engine/Components/Core/GameObject.h"
+#include "Engine/Components/Core/Entity.h"
 #include "Engine/Components/Component.h"
 
-namespace Engine {
-	class Transform : public Engine::Component {
+namespace Plaza {
+	class Transform : public Plaza::Component {
 	public:
 		glm::vec3 position = { 0,0,0 };
 		glm::vec3 worldPosition = { 0, 0, 0 };
@@ -17,7 +17,8 @@ namespace Engine {
 		glm::vec3 worldRotation = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 scale = { 1,1,1, };
 		glm::vec3 worldScale = { 1, 1, 1 };
-		glm::mat4 modelMatrix;
+		glm::mat4 modelMatrix = glm::mat4(1.0f);
+		glm::mat4 localMatrix = glm::mat4(1.0f);
 		std::string scene = "Editor Scene";
 		Transform();
 		Transform(const Transform&) = default;
@@ -26,12 +27,17 @@ namespace Engine {
 		glm::mat4 GetTransform(glm::vec3 position, glm::vec3 scale);
 		glm::mat4 GetTransform(glm::vec3 position);
 		glm::mat4 GetTransform();
-		void UpdateObjectTransform(GameObject* gameObject);
-		void UpdateChildrenTransform(GameObject* gameObject);
+		glm::mat4 GetLocalMatrix();
+		void UpdateSelfAndChildrenTransform();
+		void UpdateObjectTransform(Entity* entity);
+		void UpdateChildrenTransform(Entity* entity);
 		void UpdateChildrenTransform();
-		void UpdateChildrenScale(GameObject* gameObject);
+		void UpdateChildrenScale(Entity* entity);
 		void UpdateChildrenScale();
 		void MoveTowards(glm::vec3 vector);
+
+		void UpdateWorldMatrix();
+		void UpdateLocalMatrix();
 
 		void SetRelativePosition(glm::vec3 vector);
 		void SetRelativeRotation(glm::vec3 vector);
@@ -40,6 +46,10 @@ namespace Engine {
 		void SetWorldPosition(glm::vec3 vector);
 		void SetWorldRotation(glm::vec3 vector);
 		void SetWorldScale(glm::vec3 vector);
+
+		glm::vec3 GetWorldPosition();
+		glm::vec3 GetWorldRotation();
+		glm::vec3 GetWorldScale();
 
 		void UpdatePhysics();
 	};

@@ -10,7 +10,7 @@ const float ZOOM = 60.0f;
 
 #include "Engine/Components/Core/Transform.h"
 
-namespace Engine {
+namespace Plaza {
 	struct ViewFrustum {
 		glm::mat4 viewProjectionMatrix;
 		glm::vec4 leftPlane;

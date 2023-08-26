@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/Components/Component.h"
 
-namespace Engine {
+namespace Plaza {
 	class RigidBody : public Component {
 	public:
 		//physx::PxRigidStatic* rb;

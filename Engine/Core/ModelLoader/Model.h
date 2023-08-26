@@ -2,11 +2,11 @@
 #include <vector>
 #include "Engine/Components/Rendering/Material.h"
 using namespace std;
-namespace Engine {
+namespace Plaza {
 	class Model {
 	public:
 		uint64_t uuid;
-		vector<shared_ptr<GameObject>> gameObjects;
+		vector<shared_ptr<Entity>> gameObjects;
 		unordered_map<uint64_t, shared_ptr<MeshRenderer>> meshRenderers;
 		unordered_map<uint64_t, shared_ptr<Transform>> transforms;
 		string modelName;

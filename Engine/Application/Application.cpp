@@ -7,7 +7,7 @@
 #include "Engine/Application/PickingTexture.h"
 #include "Engine/Components/Core/Camera.h"
 #include "Engine/Components/Rendering/Mesh.h"
-#include "Engine/Components/Core/GameObject.h"
+#include "Engine/Components/Core/Entity.h"
 #include "Engine/Shaders/Shader.h"
 
 #include "Editor/GUI/Style/EditorStyle.h"
@@ -35,23 +35,23 @@ size_t len;
 errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");
 
 
-//Engine::ApplicationClass* Application;
+//Plaza::ApplicationClass* Application;
 
 void blurFramebuffer1();
 void blurFramebuffer2();
 void blurFramebuffer3();
 
-using namespace Engine;
+using namespace Plaza;
 /// ---------------------------------------------------------------------
 
 //std::list<Model> models;
 
 EditorStyle editorStyle;
 
-using namespace Engine::Editor;
+using namespace Plaza::Editor;
 
-Engine::ApplicationClass::ApplicationClass() {
-	editorCamera = new Engine::Camera(glm::vec3(0.0f, 0.0f, 5.0f));
+Plaza::ApplicationClass::ApplicationClass() {
+	editorCamera = new Plaza::Camera(glm::vec3(0.0f, 0.0f, 5.0f));
 	editorCamera->isEditorCamera = true;
 	activeCamera = editorCamera;
 }
@@ -100,20 +100,22 @@ void combineBuffers() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void ApplicationClass::CreateApplication() {
-	std::filesystem::path currentPath(__FILE__);
-	Application->projectPath = currentPath.parent_path().parent_path().parent_path().string();
-	Application->enginePath = currentPath.parent_path().parent_path().string();
-	Application->editorPath = currentPath.parent_path().parent_path().parent_path().string() + "\\Editor";
-	Application->enginePathAppData = std::string(appdataValue) + "\\Plaza Engine\\";
-	free(appdataValue);
-	//gameObjects.reserve(5000);
-
-	// Initialize GLFW (Window)
-	Application->Window = new Engine::WindowClass();
-
+void ApplicationClass::InitShaders() {
 	// Initialize Shaders
 	Application->shader = new Shader((Application->enginePath + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
+	constexpr const char* textureDiffuseUniform = "texture_diffuse";
+	constexpr const char* textureSpecularUniform = "texture_specular";
+	constexpr const char* textureNormalUniform = "texture_normal";
+	constexpr const char* textureHeightUniform = "texture_height";
+	glUniform1i(glGetUniformLocation(Application->shader->ID, textureDiffuseUniform), 0);
+	glUniform1i(glGetUniformLocation(Application->shader->ID, textureSpecularUniform), 1);
+	glUniform1i(glGetUniformLocation(Application->shader->ID, textureNormalUniform), 2);
+	glUniform1i(glGetUniformLocation(Application->shader->ID, textureHeightUniform), 3);
+	Application->shader->use();
+	Application->shader->setInt("texture_diffuse", 0);
+	Application->shader->setInt("texture_specular", 1);
+	Application->shader->setInt("texture_normal", 2);
+	Application->shader->setInt("texture_height", 3);
 
 	Application->pickingShader = new Shader((Application->enginePath + "\\Shaders\\picking\\pickingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\picking\\pickingFragment.glsl").c_str());
 
@@ -145,15 +147,33 @@ void ApplicationClass::CreateApplication() {
 	Skybox::skyboxShader = new Shader((Application->enginePath + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
 	Skybox::skyboxShader->use();
 	Skybox::skyboxShader->setInt("skybox", 0);
-	// Initialize OpenGL, Shaders and Skybox
-	InitOpenGL();
-
-	Renderer::InitQuad();
-
-	InitBlur();
 
 	Application->distortionCorrectionFrameBuffer = new FrameBuffer(GL_FRAMEBUFFER);
 	Application->distortionCorrectionFrameBuffer->InitColorAttachment(GL_TEXTURE_2D, GL_RGBA32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, GL_RGBA, GL_FLOAT, GL_LINEAR);
+	//Application->distortionCorrectionFrameBuffer->InitRenderBufferObject(GL_DEPTH_COMPONENT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+}
+
+void ApplicationClass::CreateApplication() {
+	std::filesystem::path currentPath(__FILE__);
+	Application->projectPath = currentPath.parent_path().parent_path().parent_path().string();
+	Application->enginePath = currentPath.parent_path().parent_path().string();
+	Application->editorPath = currentPath.parent_path().parent_path().parent_path().string() + "\\Editor";
+	Application->enginePathAppData = std::string(appdataValue) + "\\Plaza Engine\\";
+	free(appdataValue);
+	//gameObjects.reserve(5000);
+
+	// Initialize GLFW (Window)
+	Application->Window = new Plaza::WindowClass();
+
+	
+	// Initialize OpenGL, Shaders and Skybox
+	InitShaders();
+	InitOpenGL();
+
+	Renderer::Init();
+
+	InitBlur();
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//Application->InitSkybox();
@@ -277,7 +297,7 @@ void ApplicationClass::UpdateEngine() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// Render HDR
-	//Renderer::RenderHDR();
+	Renderer::RenderHDR();
 
 	// Update ImGui
 	Gui::Update();
@@ -410,12 +430,6 @@ void ApplicationClass::InitOpenGL() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
-
-	Application->shader->use();
-	Application->shader->setInt("texture_diffuse", 0);
-	Application->shader->setInt("texture_specular", 1);
-	Application->shader->setInt("texture_normal", 2);
-	Application->shader->setInt("texture_height", 3);
 }
 
 void blurFramebuffer1() {

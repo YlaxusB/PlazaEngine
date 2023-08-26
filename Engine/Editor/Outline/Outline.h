@@ -4,7 +4,7 @@
 #include "Engine/Editor/Editor.h"
 #include "Engine/Core/FrameBuffer.h"
 
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	class Outline {
 	public:
 		static unsigned int quadVAO, quadVBO;
@@ -18,7 +18,7 @@ namespace Engine::Editor {
 		static void Init();
 		static void RenderOutline();
 		static void BlurBuffer();
-		static void RenderSelectedObjects(GameObject* gameObject, Shader shader);
+		static void RenderSelectedObjects(Entity* entity, Shader shader);
 		static void CombineOutlineToScene();
 		static void CreateScreenQuad();
 	};

@@ -5,8 +5,8 @@
 #include "Editor/ModelImporter/ModelImporter.h"
 #include "Editor/Gui/FileExplorer/FileExplorer.h"
 #include "Editor/GUI/guiMain.h"
-using Engine::Editor::Gui;
-void Engine::ApplicationClass::Callbacks::dropCallback(GLFWwindow* window, int count, const char** paths) {
+using Plaza::Editor::Gui;
+void Plaza::ApplicationClass::Callbacks::dropCallback(GLFWwindow* window, int count, const char** paths) {
 	for (unsigned int i = 0; i < count; i++) {
 		vector<string> supportedFormats = ModelLoader::supportedFormats;
 		string fileExtension = filesystem::path{ paths[i] }.extension().string();

@@ -2,9 +2,9 @@
 #include <string>
 #include <filesystem>
 #include "Engine/Utils/fileUtils.h"
-using namespace Engine;
+using namespace Plaza;
 using namespace std;
-namespace Engine::Editor {
+namespace Plaza::Editor {
 
 	string CreateFile(std::string path, std::string name) {
 		string newPath;

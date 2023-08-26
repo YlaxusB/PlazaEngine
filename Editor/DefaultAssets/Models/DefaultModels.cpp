@@ -2,7 +2,7 @@
 #include "DefaultModels.h"
 #include "Engine/Components/Rendering/Mesh.h"
 #include "Engine/Core/ModelLoader/ModelLoader.h"
-namespace Engine::Editor {
+namespace Plaza::Editor {
 
 	vector<Mesh*> DefaultModels::meshes = vector<Mesh*>();
 	uint64_t DefaultModels::cubeUuid = 1;

@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine/Core/Time.h"
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	class FpsCounter {
 	public:
 		FpsCounter() {

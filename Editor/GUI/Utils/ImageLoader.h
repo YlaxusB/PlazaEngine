@@ -1,7 +1,7 @@
 #pragma once
 #include <stb/stb_image.h>
 #include <glad/glad.h>
-namespace Engine::Editor::Utils {
+namespace Plaza::Editor::Utils {
 	static unsigned int LoadImageToImGuiTexture(const char* path) {
 		int width, height, channels;
 		unsigned char* image_data = stbi_load(path, &width, &height, &channels, STBI_rgb_alpha);

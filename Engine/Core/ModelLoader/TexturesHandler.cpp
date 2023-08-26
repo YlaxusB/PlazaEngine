@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ModelLoader.h"
-namespace Engine {
+namespace Plaza {
 	vector<Texture> ModelLoader::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture>& textures_loaded, string* directory)
 	{
 		vector<Texture> textures;

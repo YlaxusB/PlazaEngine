@@ -4,7 +4,7 @@
 
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include "Engine/Vendor//GLFW/glfw3native.h"
-namespace Engine {
+namespace Plaza {
 	class FileDialog {
 	public:
 		static std::string OpenFolderDialog();

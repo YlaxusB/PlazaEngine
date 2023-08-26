@@ -1,7 +1,7 @@
 #pragma once
 #include "ComponentSerializer.h"
 #include "Engine/Components/Rendering/Material.h"
-namespace Engine {
+namespace Plaza {
 	class ComponentSerializer;
 	class ComponentSerializer::MaterialSerializer {
 	public:

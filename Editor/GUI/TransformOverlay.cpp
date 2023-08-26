@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Editor/GUI/TransformOverlay.h";
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	
 	ImGuizmo::MODE Editor::Overlay::activeMode = ImGuizmo::MODE::WORLD;
 	ImGuizmo::OPERATION Editor::Overlay::activeOperation = ImGuizmo::OPERATION::TRANSLATE;

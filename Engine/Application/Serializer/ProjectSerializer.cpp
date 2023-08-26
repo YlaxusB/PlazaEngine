@@ -2,7 +2,7 @@
 #include "ProjectSerializer.h"
 #include "Engine/Utils/yamlUtils.h"
 
-namespace Engine {
+namespace Plaza {
 	void ProjectSerializer::Serialize(const std::string filePath)
 	{
 		YAML::Emitter out;

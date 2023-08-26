@@ -9,12 +9,12 @@
 #include "Engine/Vendor/assimp/Importer.hpp"
 #include "Engine/Vendor/assimp/scene.h"
 #include "Engine/Vendor/assimp/postprocess.h"
-namespace Engine::Editor {
-	void DeleteChildrene(GameObject* gameObject) {
-		for (uint64_t child : gameObject->childrenUuid) {
+namespace Plaza::Editor {
+	void DeleteChildrene(Entity* entity) {
+		for (uint64_t child : entity->childrenUuid) {
 			DeleteChildrene(&Application->activeScene->entities[child]);
 		}
-		delete(gameObject);
+		delete(entity);
 	}
 
 
@@ -68,7 +68,7 @@ namespace Engine::Editor {
 			//std::filesystem::copy(texturesOriginalPath + "\\" + isFbx + texturePath, texturesFolderPath + "\\" + texturePath);
 		}
 		std::filesystem::copy(modelPath, sourcesFolderPath + "\\" + modelName + extension);
-		GameObject* mainObject = ModelLoader::LoadModelToGame(modelPath, modelName, scene);
+		Entity* mainObject = ModelLoader::LoadModelToGame(modelPath, modelName, scene);
 		ModelSerializer::SerializeModel(mainObject, modelPathInEngine + "\\" + filesystem::path(modelPath).stem().string() + Standards::modelExtName, modelPath);
 		Editor::selectedGameObject = nullptr;
 		Gui::changeSelectedGameObject(nullptr);

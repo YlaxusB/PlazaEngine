@@ -3,8 +3,29 @@
 #include "Editor/GUI/guiMain.h"
 #include "Editor/GUI/TransformOverlay.h"
 
-namespace Engine::Editor {
-	void Gizmo::Draw(GameObject* gameObject, Camera camera) {
+namespace Plaza::Editor {
+	glm::vec3 WorldToLocal(const glm::mat4& worldToLocalMatrix, const glm::vec3& worldPoint) {
+		// Calculate the inverse of the world-to-local transformation matrix
+		glm::mat4 localToWorldMatrix = glm::inverse(worldToLocalMatrix);
+
+		// Transform the world point to local space
+		glm::vec4 localPoint4 = localToWorldMatrix * glm::vec4(worldPoint, 1.0f);
+
+		// Convert the resulting vector to a vec3 and return it
+		return glm::vec3(localPoint4) / localPoint4.w;
+	}
+
+	glm::vec3 WorldToLocalEulerAngles(const glm::vec3& worldEulerAngles, const glm::vec3& localEulerAngles) {
+		// Calculate the relative Euler angles between world and local rotations
+		glm::vec3 relativeEulerAngles = worldEulerAngles - localEulerAngles;
+
+		// Calculate the local Euler angles by applying the relative angles to the world angles
+		glm::vec3 localEulerAnglesResult = worldEulerAngles - relativeEulerAngles;
+
+		return localEulerAnglesResult;
+	}
+
+	void Gizmo::Draw(Entity* entity, Camera camera) {
 
 		ApplicationSizes& appSizes = *Application->appSizes;
 		// Setup imguizmo
@@ -15,21 +36,21 @@ namespace Engine::Editor {
 		ImGuizmo::SetRect(appSizes.sceneImageStart.x, appSizes.sceneImageStart.y, appSizes.sceneSize.x, appSizes.sceneSize.y);
 
 		// Get the object transform and camera matrices
-		Transform& a = *gameObject->GetComponent<Transform>();
-		Transform& b = *gameObject->GetComponent<Transform>();
-		auto& parentTransform = *Application->activeScene->entities[gameObject->parentUuid].GetComponent<Transform>();
-		auto& transform = *gameObject->GetComponent<Transform>();
+		Transform& a = *entity->GetComponent<Transform>();
+		Transform& b = *entity->GetComponent<Transform>();
+		auto& parentTransform = *Application->activeScene->entities[entity->parentUuid].GetComponent<Transform>();
+		auto& transform = *entity->GetComponent<Transform>();
 
 		glm::mat4 projection = camera.GetProjectionMatrix();
 		glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 gizmoTransform = transform.GetTransform(gameObject->GetComponent<Transform>()->worldPosition);
+		glm::mat4 gizmoTransform = transform.modelMatrix;//transform.GetTransform(entity->GetComponent<Transform>()->worldPosition);
 		ImGuizmo::OPERATION activeOperation = Overlay::activeOperation; // Operation is translate, rotate, scale
 		ImGuizmo::MODE activeMode = Overlay::activeMode; // Mode is world or local
 
 		ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), activeOperation, activeMode, glm::value_ptr(gizmoTransform));
 
-		RigidBody* rigidBody = gameObject->GetComponent<RigidBody>();
-		Collider* collider = gameObject->GetComponent<Collider>();
+		RigidBody* rigidBody = entity->GetComponent<RigidBody>();
+		Collider* collider = entity->GetComponent<Collider>();
 		if (rigidBody && rigidBody->mRigidActor) {
 			rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, true);
 			rigidBody->canUpdate = false;
@@ -45,36 +66,50 @@ namespace Engine::Editor {
 			DecomposeTransform(gizmoTransform, position, rotation, scale);
 
 			// --- Rotation
-			glm::mat4 updatedTransform = glm::translate(glm::mat4(1.0f), position)
-				* glm::toMat4(glm::inverse(glm::quat(parentTransform.worldRotation)))
+			glm::mat4 updatedTransform = glm::inverse(parentTransform.GetTransform()) * glm::toMat4(glm::quat(rotation));
+				/*
+				glm::translate(glm::mat4(1.0f), position)
+				* glm::toMat4(glm::inverse(glm::quat(parentTransform.GetWorldQuaternion())))
 				* glm::toMat4(glm::quat(rotation))
-				* glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
+				* glm::scale(glm::mat4(1.0f), parentTransform.scale);
+				*/
+			glm::vec3 parentPosition, parentRotation, parentScale;
+			DecomposeTransform(parentTransform.modelMatrix , parentPosition, parentRotation, parentScale); // The rotation is radians
 
 			glm::vec3 updatedPosition, updatedRotation, updatedScale;
 			DecomposeTransform(updatedTransform, updatedPosition, updatedRotation, updatedScale); // The rotation is radians
-			rotation = updatedRotation;
 
+			glm::mat4 rotationMatrix = glm::inverse(glm::mat4_cast(parentTransform.GetWorldQuaternion()));
+		//	rotation = glm::eulerAngles(glm::quat(glm::inverse(transform.modelMatrix) * (glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z))));
+			rotation = updatedRotation;
+			//rotation = -parentRotation * rotation;
 			// Adding the deltaRotation avoid the gimbal lock
 			glm::vec3 deltaRotation = rotation - transform.rotation;
-			transform.rotation += deltaRotation;
+			transform.rotation = rotation;
+			//std::cout << "X: " << glm::degrees(rotation.x) << std::endl;
+			//std::cout << "Y: " << glm::degrees(rotation.y) << std::endl;
+			//std::cout << "Z: " << glm::degrees(rotation.z) << std::endl;
+			//transform.rotation += rotation;
 
 			// --- Position
 			// Get the position in the world and transform it to be a localPosition in relation to the parent
-			position = position - parentTransform.worldPosition;
-			position = position / parentTransform.worldScale;
+			//position = position - transform.relativePosition;
+			//position = position / parentTransform.worldScale;
 
-			glm::vec3 parentWorldRotation = parentTransform.worldRotation;
-			glm::mat4 rotationMatrix = glm::mat4(1.0f);
+			glm::vec3 parentWorldRotation = parentRotation;
+			rotationMatrix =
+				glm::mat4(1.0f);
 			rotationMatrix = glm::rotate(rotationMatrix, -parentWorldRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
 			rotationMatrix = glm::rotate(rotationMatrix, -parentWorldRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 			rotationMatrix = glm::rotate(rotationMatrix, -parentWorldRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+			
 
-			glm::vec3 localPoint = glm::vec3(rotationMatrix * glm::vec4(position, 1.0f));
-			transform.relativePosition = localPoint;
+			glm::vec3 localPoint = glm::vec3(rotationMatrix * glm::vec4(position - parentPosition, 1.0f));
+			transform.relativePosition = localPoint / parentScale;//localPoint;
 
 			// --- Scale
-			transform.scale = scale / parentTransform.worldScale;
-			transform.UpdateChildrenTransform();
+			transform.scale = scale;
+			transform.UpdateSelfAndChildrenTransform();
 
 
 
@@ -95,6 +130,11 @@ namespace Engine::Editor {
 
 
 			//}
+			//transform.SetRelativeScale(transform.scale);
+			if (collider && collider->mDynamic) {
+				collider->mRigidActor->is<physx::PxRigidDynamic>()->setLinearVelocity(physx::PxVec3(0.0f));
+				collider->mRigidActor->is<physx::PxRigidDynamic>()->setAngularVelocity(physx::PxVec3(0.0f));
+			}
 		}
 
 		if (rigidBody && rigidBody->mRigidActor && !ImGuizmo::IsUsing()) {
@@ -108,7 +148,7 @@ namespace Engine::Editor {
 
 		if (Application->runningScene && !ImGuizmo::IsUsing()) {
 			//collider->UpdateShapeScale(transform.worldScale);
-			transform.SetRelativeScale(transform.worldScale);
+			//transform.SetRelativeScale(transform.worldScale);
 		}
 	}
 

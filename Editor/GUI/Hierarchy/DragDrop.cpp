@@ -1,30 +1,30 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 #include "Engine/Utils/vectorUtils.h"
-using namespace Engine;
-void payloadDrop(Engine::GameObject* gameObject, Engine::GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, const ImGuiPayload* payload);
-void InsertBefore(Engine::GameObject* payloadObj, Engine::GameObject* currentObj);
-void InsertAsChild(Engine::GameObject* payloadObj, Engine::GameObject* currentObj);
-void InsertAfter(Engine::GameObject* payloadObj, Engine::GameObject* currentObj);
+using namespace Plaza;
+void payloadDrop(Plaza::Entity* entity, Plaza::Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, const ImGuiPayload* payload);
+void InsertBefore(Plaza::Entity* payloadObj, Plaza::Entity* currentObj);
+void InsertAsChild(Plaza::Entity* payloadObj, Plaza::Entity* currentObj);
+void InsertAfter(Plaza::Entity* payloadObj, Plaza::Entity* currentObj);
 
 
-namespace Engine::Editor {
-	void Gui::Hierarchy::Item::HierarchyDragDrop(GameObject& gameObject, GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax) {
-		if (gameObject.parentUuid && ImGui::BeginDragDropTarget()) {
+namespace Plaza::Editor {
+	void Gui::Hierarchy::Item::HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax) {
+		if (entity.parentUuid && ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadName.c_str())) {
-				payloadDrop(&gameObject, currentObj, treeNodeMin, treeNodeMax, payload);
+				payloadDrop(&entity, currentObj, treeNodeMin, treeNodeMax, payload);
 			}
 			ImGui::EndDragDropTarget();
 		}
 	}
 }
-void payloadDrop(Engine::GameObject* gameObject, Engine::GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, const ImGuiPayload* payload) {
-	//if (payload->DataSize == sizeof(Engine::GameObject*)) {
+void payloadDrop(Plaza::Entity* entity, Plaza::Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, const ImGuiPayload* payload) {
+	//if (payload->DataSize == sizeof(Plaza::Entity*)) {
 	//	/* The current "object" is the one that the mouse was over when dropped*/
 	//	/* PayloadObj is the dragged object */
-	//	Engine::GameObject* payloadObj = *static_cast<Engine::GameObject**>(payload->Data);  // Dereference the pointer			
-	//	std::vector<Engine::GameObject*>& currentChildren = currentObj->GetParent()->children;
-	//	std::vector<Engine::GameObject*>& payloadChildren = payloadObj->parent->children;
+	//	Plaza::Entity* payloadObj = *static_cast<Plaza::Entity**>(payload->Data);  // Dereference the pointer			
+	//	std::vector<Plaza::Entity*>& currentChildren = currentObj->GetParent()->children;
+	//	std::vector<Plaza::Entity*>& payloadChildren = payloadObj->parent->children;
 
 	//	ImVec2 mousePos = ImGui::GetMousePos();
 	//	ImVec2 treeNodePos = treeNodeMin;
@@ -54,7 +54,7 @@ void payloadDrop(Engine::GameObject* gameObject, Engine::GameObject* currentObj,
 	//}
 }
 
-void InsertBefore(Engine::GameObject* payloadObj, Engine::GameObject* currentObj) {
+void InsertBefore(Plaza::Entity* payloadObj, Plaza::Entity* currentObj) {
 	//// Becomes child of the target's parent
 	//payloadObj->parent->children.erase(std::remove(payloadObj->parent->children.begin(), payloadObj->parent->children.end(), payloadObj), payloadObj->parent->children.end());
 	//payloadObj->parent = currentObj->parent;
@@ -65,14 +65,14 @@ void InsertBefore(Engine::GameObject* payloadObj, Engine::GameObject* currentObj
 	//payloadObj->parent->transform->UpdateChildrenTransform();
 }
 
-void InsertAfter(Engine::GameObject* payloadObj, Engine::GameObject* currentObj) {
+void InsertAfter(Plaza::Entity* payloadObj, Plaza::Entity* currentObj) {
 	//payloadObj->parent->children.erase(std::remove(payloadObj->parent->children.begin(), payloadObj->parent->children.end(), payloadObj), payloadObj->parent->children.end());
 	//payloadObj->parent = currentObj->parent;
 	//currentObj->parent->children.insert(currentObj->parent->children.begin() + Utils::Vector::indexOf(currentObj->parent->children, currentObj) + 1, payloadObj);
 	//payloadObj->parent->transform->UpdateChildrenTransform();
 }
 
-void InsertAsChild(Engine::GameObject* payloadObj, Engine::GameObject* currentObj) {
+void InsertAsChild(Plaza::Entity* payloadObj, Plaza::Entity* currentObj) {
 	//payloadObj->parent->children.erase(std::remove(payloadObj->parent->children.begin(), payloadObj->parent->children.end(), payloadObj), payloadObj->parent->children.end());
 	//payloadObj->parent = currentObj;
 	//currentObj->children.insert(currentObj->children.begin(), payloadObj);

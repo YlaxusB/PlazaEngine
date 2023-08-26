@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine/Core/PreCompiledHeaders.h"
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		class ProjectManagerGui {
 		public:

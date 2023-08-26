@@ -3,33 +3,33 @@
 #include "Engine/Application/Serializer/Components/MaterialSerializer.h"
 #include "Engine/Application/Serializer/Components/TransformSerializer.h"
 
-namespace Engine {
-	void SerializeGameObject(YAML::Emitter& out, GameObject* gameObject) {
+namespace Plaza {
+	void SerializeGameObject(YAML::Emitter& out, Entity* entity) {
 		//out << YAML::BeginMap;
 		out << YAML::BeginMap;
-		out << YAML::Key << "GameObject" << gameObject->uuid;
-		out << YAML::Key << "Uuid" << YAML::Value << gameObject->uuid;
-		out << YAML::Key << "Name" << YAML::Value << gameObject->name;
-		out << YAML::Key << "ParentID" << YAML::Value << (gameObject->parentUuid != 0 ? gameObject->parentUuid : 0);
+		out << YAML::Key << "Entity" << entity->uuid;
+		out << YAML::Key << "Uuid" << YAML::Value << entity->uuid;
+		out << YAML::Key << "Name" << YAML::Value << entity->name;
+		out << YAML::Key << "ParentID" << YAML::Value << (entity->parentUuid != 0 ? entity->parentUuid : 0);
 		out << YAML::Key << "Components" << YAML::Value << YAML::BeginMap;
-		if (gameObject->GetComponent<Transform>()) {
+		if (entity->GetComponent<Transform>()) {
 			out << YAML::Key << "TransformComponent";
 			out << YAML::BeginMap;
-			glm::vec3& relativePosition = gameObject->GetComponent<Transform>()->relativePosition;
+			glm::vec3& relativePosition = entity->GetComponent<Transform>()->relativePosition;
 			out << YAML::Key << "Position" << YAML::Value << relativePosition;
-			glm::vec3& relativeRotation = gameObject->GetComponent<Transform>()->rotation;
+			glm::vec3& relativeRotation = entity->GetComponent<Transform>()->rotation;
 			out << YAML::Key << "Rotation" << YAML::Value << relativeRotation;
-			glm::vec3& scale = gameObject->GetComponent<Transform>()->scale;
+			glm::vec3& scale = entity->GetComponent<Transform>()->scale;
 			out << YAML::Key << "Scale" << YAML::Value << scale;
 
 			out << YAML::EndMap;
 		}
-		MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>();
+		MeshRenderer* meshRenderer = entity->GetComponent<MeshRenderer>();
 		if (meshRenderer) {
 			if (meshRenderer->mesh) {
 				out << YAML::Key << "MeshComponent" << YAML::Value << YAML::BeginMap;
 				out << YAML::Key << "AiMeshName" << YAML::Value << meshRenderer->aiMeshName;
-				out << YAML::Key << "MeshName" << YAML::Value << gameObject->name;
+				out << YAML::Key << "MeshName" << YAML::Value << entity->name;
 				out << YAML::Key << "MeshUUID" << YAML::Value << meshRenderer->mesh.get()->uuid;
 				ComponentSerializer::MaterialSerializer::Serialize(out, meshRenderer->mesh.get()->material);
 				out << YAML::EndMap;
@@ -39,9 +39,9 @@ namespace Engine {
 		out << YAML::EndMap;
 	}
 
-	void ModelSerializer::SerializeModel(GameObject* mainObject, string filePath, string modelFilePath) {
+	void ModelSerializer::SerializeModel(Entity* mainObject, string filePath, string modelFilePath) {
 		
-		uint64_t modelUuid = Engine::UUID::NewUUID();
+		uint64_t modelUuid = Plaza::UUID::NewUUID();
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Model" << YAML::Value << mainObject->name;
@@ -90,32 +90,32 @@ namespace Engine {
 	void DeSerializeGameObject(const auto& gameObjectEntry, Model* model) {
 		
 		const auto& componentsEntry = gameObjectEntry["Components"];
-		GameObject* gameObject = new GameObject(gameObjectEntry["Name"].as<string>(), nullptr, false);
-		gameObject->uuid = gameObjectEntry["Uuid"].as<uint64_t>();
+		Entity* entity = new Entity(gameObjectEntry["Name"].as<string>(), nullptr, false);
+		entity->uuid = gameObjectEntry["Uuid"].as<uint64_t>();
 		uint64_t parentUuid = gameObjectEntry["ParentID"].as<uint64_t>();
 		for (const auto& modelGameObject : model->gameObjects) {
 			if (parentUuid == modelGameObject.get()->uuid) {
-				gameObject->parentUuid = modelGameObject.get()->uuid;
+				entity->parentUuid = modelGameObject.get()->uuid;
 			}
 		}
-		if (gameObject->parentUuid == 0) {
-			gameObject->parentUuid = Application->activeScene->mainSceneEntity->uuid;
+		if (entity->parentUuid == 0) {
+			entity->parentUuid = Application->activeScene->mainSceneEntity->uuid;
 		}
 		Transform* newTransform = ComponentSerializer::TransformSerializer::DeSerialize(componentsEntry["TransformComponent"]);
-		gameObject->ReplaceComponent<Transform>(newTransform);
-		//gameObject->RemoveComponent<Transform>();
-		//gameObject->AddComponent<Transform>(gameObject->transform);
+		entity->ReplaceComponent<Transform>(newTransform);
+		//entity->RemoveComponent<Transform>();
+		//entity->AddComponent<Transform>(entity->transform);
 		if (componentsEntry["MeshComponent"]) {
-			MeshRenderer* oldMeshRenderer = gameObject->GetComponent<MeshRenderer>();
+			MeshRenderer* oldMeshRenderer = entity->GetComponent<MeshRenderer>();
 			MeshRenderer* newMeshRenderer = new MeshRenderer();
 			newMeshRenderer->instanced = true;
 			newMeshRenderer->aiMeshName = componentsEntry["MeshComponent"]["AiMeshName"].as<string>();
 			DeSerializeMaterial(componentsEntry["MeshComponent"]["MaterialComponent"], model, newMeshRenderer);
-			newMeshRenderer->uuid = gameObject->uuid;
-			model->meshRenderers.emplace(gameObject->uuid, newMeshRenderer);
+			newMeshRenderer->uuid = entity->uuid;
+			model->meshRenderers.emplace(entity->uuid, newMeshRenderer);
 		}
-		model->transforms.emplace(gameObject->uuid, newTransform);
-		model->gameObjects.push_back(make_shared<GameObject>(*gameObject));
+		model->transforms.emplace(entity->uuid, newTransform);
+		model->gameObjects.push_back(make_shared<Entity>(*entity));
 		
 	}
 

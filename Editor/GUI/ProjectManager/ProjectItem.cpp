@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ProjectItem.h"
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		void ProjectManagerGui::ProjectItem::Setup() {
 			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoFocusOnAppearing;

@@ -2,7 +2,7 @@
 #include "Editor/GUI/guiMain.h"
 #include "Engine/Editor/Editor.h"
 
-namespace Engine {
+namespace Plaza {
 	class ShadowsClass {
 	public:
 		unsigned int debugLayer = 0;

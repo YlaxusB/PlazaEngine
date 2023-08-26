@@ -1,6 +1,6 @@
 #pragma once
 #include <xhash>
-namespace Engine {
+namespace Plaza {
 	class UUID {
 	public:
 		static uint64_t NewUUID();

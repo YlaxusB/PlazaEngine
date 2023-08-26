@@ -11,10 +11,10 @@
 #include "Engine/Components/Core/Camera.h"
 
 
-using namespace Engine;
+using namespace Plaza;
 
 
-namespace Engine {
+namespace Plaza {
 	class EditorCamera {
 	public:
 		enum Camera_Movement {
@@ -28,7 +28,7 @@ namespace Engine {
 			ROLLRIGHT
 		};
 
-		Engine::ViewFrustum frustum = Engine::ViewFrustum();
+		Plaza::ViewFrustum frustum = Plaza::ViewFrustum();
 
 
 		// camera Attributes

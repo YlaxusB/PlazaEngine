@@ -4,7 +4,7 @@
 #include <ShObjIdl.h>
 
 // Function to open the file dialog and get the selected file path
-namespace Engine {
+namespace Plaza {
     std::string FileDialog::OpenFolderDialog() {
         std::string selectedFolder;
 

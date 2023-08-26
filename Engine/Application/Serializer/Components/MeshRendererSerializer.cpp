@@ -1,7 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "MeshRendererSerializer.h"
 #include "MeshSerializer.h"
-namespace Engine {
+namespace Plaza {
 	void ComponentSerializer::MeshRendererSerializer::Serialize(YAML::Emitter& out, MeshRenderer& meshRenderer) {
 		out << YAML::Key << "MeshRendererComponent" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "Uuid" << YAML::Value << meshRenderer.uuid;

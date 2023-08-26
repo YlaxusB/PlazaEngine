@@ -1,12 +1,12 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Outline.h"
 #include "Engine/Editor/Editor.h"
-//using namespace Engine::Editor;
+//using namespace Plaza::Editor;
 //void Outline::CombineOutlineToScene() {
 //
 //}
 
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	unsigned int Outline::quadVAO = 0;
 	unsigned int Outline::quadVBO = 0;
 	Shader* Outline::combiningShader = nullptr;
@@ -76,14 +76,14 @@ namespace Engine::Editor {
 	}
 
 	// Draw the Outline
-	void Outline::RenderSelectedObjects(GameObject* gameObject, Shader shader) {
-		MeshRenderer* mr = gameObject->GetComponent<MeshRenderer>();
+	void Outline::RenderSelectedObjects(Entity* entity, Shader shader) {
+		MeshRenderer* mr = entity->GetComponent<MeshRenderer>();
 		if (mr) {
-			glm::mat4 modelMatrix = gameObject->GetComponent<Transform>()->modelMatrix;
+			glm::mat4 modelMatrix = entity->GetComponent<Transform>()->modelMatrix;
 			shader.setMat4("model", modelMatrix);
 			mr->mesh->Draw(shader);
 		}
-		for (uint64_t child : gameObject->childrenUuid) {
+		for (uint64_t child : entity->childrenUuid) {
 			Outline::RenderSelectedObjects(&Application->activeScene->entities[child], shader);
 		}
 	}

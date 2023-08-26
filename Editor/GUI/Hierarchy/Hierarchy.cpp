@@ -6,16 +6,16 @@
 #include "Editor/DefaultAssets/DefaultAssets.h"
 
 #include "Editor/GUI/Popups/NewEntityPopup.h"
-namespace Engine::Editor {
-	Gui::Hierarchy::Item::Item(GameObject& gameObject, GameObject*& selectedGameObject) : currentObj(gameObject), selectedGameObject(*selectedGameObject) {
-		// Push the gameObject id, to prevent it to collpases all the treenodes with same id
-		ImGui::PushID(gameObject.uuid);
+namespace Plaza::Editor {
+	Gui::Hierarchy::Item::Item(Entity& entity, Entity*& selectedGameObject) : currentObj(entity), selectedGameObject(*selectedGameObject) {
+		// Push the entity id, to prevent it to collpases all the treenodes with same id
+		ImGui::PushID(entity.uuid);
 		// Start the treenode before the component selectable, but only assign its values after creating the button
 
 		ImGui::PushStyleColor(ImGuiCol_HeaderActive, editorStyle.treeNodeActiveBackgroundColor);
 
 		bool itemIsSelectedObject = false;
-		if (selectedGameObject && gameObject.uuid == selectedGameObject->uuid) itemIsSelectedObject = true;
+		if (selectedGameObject && entity.uuid == selectedGameObject->uuid) itemIsSelectedObject = true;
 
 		if (itemIsSelectedObject) {// Selected backgroundde
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, editorStyle.selectedTreeNodeBackgroundColor);
@@ -39,14 +39,14 @@ namespace Engine::Editor {
 
 		ImGui::Indent(3.0f);
 		//ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetTreeNodeToLabelSpacing() + 3.0f); // Decrease the indentation spacing
-		if (gameObject.childrenUuid.size() > 0) {
-			treeNodeOpen = ImGui::TreeNodeEx(gameObject.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen);
+		if (entity.childrenUuid.size() > 0) {
+			treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen);
 		}
 		else {
 
-			//ImGui::Selectable(gameObject->name.c_str(), ImGuiTreeNodeFlags_Framed);
+			//ImGui::Selectable(entity->name.c_str(), ImGuiTreeNodeFlags_Framed);
 			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetTreeNodeToLabelSpacing());
-			treeNodeOpen = ImGui::TreeNodeEx(gameObject.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf);
+			treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf);
 		}
 
 		//ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x - 1.0f, ImGui::GetWindowPos().y));
@@ -61,15 +61,15 @@ namespace Engine::Editor {
 		ImGui::PopStyleColor(); // Header Hovered Background
 		ImGui::PopStyleColor(); // Header Selected Background
 
-		// Change the selected gameobject if user clicked on the selectable
+		// Change the selected entity if user clicked on the selectable
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			Gui::changeSelectedGameObject(&Application->activeScene->entities[gameObject.uuid]);
-		//Engine::Editor::selectedGameObject = gameObject;
+			Gui::changeSelectedGameObject(&Application->activeScene->entities[entity.uuid]);
+		//Plaza::Editor::selectedGameObject = entity;
 
 
 		if (ImGui::IsItemVisible()) {
-			if (gameObject.parentUuid && ImGui::BeginDragDropSource()) {
-				ImGui::SetDragDropPayload(payloadName.c_str(), &gameObject, sizeof(GameObject*));
+			if (entity.parentUuid && ImGui::BeginDragDropSource()) {
+				ImGui::SetDragDropPayload(payloadName.c_str(), &entity, sizeof(Entity*));
 
 				ImVec2 mousePos = ImGui::GetMousePos();
 				ImVec2 treeNodePos = treeNodeMin;
@@ -79,19 +79,19 @@ namespace Engine::Editor {
 				ImGui::EndDragDropSource();
 			}
 
-			Hierarchy::Item::HierarchyDragDrop(gameObject, &currentObj, treeNodeMin, treeNodeMax);
+			Hierarchy::Item::HierarchyDragDrop(entity, &currentObj, treeNodeMin, treeNodeMax);
 		}
 		if (ImGui::IsItemHovered() || ImGui::IsPopupOpen("ItemPopup")) {
-			Gui::Hierarchy::Item::ItemPopup(gameObject);
+			Gui::Hierarchy::Item::ItemPopup(entity);
 		}
 
 		if (ImGui::IsPopupOpen("ItemPopup")) {
-			Gui::changeSelectedGameObject(&Application->activeScene->entities[gameObject.uuid]);
+			Gui::changeSelectedGameObject(&Application->activeScene->entities[entity.uuid]);
 		}
 
 		if (treeNodeOpen)
 		{
-			for (uint64_t child : gameObject.childrenUuid)
+			for (uint64_t child : entity.childrenUuid)
 			{
 				Gui::Hierarchy::Item(Application->activeScene->entities[child], selectedGameObject);
 			}
@@ -103,7 +103,7 @@ namespace Engine::Editor {
 		ImGui::PopID();
 	};
 
-	void Gui::Hierarchy::Item::ItemPopup(GameObject& gameObject) {
+	void Gui::Hierarchy::Item::ItemPopup(Entity& entity) {
 		if (ImGui::BeginPopupContextWindow("ItemPopup"))
 		{
 			if (ImGui::BeginMenu("Add Component"))
@@ -113,44 +113,44 @@ namespace Engine::Editor {
 					MeshRenderer* meshRenderer = new MeshRenderer(*Editor::DefaultModels::Cube());
 					meshRenderer->instanced = true;
 					meshRenderer->mesh = DefaultModels::Cube();
-					gameObject.AddComponent<MeshRenderer>(meshRenderer);
+					entity.AddComponent<MeshRenderer>(meshRenderer);
 				}
 
 				if (ImGui::MenuItem("Rigid Body Dynamic"))
 				{
-					RigidBody* rigidBody = new RigidBody(gameObject.uuid, Application->runningScene);
-					rigidBody->uuid = gameObject.uuid;
-					//Collider* collider = new Collider(gameObject.uuid);
-					//gameObject.AddComponent<Collider>(collider);
-					//gameObject.GetComponent<Collider>()->Init();
-					gameObject.AddComponent<RigidBody>(rigidBody);
+					RigidBody* rigidBody = new RigidBody(entity.uuid, Application->runningScene);
+					rigidBody->uuid = entity.uuid;
+					//Collider* collider = new Collider(entity.uuid);
+					//entity.AddComponent<Collider>(collider);
+					//entity.GetComponent<Collider>()->Init();
+					entity.AddComponent<RigidBody>(rigidBody);
 				}
 
 				if (ImGui::MenuItem("Rigid Body Non Dynamic"))
 				{
-					RigidBody* rigidBody = new RigidBody(gameObject.uuid, Application->runningScene, false);
+					RigidBody* rigidBody = new RigidBody(entity.uuid, Application->runningScene, false);
 					rigidBody->dynamic = false;
-					rigidBody->uuid = gameObject.uuid;
-					gameObject.AddComponent<RigidBody>(rigidBody);
+					rigidBody->uuid = entity.uuid;
+					entity.AddComponent<RigidBody>(rigidBody);
 				}
 
 				if (ImGui::MenuItem("Collider"))
 				{
-					Collider* collider = new Collider(gameObject.uuid);
-					gameObject.AddComponent<Collider>(collider);
+					Collider* collider = new Collider(entity.uuid);
+					entity.AddComponent<Collider>(collider);
 				}
 
 				if (ImGui::MenuItem("Camera"))
 				{
 					Camera* camera = new Camera();
-					camera->uuid = gameObject.uuid;
-					gameObject.AddComponent<Camera>(camera);
+					camera->uuid = entity.uuid;
+					entity.AddComponent<Camera>(camera);
 				}
 
 				ImGui::EndMenu();
 			}
 
-			Popup::NewEntityPopup::Init(&gameObject, &gameObject);
+			Popup::NewEntityPopup::Init(&entity, &entity);
 
 			ImGui::EndPopup();
 		}

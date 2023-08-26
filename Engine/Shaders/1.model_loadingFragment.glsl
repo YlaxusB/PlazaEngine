@@ -1,4 +1,4 @@
-#version 330 core
+#version 410 core
 
 out vec4 FragColor;
 
@@ -21,6 +21,7 @@ uniform float cascadePlaneDistances[32];
 uniform int cascadeCount;   // number of frusta - 1
 uniform mat4 view;
 uniform vec3 lightDir;
+
 
 layout (std140) uniform LightSpaceMatrices
 {
@@ -94,8 +95,8 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
 
     bias = 0.0001;
     float floatVal = 3 - (texture(shadowsDepthMap, vec3(projCoords.xyz)).r * 2.3);
-    int pcfCount = 11;// + int(floatVal);
-    float mapSize = 4096.0 * 12;
+    int pcfCount = 5;// + int(floatVal);
+    float mapSize = 4096.0 * 4;
     float texelSize = (1.0 / mapSize * 2) * floatVal;
     float total = 0.0;
     float totalTexels = (pcfCount * 2.0 + 1.0) * (pcfCount * 2.0 + 1.0);
@@ -124,7 +125,7 @@ void main()
         color = texture(texture_diffuse, fs_in.TexCoords).rgb;
     }
 
-    vec3 lightColor = vec3(1.0);
+    vec3 lightColor = vec3(2.0);
     // ambient
     vec3 ambient = 0.16 * lightColor;
     // diffuse
@@ -164,7 +165,7 @@ void main()
 
     // calculate shadow
     float shadow = ShadowCalculation(fs_in.FragPos);                      
-    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
+    vec3 lighting = (ambient + ((1.0 - shadow) * 2) * (diffuse + specular)) * color;    
     
     FragColor = vec4(lighting, 1.0);
 

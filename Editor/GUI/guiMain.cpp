@@ -3,12 +3,12 @@
 #include "guiMain.h"
 
 
-#include "Engine/Components/Core/GameObject.h"
+#include "Engine/Components/Core/Entity.h"
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 #include "Editor/GUI/Inspector.h"
 #include "Editor/GUI/gizmo.h"
 #include "Editor/GUI/TransformOverlay.h"
-#include "Engine/Components/Core/GameObject.h"
+#include "Engine/Components/Core/Entity.h"
 #include "Engine/Application/ApplicationSizes.h"
 #include "Engine/Editor/Editor.h"
 #include "Engine/Application/EntryPoint.h"
@@ -27,23 +27,23 @@
 //
 //bool ImGuizmo::IsDrawing = false;
 
-using namespace Engine;
-using namespace Engine::Editor;
+using namespace Plaza;
+using namespace Plaza::Editor;
 //using namespace Editor;
 
 glm::vec2 curHierarchySize;
 glm::vec2 curSceneSize;
 glm::vec2 curInspectorSize;
 
-bool Engine::Editor::Gui::isHierarchyOpen = true;
-bool Engine::Editor::Gui::isSceneOpen = true;
-bool Engine::Editor::Gui::isInspectorOpen = true;
-bool Engine::Editor::Gui::isFileExplorerOpen = true;
+bool Plaza::Editor::Gui::isHierarchyOpen = true;
+bool Plaza::Editor::Gui::isSceneOpen = true;
+bool Plaza::Editor::Gui::isInspectorOpen = true;
+bool Plaza::Editor::Gui::isFileExplorerOpen = true;
 
 bool windowVisible = true;
 // Update ImGui Windows
 FpsCounter* fpsCounter;
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		class Hierarchy;
 		string Gui::scenePayloadName = "scenePayloadName";
@@ -69,6 +69,7 @@ namespace Engine {
 
 		void Gui::Init(GLFWwindow* window) {
 			ImGui::CreateContext();
+			ImGui::StyleColorsDark();
 			ImGuiIO& io = ImGui::GetIO();
 			(void)io;
 			ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -78,7 +79,6 @@ namespace Engine {
 			//C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
 			io.Fonts->AddFontFromFileTTF((Application->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
 			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
-
 			Icon::Init();
 
 			FpsCounter* fpsCounter = new FpsCounter();
@@ -94,7 +94,7 @@ namespace Engine {
 			ImGui::DestroyContext();
 		}
 
-		void Gui::changeSelectedGameObject(GameObject* newSelectedGameObject) {
+		void Gui::changeSelectedGameObject(Entity* newSelectedGameObject) {
 			selectedGameObject = newSelectedGameObject;
 		}
 		void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera) {
@@ -161,7 +161,7 @@ namespace Engine {
 		inline void Gui::beginScene(int gameFrameBuffer, Camera& camera) {
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
-			GameObject* selectedGameObject = Editor::selectedGameObject;
+			Entity* selectedGameObject = Editor::selectedGameObject;
 
 			// Set the window to be the content size + header size
 			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove;
@@ -208,7 +208,7 @@ namespace Engine {
 			ImVec2 uv0(0, 1); // bottom-left corner
 			ImVec2 uv1(1, 0); // top-right corner
 			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
-			ImGui::Image(ImTextureID(Application->distortionCorrectionFrameBuffer->colorBuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+			ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 			//ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 
 
@@ -225,7 +225,7 @@ namespace Engine {
 
 			//appSizes.sceneSize = ImGui::glmVec2(imageDisplayedSize);
 
-			// Show the gizmo if there's a selected gameObject
+			// Show the gizmo if there's a selected entity
 
 
 			selectedGameObject = Editor::selectedGameObject;
@@ -268,7 +268,7 @@ namespace Engine {
 		void Gui::beginHierarchyView(int gameFrameBuffer) {
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
-			GameObject* selectedGameObject = Editor::selectedGameObject;
+			Entity* selectedGameObject = Editor::selectedGameObject;
 			//ImGui::SetNextWindowPos(ImVec2(0, 0));
 			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoFocusOnAppearing | ImGuiConfigFlags_DockingEnable;
 
@@ -299,7 +299,7 @@ namespace Engine {
 		void Gui::beginInspector(int gameFrameBuffer, Camera camera) {
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
-			GameObject* selectedGameObject = Editor::selectedGameObject;
+			Entity* selectedGameObject = Editor::selectedGameObject;
 
 			//ImGui::SetCursorPosY(appSizes.appHeaderSize);
 			ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.inspectorSize), ImGuiCond_Always);

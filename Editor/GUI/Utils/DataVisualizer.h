@@ -2,7 +2,7 @@
 #include <string>
 #include <glm/glm.hpp>
 #include "Engine/Vendor/imgui/imgui.h"
-namespace Engine::Editor::Utils {
+namespace Plaza::Editor::Utils {
 
 	float GetMinimumSpeed(float value, float divider, float min) {
 		float dividedValue = glm::abs(value) / (divider * 10);

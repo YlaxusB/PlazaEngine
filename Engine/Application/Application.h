@@ -17,7 +17,7 @@
 #include "Editor/Project.h"
 #include "Engine/Core/Engine.h"
 #include "Engine/Core/FrameBuffer.h"
-namespace Engine {
+namespace Plaza {
 	class Camera;
 	class WindowClass;
 	class ShadowsClass;
@@ -46,7 +46,7 @@ namespace Engine {
 		ApplicationClass(); // Initialize the activeCamera reference
 		ApplicationSizes* appSizes = new ApplicationSizes(); // = new ApplicationSizes();
 		ApplicationSizes* lastAppSizes = appSizes;
-		Engine::Editor::ProjectManagerGui* projectManagerGui = new Engine::Editor::ProjectManagerGui();
+		Plaza::Editor::ProjectManagerGui* projectManagerGui = new Plaza::Editor::ProjectManagerGui();
 
 
 		unsigned int frameBuffer, textureColorbuffer, rbo = 0;
@@ -87,6 +87,7 @@ namespace Engine {
 		static GLFWwindow* InitApplication();
 
 		static void InitOpenGL();
+		static void InitShaders();
 
 		static void InitSkybox();
 

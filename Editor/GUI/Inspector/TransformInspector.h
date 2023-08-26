@@ -5,7 +5,7 @@
 
 #include "Editor/GUI/Inspector.h"
 #include "Editor/GUI/gizmo.h"
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	class Gui::TransformInspector {
 	public:
 		glm::vec3 moveTowards(const glm::vec3 position, const glm::vec3 eulerRotation, glm::vec3& targetPosition) {
@@ -34,16 +34,16 @@ namespace Engine::Editor {
 		}
 
 
-		TransformInspector(GameObject* gameObject) {
+		TransformInspector(Entity* entity) {
 			if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-				glm::vec3 startingPosition = gameObject->GetComponent<Transform>()->relativePosition;
-				glm::vec3 startingRotation = gameObject->GetComponent<Transform>()->rotation;
-				glm::vec3 startingScale = gameObject->GetComponent<Transform>()->scale;
+				glm::vec3 startingPosition = entity->GetComponent<Transform>()->relativePosition;
+				glm::vec3 startingRotation = entity->GetComponent<Transform>()->rotation;
+				glm::vec3 startingScale = entity->GetComponent<Transform>()->scale;
 
-				glm::vec3& currentPosition = gameObject->GetComponent<Transform>()->relativePosition;
-				glm::vec3& currentRotation = gameObject->GetComponent<Transform>()->rotation;
+				glm::vec3& currentPosition = entity->GetComponent<Transform>()->relativePosition;
+				glm::vec3& currentRotation = entity->GetComponent<Transform>()->rotation;
 				glm::vec3 rotationField = glm::degrees(currentRotation);
-				glm::vec3& currentScale = gameObject->GetComponent<Transform>()->scale;
+				glm::vec3& currentScale = entity->GetComponent<Transform>()->scale;
 
 
 				ImGui::Text("Position: ");
@@ -91,14 +91,14 @@ namespace Engine::Editor {
 				ImGui::InputFloat("Z", &currentScale.z);
 
 				if (currentPosition != startingPosition || currentRotation != startingRotation || currentScale != startingScale) {
-					gameObject->GetComponent<Transform>()->UpdateChildrenTransform();
-					if (Application->activeScene->rigidBodyComponents.find(gameObject->uuid) != Application->activeScene->rigidBodyComponents.end()) {
-						RigidBody* rigidBody = &Application->activeScene->rigidBodyComponents.at(gameObject->uuid);
-						rigidBody->UpdateGlobalPose();
+					//entity->GetComponent<Transform>()->UpdateChildrenTransform();
+					if (Application->activeScene->rigidBodyComponents.find(entity->uuid) != Application->activeScene->rigidBodyComponents.end()) {
+						//RigidBody* rigidBody = &Application->activeScene->rigidBodyComponents.at(entity->uuid);
+						//rigidBody->UpdateGlobalPose();
 					}
 				}
 
-				for (uint64_t child : gameObject->childrenUuid) {
+				for (uint64_t child : entity->childrenUuid) {
 					ImGui::Text(Application->activeScene->entities[child].name.c_str());
 				}
 

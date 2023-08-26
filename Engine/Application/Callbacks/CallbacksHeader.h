@@ -1,7 +1,7 @@
 #pragma once
 //#include "Engine/Core/PreCompiledHeaders.h"
 //#include "Engine/Application/Application.h"
-namespace Engine {
+namespace Plaza {
     class ApplicationClass::Callbacks {
     public:
 		static bool rightClickPressed;

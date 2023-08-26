@@ -6,7 +6,7 @@
 #include <iostream>
 
 RigidBody* currentBody = nullptr;
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	void UpdateRigidBodyCallbackFloat(float value) {
 		currentBody->UpdateRigidBody();
 	}

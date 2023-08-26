@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "FileDialog.h"
-namespace Engine {
+namespace Plaza {
     std::string FileDialog::SaveFileDialog(const char* filter) {
         OPENFILENAMEA  ofn;
         CHAR  szFileName[260] = { 0 };

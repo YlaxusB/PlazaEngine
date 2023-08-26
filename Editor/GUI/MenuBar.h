@@ -1,6 +1,6 @@
 #pragma once
 #include "Editor/GUI/guiMain.h"
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		class Gui::MainMenuBar {
 		public:

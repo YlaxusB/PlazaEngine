@@ -1,8 +1,8 @@
 #include "Editor.h"
 #include "Engine/Core/PreCompiledHeaders.h"
-//GameObject* Engine::Editor::selectedGameObject = nullptr;
-namespace Engine {
+//Entity* Plaza::Editor::selectedGameObject = nullptr;
+namespace Plaza {
     namespace Editor {
-        GameObject* selectedGameObject = nullptr;
+        Entity* selectedGameObject = nullptr;
     }
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-namespace Engine {
+namespace Plaza {
 	class Texture {
 	public:
 		int id = -1;

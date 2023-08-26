@@ -4,8 +4,8 @@
 #include "Editor/DefaultAssets/DefaultAssets.h"
 
 #include "Editor/GUI/Popups/NewEntityPopup.h"
-GameObject* obj = nullptr;
-namespace Engine::Editor {
+Entity* obj = nullptr;
+namespace Plaza::Editor {
 	void HierarchyPopup::Update() {
 		if (ImGui::BeginPopupContextWindow())
 		{

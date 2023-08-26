@@ -1,8 +1,8 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "CallbacksHeader.h"
 
-using namespace Engine;
-using namespace Engine::Editor;
+using namespace Plaza;
+using namespace Plaza::Editor;
 bool ApplicationClass::Callbacks::rightClickPressed;
 bool ApplicationClass::Callbacks::mouseFirstCallback;
 bool ApplicationClass::Callbacks::firstMouse = true;

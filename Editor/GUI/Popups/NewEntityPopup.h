@@ -1,8 +1,8 @@
 #pragma once
 #include "Popup.h"
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	class Popup::NewEntityPopup {
 	public:
-		static void Init(GameObject* obj, GameObject* parent = nullptr);
+		static void Init(Entity* obj, Entity* parent = nullptr);
 	};
 }

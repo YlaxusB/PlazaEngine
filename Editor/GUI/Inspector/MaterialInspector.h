@@ -2,16 +2,16 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 
 #include "Engine/Components/Rendering/Material.h"
-#include "Engine/Components/Core/GameObject.h"
+#include "Engine/Components/Core/Entity.h"
 
 
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	static class MaterialInspector {
 	public:
-		MaterialInspector(GameObject* gameObject) {
+		MaterialInspector(Entity* entity) {
 			if (ImGui::TreeNodeEx("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
 				ImGui::PushID("MaterialInspector");
-				Material& material = gameObject->GetComponent<MeshRenderer>()->mesh->material;
+				Material& material = entity->GetComponent<MeshRenderer>()->mesh->material;
 				glm::vec4& diffuse = material.diffuse.rgba;
 				glm::vec4& specular = material.specular.rgba;
 				float shininess = material.shininess;

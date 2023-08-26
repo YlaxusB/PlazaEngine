@@ -111,7 +111,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;TRACY_ENABLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;TRACY_ENABLE;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>./Engine/Vendor/imgui;./;./Engine/Vendor/yaml-cpp;./Engine/Vendor/yaml/include;./Engine/Vendor/Tracy;./Engine/Vendor/physx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -191,7 +191,6 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Engine\Components\Component.cpp" />
     <ClCompile Include="Engine\Components\Core\Camera.cpp" />
     <ClCompile Include="Engine\Components\Core\Entity.cpp" />
-    <ClCompile Include="Engine\Components\Core\GameObject.cpp" />
     <ClCompile Include="Engine\Components\Core\ModelComponent.cpp" />
     <ClCompile Include="Engine\Components\Physics\Collider.cpp" />
     <ClCompile Include="Engine\Components\Physics\RigidBody.cpp" />
@@ -404,7 +403,6 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Application\Serializer\ProjectSerializer.h" />
     <ClInclude Include="Engine\Application\Window.h" />
     <ClInclude Include="Engine\Components\Core\Entity.h" />
-    <ClInclude Include="Engine\Components\Core\GameObject.h" />
     <ClInclude Include="Engine\Components\Physics\Collider.h" />
     <ClInclude Include="Engine\Components\Physics\RigidBody.h" />
     <ClInclude Include="Engine\Components\Rendering\Material.h" />
@@ -413,6 +411,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Components\Rendering\MeshRenderer.h" />
     <ClInclude Include="Engine\Components\Rendering\Prefab.h" />
     <ClInclude Include="Engine\Core\Engine.h" />
+    <ClInclude Include="Engine\Core\FrameBuffer.h" />
     <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h" />
     <ClInclude Include="Engine\Core\ModelLoader\Model.h" />
     <ClInclude Include="Engine\Core\ModelLoader\ModelLoader.h" />
@@ -837,7 +836,6 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Vendor\imgui\imstb_textedit.h" />
     <ClInclude Include="Engine\Vendor\imgui\imstb_truetype.h" />
     <ClInclude Include="Engine\Core\Time.h" />
-    <ClInclude Include="Engine\Core\FrameBuffer.h" />
     <ClInclude Include="Engine\Core\Renderer.h" />
     <ClInclude Include="Engine\Core\PreCompiledHeaders.h" />
     <ClInclude Include="Engine\Application\Serializer\SceneSerializer.h" />

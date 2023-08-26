@@ -6,18 +6,18 @@
 #include "Engine/Vendor/imgui/imgui_impl_opengl3.h"
 
 //#include "Engine/Application/EditorCamera.h"
-#include "Engine/Components/Core/GameObject.h"
+#include "Engine/Components/Core/Entity.h"
 //#include "Engine/Application/Application.h"
 
 namespace ImGuizmoHelper {
 	static bool IsDrawing;
 }
 
-namespace Engine {
+namespace Plaza {
 	class Camera;
 }
 using namespace std;
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		class Gui {
 		public:
@@ -27,7 +27,7 @@ namespace Engine {
 			//class MaterialInspector;
 			class TransformInspector;
 			static void setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera);
-			static void changeSelectedGameObject(GameObject* newSelectedGameObject);
+			static void changeSelectedGameObject(Entity* newSelectedGameObject);
 			static void Init(GLFWwindow* window);
 			static void Delete();
 			static void Update();

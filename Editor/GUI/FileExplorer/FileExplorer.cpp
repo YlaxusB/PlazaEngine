@@ -1,13 +1,13 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "FileExplorer.h"
 
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		std::string Gui::FileExplorer::currentDirectory = "";
 		void Gui::FileExplorer::UpdateGui() {
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
-			GameObject* selectedGameObject = Editor::selectedGameObject;
+			Entity* selectedGameObject = Editor::selectedGameObject;
 
 			// Set the window to be the content size + header size
 			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove;

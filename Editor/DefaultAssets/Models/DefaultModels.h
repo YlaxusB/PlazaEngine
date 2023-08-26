@@ -1,5 +1,5 @@
 #pragma once
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	class DefaultModels {
 	public:
 		static vector<Mesh*> meshes;

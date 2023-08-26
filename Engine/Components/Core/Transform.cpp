@@ -5,9 +5,33 @@
 
 #include "Engine/Components/Core/Transform.h"
 //#include "Editor/GUI/gizmo.h"
-//#include "Engine/Components/Core/GameObject.h"
-namespace Engine {
+//#include "Engine/Components/Core/Entity.h"
+namespace Plaza {
 	Transform::Transform() {};
+
+	glm::vec3 Transform::GetWorldPosition() {
+		return this->modelMatrix[3];
+	}
+
+	glm::vec3 Transform::GetWorldRotation() {
+		glm::vec3 scale;
+		glm::vec3 translation;
+		glm::quat rotation;
+		glm::vec3 skew;
+		glm::vec4 perspective;
+		glm::decompose(this->modelMatrix, scale, rotation, translation, skew, perspective);
+		return glm::eulerAngles(rotation);
+	}
+
+	glm::vec3 Transform::GetWorldScale() {
+		glm::vec3 scale;
+		glm::vec3 translation;
+		glm::quat rotation;
+		glm::vec3 skew;
+		glm::vec4 perspective;
+		glm::decompose(this->modelMatrix, scale, rotation, translation, skew, perspective);
+		return scale;
+	}
 
 	/// <summary>
 	/// Returns a Matrix 4x4 
@@ -18,17 +42,15 @@ namespace Engine {
 	/// <returns></returns>
 	glm::mat4 Transform::GetTransform(glm::vec3 position, glm::vec3 scale)
 	{
-		if (Application->activeScene->entities[this->uuid].parentUuid == 0) {
-			return glm::mat4(0.0f);
+		glm::mat4 parentMatrix;
+		if (Application->activeScene->entities.at(this->uuid).parentUuid == 0) {
+			parentMatrix = glm::mat4(1.0f);
 		}
-		glm::mat4 rot = glm::toMat4(glm::quat(rotation));
-
-		glm::mat4 gizmoMatrix = glm::translate(glm::mat4(1.0f), this->worldPosition)
-			* glm::toMat4(glm::quat(Application->activeScene->entities[this->uuid].GetComponent<Transform>()->worldRotation))
-			* glm::scale(glm::mat4(1.0f), scale);
-
-		//gizmoMatrix = glm::scale(gizmoMatrix, gameObject->transform->worldScale);
-		return gizmoMatrix;
+		else {
+			parentMatrix = Application->activeScene->entities.at(this->GetGameObject()->parentUuid).GetComponent<Transform>()->modelMatrix;
+		}
+		this->modelMatrix = parentMatrix * this->GetLocalMatrix();
+		return this->modelMatrix;
 	}
 
 	glm::mat4 Transform::GetTransform() {
@@ -38,12 +60,17 @@ namespace Engine {
 		return GetTransform(position, this->worldScale);
 	}
 
+	void Transform::UpdateWorldMatrix() {
+		if (this->GetGameObject()->parentUuid)
+			this->modelMatrix = Application->activeScene->transformComponents.at(this->GetGameObject()->parentUuid).modelMatrix * this->localMatrix;
+	}
+
 	/// <summary>
 	/// Returns the Quaternion of the Transform Local Rotation in radians
 	/// </summary>
 	/// <returns></returns>
 	glm::quat Transform::GetLocalQuaternion() {
-		return glm::quat(this->rotation);
+		return glm::normalize(glm::quat_cast(this->localMatrix));
 	}
 
 	/// <summary>
@@ -51,28 +78,41 @@ namespace Engine {
 	/// </summary>
 	/// <returns></returns>
 	glm::quat Transform::GetWorldQuaternion() {
-		return glm::quat(this->worldRotation);
+		return glm::normalize(glm::quat_cast(this->modelMatrix));
+	}
+
+	void Transform::UpdateLocalMatrix() {
+		this->localMatrix = glm::translate(glm::mat4(1.0f), this->relativePosition)
+			* glm::toMat4(glm::quat(rotation))
+			* glm::scale(glm::mat4(1.0f), scale);
+	}
+
+	glm::mat4 Transform::GetLocalMatrix() {
+		this->localMatrix = glm::translate(glm::mat4(1.0f), this->relativePosition)
+			* glm::toMat4(glm::quat(rotation))
+			* glm::scale(glm::mat4(1.0f), scale);
+		return this->localMatrix;
 	}
 
 
 	/// <summary>
 	/// Rotates around parent, then positionates its relative position based on the rotation and returns this position.
 	/// </summary>
-	glm::vec3 newWorldPosition(GameObject* gameObject) {
+	glm::vec3 newWorldPosition(Entity* entity) {
 		glm::mat4 rotationMatrix = glm::mat4(1.0f);
-		rotationMatrix *= glm::toMat4(glm::quat(Application->activeScene->entities[gameObject->parentUuid].GetComponent<Transform>()->worldRotation));
-		rotationMatrix = glm::scale(rotationMatrix, Application->activeScene->entities[gameObject->parentUuid].GetComponent<Transform>()->worldScale);
-		glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(gameObject->GetComponent<Transform>()->relativePosition, 1.0f));
-		glm::vec3 finalWorldPoint = transformedPoint + Application->activeScene->entities[gameObject->parentUuid].GetComponent<Transform>()->worldPosition;
+		rotationMatrix *= glm::toMat4(glm::quat(Application->activeScene->entities[entity->parentUuid].GetComponent<Transform>()->worldRotation));
+		rotationMatrix = glm::scale(rotationMatrix, Application->activeScene->entities[entity->parentUuid].GetComponent<Transform>()->worldScale);
+		glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(entity->GetComponent<Transform>()->relativePosition, 1.0f));
+		glm::vec3 finalWorldPoint = transformedPoint + Application->activeScene->entities[entity->parentUuid].GetComponent<Transform>()->worldPosition;
 		return finalWorldPoint;
 	}
 	/// <summary>
 	/// First rotates with parent rotation and then its own rotation.
 	/// </summary>
-	glm::vec3 newWorldRotation(GameObject* gameObject) {
-		glm::mat4 newRotationMatrix = glm::translate(glm::mat4(1.0f), gameObject->GetComponent<Transform>()->worldPosition)
-			* glm::toMat4(glm::quat(Application->activeScene->entities[gameObject->parentUuid].GetComponent<Transform>()->worldRotation))
-			* glm::toMat4(glm::quat(gameObject->GetComponent<Transform>()->rotation))
+	glm::vec3 newWorldRotation(Entity* entity) {
+		glm::mat4 newRotationMatrix = glm::translate(glm::mat4(1.0f), entity->GetComponent<Transform>()->worldPosition)
+			* glm::toMat4(glm::quat(Application->activeScene->entities[entity->parentUuid].GetComponent<Transform>()->worldRotation))
+			* glm::toMat4(glm::quat(entity->GetComponent<Transform>()->rotation))
 			* glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 
 		glm::vec3 eulerAngles = glm::eulerAngles(glm::quat_cast(newRotationMatrix));
@@ -82,32 +122,31 @@ namespace Engine {
 
 
 
-	void Transform::UpdateObjectTransform(GameObject* gameObject) {
-		if (gameObject->parentUuid) {
-			Transform& transform = *gameObject->GetComponent<Transform>();
-			transform.worldScale = transform.scale * Application->activeScene->entities[gameObject->parentUuid].GetComponent<Transform>()->worldScale;
-			transform.worldRotation = newWorldRotation(gameObject);
-			transform.worldPosition = newWorldPosition(gameObject);
-			transform.modelMatrix = transform.GetTransform();
-			transform.UpdatePhysics();
-		}
+	void Transform::UpdateObjectTransform(Entity* entity) {
+		Transform& transform = *entity->GetComponent<Transform>();
+		transform.UpdateWorldMatrix();
+		//transform.UpdatePhysics();
 	}
 
 
-	void Transform::UpdateChildrenTransform(GameObject* gameObject) {
-		if (Application->activeScene->entities[gameObject->parentUuid].uuid) {
-			UpdateObjectTransform(gameObject);
-		}
+	void Transform::UpdateChildrenTransform(Entity* entity) {
+		UpdateObjectTransform(entity);
 
-		for (uint64_t child : gameObject->childrenUuid) {
+		for (uint64_t child : entity->childrenUuid) {
 			UpdateObjectTransform(&Application->activeScene->entities[child]);
 
 			UpdateChildrenTransform(&Application->activeScene->entities[child]);
 		}
-
 	}
 
-
+	void Transform::UpdateSelfAndChildrenTransform() {
+		this->UpdateLocalMatrix();
+		this->UpdateWorldMatrix();
+		this->UpdatePhysics();
+		for (uint64_t child : this->GetGameObject()->childrenUuid) {
+			Application->activeScene->transformComponents.at(child).UpdateSelfAndChildrenTransform();
+		}
+	}
 
 	void Transform::UpdateChildrenTransform() {
 		if (uuid) {
@@ -131,7 +170,7 @@ namespace Engine {
 		this->relativePosition = vector;
 		this->UpdateChildrenTransform();
 		if (Collider* collider = GetGameObject()->GetComponent<Collider>()) {
-			collider->UpdatePose(this);
+			//collider->UpdatePose(this);
 		}
 	}
 
@@ -142,7 +181,7 @@ namespace Engine {
 
 	void Transform::SetRelativeScale(glm::vec3 vector) {
 		this->scale = vector;
-		this->UpdateChildrenTransform();
+		//this->UpdateChildrenTransform();
 		if (Collider* collider = GetGameObject()->GetComponent<Collider>()) {
 			collider->UpdateShapeScale(this->worldScale);
 		}
@@ -151,7 +190,7 @@ namespace Engine {
 	void Transform::UpdatePhysics() {
 		if (Collider* collider = GetGameObject()->GetComponent<Collider>()) {
 			collider->UpdatePose(this);
-			collider->UpdateShapeScale(this->worldScale);
+			collider->UpdateShapeScale(this->GetWorldScale());
 		}
 	}
 }

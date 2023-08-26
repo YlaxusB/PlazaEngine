@@ -1,7 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "File.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		std::map<std::string, IconTexture> Icon::textures = std::map<std::string, IconTexture>();
 

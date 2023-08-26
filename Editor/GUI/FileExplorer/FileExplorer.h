@@ -1,7 +1,7 @@
 #pragma once
 #include "Editor/GUI/guiMain.h"
 #include "Editor/GUI/FileExplorer/File.h"
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		class Gui::FileExplorer {
 		public:

@@ -327,9 +327,6 @@
     <ClCompile Include="Engine\Components\Core\Entity.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Components\Core\GameObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\GUI\Inspector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -459,9 +456,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Core\Time.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Core\FrameBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Core\Meshes\Cube.cpp">
@@ -1964,9 +1958,6 @@
     <ClInclude Include="Engine\Components\Core\Entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Components\Core\GameObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Components\Physics\RigidBody.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -2001,6 +1992,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Editor\GUI\Utils\ImageLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Core\FrameBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

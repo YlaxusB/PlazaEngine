@@ -5,17 +5,17 @@
 
 #include "Engine/Application/Serializer/Components/TransformSerializer.h"
 #include "Engine/Application/Serializer/Components/MeshRendererSerializer.h"
-namespace Engine {
-	void SerializeGameObjectd(YAML::Emitter& out, GameObject* gameObject) {
+namespace Plaza {
+	void SerializeGameObjectd(YAML::Emitter& out, Entity* entity) {
 		out << YAML::BeginMap;
-		out << YAML::Key << "GameObject" << YAML::Value << gameObject->uuid;
-		out << YAML::Key << "Name" << YAML::Value << gameObject->name;
-		out << YAML::Key << "ParentID" << YAML::Value << (!gameObject->parentUuid ? gameObject->GetParent().name : "");
+		out << YAML::Key << "Entity" << YAML::Value << entity->uuid;
+		out << YAML::Key << "Name" << YAML::Value << entity->name;
+		out << YAML::Key << "ParentID" << YAML::Value << (!entity->parentUuid ? entity->GetParent().name : "");
 		out << YAML::Key << "Components" << YAML::BeginMap;
-		if (Transform* transform = gameObject->GetComponent<Transform>()) {
+		if (Transform* transform = entity->GetComponent<Transform>()) {
 			ComponentSerializer::TransformSerializer::Serialize(out, *transform);
 		}
-		if (MeshRenderer* meshRenderer = gameObject->GetComponent<MeshRenderer>()) {
+		if (MeshRenderer* meshRenderer = entity->GetComponent<MeshRenderer>()) {
 			ComponentSerializer::MeshRendererSerializer::Serialize(out, *meshRenderer);
 		}
 		out << YAML::EndMap;
@@ -52,16 +52,16 @@ namespace Engine {
 
 		auto gameObjectsDeserialized = data["GameObjects"];
 		if (gameObjectsDeserialized) {
-			for (auto gameObject : gameObjectsDeserialized) {
-				std::string name = gameObject["Name"].as<std::string>();
-				GameObject* newGameObject = new GameObject(name);
-				newGameObject->parentUuid = gameObject["ParentID"].as<std::uint64_t>();
-				newGameObject->GetComponent<Transform>()->relativePosition = gameObject["TransformComponent"]["Position"].as<glm::vec3>();
-				newGameObject->GetComponent<Transform>()->rotation = gameObject["TransformComponent"]["Rotation"].as<glm::vec3>();
-				newGameObject->GetComponent<Transform>()->scale = gameObject["TransformComponent"]["Scale"].as<glm::vec3>();
+			for (auto entity : gameObjectsDeserialized) {
+				std::string name = entity["Name"].as<std::string>();
+				Entity* newGameObject = new Entity(name);
+				newGameObject->parentUuid = entity["ParentID"].as<std::uint64_t>();
+				newGameObject->GetComponent<Transform>()->relativePosition = entity["TransformComponent"]["Position"].as<glm::vec3>();
+				newGameObject->GetComponent<Transform>()->rotation = entity["TransformComponent"]["Rotation"].as<glm::vec3>();
+				newGameObject->GetComponent<Transform>()->scale = entity["TransformComponent"]["Scale"].as<glm::vec3>();
 
 				newGameObject->GetComponent<Transform>()->UpdateChildrenTransform();
-				Mesh cubeMesh = Engine::Mesh();
+				Mesh cubeMesh = Plaza::Mesh();
 				cubeMesh.material.diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
 				cubeMesh.material.specular = Texture();
 				cubeMesh.material.specular.rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);

@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine/Vendor/glm/glm.hpp"
-namespace Engine {
+namespace Plaza {
 	class ApplicationSizes {
 	public:
 		float appHeaderSize = 50.0f; // The header size above scene view

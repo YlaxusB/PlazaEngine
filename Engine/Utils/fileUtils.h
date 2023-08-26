@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
-namespace Engine {
+namespace Plaza {
 	namespace FileUtils {
 		bool startsWith(const std::string& str, const std::string& prefix) {
 			return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;

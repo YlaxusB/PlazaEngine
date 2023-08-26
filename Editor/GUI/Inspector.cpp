@@ -5,7 +5,7 @@
 #include "Editor/GUI/Inspector/SceneInspector.h"
 #include "Editor/GUI/Inspector/ColliderInspector.h"
 
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	std::vector<Component*> Inspector::ComponentInspector::components;
 	void Inspector::ComponentInspector::CreateInspector() {
 		ImGui::SetCursorPosY(50);
@@ -43,13 +43,13 @@ namespace Engine::Editor {
 			Editor::Gui::TransformInspector inspector{ Editor::selectedGameObject };
 		}
 		if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {
-			Engine::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
+			Plaza::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
 		}
 		if (RigidBody* rigidBody = dynamic_cast<RigidBody*>(component)) {
-			Engine::Editor::RigidBodyInspector::RigidBodyInspector(rigidBody);
+			Plaza::Editor::RigidBodyInspector::RigidBodyInspector(rigidBody);
 		}
 		if (Collider* collider = dynamic_cast<Collider*>(component)) {
-			Engine::Editor::ColliderInspector::ColliderInspector(collider);
+			Plaza::Editor::ColliderInspector::ColliderInspector(collider);
 		}
 	}
 }

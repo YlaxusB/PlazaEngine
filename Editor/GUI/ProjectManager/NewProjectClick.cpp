@@ -3,7 +3,7 @@
 
 #include "Engine/Application/FileDialog/FileDialog.h"
 #include "Engine/Application/Serializer/SceneSerializer.h"
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		void ProjectManagerGui::NewProjectClick() {
 			std::string filePath = FileDialog::OpenFolderDialog();

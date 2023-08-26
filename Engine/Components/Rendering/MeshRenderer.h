@@ -3,7 +3,7 @@
 #include "Engine/Components/Rendering/Mesh.h"
 
 using namespace std;
-namespace Engine {
+namespace Plaza {
 	class MeshRenderer : public Component {
 	public:
 		string aiMeshName;
@@ -16,7 +16,7 @@ namespace Engine {
 		MeshRenderer(const MeshRenderer&) = default;
 		~MeshRenderer();
 		MeshRenderer() {
-			uuid = Engine::UUID::NewUUID();
+			uuid = Plaza::UUID::NewUUID();
 		}
 	};
 }

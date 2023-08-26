@@ -1,7 +1,7 @@
 #pragma once
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "Engine/Components/Rendering/Material.h"
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	class DefaultAssets {
 	public:
 		class DefaultModels;

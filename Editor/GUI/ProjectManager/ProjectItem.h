@@ -1,7 +1,7 @@
 #pragma once
 #include "Editor/GUI/ProjectManager/ProjectManager.h"
 
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		class ProjectManagerGui::ProjectItem {
 		public:

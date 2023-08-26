@@ -1,5 +1,5 @@
 #pragma once
-namespace Engine {
+namespace Plaza {
 	class ProjectSerializer {
 	public:
 		static void Serialize(const std::string filePath);

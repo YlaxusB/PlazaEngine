@@ -1,7 +1,7 @@
 #pragma once
 #include "ComponentSerializer.h"
 #include "Engine/Components/Core/Transform.h"
-namespace Engine {
+namespace Plaza {
 	class ComponentSerializer::TransformSerializer {
 	public:
 		static void Serialize(YAML::Emitter& out, Transform& transform);

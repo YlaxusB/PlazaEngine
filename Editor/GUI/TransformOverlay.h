@@ -13,9 +13,9 @@
 #include "Engine/Application/EditorCamera.h"
 
 
-using Engine::Camera;
+using Plaza::Camera;
 
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	class Overlay {
 	public:
 		enum ButtonsType {

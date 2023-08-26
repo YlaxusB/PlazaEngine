@@ -7,7 +7,7 @@
 #include "Engine/Vendor/filesystem/filesys.h"
 
 #include "Engine/Shaders/Shader.h"
-namespace Engine {
+namespace Plaza {
 	class Skybox {
 	public:
 		static Shader* skyboxShader;
@@ -138,7 +138,7 @@ namespace Engine {
 				unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
 				if (data)
 				{
-					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_SRGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA32F, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 					stbi_image_free(data);
 				}
 				else
@@ -157,7 +157,7 @@ namespace Engine {
 		}
 	};
 }
-inline Shader* Engine::Skybox::skyboxShader = nullptr;
-inline unsigned int Engine::Skybox::vao = 0;
-inline unsigned int Engine::Skybox::vbo = 0;
-inline unsigned int Engine::Skybox::cubemapTexture = 0;
+inline Shader* Plaza::Skybox::skyboxShader = nullptr;
+inline unsigned int Plaza::Skybox::vao = 0;
+inline unsigned int Plaza::Skybox::vbo = 0;
+inline unsigned int Plaza::Skybox::cubemapTexture = 0;

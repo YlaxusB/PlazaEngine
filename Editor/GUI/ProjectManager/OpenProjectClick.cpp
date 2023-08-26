@@ -5,7 +5,7 @@
 #include "Engine/Application/Serializer/SceneSerializer.h"
 #include "Engine/Application/Serializer/ProjectSerializer.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
-namespace Engine {
+namespace Plaza {
 	namespace Editor {
 		namespace fs = std::filesystem;
 		void ProjectManagerGui::OpenProjectClick() {

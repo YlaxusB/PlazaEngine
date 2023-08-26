@@ -5,8 +5,8 @@
 #include "Engine/Core/Time.h"
 #include "Engine/Core/Skybox.h"
 
-ApplicationClass* Engine::Application = new Engine::ApplicationClass();
-using namespace Engine;
+ApplicationClass* Plaza::Application = new Plaza::ApplicationClass();
+using namespace Plaza;
 
 
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
@@ -20,7 +20,7 @@ int main() {
 	// Start
 	Application->CreateApplication();
 	Physics::Init();
-	Application->activeScene->mainSceneEntity = new GameObject("Scene");
+	Application->activeScene->mainSceneEntity = new Entity("Scene");
 	Editor::DefaultModels::Init();
 	Application->Loop();
 	Application->Terminate();

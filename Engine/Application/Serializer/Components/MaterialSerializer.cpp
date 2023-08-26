@@ -1,7 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "MaterialSerializer.h"
 #include "TextureSerializer.h"
-namespace Engine {
+namespace Plaza {
 	void ComponentSerializer::MaterialSerializer::Serialize(YAML::Emitter& out, Material& material) {
 		out << YAML::Key << "MaterialComponent" << YAML::Value << YAML::BeginMap;
 		TextureSerializer::Serialize(out, material.diffuse);

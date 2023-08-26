@@ -1,22 +1,22 @@
 #pragma once
 #include <imgui/imgui.h>
 
-#include "Engine/Components/Core/GameObject.h"
+#include "Engine/Components/Core/Entity.h"
 #include "Editor/GUI/guiMain.h"
 #include "Editor/GUI/Style/EditorStyle.h"
-namespace Engine::Editor {
+namespace Plaza::Editor {
 	class Gui::Hierarchy {
 	public:
 		class Item { // Item consists of a Treenode and a selectable
 		public:
-			GameObject& currentObj;
-			GameObject& selectedGameObject;
+			Entity& currentObj;
+			Entity& selectedGameObject;
 			std::string payloadName = "TreeNodeItemPayload";
 
-			Item(GameObject& gameObject, GameObject*& selectedGameObject);
-			void HierarchyDragDrop(GameObject& gameObject, GameObject* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax);
+			Item(Entity& entity, Entity*& selectedGameObject);
+			void HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax);
 
-			static void ItemPopup(GameObject& gameObject);
+			static void ItemPopup(Entity& entity);
 		};
 	};
 }

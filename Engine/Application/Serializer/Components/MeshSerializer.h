@@ -1,6 +1,6 @@
 #pragma once
 #include "ComponentSerializer.h"
-namespace Engine {
+namespace Plaza {
 	class ComponentSerializer::MeshSerializer {
 	public:
 		static void Serialize(YAML::Emitter& out, Mesh& mesh);

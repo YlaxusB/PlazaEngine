@@ -6,14 +6,15 @@
 
 
 using namespace std;
-using namespace Engine;
-namespace Engine {
+using namespace Plaza;
+namespace Plaza {
 	struct Vertex {
 		glm::vec3 position;
 		glm::vec3 normal;
 		glm::vec2 texCoords;
 		glm::vec3 tangent;
 		glm::vec3 bitangent;
+		bool isValid = true;
 		~Vertex() = default;
 		Vertex(const glm::vec3& pos)
 			: Vertex(pos, glm::vec3(0.0f), glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)) {}
@@ -25,6 +26,7 @@ namespace Engine {
 	class Mesh {
 	public:
 		unsigned int instanceBuffer;
+		unsigned int uniformBuffer;
 		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
 		uint64_t uuid;
 		uint64_t meshId;
@@ -43,23 +45,23 @@ namespace Engine {
 			this->vertices = vertices;
 			this->indices = indices;
 			this->material = material;
-			this->uuid = Engine::UUID::NewUUID();
+			this->uuid = Plaza::UUID::NewUUID();
 			if (this->meshId == 0)
-				this->meshId = Engine::UUID::NewUUID();
+				this->meshId = Plaza::UUID::NewUUID();
 			setupMesh();
 		}
 
 		Mesh(vector<Vertex> vertices, vector<unsigned int> indices) {
 			this->vertices = vertices;
 			this->indices = indices;
-			this->uuid = Engine::UUID::NewUUID();
+			this->uuid = Plaza::UUID::NewUUID();
 			if (this->meshId == 0)
-				this->meshId = Engine::UUID::NewUUID();
+				this->meshId = Plaza::UUID::NewUUID();
 			setupMesh();
 		}
 
 		Mesh() {
-			uuid = Engine::UUID::NewUUID();
+			uuid = Plaza::UUID::NewUUID();
 		}
 
 		void BindTextures(Shader& shader) {
@@ -85,7 +87,6 @@ namespace Engine {
 					constexpr GLint textureDiffuseUnit = 0;
 					glActiveTexture(GL_TEXTURE0 + textureDiffuseUnit);
 					glBindTexture(GL_TEXTURE_2D, material.diffuse.id);
-					shader.setInt(textureDiffuseUniform, textureDiffuseUnit);
 					shader.setVec4(textureDiffuseRGBAUniform, glm::vec4(300, 300, 300, 300));
 				}
 			}
@@ -97,7 +98,6 @@ namespace Engine {
 				}
 				else {
 					constexpr GLint textureSpecularUnit = 1;
-					glUniform1i(glGetUniformLocation(shader.ID, textureSpecularUniform), textureSpecularUnit);
 					glActiveTexture(GL_TEXTURE0 + textureSpecularUnit);
 					glBindTexture(GL_TEXTURE_2D, material.specular.id);
 					shader.setVec4(textureSpecularRGBAUniform, glm::vec4(300, 300, 300, 300));
@@ -106,14 +106,12 @@ namespace Engine {
 
 			if (!material.normal.IsTextureEmpty()) {
 				constexpr GLint textureNormalUnit = 2;
-				glUniform1i(glGetUniformLocation(shader.ID, textureNormalUniform), textureNormalUnit);
 				glActiveTexture(GL_TEXTURE0 + textureNormalUnit);
 				glBindTexture(GL_TEXTURE_2D, material.normal.id);
 			}
 
 			if (!material.height.IsTextureEmpty()) {
 				constexpr GLint textureHeightUnit = 3;
-				glUniform1i(glGetUniformLocation(shader.ID, textureHeightUniform), textureHeightUnit);
 				glActiveTexture(GL_TEXTURE0 + textureHeightUnit);
 				glBindTexture(GL_TEXTURE_2D, material.height.id);
 			}
@@ -145,7 +143,6 @@ namespace Engine {
 				//glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
 				glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, instanceModelMatrices.size());
 				glBindVertexArray(0);
-
 				// always good practice to set everything back to defaults once configured.
 				Time::drawCalls += 1;
 				glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -164,16 +161,7 @@ namespace Engine {
 				glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, instanceModelMatrices.size());
 				glBindVertexArray(0);
 
-				// always good practice to set everything back to defaults once configured.
-				glActiveTexture(GL_TEXTURE0);
-				glActiveTexture(GL_TEXTURE0 + 1);
-				glBindTexture(GL_TEXTURE_2D, 0);
-				glActiveTexture(GL_TEXTURE0 + 2);
-				glBindTexture(GL_TEXTURE_2D, 0);
-				glActiveTexture(GL_TEXTURE0 + 3);
-				glBindTexture(GL_TEXTURE_2D, 0);
 				Time::drawCalls += 1;
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
 				Time::addInstanceCalls += instanceModelMatrices.size();
 				instanceModelMatrices.clear();
 				//instanceModelMatrices.resize(0);
@@ -248,7 +236,11 @@ namespace Engine {
 			glVertexAttribDivisor(10, 1);
 			glBindVertexArray(0);
 
-
+			// Generate Uniform Buffer
+			glGenBuffers(1, &this->uniformBuffer);
+			glBindBuffer(GL_UNIFORM_BUFFER, this->uniformBuffer);
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(Material), &this->material, GL_STATIC_DRAW);
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			for (Vertex vertex : vertices) {
 				glm::vec3 absoluteVertex = glm::vec3(glm::abs(vertex.position.x), glm::abs(vertex.position.y), glm::abs(vertex.position.z));
 				float absoluteSum = absoluteVertex.x + absoluteVertex.y + absoluteVertex.z;

@@ -28,6 +28,7 @@
 //#include "Engine/Vendor/physx/PxPhysicsAPI.h"
 //#include "Engine/Vendor/physx/vehicle/PxVehicleSDK.h"
 #include <physx/PxPhysicsAPI.h>
+#include <physx/cooking/PxCooking.h>
 
 #include <iostream>
 #include <random>

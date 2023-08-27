@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/Core/Script.h"
 namespace Plaza {
 	namespace Editor {
 		class Project {
@@ -9,6 +10,7 @@ namespace Plaza {
 			std::string creationDate;
 			std::string lastModifyDate;
 
+			vector<Script> scripts;
 		};
 	}
 }

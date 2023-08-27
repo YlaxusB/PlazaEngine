@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "FileExplorer.h"
+#include "Editor/GUI/Popups/FileExplorerPopup.h"
 
 namespace Plaza {
 	namespace Editor {
@@ -38,6 +39,9 @@ namespace Plaza {
 					}
 					index++;
 				}
+
+				Popup::FileExplorerPopup::Update();
+				
 				ImGui::EndGroup();
 			}
 
@@ -46,6 +50,7 @@ namespace Plaza {
 
 
 		}
+
 		std::vector<File> Gui::FileExplorer::files = std::vector<File>();
 		void Gui::FileExplorer::UpdateContent(std::string folderPath) {
 			files.clear();

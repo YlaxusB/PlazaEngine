@@ -1,13 +1,13 @@
 #pragma once
-#include "Engine/Components/Core/Entity.h"
-#include "Engine/Components/Rendering/MeshRenderer.h"
 #include <vector>
 #include <variant>
-#include "Engine/Components/Core/Entity.h"
 #include <unordered_map>
-#include "Engine/Components/Physics/RigidBody.h"
 
+#include "Engine/Components/Core/Entity.h"
+#include "Engine/Components/Rendering/MeshRenderer.h"
+#include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Components/Physics/Collider.h"
+#include "Engine/Components/Scripting/CppScriptComponent.h"
 using namespace std;
 namespace Plaza {
 	struct Uint64Hash {
@@ -50,6 +50,7 @@ namespace Plaza {
 		std::unordered_map<uint64_t, MeshRenderer> meshRendererComponents;
 		std::unordered_map<uint64_t, RigidBody> rigidBodyComponents;
 		std::unordered_map<uint64_t, Collider> colliderComponents;
+		std::unordered_map<uint64_t, CppScriptComponent> cppScriptComponents;
 		std::vector<MeshRenderer*> meshRenderers;
 		std::map<uint64_t, shared_ptr<Mesh>> meshes;
 

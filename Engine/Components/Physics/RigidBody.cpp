@@ -4,7 +4,6 @@
 #include "Collider.h"
 using namespace physx;
 namespace Plaza {
-
 	RigidBody::RigidBody(uint64_t uuid, bool initWithPhysics, bool dynamic) {
 		if (initWithPhysics) {
 			this->uuid = uuid;

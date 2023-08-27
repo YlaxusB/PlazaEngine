@@ -59,20 +59,24 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="PropertySheet.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="PropertySheet.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="PropertySheet.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="PropertySheet.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>./Engine/Vendor/;$(IncludePath)</IncludePath>
-    <LibraryPath>./lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)/Engine/Vendor/;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)/lib;$(LibraryPath)</LibraryPath>
     <TargetName>OpenGLEngine</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -113,7 +117,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;TRACY_ENABLE;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>./Engine/Vendor/imgui;./;./Engine/Vendor/yaml-cpp;./Engine/Vendor/yaml/include;./Engine/Vendor/Tracy;./Engine/Vendor/physx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Engine/Vendor/imgui;$(ProjectDir)/;$(ProjectDir)/Engine/Vendor/yaml-cpp;$(ProjectDir)/Engine/Vendor/yaml/include;$(ProjectDir)/Engine/Vendor/Tracy;$(ProjectDir)/Engine/Vendor/physx;$(ProjectDir)/lib</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Engine/Core/PreCompiledHeaders.h</PrecompiledHeaderFile>
@@ -124,7 +128,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;assimp-vc143-mt.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXCooking_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;assimp-vc143-mt.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXCooking_64.lib;mono-2.0-sgen.lib;MonoPosixHelper.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>call .\buildPhysx.bat
@@ -159,6 +163,7 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Editor\GUI\FileExplorer\FileExplorer.cpp" />
     <ClCompile Include="Editor\GUI\Hierarchy\HierarchyPopup.cpp" />
     <ClCompile Include="Editor\GUI\Inspector.cpp" />
+    <ClCompile Include="Editor\GUI\Popups\FileExplorerPopup.cpp" />
     <ClCompile Include="Editor\GUI\Popups\NewEntityPopup.cpp" />
     <ClCompile Include="Editor\GUI\ProjectManager\OpenProjectClick.cpp" />
     <ClCompile Include="Editor\ModelImporter\ModelImporter.cpp" />
@@ -198,10 +203,12 @@ call .\setdllpath.bat</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Engine\Components\Rendering\Prefab.cpp" />
+    <ClCompile Include="Engine\Components\Scripting\CppScriptComponent.cpp" />
     <ClCompile Include="Engine\Core\Engine.cpp" />
     <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp" />
     <ClCompile Include="Engine\Core\ModelLoader\ModelLoader.cpp" />
     <ClCompile Include="Engine\Core\ModelLoader\TexturesHandler.cpp" />
+    <ClCompile Include="Engine\Core\Mono.cpp" />
     <ClCompile Include="Engine\Core\Physics.cpp" />
     <ClCompile Include="Engine\Core\Scene.cpp" />
     <ClCompile Include="Engine\Core\Standards.cpp" />
@@ -381,9 +388,11 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Editor\GUI\Inspector\ColliderInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\RigidBodyInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\SceneInspector.h" />
+    <ClInclude Include="Editor\GUI\Popups\FileExplorerPopup.h" />
     <ClInclude Include="Editor\GUI\Popups\NewEntityPopup.h" />
     <ClInclude Include="Editor\GUI\Popups\Popup.h" />
     <ClInclude Include="Editor\GUI\Utils\DataVisualizer.h" />
+    <ClInclude Include="Editor\GUI\Utils\Filesystem.h" />
     <ClInclude Include="Editor\GUI\Utils\ImageLoader.h" />
     <ClInclude Include="Editor\ModelImporter\ModelImporter.h" />
     <ClInclude Include="Editor\Project.h" />
@@ -403,6 +412,8 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Application\Serializer\ProjectSerializer.h" />
     <ClInclude Include="Engine\Application\Window.h" />
     <ClInclude Include="Engine\Components\Core\Entity.h" />
+    <ClInclude Include="Engine\Core\Mono.h" />
+    <ClInclude Include="Engine\Core\Script.h" />
     <ClInclude Include="Engine\Components\Physics\Collider.h" />
     <ClInclude Include="Engine\Components\Physics\RigidBody.h" />
     <ClInclude Include="Engine\Components\Rendering\Material.h" />
@@ -410,6 +421,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Components\Rendering\Mesh.h" />
     <ClInclude Include="Engine\Components\Rendering\MeshRenderer.h" />
     <ClInclude Include="Engine\Components\Rendering\Prefab.h" />
+    <ClInclude Include="Engine\Components\Scripting\CppScriptComponent.h" />
     <ClInclude Include="Engine\Core\Engine.h" />
     <ClInclude Include="Engine\Core\FrameBuffer.h" />
     <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h" />

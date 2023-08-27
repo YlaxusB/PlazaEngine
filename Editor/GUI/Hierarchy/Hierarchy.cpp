@@ -147,6 +147,13 @@ namespace Plaza::Editor {
 					entity.AddComponent<Camera>(camera);
 				}
 
+				if (ImGui::MenuItem("Cpp Script"))
+				{
+					CppScriptComponent* script = new CppScriptComponent();
+					script->uuid = entity.uuid;
+					entity.AddComponent<CppScriptComponent>(script);
+				}
+
 				ImGui::EndMenu();
 			}
 

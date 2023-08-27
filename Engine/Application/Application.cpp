@@ -30,6 +30,7 @@
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Core/Physics.h"
 #include "Engine/Components/Core/Camera.h"
+#include "Engine/Core/Mono.h"
 char* appdataValue;
 size_t len;
 errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");
@@ -170,6 +171,8 @@ void ApplicationClass::CreateApplication() {
 	InitShaders();
 	InitOpenGL();
 
+	Mono::Init();
+
 	Renderer::Init();
 
 	InitBlur();
@@ -229,12 +232,19 @@ void ApplicationClass::UpdateEngine() {
 	// Update Camera Position and Rotation
 	Application->activeCamera->Update();
 
-	//Physics::m_scene->simulate(1/60.0f);
-	//Physics::m_scene->fetchResults(true);
+	/* Update Physics */
 	if (Application->runningScene) {
 		Physics::Advance(Time::deltaTime);
 		Physics::Update();
 	}
+
+	/* Update Scripts */
+	if (Application->runningScene) {
+		for (auto [key, value] : Application->activeScene->cppScriptComponents) {
+			value.OnUpdate();
+		}
+	}
+
 	// Imgui New Frame
 	Gui::NewFrame();
 
@@ -252,9 +262,6 @@ void ApplicationClass::UpdateEngine() {
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 	Renderer::Render(*Application->shader);
 	Renderer::RenderInstances(*Application->shader);
-
-
-
 
 	// Update Skybox
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);

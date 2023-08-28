@@ -6,7 +6,7 @@
 #include "Engine/Application/Serializer/ProjectSerializer.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Engine/Application/Serializer/ScriptManagerSerializer.h"
-#include "Engine/Core/Mono.h"
+#include "Engine/Core/Scripting/Mono.h"
 namespace Plaza {
 	namespace Editor {
 		namespace fs = std::filesystem;

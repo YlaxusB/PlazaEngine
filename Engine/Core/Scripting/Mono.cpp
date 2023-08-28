@@ -1,9 +1,13 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Mono.h"
+#include <functional>
 
+#define PL_ADD_INTERNAL_CALL(name) mono_add_internal_call("Plaza.InternalCalls::" #name, (void*)InternalCalls::name)
 namespace Plaza {
+
 	MonoDomain* Mono::mAppDomain = nullptr;
 	MonoAssembly* Mono::mCoreAssembly = nullptr;
+	MonoDomain* Mono::mMonoRootDomain = nullptr;
 	char* ReadBytes(const std::string& filepath, uint32_t* outSize)
 	{
 		std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
@@ -76,7 +80,7 @@ namespace Plaza {
 		}
 	}
 
-	MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className)
+	MonoClass* Mono::GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className)
 	{
 		MonoImage* image = mono_assembly_get_image(assembly);
 		MonoClass* klass = mono_class_from_name(image, namespaceName, className);
@@ -108,7 +112,7 @@ namespace Plaza {
 		return classInstance;
 	}
 
-	void CallMethod(MonoObject* objectInstance, std::string methodName)
+	void Mono::CallMethod(MonoObject* objectInstance, std::string methodName)
 	{
 		// Get the MonoClass pointer from the instance
 		MonoClass* instanceClass = mono_object_get_class(objectInstance);
@@ -150,24 +154,26 @@ namespace Plaza {
 	void Mono::Init() {
 		mono_set_assemblies_path("lib/mono");
 		//mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
-		MonoDomain* rootDomain = mono_jit_init("MyScriptRuntime");
-		if (rootDomain == nullptr)
+		if(Mono::mMonoRootDomain == nullptr)
+		Mono::mMonoRootDomain = mono_jit_init("MyScriptRuntime");
+		if (Mono::mMonoRootDomain == nullptr)
 		{
 			// Maybe log some error here
 			return;
 		}
-
 		// Create an App Domain
 		char appDomainName[] = "PlazaAppDomain";
 		Mono::mAppDomain = mono_domain_create_appdomain(appDomainName, nullptr);
 		mono_domain_set(mAppDomain, true);
 
 		// Add all the internal calls
-		mono_add_internal_call("Plaza.InternalCalls::CppFunction", CppFunction);
-		mono_add_internal_call("Plaza.InternalCalls::Vector3Log", Vector3Log);
+		//mono_add_internal_call("Plaza.InternalCalls::CppFunction", CppFunction);
+		//mono_add_internal_call("Plaza.InternalCalls::Vector3Log", Vector3Log);
+
+		InternalCalls::Init();
 
 		// Load the PlazaScriptCore.dll assembly
-		mCoreAssembly = mono_domain_assembly_open(mAppDomain, (Application->dllPath + "PlazaScriptCore.dll").c_str());
+		mCoreAssembly = mono_domain_assembly_open(mAppDomain, (Application->dllPath + "\\PlazaScriptCore.dll").c_str());
 		if (!mCoreAssembly) {
 			// Handle the error (assembly not found or failed to load)
 			std::cout << "Didnt loaded assembly" << std::endl;

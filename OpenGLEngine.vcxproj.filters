@@ -360,7 +360,7 @@
     <ClCompile Include="Editor\GUI\Popups\FileExplorerPopup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Core\Mono.cpp">
+    <ClCompile Include="Engine\Core\Scripting\Mono.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Editor\Settings\ProjectGenerator.cpp">
@@ -373,6 +373,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Editor\ScriptManager\ScriptReloadAssembly.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Core\Scripting\InternalCalls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -2030,7 +2033,7 @@
     <ClInclude Include="Editor\GUI\Utils\Filesystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Core\Mono.h">
+    <ClInclude Include="Engine\Core\Scripting\Mono.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Editor\Settings\ProjectGenerator.h">
@@ -2040,6 +2043,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Editor\ScriptManager\ScriptManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Core\Scripting\Script.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

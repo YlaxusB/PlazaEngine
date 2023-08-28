@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Scene.h"
-#include "Engine/Core/Mono.h"
+#include "Engine/Core/Scripting/Mono.h"
 namespace Plaza {
 	Scene* Scene::Copy(Scene* newScene, Scene* copyScene) {
 		newScene->mainSceneEntity = new Entity(*copyScene->mainSceneEntity);

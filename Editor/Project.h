@@ -2,6 +2,7 @@
 #include "Engine/Core/Script.h"
 #include "Engine/Vendor/mono/jit/jit.h"
 #include "Engine/Vendor/mono/metadata/assembly.h"
+#include "Engine/Core/Scripting/Script.h"
 namespace Plaza {
 	namespace Editor {
 		class Project {
@@ -14,7 +15,7 @@ namespace Plaza {
 
 			std::string scriptsConfigFilePath;
 
-			std::map<std::string, std::chrono::system_clock::time_point> scripts;
+			std::map<std::string, Script> scripts;
 			std::map<std::string, MonoObject*> monoObjects;
 		};
 	}

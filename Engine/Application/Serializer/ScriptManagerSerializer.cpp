@@ -13,13 +13,13 @@ namespace Plaza {
 		fout << out.c_str();
 	}
 
-	void ScriptManagerSerializer::AddScript(std::string scriptConfigPath, std::string scriptPath, std::chrono::system_clock::time_point time) {
-		std::map<std::string, std::chrono::system_clock::time_point> map = DeSerialize(scriptConfigPath);
-		map.emplace(scriptPath, time);
+	void ScriptManagerSerializer::AddScript(std::string scriptConfigPath, std::string scriptPath, Script script) {
+		std::map<std::string, Script> map = DeSerialize(scriptConfigPath);
+		map.emplace(scriptPath, script);
 		ScriptManagerSerializer::Serialize(scriptConfigPath, map);
 	}
 
-	void ScriptManagerSerializer::Serialize(std::string fullPath, std::map<std::string, std::chrono::system_clock::time_point> scripts) {
+	void ScriptManagerSerializer::Serialize(std::string fullPath, std::map<std::string, Script> scripts) {
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Script Manager Path" << YAML::Value << fullPath;
@@ -28,7 +28,7 @@ namespace Plaza {
 			out << YAML::BeginMap;
 			out << YAML::Key << "Script" << YAML::Value << key;
 			using namespace std::chrono_literals;
-			std::chrono::time_point tp = value;
+			std::chrono::time_point tp = value.lastModifiedDate;
 			std::string dateString = std::format("{:%Y%m%d%H%M%S}", tp);
 			out << YAML::Key << "Date" << YAML::Value << dateString;
 			out << YAML::EndMap;
@@ -39,8 +39,8 @@ namespace Plaza {
 		fout << out.c_str();
 	}
 
-	std::map<std::string, std::chrono::system_clock::time_point> ScriptManagerSerializer::DeSerialize(std::string fullPath) {
-		std::map<std::string, std::chrono::system_clock::time_point> scriptsMap = std::map<std::string, std::chrono::system_clock::time_point>();
+	std::map<std::string, Script> ScriptManagerSerializer::DeSerialize(std::string fullPath) {
+		std::map<std::string, Script> scriptsMap = std::map<std::string, Script>();
 		std::ifstream stream(fullPath);
 		std::stringstream strStream;
 		strStream << stream.rdbuf();
@@ -65,7 +65,10 @@ namespace Plaza {
 
 
 			///std::string scriptDate = script["Date"].as<string>();
-			scriptsMap.emplace(scriptPath, tp);
+			Script script = Script();
+			script.lastModifiedDate = tp;
+
+			scriptsMap.emplace(scriptPath, script);
 		}
 		return scriptsMap;
 	}

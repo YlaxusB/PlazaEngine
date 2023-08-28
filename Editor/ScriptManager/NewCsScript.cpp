@@ -29,8 +29,10 @@ namespace Plaza::Editor {
 			file.close();
 		}
 
-		Application->activeProject->scripts.emplace(fullPath, std::chrono::system_clock::now());
-		std::map<std::string, std::chrono::system_clock::time_point> map = Application->activeProject->scripts;
+		Script script = Script();
+		script.lastModifiedDate = std::chrono::system_clock::now();
+		Application->activeProject->scripts.emplace(fullPath, script);
+		std::map<std::string, Script> map = Application->activeProject->scripts;
 		ScriptManagerSerializer::Serialize(Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName, map);
 	}
 }

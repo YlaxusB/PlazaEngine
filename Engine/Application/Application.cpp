@@ -30,7 +30,7 @@
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Core/Physics.h"
 #include "Engine/Components/Core/Camera.h"
-#include "Engine/Core/Mono.h"
+#include "Engine/Core/Scripting/Mono.h"
 char* appdataValue;
 size_t len;
 errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");
@@ -157,7 +157,7 @@ void ApplicationClass::InitShaders() {
 void ApplicationClass::CreateApplication() {
 	std::filesystem::path currentPath(__FILE__);
 	Application->projectPath = currentPath.parent_path().parent_path().parent_path().string();
-	Application->dllPath = currentPath.parent_path().parent_path().parent_path().string() + "\\dllPath";
+	Application->dllPath = currentPath.parent_path().parent_path().parent_path().string() + "\\dll";
 	Application->enginePath = currentPath.parent_path().parent_path().string();
 	Application->editorPath = currentPath.parent_path().parent_path().parent_path().string() + "\\Editor";
 	Application->enginePathAppData = std::string(appdataValue) + "\\Plaza Engine\\";

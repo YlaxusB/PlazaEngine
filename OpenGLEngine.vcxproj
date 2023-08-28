@@ -212,7 +212,8 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp" />
     <ClCompile Include="Engine\Core\ModelLoader\ModelLoader.cpp" />
     <ClCompile Include="Engine\Core\ModelLoader\TexturesHandler.cpp" />
-    <ClCompile Include="Engine\Core\Mono.cpp" />
+    <ClCompile Include="Engine\Core\Scripting\InternalCalls.cpp" />
+    <ClCompile Include="Engine\Core\Scripting\Mono.cpp" />
     <ClCompile Include="Engine\Core\Physics.cpp" />
     <ClCompile Include="Engine\Core\Scene.cpp" />
     <ClCompile Include="Engine\Core\Standards.cpp" />
@@ -419,7 +420,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Application\Serializer\ScriptManagerSerializer.h" />
     <ClInclude Include="Engine\Application\Window.h" />
     <ClInclude Include="Engine\Components\Core\Entity.h" />
-    <ClInclude Include="Engine\Core\Mono.h" />
+    <ClInclude Include="Engine\Core\Scripting\Mono.h" />
     <ClInclude Include="Engine\Core\Script.h" />
     <ClInclude Include="Engine\Components\Physics\Collider.h" />
     <ClInclude Include="Engine\Components\Physics\RigidBody.h" />
@@ -436,6 +437,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Core\ModelLoader\ModelLoader.h" />
     <ClInclude Include="Engine\Core\Physics.h" />
     <ClInclude Include="Engine\Core\Scene.h" />
+    <ClInclude Include="Engine\Core\Scripting\Script.h" />
     <ClInclude Include="Engine\Core\Standards.h" />
     <ClInclude Include="Engine\Core\UUID.h" />
     <ClInclude Include="Engine\Editor\Editor.h" />

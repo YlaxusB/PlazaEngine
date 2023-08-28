@@ -6,7 +6,7 @@
 #include "Editor/DefaultAssets/DefaultAssets.h"
 
 #include "Editor/GUI/Popups/NewEntityPopup.h"
-#include "Engine/Core/Mono.h"
+#include "Engine/Core/Scripting/Mono.h"
 namespace Plaza::Editor {
 	Gui::Hierarchy::Item::Item(Entity& entity, Entity*& selectedGameObject) : currentObj(entity), selectedGameObject(*selectedGameObject) {
 		// Push the entity id, to prevent it to collpases all the treenodes with same id
@@ -155,6 +155,8 @@ namespace Plaza::Editor {
 							CppScriptComponent* script = new CppScriptComponent();
 							script->uuid = entity.uuid;
 							script->monoObject = Mono::InstantiateClass("", "Unnamed", Mono::LoadCSharpAssembly(key), Mono::mAppDomain);
+							std::string csFileName = filesystem::path{ key }.replace_extension(".cs").string();
+							Application->activeProject->scripts.at(csFileName).entitiesUsingThisScript.push_back(entity.uuid);
 							entity.AddComponent<CppScriptComponent>(script);
 						}
 					}

@@ -15,7 +15,7 @@ using namespace Plaza;
 #include "Engine/Vendor/Tracy/tracy/Tracy.hpp"
 
 #include "Engine/Core/Physics.h"
-#include "Engine/Core/Mono.h"
+#include "Engine/Core/Scripting/Mono.h"
 #ifdef TRACY_ENABLE
 int main() {
 	// Start

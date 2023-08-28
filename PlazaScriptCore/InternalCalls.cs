@@ -7,13 +7,24 @@ using System.Threading.Tasks;
 
 namespace Plaza
 {
-    public class InternalCalls
+    public static class InternalCalls
     {
+        public static Vector3 GetPosition()
+        {
+            GetPositionCall(out Vector3 vector);
+            return vector;
+        }
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static void CppFunction();
+        public extern static void SetPosition(ref Vector3 vector);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static void Vector3Log(Vector3 vector);
+        public extern static void GetPositionCall(out Vector3 vector);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static bool InputIsKeyDown(KeyCode keyCode);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void MoveTowards(Vector3 vector3);
     }
 }

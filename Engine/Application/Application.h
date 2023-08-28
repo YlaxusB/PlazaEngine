@@ -31,6 +31,7 @@ namespace Plaza {
 		int drawCalls = 0;
 
 		std::string projectPath;
+		std::string dllPath;
 		std::string enginePath;
 		std::string editorPath;
 		std::string enginePathAppData;

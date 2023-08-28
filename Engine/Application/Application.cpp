@@ -157,6 +157,7 @@ void ApplicationClass::InitShaders() {
 void ApplicationClass::CreateApplication() {
 	std::filesystem::path currentPath(__FILE__);
 	Application->projectPath = currentPath.parent_path().parent_path().parent_path().string();
+	Application->dllPath = currentPath.parent_path().parent_path().parent_path().string() + "\\dllPath";
 	Application->enginePath = currentPath.parent_path().parent_path().string();
 	Application->editorPath = currentPath.parent_path().parent_path().parent_path().string() + "\\Editor";
 	Application->enginePathAppData = std::string(appdataValue) + "\\Plaza Engine\\";
@@ -170,8 +171,6 @@ void ApplicationClass::CreateApplication() {
 	// Initialize OpenGL, Shaders and Skybox
 	InitShaders();
 	InitOpenGL();
-
-	Mono::Init();
 
 	Renderer::Init();
 
@@ -240,9 +239,7 @@ void ApplicationClass::UpdateEngine() {
 
 	/* Update Scripts */
 	if (Application->runningScene) {
-		for (auto [key, value] : Application->activeScene->cppScriptComponents) {
-			value.OnUpdate();
-		}
+		Mono::Update();
 	}
 
 	// Imgui New Frame

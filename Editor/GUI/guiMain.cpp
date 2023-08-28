@@ -22,6 +22,7 @@
 
 #include "Editor/GUI/Hierarchy/HierarchyPopup.h"
 #include "Editor/GUI/Utils/ImageLoader.h"
+#include "Editor/ScriptManager/ScriptManager.h"
 //#include "Engine/Application/Application.h" //
 
 //
@@ -200,6 +201,10 @@ namespace Plaza {
 					Scene::Stop();
 				else
 					Scene::Play();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Reload C# Script Assembly")) {
+				ScriptManager::ReloadScriptsAssembly();
 			}
 			ImGui::PopStyleColor();
 			ImGui::PopStyleColor();

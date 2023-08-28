@@ -6,6 +6,7 @@
 #include "Engine/Core/Skybox.h"
 
 ApplicationClass* Plaza::Application = new Plaza::ApplicationClass();
+
 using namespace Plaza;
 
 
@@ -14,7 +15,7 @@ using namespace Plaza;
 #include "Engine/Vendor/Tracy/tracy/Tracy.hpp"
 
 #include "Engine/Core/Physics.h"
-
+#include "Engine/Core/Mono.h"
 #ifdef TRACY_ENABLE
 int main() {
 	// Start

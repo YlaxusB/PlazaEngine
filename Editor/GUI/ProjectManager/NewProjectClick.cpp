@@ -3,6 +3,8 @@
 
 #include "Engine/Application/FileDialog/FileDialog.h"
 #include "Engine/Application/Serializer/SceneSerializer.h"
+
+#include "Editor/Settings/ProjectGenerator.h"
 namespace Plaza {
 	namespace Editor {
 		void ProjectManagerGui::NewProjectClick() {

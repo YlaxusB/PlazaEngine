@@ -5,6 +5,8 @@
 #include "Engine/Application/Serializer/SceneSerializer.h"
 #include "Engine/Application/Serializer/ProjectSerializer.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
+#include "Engine/Application/Serializer/ScriptManagerSerializer.h"
+#include "Engine/Core/Mono.h"
 namespace Plaza {
 	namespace Editor {
 		namespace fs = std::filesystem;
@@ -24,6 +26,8 @@ namespace Plaza {
 					Application->activeProject = new Project();
 					Application->activeProject->name = fileName;
 					Application->activeProject->directory = projectFile.parent_path().string();
+					Application->activeProject->scriptsConfigFilePath = Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName;
+					Application->activeProject->scripts = ScriptManagerSerializer::DeSerialize(Application->activeProject->scriptsConfigFilePath);
 
 					Application->runEngine = true;
 					Application->runProjectManagerGui = false;
@@ -31,6 +35,7 @@ namespace Plaza {
 					this->currentContent = new NewProjectContent();
 					Gui::FileExplorer::currentDirectory = Application->activeProject->directory;
 					Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+					Mono::Init();
 					return;
 				}
 				std::cout << "Project has not been found!" << std::endl;

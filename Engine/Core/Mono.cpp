@@ -1,166 +1,213 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Mono.h"
-#include "Engine/Vendor/mono/jit/jit.h"
-#include "Engine/Vendor/mono/metadata/assembly.h"
 
 namespace Plaza {
-    char* ReadBytes(const std::string& filepath, uint32_t* outSize)
-    {
-        std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
+	MonoDomain* Mono::mAppDomain = nullptr;
+	MonoAssembly* Mono::mCoreAssembly = nullptr;
+	char* ReadBytes(const std::string& filepath, uint32_t* outSize)
+	{
+		std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
 
-        if (!stream)
-        {
-            // Failed to open the file
-            return nullptr;
-        }
+		if (!stream)
+		{
+			// Failed to open the file
+			return nullptr;
+		}
 
-        std::streampos end = stream.tellg();
-        stream.seekg(0, std::ios::beg);
-        uint32_t size = end - stream.tellg();
+		std::streampos end = stream.tellg();
+		stream.seekg(0, std::ios::beg);
+		uint32_t size = end - stream.tellg();
 
-        if (size == 0)
-        {
-            // File is empty
-            return nullptr;
-        }
+		if (size == 0)
+		{
+			// File is empty
+			return nullptr;
+		}
 
-        char* buffer = new char[size];
-        stream.read((char*)buffer, size);
-        stream.close();
+		char* buffer = new char[size];
+		stream.read((char*)buffer, size);
+		stream.close();
 
-        *outSize = size;
-        return buffer;
-    }
+		*outSize = size;
+		return buffer;
+	}
 
-    MonoAssembly* LoadCSharpAssembly(const std::string& assemblyPath)
-    {
-        uint32_t fileSize = 0;
-        char* fileData = ReadBytes(assemblyPath, &fileSize);
+	MonoAssembly* Mono::LoadCSharpAssembly(const std::string& assemblyPath)
+	{
+		uint32_t fileSize = 0;
+		char* fileData = ReadBytes(assemblyPath, &fileSize);
 
-        // NOTE: We can't use this image for anything other than loading the assembly because this image doesn't have a reference to the assembly
-        MonoImageOpenStatus status;
-        MonoImage* image = mono_image_open_from_data_full(fileData, fileSize, 1, &status, 0);
+		// NOTE: We can't use this image for anything other than loading the assembly because this image doesn't have a reference to the assembly
+		MonoImageOpenStatus status;
+		MonoImage* image = mono_image_open_from_data_full(fileData, fileSize, 1, &status, 0);
 
-        if (status != MONO_IMAGE_OK)
-        {
-            const char* errorMessage = mono_image_strerror(status);
-            printf(errorMessage);
-            // Log some error message using the errorMessage data
-            return nullptr;
-        }
+		if (status != MONO_IMAGE_OK)
+		{
+			const char* errorMessage = mono_image_strerror(status);
+			printf(errorMessage);
+			// Log some error message using the errorMessage data
+			return nullptr;
+		}
 
-        MonoAssembly* assembly = mono_assembly_load_from_full(image, assemblyPath.c_str(), &status, 0);
-        mono_image_close(image);
+		MonoAssembly* assembly = mono_assembly_load_from_full(image, assemblyPath.c_str(), &status, 0);
+		mono_image_close(image);
 
-        // Don't forget to free the file data
-        delete[] fileData;
+		// Don't forget to free the file data
+		delete[] fileData;
 
-        return assembly;
-    }
+		return assembly;
+	}
 
-    void PrintAssemblyTypes(MonoAssembly* assembly)
-    {
-        MonoImage* image = mono_assembly_get_image(assembly);
-        const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
-        int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
+	void PrintAssemblyTypes(MonoAssembly* assembly)
+	{
+		MonoImage* image = mono_assembly_get_image(assembly);
+		const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
+		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
 
-        for (int32_t i = 0; i < numTypes; i++)
-        {
-            uint32_t cols[MONO_TYPEDEF_SIZE];
-            mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
+		for (int32_t i = 0; i < numTypes; i++)
+		{
+			uint32_t cols[MONO_TYPEDEF_SIZE];
+			mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
 
-            const char* nameSpace = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
-            const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
+			const char* nameSpace = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
+			const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
 
-            printf("%s.%s\n", nameSpace, name);
-        }
-    }
+			printf("%s.%s\n", nameSpace, name);
+		}
+	}
 
-    MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className)
-    {
-        MonoImage* image = mono_assembly_get_image(assembly);
-        MonoClass* klass = mono_class_from_name(image, namespaceName, className);
+	MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className)
+	{
+		MonoImage* image = mono_assembly_get_image(assembly);
+		MonoClass* klass = mono_class_from_name(image, namespaceName, className);
 
-        if (klass == nullptr)
-        {
-            // Log error here
-            return nullptr;
-        }
+		if (klass == nullptr)
+		{
+			// Log error here
+			return nullptr;
+		}
 
-        return klass;
-    }
+		return klass;
+	}
 
-    MonoObject* InstantiateClass(const char* namespaceName, const char* className, MonoAssembly* assembly, MonoDomain* appDomain)
-    {
-        // Get a reference to the class we want to instantiate
-        MonoClass* testingClass = GetClassInAssembly(assembly, "ClassLibrary1", "Class1");
+	MonoObject* Mono::InstantiateClass(const char* namespaceName, const char* className, MonoAssembly* assembly, MonoDomain* appDomain)
+	{
+		// Get a reference to the class we want to instantiate
+		MonoClass* testingClass = GetClassInAssembly(assembly, namespaceName, className);
 
-        // Allocate an instance of our class
-        MonoObject* classInstance = mono_object_new(appDomain, testingClass);
+		// Allocate an instance of our class
+		MonoObject* classInstance = mono_object_new(appDomain, testingClass);
 
-        if (classInstance == nullptr)
-        {
-            // Log error here and abort
-        }
+		if (classInstance == nullptr)
+		{
+			// Log error here and abort
+		}
 
-        // Call the parameterless (default) constructor
-        mono_runtime_object_init(classInstance);
-        return classInstance;
-    }
+		// Call the parameterless (default) constructor
+		mono_runtime_object_init(classInstance);
+		return classInstance;
+	}
 
-    void CallPrintFloatVarMethod(MonoObject* objectInstance)
-    {
-        // Get the MonoClass pointer from the instance
-        MonoClass* instanceClass = mono_object_get_class(objectInstance);
+	void CallMethod(MonoObject* objectInstance, std::string methodName)
+	{
+		// Get the MonoClass pointer from the instance
+		MonoClass* instanceClass = mono_object_get_class(objectInstance);
 
-        // Get a reference to the method in the class
-        MonoMethod* method = mono_class_get_method_from_name(instanceClass, "PrintFloatVar", 0);
+		// Get a reference to the method in the class
+		MonoMethod* method = mono_class_get_method_from_name(instanceClass, methodName.c_str(), 0);
 
-        if (method == nullptr)
-        {
-            // No method called "PrintFloatVar" with 0 parameters in the class, log error or something
-            return;
-        }
+		if (method == nullptr)
+		{
+			// No method called "PrintFloatVar" with 0 parameters in the class, log error or something
+			return;
+		}
 
-        // Call the C# method on the objectInstance instance, and get any potential exceptions
-        MonoObject* exception = nullptr;
-        mono_runtime_invoke(method, objectInstance, nullptr, &exception);
+		// Call the C# method on the objectInstance instance, and get any potential exceptions
+		MonoObject* exception = nullptr;
+		mono_runtime_invoke(method, objectInstance, nullptr, &exception);
 
-        // TODO: Handle the exception
-    }
+		// Check if an exception occurred
+		if (exception != nullptr) {
+			// Get the MonoException type
+			MonoClass* exceptionClass = mono_get_exception_class();
+			MonoString* messageString = mono_object_to_string((MonoObject*)exception, nullptr);
+			const char* message = mono_string_to_utf8(messageString);
+			printf("Exception occurred: %s\n", message);
 
+		}
+	}
 
-    void Mono::Init() {
-        mono_set_assemblies_path("lib/mono");
-        //mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
-        MonoDomain* rootDomain = mono_jit_init("MyScriptRuntime");
-        if (rootDomain == nullptr)
-        {
-            // Maybe log some error here
-            return;
-        }
+	static void CppFunction() {
+		std::cout << "Writen in C++" << std::endl;
+	}
 
-        // Create an App Domain
-        char appDomainName[] = "MyAppDomain";
-        MonoDomain* s_AppDomain = mono_domain_create_appdomain(appDomainName, nullptr);
-        mono_domain_set(s_AppDomain, true);
+	static void Vector3Log(glm::vec3* vec3) {
+		std::cout << "X: " << vec3->x << std::endl;
+		std::cout << "Y: " << vec3->y << std::endl;
+		std::cout << "Z: " << vec3->z << std::endl;
+	}
 
-        // Get a reference to the class we want to instantiate
-        char assemblyPath[] = "C:/Users/Giovane/Desktop/Workspace/ClassLibrary1/YourLibraryName.dll";
-        MonoClass* testingClass = GetClassInAssembly(LoadCSharpAssembly(assemblyPath), "ClassLibrary1", "Class1");
+	void Mono::Init() {
+		mono_set_assemblies_path("lib/mono");
+		//mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
+		MonoDomain* rootDomain = mono_jit_init("MyScriptRuntime");
+		if (rootDomain == nullptr)
+		{
+			// Maybe log some error here
+			return;
+		}
 
-        // Allocate an instance of our class
-        MonoObject* classInstance = mono_object_new(s_AppDomain, testingClass);
+		// Create an App Domain
+		char appDomainName[] = "PlazaAppDomain";
+		Mono::mAppDomain = mono_domain_create_appdomain(appDomainName, nullptr);
+		mono_domain_set(mAppDomain, true);
 
-        if (classInstance == nullptr)
-        {
-            // Log error here and abort
-        }
+		// Add all the internal calls
+		mono_add_internal_call("Plaza.InternalCalls::CppFunction", CppFunction);
+		mono_add_internal_call("Plaza.InternalCalls::Vector3Log", Vector3Log);
 
-        MonoObject* testInstance = InstantiateClass("", "CSharpTesting", LoadCSharpAssembly(assemblyPath), s_AppDomain);
-        CallPrintFloatVarMethod(testInstance);
+		// Load the PlazaScriptCore.dll assembly
+		mCoreAssembly = mono_domain_assembly_open(mAppDomain, (Application->dllPath + "PlazaScriptCore.dll").c_str());
+		if (!mCoreAssembly) {
+			// Handle the error (assembly not found or failed to load)
+			std::cout << "Didnt loaded assembly" << std::endl;
+		}
 
-        // Call the parameterless (default) constructor
-        mono_runtime_object_init(classInstance);
-    }
+		// Load all scripts
+		for (auto& [key, value] : Application->activeProject->scripts) {
+			std::string dllPath = filesystem::path{ key }.replace_extension(".dll").string();
+			// Get a reference to the class we want to instantiate
+
+			MonoClass* testingClass = GetClassInAssembly(LoadCSharpAssembly(dllPath), "", "Unnamed");
+
+			// Allocate an instance of our class
+			MonoObject* classInstance = mono_object_new(mAppDomain, testingClass);
+
+			if (classInstance == nullptr)
+			{
+				// Log error here and abort
+			}
+
+			MonoObject* monoObject = InstantiateClass("", "Unnamed", LoadCSharpAssembly(dllPath), mAppDomain);
+			//CallOnStart(monoObject);
+
+			// Call the parameterless (default) constructor
+			//mono_runtime_object_init(classInstance);
+			Application->activeProject->monoObjects.emplace(dllPath, monoObject);
+		}
+	}
+
+	// Execute OnStart on all scripts
+	void Mono::OnStart() {
+		for (auto [key, value] : Application->activeScene->cppScriptComponents) {
+			CallMethod(value.monoObject, "OnStart");
+		}
+	}
+
+	// Execute OnUpdate on all scripts
+	void Mono::Update() {
+		for (auto [key, value] : Application->activeScene->cppScriptComponents) {
+			CallMethod(value.monoObject, "OnUpdate");
+		}
+	}
 }

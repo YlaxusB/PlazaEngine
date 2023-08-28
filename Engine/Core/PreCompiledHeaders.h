@@ -29,6 +29,8 @@
 //#include "Engine/Vendor/physx/vehicle/PxVehicleSDK.h"
 #include <physx/PxPhysicsAPI.h>
 #include <physx/cooking/PxCooking.h>
+#include "Engine/Vendor/mono/jit/jit.h"
+#include "Engine/Vendor/mono/metadata/assembly.h"
 
 #include <iostream>
 #include <random>

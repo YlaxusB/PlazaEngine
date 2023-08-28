@@ -6,4 +6,5 @@ namespace Plaza {
 	string Standards::sceneExtName = engineExtName + "scn";
 	string Standards::materialExtName = engineExtName + "mat";
 	string Standards::modelExtName = engineExtName + "mod";
+	string Standards::scriptConfigExtName = engineExtName + "scp";
 }

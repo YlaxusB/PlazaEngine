@@ -8,5 +8,6 @@ namespace Plaza {
 		virtual void OnReload() {};
 		virtual void OnUpdate() {};
 		virtual void OnDestroy() {};
+		MonoObject* monoObject;
 	};
 }

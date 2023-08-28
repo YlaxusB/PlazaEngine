@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Scene.h"
+#include "Engine/Core/Mono.h"
 namespace Plaza {
 	Scene* Scene::Copy(Scene* newScene, Scene* copyScene) {
 		newScene->mainSceneEntity = new Entity(*copyScene->mainSceneEntity);
@@ -39,6 +40,7 @@ namespace Plaza {
 		newScene->transformComponents = std::unordered_map<uint64_t, Transform>(copyScene->transformComponents);
 		newScene->cameraComponents = std::unordered_map<uint64_t, Camera>(copyScene->cameraComponents);
 		newScene->meshRendererComponents = std::unordered_map<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
+		newScene->cppScriptComponents = std::unordered_map<uint64_t, CppScriptComponent>(copyScene->cppScriptComponents);
 
 		for (auto& [key, value] : copyScene->rigidBodyComponents) {
 			RigidBody* rigidBody = new RigidBody(value);
@@ -95,6 +97,8 @@ namespace Plaza {
 		Application->activeScene = Application->runtimeScene;
 		Application->copyingScene = false;
 		Application->runningScene = true;
+
+		Mono::OnStart();
 	}
 	void Scene::Stop() {
 		// Change active scene, update the selected object scene, delete runtime and set running to false.

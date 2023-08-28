@@ -5,7 +5,9 @@
 #include "Editor/GUI/ProjectManager/ProjectItem.h"
 #include "Editor/GUI/Style/EditorStyle.h"
 #include "Engine/Application/Serializer/ProjectSerializer.h"
+#include "Engine/Application/Serializer/ScriptManagerSerializer.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
+#include "Editor/Settings/ProjectGenerator.h"
 namespace Plaza {
 	namespace Editor {
 		void ProjectManagerGui::ProjectManagerContent::UpdateContent(ProjectManagerGui& projectManagerGui) {
@@ -24,11 +26,27 @@ namespace Plaza {
 				ImGui::InputText("##InputText", name, IM_ARRAYSIZE(name));
 				if (ImGui::Button("Create Project") && std::string(name) != "") {
 					Application->activeProject->name = std::string(name);
+					Application->activeProject->scriptsConfigFilePath = Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName;
 
 					Application->runEngine = true;
 					Application->runProjectManagerGui = false;
 
+					// Create the main project settings file
+					Gui::FileExplorer::currentDirectory = Application->activeProject->directory;
 					ProjectSerializer::Serialize(Application->activeProject->directory + "\\" + Application->activeProject->name + Standards::projectExtName);
+
+					// Create visual studio solution and project
+					const std::string solutionName = Application->activeProject->name;
+					const std::string projectName = Application->activeProject->name;
+					const std::string outputDirectory = Application->activeProject->directory; // Specify the desired output directory
+					ProjectGenerator::GenerateSolution(solutionName, projectName, outputDirectory);
+					ProjectGenerator::GenerateProject(projectName, outputDirectory);
+
+					// Create scripts holder file
+					ScriptManagerSerializer::Create(Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
+					ScriptManagerSerializer::DeSerialize(Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
+
+					// Update the file explorer content
 					Editor::Gui::FileExplorer::UpdateContent(Application->activeProject->directory);
 				}
 				if (ImGui::Button("Cancel")) {

@@ -20,8 +20,6 @@ namespace Plaza {
 		//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 		float mult = 1.0f;
 		shadowCascadeLevels = vector{ Application->activeCamera->farPlane / (9000.0f * mult), Application->activeCamera->farPlane / (3000.0f * mult), Application->activeCamera->farPlane / (1000.0f * mult), Application->activeCamera->farPlane / (500.0f * mult), Application->activeCamera->farPlane / (100.0f * mult), Application->activeCamera->farPlane / (35.0f * mult),Application->activeCamera->farPlane / (10.0f * mult), Application->activeCamera->farPlane / (2.0f * mult), Application->activeCamera->farPlane / (1.0f * mult) };
-		std::cout << "aiaiaiaiaia:" << std::endl;
-		std::cout << shadowCascadeLevels.size() << std::endl;
 		glTexImage3D(
 			GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, depthMapResolution, depthMapResolution, int(shadowCascadeLevels.size()) + 1,
 			0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);

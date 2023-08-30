@@ -10,6 +10,8 @@ namespace Plaza {
 			static float iconSize;
 			static float spacing;
 			static ImVec2 currentPos;
+			static bool firstFocus;
+			static std::string changingName;
 
 			std::string name;
 			std::string directory;

@@ -4,6 +4,7 @@ namespace Plaza::Editor {
 	public:
 		class NewEntityPopup;
 		class FileExplorerPopup;
+		class FileExplorerFilePopup;
 	};
 
 }

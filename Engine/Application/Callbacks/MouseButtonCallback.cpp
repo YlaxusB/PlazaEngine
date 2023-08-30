@@ -8,6 +8,8 @@ using namespace Plaza::Editor;
 using namespace Plaza;
 
 void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+	if (Application->hoveredMenu != "File Explorer")
+		Editor::selectedFiles.clear();
 	if (Application->hoveredMenu == "Scene") {
 		ApplicationSizes& appSizes = *Application->appSizes;
 		ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
@@ -36,7 +38,7 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 
 
 		// Select nothing if didnt clicked on a Entity
-		if (button == GLFW_MOUSE_BUTTON_LEFT && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && clickId <= 0) {
+		if (button == GLFW_MOUSE_BUTTON_LEFT && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && clickId <= 0 && Application->hoveredMenu == "Scene") {
 			Plaza::Editor::Gui::changeSelectedGameObject(nullptr);
 		}
 

@@ -9,6 +9,7 @@
 #include "Engine/Core/Scripting/Mono.h"
 namespace Plaza::Editor {
 	bool Gui::Hierarchy::Item::firstFocus = false;
+	float inputTextWidth = 0;
 	Gui::Hierarchy::Item::Item(Entity& entity, Entity*& selectedGameObject) : currentObj(entity), selectedGameObject(*selectedGameObject) {
 		const float height = 9.0f;
 		// Push the entity id, to prevent it to collpases all the treenodes with same id
@@ -74,7 +75,7 @@ namespace Plaza::Editor {
 				ImGui::SetCursorPosX(currentIndent + 20);
 
 			ImGui::SetNextWindowSize(ImVec2(50.0f, height));
-			if (ImGui::InputTextEx("##EntityNameInput", "Name", buf, 512, ImVec2(ImGui::CalcTextSize(buf).x + 20, 0), ImGuiInputTextFlags_EnterReturnsTrue)) {
+			if (ImGui::InputTextEx("##EntityNameInput", "Name", buf, 512, ImVec2(inputTextWidth, 0), ImGuiInputTextFlags_EnterReturnsTrue)) {
 				entity.name = buf;
 				entity.changingName = false;
 				nameChanged = true;
@@ -91,6 +92,8 @@ namespace Plaza::Editor {
 			if (firstFocus) {
 				firstFocus = false;
 			}
+
+			inputTextWidth = ImGui::CalcTextSize(buf).x + 30;
 		}
 
 		//ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x - 1.0f, ImGui::GetWindowPos().y));

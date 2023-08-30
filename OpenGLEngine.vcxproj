@@ -163,6 +163,7 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Editor\GUI\FileExplorer\FileExplorer.cpp" />
     <ClCompile Include="Editor\GUI\Hierarchy\HierarchyPopup.cpp" />
     <ClCompile Include="Editor\GUI\Inspector.cpp" />
+    <ClCompile Include="Editor\GUI\Popups\FileExplorerFilePopup.cpp" />
     <ClCompile Include="Editor\GUI\Popups\FileExplorerPopup.cpp" />
     <ClCompile Include="Editor\GUI\Popups\NewEntityPopup.cpp" />
     <ClCompile Include="Editor\GUI\ProjectManager\OpenProjectClick.cpp" />
@@ -393,6 +394,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Editor\GUI\Inspector\ColliderInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\RigidBodyInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\SceneInspector.h" />
+    <ClInclude Include="Editor\GUI\Popups\FileExplorerFilePopup.h" />
     <ClInclude Include="Editor\GUI\Popups\FileExplorerPopup.h" />
     <ClInclude Include="Editor\GUI\Popups\NewEntityPopup.h" />
     <ClInclude Include="Editor\GUI\Popups\Popup.h" />

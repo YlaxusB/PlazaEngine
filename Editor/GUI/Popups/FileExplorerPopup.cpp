@@ -4,30 +4,38 @@
 #include "Engine/Core/Script.h"
 
 #include "Editor/ScriptManager/ScriptManager.h"
+#include "Editor/GUI/FileExplorer/File.h"
 namespace Plaza::Editor {
+	void Popup::FileExplorerPopup::UpdateContent() {
+		if (ImGui::BeginMenu("Create"))
+		{
+			if (ImGui::MenuItem("Folder"))
+			{
+				Utils::Filesystem::CreateFolder(Gui::FileExplorer::currentDirectory + "\\Unnamed");
+				Editor::File::changingName = "Unnamed";
+				Editor::File::firstFocus = true;
+			}
+
+			if (ImGui::BeginMenu("Script"))
+			{
+				if (ImGui::MenuItem("C# Script"))
+				{
+					Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs");
+					Editor::File::changingName = "Unnamed.cs";
+					Editor::File::firstFocus = true;
+					//Application->activeProject->scripts.push_back(Script(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs", "Unnamed.cs"));
+					ScriptManager::NewCsScript(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs");
+				}
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenu();
+		}
+	}
 	void Popup::FileExplorerPopup::Update() {
 		if (ImGui::BeginPopupContextWindow("FileExplorerPopup"))
 		{
-			if (ImGui::BeginMenu("Create"))
-			{
-				if (ImGui::MenuItem("Folder"))
-				{
-					Utils::Filesystem::CreateFolder(Gui::FileExplorer::currentDirectory + "\\Unnamed");
-				}
-
-				if (ImGui::BeginMenu("Script"))
-				{
-					if (ImGui::MenuItem("C# Script"))
-					{
-						Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs");
-						//Application->activeProject->scripts.push_back(Script(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs", "Unnamed.cs"));
-						ScriptManager::NewCsScript(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs");
-					}
-					ImGui::EndMenu();
-				}
-
-				ImGui::EndMenu();
-			}
+			UpdateContent();
 			ImGui::EndPopup();
 		}
 	}

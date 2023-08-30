@@ -230,8 +230,7 @@ namespace Plaza {
 			//appSizes.sceneSize = ImGui::glmVec2(imageDisplayedSize);
 
 			// Show the gizmo if there's a selected entity
-
-
+			std::map<std::string, File*> files = Editor::selectedFiles;
 			selectedGameObject = Editor::selectedGameObject;
 			if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parentUuid != 0) {
 				ImGuizmoHelper::IsDrawing = true;

@@ -16,6 +16,7 @@ namespace Plaza::Editor {
 		meshRenderer->mesh = mesh;
 		obj->AddComponent<MeshRenderer>(meshRenderer);
 		Editor::selectedGameObject = obj;
+
 		return obj;
 	}
 	void Popup::NewEntityPopup::Init(Entity* obj, Entity* parent) {

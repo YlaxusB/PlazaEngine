@@ -4078,7 +4078,7 @@ void ImGui::InputTextDeactivateHook(ImGuiID id)
 // - If you want to use ImGui::InputText() with std::string, see misc/cpp/imgui_stdlib.h
 // (FIXME: Rather confusing and messy function, among the worse part of our codebase, expecting to rewrite a V2 at some point.. Partly because we are
 //  doing UTF8 > U16 > UTF8 conversions on the go to easily interface with stb_textedit. Ideally should stay in UTF-8 all the time. See https://github.com/nothings/stb/issues/188)
-bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_size, const ImVec2& size_arg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* callback_user_data)
+bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_size, const ImVec2& size_arg, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* callback_user_data, unsigned int startSelected)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
@@ -4309,6 +4309,10 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         PushFont(password_font);
     }
 
+    /* -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+    //if (startSelected > 0 && state != NULL)
+    //    state->Stb.select_end = startSelected;
+
     // Process mouse inputs and character inputs
     int backup_current_text_length = 0;
     if (g.ActiveId == id)
@@ -4329,7 +4333,10 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 
         if (select_all)
         {
-            state->SelectAll();
+            if (startSelected > 0 && state != NULL)
+                state->Stb.select_end = startSelected;
+            else
+                state->SelectAll();
             state->SelectedAllMouseLock = true;
         }
         else if (hovered && io.MouseClickedCount[0] >= 2 && !io.KeyShift)

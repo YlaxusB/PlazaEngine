@@ -12,6 +12,7 @@ namespace Plaza::Editor {
 			Entity& currentObj;
 			Entity& selectedGameObject;
 			std::string payloadName = "TreeNodeItemPayload";
+			static bool firstFocus;
 
 			Item(Entity& entity, Entity*& selectedGameObject);
 			void HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax);

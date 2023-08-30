@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Engine/Vendor/GLFW/glfw3.h"
-#include "Engine/Vendor/imgui/imgui.h"
-#include "Engine/Vendor/imgui/imgui_impl_glfw.h"
-#include "Engine/Vendor/imgui/imgui_impl_opengl3.h"
+//#include "Engine/Vendor/imgui/imgui.h"
+//#include "Engine/Vendor/imgui/imgui_impl_glfw.h"
+//#include "Engine/Vendor/imgui/imgui_impl_opengl3.h"
 
 //#include "Engine/Application/EditorCamera.h"
 #include "Engine/Components/Core/Entity.h"

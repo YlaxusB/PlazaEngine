@@ -16,8 +16,7 @@ namespace Plaza {
 	}
 
 	static bool InputIsKeyDown(int keyCode) {
-		//std::cout << keyCode << std::endl;
-		return glfwGetKey(Application->Window->glfwWindow, keyCode) == GLFW_PRESS;
+		return glfwGetKey(Application->Window->glfwWindow, keyCode) == GLFW_PRESS ;
 	}
 
 	static void MoveTowards(glm::vec3 vector3) {

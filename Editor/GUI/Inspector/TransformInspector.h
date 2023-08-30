@@ -1,10 +1,9 @@
 #pragma once
-#include <imgui/imgui.h>
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-
-#include "Editor/GUI/Inspector.h"
-#include "Editor/GUI/gizmo.h"
+#include "Engine/Core/PreCompiledHeaders.h"
+//#include "Editor/GUI/Inspector.h"
+//#include "Editor/GUI/gizmo.h"
+#include "Editor/GUI/Utils/DataVisualizer.h"
+//#include "Editor/GUI/Utils/DataVisualizer.h"
 namespace Plaza::Editor {
 	class Gui::TransformInspector {
 	public:
@@ -45,53 +44,28 @@ namespace Plaza::Editor {
 				glm::vec3 rotationField = glm::degrees(currentRotation);
 				glm::vec3& currentScale = entity->GetComponent<Transform>()->scale;
 
+				if (Utils::DragFloat3("Position: ", currentPosition, 0.1f)) {
+					//ImGuiSliderFlags_Logarithmic
+					entity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+				}
 
-				ImGui::Text("Position: ");
-
-				ImGui::SameLine();
-				ImGui::SetNextItemWidth(75);
-				ImGui::DragFloat("X", &currentPosition.x);
-
-				ImGui::SameLine();
-				ImGui::SetNextItemWidth(75);
-				ImGui::DragFloat("Y", &currentPosition.y, ImGuiSliderFlags_Logarithmic);
-
-				ImGui::SameLine();
-				ImGui::SetNextItemWidth(75);
-				ImGui::DragFloat("Z", &currentPosition.z);
-
-
-				ImGui::Text("Rotation: ");
 				ImGui::PushID("Rotation");
-				ImGui::SameLine();
-				ImGui::SetNextItemWidth(75);
-				ImGui::InputFloat("X", &rotationField.x);
-
-				ImGui::SameLine();
-				ImGui::SetNextItemWidth(75);
-				ImGui::InputFloat("Y", &rotationField.y);
-
-				ImGui::SameLine();
-				ImGui::SetNextItemWidth(75);
-				ImGui::InputFloat("Z", &rotationField.z);
+				if (Utils::DragFloat3("Rotation: ", rotationField, 0.1f)) {
+					//ImGuiSliderFlags_Logarithmic
+					currentRotation = glm::radians(rotationField);
+					entity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+				}
 				ImGui::PopID();
-				currentRotation = glm::radians(rotationField);
-				ImGui::Text("Scale: ");
+
 				ImGui::PushID("Scale");
-				ImGui::SameLine();
-				ImGui::SetNextItemWidth(75);
-				ImGui::InputFloat("X", &currentScale.x);
-
-				ImGui::SameLine();
-				ImGui::SetNextItemWidth(75);
-				ImGui::InputFloat("Y", &currentScale.y);
-
-				ImGui::SameLine();
-				ImGui::SetNextItemWidth(75);
-				ImGui::InputFloat("Z", &currentScale.z);
+				if (Utils::DragFloat3("Scale: ", currentScale, 0.1f)) {
+					//ImGuiSliderFlags_Logarithmic
+					entity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+				}
 
 				if (currentPosition != startingPosition || currentRotation != startingRotation || currentScale != startingScale) {
-					//entity->GetComponent<Transform>()->UpdateChildrenTransform();
+
+//					entity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 					if (Application->activeScene->rigidBodyComponents.find(entity->uuid) != Application->activeScene->rigidBodyComponents.end()) {
 						//RigidBody* rigidBody = &Application->activeScene->rigidBodyComponents.at(entity->uuid);
 						//rigidBody->UpdateGlobalPose();

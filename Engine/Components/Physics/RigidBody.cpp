@@ -74,9 +74,7 @@ namespace Plaza {
 			Transform& parentTransform = Application->activeScene->transformComponents.at(this->GetGameObject()->parentUuid);
 			localEulerAngles = glm::eulerAngles(glm::quat_cast(glm::inverse(parentTransform.GetTransform()) * glm::toMat4(glm::quat(eulerAngles))));
 
-			std::cout << "X: " << localEulerAngles.x << std::endl;
-			std::cout << "Y: " << localEulerAngles.y << std::endl;
-			std::cout << "Z: " << localEulerAngles.z << std::endl;
+
 			transform.rotation = localEulerAngles;
 			transform.UpdateSelfAndChildrenTransform();
 		}

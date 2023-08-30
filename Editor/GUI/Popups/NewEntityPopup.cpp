@@ -3,9 +3,13 @@
 
 #include "Editor/DefaultAssets/DefaultAssets.h"
 #include "Engine/Core/Physics.h"
+#include "Editor/GUI/Hierarchy/Hierarchy.h"
 namespace Plaza::Editor {
 	Entity* NewEntity(string name, Entity* parent, shared_ptr<Mesh> mesh, bool instanced = true, bool addToScene = true) {
 		Entity* obj = new Entity(name, parent, addToScene);
+		obj->changingName = true;
+		Application->activeScene->entities.at(obj->uuid).changingName = true;
+		Gui::Hierarchy::Item::firstFocus = true;
 		obj->GetComponent<Transform>()->UpdateChildrenTransform();
 		MeshRenderer* meshRenderer = new MeshRenderer();
 		meshRenderer->instanced = true;

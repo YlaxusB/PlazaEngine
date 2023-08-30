@@ -6,7 +6,7 @@
 
 #include "Engine/Core/Skybox.h"
 using namespace Plaza;
-
+uint64_t lastUuid;
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (Application->focusedMenu == "Scene") {
 
@@ -42,10 +42,11 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
 			int size = Application->activeScene->gameObjects.size();
 			for (int i = size; i < size + 1; i++) {
-				Entity* d = new Entity(std::to_string(Application->activeScene->entities.size()), Application->activeScene->mainSceneEntity);
-				//d->AddComponent(new Transform());
-
-
+				Entity* d;
+				if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+					d = new Entity(std::to_string(Application->activeScene->entities.size()), &Application->activeScene->entities.at(lastUuid));
+				else
+					d = new Entity(std::to_string(Application->activeScene->entities.size()), Application->activeScene->mainSceneEntity);
 
 				std::random_device rd;
 				std::mt19937 gen(rd());
@@ -68,9 +69,15 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 				meshRenderer->mesh = Editor::DefaultModels::Cube();
 				//MeshSerializer::Serialize(Application->activeProject->directory + "\\teste.yaml", *cubeMesh);
 				d->AddComponent<MeshRenderer>(meshRenderer);
+				Transform* transform = d->GetComponent<Transform>();
+				Collider* collider = new Collider(d->uuid);
+				physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
+				collider->AddShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial));
+				d->AddComponent<Collider>(collider);
 				RigidBody* rigidBody = new RigidBody(d->uuid, Application->runningScene);
 				rigidBody->uuid = d->uuid;
 				d->AddComponent<RigidBody>(rigidBody);
+				lastUuid = d->uuid;
 			}
 		}
 

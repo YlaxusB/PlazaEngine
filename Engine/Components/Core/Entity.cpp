@@ -100,7 +100,11 @@ namespace Plaza {
 	}
 
 	Entity& Entity::GetParent() {
-		return Application->activeScene->entities[parentUuid];
+		if (!parentUuid)
+			return Application->activeScene->entities.at(Application->activeScene->mainSceneEntity->uuid);
+		auto parentIt = Application->activeScene->entities.find(parentUuid);
+		if (parentIt != Application->activeScene->entities.end())
+			return parentIt->second;
 	}
 
 	template Transform* Entity::ReplaceComponent<Transform>(Transform* newComponent); // Replace 'Transform' with the actual type

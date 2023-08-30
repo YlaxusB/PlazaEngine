@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 
 #include "guiMain.h"
+#include "Editor/GUI/Utils/DataVisualizer.h"
 
 
 #include "Engine/Components/Core/Entity.h"
@@ -28,8 +29,7 @@
 //
 //bool ImGuizmo::IsDrawing = false;
 
-using namespace Plaza;
-using namespace Plaza::Editor;
+
 //using namespace Editor;
 
 glm::vec2 curHierarchySize;
@@ -56,7 +56,6 @@ namespace Plaza {
 			ImGuiIO& io = ImGui::GetIO();
 			io.DeltaTime = Time::deltaTime;
 			Gui::setupDockspace(Application->Window->glfwWindow, Application->textureColorbuffer, Application->activeCamera);
-			ImGui::ShowDemoWindow();
 			ImGui::Render();
 			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		}
@@ -80,6 +79,7 @@ namespace Plaza {
 			//C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
 			io.Fonts->AddFontFromFileTTF((Application->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
 			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
+			ImGui::GetStyle().ScrollbarSize = 9.0f;
 			Icon::Init();
 
 			FpsCounter* fpsCounter = new FpsCounter();
@@ -127,8 +127,7 @@ namespace Plaza {
 			dockspace_flags |= ImGuiDockNodeFlags_NoDockingInCentralNode;
 
 			// Submit the DockSpace
-			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-
+			ImGui::DockSpace(dockspace_id, ImVec2(0, 0), dockspace_flags);
 			Gui::MainMenuBar::Begin();
 
 			//ImGui::SetWindowPos(ImVec2(0, 0));
@@ -275,7 +274,7 @@ namespace Plaza {
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
 			//ImGui::SetNextWindowPos(ImVec2(0, 0));
-			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoFocusOnAppearing | ImGuiConfigFlags_DockingEnable;
+			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoFocusOnAppearing | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_HorizontalScrollbar | ImGuiScrollFlags_NoScrollParent;
 
 			//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.treeNodeBackgroundColor);
@@ -291,6 +290,7 @@ namespace Plaza {
 			HierarchyPopup::Update();
 
 			// Create the main collapser
+			ImGui::SetCursorPosX(0);
 			Editor::Gui::Hierarchy::Item(Application->activeScene->entities[Application->activeScene->mainSceneEntity->uuid], selectedGameObject);
 			ImGui::PopStyleColor(); // Background Color
 

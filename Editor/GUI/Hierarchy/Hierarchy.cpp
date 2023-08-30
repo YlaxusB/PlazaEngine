@@ -8,7 +8,9 @@
 #include "Editor/GUI/Popups/NewEntityPopup.h"
 #include "Engine/Core/Scripting/Mono.h"
 namespace Plaza::Editor {
+	bool Gui::Hierarchy::Item::firstFocus = false;
 	Gui::Hierarchy::Item::Item(Entity& entity, Entity*& selectedGameObject) : currentObj(entity), selectedGameObject(*selectedGameObject) {
+		const float height = 9.0f;
 		// Push the entity id, to prevent it to collpases all the treenodes with same id
 		ImGui::PushID(entity.uuid);
 		// Start the treenode before the component selectable, but only assign its values after creating the button
@@ -33,21 +35,62 @@ namespace Plaza::Editor {
 
 		ImGuiStyle& style = ImGui::GetStyle();
 
-		style.IndentSpacing = 3.0f;
-		//ImGui::SetCursorPosX(ImGui::GetCursorPosX());
-		const float indentSpacing = ImGui::GetStyle().IndentSpacing;
-		const int depth = 1.0f / indentSpacing;
 
-		ImGui::Indent(3.0f);
+
+		style.IndentSpacing = 20.0f;
+		//ImGui::SetCursorPosX(ImGui::GetCursorPosX());
+		float indentSpacing = ImGui::GetStyle().IndentSpacing;
+		const int depth = 1.0f;
+
+		//ImGui::Indent(3.0f);
 		//ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetTreeNodeToLabelSpacing() + 3.0f); // Decrease the indentation spacing
-		if (entity.childrenUuid.size() > 0) {
-			treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen);
+
+		if (!entity.changingName) {
+			if (entity.childrenUuid.size() > 0) {
+				treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen);
+			}
+			else {
+
+				//ImGui::Selectable(entity->name.c_str(), ImGuiTreeNodeFlags_Framed);
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetTreeNodeToLabelSpacing());
+				treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf);
+			}
 		}
 		else {
+			treeNodeOpen = true;
+		}
 
-			//ImGui::Selectable(entity->name.c_str(), ImGuiTreeNodeFlags_Framed);
-			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetTreeNodeToLabelSpacing());
-			treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf);
+		bool nameChanged = false;
+		if (entity.changingName) {
+			char buf[512];
+			strcpy_s(buf, entity.name.c_str());
+			if (firstFocus) {
+				ImGui::SetKeyboardFocusHere();
+			}
+			float currentIndent = ImGui::GetCursorPosX();
+			if (entity.GetParent().childrenUuid.size() <= 0)
+				ImGui::SetCursorPosX(currentIndent + 0);
+			else
+				ImGui::SetCursorPosX(currentIndent + 20);
+
+			ImGui::SetNextWindowSize(ImVec2(50.0f, height));
+			if (ImGui::InputTextEx("##EntityNameInput", "Name", buf, 512, ImVec2(ImGui::CalcTextSize(buf).x + 20, 0), ImGuiInputTextFlags_EnterReturnsTrue)) {
+				entity.name = buf;
+				entity.changingName = false;
+				nameChanged = true;
+				Gui::changeSelectedGameObject(&Application->activeScene->entities.at(entity.uuid));
+			}
+
+			if (!ImGui::IsItemActive() && !firstFocus) {
+				entity.name = buf;
+				entity.changingName = false;
+				nameChanged = true;
+				Gui::changeSelectedGameObject(&Application->activeScene->entities.at(entity.uuid));
+			}
+
+			if (firstFocus) {
+				firstFocus = false;
+			}
 		}
 
 		//ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x - 1.0f, ImGui::GetWindowPos().y));
@@ -96,9 +139,10 @@ namespace Plaza::Editor {
 			{
 				Gui::Hierarchy::Item(Application->activeScene->entities[child], selectedGameObject);
 			}
-			ImGui::TreePop();
+			if (!entity.changingName && !nameChanged)
+				ImGui::TreePop();
 		}
-		ImGui::Unindent(indentSpacing * depth);
+		//ImGui::Unindent(indentSpacing * depth);
 
 
 		ImGui::PopID();

@@ -10,6 +10,7 @@ namespace Plaza {
 		uint64_t parentUuid;
 		std::vector<uint64_t> childrenUuid;
 		std::string name;
+		bool changingName = false;
 
 		Entity();
 		Entity(std::string objName, Entity* parent = nullptr, bool addToScene = true);

@@ -50,7 +50,7 @@ namespace Plaza {
 		std::unordered_map<uint64_t, MeshRenderer> meshRendererComponents;
 		std::unordered_map<uint64_t, RigidBody> rigidBodyComponents;
 		std::unordered_map<uint64_t, Collider> colliderComponents;
-		std::unordered_map<uint64_t, CppScriptComponent> cppScriptComponents;
+		std::unordered_map<uint64_t, CsScriptComponent> csScriptComponents;
 		std::vector<MeshRenderer*> meshRenderers;
 		std::map<uint64_t, shared_ptr<Mesh>> meshes;
 
@@ -63,6 +63,10 @@ namespace Plaza {
 		static void Stop(); // Finishes the game
 		static void Pause(); // Just pauses the game
 		~Scene() = default;
+
+		Entity* GetEntity(uint64_t uuid);
+		template<typename T>
+		Component* GetComponent(uint64_t uuid);
 
 		void RemoveMeshRenderer(uint64_t uuid);
 	};

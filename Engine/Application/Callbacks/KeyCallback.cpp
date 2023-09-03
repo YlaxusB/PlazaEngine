@@ -70,14 +70,24 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 				//MeshSerializer::Serialize(Application->activeProject->directory + "\\teste.yaml", *cubeMesh);
 				d->AddComponent<MeshRenderer>(meshRenderer);
 				Transform* transform = d->GetComponent<Transform>();
-				Collider* collider = new Collider(d->uuid);
+				/*Collider* collider = new Collider(d->uuid);
 				physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
 				collider->AddShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial));
 				d->AddComponent<Collider>(collider);
 				RigidBody* rigidBody = new RigidBody(d->uuid, Application->runningScene);
 				rigidBody->uuid = d->uuid;
 				d->AddComponent<RigidBody>(rigidBody);
-				lastUuid = d->uuid;
+				lastUuid = d->uuid;*/
+
+				// add script
+				std::string key = "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\Project6\\Unnamed.dll";
+				CsScriptComponent* script = new CsScriptComponent(d->uuid);
+				std::string csFileName = filesystem::path{ key }.replace_extension(".cs").string();
+				script->Init(csFileName);;
+				d->AddComponent<CsScriptComponent>(script);
+				if (Application->runningScene)
+					Mono::OnStart(script->monoObject);
+				d->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 			}
 		}
 

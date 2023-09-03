@@ -162,7 +162,7 @@ namespace Plaza {
 		glm::vec3 leftVector = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
 		glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
 		this->relativePosition += forwardVector * vector.x + leftVector * vector.z + upVector * vector.y;
-		this->UpdateChildrenTransform();
+		this->UpdateSelfAndChildrenTransform();
 	}
 
 	// Set Functions

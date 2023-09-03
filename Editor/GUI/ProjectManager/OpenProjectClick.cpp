@@ -7,6 +7,7 @@
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Engine/Application/Serializer/ScriptManagerSerializer.h"
 #include "Engine/Core/Scripting/Mono.h"
+#include "Editor/Filewatcher.h"
 namespace Plaza {
 	namespace Editor {
 		namespace fs = std::filesystem;
@@ -27,7 +28,15 @@ namespace Plaza {
 					Application->activeProject->name = fileName;
 					Application->activeProject->directory = projectFile.parent_path().string();
 					Application->activeProject->scriptsConfigFilePath = Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName;
-					Application->activeProject->scripts = ScriptManagerSerializer::DeSerialize(Application->activeProject->scriptsConfigFilePath);
+					//Application->activeProject->scripts = ScriptManagerSerializer::DeSerialize(Application->activeProject->scriptsConfigFilePath);
+					Filewatcher::Start(Application->activeProject->directory);
+
+					/* Detect all the scripts in this folder */
+					for (const auto& entry : fs::recursive_directory_iterator(Application->activeProject->directory)) {
+						if (entry.is_regular_file() && entry.path().extension() == ".cs") {
+							Application->activeProject->scripts.emplace(entry.path().string(), Script());
+						}
+					}
 
 					Application->runEngine = true;
 					Application->runProjectManagerGui = false;
@@ -38,7 +47,7 @@ namespace Plaza {
 					Mono::Init();
 					return;
 				}
-				std::cout << "Project has not been found!" << std::endl;
+				std::cout << "Project has not been found!" << "\n";
 			}
 
 		}

@@ -40,6 +40,7 @@ bool Plaza::Editor::Gui::isHierarchyOpen = true;
 bool Plaza::Editor::Gui::isSceneOpen = true;
 bool Plaza::Editor::Gui::isInspectorOpen = true;
 bool Plaza::Editor::Gui::isFileExplorerOpen = true;
+bool Plaza::Editor::Gui::canUpdateContent = false;
 
 bool windowVisible = true;
 // Update ImGui Windows
@@ -154,6 +155,10 @@ namespace Plaza {
 			// Update the sizes after resizing
 
 			//Gui::UpdateSizes();
+			if (canUpdateContent) {
+				Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+				canUpdateContent = false;
+			}
 		}
 
 

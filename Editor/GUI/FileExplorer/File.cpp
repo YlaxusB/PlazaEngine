@@ -79,7 +79,7 @@ namespace Plaza {
 			// Open, or add the file to the selected files map when user clicked on a file
 			if (ImGui::IsItemClicked()) {
 				// Clicked on a folder and is not holding ctrl
-				if (filesystem::is_directory(filesystem::path{ directory }) && glfwGetKey(Application->Window->glfwWindow, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS) {
+				if (ImGui::IsMouseDoubleClicked(0) && filesystem::is_directory(filesystem::path{ directory }) && glfwGetKey(Application->Window->glfwWindow, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS) {
 					Editor::Gui::FileExplorer::currentDirectory = directory;
 					Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 					Editor::selectedFiles.clear();

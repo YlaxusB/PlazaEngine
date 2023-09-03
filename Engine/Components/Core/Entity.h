@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 namespace Plaza {
+	template <typename T>
+	std::unordered_map<uint64_t, T>& GetComponentMap();
 	class Entity {
 	public:
 		uint64_t uuid;
@@ -44,7 +46,7 @@ namespace Plaza {
 
 		// Check if the Entity haves the Component
 		template<typename T>
-		bool HasComponent(T* component);
+		bool HasComponent();
 	};
 
 }

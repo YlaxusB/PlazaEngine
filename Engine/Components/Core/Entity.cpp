@@ -26,8 +26,8 @@ namespace Plaza {
 		else if constexpr (std::is_same_v<T, Camera>) {
 			return Application->activeScene->cameraComponents;
 		}
-		else if constexpr (std::is_same_v<T, CppScriptComponent>) {
-			return Application->activeScene->cppScriptComponents;
+		else if constexpr (std::is_same_v<T, CsScriptComponent>) {
+			return Application->activeScene->csScriptComponents;
 		}
 		else {
 			return Application->activeScene->transformComponents;
@@ -67,7 +67,7 @@ namespace Plaza {
 	template MeshRenderer* Entity::GetComponent<MeshRenderer>(); // Replace 'MeshRenderer' with the actual type
 	template RigidBody* Entity::GetComponent<RigidBody>(); // Replace 'MeshRenderer' with the actual type
 	template Collider* Entity::GetComponent<Collider>(); // Replace 'MeshRenderer' with the actual type
-	template CppScriptComponent* Entity::GetComponent<CppScriptComponent>(); // Replace 'MeshRenderer' with the actual type
+	template CsScriptComponent* Entity::GetComponent<CsScriptComponent>(); // Replace 'MeshRenderer' with the actual type
 	template<typename T>
 	T* Entity::GetComponent() {
 		Component* component = nullptr;
@@ -86,7 +86,7 @@ namespace Plaza {
 	template MeshRenderer* Entity::AddComponent<MeshRenderer>(MeshRenderer* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
 	template RigidBody* Entity::AddComponent<RigidBody>(RigidBody* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
 	template Collider* Entity::AddComponent<Collider>(Collider* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
-	template CppScriptComponent* Entity::AddComponent<CppScriptComponent>(CppScriptComponent* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
+	template CsScriptComponent* Entity::AddComponent<CsScriptComponent>(CsScriptComponent* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
 	template <typename T>
 	T* Entity::AddComponent(T* component, bool addToComponentsList) {
 		component->uuid = this->uuid;
@@ -96,7 +96,7 @@ namespace Plaza {
 			components.emplace(component->uuid, *component);
 		}
 
-		return component;
+		return dynamic_cast<T*>(component);
 	}
 
 	Entity& Entity::GetParent() {
@@ -150,8 +150,14 @@ namespace Plaza {
 		return nullptr; // Component to replace not found
 	}
 
-	template <typename T>
-	bool Entity::HasComponent(T* component) {
+	template bool Entity::HasComponent<Transform>(); // Replace 'Transform' with the actual type
+	template bool Entity::HasComponent<Camera>(); // Replace 'Transform' with the actual type
+	template bool Entity::HasComponent<MeshRenderer>(); // Replace 'MeshRenderer' with the actual type
+	template bool Entity::HasComponent<RigidBody>(); // Replace 'MeshRenderer' with the actual type
+	template bool Entity::HasComponent<Collider>(); // Replace 'MeshRenderer' with the actual type
+	template bool Entity::HasComponent<CsScriptComponent>(); // Replace 'MeshRenderer' with the actual type
+	template<typename T>
+	bool Entity::HasComponent() {
 		std::unordered_map<uint64_t, T>& components = GetComponentMap<T>();
 		if (components.find(this->uuid) != components.end())
 			return true;
@@ -163,7 +169,7 @@ namespace Plaza {
 	template void Entity::RemoveComponent<MeshRenderer>(); // Replace 'MeshRenderer' with the actual type
 	template void Entity::RemoveComponent<RigidBody>(); // Replace 'MeshRenderer' with the actual type
 	template void Entity::RemoveComponent<Collider>(); // Replace 'MeshRenderer' with the actual type
-	template void Entity::RemoveComponent<CppScriptComponent>(); // Replace 'MeshRenderer' with the actual type
+	template void Entity::RemoveComponent<CsScriptComponent>(); // Replace 'MeshRenderer' with the actual type
 	template <typename T>
 	void Entity::RemoveComponent() {
 		std::unordered_map<uint64_t, T>& components = GetComponentMap<T>();

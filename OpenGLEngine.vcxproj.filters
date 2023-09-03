@@ -381,6 +381,9 @@
     <ClCompile Include="Editor\GUI\Popups\FileExplorerFilePopup.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\FileWatcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h">
@@ -2052,6 +2055,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Editor\GUI\Popups\FileExplorerFilePopup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\GUI\Inspector\CppScriptComponentInspector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Filewatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

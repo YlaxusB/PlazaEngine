@@ -4,7 +4,7 @@
 #include "Engine/Application/Serializer/ScriptManagerSerializer.h"
 namespace Plaza::Editor {
 	void ScriptManager::NewCsScript(std::string fullPath) {
-		std::ofstream file = Utils::Filesystem::CreateNewFile(fullPath);
+		std::ofstream file = Utils::Filesystem::GetFileStream(fullPath);
 		if (file.is_open()) {
 			std::string fileName = std::filesystem::path{ fullPath }.stem().string();
 			file << "// Your C# code goes here" << std::endl;

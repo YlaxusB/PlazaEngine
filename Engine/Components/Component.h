@@ -12,7 +12,7 @@ namespace Plaza {
 	class Component {
 	public:
 		uint64_t uuid;
-		virtual ~Component() = default;
 		Entity* GetGameObject();
+		virtual ~Component() = default;
 	};
 }

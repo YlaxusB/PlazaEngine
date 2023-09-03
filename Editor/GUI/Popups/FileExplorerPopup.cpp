@@ -11,8 +11,10 @@ namespace Plaza::Editor {
 		{
 			if (ImGui::MenuItem("Folder"))
 			{
-				Utils::Filesystem::CreateFolder(Gui::FileExplorer::currentDirectory + "\\Unnamed");
-				Editor::File::changingName = "Unnamed";
+				Editor::File::changingName = Utils::Filesystem::CreateFolder(Gui::FileExplorer::currentDirectory + "\\Unnamed");
+				Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+				Editor::File::changingName = std::filesystem::path{ Editor::File::changingName }.filename().string();
+				//Editor::File::changingName = "Unnamed";
 				Editor::File::firstFocus = true;
 			}
 
@@ -20,11 +22,12 @@ namespace Plaza::Editor {
 			{
 				if (ImGui::MenuItem("C# Script"))
 				{
-					Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs");
-					Editor::File::changingName = "Unnamed.cs";
+					Editor::File::changingName = Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs");
+					Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+					Editor::File::changingName = std::filesystem::path{ Editor::File::changingName }.filename().string();
 					Editor::File::firstFocus = true;
 					//Application->activeProject->scripts.push_back(Script(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs", "Unnamed.cs"));
-					ScriptManager::NewCsScript(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs");
+					ScriptManager::NewCsScript(Gui::FileExplorer::currentDirectory + "\\" + Editor::File::changingName);
 				}
 				ImGui::EndMenu();
 			}

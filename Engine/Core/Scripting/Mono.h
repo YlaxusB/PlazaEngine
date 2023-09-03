@@ -5,13 +5,21 @@ namespace Plaza {
 		static MonoDomain* mAppDomain;
 		static MonoAssembly* mCoreAssembly;
 		static MonoDomain* mMonoRootDomain;
+		static MonoImage* mCoreImage;
+		static MonoObject* mEntityObject;
+		static MonoClass* mEntityClass;
+		static std::unordered_map<MonoType*, std::function<bool(Entity)>> mEntityHasComponentFunctions;
 		static void Init();
-		static void OnStart();
+		static void OnStartAll();
+		static void OnStart(MonoObject* monoObject);
 		static void Update();
-		static MonoObject* InstantiateClass(const char* namespaceName, const char* className, MonoAssembly* assembly, MonoDomain* appDomain);
+		static void RegisterComponents();
+		static MonoObject* InstantiateClass(const char* namespaceName, const char* className, MonoAssembly* assembly, MonoDomain* appDomain, uint64_t uuid = 0);
 
+		static MonoMethod* GetMethod(MonoObject* objectInstance, const std::string& methodName, int parameterCount = 0);
 		static void CallMethod(MonoObject* objectInstance, std::string methodName);
-		static MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className);
+		static void CallMethod(MonoObject* objectInstance, MonoMethod* method, void** params);
+		static MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className, bool isCore = false);
 		static MonoAssembly* LoadCSharpAssembly(const std::string& assemblyPath);
 	};
 

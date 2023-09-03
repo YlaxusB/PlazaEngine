@@ -31,6 +31,7 @@
 #include "Engine/Core/Physics.h"
 #include "Engine/Components/Core/Camera.h"
 #include "Engine/Core/Scripting/Mono.h"
+#include "Editor/Filewatcher.h"
 char* appdataValue;
 size_t len;
 errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");
@@ -230,6 +231,9 @@ void ApplicationClass::UpdateEngine() {
 
 	// Update Camera Position and Rotation
 	Application->activeCamera->Update();
+
+	// Update Filewatcher main thread
+	Filewatcher::UpdateOnMainThread();
 
 	/* Update Physics */
 	if (Application->runningScene) {

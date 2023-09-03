@@ -32,7 +32,7 @@ namespace Plaza {
 						file.Update();
 					if (index == 0) {
 						// Back Button Click
-						if (ImGui::IsItemClicked() && filesystem::path{ currentDirectory }.parent_path().string().starts_with(Application->activeProject->directory)) {
+						if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0) && filesystem::path{currentDirectory}.parent_path().string().starts_with(Application->activeProject->directory)) {
 							Editor::Gui::FileExplorer::currentDirectory = filesystem::path{ currentDirectory }.parent_path().string();
 							Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 						}

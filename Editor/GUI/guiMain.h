@@ -43,6 +43,7 @@ namespace Plaza {
 			static bool isSceneOpen;
 			static bool isInspectorOpen;
 			static bool isFileExplorerOpen;
+			static bool canUpdateContent;
 
 			static unsigned int playPauseButtonImageId;
 

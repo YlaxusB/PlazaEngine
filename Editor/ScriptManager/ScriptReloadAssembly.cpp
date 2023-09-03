@@ -6,7 +6,7 @@
 namespace Plaza::Editor {
 	void ScriptManager::ReloadScriptsAssembly() {
 		const auto& scriptsMap = ScriptManagerSerializer::DeSerialize(Application->activeProject->scriptsConfigFilePath);
-		for (auto& [key, value] : scriptsMap) {
+		for (auto& [key, value] : Application->activeProject->scripts) {
 			const char* csFilePath = key.c_str();
 			std::filesystem::path dllPath = std::filesystem::path{ csFilePath }.replace_extension(".dll");
 			std::string compileCommand = "mcs -target:library -out:" + dllPath.parent_path().string() + "\\" + dllPath.stem().string() + ".dll " + "\"" + std::string(csFilePath) + "\"";
@@ -16,23 +16,39 @@ namespace Plaza::Editor {
 			if (result == 0) {
 				// Compilation Success
 
-				Mono::Init();
+				//Mono::Init();
 
-				MonoClass* testingClass = Mono::GetClassInAssembly(Mono::LoadCSharpAssembly(dllPath.string()), "", "Unnamed");
+				//MonoClass* testingClass = Mono::GetClassInAssembly(Mono::LoadCSharpAssembly(dllPath.string()), "", "Unnamed");
 
-				// Allocate an instance of our class
-				MonoObject* classInstance = mono_object_new(Mono::mAppDomain, testingClass);
-
-				MonoObject* reloadedMonoObject = Mono::InstantiateClass("", "Unnamed", Mono::LoadCSharpAssembly(dllPath.string()), Mono::mAppDomain);
-				Application->activeProject->monoObjects.at(dllPath.string()) = reloadedMonoObject;//Mono::InstantiateClass("", "Unnamed", Mono::mCoreAssembly, Mono::mAppDomain);
 				for (uint64_t entityUuid : Application->activeProject->scripts.at(csFilePath).entitiesUsingThisScript) {
-					Application->activeScene->cppScriptComponents.at(entityUuid).monoObject = Mono::InstantiateClass("", "Unnamed", Mono::LoadCSharpAssembly(dllPath.string()), Mono::mAppDomain);;
+					Application->activeScene->csScriptComponents.at(entityUuid).Init(csFilePath);
+					//Application->activeScene->csScriptComponents.at(entityUuid).monoObject = Mono::InstantiateClass("", "Unnamed", Mono::LoadCSharpAssembly(dllPath.string()), Mono::mAppDomain, entityUuid);
+					Mono::OnStart(Application->activeScene->csScriptComponents.at(entityUuid).monoObject);
 				}
 
 			}
 			else {
 				// Compilation failed
 				// Handle error
+			}
+		}
+	}
+
+	void ScriptManager::ReloadSpecificAssembly(std::string scriptPath) {
+		const auto& script = Application->activeProject->scripts.find(scriptPath);
+		if (script != Application->activeProject->scripts.end()) {
+			// Recompile the C# script to .dll
+			std::filesystem::path dllPath = std::filesystem::path{ scriptPath }.replace_extension(".dll");
+			std::string compileCommand = "mcs -target:library -out:" + dllPath.parent_path().string() + "\\" + dllPath.stem().string() + ".dll " + "\"" + std::string(scriptPath) + "\"";
+			compileCommand += " -reference:" + Application->dllPath + "\\PlazaScriptCore.dll";
+			std::cout << compileCommand << std::endl;
+			int result = system(compileCommand.c_str());
+			if (result == 0) {
+				// Reload the assembly in all entities using this script
+				for (uint64_t entityUuid : Application->activeProject->scripts.at(scriptPath).entitiesUsingThisScript) {
+					Application->activeScene->csScriptComponents.at(entityUuid).Init(scriptPath);
+					Mono::OnStart(Application->activeScene->csScriptComponents.at(entityUuid).monoObject);
+				}
 			}
 		}
 	}

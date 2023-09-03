@@ -4,6 +4,7 @@
 #include "Editor/GUI/Inspector/RigidBodyInspector.h"
 #include "Editor/GUI/Inspector/SceneInspector.h"
 #include "Editor/GUI/Inspector/ColliderInspector.h"
+#include "Editor/GUI/Inspector/CppScriptComponentInspector.h"
 
 namespace Plaza::Editor {
 	std::vector<Component*> Inspector::ComponentInspector::components;
@@ -36,6 +37,9 @@ namespace Plaza::Editor {
 
 		if (activeScene->colliderComponents.contains(uuid))
 			components.push_back(&activeScene->colliderComponents.at(uuid));
+
+		if (activeScene->csScriptComponents.contains(uuid))
+			components.push_back(&activeScene->csScriptComponents.at(uuid));
 	}
 
 	void Inspector::ComponentInspector::CreateRespectiveInspector(Component* component) {
@@ -50,6 +54,9 @@ namespace Plaza::Editor {
 		}
 		if (Collider* collider = dynamic_cast<Collider*>(component)) {
 			Plaza::Editor::ColliderInspector::ColliderInspector(collider);
+		}
+		if (CsScriptComponent* csScriptComponent = dynamic_cast<CsScriptComponent*>(component)) {
+			Plaza::Editor::CppScriptComponentInspector::CppScriptComponentInspector(csScriptComponent);
 		}
 	}
 }

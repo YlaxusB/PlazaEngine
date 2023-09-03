@@ -5,5 +5,6 @@ namespace Plaza::Editor {
 	public:
 		static void NewCsScript(std::string fullPath);
 		static void ReloadScriptsAssembly();
+		static void ReloadSpecificAssembly(std::string scriptPath);
 	};
 }

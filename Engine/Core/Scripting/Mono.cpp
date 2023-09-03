@@ -1,13 +1,32 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Mono.h"
 #include <functional>
+#include "Engine/Vendor/mono/metadata/object.h"
+#include "Engine/Vendor/mono/metadata/threads.h"
+#include "Engine/Vendor/mono/metadata/mono-debug.h"
+
+char* ConvertConstCharToChar(const char* constCharString) {
+	// Calculate the length of the input string
+	size_t length = strlen(constCharString) + 1; // Include null terminator
+
+	// Allocate memory for the mutable copy
+	char* mutableCopy = new char[length];
+
+	// Copy the contents of the const char* to the mutable copy
+	strcpy_s(mutableCopy, length, constCharString);
+
+	return mutableCopy;
+}
 
 #define PL_ADD_INTERNAL_CALL(name) mono_add_internal_call("Plaza.InternalCalls::" #name, (void*)InternalCalls::name)
 namespace Plaza {
-
+	std::unordered_map<MonoType*, std::function<bool(Entity)>> Mono::mEntityHasComponentFunctions = std::unordered_map<MonoType*, std::function<bool(Entity)>>();
 	MonoDomain* Mono::mAppDomain = nullptr;
 	MonoAssembly* Mono::mCoreAssembly = nullptr;
 	MonoDomain* Mono::mMonoRootDomain = nullptr;
+	MonoImage* Mono::mCoreImage = nullptr;
+	MonoObject* Mono::mEntityObject = nullptr;
+	MonoClass* Mono::mEntityClass = nullptr;
 	char* ReadBytes(const std::string& filepath, uint32_t* outSize)
 	{
 		std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
@@ -80,36 +99,68 @@ namespace Plaza {
 		}
 	}
 
-	MonoClass* Mono::GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className)
+	MonoClass* Mono::GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className, bool isCore)
 	{
-		MonoImage* image = mono_assembly_get_image(assembly);
-		MonoClass* klass = mono_class_from_name(image, namespaceName, className);
+		MonoClass* monoClass = mono_class_from_name(mono_assembly_get_image(isCore ? mCoreAssembly : assembly), namespaceName, className);
 
-		if (klass == nullptr)
+		if (monoClass == nullptr)
 		{
 			// Log error here
+			printf("monoClass is nullptr");
 			return nullptr;
 		}
 
-		return klass;
+		return monoClass;
 	}
-
-	MonoObject* Mono::InstantiateClass(const char* namespaceName, const char* className, MonoAssembly* assembly, MonoDomain* appDomain)
+	MonoObject* Mono::InstantiateClass(const char* namespaceName, const char* className, MonoAssembly* assembly, MonoDomain* appDomain, uint64_t uuid)
 	{
 		// Get a reference to the class we want to instantiate
-		MonoClass* testingClass = GetClassInAssembly(assembly, namespaceName, className);
+		MonoClass* monoClass = GetClassInAssembly(assembly, namespaceName, className);
 
 		// Allocate an instance of our class
-		MonoObject* classInstance = mono_object_new(appDomain, testingClass);
-
-		if (classInstance == nullptr)
-		{
-			// Log error here and abort
+		MonoObject* classInstance = mono_object_new(appDomain, monoClass);
+		unsigned int gcHandle = mono_gchandle_new(classInstance, true);
+		if (uuid) {
+			MonoClassField* uuidField = mono_class_get_field_from_name(monoClass, "Uuid");
+			mono_field_set_value(classInstance, uuidField, &uuid);
 		}
 
 		// Call the parameterless (default) constructor
 		mono_runtime_object_init(classInstance);
 		return classInstance;
+	}
+
+	/*
+		void Mono::CallMethod(MonoObject* objectInstance, std::string methodName)
+	{
+		// Get the MonoClass pointer from the instance
+		MonoClass* instanceClass = mono_object_get_class(objectInstance);
+
+		// Get a reference to the method in the class
+		MonoMethod* method = mono_class_get_method_from_name(instanceClass, methodName.c_str(), 0);
+	*/
+
+	MonoMethod* Mono::GetMethod(MonoObject* objectInstance, const std::string& methodName, int parameterCount)
+	{
+		MonoClass* monoClass = mono_object_get_class(objectInstance);
+		return mono_class_get_method_from_name(monoClass, methodName.c_str(), parameterCount);
+	}
+
+	void Mono::CallMethod(MonoObject* objectInstance, MonoMethod* method, void** params)
+	{
+		MonoObject* exception = nullptr;
+		mono_runtime_invoke(method, objectInstance, nullptr, &exception);
+		//mono_runtime_invoke(method, objectInstance, params, &exception);
+
+		//// Check if an exception occurred
+		//if (exception != nullptr) {
+		//	// Get the MonoException type
+		//	MonoClass* exceptionClass = mono_get_exception_class();
+		//	MonoString* messageString = mono_object_to_string((MonoObject*)exception, nullptr);
+		//	const char* message = mono_string_to_utf8(messageString);
+		//	printf("Exception occurred: %s\n", message);
+
+		//}
 	}
 
 	void Mono::CallMethod(MonoObject* objectInstance, std::string methodName)
@@ -154,8 +205,8 @@ namespace Plaza {
 	void Mono::Init() {
 		mono_set_assemblies_path("lib/mono");
 		//mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
-		if(Mono::mMonoRootDomain == nullptr)
-		Mono::mMonoRootDomain = mono_jit_init("MyScriptRuntime");
+		if (Mono::mMonoRootDomain == nullptr)
+			Mono::mMonoRootDomain = mono_jit_init("MyScriptRuntime");
 		if (Mono::mMonoRootDomain == nullptr)
 		{
 			// Maybe log some error here
@@ -170,50 +221,62 @@ namespace Plaza {
 		//mono_add_internal_call("Plaza.InternalCalls::CppFunction", CppFunction);
 		//mono_add_internal_call("Plaza.InternalCalls::Vector3Log", Vector3Log);
 
-		InternalCalls::Init();
+
 
 		// Load the PlazaScriptCore.dll assembly
 		mCoreAssembly = mono_domain_assembly_open(mAppDomain, (Application->dllPath + "\\PlazaScriptCore.dll").c_str());
+		mCoreImage = mono_image_open((Application->dllPath + "\\PlazaScriptCore.dll").c_str(), nullptr);
+
+		Mono::RegisterComponents();
+		InternalCalls::Init();
+
+
 		if (!mCoreAssembly) {
 			// Handle the error (assembly not found or failed to load)
 			std::cout << "Didnt loaded assembly" << std::endl;
 		}
+		//// Load all scripts
+		//for (auto& [key, value] : Application->activeProject->scripts) {
+		//	Application->activeProject->scripts.emplace(key, Script());
+		//}
 
-		// Load all scripts
-		for (auto& [key, value] : Application->activeProject->scripts) {
-			std::string dllPath = filesystem::path{ key }.replace_extension(".dll").string();
-			// Get a reference to the class we want to instantiate
+		mEntityObject = InstantiateClass("Plaza", "Entity", LoadCSharpAssembly(Application->dllPath + "\\PlazaScriptCore.dll"), mAppDomain);
+		mEntityClass = mono_object_get_class(mEntityObject);
+	}
 
-			MonoClass* testingClass = GetClassInAssembly(LoadCSharpAssembly(dllPath), "", "Unnamed");
-
-			// Allocate an instance of our class
-			MonoObject* classInstance = mono_object_new(mAppDomain, testingClass);
-
-			if (classInstance == nullptr)
-			{
-				// Log error here and abort
-			}
-
-			MonoObject* monoObject = InstantiateClass("", "Unnamed", LoadCSharpAssembly(dllPath), mAppDomain);
-			//CallOnStart(monoObject);
-
-			// Call the parameterless (default) constructor
-			//mono_runtime_object_init(classInstance);
-			Application->activeProject->monoObjects.emplace(dllPath, monoObject);
-		}
+	void Mono::OnStart(MonoObject* monoObject) {
+		CallMethod(monoObject, "OnStart");
 	}
 
 	// Execute OnStart on all scripts
-	void Mono::OnStart() {
-		for (auto [key, value] : Application->activeScene->cppScriptComponents) {
+	void Mono::OnStartAll() {
+		for (auto& [key, value] : Application->activeScene->csScriptComponents) {
 			CallMethod(value.monoObject, "OnStart");
 		}
 	}
 
 	// Execute OnUpdate on all scripts
 	void Mono::Update() {
-		for (auto [key, value] : Application->activeScene->cppScriptComponents) {
-			CallMethod(value.monoObject, "OnUpdate");
+		for (auto& [key, value] : Application->activeScene->csScriptComponents) {
+			CallMethod(value.monoObject, value.onUpdateMethod, nullptr);
+			//CallMethod(value.monoObject, "OnUpdate");
 		}
+	}
+
+	template<typename Component>
+	static void RegisterComponent() {
+		std::string typeName = typeid(Component).name();
+		size_t pos = typeName.find_last_of(":");
+		std::string className = typeName.substr(pos + 1);
+		std::string  managedTypeName = "Plaza." + className;
+		MonoType* managedType = mono_reflection_type_from_name(managedTypeName.data(), Mono::mCoreImage);
+		Mono::mEntityHasComponentFunctions[managedType] = [](Entity entity) { return entity.HasComponent<Component>(); };
+	}
+
+	void Mono::RegisterComponents() {
+		RegisterComponent<Transform>();
+		RegisterComponent<MeshRenderer>();
+		RegisterComponent<Collider>();
+		RegisterComponent<RigidBody>();
 	}
 }

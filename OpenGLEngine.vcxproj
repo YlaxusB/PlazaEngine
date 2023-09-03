@@ -159,6 +159,7 @@ call .\setdllpath.bat</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Editor\DefaultAssets\Models\DefaultModels.cpp" />
+    <ClCompile Include="Editor\FileWatcher.cpp" />
     <ClCompile Include="Editor\GUI\FileExplorer\File.cpp" />
     <ClCompile Include="Editor\GUI\FileExplorer\FileExplorer.cpp" />
     <ClCompile Include="Editor\GUI\Hierarchy\HierarchyPopup.cpp" />
@@ -386,12 +387,14 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Editor\DefaultAssets\Models\Cube.h" />
     <ClInclude Include="Editor\DefaultAssets\Models\DefaultModels.h" />
     <ClInclude Include="Editor\Editor.h" />
+    <ClInclude Include="Editor\Filewatcher.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\CreateFile.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\CreateFolder.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\File.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\FileExplorer.h" />
     <ClInclude Include="Editor\GUI\Hierarchy\HierarchyPopup.h" />
     <ClInclude Include="Editor\GUI\Inspector\ColliderInspector.h" />
+    <ClInclude Include="Editor\GUI\Inspector\CppScriptComponentInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\RigidBodyInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\SceneInspector.h" />
     <ClInclude Include="Editor\GUI\Popups\FileExplorerFilePopup.h" />

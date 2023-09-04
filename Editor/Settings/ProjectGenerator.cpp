@@ -1,31 +1,49 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ProjectGenerator.h"
-
+#include "Editor/GUI/Utils/Filesystem.h"
 namespace Plaza::Editor {
 	void ProjectGenerator::GenerateSolution(const std::string& solutionName, const std::string& projectName, const std::string& outputDirectory) {
-        std::filesystem::create_directories(outputDirectory);
-        std::ofstream solutionFile(outputDirectory + "/" + solutionName + ".sln");
-        if (!solutionFile.is_open()) {
-            std::cerr << "Error opening solution file." << std::endl;
-            return;
+        // Specify the project name and Plaza root dir and also change the backslashes to forwardslesh
+        const char* ProjectName = projectName.c_str();
+        std::string PlazaRootDir = (Application->enginePath + "/../").c_str();
+        for (size_t i = 0; i < PlazaRootDir.length(); ++i) {
+            if (PlazaRootDir[i] == '\\') {
+                PlazaRootDir[i] = '/';
+            }
         }
 
-        solutionFile << "Microsoft Visual Studio Solution File, Format Version 12.00\n";
-        solutionFile << "# Visual Studio 2023\n";
-        solutionFile << "Project(\"{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}\") = \"" << projectName << "\", \"" << projectName << ".vcxproj\", \"{SOME_GUID}\"\n";
-        solutionFile << "EndProject\n";
-        solutionFile << "Global\n";
-        solutionFile << "    GlobalSection(SolutionConfigurationPlatforms) = preSolution\n";
-        solutionFile << "        Debug|Win32 = Debug|Win32\n";
-        solutionFile << "        Release|Win32 = Release|Win32\n";
-        solutionFile << "    EndGlobalSection\n";
-        solutionFile << "    GlobalSection(ProjectConfigurationPlatforms) = postSolution\n";
-        solutionFile << "        {SOME_GUID}.Debug|Win32.ActiveCfg = Debug|Win32\n";
-        solutionFile << "        {SOME_GUID}.Debug|Win32.Build.0 = Debug|Win32\n";
-        solutionFile << "        {SOME_GUID}.Release|Win32.ActiveCfg = Release|Win32\n";
-        solutionFile << "        {SOME_GUID}.Release|Win32.Build.0 = Release|Win32\n";
-        solutionFile << "    EndGlobalSection\n";
-        solutionFile << "EndGlobal\n";
+        // Read the content of default premake file
+        std::string premakeDefaultFilePath = Application->editorPath + "/premakeDefaultProject.lua";
+        std::ifstream sourceFile(premakeDefaultFilePath);
+        if (!sourceFile.is_open()) {
+            std::cerr << "Failed to open the default premake file." << std::endl;
+        }
+
+        std::string sourceContent((std::istreambuf_iterator<char>(sourceFile)),
+            std::istreambuf_iterator<char>());
+        sourceFile.close();
+
+        // Open the destination file in append mode to preserve its content
+        Editor::Utils::Filesystem::CreateNewFile(outputDirectory + "/premake5.lua");
+        std::ofstream destinationFile(outputDirectory + "/premake5.lua", std::ios::app);
+        if (destinationFile.is_open()) {
+            // Write the project name and Plaza root dir
+            std::string content = "local PlazaRootDir = \"" + PlazaRootDir + "\"\n" + "local ProjectName = \"" + ProjectName + "\"\n";
+            destinationFile << content;
+            std::cout << "Content written to the destination file." << std::endl;
+        }
+        else {
+            std::cerr << "Failed to create or open the destination file." << std::endl;
+        }
+
+        // Write the content from the default premake file to destination file
+        destinationFile << sourceContent;
+        destinationFile.close();
+        std::string premakeCommand = PlazaRootDir + "Engine/Vendor/premake/premake5.exe vs2022";
+
+        // Execute the Premake command
+        std::filesystem::current_path(outputDirectory);
+        int result = system(premakeCommand.c_str());
     }
 
     void ProjectGenerator::GenerateProject(const std::string& projectName, const std::string& outputDirectory) {

@@ -24,6 +24,7 @@ namespace Plaza::Editor {
 				break;
 			case filewatch::Event::modified: // The file was modified. This can be a change in the time stamp or attributes
 				if (fsPath.extension() == ".cs") {
+					if(Filewatcher::mMainThreadQueue.size() <= 0)
 					Filewatcher::AddToMainThread([finalPath]() {ScriptManager::ReloadSpecificAssembly(finalPath); });
 				}
 				break;

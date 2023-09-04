@@ -39,8 +39,8 @@ namespace Plaza::Editor {
 		if (script != Application->activeProject->scripts.end()) {
 			// Recompile the C# script to .dll
 			std::filesystem::path dllPath = std::filesystem::path{ scriptPath }.replace_extension(".dll");
-			std::string compileCommand = "mcs -target:library -out:" + dllPath.parent_path().string() + "\\" + dllPath.stem().string() + ".dll " + "\"" + std::string(scriptPath) + "\"";
-			compileCommand += " -reference:" + Application->dllPath + "\\PlazaScriptCore.dll";
+			std::string compileCommand = "mcs -target:library -out:\"" + dllPath.parent_path().string() + "\\" + dllPath.stem().string() + ".dll\" " + "\"" + std::string(scriptPath) + "\"";
+			compileCommand += " -reference:\"" + Application->dllPath + "\\PlazaScriptCore.dll\"";
 			std::cout << compileCommand << std::endl;
 			int result = system(compileCommand.c_str());
 			if (result == 0) {

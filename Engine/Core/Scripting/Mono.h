@@ -16,6 +16,7 @@ namespace Plaza {
 		static void RegisterComponents();
 		static MonoObject* InstantiateClass(const char* namespaceName, const char* className, MonoAssembly* assembly, MonoDomain* appDomain, uint64_t uuid = 0);
 
+		static void ReloadAppDomain();
 		static MonoMethod* GetMethod(MonoObject* objectInstance, const std::string& methodName, int parameterCount = 0);
 		static void CallMethod(MonoObject* objectInstance, std::string methodName);
 		static void CallMethod(MonoObject* objectInstance, MonoMethod* method, void** params);

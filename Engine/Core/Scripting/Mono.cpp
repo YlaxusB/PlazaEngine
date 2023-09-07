@@ -285,4 +285,11 @@ namespace Plaza {
 		RegisterComponent<Collider>();
 		RegisterComponent<RigidBody>();
 	}
+
+	void Mono::ReloadAppDomain() {
+		/* Unload and Load again the app domain */
+		mono_domain_set(mono_get_root_domain(), false);
+		mono_domain_unload(Mono::mAppDomain);
+		Mono::Init();
+	}
 }

@@ -6,5 +6,11 @@ namespace Plaza::Editor {
 		static void NewCsScript(std::string fullPath);
 		static void ReloadScriptsAssembly();
 		static void ReloadSpecificAssembly(std::string scriptPath);
+
+		static void RecompileDll(std::filesystem::path dllPath, std::string scriptPath);
+		static std::unordered_map<uint64_t, std::unordered_map<std::string, MonoObject*>> GetAllFields();
+		static void GetField();
+		static void SaveAllFields(std::unordered_map<uint64_t, std::unordered_map<std::string, MonoObject*>> fields);
+		static void SaveField();
 	};
 }

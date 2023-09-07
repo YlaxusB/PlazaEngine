@@ -30,12 +30,12 @@ namespace Plaza::Editor {
 				break;
 			case filewatch::Event::renamed_old: // The file was renamed and this is the old name
 				if (fsPath.extension() == ".cs") {
-					Application->activeProject->scripts.erase(pathToWatch + "\\" + path);
+					//Application->activeProject->scripts.erase(pathToWatch + "\\" + path);
 				}
 				break;
 			case filewatch::Event::renamed_new: // The file was renamed and this is the new name
 				if (fsPath.extension() == ".cs") {
-					Application->activeProject->scripts.emplace(pathToWatch + "\\" + path, Script());
+					//Application->activeProject->scripts.emplace(pathToWatch + "\\" + path, Script());
 				}
 				break;
 			};

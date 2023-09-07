@@ -80,7 +80,7 @@ namespace Plaza {
 					newFile.textureId = Icon::textures.at("").id;
 					files.push_back(newFile);
 				}
-				else {
+				else if (entry.path().extension() != ".dll") {
 					File newFile = File();
 					newFile.directory = entry.path().string();
 					newFile.name = filename;

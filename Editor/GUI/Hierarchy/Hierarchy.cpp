@@ -203,8 +203,11 @@ namespace Plaza::Editor {
 							std::string csFileName = filesystem::path{ key }.replace_extension(".cs").string();
 							script->Init(csFileName);;
 							Application->activeProject->scripts.at(csFileName).entitiesUsingThisScript.emplace(entity.uuid);
-							if (Application->runningScene)
-								Mono::OnStart(script->monoObject);
+							if (Application->runningScene) {
+								for (auto& [key, value] : script->scriptClasses) {
+									Mono::OnStart(value->monoObject);
+								}
+							}
 							entity.AddComponent<CsScriptComponent>(script);
 						}
 					}

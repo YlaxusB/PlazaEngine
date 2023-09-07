@@ -85,8 +85,10 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 				std::string csFileName = filesystem::path{ key }.replace_extension(".cs").string();
 				script->Init(csFileName);;
 				d->AddComponent<CsScriptComponent>(script);
-				if (Application->runningScene)
-					Mono::OnStart(script->monoObject);
+				if (Application->runningScene) {
+					for(auto& [key, value] : script->scriptClasses)
+					Mono::OnStart(value->monoObject);
+				}
 				d->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 			}
 		}

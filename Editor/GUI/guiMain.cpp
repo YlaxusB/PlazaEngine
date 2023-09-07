@@ -141,7 +141,7 @@ namespace Plaza {
 			//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
 			Gui::beginInspector(gameFrameBuffer, *camera);
 
-
+			//ImGui::ShowDemoWindow();
 
 			FileExplorer::UpdateGui();
 			ImGui::End();

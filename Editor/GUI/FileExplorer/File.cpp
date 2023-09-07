@@ -69,8 +69,15 @@ namespace Plaza {
 						firstFocus = false;
 					}
 				}
-				else
-					ImGui::Text(this->name.c_str());
+				else {
+					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+					ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+					ImGui::TextWrapped(this->name.c_str());
+					ImGui::SameLine();
+					ImGui::Text("...");
+					ImGui::PopStyleVar();
+					ImGui::PopStyleVar();
+				}
 
 			}
 			Popup::FileExplorerFilePopup::Update();
@@ -79,10 +86,85 @@ namespace Plaza {
 			// Open, or add the file to the selected files map when user clicked on a file
 			if (ImGui::IsItemClicked()) {
 				// Clicked on a folder and is not holding ctrl
-				if (ImGui::IsMouseDoubleClicked(0) && filesystem::is_directory(filesystem::path{ directory }) && glfwGetKey(Application->Window->glfwWindow, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS) {
-					Editor::Gui::FileExplorer::currentDirectory = directory;
-					Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
-					Editor::selectedFiles.clear();
+				if (ImGui::IsMouseDoubleClicked(0)) {
+					// Handle double click on folders
+					if (filesystem::is_directory(filesystem::path{ directory }) && glfwGetKey(Application->Window->glfwWindow, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS) {
+						Editor::Gui::FileExplorer::currentDirectory = directory;
+						Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+						Editor::selectedFiles.clear();
+					} // Handle double click on .cs files
+					else if (filesystem::path{ directory }.extension() == ".cs") {
+						/* Get Devenv path */
+						std::string getDevenvCommand = (Application->enginePath + "/vendor/vsWhere/vswhere -latest -requires Microsoft.Component.MSBuild -find Common7/IDE/devenv.exe");
+						// Open a pipe to capture the command output
+						FILE* pipe = _popen(getDevenvCommand.c_str(), "r");
+						if (!pipe) {
+							std::cerr << "Error: Unable to execute the command." << std::endl;
+						}
+						char buffer[1024];
+						std::string devenvPath = "";
+
+						// Read the command output character by character
+						int c;
+						while ((c = fgetc(pipe)) != EOF) {
+							// Filter out newline characters
+							if (c != '\n' && c != '\r') {
+								devenvPath += static_cast<char>(c);
+							}
+						}
+						// Close the pipe
+						_pclose(pipe);
+
+						/* "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" /command "File.OpenFile" "Speed Runers.sln" scriptchola.cs */
+						std::string projectPath = std::filesystem::path{ Application->activeProject->directory + "/" + Application->activeProject->name }.replace_extension(".sln").string();
+						std::string scriptPath = this->directory;
+						std::string openCsFileCommand = "\"\"" + devenvPath + "\" \"" + projectPath + "\" \"" + scriptPath + "\"\"";
+						for (size_t i = 0; i < openCsFileCommand.length(); ++i) {
+							if (openCsFileCommand[i] == '\\') {
+								openCsFileCommand[i] = '/';
+							}
+						}
+						std::cout << "OpenCsFileCommand: " << openCsFileCommand.c_str() << "\n";
+						//system(openCsFileCommand.c_str());
+
+						FILE* pipe2 = _popen(openCsFileCommand.c_str(), "r");
+						if (!pipe2) {
+							std::cerr << "Error: Unable to execute the command." << std::endl;
+						}
+
+
+						//LPCWSTR csFilePath = L"C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\Speed Runners\\scriptchola.cs";
+						////const char* visualStudioExecutable = "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Visual Studio 2022"; // Replace with your Visual Studio path //
+						//LPCWSTR visualStudioExecutable = L"C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\Speed Runners\\Speed Runers.sln";
+
+						//HINSTANCE result = ShellExecute(NULL, L"open", visualStudioExecutable, csFilePath, NULL, SW_SHOWNORMAL);
+
+						////HINSTANCE result = ShellExecute(NULL, L"open", csFilePath, NULL, NULL, SW_SHOWNORMAL);
+
+						//if ((intptr_t)result > 32)
+						//{
+						//	std::cout << "File opened successfully." << std::endl;
+						//}
+						//else
+						//{
+						//	DWORD error = GetLastError();
+						//	LPVOID errorMsg;
+						//	FormatMessage(
+						//		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+						//		NULL,
+						//		error,
+						//		0, // Default language
+						//		(LPWSTR)&errorMsg,
+						//		0,
+						//		NULL
+						//	);
+
+						//	std::wcerr << L"Error opening file: " << errorMsg << std::endl;
+						//	LocalFree(errorMsg);
+						//}
+
+						//delete[] wFilePath;
+					}
 				}
 				else {
 					// Clicked on something and is pressing control

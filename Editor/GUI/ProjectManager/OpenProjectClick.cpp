@@ -8,6 +8,7 @@
 #include "Engine/Application/Serializer/ScriptManagerSerializer.h"
 #include "Engine/Core/Scripting/Mono.h"
 #include "Editor/Filewatcher.h"
+#include "Editor/ScriptManager/ScriptManager.h"
 namespace Plaza {
 	namespace Editor {
 		namespace fs = std::filesystem;
@@ -35,6 +36,8 @@ namespace Plaza {
 					for (const auto& entry : fs::recursive_directory_iterator(Application->activeProject->directory)) {
 						if (entry.is_regular_file() && entry.path().extension() == ".cs") {
 							Application->activeProject->scripts.emplace(entry.path().string(), Script());
+							// Reload all .dll files
+							//ScriptManager::ReloadSpecificAssembly(entry.path().string());
 						}
 					}
 

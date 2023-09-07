@@ -18,12 +18,12 @@ namespace Plaza::Editor {
 			if (header) {
 
 				ImGui::Text("helo");
-				MonoClassField* floatField = mono_class_get_field_from_name(mono_object_get_class(scriptComponent->monoObject), "speed");
-				float value;
-				mono_field_get_value(scriptComponent->monoObject, floatField, &value);
-				if (ImGui::DragFloat("Speed: ", &value)) {
-					mono_field_set_value(scriptComponent->monoObject, floatField, &value);
-				}
+				//MonoClassField* floatField = mono_class_get_field_from_name(mono_object_get_class(scriptComponent->monoObject), "speed");
+				//float value;
+				//mono_field_get_value(scriptComponent->monoObject, floatField, &value);
+				//if (ImGui::DragFloat("Speed: ", &value)) {
+				//	mono_field_set_value(scriptComponent->monoObject, floatField, &value);
+				//}
 			}
 			ImGui::PopID();
 		}

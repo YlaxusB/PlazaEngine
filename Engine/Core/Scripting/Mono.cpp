@@ -119,7 +119,7 @@ namespace Plaza {
 
 		// Allocate an instance of our class
 		MonoObject* classInstance = mono_object_new(appDomain, monoClass);
-		unsigned int gcHandle = mono_gchandle_new(classInstance, true);
+		unsigned int gcHandle = mono_gchandle_new(classInstance, false);
 		if (uuid) {
 			MonoClassField* uuidField = mono_class_get_field_from_name(monoClass, "Uuid");
 			mono_field_set_value(classInstance, uuidField, &uuid);
@@ -143,7 +143,8 @@ namespace Plaza {
 	MonoMethod* Mono::GetMethod(MonoObject* objectInstance, const std::string& methodName, int parameterCount)
 	{
 		MonoClass* monoClass = mono_object_get_class(objectInstance);
-		return mono_class_get_method_from_name(monoClass, methodName.c_str(), parameterCount);
+		MonoMethod* method = mono_class_get_method_from_name(monoClass, methodName.c_str(), parameterCount);
+		return method;
 	}
 
 	void Mono::CallMethod(MonoObject* objectInstance, MonoMethod* method, void** params)
@@ -251,14 +252,19 @@ namespace Plaza {
 	// Execute OnStart on all scripts
 	void Mono::OnStartAll() {
 		for (auto& [key, value] : Application->activeScene->csScriptComponents) {
-			CallMethod(value.monoObject, "OnStart");
+			for (auto& [className, classScript] : value.scriptClasses) {
+				CallMethod(classScript->monoObject, classScript->onStartMethod, nullptr);
+			}
 		}
 	}
 
 	// Execute OnUpdate on all scripts
 	void Mono::Update() {
 		for (auto& [key, value] : Application->activeScene->csScriptComponents) {
-			CallMethod(value.monoObject, value.onUpdateMethod, nullptr);
+			for (auto& [className, classScript] : value.scriptClasses) {
+				CallMethod(classScript->monoObject, classScript->onUpdateMethod, nullptr);
+			}
+
 			//CallMethod(value.monoObject, "OnUpdate");
 		}
 	}

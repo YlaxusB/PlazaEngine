@@ -5,7 +5,7 @@
 #include <string>
 namespace Plaza {
 	template <typename T>
-	std::unordered_map<uint64_t, T>& GetComponentMap();
+	auto& GetComponentMap();
 	class Entity {
 	public:
 		uint64_t uuid;

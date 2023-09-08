@@ -50,7 +50,7 @@ namespace Plaza {
 		std::unordered_map<uint64_t, MeshRenderer> meshRendererComponents;
 		std::unordered_map<uint64_t, RigidBody> rigidBodyComponents;
 		std::unordered_map<uint64_t, Collider> colliderComponents;
-		std::unordered_map<uint64_t, CsScriptComponent> csScriptComponents;
+		std::unordered_multimap<uint64_t, CsScriptComponent> csScriptComponents;
 		std::vector<MeshRenderer*> meshRenderers;
 		std::map<uint64_t, shared_ptr<Mesh>> meshes;
 

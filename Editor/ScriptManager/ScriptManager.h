@@ -8,9 +8,9 @@ namespace Plaza::Editor {
 		static void ReloadSpecificAssembly(std::string scriptPath);
 
 		static void RecompileDll(std::filesystem::path dllPath, std::string scriptPath);
-		static std::unordered_map<uint64_t, std::unordered_map<std::string, MonoObject*>> GetAllFields();
+		static std::unordered_map<uint64_t, std::map<std::string, std::unordered_map<std::string, uint32_t>>> GetAllFields();
 		static void GetField();
-		static void SaveAllFields(std::unordered_map<uint64_t, std::unordered_map<std::string, MonoObject*>> fields);
+		static void SaveAllFields(std::unordered_map<uint64_t, std::map<std::string, std::unordered_map<std::string, uint32_t>>> fields);
 		static void SaveField();
 	};
 }

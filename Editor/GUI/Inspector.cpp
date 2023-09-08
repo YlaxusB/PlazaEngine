@@ -38,8 +38,13 @@ namespace Plaza::Editor {
 		if (activeScene->colliderComponents.contains(uuid))
 			components.push_back(&activeScene->colliderComponents.at(uuid));
 
-		if (activeScene->csScriptComponents.contains(uuid))
-			components.push_back(&activeScene->csScriptComponents.at(uuid));
+		if (activeScene->csScriptComponents.contains(uuid)) {
+			auto range = activeScene->csScriptComponents.equal_range(uuid);
+			for (auto it = range.first; it != range.second; ++it) {
+				components.push_back(&it->second);
+			}
+		}
+
 	}
 
 	void Inspector::ComponentInspector::CreateRespectiveInspector(Component* component) {

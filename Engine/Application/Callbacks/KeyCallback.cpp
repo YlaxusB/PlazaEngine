@@ -80,7 +80,7 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 				lastUuid = d->uuid;*/
 
 				// add script
-				std::string key = "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\Project6\\Unnamed.dll";
+				std::string key = "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\Speed Runners\\Source\\carScript.dll";
 				CsScriptComponent* script = new CsScriptComponent(d->uuid);
 				std::string csFileName = filesystem::path{ key }.replace_extension(".cs").string();
 				script->Init(csFileName);;

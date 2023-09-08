@@ -10,9 +10,12 @@
 
 namespace Plaza {
 	template <typename T>
-	std::unordered_map<uint64_t, T>& GetComponentMap() {
+	auto& GetComponentMap() {
 		if constexpr (std::is_same_v<T, Transform>) {
 			return Application->activeScene->transformComponents;
+		}
+		else if constexpr (std::is_same_v<T, Camera>) {
+			return Application->activeScene->cameraComponents;
 		}
 		else if constexpr (std::is_same_v<T, MeshRenderer>) {
 			return Application->activeScene->meshRendererComponents;
@@ -22,9 +25,6 @@ namespace Plaza {
 		}
 		else if constexpr (std::is_same_v<T, Collider>) {
 			return Application->activeScene->colliderComponents;
-		}
-		else if constexpr (std::is_same_v<T, Camera>) {
-			return Application->activeScene->cameraComponents;
 		}
 		else if constexpr (std::is_same_v<T, CsScriptComponent>) {
 			return Application->activeScene->csScriptComponents;
@@ -72,10 +72,17 @@ namespace Plaza {
 	T* Entity::GetComponent() {
 		Component* component = nullptr;
 
-		std::unordered_map<uint64_t, T>& components = GetComponentMap<T>();
+		auto& components = GetComponentMap<T>();
 		auto it = components.find(this->uuid);
 		if (it != components.end()) {
 			component = &(it->second);
+		}
+		else if (std::is_same_v<T, CsScriptComponent>) {
+			std::unordered_multimap<uint64_t, CsScriptComponent>& components = Application->activeScene->csScriptComponents;
+			auto it = components.find(this->uuid);
+			if (it != components.end()) {
+				component = &(it->second);
+			}
 		}
 
 		return dynamic_cast<T*>(component);
@@ -92,8 +99,8 @@ namespace Plaza {
 		component->uuid = this->uuid;
 
 		if (addToComponentsList) {
-			std::unordered_map<uint64_t, T>& components = GetComponentMap<T>();
-			components.emplace(component->uuid, *component);
+				auto& components = GetComponentMap<T>();
+				components.emplace(component->uuid, *component);
 		}
 
 		return dynamic_cast<T*>(component);
@@ -158,7 +165,7 @@ namespace Plaza {
 	template bool Entity::HasComponent<CsScriptComponent>(); // Replace 'MeshRenderer' with the actual type
 	template<typename T>
 	bool Entity::HasComponent() {
-		std::unordered_map<uint64_t, T>& components = GetComponentMap<T>();
+		auto& components = GetComponentMap<T>();
 		if (components.find(this->uuid) != components.end())
 			return true;
 		return false;
@@ -172,7 +179,7 @@ namespace Plaza {
 	template void Entity::RemoveComponent<CsScriptComponent>(); // Replace 'MeshRenderer' with the actual type
 	template <typename T>
 	void Entity::RemoveComponent() {
-		std::unordered_map<uint64_t, T>& components = GetComponentMap<T>();
+		auto& components = GetComponentMap<T>();
 		if (components.find(this->uuid) != components.end())
 			components.erase(components.find(this->uuid));
 	}

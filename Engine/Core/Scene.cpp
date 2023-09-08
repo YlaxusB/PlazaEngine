@@ -41,7 +41,7 @@ namespace Plaza {
 		newScene->transformComponents = std::unordered_map<uint64_t, Transform>(copyScene->transformComponents);
 		newScene->cameraComponents = std::unordered_map<uint64_t, Camera>(copyScene->cameraComponents);
 		newScene->meshRendererComponents = std::unordered_map<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
-		newScene->csScriptComponents = std::unordered_map<uint64_t, CsScriptComponent>(copyScene->csScriptComponents);
+		newScene->csScriptComponents = std::unordered_multimap<uint64_t, CsScriptComponent>(copyScene->csScriptComponents);
 
 		for (auto& [key, value] : copyScene->rigidBodyComponents) {
 			RigidBody* rigidBody = new RigidBody(value);

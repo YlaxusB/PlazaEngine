@@ -119,7 +119,7 @@ namespace Plaza {
 
 		// Allocate an instance of our class
 		MonoObject* classInstance = mono_object_new(appDomain, monoClass);
-		unsigned int gcHandle = mono_gchandle_new(classInstance, false);
+		unsigned int gcHandle = mono_gchandle_new(classInstance, true);
 		if (uuid) {
 			MonoClassField* uuidField = mono_class_get_field_from_name(monoClass, "Uuid");
 			mono_field_set_value(classInstance, uuidField, &uuid);
@@ -290,6 +290,6 @@ namespace Plaza {
 		/* Unload and Load again the app domain */
 		mono_domain_set(mono_get_root_domain(), false);
 		mono_domain_unload(Mono::mAppDomain);
-		Mono::Init();
+		//Mono::Init();
 	}
 }

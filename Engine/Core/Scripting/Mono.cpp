@@ -4,6 +4,7 @@
 #include "Engine/Vendor/mono/metadata/object.h"
 #include "Engine/Vendor/mono/metadata/threads.h"
 #include "Engine/Vendor/mono/metadata/mono-debug.h"
+#include "Editor/ScriptManager/ScriptManager.h"
 
 char* ConvertConstCharToChar(const char* constCharString) {
 	// Calculate the length of the input string
@@ -251,10 +252,18 @@ namespace Plaza {
 
 	// Execute OnStart on all scripts
 	void Mono::OnStartAll() {
+		Editor::ScriptManager::ReloadScriptsAssembly();
 		for (auto& [key, value] : Application->activeScene->csScriptComponents) {
-			for (auto& [className, classScript] : value.scriptClasses) {
+			std::string scriptPath = value.scriptPath;
+			CsScriptComponent* script = new CsScriptComponent(key);
+			std::string csFileName = filesystem::path{ scriptPath }.replace_extension(".cs").string();
+			script->Init(csFileName);
+
+			std::cout << "Nothing" << std::endl;
+			for (auto& [className, classScript] : script->scriptClasses) {
 				CallMethod(classScript->monoObject, classScript->onStartMethod, nullptr);
 			}
+			value = *script;
 		}
 	}
 

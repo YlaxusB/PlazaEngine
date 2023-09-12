@@ -199,7 +199,12 @@ namespace Plaza {
 	Mesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node)
 	{
 		// data to fill
-		vector<Vertex> vertices;
+		//vector<Vertex> vertices;
+		vector<glm::vec3> vertices;
+		vector<glm::vec3> normals;
+		vector<glm::vec3> tangents;
+		vector<glm::vec3> bitangents;
+		vector<glm::vec2> uvs;
 		vector<unsigned int> indices;
 		vector<Texture> textures;
 		aiColor3D color(0.f, 0.f, 0.f);
@@ -209,20 +214,27 @@ namespace Plaza {
 		// walk through each of the mesh's vertices
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 		{
-			Vertex* vertex = new Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
+			glm::vec3 vertex;
+			glm::vec3 normal;
+			glm::vec3 tangent;
+			glm::vec3 bitangent;
+			glm::vec2 uv;
+			//Vertex* vertex = new Vertex(glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
 			glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
 			// positions
 			vector.x = mesh->mVertices[i].x * modelScale;
 			vector.y = mesh->mVertices[i].y * modelScale;
 			vector.z = mesh->mVertices[i].z * modelScale;
-			vertex->position = vector;
+			vertex = vector;
+			vertices.push_back(vertex);
 			// normals
 			if (mesh->HasNormals())
 			{
 				vector.x = mesh->mNormals[i].x * modelScale;
 				vector.y = mesh->mNormals[i].y * modelScale;
 				vector.z = mesh->mNormals[i].z * modelScale;
-				vertex->normal = vector;
+				normal = vector;
+				normals.push_back(normal);
 			}
 
 			// texture coordinates
@@ -233,11 +245,11 @@ namespace Plaza {
 				// use models where a vertex can have multiple texture coordinates so we always take the first set (0).
 				vec.x = mesh->mTextureCoords[0][i].x;
 				vec.y = mesh->mTextureCoords[0][i].y;
-				vertex->texCoords = vec;
-
+				uv = vec;
+				uvs.push_back(uv);
 			}
 			else
-				vertex->texCoords = glm::vec2(0.0f, 0.0f);
+				uv = glm::vec2(0.0f, 0.0f);
 
 			if (mesh->HasTangentsAndBitangents()) {
 				usingNormal = true;
@@ -245,15 +257,16 @@ namespace Plaza {
 				vector.x = mesh->mTangents[i].x * modelScale;
 				vector.y = mesh->mTangents[i].y * modelScale;
 				vector.z = mesh->mTangents[i].z * modelScale;
-				vertex->tangent = vector;
+				tangent = vector;
+				tangents.push_back(tangent);
 				// bitangent
 				vector.x = mesh->mBitangents[i].x * modelScale;
 				vector.y = mesh->mBitangents[i].y * modelScale;
 				vector.z = mesh->mBitangents[i].z * modelScale;
-				vertex->bitangent = vector;
+				bitangent = vector;
+				bitangents.push_back(bitangent);
 			}
 
-			vertices.push_back(*vertex);
 		}
 		// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
 		for (unsigned int i = 0; i < mesh->mNumFaces; i++)
@@ -299,7 +312,7 @@ namespace Plaza {
 		if (heightMaps.size() > 0)
 			convertedMaterial.height = heightMaps[0];
 
-		Mesh finalMesh = Mesh(vertices, indices, convertedMaterial);
+		Mesh finalMesh = Mesh(vertices, normals, uvs, tangents, bitangents, indices, convertedMaterial);
 		finalMesh.usingNormal = usingNormal;
 		return finalMesh;
 	}

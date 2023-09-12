@@ -32,6 +32,7 @@
 #include "Engine/Components/Core/Camera.h"
 #include "Engine/Core/Scripting/Mono.h"
 #include "Editor/Filewatcher.h"
+#include "Engine/Core/Input/Input.h"
 char* appdataValue;
 size_t len;
 errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");
@@ -227,6 +228,7 @@ void ApplicationClass::UpdateEngine() {
 	}
 	// Update Keyboard inputs
 	Callbacks::processInput(Application->Window->glfwWindow);
+	Input::Update();
 	glEnable(GL_BLEND);
 
 	// Update Camera Position and Rotation
@@ -237,12 +239,14 @@ void ApplicationClass::UpdateEngine() {
 
 	/* Update Physics */
 	if (Application->runningScene) {
+		static constexpr tracy::SourceLocationData __tracy_source_location213{ "Physics", __FUNCTION__, "", (uint32_t)213, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location213, true);
 		Physics::Advance(Time::deltaTime);
 		Physics::Update();
 	}
 
 	/* Update Scripts */
 	if (Application->runningScene) {
+		static constexpr tracy::SourceLocationData __tracy_source_location213{ "OnUpdate Scripts", __FUNCTION__, "", (uint32_t)213, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location213, true);
 		Mono::Update();
 	}
 

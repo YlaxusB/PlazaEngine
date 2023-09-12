@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
+#include "Engine/Components/Rendering/Mesh.h"
 namespace Plaza {
 	MeshRenderer::MeshRenderer(Plaza::Mesh initialMesh, bool addToScene) {
 		this->uuid = Plaza::UUID::NewUUID();

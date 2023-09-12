@@ -62,6 +62,56 @@ namespace Plaza
 
     public class MeshRenderer : Component
     {
+        public Vector3[] Vertices
+        {
+            get
+            {
+                return InternalCalls.MeshRenderer_GetVertices(Entity.Uuid);
+            }
+            set
+            {
+                InternalCalls.MeshRenderer_SetVertices(Uuid, value);
+            }
+        }
 
+        public int[] Indices
+        {
+            get
+            {
+                return InternalCalls.MeshRenderer_GetIndices(Entity.Uuid);
+            }
+            set
+            {
+                InternalCalls.MeshRenderer_SetIndices(Uuid, value);
+            }
+        }
+
+        public Vector3[] Normals
+        {
+            get
+            {
+                return InternalCalls.MeshRenderer_GetNormals(Entity.Uuid);
+            }
+            set
+            {
+                InternalCalls.MeshRenderer_SetNormals(Uuid, value);
+            }
+        }
+        /*
+        public Vector2[] Uvs
+        {
+            get
+            {
+                InternalCalls.MeshRenderer_GetUvs(Entity.Uuid, out Vector2[] uvs);
+                return uvs;
+            }
+            set
+            {
+                InternalCalls.MeshRenderer_SetUvs(Uuid, ref value);
+            }
+        }
+
+        */
     }
+
 }

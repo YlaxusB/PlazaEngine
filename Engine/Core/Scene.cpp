@@ -37,7 +37,7 @@ namespace Plaza {
 			//newScene->gameObjects.push_back(std::make_unique<Entity>(newObj.get()));
 			//delete(newObj);
 		}
-		newScene->meshes = map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
+		newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
 		newScene->transformComponents = std::unordered_map<uint64_t, Transform>(copyScene->transformComponents);
 		newScene->cameraComponents = std::unordered_map<uint64_t, Camera>(copyScene->cameraComponents);
 		newScene->meshRendererComponents = std::unordered_map<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
@@ -117,7 +117,7 @@ namespace Plaza {
 		return &Application->activeScene->entities.at(uuid);
 	}
 	template<typename T>
-	Component* Scene::GetComponent(uint64_t uuid) {
+	T* Scene::GetComponent(uint64_t uuid) {
 		return &GetComponentMap<T>().at(uuid);
 	}
 }

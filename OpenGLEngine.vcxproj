@@ -211,6 +211,8 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Engine\Components\Rendering\Prefab.cpp" />
     <ClCompile Include="Engine\Components\Scripting\CppScriptComponent.cpp" />
     <ClCompile Include="Engine\Core\Engine.cpp" />
+    <ClCompile Include="Engine\Core\Input\Cursor.cpp" />
+    <ClCompile Include="Engine\Core\Input\Input.cpp" />
     <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp" />
     <ClCompile Include="Engine\Core\ModelLoader\ModelLoader.cpp" />
     <ClCompile Include="Engine\Core\ModelLoader\TexturesHandler.cpp" />
@@ -425,6 +427,8 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Application\Serializer\ScriptManagerSerializer.h" />
     <ClInclude Include="Engine\Application\Window.h" />
     <ClInclude Include="Engine\Components\Core\Entity.h" />
+    <ClInclude Include="Engine\Core\Input\Cursor.h" />
+    <ClInclude Include="Engine\Core\Input\Input.h" />
     <ClInclude Include="Engine\Core\Scripting\Mono.h" />
     <ClInclude Include="Engine\Core\Script.h" />
     <ClInclude Include="Engine\Components\Physics\Collider.h" />

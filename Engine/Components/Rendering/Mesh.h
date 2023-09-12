@@ -25,6 +25,7 @@ namespace Plaza {
 
 	class Mesh {
 	public:
+		bool temporaryMesh = false;
 		unsigned int instanceBuffer;
 		unsigned int uniformBuffer;
 		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
@@ -32,18 +33,38 @@ namespace Plaza {
 		uint64_t meshId;
 		float farthestVertex = 0.0f;
 		std::string id;
-		vector<Vertex> vertices;
+
+		//vector<Vertex> vertices;
+		vector<glm::vec3> vertices;
 		vector<unsigned int> indices;
+		vector<glm::vec3> normals;
+		vector<glm::vec2> uvs;
+		vector<glm::vec3> tangent;
+		vector<glm::vec3> bitangent;
+
 		vector<Texture> textures;
 		Material material = DefaultMaterial();
 		bool usingNormal;
 		glm::vec4 infVec = glm::vec4(INFINITY);
 		unsigned int VAO;
 		Mesh(const Mesh&) = default;
-		~Mesh() = default;
-		Mesh(vector<Vertex> vertices, vector<unsigned int> indices, Material material) {
+		~Mesh() {
+			if (temporaryMesh) {
+				if(VAO)
+				glDeleteVertexArrays(1, &VAO);
+				if (VBO)
+				glDeleteBuffers(1, &VBO);
+				if (EBO)
+				glDeleteBuffers(1, &EBO);
+			}
+		};
+		Mesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material) {
 			this->vertices = vertices;
 			this->indices = indices;
+			this->normals = normals;
+			this->uvs = uvs;
+			this->tangent = tangent;
+			this->bitangent = bitangent;
 			this->material = material;
 			this->uuid = Plaza::UUID::NewUUID();
 			if (this->meshId == 0)
@@ -51,8 +72,13 @@ namespace Plaza {
 			setupMesh();
 		}
 
-		Mesh(vector<Vertex> vertices, vector<unsigned int> indices) {
+		Mesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices) {
 			this->vertices = vertices;
+			this->indices = indices;
+			this->normals = normals;
+			this->uvs = uvs;
+			this->tangent = tangent;
+			this->bitangent = bitangent;
 			this->indices = indices;
 			this->uuid = Plaza::UUID::NewUUID();
 			if (this->meshId == 0)
@@ -173,6 +199,10 @@ namespace Plaza {
 			glDeleteBuffers(1, &VBO);
 		}
 
+		void Restart() {
+			setupMesh();
+		}
+
 	private:
 		unsigned int VBO, EBO;
 		void setupMesh() {
@@ -187,7 +217,20 @@ namespace Plaza {
 			// A great thing about structs is that their memory layout is sequential for all its items.
 			// The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
 			// again translates to 3/2 floats which translates to a byte array.
-			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+			vector<Vertex> convertedVertices = vector<Vertex>();
+			for (unsigned int i = 0; i < vertices.size(); i++) {
+				if(tangent.size() > i)
+				convertedVertices.push_back(Vertex(vertices[i], normals[i], uvs[i], tangent[i], bitangent[i]));
+				else if(normals.size() > i && uvs.size() > i)
+					convertedVertices.push_back(Vertex(vertices[i], normals[i], uvs[i], glm::vec3(0.0f), glm::vec3(0.0f)));
+				else if(normals.size() > i)
+					convertedVertices.push_back(Vertex(vertices[i], normals[i], glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)));
+				else if (uvs.size() > i)
+					convertedVertices.push_back(Vertex(vertices[i], glm::vec3(0.0f), uvs[i], glm::vec3(0.0f), glm::vec3(0.0f)));
+				else 
+					convertedVertices.push_back(Vertex(vertices[i], glm::vec3(0.0f), glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)));
+			}
+			glBufferData(GL_ARRAY_BUFFER, convertedVertices.size() * sizeof(Vertex), &convertedVertices[0], GL_STATIC_DRAW);
 
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
@@ -241,8 +284,8 @@ namespace Plaza {
 			glBindBuffer(GL_UNIFORM_BUFFER, this->uniformBuffer);
 			glBufferData(GL_UNIFORM_BUFFER, sizeof(Material), &this->material, GL_STATIC_DRAW);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-			for (Vertex vertex : vertices) {
-				glm::vec3 absoluteVertex = glm::vec3(glm::abs(vertex.position.x), glm::abs(vertex.position.y), glm::abs(vertex.position.z));
+			for (glm::vec3 position : vertices) {
+				glm::vec3 absoluteVertex = glm::vec3(glm::abs(position.x), glm::abs(position.y), glm::abs(position.z));
 				float absoluteSum = absoluteVertex.x + absoluteVertex.y + absoluteVertex.z;
 				if (absoluteSum > farthestVertex)
 					farthestVertex = absoluteSum;

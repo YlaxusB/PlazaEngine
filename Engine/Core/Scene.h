@@ -52,7 +52,7 @@ namespace Plaza {
 		std::unordered_map<uint64_t, Collider> colliderComponents;
 		std::unordered_multimap<uint64_t, CsScriptComponent> csScriptComponents;
 		std::vector<MeshRenderer*> meshRenderers;
-		std::map<uint64_t, shared_ptr<Mesh>> meshes;
+		std::unordered_map<uint64_t, shared_ptr<Mesh>> meshes;
 
 		Scene();
 
@@ -66,7 +66,7 @@ namespace Plaza {
 
 		Entity* GetEntity(uint64_t uuid);
 		template<typename T>
-		Component* GetComponent(uint64_t uuid);
+		T* GetComponent(uint64_t uuid);
 
 		void RemoveMeshRenderer(uint64_t uuid);
 	};

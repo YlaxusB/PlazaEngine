@@ -109,8 +109,8 @@ namespace Plaza {
 		physx::PxShape* shape;
 		physx::PxTriangleMeshGeometry triangleGeometry;
 		std::vector<physx::PxVec3> vertices;
-		for (const Plaza::Vertex& vertex : mesh->vertices) {
-			vertices.push_back(physx::PxVec3(vertex.position.x, vertex.position.y, vertex.position.z));
+		for (const glm::vec3& vertex : mesh->vertices) {
+			vertices.push_back(physx::PxVec3(vertex.x, vertex.y, vertex.z));
 		}
 		physx::PxConvexMeshDesc meshDesc;
 		meshDesc.points.data = vertices.data();
@@ -141,8 +141,8 @@ namespace Plaza {
 		std::vector<physx::PxU32> indices;
 
 		// Extract vertices and indices from the mesh
-		for (const Plaza::Vertex& vertex : mesh->vertices) {
-			vertices.push_back(physx::PxVec3(vertex.position.x, vertex.position.y, vertex.position.z));
+		for (const glm::vec3& vertex : mesh->vertices) {
+			vertices.push_back(physx::PxVec3(vertex.x, vertex.y, vertex.z));
 		}
 		for (const unsigned int& index : mesh->indices) {
 			indices.push_back(static_cast<physx::PxU32>(index));

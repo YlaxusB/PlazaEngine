@@ -12,6 +12,29 @@ namespace Plaza
         {
             return InternalCalls.InputIsKeyDown(keycode);
         }
+
+        public static bool IsMouseDown(int button)
+        {
+            return InternalCalls.InputIsMouseDown(button);
+        }
+
+        public static Vector2 MouseDelta()
+        {
+            InternalCalls.GetMouseDelta(out Vector2 vector);
+            return vector;
+        }
+
+        public static float MouseDeltaX()
+        {
+            InternalCalls.GetMouseDelta(out Vector2 vector);
+            return vector.X;
+        }
+
+        public static float MouseDeltaY()
+        {
+            InternalCalls.GetMouseDelta(out Vector2 vector);
+            return vector.Y;
+        }
     }
 
     public enum KeyCode

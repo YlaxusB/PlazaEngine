@@ -45,40 +45,90 @@ namespace Plaza::Editor {
 		20, 21, 22,// Right face
 		22, 21, 23 // Right face
 		};
-		std::vector<Vertex> vertices = {
-			// Front face vertices
-			Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			// Back face vertices
-			Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			// Top face vertices
-			Vertex(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 1, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			// Bottom face vertices
-			Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0, -1, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0, -1, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0, -1, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0, -1, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			// Left face vertices
-			Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-1, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(-1, 0, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(-1, 0, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(-1, 0, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			// Right face vertices
-			Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(1, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1, 0, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1, 0, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
-			Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(1, 0, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0))
+		std::vector<glm::vec3> positions = {
+			glm::vec3(-0.5f, -0.5f, 0.5f),glm::vec3(0.5f, -0.5f, 0.5f),glm::vec3(-0.5f, 0.5f, 0.5f),glm::vec3(0.5f, 0.5f, 0.5f),
+			glm::vec3(0.5f, -0.5f, -0.5f),glm::vec3(-0.5f, -0.5f, -0.5f),glm::vec3(0.5f, 0.5f, -0.5f),glm::vec3(-0.5f, 0.5f, -0.5f),
+			glm::vec3(-0.5f, 0.5f, 0.5f),glm::vec3(0.5f, 0.5f, 0.5f),glm::vec3(-0.5f, 0.5f, -0.5f),glm::vec3(0.5f, 0.5f, -0.5f),
+			glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, -0.5f, -0.5f),glm::vec3(-0.5f, -0.5f, 0.5f),glm::vec3(0.5f, -0.5f, 0.5f),
+			glm::vec3(-0.5f, -0.5f, -0.5f),glm::vec3(-0.5f, -0.5f, 0.5f),glm::vec3(-0.5f, 0.5f, -0.5f),glm::vec3(-0.5f, 0.5f, 0.5f),
+			glm::vec3(0.5f, -0.5f, 0.5f),glm::vec3(0.5f, -0.5f, -0.5f),glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, -0.5f)
 		};
 
-		Mesh* newMesh = new Mesh(vertices, indices);
+		std::vector<glm::vec3> normals = {
+			glm::vec3(0, 0, 1),
+			glm::vec3(0, 0, 1),
+			glm::vec3(0, 0, 1),
+			glm::vec3(0, 0, 1),
+			glm::vec3(0, 0, -1),
+			glm::vec3(0, 0, -1),
+			glm::vec3(0, 0, -1),
+			glm::vec3(0, 0, -1),
+			glm::vec3(0, 1, 0),
+			glm::vec3(0, 1, 0),
+			glm::vec3(0, 1, 0),
+			glm::vec3(0, 1, 0),
+			glm::vec3(0, -1, 0),
+			glm::vec3(0, -1, 0),
+			glm::vec3(0, -1, 0),
+			glm::vec3(0, -1, 0),
+			glm::vec3(-1, 0, 0),
+			glm::vec3(-1, 0, 0),
+			glm::vec3(-1, 0, 0),
+			glm::vec3(-1, 0, 0),
+			glm::vec3(1, 0, 0),
+			glm::vec3(1, 0, 0),
+			glm::vec3(1, 0, 0),
+			glm::vec3(1, 0, 0)
+		};
+
+		std::vector<glm::vec2> texCoords = {
+			glm::vec2(0, 0), glm::vec2(1, 0),
+			glm::vec2(0, 1), glm::vec2(1, 1),
+			glm::vec2(0, 0),glm::vec2(1, 0),
+			glm::vec2(0, 1),glm::vec2(1, 1),
+			glm::vec2(0, 0), glm::vec2(1, 0),
+			glm::vec2(0, 1),glm::vec2(1, 1),
+			glm::vec2(0, 0),glm::vec2(1, 0),
+			glm::vec2(0, 1),glm::vec2(1, 1),
+			glm::vec2(0, 0),glm::vec2(1, 0),
+			glm::vec2(0, 1),glm::vec2(1, 1),
+			glm::vec2(0, 0),glm::vec2(1, 0),
+			glm::vec2(0, 1),glm::vec2(1, 1)
+		};
+
+		//std::vector<Vertex> vertices = {
+		//	// Front face vertices
+		//	Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 0, 1), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	// Back face vertices
+		//	Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0, 0, -1), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	// Top face vertices
+		//	Vertex(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0, 1, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	// Bottom face vertices
+		//	Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0, -1, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(0, -1, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(0, -1, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(0, -1, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	// Left face vertices
+		//	Vertex(glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-1, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(-0.5f, -0.5f, 0.5f), glm::vec3(-1, 0, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(-0.5f, 0.5f, -0.5f), glm::vec3(-1, 0, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(-0.5f, 0.5f, 0.5f), glm::vec3(-1, 0, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	// Right face vertices
+		//	Vertex(glm::vec3(0.5f, -0.5f, 0.5f), glm::vec3(1, 0, 0), glm::vec2(0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(0.5f, -0.5f, -0.5f), glm::vec3(1, 0, 0), glm::vec2(1, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(1, 0, 0), glm::vec2(0, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)),
+		//	Vertex(glm::vec3(0.5f, 0.5f, -0.5f), glm::vec3(1, 0, 0), glm::vec2(1, 1), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0))
+		//};
+		Mesh* newMesh = new Mesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
 		newMesh->usingNormal = false;
 		newMesh->meshId = cubeUuid;
 		Application->editorScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
@@ -86,7 +136,12 @@ namespace Plaza::Editor {
 
 	void DefaultModels::InitSphere() {
 		std::vector<unsigned int> indices;
-		std::vector<Vertex> vertices;
+		//std::vector<Vertex> vertices;
+		std::vector<glm::vec3> vertices;
+		std::vector<glm::vec3> normals;
+		std::vector<glm::vec3> tangents;
+		std::vector<glm::vec3> bitangents;
+		std::vector<glm::vec2> uvs;
 
 		// Generate sphere vertices and indices
 		const int stacks = 20;
@@ -107,13 +162,13 @@ namespace Plaza::Editor {
 				float y = radius * std::sin(phi);
 				float z = radius * std::cos(phi) * std::sin(sliceAngle);
 
-				glm::vec3 position(x, y, z);
-				glm::vec3 normal = glm::normalize(position);
-				glm::vec2 texCoords(sliceRatio, stackRatio);
-				glm::vec3 tangent(0.0f);
-				glm::vec3 bitangent(0.0f);
+				vertices.push_back(glm::vec3(x, y, z));
+				normals.push_back(glm::normalize(glm::vec3(x, y, z)));
+				uvs.push_back(glm::vec2(sliceRatio, stackRatio));
+				tangents.push_back(glm::vec3(0.0f));
+				bitangents.push_back(glm::vec3(0.0f));
 
-				vertices.push_back(Vertex(position, normal, texCoords, tangent, bitangent));
+				//vertices.push_back(Vertex(position, normal, texCoords, tangent, bitangent));
 			}
 		}
 
@@ -137,7 +192,7 @@ namespace Plaza::Editor {
 			}
 		}
 
-		shared_ptr<Mesh> newMesh = make_shared<Mesh>(vertices, indices);
+		shared_ptr<Mesh> newMesh = make_shared<Mesh>(vertices, normals, uvs, tangents, bitangents, indices);
 		newMesh->usingNormal = false;
 		newMesh->meshId = sphereUuid;
 		Application->editorScene->meshes.emplace(newMesh->meshId, newMesh);
@@ -156,10 +211,10 @@ namespace Plaza::Editor {
 			Vertex(glm::vec3(-0.5f, 0.0f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 1), glm::vec3(0), glm::vec3(0))
 		};
 
-		Mesh* newMesh = new Mesh(vertices, indices);
+		/*Mesh* newMesh = new Mesh(vertices, indices);
 		newMesh->usingNormal = false;
 		newMesh->meshId = planeUuid;
-		Application->editorScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+		Application->editorScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));*/
 	}
 
 	void DefaultModels::InitCylinder() {
@@ -195,9 +250,9 @@ namespace Plaza::Editor {
 		}
 
 		// Create the cylinder mesh and add it to the scene
-		Mesh* newMesh = new Mesh(vertices, indices);
-		newMesh->usingNormal = false; // You probably want to set this to true for the cylinder
-		newMesh->meshId = cylinderUuid;
-		Application->editorScene->meshes.emplace(newMesh->meshId, std::make_shared<Mesh>(*newMesh));
+		//Mesh* newMesh = new Mesh(vertices, indices);
+		//newMesh->usingNormal = false; // You probably want to set this to true for the cylinder
+		//newMesh->meshId = cylinderUuid;
+		//Application->editorScene->meshes.emplace(newMesh->meshId, std::make_shared<Mesh>(*newMesh));
 	}
 }

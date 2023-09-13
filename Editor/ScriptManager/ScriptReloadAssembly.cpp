@@ -96,6 +96,14 @@ namespace Plaza::Editor {
 				value.Init(scriptPath);
 			}
 
+			/* Todo: Fix it */
+			if (Application->runningScene) {
+				for (auto& [key, value] : Application->editorScene->csScriptComponents) {
+					std::string scriptPath = value.scriptPath;
+					value = *new CsScriptComponent(key);
+					value.Init(scriptPath);
+				}
+			}
 			/* ScriptManager::SaveAllFields(fields); */
 		}
 	}

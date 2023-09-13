@@ -2,9 +2,23 @@
 #include "Engine/Vendor/physx/PxPhysicsAPI.h"
 #include "Engine/Components/Component.h"
 namespace Plaza {
+	enum ColliderShapeEnum {
+		BOX,
+		SPHERE,
+		CAPSULE,
+		PLANE,
+		CYLINDER,
+		MESH
+	};
+	struct ColliderShape {
+		ColliderShape(physx::PxShape* shape, ColliderShapeEnum newEnum = ColliderShapeEnum::BOX, uint64_t meshUuid = 0) : mPxShape(shape), mEnum(newEnum), mMeshUuid(meshUuid){}
+		physx::PxShape* mPxShape;
+		ColliderShapeEnum mEnum;
+		uint64_t mMeshUuid;
+	};
 	class Collider : public Component {
 	public:
-		vector<physx::PxShape*> mShapes;
+		vector<ColliderShape*> mShapes;
 		physx::PxRigidActor* mRigidActor;
 		physx::PxRigidBody* mStaticPxRigidBody;
 		physx::PxRigidBody* pxRigidBody;
@@ -18,8 +32,8 @@ namespace Plaza {
 		void InitCollider(RigidBody* rigidBody = nullptr);
 		void Update();
 
-
-		void AddShape(physx::PxShape* shape);
+		void CreateShape(ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh = nullptr);
+		void AddShape(ColliderShape* shape);
 		void AddConvexMeshShape(Mesh* mesh);
 		void AddMeshShape(Mesh* mesh);
 		void UpdateShapeScale(glm::vec3 scale);

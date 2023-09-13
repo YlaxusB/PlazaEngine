@@ -51,7 +51,8 @@ namespace Plaza {
 					newGameObject->AddComponent<MeshRenderer>(newMeshRenderer, true);
 					//newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
 					Collider* collider = new Collider(newGameObject->uuid);
-					collider->AddMeshShape(new Mesh(*newMeshRenderer->mesh));
+					collider->CreateShape(ColliderShapeEnum::MESH, transform, newMeshRenderer->mesh.get());
+					//collider->AddMeshShape(new Mesh(*newMeshRenderer->mesh));
 					newGameObject->AddComponent<Collider>(collider);
 				}
 				modelInstanceGameObjects.emplace(entity->uuid, newGameObject);

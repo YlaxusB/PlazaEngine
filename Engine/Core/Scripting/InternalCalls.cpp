@@ -11,6 +11,21 @@ namespace Plaza {
 		return Mono::mEntityHasComponentFunctions.at(monoType)(*Application->activeScene->GetEntity(uuid));
 		//return Application->activeScene->entities.at(uuid).HasComponent<type>();
 	}
+
+#pragma region Input
+
+	static bool InputIsKeyDown(int keyCode) {
+		return glfwGetKey(Application->Window->glfwWindow, keyCode) == GLFW_PRESS;
+	}
+
+	static bool InputIsMouseDown(int button) {
+		return glfwGetMouseButton(Application->Window->glfwWindow, button) == GLFW_PRESS;
+	}
+
+	static void GetMouseDelta(glm::vec2* out) {
+		*out = glm::vec2(Input::Cursor::deltaX, Input::Cursor::deltaY);
+	}
+
 #pragma region Components
 
 #pragma region Transform Component
@@ -21,20 +36,11 @@ namespace Plaza {
 		*out = Application->activeScene->transformComponents.at(uuid).relativePosition;
 	}
 
-	static bool InputIsKeyDown(int keyCode) {
-		return glfwGetKey(Application->Window->glfwWindow, keyCode) == GLFW_PRESS;
+	static void SetRotation(uint64_t uuid, glm::vec3* vec3) {
+		Application->activeScene->transformComponents.at(uuid).SetRelativeRotation(glm::radians(*vec3));
 	}
-
-	static bool InputIsMouseDown(int button) {
-		return glfwGetMouseButton(Application->Window->glfwWindow, button) == GLFW_PRESS;
-	}
-
-	static void GetMouseDelta(int button, glm::vec2* out) {
-
-		*out = glm::vec2(Input::Cursor::deltaX, Input::Cursor::deltaY);
-		if (Input::Cursor::deltaX > 0) {
-			std::cout << Input::Cursor::deltaX << "\n";
-		}
+	static void GetRotationCall(uint64_t uuid, glm::vec3* out) {
+		*out = glm::degrees(Application->activeScene->transformComponents.at(uuid).rotation);
 	}
 
 	static void MoveTowards(uint64_t uuid, glm::vec3 vector3) {
@@ -186,10 +192,17 @@ namespace Plaza {
 
 	void InternalCalls::Init() {
 		//PL_ADD_INTERNAL_CALL(GetPositionCall);
+		mono_add_internal_call("Plaza.InternalCalls::InputIsKeyDown", InputIsKeyDown);
+		mono_add_internal_call("Plaza.InternalCalls::InputIsMouseDown", InputIsMouseDown);
+		mono_add_internal_call("Plaza.InternalCalls::GetMouseDelta", GetMouseDelta);
+
 		mono_add_internal_call("Plaza.InternalCalls::HasComponent", HasComponent);
+
 		mono_add_internal_call("Plaza.InternalCalls::GetPositionCall", GetPositionCall);
 		mono_add_internal_call("Plaza.InternalCalls::SetPosition", SetPosition);
-		mono_add_internal_call("Plaza.InternalCalls::InputIsKeyDown", InputIsKeyDown);
+		mono_add_internal_call("Plaza.InternalCalls::GetRotationCall", GetRotationCall);
+		mono_add_internal_call("Plaza.InternalCalls::SetRotation", SetRotation);
+
 		mono_add_internal_call("Plaza.InternalCalls::MoveTowards", MoveTowards);
 
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetVertices", MeshRenderer_GetVertices);
@@ -198,8 +211,6 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetIndices", MeshRenderer_SetIndices);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetNormals", MeshRenderer_GetNormals);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetNormals", MeshRenderer_SetNormals);
-		mono_add_internal_call("Plaza.InternalCalls::InputIsMouseDown", InputIsMouseDown);
-		mono_add_internal_call("Plaza.InternalCalls::GetMouseDelta", GetMouseDelta);
 		//mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetUvs", MeshRenderer_GetUvs);
 		//mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetUvs", MeshRenderer_SetUvs);
 		//mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetIndices", MeshRenderer_GetIndices);

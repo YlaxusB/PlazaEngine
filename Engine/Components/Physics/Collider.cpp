@@ -58,8 +58,8 @@ namespace Plaza {
 
 	Collider::~Collider() {
 		if (mRigidActor) {
-			for (physx::PxShape* shape : mShapes) {
-				this->mRigidActor->detachShape(*shape);
+			for (ColliderShape* shape : mShapes) {
+				this->mRigidActor->detachShape(*shape->mPxShape);
 			}
 			Physics::m_scene->removeActor(*this->mRigidActor);
 		}
@@ -67,8 +67,8 @@ namespace Plaza {
 
 	void Collider::RemoveActor() {
 		if (this->mRigidActor) {
-			for (physx::PxShape* shape : mShapes) {
-				this->mRigidActor->detachShape(*shape);
+			for (ColliderShape* shape : mShapes) {
+				this->mRigidActor->detachShape(*shape->mPxShape);
 			}
 			Physics::m_scene->removeActor(*this->mRigidActor);
 			mRigidActor = nullptr;
@@ -98,9 +98,9 @@ namespace Plaza {
 		}
 
 		// Attach the shapes with the material to the actor
-		for (physx::PxShape* shape : mShapes) {
-			shape->setMaterials(&material, 1);
-			this->mRigidActor->attachShape(*shape);
+		for (ColliderShape* shape : mShapes) {
+			shape->mPxShape->setMaterials(&material, 1);
+			this->mRigidActor->attachShape(*shape->mPxShape);
 		}
 		Physics::m_scene->addActor(*this->mRigidActor);
 	}
@@ -129,7 +129,8 @@ namespace Plaza {
 		physx::PxConvexMesh* convexMesh = Physics::m_physics->createConvexMesh(input);
 		shape = Physics::m_physics->createShape(physx::PxConvexMeshGeometry(convexMesh),
 			*Physics::defaultMaterial);
-		this->mShapes.push_back(shape);
+
+		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::MESH, mesh->meshId));
 		delete mesh;
 	}
 
@@ -167,11 +168,37 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(physx::PxTriangleMeshGeometry(triangleMesh),
 			*Physics::defaultMaterial);
 
-		this->mShapes.push_back(shape);
+		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::MESH, mesh->meshId));
 		delete mesh;
 	}
 
-	void Collider::AddShape(physx::PxShape* shape) {
+	void Collider::CreateShape(ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh) {
+		if (shapeEnum == ColliderShapeEnum::BOX) {
+			physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
+			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShapeEnum::BOX, 0));
+		}
+		else if (shapeEnum == ColliderShapeEnum::SPHERE) {
+			physx::PxSphereGeometry geometry(1.0f);
+			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShapeEnum::SPHERE, 0));
+		}
+		else if (shapeEnum == ColliderShapeEnum::PLANE) {
+			physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
+			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShapeEnum::PLANE, 0));
+		}
+		else if (shapeEnum == ColliderShapeEnum::CAPSULE) {
+			/* TODO: Implement capsule shape*/
+			std::cout << "Capsule not yet implemented" << std::endl;
+		}
+		else if (shapeEnum == ColliderShapeEnum::CYLINDER) {
+			/* TODO: Implement cylinder shape*/
+			std::cout << "Cylinder not yet implemented" << std::endl;
+		}
+		else if (shapeEnum == ColliderShapeEnum::MESH) {
+			this->AddMeshShape(new Mesh(*mesh));
+		}
+	}
+
+	void Collider::AddShape(ColliderShape* shape) {
 		this->mShapes.push_back(shape);
 		Init(nullptr);
 	}
@@ -182,11 +209,11 @@ namespace Plaza {
 
 	void Collider::UpdateShapeScale(glm::vec3 scale) {
 		for (int i = 0; i < this->mShapes.size(); ++i) {
-			physx::PxShape* shape = this->mShapes[i];
-			physx::PxGeometryHolder geometry = this->mShapes[i]->getGeometry();
-			physx::PxShape* newShape = this->mShapes[i];
+			physx::PxShape* shape = this->mShapes[i]->mPxShape;
+			physx::PxGeometryHolder geometry = this->mShapes[i]->mPxShape->getGeometry();
+			physx::PxShape* newShape = this->mShapes[i]->mPxShape;
 			physx::PxMaterial* material;
-			this->mShapes[i]->getMaterials(&material, 1);
+			this->mShapes[i]->mPxShape->getMaterials(&material, 1);
 			// Scale the geometry parameters by the given factor
 			if (geometry.getType() == physx::PxGeometryType::eBOX) {
 				physx::PxBoxGeometry boxGeom = geometry.box();
@@ -214,14 +241,14 @@ namespace Plaza {
 
 			if (Application->runningScene) {
 				if (this->mDynamic) {
-					this->mRigidActor->detachShape(*this->mShapes[i]);
-					this->mShapes[i] = newShape;
-					this->mRigidActor->attachShape(*this->mShapes[i]);
+					this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
+					this->mShapes[i] = this->mShapes[i];
+					this->mRigidActor->attachShape(*this->mShapes[i]->mPxShape);
 				}
 				else {
-					this->mRigidActor->detachShape(*this->mShapes[i]);
-					this->mShapes[i] = newShape;
-					this->mRigidActor->attachShape(*this->mShapes[i]);
+					this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
+					this->mShapes[i] = this->mShapes[i];
+					this->mRigidActor->attachShape(*this->mShapes[i]->mPxShape);
 				}
 			}
 		}

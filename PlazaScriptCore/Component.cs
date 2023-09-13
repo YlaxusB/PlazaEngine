@@ -51,7 +51,18 @@ namespace Plaza
                 InternalCalls.SetPosition(Uuid, ref value);
             }
         }
-        public Vector3 rotation;
+        public Vector3 rotation
+        {
+            get
+            {
+                InternalCalls.GetRotationCall(Entity.Uuid, out Vector3 rotation);
+                return rotation;
+            }
+            set
+            {
+                InternalCalls.SetRotation(Uuid, ref value);
+            }
+        }
         public Vector3 scale;
 
         public void MoveTowards(Vector3 vector3)

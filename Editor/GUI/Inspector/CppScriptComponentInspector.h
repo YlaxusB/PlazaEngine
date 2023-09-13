@@ -50,10 +50,15 @@ namespace Plaza::Editor {
 					MonoClassField* field = NULL;
 					void* iter = NULL;
 					std::unordered_map<std::string, uint32_t> classFields;
-					while ((field = mono_class_get_fields(mono_object_get_class(scriptClass->monoObject), &iter)) != NULL)
-					{
-						ImGui::Text(mono_field_get_name(field));
-						CreateRespectiveInteractor(scriptClass->monoObject, field);
+					if (scriptClass->monoObject->vtable) {
+						while ((field = mono_class_get_fields(mono_object_get_class(scriptClass->monoObject), &iter)) != NULL)
+						{
+							ImGui::Text(mono_field_get_name(field));
+							CreateRespectiveInteractor(scriptClass->monoObject, field);
+						}
+					}
+					else {
+						ImGui::Text("Vtable is a nullptr");
 					}
 				}
 			}

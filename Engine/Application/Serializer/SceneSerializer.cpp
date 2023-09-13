@@ -7,6 +7,11 @@
 
 #include "Engine/Application/Serializer/Components/TransformSerializer.h"
 #include "Engine/Application/Serializer/Components/MeshRendererSerializer.h"
+#include "Engine/Application/Serializer/Components/ColliderSerializer.h"
+#include "Engine/Application/Serializer/Components/RigidBodySerializer.h"
+#include "Engine/Application/Serializer/Components/CsScriptComponentSerializer.h"
+#include "Engine/Application/Serializer/Components/CameraSerializer.h"
+
 namespace Plaza {
 	void SerializeGameObjects(YAML::Emitter& out, Entity* entity) {
 		out << YAML::BeginMap;
@@ -19,6 +24,18 @@ namespace Plaza {
 		}
 		if (MeshRenderer* meshRenderer = entity->GetComponent<MeshRenderer>()) {
 			ComponentSerializer::MeshRendererSerializer::Serialize(out, *meshRenderer);
+		}
+		if (Camera* camera = entity->GetComponent<Camera>()) {
+			ComponentSerializer::CameraSerializer::Serialize(out, *camera);
+		}
+		if (Collider* collider = entity->GetComponent<Collider>()) {
+			ComponentSerializer::ColliderSerializer::Serialize(out, *collider);
+		}
+		if (RigidBody* rigidBody = entity->GetComponent<RigidBody>()) {
+			ComponentSerializer::RigidBodySerializer::Serialize(out, *rigidBody);
+		}
+		if (entity->GetComponent<CsScriptComponent>()) {
+			ComponentSerializer::CsScriptComponentSerializer::SerializeAll(out, entity->uuid);
 		}
 		out << YAML::EndMap;
 
@@ -151,22 +168,36 @@ namespace Plaza {
 					newEntity = new Entity(name, Application->activeScene->mainSceneEntity, true, entity["Entity"].as<uint64_t>());
 				}
 				newEntity->parentUuid = entity["ParentID"].as<std::uint64_t>();
-				if(newEntity)
-				if (entity["Components"]) {
-					if (entity["Components"]["TransformComponent"]) {
-						newEntity->GetComponent<Transform>()->relativePosition = entity["Components"]["TransformComponent"]["Position"].as<glm::vec3>();
-						newEntity->GetComponent<Transform>()->rotation = entity["Components"]["TransformComponent"]["Rotation"].as<glm::vec3>();
-						newEntity->GetComponent<Transform>()->scale = entity["Components"]["TransformComponent"]["Scale"].as<glm::vec3>();
-						//newEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+				if (newEntity)
+					if (entity["Components"]) {
+						if (entity["Components"]["TransformComponent"]) {
+							newEntity->GetComponent<Transform>()->relativePosition = entity["Components"]["TransformComponent"]["Position"].as<glm::vec3>();
+							newEntity->GetComponent<Transform>()->rotation = entity["Components"]["TransformComponent"]["Rotation"].as<glm::vec3>();
+							newEntity->GetComponent<Transform>()->scale = entity["Components"]["TransformComponent"]["Scale"].as<glm::vec3>();
+							//newEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+						}
+						if (entity["Components"]["MeshRendererComponent"]) {
+							auto meshRenderDeserialized = entity["Components"]["MeshRendererComponent"];
+							MeshRenderer* meshRenderer = new MeshRenderer();
+							meshRenderer->instanced = entity["Components"]["MeshRendererComponent"]["Instanced"].as<bool>();
+							meshRenderer->mesh = shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()));
+							newEntity->AddComponent<MeshRenderer>(meshRenderer);
+						}
+						if (entity["Components"]["CameraComponent"]) {
+							newEntity->AddComponent<Camera>(ComponentSerializer::CameraSerializer::DeSerialize(entity["Components"]["CameraComponent"]));
+						}
+						if (entity["Components"]["ColliderComponent"]) {
+							newEntity->AddComponent<Collider>(ComponentSerializer::ColliderSerializer::DeSerialize(entity["Components"]["ColliderComponent"]));
+						}
+						if (entity["Components"]["RigidBodyComponent"]) {
+							newEntity->AddComponent<RigidBody>(ComponentSerializer::RigidBodySerializer::DeSerialize(entity["Components"]["RigidBodyComponent"]));
+						}
+						if (entity["Components"]["CsScriptComponent"]) {
+							for (auto script : entity["Components"]["CsScriptComponent"]["Scripts"]) {
+								newEntity->AddComponent<CsScriptComponent>(ComponentSerializer::CsScriptComponentSerializer::DeSerialize(script));
+							}
+						}
 					}
-					if (entity["Components"]["MeshRendererComponent"]) {
-						auto meshRenderDeserialized = entity["Components"]["MeshRendererComponent"];
-						MeshRenderer* meshRenderer = new MeshRenderer();
-						meshRenderer->instanced = entity["Components"]["MeshRendererComponent"]["Instanced"].as<bool>();
-						meshRenderer->mesh = shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()));
-						newEntity->AddComponent<MeshRenderer>(meshRenderer);
-					}
-				}
 				//newEntity->GetComponent<Transform>()->UpdateChildrenTransform();
 				//meshRenderer->mesh = cubeMesh;
 				//delete meshRenderer;
@@ -175,7 +206,7 @@ namespace Plaza {
 			for (auto entity : gameObjectsDeserialized) {
 				uint64_t entityUuid = entity["Entity"].as<uint64_t>();
 				uint64_t parentUuid = entity["ParentID"].as<uint64_t>();
-				if(parentUuid)
+				if (parentUuid)
 					Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), Application->activeScene->entities.at(entity["ParentID"].as<uint64_t>()));
 				else
 					Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), *Application->activeScene->mainSceneEntity);

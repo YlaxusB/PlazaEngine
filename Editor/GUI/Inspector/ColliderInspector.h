@@ -31,7 +31,7 @@ namespace Plaza::Editor {
 					ImGui::OpenPopup("AddShapeContexMenu"); // Open the popup when the button is clicked
 				}
 
-				for (physx::PxShape* shape : collider->mShapes) {
+				for (ColliderShape* shape : collider->mShapes) {
 					ImGui::Text("Shape");
 				}
 
@@ -57,13 +57,13 @@ namespace Plaza::Editor {
 					{
 						physx::PxBoxGeometry geometry(transform.scale.x / 2.1, transform.scale.y / 2.1, transform.scale.z / 2.1);
 						physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
-						collider->AddShape(shape);
+						collider->AddShape(new ColliderShape(shape, ColliderShapeEnum::BOX, 0));
 					}
 					if (ImGui::MenuItem("Sphere"))
 					{
 						physx::PxSphereGeometry geometry(1.0f);
 						physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
-						collider->AddShape(shape);
+						collider->AddShape(new ColliderShape(shape, ColliderShapeEnum::SPHERE, 0));
 					}
 					if (ImGui::MenuItem("Mesh"))
 					{

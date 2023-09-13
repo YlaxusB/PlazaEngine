@@ -37,8 +37,7 @@ namespace Plaza::Editor {
 				Entity* obj = NewEntity("Cube", parent, DefaultModels::Cube(), true, true);
 				Transform* transform = obj->GetComponent<Transform>();
 				Collider* collider = new Collider(obj->uuid);
-				physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
-				collider->AddShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial));
+				collider->CreateShape(ColliderShapeEnum::BOX, transform);
 				obj->AddComponent<Collider>(collider);
 			}
 
@@ -47,8 +46,7 @@ namespace Plaza::Editor {
 				Entity* obj = NewEntity("Sphere", parent, DefaultModels::Sphere(), true, true);
 				Transform* transform = obj->GetComponent<Transform>();
 				Collider* collider = new Collider(obj->uuid);
-				physx::PxSphereGeometry geometry(1.0f);
-				collider->AddShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial));
+				collider->CreateShape(ColliderShapeEnum::SPHERE, transform);
 				obj->AddComponent<Collider>(collider);
 			}
 
@@ -59,8 +57,7 @@ namespace Plaza::Editor {
 				transform->scale = glm::vec3(10.0f, 0.05f, 10.0f);
 				transform->UpdateChildrenTransform();
 				Collider* collider = new Collider(obj->uuid);
-				physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
-				collider->AddShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial));
+				collider->CreateShape(ColliderShapeEnum::PLANE, transform);
 				obj->AddComponent<Collider>(collider);
 			}
 

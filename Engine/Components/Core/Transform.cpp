@@ -176,7 +176,7 @@ namespace Plaza {
 
 	void Transform::SetRelativeRotation(glm::vec3 vector) {
 		this->rotation = vector;
-		this->UpdateChildrenTransform();
+		this->UpdateSelfAndChildrenTransform();
 	}
 
 	void Transform::SetRelativeScale(glm::vec3 vector) {

@@ -35,6 +35,7 @@ namespace Plaza {
 
 		ViewFrustum frustum = ViewFrustum();
 
+		bool mainCamera = false;
 		bool isEditorCamera = false;
 		// camera Attributes
 		glm::vec3 Position;

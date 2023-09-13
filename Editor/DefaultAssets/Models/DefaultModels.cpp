@@ -204,17 +204,31 @@ namespace Plaza::Editor {
 			2, 3, 0
 		};
 
-		std::vector<Vertex> vertices = {
-			Vertex(glm::vec3(-0.5f, 0.0f, 0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 0), glm::vec3(0), glm::vec3(0)),
-			Vertex(glm::vec3(0.5f, 0.0f, 0.5f), glm::vec3(0, 1, 0), glm::vec2(1, 0), glm::vec3(0), glm::vec3(0)),
-			Vertex(glm::vec3(0.5f, 0.0f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(1, 1), glm::vec3(0), glm::vec3(0)),
-			Vertex(glm::vec3(-0.5f, 0.0f, -0.5f), glm::vec3(0, 1, 0), glm::vec2(0, 1), glm::vec3(0), glm::vec3(0))
+		std::vector<glm::vec3> vertices = {
+			glm::vec3(-0.5f, 0.0f, 0.5f),
+			glm::vec3(0.5f, 0.0f, 0.5f),
+			glm::vec3(0.5f, 0.0f, -0.5f),
+			glm::vec3(-0.5f, 0.0f, -0.5f)
 		};
 
-		/*Mesh* newMesh = new Mesh(vertices, indices);
+		std::vector<glm::vec3> normals = {
+			glm::vec3(0, 1, 0),
+			glm::vec3(0, 1, 0),
+			glm::vec3(0, 1, 0),
+			glm::vec3(0, 1, 0)
+		};
+
+		std::vector<glm::vec2> texCoords = {
+			glm::vec2(0, 0),
+			glm::vec2(1, 0),
+			glm::vec2(1, 1),
+			glm::vec2(0, 1)
+		};
+
+		Mesh* newMesh = new Mesh(vertices, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
 		newMesh->usingNormal = false;
 		newMesh->meshId = planeUuid;
-		Application->editorScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));*/
+		Application->editorScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
 	}
 
 	void DefaultModels::InitCylinder() {

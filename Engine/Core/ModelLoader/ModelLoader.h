@@ -9,10 +9,10 @@ namespace Plaza {
 		static vector<string> supportedFormats;
 
 		static Entity* LoadImportedModelToScene(uint64_t modelUuid, string filePath = "");
-		static Entity* LoadImportedModelToMemory(string filePath);
+		static uint64_t LoadImportedModelToMemory(string filePath, std::map<std::string, uint64_t> meshesMap = std::map<std::string, uint64_t>());
 		static Entity* LoadModelToGame(string const& path, std::string modelName);
 		static Entity* LoadModelToGame(string const& path, std::string modelName, aiScene const* scene);
-		static void LoadModelMeshes(string filePath, unordered_map<uint64_t, shared_ptr<MeshRenderer>>& meshRenderers, Model* model);
+		static void LoadModelMeshes(string filePath, unordered_map<uint64_t, shared_ptr<MeshRenderer>>& meshRenderers, Model* model, std::map<std::string, uint64_t> meshesMap = std::map<std::string, uint64_t>());
 		static void ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, string* directory, Entity* modelMainObject, unsigned int& index);
 		static Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node);
 

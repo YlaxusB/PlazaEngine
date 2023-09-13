@@ -1,16 +1,18 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "SceneSerializer.h"
 
+#include "Engine/Core/Engine.h"
 #include "Editor/Settings/EditorSettings.h"
+#include "Engine/Core/ModelLoader/ModelLoader.h"
 
 #include "Engine/Application/Serializer/Components/TransformSerializer.h"
 #include "Engine/Application/Serializer/Components/MeshRendererSerializer.h"
 namespace Plaza {
-	void SerializeGameObjectd(YAML::Emitter& out, Entity* entity) {
+	void SerializeGameObjects(YAML::Emitter& out, Entity* entity) {
 		out << YAML::BeginMap;
 		out << YAML::Key << "Entity" << YAML::Value << entity->uuid;
 		out << YAML::Key << "Name" << YAML::Value << entity->name;
-		out << YAML::Key << "ParentID" << YAML::Value << (!entity->parentUuid ? entity->GetParent().name : "");
+		out << YAML::Key << "ParentID" << YAML::Value << entity->parentUuid;
 		out << YAML::Key << "Components" << YAML::BeginMap;
 		if (Transform* transform = entity->GetComponent<Transform>()) {
 			ComponentSerializer::TransformSerializer::Serialize(out, *transform);
@@ -23,16 +25,61 @@ namespace Plaza {
 		out << YAML::EndMap;
 	}
 
+	void SerializeMeshes(YAML::Emitter& out, MeshRenderer* meshRenderer) {
+		Mesh* mesh = meshRenderer->mesh.get();
+		out << YAML::BeginMap;
+		out << YAML::Key << "Mesh" << YAML::Value << mesh->uuid;
+		out << YAML::Key << "MeshId" << YAML::Value << mesh->meshId;
+		out << YAML::Key << "Name" << YAML::Value << mesh->meshName;
+		out << YAML::Key << "TemporaryMesh" << YAML::Value << mesh->temporaryMesh;
+		out << YAML::Key << "ModelUuid" << YAML::Value << mesh->modelUuid;
+		out << YAML::EndMap;
+	}
+
+	void SerializeModels(YAML::Emitter& out, Model* model) {
+		out << YAML::BeginMap;
+		out << YAML::Key << "Model" << YAML::Value << model->uuid;
+		out << YAML::Key << "Name" << YAML::Value << model->modelName;
+		out << YAML::Key << "ModelPath" << YAML::Value << model->modelPlazaPath;
+		out << YAML::Key << "ObjectPath" << YAML::Value << model->modelObjectPath;
+		out << YAML::Key << "TexturesPath" << YAML::Value << model->texturesPaths;
+		out << YAML::EndMap;
+	}
+
+	void SerializeScene(YAML::Emitter& out, Entity* sceneEntity) {
+		out << YAML::Key << "Uuid" << YAML::Value << sceneEntity->uuid;
+		out << YAML::Key << "Name" << YAML::Value << sceneEntity->name;
+	}
+
 	void Serializer::Serialize(const std::string filePath)
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-		out << YAML::Key << "Scene" << YAML::Value << "Untitled";
-		out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
+		out << YAML::Key << "Scene" << YAML::Value << YAML::BeginMap;
+		SerializeScene(out, Application->activeScene->mainSceneEntity);
+		out << YAML::EndMap;
+		/* Entities */
+		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 		for (auto& [key, value] : Application->activeScene->entities) {
-			SerializeGameObjectd(out, &value);
+			SerializeGameObjects(out, &value);
 		}
 		out << YAML::EndSeq;
+
+		/* Models */
+		out << YAML::Key << "Models" << YAML::Value << YAML::BeginSeq;
+		for (auto& [key, value] : EngineClass::models) {
+			SerializeModels(out, value.get());
+		}
+		out << YAML::EndSeq;
+
+		/* Meshes (Only their uuids and paths) */
+		out << YAML::Key << "Meshes" << YAML::Value << YAML::BeginSeq;
+		for (auto& [key, value] : Application->activeScene->meshRendererComponents) {
+			SerializeMeshes(out, &value);
+		}
+		out << YAML::EndSeq;
+
+
 		out << YAML::EndMap;
 		std::ofstream fout(filePath);
 		fout << out.c_str();
@@ -48,28 +95,93 @@ namespace Plaza {
 		if (!data["Scene"])
 			std::cout << "No Scene" << std::endl;
 
-		std::string sceneName = data["Scene"].as<std::string>();
+		std::string sceneName = data["Scene"]["Name"].as<std::string>();
 
-		auto gameObjectsDeserialized = data["GameObjects"];
+		/* Scene */
+		Entity* newScene = new Entity(data["Scene"]["Name"].as<std::string>(), nullptr, true, data["Scene"]["Uuid"].as<uint64_t>());
+		free(Application->activeScene->mainSceneEntity);
+		Application->activeScene->mainSceneEntity = newScene;
+
+		/* Models and Meshes */
+		std::map<uint64_t, std::string> models = std::map<uint64_t, std::string>();
+		auto modelsDeserialized = data["Models"];
+		if (modelsDeserialized) {
+			for (auto model : modelsDeserialized) {
+				models.emplace(model["Model"].as<uint64_t>(), model["ModelPath"].as<std::string>());
+			}
+		}
+		// A map of model uuid and another map of mesh name and mesh id
+		std::map<uint64_t, std::map<std::string, uint64_t>> meshes = std::map<uint64_t, std::map<std::string, uint64_t>>();
+
+		auto meshesDeserialized = data["Meshes"];
+		if (meshesDeserialized) {
+			for (auto mesh : meshesDeserialized) {
+				auto meshModelIt = meshes.find(mesh["ModelUuid"].as<uint64_t>());
+				if (mesh["ModelUuid"].as<uint64_t>()) {
+					if (meshModelIt != meshes.end()) {
+						meshModelIt->second.emplace(mesh["Name"].as<std::string>(), mesh["MeshId"].as<uint64_t>());
+					}
+					else {
+						std::map<std::string, uint64_t> newMap = std::map<std::string, uint64_t>();
+						newMap.emplace(mesh["Name"].as<std::string>(), mesh["MeshId"].as<uint64_t>());
+						meshes.emplace(mesh["ModelUuid"].as<uint64_t>(), newMap);
+					}
+				}
+			}
+		}
+
+		for (auto& [key, modelPath] : models) {
+			auto meshIt = meshes.find(key);
+			if (meshIt != meshes.end()) {
+				ModelLoader::LoadImportedModelToMemory(modelPath, meshIt->second);
+			}
+		}
+
+		/* Entities */
+		auto gameObjectsDeserialized = data["Entities"];
 		if (gameObjectsDeserialized) {
 			for (auto entity : gameObjectsDeserialized) {
 				std::string name = entity["Name"].as<std::string>();
-				Entity* newGameObject = new Entity(name);
-				newGameObject->parentUuid = entity["ParentID"].as<std::uint64_t>();
-				newGameObject->GetComponent<Transform>()->relativePosition = entity["TransformComponent"]["Position"].as<glm::vec3>();
-				newGameObject->GetComponent<Transform>()->rotation = entity["TransformComponent"]["Rotation"].as<glm::vec3>();
-				newGameObject->GetComponent<Transform>()->scale = entity["TransformComponent"]["Scale"].as<glm::vec3>();
-
-				newGameObject->GetComponent<Transform>()->UpdateChildrenTransform();
-				Mesh cubeMesh = Plaza::Mesh();
-				cubeMesh.material.diffuse.rgba = glm::vec4(0.8f, 0.3f, 0.3f, 1.0f);
-				cubeMesh.material.specular = Texture();
-				cubeMesh.material.specular.rgba = glm::vec4(0.3f, 0.5f, 0.3f, 1.0f);
-				MeshRenderer* meshRenderer = new MeshRenderer(cubeMesh);
+				Entity* newEntity;
+				auto parentIt = Application->activeScene->entities.find(entity["ParentID"].as<std::uint64_t>());
+				if (entity["ParentID"].as<std::uint64_t>() && parentIt != Application->activeScene->entities.end()) {
+					newEntity = new Entity(name, &Application->activeScene->entities.at(entity["ParentID"].as<std::uint64_t>()), true, entity["Entity"].as<uint64_t>());
+				}
+				else {
+					newEntity = new Entity(name, Application->activeScene->mainSceneEntity, true, entity["Entity"].as<uint64_t>());
+				}
+				newEntity->parentUuid = entity["ParentID"].as<std::uint64_t>();
+				if(newEntity)
+				if (entity["Components"]) {
+					if (entity["Components"]["TransformComponent"]) {
+						newEntity->GetComponent<Transform>()->relativePosition = entity["Components"]["TransformComponent"]["Position"].as<glm::vec3>();
+						newEntity->GetComponent<Transform>()->rotation = entity["Components"]["TransformComponent"]["Rotation"].as<glm::vec3>();
+						newEntity->GetComponent<Transform>()->scale = entity["Components"]["TransformComponent"]["Scale"].as<glm::vec3>();
+						//newEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+					}
+					if (entity["Components"]["MeshRendererComponent"]) {
+						auto meshRenderDeserialized = entity["Components"]["MeshRendererComponent"];
+						MeshRenderer* meshRenderer = new MeshRenderer();
+						meshRenderer->instanced = entity["Components"]["MeshRendererComponent"]["Instanced"].as<bool>();
+						meshRenderer->mesh = shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()));
+						newEntity->AddComponent<MeshRenderer>(meshRenderer);
+					}
+				}
+				//newEntity->GetComponent<Transform>()->UpdateChildrenTransform();
 				//meshRenderer->mesh = cubeMesh;
 				//delete meshRenderer;
-				newGameObject->AddComponent<MeshRenderer>(meshRenderer);
 			}
+			/* Loop again to assign the correct parents */
+			for (auto entity : gameObjectsDeserialized) {
+				uint64_t entityUuid = entity["Entity"].as<uint64_t>();
+				uint64_t parentUuid = entity["ParentID"].as<uint64_t>();
+				if(parentUuid)
+					Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), Application->activeScene->entities.at(entity["ParentID"].as<uint64_t>()));
+				else
+					Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), *Application->activeScene->mainSceneEntity);
+				Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+			}
+			std::cout << "Finished Deserialization \n";
 		}
 	}
 

@@ -15,7 +15,7 @@ namespace Plaza {
 		bool changingName = false;
 
 		Entity();
-		Entity(std::string objName, Entity* parent = nullptr, bool addToScene = true);
+		Entity(std::string objName, Entity* parent = nullptr, bool addToScene = true, uint64_t newUuid = 0);
 		Entity(const Entity&) = default;
 		~Entity() = default;
 
@@ -47,6 +47,16 @@ namespace Plaza {
 		// Check if the Entity haves the Component
 		template<typename T>
 		bool HasComponent();
+
+		void ChangeParent(Entity& oldParent, Entity& newParent) {
+			this->parentUuid = newParent.uuid;
+			auto oldParentIt = std::find(oldParent.childrenUuid.begin(), oldParent.childrenUuid.end(), this->uuid);
+			auto newParentIt = std::find(newParent.childrenUuid.begin(), newParent.childrenUuid.end(), this->uuid);
+			if (oldParentIt != oldParent.childrenUuid.end() && newParentIt == newParent.childrenUuid.end()) {
+				oldParent.childrenUuid.erase(oldParentIt);
+				newParent.childrenUuid.push_back(this->uuid);
+			}
+		}
 	};
 
 }

@@ -10,7 +10,8 @@ namespace Plaza {
 		unordered_map<uint64_t, shared_ptr<MeshRenderer>> meshRenderers;
 		unordered_map<uint64_t, shared_ptr<Transform>> transforms;
 		string modelName;
-		string modelFilePath;
+		string modelObjectPath;
+		string modelPlazaPath;
 		vector<string> texturesPaths;
 		vector<string> materialsPaths;
 		vector<Material> materials;

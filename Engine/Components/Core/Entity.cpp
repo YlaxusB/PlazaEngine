@@ -44,14 +44,18 @@ namespace Plaza {
 		Application->activeScene->entities.emplace(this->uuid, *this);
 		Application->activeScene->mainSceneEntity->childrenUuid.push_back(this->uuid);
 	}
-	Entity::Entity(std::string objName, Entity* parent, bool addToScene) {
-		uuid = Plaza::UUID::NewUUID();
+	Entity::Entity(std::string objName, Entity* parent, bool addToScene, uint64_t newUuid) {
+		if (newUuid)
+			uuid = newUuid;
+		else
+			uuid = Plaza::UUID::NewUUID();
+
 		this->AddComponent<Transform>(new Transform(), addToScene);
 		name = objName;
 		//id = Application->activeScene->gameObjects.size() > 0 ? Application->activeScene->gameObjects.back()->id + 1 : 1; // IT WILL PROBABLY BREAK IN THE NEAR FUTURE
 
 		// Set the new parent
-		if (parent != nullptr) {
+		if (parent != nullptr && addToScene) {
 			this->parentUuid = parent->uuid;
 			Application->activeScene->entities[parentUuid].childrenUuid.push_back(this->uuid);
 		}
@@ -59,7 +63,8 @@ namespace Plaza {
 		//if (addToScene)
 			//Application->activeScene->entities.emplace(this->uuid, this);
 		//Application->activeScene->gameObjects.push_back(std::unique_ptr<Entity>(this));
-		Application->activeScene->entities.emplace(this->uuid, *this);
+		if (addToScene)
+			Application->activeScene->entities.emplace(this->uuid, *this);
 	}
 
 	template Transform* Entity::GetComponent<Transform>(); // Replace 'Transform' with the actual type
@@ -99,8 +104,8 @@ namespace Plaza {
 		component->uuid = this->uuid;
 
 		if (addToComponentsList) {
-				auto& components = GetComponentMap<T>();
-				components.emplace(component->uuid, *component);
+			auto& components = GetComponentMap<T>();
+			components.emplace(component->uuid, *component);
 		}
 
 		return dynamic_cast<T*>(component);

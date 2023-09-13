@@ -33,6 +33,8 @@ namespace Plaza {
 		uint64_t meshId;
 		float farthestVertex = 0.0f;
 		std::string id;
+		std::string meshName;
+		uint64_t modelUuid;
 
 		//vector<Vertex> vertices;
 		vector<glm::vec3> vertices;

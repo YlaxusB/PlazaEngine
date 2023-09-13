@@ -4,6 +4,7 @@
 #include "Engine/Application/Serializer/ModelSerializer.h"
 #include "Engine/Core/ModelLoader/Model.h"
 #include "Engine/Components/Core/Entity.h"
+
 namespace Plaza {
 	Material DefaultMaterial() {
 		Material material;
@@ -71,20 +72,23 @@ namespace Plaza {
 			Application->activeScene->mainSceneEntity->GetComponent<Transform>()->UpdateChildrenTransform();
 		}
 		else {
-			if (!filePath.empty()) ModelLoader::LoadImportedModelToMemory(filePath);
+			if (!filePath.empty()) {
+				uint64_t modelUuid = ModelLoader::LoadImportedModelToMemory(filePath);
+				LoadImportedModelToScene(modelUuid);
+			}
 			return nullptr;
 		}
 	}
 
-	Entity* ModelLoader::LoadImportedModelToMemory(string filePath) {
+	uint64_t ModelLoader::LoadImportedModelToMemory(string filePath, std::map<std::string, uint64_t> meshesMap) {
+		Entity* ent = Application->activeScene->mainSceneEntity;
 		unique_ptr<Model> model = make_unique<Model>(*ModelSerializer::DeSerializeModel(filePath));
 		model.get()->meshRenderers;
 		uint64_t uuid = model->uuid;
-		LoadModelMeshes(filePath, model.get()->meshRenderers, model.get());
+		LoadModelMeshes(filePath, model.get()->meshRenderers, model.get(), meshesMap);
 		EngineClass::models.emplace(model->uuid, move(model));
-		LoadImportedModelToScene(uuid);
 		// delete(model)   //////////////////////////////////////////////////////////////////////////////////////////////
-		return nullptr;
+		return uuid;
 	}
 
 	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName) {
@@ -116,20 +120,26 @@ namespace Plaza {
 		return modelMainObject;
 	}
 
-	void ModelLoader::LoadModelMeshes(string filePath, unordered_map<uint64_t, shared_ptr<MeshRenderer>>& meshRenderers, Model* model) {
+	void ModelLoader::LoadModelMeshes(string filePath, unordered_map<uint64_t, shared_ptr<MeshRenderer>>& meshRenderers, Model* model, std::map<std::string, uint64_t> meshesMap) {
 		vector<Texture>* texturesLoaded = new vector<Texture>;
 		vector<Mesh>* meshes = new vector<Mesh>;
 		string directory = filesystem::path{ filePath }.parent_path().string() + "\\textures";
 		// read file via ASSIMP
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(model->modelFilePath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_GenUVCoords | aiProcess_TransformUVCoords);
+		const aiScene* scene = importer.ReadFile(model->modelObjectPath, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_GenUVCoords | aiProcess_TransformUVCoords);
 		unsigned int index = 0;
 		for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 			aiMesh* aiMesh = scene->mMeshes[i];
 			Mesh* mesh = new Mesh(ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr));
+			mesh->meshName = aiMesh->mName.C_Str() + to_string(index);
+			mesh->modelUuid = model->uuid;
+			if (meshesMap.size() > 0) {
+				mesh->meshId = meshesMap.at(mesh->meshName);
+			}
+
 			Application->editorScene->meshes.emplace(mesh->meshId, make_shared<Mesh>(*mesh));
 			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), Application->editorScene->meshes.at(mesh->meshId));
-			if(Application->runningScene)
+			if (Application->runningScene)
 				Application->runtimeScene->meshes.emplace(mesh->meshId, Application->editorScene->meshes.at(mesh->meshId));
 			index++;
 		}

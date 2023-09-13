@@ -69,7 +69,7 @@ namespace Plaza::Editor {
 		}
 		std::filesystem::copy(modelPath, sourcesFolderPath + "\\" + modelName + extension);
 		Entity* mainObject = ModelLoader::LoadModelToGame(modelPath, modelName, scene);
-		ModelSerializer::SerializeModel(mainObject, modelPathInEngine + "\\" + filesystem::path(modelPath).stem().string() + Standards::modelExtName, modelPath);
+		ModelSerializer::SerializeModel(mainObject, modelPathInEngine + "\\" + filesystem::path(modelPath).stem().string() + Standards::modelExtName, sourcesFolderPath + "\\" + modelName + extension);
 		Editor::selectedGameObject = nullptr;
 		Gui::changeSelectedGameObject(nullptr);
 		//mainObject->Delete();

@@ -128,7 +128,8 @@ namespace Plaza {
 		Model* model = new Model();
 		model->modelName = data["Model"].as<string>();
 		model->uuid = data["ModelUuid"].as<uint64_t>();
-		model->modelFilePath = data["ModelFilePath"].as<string>();
+		model->modelObjectPath = data["ModelFilePath"].as<string>();
+		model->modelPlazaPath = filePath;
 		// DeSerialize the model's main object
 		DeSerializeGameObject(data["MainObject"][0], model);
 

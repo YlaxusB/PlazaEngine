@@ -8,7 +8,8 @@ namespace Plaza {
 		out << YAML::Key << "AiMeshName" << YAML::Value << meshRenderer.aiMeshName;
 		out << YAML::Key << "MeshName" << YAML::Value << meshRenderer.meshName;
 		out << YAML::Key << "Instanced" << YAML::Value << meshRenderer.instanced;
-		ComponentSerializer::MeshSerializer::Serialize(out, *meshRenderer.mesh);
+		out << YAML::Key << "MeshId" << YAML::Value << meshRenderer.mesh->meshId;
+		//ComponentSerializer::MeshSerializer::Serialize(out, *meshRenderer.mesh);
 		out << YAML::EndMap;
 	}
 	void ComponentSerializer::MeshRendererSerializer::DeSerialize(YAML::Emitter& out, MeshRenderer& meshRenderer)

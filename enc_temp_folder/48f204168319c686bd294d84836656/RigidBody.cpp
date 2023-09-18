@@ -46,17 +46,16 @@ namespace Plaza {
 	void RigidBody::Update() {
 		if (canUpdate) {
 			Transform& transform = *Application->activeScene->entities.at(this->uuid).GetComponent<Transform>();
-			Transform& parentTransform = Application->activeScene->transformComponents.at(this->GetGameObject()->parentUuid);
-			// Convert Px to Glm
 			physx::PxTransform pxTransform = mRigidActor->getGlobalPose();
+
 			PxQuat rotationQuaternion = pxTransform.q;
 			glm::quat glmQuaternion(rotationQuaternion.w, rotationQuaternion.x, rotationQuaternion.y, rotationQuaternion.z);
 			glm::vec3 eulerAngles = glm::eulerAngles(glm::normalize(glmQuaternion));
 
+			Transform& parentTransform = Application->activeScene->transformComponents.at(this->GetGameObject()->parentUuid);
 			// Transform the world rotation of the PxTransform to local rotation
 			glm::vec3 transformedRotation = glm::eulerAngles(glm::quat_cast(glm::inverse(parentTransform.GetTransform()) * glm::toMat4(glm::quat(eulerAngles))));
 
-			// Apply the delta rotation to prevent gimbal lock
 			transform.rotation += transformedRotation - glm::eulerAngles(transform.GetLocalQuaternion());
 			transform.relativePosition = glm::vec3(pxTransform.p.x, pxTransform.p.y, pxTransform.p.z);
 			transform.UpdateSelfAndChildrenTransform();

@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include "Engine/Core/Scripting/Mono.h"
 #include "Engine/Components/Core/Entity.h"
+#include "Editor/ScriptManager/ScriptManager.h"
 namespace Plaza {
 	Scene* Scene::Copy(Scene* newScene, Scene* copyScene) {
 		newScene->mainSceneEntity = new Entity(*copyScene->mainSceneEntity);
@@ -108,6 +109,7 @@ namespace Plaza {
 		Application->runningScene = false;
 		Application->activeScene = Application->editorScene;
 		Application->activeCamera = Application->editorCamera;
+		Editor::ScriptManager::ReloadScriptsAssembly();
 	}
 	void Scene::Pause() {
 

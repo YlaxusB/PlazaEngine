@@ -4,6 +4,7 @@
 
 
 #include "Engine/Components/Core/Transform.h"
+#include "Editor/GUI/gizmo.h"
 //#include "Editor/GUI/gizmo.h"
 //#include "Engine/Components/Core/Entity.h"
 namespace Plaza {
@@ -168,7 +169,7 @@ namespace Plaza {
 	// Set Functions
 	void Transform::SetRelativePosition(glm::vec3 vector) {
 		this->relativePosition = vector;
-		this->UpdateChildrenTransform();
+		this->UpdateSelfAndChildrenTransform();
 		if (Collider* collider = GetGameObject()->GetComponent<Collider>()) {
 			//collider->UpdatePose(this);
 		}
@@ -192,5 +193,33 @@ namespace Plaza {
 			collider->UpdatePose(this);
 			collider->UpdateShapeScale(this->GetWorldScale());
 		}
+	}
+
+	void Transform::Rotate(glm::vec3 vector) {
+		glm::vec3 position, rotation, scale;
+
+		// Convert the rotation component from PxQuat to glm::quat
+		glm::mat4 mat4 = glm::translate(glm::mat4(1.0f), this->relativePosition)
+			* glm::toMat4(glm::quat(rotation))
+			* glm::scale(glm::mat4(1.0f), scale);
+		glm::quat glmRotation = glm::normalize(glm::quat_cast(mat4));
+
+		// Create the glm::mat4 matrix
+		glm::mat4 gizmoTransform = glm::mat4_cast(glmRotation); // Initialize the matrix with rotation
+		gizmoTransform = glm::translate(gizmoTransform, this->relativePosition); // Apply translation
+
+		Editor::Gizmo::DecomposeTransform(gizmoTransform, position, rotation, scale);
+
+		// --- Rotation
+		glm::mat4 updatedTransform = glm::inverse(this->GetGameObject()->GetParent().GetComponent<Transform>()->GetTransform()) * glm::toMat4(glm::quat(rotation));
+
+		glm::vec3 updatedPosition, updatedRotation, updatedScale;
+		Editor::Gizmo::DecomposeTransform(updatedTransform, updatedPosition, updatedRotation, updatedScale); // The rotation is radians
+
+		this->rotation += glm::vec3(0.0f, 0.2f, 0.0f);
+
+		this->UpdateLocalMatrix();
+		this->UpdateWorldMatrix();
+		//this->UpdateSelfAndChildrenTransform();
 	}
 }

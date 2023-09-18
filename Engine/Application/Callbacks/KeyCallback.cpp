@@ -14,7 +14,7 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 			Application->Shadows->showDepth = !Application->Shadows->showDepth;
 
 		if (key == GLFW_KEY_R && action == GLFW_PRESS)
-			Application->shader = new Shader((Application->enginePath + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
+			Editor::selectedGameObject->GetComponent<Transform>()->Rotate(glm::vec3(0.0f, 1.0f, 0.0f));
 
 		if (key == GLFW_KEY_U && action == GLFW_PRESS)
 			Application->activeCamera->Position = Plaza::Editor::selectedGameObject->GetComponent<Transform>()->GetWorldPosition();

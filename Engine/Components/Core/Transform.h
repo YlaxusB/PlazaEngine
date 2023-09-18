@@ -47,6 +47,8 @@ namespace Plaza {
 		void SetWorldRotation(glm::vec3 vector);
 		void SetWorldScale(glm::vec3 vector);
 
+		void Rotate(glm::vec3 vector);
+
 		glm::vec3 GetWorldPosition();
 		glm::vec3 GetWorldRotation();
 		glm::vec3 GetWorldScale();

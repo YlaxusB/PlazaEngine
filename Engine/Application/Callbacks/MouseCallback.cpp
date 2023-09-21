@@ -13,7 +13,7 @@ float ApplicationClass::Callbacks::lastY = 0;//Application->appSizes->appSize.y 
 
 
 void ApplicationClass::Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double yposIn) {
-	if (Application->focusedMenu == "Scene") {
+	if (Application->focusedMenu == "Editor") {
 		float xpos = static_cast<float>(xposIn);
 		float ypos = static_cast<float>(yposIn);
 

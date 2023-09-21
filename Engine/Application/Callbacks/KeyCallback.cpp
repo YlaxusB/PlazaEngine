@@ -8,7 +8,7 @@
 using namespace Plaza;
 uint64_t lastUuid;
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (Application->focusedMenu == "Scene") {
+	if (Application->focusedMenu == "Editor") {
 
 		if (key == GLFW_KEY_G && action == GLFW_PRESS)
 			Application->Shadows->showDepth = !Application->Shadows->showDepth;

@@ -8,7 +8,7 @@ void Plaza::ApplicationClass::Callbacks::scrollCallback(GLFWwindow* window, doub
 	double mousePosY = 0;
 	glfwGetCursorPos(window, &mousePosX, &mousePosY);
 	glm::vec2 mousePos = glm::vec2(mousePosX, mousePosY);
-	if (Application->focusedMenu == "Scene" && glm::isInside(mousePos, Application->appSizes->sceneStart, Application->appSizes->sceneStart + Application->appSizes->sceneSize)) {
+	if (Application->focusedMenu == "Editor" && glm::isInside(mousePos, Application->appSizes->sceneStart, Application->appSizes->sceneStart + Application->appSizes->sceneSize)) {
 		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
 			Application->activeCamera->MovementSpeed += Application->activeCamera->MovementSpeed * (yoffset * 3) * Time::deltaTime;
 		}

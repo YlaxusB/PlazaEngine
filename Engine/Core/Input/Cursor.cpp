@@ -7,14 +7,16 @@ namespace Plaza {
 	double Input::Cursor::deltaX = 0;
 	double Input::Cursor::deltaY = 0;
 	void Input::Cursor::Update() {
-		double currentX;
-		double currentY;
-		glfwGetCursorPos(Application->Window->glfwWindow, &currentX, &currentY);
+		if (Application->focusedMenu == "Scene") {
+			double currentX;
+			double currentY;
+			glfwGetCursorPos(Application->Window->glfwWindow, &currentX, &currentY);
 
-		deltaX = currentX - lastX;
-		deltaY = currentY - lastY;
+			deltaX = currentX - lastX;
+			deltaY = currentY - lastY;
 
-		lastX = currentX;
-		lastY = currentY;
+			lastX = currentX;
+			lastY = currentY;
+		}
 	}
 }

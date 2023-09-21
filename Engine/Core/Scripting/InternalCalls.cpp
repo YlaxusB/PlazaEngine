@@ -25,11 +25,15 @@ namespace Plaza {
 #pragma region Input
 
 	static bool InputIsKeyDown(int keyCode) {
-		return glfwGetKey(Application->Window->glfwWindow, keyCode) == GLFW_PRESS;
+		if (Application->focusedMenu == "Scene") {
+			return glfwGetKey(Application->Window->glfwWindow, keyCode) == GLFW_PRESS;
+		}
 	}
 
 	static bool InputIsMouseDown(int button) {
-		return glfwGetMouseButton(Application->Window->glfwWindow, button) == GLFW_PRESS;
+		if (Application->focusedMenu == "Scene") {
+			return glfwGetMouseButton(Application->Window->glfwWindow, button) == GLFW_PRESS;
+		}
 	}
 
 	static void GetMouseDelta(glm::vec2* out) {

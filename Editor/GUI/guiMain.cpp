@@ -131,14 +131,13 @@ namespace Plaza {
 			ImGui::DockSpace(dockspace_id, ImVec2(0, 0), dockspace_flags);
 			Gui::MainMenuBar::Begin();
 
-			//ImGui::SetWindowPos(ImVec2(0, 0));
-
-			//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
 			Gui::beginHierarchyView(gameFrameBuffer);
 
-			//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
+
 			Gui::beginScene(gameFrameBuffer, *Application->activeCamera);
-			//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
+
+			Gui::beginEditor(gameFrameBuffer, *Application->activeCamera);
+
 			Gui::beginInspector(gameFrameBuffer, *camera);
 
 			//ImGui::ShowDemoWindow();
@@ -220,34 +219,6 @@ namespace Plaza {
 			ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 			//ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 
-
-			ImVec2 imageDisplayedSize;
-			// Calculate the size of the image
-			imageDisplayedSize = ImGui::GetItemRectSize();
-
-			// Get the available width and height in the current window/viewport
-			ImVec2 availableSpace = ImGui::GetContentRegionAvail();
-
-			// Calculate the displayed size considering the available space
-			imageDisplayedSize.x = std::min(imageDisplayedSize.x, availableSpace.x);
-			imageDisplayedSize.y = std::min(imageDisplayedSize.y, availableSpace.y);
-
-			//appSizes.sceneSize = ImGui::glmVec2(imageDisplayedSize);
-
-			// Show the gizmo if there's a selected entity
-			std::map<std::string, File*> files = Editor::selectedFiles;
-			selectedGameObject = Editor::selectedGameObject;
-			if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parentUuid != 0) {
-				ImGuizmoHelper::IsDrawing = true;
-				Editor::Gizmo::Draw(selectedGameObject, camera);
-			}
-			else {
-				ImGuizmoHelper::IsDrawing = false;
-			}
-
-
-
-
 			//	appSizes.sceneStart = ImGui::glmVec2(ImGui::GetWindowPos());
 			if (ImGui::BeginDragDropTarget()) {
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(scenePayloadName.c_str())) {
@@ -265,9 +236,94 @@ namespace Plaza {
 				ImGui::EndDragDropTarget();
 			}
 
+			ImGui::End();
+			ImGui::PopStyleColor();
+		}
 
+		// Create the Editor view
+		inline void Gui::beginEditor(int gameFrameBuffer, Camera& camera) {
+			ApplicationSizes& appSizes = *Application->appSizes;
+			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			Entity* selectedGameObject = Editor::selectedGameObject;
 
+			// Set the window to be the content size + header size
+			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove;
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
+			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
+			windowFlags |= ImGuiWindowFlags_NoScrollbar;
+
+			/*			windowFlags |= ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoTitleBar;
+			windowFlags |= ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_NoScrollbar;*/
+
+			ImGui::SetNextWindowSize(ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y));
+			ImGui::Begin("Editor", &Gui::isSceneOpen, windowFlags);
+			if (ImGui::IsWindowFocused())
+				Application->focusedMenu = "Editor";
+			if (ImGui::IsWindowHovered())
+				Application->hoveredMenu = "Editor";
+
+			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x / 2, 25));
+
+			ImGuiStyle& style = ImGui::GetStyle();
+
+			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.30f, 0.30f, 0.30f, 1.0f));
+
+			// Change the background color of the button
+			if (Application->runningScene) {
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+			}
+			else {
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+			}
+
+			if (ImGui::ImageButton("PlayPauseButton", ImTextureID(playPauseButtonImageId), ImVec2(25, 25))) {
+				if (Application->runningScene)
+					Scene::Stop();
+				else
+					Scene::Play();
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Reload C# Script Assembly")) {
+				ScriptManager::ReloadScriptsAssembly();
+			}
+			ImGui::PopStyleColor();
+			ImGui::PopStyleColor();
+			ImGui::PopStyleColor();
+
+			ImVec2 uv0(0, 1); // bottom-left corner
+			ImVec2 uv1(1, 0); // top-right corner
+			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
+			ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+
+			// Show the gizmo if there's a selected entity
+			std::map<std::string, File*> files = Editor::selectedFiles;
+			selectedGameObject = Editor::selectedGameObject;
+			if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parentUuid != 0) {
+				ImGuizmoHelper::IsDrawing = true;
+				Editor::Gizmo::Draw(selectedGameObject, camera);
+			}
+			else {
+				ImGuizmoHelper::IsDrawing = false;
+			}
+
+			//	appSizes.sceneStart = ImGui::glmVec2(ImGui::GetWindowPos());
+			if (ImGui::BeginDragDropTarget()) {
+				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(scenePayloadName.c_str())) {
+					if (payload->DataSize == sizeof(Editor::File)) {
+						File* file = *static_cast<File**>(payload->Data);
+						//if (file->extension == Standards::modelExtName) {
+						if (file->extension == Standards::modelExtName) {
+							//file->directory, file->name
+
+							ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID(file->directory), file->directory);
+						}
+						delete(file);
+					}
+				}
+				ImGui::EndDragDropTarget();
+			}
 
 			ImGui::End();
 			ImGui::PopStyleColor();

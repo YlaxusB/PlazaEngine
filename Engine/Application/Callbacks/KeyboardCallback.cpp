@@ -27,7 +27,7 @@ namespace Plaza {
 	}
 }
 void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
-	if (Application->focusedMenu == "Scene") {
+	if (Application->focusedMenu == "Editor") {
 		ApplicationSizes& appSizes = *Application->appSizes;
 		ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 

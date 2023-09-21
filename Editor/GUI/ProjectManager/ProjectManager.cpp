@@ -8,6 +8,7 @@
 #include "Engine/Application/Serializer/ScriptManagerSerializer.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Editor/Settings/ProjectGenerator.h"
+#include "Editor/SessionCache/Cache.h"
 namespace Plaza {
 	namespace Editor {
 		void ProjectManagerGui::ProjectManagerContent::UpdateContent(ProjectManagerGui& projectManagerGui) {
@@ -48,6 +49,9 @@ namespace Plaza {
 
 					// Update the file explorer content
 					Editor::Gui::FileExplorer::UpdateContent(Application->activeProject->directory);
+
+					Application->projectPath = Application->activeProject->directory;
+					Cache::Serialize(Application->enginePathAppData + "\\cache.yaml");
 				}
 				if (ImGui::Button("Cancel")) {
 					projectManagerGui.currentContent = new ProjectManagerContent();

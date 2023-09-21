@@ -4,6 +4,7 @@
 #include "Engine/Application/Application.h"
 #include "Engine/Core/Time.h"
 #include "Engine/Core/Skybox.h"
+#include "Editor/SessionCache/Cache.h"
 
 ApplicationClass* Plaza::Application = new Plaza::ApplicationClass();
 
@@ -23,6 +24,8 @@ int main() {
 	Physics::Init();
 	Application->activeScene->mainSceneEntity = new Entity("Scene");
 	Editor::DefaultModels::Init();
+	if (filesystem::exists(Application->enginePathAppData + "cache.yaml"))
+		Editor::Cache::Load();
 	Application->Loop();
 	Application->Terminate();
 	return 0;

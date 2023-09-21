@@ -12,6 +12,9 @@ namespace Plaza
     {
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static ulong FindEntityByNameCall(string name);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static bool HasComponent(UInt64 uuid, Type componentType);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]

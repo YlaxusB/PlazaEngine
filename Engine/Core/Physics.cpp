@@ -51,7 +51,7 @@ namespace Plaza {
 		toleranceScale.speed = 981;
 		toleranceScale.length = 1;
 		m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *m_foundation, toleranceScale, true);
-		m_dispatcher = PxDefaultCpuDispatcherCreate(2); // 2 is the number of worker threads
+		m_dispatcher = PxDefaultCpuDispatcherCreate(4); // 2 is the number of worker threads
 		if (!m_dispatcher) {
 			std::cerr << "PhysX CPU dispatcher creation failed!" << std::endl;
 		}

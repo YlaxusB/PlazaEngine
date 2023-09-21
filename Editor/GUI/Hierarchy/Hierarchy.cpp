@@ -76,14 +76,14 @@ namespace Plaza::Editor {
 
 			ImGui::SetNextWindowSize(ImVec2(50.0f, height));
 			if (ImGui::InputTextEx("##EntityNameInput", "Name", buf, 512, ImVec2(inputTextWidth, 0), ImGuiInputTextFlags_EnterReturnsTrue)) {
-				entity.name = buf;
+				entity.Rename(buf);
 				entity.changingName = false;
 				nameChanged = true;
 				Gui::changeSelectedGameObject(&Application->activeScene->entities.at(entity.uuid));
 			}
 
 			if (!ImGui::IsItemActive() && !firstFocus) {
-				entity.name = buf;
+				entity.Rename(buf);
 				entity.changingName = false;
 				nameChanged = true;
 				Gui::changeSelectedGameObject(&Application->activeScene->entities.at(entity.uuid));
@@ -128,6 +128,7 @@ namespace Plaza::Editor {
 
 			Hierarchy::Item::HierarchyDragDrop(entity, &currentObj, treeNodeMin, treeNodeMax);
 		}
+		bool treePop = !entity.changingName && !nameChanged;
 		if (ImGui::IsItemHovered() || ImGui::IsPopupOpen("ItemPopup")) {
 			Gui::Hierarchy::Item::ItemPopup(entity);
 		}
@@ -142,7 +143,7 @@ namespace Plaza::Editor {
 			{
 				Gui::Hierarchy::Item(Application->activeScene->entities[child], selectedGameObject);
 			}
-			if (!entity.changingName && !nameChanged)
+			if (treePop)
 				ImGui::TreePop();
 		}
 		//ImGui::Unindent(indentSpacing * depth);
@@ -195,6 +196,12 @@ namespace Plaza::Editor {
 					entity.AddComponent<Camera>(camera);
 				}
 
+				if (ImGui::MenuItem("Rename")) {
+					entity.changingName = true;
+					Application->activeScene->entities.at(entity.uuid).changingName = true;
+					Gui::Hierarchy::Item::firstFocus = true;
+				}
+
 				if (ImGui::BeginMenu("Script"))
 				{
 					for (auto& [key, value] : Application->activeProject->scripts) {
@@ -219,6 +226,8 @@ namespace Plaza::Editor {
 			}
 
 			Popup::NewEntityPopup::Init(&entity, &entity);
+
+
 
 			ImGui::EndPopup();
 		}

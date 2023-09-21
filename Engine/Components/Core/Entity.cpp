@@ -39,10 +39,11 @@ namespace Plaza {
 		// Default constructor implementation
 		uuid = Plaza::UUID::NewUUID();
 		this->AddComponent<Transform>(new Transform(), true);
-		this->name = "";
+		this->name = "Entity";
 		//Application->activeScene->entities.emplace(this->uuid, std::unique_ptr<Entity>(this));
 		Application->activeScene->entities.emplace(this->uuid, *this);
 		Application->activeScene->mainSceneEntity->childrenUuid.push_back(this->uuid);
+		Application->activeScene->entitiesNames[this->name].insert(this->uuid);
 	}
 	Entity::Entity(std::string objName, Entity* parent, bool addToScene, uint64_t newUuid) {
 		if (newUuid)
@@ -63,8 +64,11 @@ namespace Plaza {
 		//if (addToScene)
 			//Application->activeScene->entities.emplace(this->uuid, this);
 		//Application->activeScene->gameObjects.push_back(std::unique_ptr<Entity>(this));
-		if (addToScene)
+		if (addToScene) {
 			Application->activeScene->entities.emplace(this->uuid, *this);
+			Application->activeScene->entitiesNames[this->name].insert(this->uuid);
+		}
+
 	}
 
 	template Transform* Entity::GetComponent<Transform>(); // Replace 'Transform' with the actual type
@@ -187,5 +191,34 @@ namespace Plaza {
 		auto& components = GetComponentMap<T>();
 		if (components.find(this->uuid) != components.end())
 			components.erase(components.find(this->uuid));
+	}
+
+	void Entity::Rename(std::string newName) {
+		// Erase the old name
+		Application->activeScene->entitiesNames.at(this->name).erase(Application->activeScene->entitiesNames.at(this->name).find(this->uuid));
+		if (Application->activeScene->entitiesNames.at(this->name).size() <= 0) {
+			Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
+		}
+
+		// Emplace the new name
+		Application->activeScene->entitiesNames[newName].insert(this->uuid);
+		this->name = newName;
+	}
+
+	Entity::~Entity() {
+		if (!Application->runningScene) {
+			if (this->HasComponent<Transform>())
+				this->RemoveComponent<Transform>();
+			if (this->HasComponent<MeshRenderer>())
+				this->RemoveComponent<MeshRenderer>();
+			if (this->HasComponent<Collider>())
+				this->RemoveComponent<Collider>();
+			if (this->HasComponent<RigidBody>())
+				this->RemoveComponent<RigidBody>();
+			if (this->HasComponent<Camera>())
+				this->RemoveComponent<Camera>();
+			if (this->HasComponent<CsScriptComponent>())
+				this->RemoveComponent<CsScriptComponent>();
+		}
 	}
 }

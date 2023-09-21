@@ -17,7 +17,7 @@ namespace Plaza {
 		Entity();
 		Entity(std::string objName, Entity* parent = nullptr, bool addToScene = true, uint64_t newUuid = 0);
 		Entity(const Entity&) = default;
-		~Entity() = default;
+		~Entity();
 
 		template<typename T>
 		T* GetComponent();
@@ -57,6 +57,8 @@ namespace Plaza {
 				newParent.childrenUuid.push_back(this->uuid);
 			}
 		}
+
+		void Rename(std::string newName);
 	};
 
 }

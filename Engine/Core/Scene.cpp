@@ -43,6 +43,7 @@ namespace Plaza {
 		newScene->cameraComponents = std::unordered_map<uint64_t, Camera>(copyScene->cameraComponents);
 		newScene->meshRendererComponents = std::unordered_map<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
 		newScene->csScriptComponents = std::unordered_multimap<uint64_t, CsScriptComponent>(copyScene->csScriptComponents);
+		newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
 
 		for (auto& [key, value] : copyScene->rigidBodyComponents) {
 			RigidBody* rigidBody = new RigidBody(value);
@@ -74,10 +75,13 @@ namespace Plaza {
 	}
 
 	Scene::Scene() {
-		componentMaps.emplace("class Plaza::Transform", transformComponents);
-		componentMaps.emplace("class Plaza::MeshRenderer", meshRendererComponents);
-		componentMaps.emplace("class Plaza::RigidBody", rigidBodyComponents);
-		componentMaps.emplace("class Plaza::Collider", colliderComponents);
+
+		//componentMaps.emplace("class Plaza::Transform", transformComponents);
+		//componentMaps.emplace("class Plaza::MeshRenderer", meshRendererComponents);
+		//componentMaps.emplace("class Plaza::RigidBody", rigidBodyComponents);
+		//componentMaps.emplace("class Plaza::Collider", colliderComponents);
+		//componentMaps.emplace("class Plaza::Camera", cameraComponents);
+		//componentMaps.emplace("class Plaza::CsScriptComponent", csScriptComponents);
 
 	}
 
@@ -117,6 +121,14 @@ namespace Plaza {
 
 	Entity* Scene::GetEntity(uint64_t uuid) {
 		return &Application->activeScene->entities.at(uuid);
+	}
+	Entity* Scene::GetEntityByName(std::string name) {
+		if (Application->activeScene->entitiesNames.find(name) != Application->activeScene->entitiesNames.end()) {
+			for (const auto& element : Application->activeScene->entitiesNames.at(name)) {
+				return &Application->activeScene->entities.at(element);
+			}
+		}
+		return nullptr;
 	}
 	template<typename T>
 	T* Scene::GetComponent(uint64_t uuid) {

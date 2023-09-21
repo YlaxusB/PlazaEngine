@@ -1,0 +1,103 @@
+Scene:
+  Uuid: 38556232604082948
+  Name: Scene
+Entities:
+  - Entity: 38556232604082948
+    Name: Scene
+    ParentID: 38556232604082948
+    Components:
+      TransformComponent:
+        Position: [0, 0, 0]
+        Rotation: [0, 0, 0]
+        Scale: [1, 1, 1]
+  - Entity: 15320811053864490595
+    Name: Body
+    ParentID: 38556232604082948
+    Components:
+      TransformComponent:
+        Position: [-1.81225586, 0, 0]
+        Rotation: [0, -0, 0]
+        Scale: [1, 1, 1]
+      MeshRendererComponent:
+        Uuid: 15320811053864490595
+        AiMeshName: ""
+        MeshName: ""
+        Instanced: true
+        MeshId: 1
+      ColliderComponent:
+        Uuid: 15320811053864490595
+        Shapes:
+          - Shape: 0
+            MeshUuid: 0
+  - Entity: 11561100323356774194
+    Name: Head
+    ParentID: 15320811053864490595
+    Components:
+      TransformComponent:
+        Position: [0, 1.63598633, 0]
+        Rotation: [0, -0, 0]
+        Scale: [1, 1, 1]
+      MeshRendererComponent:
+        Uuid: 11561100323356774194
+        AiMeshName: ""
+        MeshName: ""
+        Instanced: true
+        MeshId: 1
+      CameraComponent:
+        Uuid: 11561100323356774194
+        Position: [0, 0, 0]
+        FOV: 60
+        FarPlane: 15000
+        NearPlane: 0.00999999978
+        AspectRatio: 1
+        MainCamera: false
+        Pitch: 0
+        Yaw: -90
+      ColliderComponent:
+        Uuid: 11561100323356774194
+        Shapes:
+          - Shape: 0
+            MeshUuid: 0
+      CsScriptComponent:
+        Uuid: 11561100323356774194
+        Scripts:
+          - Name: CubeController
+            Path: C:\Users\Giovane\Desktop\Workspace\PlazaGames\Game2\CubeController.cs
+            Uuid: 11561100323356774194
+  - Entity: 13115281252360150430
+    Name: Plane
+    ParentID: 38556232604082948
+    Components:
+      TransformComponent:
+        Position: [0, -1.86022949, 0]
+        Rotation: [0, -0, 0]
+        Scale: [10, 0.0500000007, 10]
+      MeshRendererComponent:
+        Uuid: 13115281252360150430
+        AiMeshName: ""
+        MeshName: ""
+        Instanced: true
+        MeshId: 3
+      ColliderComponent:
+        Uuid: 13115281252360150430
+        Shapes:
+          - Shape: 3
+            MeshUuid: 0
+Models:
+  []
+Meshes:
+  - Mesh: 10414174366341709331
+    MeshId: 1
+    Name: ""
+    TemporaryMesh: false
+    ModelUuid: 0
+  - Mesh: 10414174366341709331
+    MeshId: 1
+    Name: ""
+    TemporaryMesh: false
+    ModelUuid: 0
+  - Mesh: 13569599437832262006
+    MeshId: 3
+    Name: ""
+    TemporaryMesh: false
+    ModelUuid: 0

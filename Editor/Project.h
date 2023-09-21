@@ -17,6 +17,8 @@ namespace Plaza {
 
 			std::map<std::string, Script> scripts;
 			std::map<std::string, MonoObject*> monoObjects;
+
+			static void Load(const std::string filePath);
 		};
 	}
 }

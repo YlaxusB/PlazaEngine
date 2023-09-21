@@ -172,6 +172,7 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Editor\Project.cpp" />
     <ClCompile Include="Editor\ScriptManager\NewCsScript.cpp" />
     <ClCompile Include="Editor\ScriptManager\ScriptReloadAssembly.cpp" />
+    <ClCompile Include="Editor\SessionCache\Cache.cpp" />
     <ClCompile Include="Editor\Settings\EditorSettings.cpp" />
     <ClCompile Include="Editor\Settings\ProjectGenerator.cpp" />
     <ClCompile Include="Editor\Settings\SettingsSerializer.cpp" />
@@ -413,6 +414,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Editor\ModelImporter\ModelImporter.h" />
     <ClInclude Include="Editor\Project.h" />
     <ClInclude Include="Editor\ScriptManager\ScriptManager.h" />
+    <ClInclude Include="Editor\SessionCache\Cache.h" />
     <ClInclude Include="Editor\Settings\EditorSettings.h" />
     <ClInclude Include="Editor\Settings\ProjectGenerator.h" />
     <ClInclude Include="Editor\Settings\SettingsSerializer.h" />

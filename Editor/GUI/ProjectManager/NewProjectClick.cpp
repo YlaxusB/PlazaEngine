@@ -5,6 +5,7 @@
 #include "Engine/Application/Serializer/SceneSerializer.h"
 
 #include "Editor/Settings/ProjectGenerator.h"
+#include "Editor/SessionCache/Cache.h"
 namespace Plaza {
 	namespace Editor {
 		void ProjectManagerGui::NewProjectClick() {

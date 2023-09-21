@@ -13,6 +13,16 @@ namespace Plaza
     {
         public UInt64 Uuid;
 
+        public Entity()
+        {
+
+        }
+
+        public Entity(ulong uuid)
+        {
+            Uuid = uuid;
+        }
+
         public bool HasComponent<T>() where T : Component, new()
         {
             Type componentType = typeof(T);
@@ -27,6 +37,14 @@ namespace Plaza
             component.Uuid = this.Uuid;
             return component;
         }
+
+        public Entity FindEntityByName(string name)
+        {
+            ulong entityUuid = InternalCalls.FindEntityByNameCall(name);
+            if (entityUuid == 0)
+                return null;
+            return new Entity(entityUuid);
+        }
     }
 
     public abstract class Component
@@ -37,7 +55,7 @@ namespace Plaza
 
 
 
-    public class Transform : Component 
+    public class Transform : Component
     {
         public Vector3 Translation
         {

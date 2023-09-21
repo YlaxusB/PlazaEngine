@@ -402,6 +402,9 @@
     <ClCompile Include="Engine\Application\Serializer\Components\CameraSerializer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\SessionCache\Cache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h">
@@ -2097,6 +2100,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Application\Serializer\Components\CameraSerializer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\SessionCache\Cache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

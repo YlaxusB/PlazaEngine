@@ -2,6 +2,8 @@
 #include "ProjectSerializer.h"
 #include "Engine/Utils/yamlUtils.h"
 
+#include "SceneSerializer.h"
+#include "Editor/DefaultAssets/Models/DefaultModels.h"
 namespace Plaza {
 	void ProjectSerializer::Serialize(const std::string filePath)
 	{
@@ -9,6 +11,7 @@ namespace Plaza {
 		out << YAML::BeginMap;
 		out << YAML::Key << "Project" << YAML::Value << Application->activeProject->name;
 		out << YAML::Key << "Directory" << YAML::Value << Application->activeProject->directory;
+		out << YAML::Key << "LastActiveScenePath" << YAML::Value << Application->editorScene->filePath;
 
 		//out << YAML::EndSeq;
 		out << YAML::EndMap;
@@ -30,9 +33,21 @@ namespace Plaza {
 
 		std::string name = data["Project"].as<std::string>();
 		std::string directory = data["Directory"].as<std::string>();
+		std::string lastActiveScenePath = data["LastActiveScenePath"].as<std::string>();
 
 		Application->activeProject = new Editor::Project();
 		Application->activeProject->name = name;
 		Application->activeProject->directory = directory;
+
+		if (std::filesystem::exists(Application->projectPath + "\\" + lastActiveScenePath))
+		{
+			Serializer::DeSerialize(Application->projectPath + "\\" + lastActiveScenePath);
+		}
+		else {
+			Application->editorScene = new Scene();
+			Application->activeScene = Application->editorScene;
+			Application->activeScene->mainSceneEntity = new Entity("Scene");
+			Editor::DefaultModels::Init();
+		}
 	}
 }

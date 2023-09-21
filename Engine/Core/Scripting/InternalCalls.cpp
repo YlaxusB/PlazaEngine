@@ -12,6 +12,16 @@ namespace Plaza {
 		//return Application->activeScene->entities.at(uuid).HasComponent<type>();
 	}
 
+	static uint64_t FindEntityByNameCall(MonoString* name) {
+		char* nameCStr = mono_string_to_utf8(name);
+
+		Entity* entity = Application->activeScene->GetEntityByName(nameCStr);
+		mono_free(nameCStr);
+		if (!entity)
+			return 0;
+		return entity->uuid;
+	}
+
 #pragma region Input
 
 	static bool InputIsKeyDown(int keyCode) {
@@ -192,6 +202,9 @@ namespace Plaza {
 
 	void InternalCalls::Init() {
 		//PL_ADD_INTERNAL_CALL(GetPositionCall);
+		mono_add_internal_call("Plaza.InternalCalls::FindEntityByNameCall", FindEntityByNameCall);
+
+
 		mono_add_internal_call("Plaza.InternalCalls::InputIsKeyDown", InputIsKeyDown);
 		mono_add_internal_call("Plaza.InternalCalls::InputIsMouseDown", InputIsMouseDown);
 		mono_add_internal_call("Plaza.InternalCalls::GetMouseDelta", GetMouseDelta);

@@ -12,6 +12,8 @@
 #include "Engine/Application/Serializer/Components/CsScriptComponentSerializer.h"
 #include "Engine/Application/Serializer/Components/CameraSerializer.h"
 
+#include "Editor/DefaultAssets/Models/DefaultModels.h"
+
 namespace Plaza {
 	void SerializeGameObjects(YAML::Emitter& out, Entity* entity) {
 		out << YAML::BeginMap;
@@ -115,9 +117,17 @@ namespace Plaza {
 		std::string sceneName = data["Scene"]["Name"].as<std::string>();
 
 		/* Scene */
+		Application->editorScene = new Scene();
+		Application->activeScene = Application->editorScene;
+		Editor::DefaultModels::Init();
+		Entity* oldScene = Application->activeScene->mainSceneEntity;
 		Entity* newScene = new Entity(data["Scene"]["Name"].as<std::string>(), nullptr, true, data["Scene"]["Uuid"].as<uint64_t>());
 		free(Application->activeScene->mainSceneEntity);
 		Application->activeScene->mainSceneEntity = newScene;
+		if (filePath.starts_with(Application->projectPath))
+			Application->activeScene->filePath = filePath.substr(Application->projectPath.length() + 1, filePath.length() - Application->projectPath.length());
+		else
+			Application->activeScene->filePath = filePath;
 
 		/* Models and Meshes */
 		std::map<uint64_t, std::string> models = std::map<uint64_t, std::string>();
@@ -161,57 +171,60 @@ namespace Plaza {
 				std::string name = entity["Name"].as<std::string>();
 				Entity* newEntity;
 				auto parentIt = Application->activeScene->entities.find(entity["ParentID"].as<std::uint64_t>());
-				if (entity["ParentID"].as<std::uint64_t>() && parentIt != Application->activeScene->entities.end()) {
-					newEntity = new Entity(name, &Application->activeScene->entities.at(entity["ParentID"].as<std::uint64_t>()), true, entity["Entity"].as<uint64_t>());
-				}
-				else {
-					newEntity = new Entity(name, Application->activeScene->mainSceneEntity, true, entity["Entity"].as<uint64_t>());
-				}
-				newEntity->parentUuid = entity["ParentID"].as<std::uint64_t>();
-				if (newEntity)
-					if (entity["Components"]) {
-						if (entity["Components"]["TransformComponent"]) {
-							newEntity->GetComponent<Transform>()->relativePosition = entity["Components"]["TransformComponent"]["Position"].as<glm::vec3>();
-							newEntity->GetComponent<Transform>()->rotation = entity["Components"]["TransformComponent"]["Rotation"].as<glm::vec3>();
-							newEntity->GetComponent<Transform>()->scale = entity["Components"]["TransformComponent"]["Scale"].as<glm::vec3>();
-							//newEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
-						}
-						if (entity["Components"]["MeshRendererComponent"]) {
-							auto meshRenderDeserialized = entity["Components"]["MeshRendererComponent"];
-							MeshRenderer* meshRenderer = new MeshRenderer();
-							meshRenderer->instanced = entity["Components"]["MeshRendererComponent"]["Instanced"].as<bool>();
-							meshRenderer->mesh = shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()));
-							newEntity->AddComponent<MeshRenderer>(meshRenderer);
-						}
-						if (entity["Components"]["CameraComponent"]) {
-							newEntity->AddComponent<Camera>(ComponentSerializer::CameraSerializer::DeSerialize(entity["Components"]["CameraComponent"]));
-						}
-						if (entity["Components"]["ColliderComponent"]) {
-							newEntity->AddComponent<Collider>(ComponentSerializer::ColliderSerializer::DeSerialize(entity["Components"]["ColliderComponent"]));
-						}
-						if (entity["Components"]["RigidBodyComponent"]) {
-							newEntity->AddComponent<RigidBody>(ComponentSerializer::RigidBodySerializer::DeSerialize(entity["Components"]["RigidBodyComponent"]));
-						}
-						if (entity["Components"]["CsScriptComponent"]) {
-							for (auto script : entity["Components"]["CsScriptComponent"]["Scripts"]) {
-								newEntity->AddComponent<CsScriptComponent>(ComponentSerializer::CsScriptComponentSerializer::DeSerialize(script));
+				if (entity["ParentID"].as<std::uint64_t>() != entity["Entity"].as<uint64_t>()) {
+					if (entity["ParentID"].as<std::uint64_t>() && parentIt != Application->activeScene->entities.end()) {
+						newEntity = new Entity(name, &Application->activeScene->entities.at(entity["ParentID"].as<std::uint64_t>()), true, entity["Entity"].as<uint64_t>());
+					}
+					else {
+						newEntity = new Entity(name, Application->activeScene->mainSceneEntity, true, entity["Entity"].as<uint64_t>());
+					}
+					newEntity->parentUuid = entity["ParentID"].as<std::uint64_t>();
+					if (newEntity)
+						if (entity["Components"]) {
+							if (entity["Components"]["TransformComponent"]) {
+								newEntity->GetComponent<Transform>()->relativePosition = entity["Components"]["TransformComponent"]["Position"].as<glm::vec3>();
+								newEntity->GetComponent<Transform>()->rotation = entity["Components"]["TransformComponent"]["Rotation"].as<glm::vec3>();
+								newEntity->GetComponent<Transform>()->scale = entity["Components"]["TransformComponent"]["Scale"].as<glm::vec3>();
+								//newEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+							}
+							if (entity["Components"]["MeshRendererComponent"]) {
+								auto meshRenderDeserialized = entity["Components"]["MeshRendererComponent"];
+								MeshRenderer* meshRenderer = new MeshRenderer();
+								meshRenderer->instanced = entity["Components"]["MeshRendererComponent"]["Instanced"].as<bool>();
+								meshRenderer->mesh = shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()));
+								newEntity->AddComponent<MeshRenderer>(meshRenderer);
+							}
+							if (entity["Components"]["CameraComponent"]) {
+								newEntity->AddComponent<Camera>(ComponentSerializer::CameraSerializer::DeSerialize(entity["Components"]["CameraComponent"]));
+							}
+							if (entity["Components"]["ColliderComponent"]) {
+								newEntity->AddComponent<Collider>(ComponentSerializer::ColliderSerializer::DeSerialize(entity["Components"]["ColliderComponent"]));
+							}
+							if (entity["Components"]["RigidBodyComponent"]) {
+								newEntity->AddComponent<RigidBody>(ComponentSerializer::RigidBodySerializer::DeSerialize(entity["Components"]["RigidBodyComponent"]));
+							}
+							if (entity["Components"]["CsScriptComponent"]) {
+								for (auto script : entity["Components"]["CsScriptComponent"]["Scripts"]) {
+									newEntity->AddComponent<CsScriptComponent>(ComponentSerializer::CsScriptComponentSerializer::DeSerialize(script));
+								}
 							}
 						}
-					}
-				//newEntity->GetComponent<Transform>()->UpdateChildrenTransform();
-				//meshRenderer->mesh = cubeMesh;
-				//delete meshRenderer;
+					//newEntity->GetComponent<Transform>()->UpdateChildrenTransform();
+					//meshRenderer->mesh = cubeMesh;
+					//delete meshRenderer;
+				}
 			}
 			/* Loop again to assign the correct parents */
 			for (auto entity : gameObjectsDeserialized) {
 				uint64_t entityUuid = entity["Entity"].as<uint64_t>();
 				uint64_t parentUuid = entity["ParentID"].as<uint64_t>();
-				if (parentUuid)
+				if (parentUuid && parentUuid != entityUuid && Application->activeScene->entities.find(parentUuid) != Application->activeScene->entities.end())
 					Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), Application->activeScene->entities.at(entity["ParentID"].as<uint64_t>()));
 				else
 					Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), *Application->activeScene->mainSceneEntity);
 				Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 			}
+			//delete oldScene;
 			std::cout << "Finished Deserialization \n";
 		}
 	}

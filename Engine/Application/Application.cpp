@@ -162,8 +162,17 @@ void ApplicationClass::CreateApplication() {
 	Application->dllPath = currentPath.parent_path().parent_path().parent_path().string() + "\\dll";
 	Application->enginePath = currentPath.parent_path().parent_path().string();
 	Application->editorPath = currentPath.parent_path().parent_path().parent_path().string() + "\\Editor";
-	Application->enginePathAppData = std::string(appdataValue) + "\\Plaza Engine\\";
+	Application->enginePathAppData = std::string(appdataValue) + "\\PlazaEngine\\";
 	free(appdataValue);
+
+	/* Check if the engine app data folder doesnt exists, if not, then create */
+	if (!std::filesystem::is_directory(Application->enginePathAppData) && Application->runningEditor) {
+		std::filesystem::create_directory(Application->enginePathAppData);
+		if (!std::filesystem::exists(Application->enginePathAppData + "\\cache.yaml")) {
+
+		}
+	}
+
 	//gameObjects.reserve(5000);
 
 	// Initialize GLFW (Window)
@@ -193,10 +202,7 @@ void ApplicationClass::UpdateProjectManagerGui() {
 
 void ApplicationClass::Loop() {
 	static constexpr tracy::SourceLocationData __tracy_source_location151{ "MainLoop", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)151, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location151, true);
-	//ZoneScoped;
 	while (!glfwWindowShouldClose(Application->Window->glfwWindow)) {
-		//static constexpr tracy::SourceLocationData __tracy_source_location153{ "Main Loop", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)153, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location153, true);
-		//ZoneScopedN("Main Loop");
 		// Run the Engine (Update Time, Shadows, Inputs, Buffers, Rendering, etc.)
 		if (Application->runEngine) {
 			Application->UpdateEngine();
@@ -330,8 +336,8 @@ void ApplicationClass::Terminate() {
 	for (const auto& meshRenderer : Application->activeScene->meshRenderers) {
 		meshRenderer->mesh->Terminate();
 	}
-	delete(Application->editorScene);
-	delete(Application->runtimeScene);
+	free(Application->editorScene);
+	free(Application->runtimeScene);
 	Skybox::Terminate();
 	Gui::Delete();
 	glfwTerminate();

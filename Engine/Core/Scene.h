@@ -8,6 +8,8 @@
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Components/Physics/Collider.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
+#include <unordered_set>
+#include "Engine/Core/Standards.h"
 using namespace std;
 namespace Plaza {
 	struct Uint64Hash {
@@ -37,6 +39,7 @@ namespace Plaza {
 	};
 	class Scene {
 	public:
+		std::string filePath = "mainScene.plzscn";
 		GameObjectList gameObjects;
 		std::unordered_map<std::variant<uint64_t, std::string>, Entity*> gameObjectsMap;
 
@@ -54,6 +57,7 @@ namespace Plaza {
 		std::vector<MeshRenderer*> meshRenderers;
 		std::unordered_map<uint64_t, shared_ptr<Mesh>> meshes;
 
+		std::unordered_map<std::string, std::unordered_set<uint64_t>> entitiesNames;
 		Scene();
 
 		//unordered_map<uint64_t, Transform*> meshRenderersComponents;
@@ -65,6 +69,7 @@ namespace Plaza {
 		~Scene() = default;
 
 		Entity* GetEntity(uint64_t uuid);
+		Entity* GetEntityByName(std::string name);
 		template<typename T>
 		T* GetComponent(uint64_t uuid);
 

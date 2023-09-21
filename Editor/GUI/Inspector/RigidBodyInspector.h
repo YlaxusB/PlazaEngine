@@ -42,6 +42,23 @@ namespace Plaza::Editor {
 				Editor::Utils::DragFloat("Density: ", density, 0.01f, &UpdateRigidBodyCallbackFloat, 0.0001f);
 				Editor::Utils::DragFloat3("Linear Velocity: ", linearVelocity, 0.01f, &UpdateRigidBodyCallbackVec3);
 
+				ImGui::Text("Lock Angular: ");
+				physx::PxRigidDynamic* asd = rigidBody->mRigidActor->is<physx::PxRigidDynamic>();
+				bool isXLocked = rigidBody->mRigidActor->is<physx::PxRigidDynamic>()->getRigidDynamicLockFlags().isSet(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X);
+				if (ImGui::Checkbox("X", &isXLocked)) {
+					rigidBody->mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, isXLocked);
+				}
+
+				bool isYLocked = rigidBody->mRigidActor->is<physx::PxRigidDynamic>()->getRigidDynamicLockFlags().isSet(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y);
+				if (ImGui::Checkbox("Y", &isYLocked)) {
+					rigidBody->mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, isYLocked);
+				}
+
+				bool isZLocked = rigidBody->mRigidActor->is<physx::PxRigidDynamic>()->getRigidDynamicLockFlags().isSet(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z);
+				if (ImGui::Checkbox("Z", &isZLocked)) {
+					rigidBody->mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, isZLocked);
+				}
+
 				ImGui::PopID();
 				ImGui::TreePop();
 			}

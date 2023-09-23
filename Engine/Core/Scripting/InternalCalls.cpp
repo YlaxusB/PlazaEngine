@@ -6,6 +6,12 @@ namespace Plaza {
 
 #define PL_ADD_INTERNAL_CALL(name) mono_add_internal_call("Plaza.InternalCalls::" #name, (void*)name)
 
+	enum Axis {
+		X,
+		Y,
+		Z
+	};
+
 	static bool HasComponent(uint64_t uuid, MonoReflectionType* componentType) {
 		MonoType* monoType = mono_reflection_type_get_type(componentType);
 		return Mono::mEntityHasComponentFunctions.at(monoType)(*Application->activeScene->GetEntity(uuid));
@@ -202,6 +208,42 @@ namespace Plaza {
 
 #pragma endregion Mesh Renderer Component
 
+#pragma region RigidBody
+	static void RigidBody_LockAngular(uint64_t uuid, Axis axis, bool value) {
+		auto it = Application->activeScene->rigidBodyComponents.find(uuid);
+		if (it != Application->activeScene->rigidBodyComponents.end()) {
+			physx::PxRigidDynamicLockFlag::Enum flag;
+			if (axis == Axis::X)
+				flag = physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X;
+			else if (axis == Axis::Y)
+				flag = physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y;
+			else if (axis == Axis::Z)
+				flag = physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z;
+			it->second.SetRigidDynamicLockFlags(flag, value);
+		}
+	}
+
+	struct Angular {
+		bool X, Y, Z;
+	};
+
+	static Angular* RigidBody_IsAngularLocked(uint64_t uuid) {
+		Angular* angular = new Angular();
+		auto it = Application->activeScene->rigidBodyComponents.find(uuid);
+		if (it != Application->activeScene->rigidBodyComponents.end()) {
+			if (it->second.rigidDynamicLockFlags.isSet(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X))
+				angular->X = true;
+
+			if (it->second.rigidDynamicLockFlags.isSet(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y))
+				angular->Y = true;
+
+			if (it->second.rigidDynamicLockFlags.isSet(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z))
+				angular->Z = true;
+		}
+		return angular;
+	}
+#pragma endregion RigidBody
+
 #pragma endregion Components
 
 	void InternalCalls::Init() {
@@ -228,6 +270,10 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetIndices", MeshRenderer_SetIndices);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetNormals", MeshRenderer_GetNormals);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetNormals", MeshRenderer_SetNormals);
+
+		mono_add_internal_call("Plaza.InternalCalls::RigidBody_LockAngular", RigidBody_LockAngular);
+		mono_add_internal_call("Plaza.InternalCalls::RigidBody_IsAngularLocked", RigidBody_IsAngularLocked);
+
 		//mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetUvs", MeshRenderer_GetUvs);
 		//mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetUvs", MeshRenderer_SetUvs);
 		//mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetIndices", MeshRenderer_GetIndices);

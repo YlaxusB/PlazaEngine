@@ -143,4 +143,22 @@ namespace Plaza
         */
     }
 
+    #region Rigid Body
+    public struct Angular {
+        public bool X, Y, Z;
+    }
+    public class RigidBody : Component
+    {
+        public void LockAngular(Axis axis, bool value)
+        {
+            InternalCalls.RigidBody_LockAngular(this.Uuid, axis, value);
+        }
+
+        public Angular IsAngularLocked()
+        {
+            return InternalCalls.RigidBody_IsAngularLocked(this.Uuid);
+        }
+    }
+    #endregion
+    
 }

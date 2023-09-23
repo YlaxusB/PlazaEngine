@@ -36,6 +36,7 @@ glm::vec2 curHierarchySize;
 glm::vec2 curSceneSize;
 glm::vec2 curInspectorSize;
 
+bool Plaza::Editor::Gui::sceneViewUsingEditorCamera = false;
 bool Plaza::Editor::Gui::isHierarchyOpen = true;
 bool Plaza::Editor::Gui::isSceneOpen = true;
 bool Plaza::Editor::Gui::isInspectorOpen = true;
@@ -178,9 +179,21 @@ namespace Plaza {
 			windowFlags |= ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_NoScrollbar;*/
 
 			ImGui::SetNextWindowSize(ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y));
-			ImGui::Begin("Scene", &Gui::isSceneOpen, windowFlags);
+			if (ImGui::Begin("Scene", &Gui::isSceneOpen, windowFlags)) {
+				if (sceneViewUsingEditorCamera)
+					Application->activeCamera = Application->editorCamera;
+				else {
+					if (Application->activeCamera->isEditorCamera && Application->activeScene->cameraComponents.size() > 0)
+						Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
+				}
+			}
+
+
+
 			if (ImGui::IsWindowFocused())
+			{
 				Application->focusedMenu = "Scene";
+			}
 			if (ImGui::IsWindowHovered())
 				Application->hoveredMenu = "Scene";
 
@@ -209,6 +222,16 @@ namespace Plaza {
 			if (ImGui::Button("Reload C# Script Assembly")) {
 				ScriptManager::ReloadScriptsAssembly();
 			}
+			ImGui::SameLine();
+			if (ImGui::Checkbox("Editor Camera", &sceneViewUsingEditorCamera)) {
+				if (sceneViewUsingEditorCamera)
+					Application->activeCamera = Application->editorCamera;
+				else {
+					if (Application->activeCamera->isEditorCamera && Application->activeScene->cameraComponents.size() > 0)
+						Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
+				}
+			}
+
 			ImGui::PopStyleColor();
 			ImGui::PopStyleColor();
 			ImGui::PopStyleColor();
@@ -257,11 +280,18 @@ namespace Plaza {
 			windowFlags |= ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_NoScrollbar;*/
 
 			ImGui::SetNextWindowSize(ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y));
-			ImGui::Begin("Editor", &Gui::isSceneOpen, windowFlags);
+			if (ImGui::Begin("Editor", &Gui::isSceneOpen, windowFlags)) {
+				Application->activeCamera = Application->editorCamera;
+			};
 			if (ImGui::IsWindowFocused())
+			{
 				Application->focusedMenu = "Editor";
+				Application->activeCamera = Application->editorCamera;
+			}
 			if (ImGui::IsWindowHovered())
 				Application->hoveredMenu = "Editor";
+
+
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x / 2, 25));
 

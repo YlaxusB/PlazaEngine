@@ -40,6 +40,7 @@ namespace Plaza {
 
 			static string scenePayloadName;
 
+			static bool sceneViewUsingEditorCamera;
 			static bool isHierarchyOpen;
 			static bool isSceneOpen;
 			static bool isInspectorOpen;

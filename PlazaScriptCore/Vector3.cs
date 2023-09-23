@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace Plaza
 {
+
     public struct Vector3
     {
         public float X, Y, Z;
@@ -47,7 +48,7 @@ namespace Plaza
                 return -1.0f; // Negative numbers don't have real square roots
 
             float guess = number; // Initial guess
-            
+
             while ((guess * guess - number) > float.Epsilon)
             {
                 guess = 0.5f * (guess + number / guess); // Iterative approximation

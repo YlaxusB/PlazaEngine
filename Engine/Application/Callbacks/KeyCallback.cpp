@@ -5,6 +5,7 @@
 #include "Editor/DefaultAssets/DefaultAssets.h"
 
 #include "Engine/Core/Skybox.h"
+#include "Editor/GUI/guiMain.h"
 using namespace Plaza;
 uint64_t lastUuid;
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -103,5 +104,9 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 		if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
 			Application->InitShaders();
 		}
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS) {
+		Editor::Gui::sceneViewUsingEditorCamera = !Editor::Gui::sceneViewUsingEditorCamera;
 	}
 }

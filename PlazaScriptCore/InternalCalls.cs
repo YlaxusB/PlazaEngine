@@ -8,6 +8,12 @@ using System.Threading.Tasks;
 
 namespace Plaza
 {
+    public enum Axis
+    {
+        X,
+        Y,
+        Z
+    }
     public static class InternalCalls
     {
 
@@ -192,5 +198,14 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         private extern static void MeshRenderer_SetNormals(UInt64 uuid, IntPtr indices, int size);
         #endregion MeshRenderer
+
+
+        #region RigidBody
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void RigidBody_LockAngular(UInt64 uuid, Axis axis, bool value);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static Angular RigidBody_IsAngularLocked(UInt64 uuid);
+        #endregion RigidBody
     }
 }

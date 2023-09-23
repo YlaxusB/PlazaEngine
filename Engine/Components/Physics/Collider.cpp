@@ -271,6 +271,9 @@ namespace Plaza {
 	void Collider::SetFlag(Collider* collider, physx::PxRigidBodyFlag::Enum flag, bool value) {
 		collider->mStaticPxRigidBody->setRigidBodyFlag(flag, value);
 	}
+	void Collider::SetFlags(Collider* collider, physx::PxRigidDynamicLockFlags flags) {
+		collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlags(flags);
+	}
 
 	void Collider::UpdatePose(Transform* transform) {
 		if (transform) {

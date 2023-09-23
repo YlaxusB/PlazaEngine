@@ -44,6 +44,7 @@ namespace Plaza {
 		void SetFlag(physx::PxRigidBody* rigidBody, physx::PxRigidBodyFlag::Enum flag, bool value);
 		void SetFlag(Collider* collider, physx::PxRigidBodyFlag::Enum flag, bool value);
 		void SetFlag(physx::PxRigidActor* actor, physx::PxActorFlag::Enum flag, bool value);
+		void SetFlags(Collider* collider, physx::PxRigidDynamicLockFlags flags);
 
 		void UpdatePose();
 		void UpdatePose(Transform* transform);

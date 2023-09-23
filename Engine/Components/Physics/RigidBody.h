@@ -25,6 +25,10 @@ namespace Plaza {
 		float mDynamicFriction = 1.0f;
 		float mRestitution = 0.5f;
 
+		physx::PxRigidDynamicLockFlags rigidDynamicLockFlags;
+		void SetRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::Enum flag, bool value);
+
+
 		bool lockRotation = false;
 
 		float density = 50.0f;
@@ -41,6 +45,7 @@ namespace Plaza {
 			gravity = other.gravity;
 		}
 	private:
+
 		shared_ptr<Transform> transform;
 	};
 }

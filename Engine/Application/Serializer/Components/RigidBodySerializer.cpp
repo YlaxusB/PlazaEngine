@@ -6,21 +6,14 @@ namespace Plaza {
 		out << YAML::Key << "RigidBodyComponent" << YAML::BeginMap;
 
 		out << YAML::Key << "Uuid" << YAML::Value << rigidBody.uuid;
+		out << YAML::Key << "DynamicLockFlags" << YAML::Value << (unsigned int)rigidBody.rigidDynamicLockFlags;
 
 		out << YAML::EndMap; // RigidBody Component
 	}
 
-	/*
-						RigidBody* rigidBody = new RigidBody(entity.uuid, Application->runningScene);
-					rigidBody->uuid = entity.uuid;
-					//Collider* collider = new Collider(entity.uuid);
-					//entity.AddComponent<Collider>(collider);
-					//entity.GetComponent<Collider>()->Init();
-					entity.AddComponent<RigidBody>(rigidBody);
-	*/
-
 	RigidBody* ComponentSerializer::RigidBodySerializer::DeSerialize(YAML::Node data) {
 		RigidBody* rigidBody = new RigidBody(data["Uuid"].as<uint64_t>(), Application->runningScene);
+		rigidBody->rigidDynamicLockFlags = physx::PxRigidDynamicLockFlags(data["DynamicLockFlags"].as<unsigned int>());
 		return rigidBody;
 	}
 }

@@ -13,6 +13,9 @@ namespace Plaza {
 		}
 	}
 
+	/// <summary>
+	/// Called when the scene starts
+	/// </summary>
 	void RigidBody::Init() {
 		Collider* collider = this->GetGameObject()->GetComponent<Collider>();
 		if (collider) {
@@ -20,6 +23,7 @@ namespace Plaza {
 				Application->activeScene->colliderComponents.at(this->uuid).Init(this);
 			mRigidActor = collider->mRigidActor;
 		}
+		collider->SetFlags(collider, this->rigidDynamicLockFlags);
 	}
 
 	void RigidBody::UpdateRigidBody() {
@@ -75,4 +79,15 @@ namespace Plaza {
 			this->mRigidActor->is<PxRigidDynamic>()->addForce(PxVec3(force.x, force.y, force.z), physx::PxForceMode::eFORCE);
 		}
 	};
+
+
+
+	void RigidBody::SetRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::Enum flag, bool value) {
+		if (value)
+			this->rigidDynamicLockFlags.raise(flag);
+		else
+			this->rigidDynamicLockFlags.clear(flag);
+		if (Application->runningScene)
+			this->mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlag(flag, value);
+	}
 }

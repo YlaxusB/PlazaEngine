@@ -77,7 +77,6 @@ namespace Plaza::Editor {
 				}
 
 
-
 				ImGui::PopID();
 				ImGui::TreePop();
 			}

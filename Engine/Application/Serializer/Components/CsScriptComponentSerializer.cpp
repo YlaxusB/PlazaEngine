@@ -17,7 +17,13 @@ namespace Plaza {
 		out << YAML::BeginMap;
 
 		out << YAML::Key << "Name" << YAML::Value << std::filesystem::path{ script.scriptPath }.stem().string();
-		out << YAML::Key << "Path" << YAML::Value << script.scriptPath;
+		if (script.scriptPath.starts_with(Application->projectPath)) {
+			out << YAML::Key << "Path" << YAML::Value << script.scriptPath.substr(Application->projectPath.size(), script.scriptPath.size() - Application->projectPath.size());
+		}
+		else {
+			out << YAML::Key << "Path" << YAML::Value << script.scriptPath;
+		}
+
 		out << YAML::Key << "Uuid" << YAML::Value << script.uuid;
 
 		out << YAML::EndMap;
@@ -25,7 +31,7 @@ namespace Plaza {
 
 	CsScriptComponent* ComponentSerializer::CsScriptComponentSerializer::DeSerialize(YAML::Node data) {
 		CsScriptComponent* script = new CsScriptComponent(data["Uuid"].as<uint64_t>());
-		std::string csFileName = data["Path"].as<std::string>();
+		std::string csFileName = Application->projectPath + data["Path"].as<std::string>();
 		script->Init(csFileName);
 		Application->activeProject->scripts.at(csFileName).entitiesUsingThisScript.emplace(data["Uuid"].as<uint64_t>());
 		return script;

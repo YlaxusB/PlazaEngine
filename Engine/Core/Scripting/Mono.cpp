@@ -226,6 +226,11 @@ namespace Plaza {
 
 
 		// Load the PlazaScriptCore.dll assembly
+#ifdef GAME_REL
+		Application->dllPath = Application->projectPath + "\\dll";
+#endif // GAME_REL
+
+
 		mCoreAssembly = mono_domain_assembly_open(mAppDomain, (Application->dllPath + "\\PlazaScriptCore.dll").c_str());
 		mCoreImage = mono_image_open((Application->dllPath + "\\PlazaScriptCore.dll").c_str(), nullptr);
 

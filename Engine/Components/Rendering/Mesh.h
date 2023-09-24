@@ -3,6 +3,7 @@
 #include "Engine/Components/Component.h"
 #include "Engine/Components/Rendering/Texture.h"
 #include "Engine/Components/Rendering/Material.h"
+#include "Engine/Core/Time.h"
 
 
 using namespace std;

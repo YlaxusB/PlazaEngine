@@ -10,8 +10,30 @@ namespace Plaza {
 		void Gui::MainMenuBar::Begin() {
 			// MenuBar / TitleBar
 			ImGui::BeginMainMenuBar();
-
+			//
 			if (ImGui::BeginMenu("File")) {
+				if (ImGui::Button("Build")) {
+					//std::string compileCommand = "mcs -target:library -out:\"" + dllPath.parent_path().string() + "\\" + dllPath.stem().string() + ".dll\" " + "\"" + std::string(scriptPath) + "\"";
+					//compileCommand += " -reference:\"" + Application->dllPath + "\\PlazaScriptCore.dll\"";
+					/*
+					msbuild.exe "C:\Users\Giovane\Desktop\Workspace\Plaza\Engine\..\OpenGLEngine.sln" /p:Configuration=GameRel /t:Build /p:OutDir="C:\Users\Giovane\Desktop\Workspace\PlazaGames\daldal\build\\"
+					*/
+					std::string devEnv = " \"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\msbuild.exe\" ";
+					std::string outPath = "\"" + Application->projectPath + "\\..\\" + Application->activeProject->name + "build\\\\\"";
+					std::string command = "\"" + devEnv + "\"" + Application->enginePath + "\\..\\OpenGLEngine.sln\" /p:Configuration=GameRel /t:Build /p:PROJECT_NAME=YourMacroValue /p:OutDir=" + outPath + "\"";
+					std::cout << command << std::endl;
+					system(command.c_str());
+
+					/* Copy assets and scripts into Content Folder inside build folder */
+					try {
+						filesystem::copy(Application->projectPath, Application->projectPath + "\\..\\" + Application->activeProject->name + "build", filesystem::copy_options::recursive);
+						std::cout << "Project Folder copied successfully.\n";
+					}
+					catch (const filesystem::filesystem_error& e) {
+						std::cerr << "Error: " << e.what() << std::endl;
+					}
+				}
+
 				if (ImGui::Button("Return to Project Menu")) {
 					Editor::selectedGameObject = nullptr;
 					Application->runEngine = false;

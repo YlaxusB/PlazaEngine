@@ -132,7 +132,12 @@ namespace Plaza {
 	}
 
 	void Renderer::RenderHDR() {
+#ifdef GAME_REL
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#else
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+#endif // GAME_REL
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		Application->hdrShader->use();
 		Application->hdrShader->setInt("hdr", 5);
@@ -141,7 +146,7 @@ namespace Plaza {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, Application->distortionCorrectionFrameBuffer->colorBuffer);
 		Renderer::RenderQuadOnScreen();
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		//renderFullscreenQuad();
 	}
 

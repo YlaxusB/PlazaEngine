@@ -38,8 +38,8 @@ namespace Plaza {
 		std::string enginePathAppData;
 		Editor::Project* activeProject = nullptr;
 
-		std::string focusedMenu = "";
-		std::string hoveredMenu = "";
+		std::string focusedMenu = "Scene";
+		std::string hoveredMenu = "Scene";
 
 		bool copyingScene = false;
 

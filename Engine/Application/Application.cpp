@@ -105,7 +105,16 @@ void combineBuffers() {
 
 void ApplicationClass::InitShaders() {
 	// Initialize Shaders
-	Application->shader = new Shader((Application->enginePath + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
+#ifdef  GAME_REL
+	std::string shadersFolder = Application->projectPath;
+#else
+	std::string shadersFolder = Application->enginePath;
+#endif //  GAME_REL
+
+	std::cout << "ProjectPath2  : " << Application->projectPath << "\n";
+	std::cout << "shadersFolder  : " << shadersFolder << "\n";
+
+	Application->shader = new Shader((shadersFolder + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
 	constexpr const char* textureDiffuseUniform = "texture_diffuse";
 	constexpr const char* textureSpecularUniform = "texture_specular";
 	constexpr const char* textureNormalUniform = "texture_normal";
@@ -120,11 +129,15 @@ void ApplicationClass::InitShaders() {
 	Application->shader->setInt("texture_normal", 2);
 	Application->shader->setInt("texture_height", 3);
 
-	Application->pickingShader = new Shader((Application->enginePath + "\\Shaders\\picking\\pickingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\picking\\pickingFragment.glsl").c_str());
 
-	Application->outlineShader = new Shader((Application->enginePath + "\\Shaders\\outlining\\outliningVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\outlining\\outliningFragment.glsl").c_str());
 
-	Application->outlineBlurShader = new Shader((Application->enginePath + "\\Shaders\\blur\\blurVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\blur\\blurFragment.glsl").c_str());
+
+
+	Application->pickingShader = new Shader((shadersFolder + "\\Shaders\\picking\\pickingVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\picking\\pickingFragment.glsl").c_str());
+
+	Application->outlineShader = new Shader((shadersFolder + "\\Shaders\\outlining\\outliningVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\outlining\\outliningFragment.glsl").c_str());
+
+	Application->outlineBlurShader = new Shader((shadersFolder + "\\Shaders\\blur\\blurVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\blur\\blurFragment.glsl").c_str());
 
 	Application->outlineBlurShader->use();
 
@@ -134,20 +147,20 @@ void ApplicationClass::InitShaders() {
 
 	Application->outlineBlurShader->setInt("depthStencilTexture2", 2);
 
-	Application->combiningShader = new Shader((Application->enginePath + "\\Shaders\\combining\\combiningVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\combining\\combiningFragment.glsl").c_str());
-	Application->edgeDetectionShader = new Shader((Application->enginePath + "\\Shaders\\edgeDetection\\edgeDetectionVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\edgeDetection\\edgeDetectionFragment.glsl").c_str());
+	Application->combiningShader = new Shader((shadersFolder + "\\Shaders\\combining\\combiningVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\combining\\combiningFragment.glsl").c_str());
+	Application->edgeDetectionShader = new Shader((shadersFolder + "\\Shaders\\edgeDetection\\edgeDetectionVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\edgeDetection\\edgeDetectionFragment.glsl").c_str());
 
-	Application->singleColorShader = new Shader((Application->enginePath + "\\Shaders\\singleColor\\singleColorVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\singleColor\\singleColorFragment.glsl").c_str());
+	Application->singleColorShader = new Shader((shadersFolder + "\\Shaders\\singleColor\\singleColorVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\singleColor\\singleColorFragment.glsl").c_str());
 
-	Application->shadowsDepthShader = new Shader((Application->enginePath + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (Application->enginePath + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
+	Application->shadowsDepthShader = new Shader((shadersFolder + "\\Shaders\\shadows\\shadowsDepthVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\shadows\\shadowsDepthFragment.glsl").c_str(), (shadersFolder + "\\Shaders\\shadows\\shadowsDepthGeometry.glsl").c_str());
 
 	//Application->debugDepthShader = new Shader((Application->enginePath + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
 
-	Application->hdrShader = new Shader((Application->enginePath + "\\Shaders\\hdr\\hdrVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\hdr\\hdrFragment.glsl").c_str());
+	Application->hdrShader = new Shader((shadersFolder + "\\Shaders\\hdr\\hdrVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\hdr\\hdrFragment.glsl").c_str());
 
-	Application->distortionCorrectionShader = new Shader((Application->enginePath + "\\Shaders\\distortionCorrection\\distortionCorrectionVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\distortionCorrection\\distortionCorrectionFragment.glsl").c_str());
+	Application->distortionCorrectionShader = new Shader((shadersFolder + "\\Shaders\\distortionCorrection\\distortionCorrectionVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\distortionCorrection\\distortionCorrectionFragment.glsl").c_str());
 
-	Skybox::skyboxShader = new Shader((Application->enginePath + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
+	Skybox::skyboxShader = new Shader((shadersFolder + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
 	Skybox::skyboxShader->use();
 	Skybox::skyboxShader->setInt("skybox", 0);
 
@@ -158,27 +171,39 @@ void ApplicationClass::InitShaders() {
 
 void ApplicationClass::CreateApplication() {
 	std::filesystem::path currentPath(__FILE__);
-	Application->projectPath = currentPath.parent_path().parent_path().parent_path().string();
+	//Application->projectPath = currentPath.parent_path().parent_path().parent_path().string();
 	Application->dllPath = currentPath.parent_path().parent_path().parent_path().string() + "\\dll";
 	Application->enginePath = currentPath.parent_path().parent_path().string();
 	Application->editorPath = currentPath.parent_path().parent_path().parent_path().string() + "\\Editor";
 	Application->enginePathAppData = std::string(appdataValue) + "\\PlazaEngine\\";
 	free(appdataValue);
 
-	/* Check if the engine app data folder doesnt exists, if not, then create */
-	if (!std::filesystem::is_directory(Application->enginePathAppData) && Application->runningEditor) {
-		std::filesystem::create_directory(Application->enginePathAppData);
-		if (!std::filesystem::exists(Application->enginePathAppData + "\\cache.yaml")) {
 
-		}
-	}
 
 	//gameObjects.reserve(5000);
 
 	// Initialize GLFW (Window)
 	Application->Window = new Plaza::WindowClass();
 
-	
+	// Set the scene size to be the entire screen
+#ifdef GAME_REL	
+
+
+
+	int width, height;
+	glfwGetWindowSize(Application->Window->glfwWindow, &width, &height);
+	Application->appSizes->sceneSize = glm::vec2(width, height);
+#else
+		/* Check if the engine app data folder doesnt exists, if not, then create */
+	if (!std::filesystem::is_directory(Application->enginePathAppData) && Application->runningEditor) {
+		std::filesystem::create_directory(Application->enginePathAppData);
+		if (!std::filesystem::exists(Application->enginePathAppData + "\\cache.yaml")) {
+
+		}
+}
+#endif 
+
+
 	// Initialize OpenGL, Shaders and Skybox
 	InitShaders();
 	InitOpenGL();
@@ -190,9 +215,13 @@ void ApplicationClass::CreateApplication() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//Application->InitSkybox();
-	Skybox::Init();
+
 	//Initialize ImGui
+#ifdef GAME_REL
+#else
+	std::cout << "Gui Initialized \n";
 	Editor::Gui::Init(Application->Window->glfwWindow);
+#endif // !GAME_REL
 }
 
 
@@ -256,8 +285,12 @@ void ApplicationClass::UpdateEngine() {
 		Mono::Update();
 	}
 
-	// Imgui New Frame
+	// Imgui New Frame (only if running editor)
+#ifdef GAME_REL
+#else
 	Gui::NewFrame();
+#endif // GAME_REL == 0
+
 
 	// Clear buffers
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
@@ -317,8 +350,17 @@ void ApplicationClass::UpdateEngine() {
 	// Render HDR
 	Renderer::RenderHDR();
 
-	// Update ImGui
+	// Update ImGui (only if running editor)
+
+#ifdef GAME_REL
+
+#else
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	Gui::Update();
+#endif // GAME_REL == 0
+
+
+
 
 
 	// Update last frame
@@ -389,7 +431,7 @@ void ApplicationClass::InitOpenGL() {
 
 	glPointSize(15);
 
-			/* Edge Detection Framebuffer */
+	/* Edge Detection Framebuffer */
 	blurFramebuffer1();
 	Outline::Init();
 	//blurFramebuffer2();

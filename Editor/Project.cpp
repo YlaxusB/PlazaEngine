@@ -32,10 +32,15 @@ namespace Plaza::Editor {
 
 			Application->runEngine = true;
 			Application->runProjectManagerGui = false;
-
+			std::cout << "Mid \n";
 			//this->currentContent = new NewProjectContent();
+
+#ifndef GAME_REL
 			Gui::FileExplorer::currentDirectory = Application->activeProject->directory;
 			Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+#endif // !GAME_REL
+
+
 
 			//free(Application->editorScene);
 			//free(Application->runtimeScene);
@@ -45,8 +50,13 @@ namespace Plaza::Editor {
 			Application->editorScene->mainSceneEntity = new Entity("Scene");
 			Application->activeScene = Application->editorScene;
 
+			std::cout << "Mono \n";
 			Mono::Init();
+
+			std::cout << "Deserializing \n";
 			ProjectSerializer::DeSerialize(filePath);
+			std::cout << "Finished Deserializing \n";
+			Application->activeProject->directory = projectFile.parent_path().string();
 			/* Detect all the scripts in this folder */
 			for (const auto& entry : filesystem::recursive_directory_iterator(Application->activeProject->directory)) {
 				if (entry.is_regular_file() && entry.path().extension() == ".cs") {

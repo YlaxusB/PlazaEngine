@@ -9,7 +9,6 @@
 #include "Engine/Components/Rendering/Mesh.h"
 #include "Engine/Components/Core/Entity.h"
 #include "Engine/Shaders/Shader.h"
-
 #include "Editor/GUI/Style/EditorStyle.h"
 #include "Engine/Core/Skybox.h"
 #include "Engine/Core/Time.h"
@@ -23,7 +22,7 @@
 #include "Engine/Application/EntryPoint.h"
 
 #include <cstdlib> // Include the appropriate header for _dupenv_s
-#include "Engine/Vendor/Tracy/tracy/Tracy.hpp"
+
 //#include "Engine/Vendor/Tracy/tracy/TracyC.h"
 //TRACY_ENABLE = true;
 // ...
@@ -179,12 +178,10 @@ void ApplicationClass::CreateApplication() {
 	free(appdataValue);
 
 
-
 	//gameObjects.reserve(5000);
 
 	// Initialize GLFW (Window)
 	Application->Window = new Plaza::WindowClass();
-
 	// Set the scene size to be the entire screen
 #ifdef GAME_REL	
 
@@ -203,9 +200,9 @@ void ApplicationClass::CreateApplication() {
 }
 #endif 
 
-
 	// Initialize OpenGL, Shaders and Skybox
 	InitShaders();
+
 	InitOpenGL();
 
 	Renderer::Init();
@@ -230,7 +227,6 @@ void ApplicationClass::UpdateProjectManagerGui() {
 }
 
 void ApplicationClass::Loop() {
-	static constexpr tracy::SourceLocationData __tracy_source_location151{ "MainLoop", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)151, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location151, true);
 	while (!glfwWindowShouldClose(Application->Window->glfwWindow)) {
 		// Run the Engine (Update Time, Shadows, Inputs, Buffers, Rendering, etc.)
 		if (Application->runEngine) {
@@ -243,13 +239,11 @@ void ApplicationClass::Loop() {
 		// GLFW
 		glfwSwapBuffers(Application->Window->glfwWindow);
 		glfwPollEvents();
-		FrameMark;
+
 	}
 }
 
 void ApplicationClass::UpdateEngine() {
-	static constexpr tracy::SourceLocationData __tracy_source_location171{ "Update Engine", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)171, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location171, true);
-
 	// Update time
 	Time::Update();
 	float currentFrame = static_cast<float>(glfwGetTime());
@@ -274,14 +268,12 @@ void ApplicationClass::UpdateEngine() {
 
 	/* Update Physics */
 	if (Application->runningScene) {
-		static constexpr tracy::SourceLocationData __tracy_source_location213{ "Physics", __FUNCTION__, "", (uint32_t)213, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location213, true);
 		Physics::Advance(Time::deltaTime);
 		Physics::Update();
 	}
 
 	/* Update Scripts */
 	if (Application->runningScene) {
-		static constexpr tracy::SourceLocationData __tracy_source_location213{ "OnUpdate Scripts", __FUNCTION__, "", (uint32_t)213, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location213, true);
 		Mono::Update();
 	}
 
@@ -304,6 +296,7 @@ void ApplicationClass::UpdateEngine() {
 	Application->Shadows->GenerateDepthMap();
 	// Draw GameObjects
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+
 	Renderer::Render(*Application->shader);
 	Renderer::RenderInstances(*Application->shader);
 
@@ -311,9 +304,9 @@ void ApplicationClass::UpdateEngine() {
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 	Skybox::Update();
 	//  Draw Outline
+
 	if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth)
 	{
-		static constexpr tracy::SourceLocationData __tracy_source_location213{ "Render Outline", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Application\\Application.cpp", (uint32_t)213, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location213, true);
 		Renderer::RenderOutline(*Application->outlineShader);
 		combineBuffers();
 	}
@@ -359,10 +352,6 @@ void ApplicationClass::UpdateEngine() {
 	Gui::Update();
 #endif // GAME_REL == 0
 
-
-
-
-
 	// Update last frame
 
 	Time::lastFrame = currentFrame;
@@ -381,7 +370,9 @@ void ApplicationClass::Terminate() {
 	free(Application->editorScene);
 	free(Application->runtimeScene);
 	Skybox::Terminate();
+#ifndef GAME_REL
 	Gui::Delete();
+#endif // !GAME_REL
 	glfwTerminate();
 }
 

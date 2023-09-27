@@ -53,7 +53,6 @@ namespace Plaza {
 
 		unsigned int Gui::playPauseButtonImageId;
 		void Gui::Update() {
-			static constexpr tracy::SourceLocationData __tracy_source_location47{ "Gui Update", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Editor\\GUI\\guiMain.cpp", (uint32_t)47, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location47, true);
 
 			ImGuiIO& io = ImGui::GetIO();
 			io.DeltaTime = Time::deltaTime;
@@ -63,7 +62,6 @@ namespace Plaza {
 		}
 
 		void Gui::NewFrame() {
-			static constexpr tracy::SourceLocationData __tracy_source_location53{ "ImGui New Frame", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Editor\\GUI\\guiMain.cpp", (uint32_t)53, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location53, true);
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
@@ -101,7 +99,6 @@ namespace Plaza {
 			selectedGameObject = newSelectedGameObject;
 		}
 		void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera) {
-			static constexpr tracy::SourceLocationData __tracy_source_location88{ "Setup Dockspace", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Editor\\GUI\\guiMain.cpp", (uint32_t)88, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location88, true);
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 

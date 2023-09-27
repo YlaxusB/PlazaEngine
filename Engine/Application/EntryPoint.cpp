@@ -13,15 +13,29 @@ using namespace Plaza;
 
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 
-#include "Engine/Vendor/Tracy/tracy/Tracy.hpp"
-
+#define TRACY_NO_INVARIANT_CHECK 1
 #include "Engine/Core/Physics.h"
 #include "Engine/Core/Scripting/Mono.h"
 #include "Editor/Project.h"
 #include "Engine/Core/Scene.h"
 
-#ifdef TRACY_ENABLE
+
+#include <windows.h>
+
 int main() {
+	// Buffer to hold the path to the .exe
+	wchar_t exePath3[MAX_PATH];
+
+	// Get the path to the .exe
+	GetModuleFileNameW(NULL, exePath3, MAX_PATH);
+
+	// Extract the directory path (excluding the filename)
+	std::wstring exeDirectory3(exePath3);
+	size_t lastSlashPos = exeDirectory3.find_last_of(L"\\");
+	exeDirectory3 = exeDirectory3.substr(0, lastSlashPos);
+
+	// Append "\\Dlls" to the directory path
+	std::wstring dllFolderPath = exeDirectory3 + L"\\Dlls";
 #ifdef GAME_REL != 0
 	wchar_t buffer2[MAX_PATH];
 	GetModuleFileNameW(NULL, buffer2, MAX_PATH);
@@ -36,9 +50,7 @@ int main() {
 		for (auto const& entry : std::filesystem::directory_iterator{ std::filesystem::path{exePathStr2}.parent_path() })
 		{
 			if (entry.path().extension() == Standards::projectExtName) {
-				std::cout << "Pathzao : " << entry.path().string() << "\n";
 				Application->projectPath = entry.path().parent_path().string();
-				std::cout << "ProjectPath1  : " << Application->projectPath << "\n";
 			}
 		}
 	}
@@ -95,8 +107,17 @@ int main() {
 	
 	std::cout << "Starting Loop \n";
 	Application->Loop();
+	std::cout << "Terminate \n";
 	Application->Terminate();
 	return 0;
 #
 }
-#endif
+
+int CALLBACK WinMain(
+	_In_ HINSTANCE hInstance,
+	_In_ HINSTANCE hPrevInstance,
+	_In_ LPSTR     lpCmdLine,
+	_In_ int       nCmdShow
+) {
+	main();
+}

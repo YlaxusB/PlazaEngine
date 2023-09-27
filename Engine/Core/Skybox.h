@@ -100,7 +100,6 @@ namespace Plaza {
 			skyboxShader->setInt("skybox", 0);
 		}
 		static void Update() {
-			static constexpr tracy::SourceLocationData __tracy_source_location92{ "Skybox", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Skybox.h", (uint32_t)92, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location92, true);
 			//Shader& skyboxShader = skyboxShader;
 			// Render Skybox
 			glStencilFunc(GL_ALWAYS, 0, 0xFF);

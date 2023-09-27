@@ -52,7 +52,6 @@ namespace Plaza {
 	}
 
 	void ShadowsClass::GenerateDepthMap() {
-		static constexpr tracy::SourceLocationData __tracy_source_location52{ "Generate Depth Map", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Lightning\\Shadows\\Shadows.cpp", (uint32_t)52, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location52, true);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// 0. UBO setup
@@ -84,7 +83,6 @@ namespace Plaza {
 
 	void ShadowsClass::RenderScene(Shader& shader) {
 		shader.use();
-		static constexpr tracy::SourceLocationData __tracy_source_location89{ "Render Scene", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Lightning\\Shadows\\Shadows.cpp", (uint32_t)89, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location89, true);
 		for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
 			const MeshRenderer& meshRenderer = value;
 			if (Application->activeScene->transformComponents.find(key) != Application->activeScene->transformComponents.end()) {

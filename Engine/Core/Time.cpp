@@ -3,7 +3,6 @@
 #include <GLFW/glfw3.h>
 
 void Plaza::Time::Update() {
-	static constexpr tracy::SourceLocationData __tracy_source_location6{ "Time Update", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Time.cpp", (uint32_t)6, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location6, true);
 	// Delta time
 	int& frameCount = Time::frameCount;
 	float& previousTime = Time::previousTime;

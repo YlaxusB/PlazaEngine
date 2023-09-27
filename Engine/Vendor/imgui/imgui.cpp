@@ -1,4 +1,3 @@
-#include "Engine/Vendor/Tracy/tracy/Tracy.hpp"
 // dear imgui, v1.89.8 WIP
 // (main code and documentation)
 
@@ -5309,7 +5308,6 @@ void ImGui::EndFrame()
 // it is the role of the ImGui_ImplXXXX_RenderDrawData() function provided by the renderer backend)
 void ImGui::Render()
 {
-	static constexpr tracy::SourceLocationData __tracy_source_location5312{ "Imgui Render", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Vendor\\imgui\\imgui.cpp", (uint32_t)5312, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location5312, true);
 	ImGuiContext& g = *GImGui;
 	IM_ASSERT(g.Initialized);
 

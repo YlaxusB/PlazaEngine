@@ -41,8 +41,6 @@
 #include <string>
 #include <chrono>
 #include <variant>
-//#include "Engine/Vendor/Tracy/tracy/Tracy.hpp"
-#include "Engine/Vendor/Tracy/tracy/Tracy.hpp"
 
 #include "Engine/Application/Application.h"
 #include "Engine/Application/EntryPoint.h"

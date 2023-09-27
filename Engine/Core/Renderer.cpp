@@ -21,7 +21,6 @@ namespace Plaza {
 	}
 	// Render all GameObjects
 	void Renderer::Render(Shader& shader) {
-		static constexpr tracy::SourceLocationData __tracy_source_location18{ "Render", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Renderer.cpp", (uint32_t)18, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location18, true);
 		shader.use();
 
 		glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
@@ -63,7 +62,6 @@ namespace Plaza {
 	}
 
 	void Renderer::RenderInstances(Shader& shader) {
-		static constexpr tracy::SourceLocationData __tracy_source_location109{ "Render Instances", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Renderer.cpp", (uint32_t)109, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location109, true);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		for (auto [key, mesh] : Application->activeScene->meshes) {
@@ -75,7 +73,6 @@ namespace Plaza {
 
 	void Renderer::RenderInstancesShadowMap(Shader& shader) {
 		shader.use();
-		static constexpr tracy::SourceLocationData __tracy_source_location109{ "Render Instances", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace 2023\\OpenGL\\OpenGLEngine\\Engine\\Core\\Renderer.cpp", (uint32_t)109, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location109, true);
 		for (auto [key, mesh] : Application->activeScene->meshes) {
 			if (mesh->instanceModelMatrices.size() > 0) {
 				mesh->DrawInstancedToShadowMap(shader);

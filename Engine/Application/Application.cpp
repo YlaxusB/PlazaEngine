@@ -156,8 +156,11 @@ void ApplicationClass::InitShaders() {
 	//Application->debugDepthShader = new Shader((Application->enginePath + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
 
 	Application->hdrShader = new Shader((shadersFolder + "\\Shaders\\hdr\\hdrVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\hdr\\hdrFragment.glsl").c_str());
-
+	
 	Application->distortionCorrectionShader = new Shader((shadersFolder + "\\Shaders\\distortionCorrection\\distortionCorrectionVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\distortionCorrection\\distortionCorrectionFragment.glsl").c_str());
+
+	Application->textRenderingShader = new Shader((shadersFolder + "\\Shaders\\textRendering\\textRenderingVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\textRendering\\textRenderingFragment.glsl").c_str());
+
 
 	Skybox::skyboxShader = new Shader((shadersFolder + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
 	Skybox::skyboxShader->use();
@@ -342,6 +345,19 @@ void ApplicationClass::UpdateEngine() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// Render HDR
 	Renderer::RenderHDR();
+
+	// Render In-Game UI
+	if (Application->focusedMenu == "Scene") {
+#ifdef GAME_REL
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#else
+		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+#endif // GAME_REL
+		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		for (auto& [key, value] : Application->activeScene->UITextRendererComponents) {
+			value.Render(*Application->textRenderingShader, 50, 50, 1.0f, glm::vec4(1.0f, 0.5f, 0.5f, 1.0f));
+		}
+	}
 
 	// Update ImGui (only if running editor)
 

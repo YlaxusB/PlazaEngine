@@ -208,7 +208,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;TRACY_ENABLE;_USE_MATH_DEFINES;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Engine/Vendor/imgui;$(ProjectDir)/;$(ProjectDir)/Engine/Vendor/yaml-cpp;$(ProjectDir)/Engine/Vendor/yaml/include;$(ProjectDir)/Engine/Vendor/Tracy;$(ProjectDir)/Engine/Vendor/physx;$(ProjectDir)/lib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Engine/Vendor/imgui;$(ProjectDir)/;$(ProjectDir)/Engine/Vendor/yaml-cpp;$(ProjectDir)/Engine/Vendor/yaml/include;$(ProjectDir)/Engine/Vendor/Tracy;$(ProjectDir)/Engine/Vendor/physx;$(ProjectDir)/lib;$(ProjectDir)/Engine/Vendor/freetype</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Engine/Core/PreCompiledHeaders.h</PrecompiledHeaderFile>
@@ -219,7 +219,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;assimp-vc143-mt.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXCooking_64.lib;mono-2.0-sgen.lib;MonoPosixHelper.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;assimp-vc143-mt.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXCooking_64.lib;mono-2.0-sgen.lib;MonoPosixHelper.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>call .\buildPhysx.bat
@@ -232,7 +232,7 @@ call .\setdllpath.bat</Command>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_USE_MATH_DEFINES;PROJECT_NAME;ExternalPathTesting;GAME_REL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)/Engine/Vendor/imgui;$(ProjectDir)/;$(ProjectDir)/Engine/Vendor/yaml-cpp;$(ProjectDir)/Engine/Vendor/yaml/include;$(ProjectDir)/Engine/Vendor/Tracy;$(ProjectDir)/Engine/Vendor/physx;$(ProjectDir)/lib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)/Engine/Vendor/imgui;$(ProjectDir)/;$(ProjectDir)/Engine/Vendor/yaml-cpp;$(ProjectDir)/Engine/Vendor/yaml/include;$(ProjectDir)/Engine/Vendor/Tracy;$(ProjectDir)/Engine/Vendor/physx;$(ProjectDir)/lib;$(ProjectDir)/Engine/Vendor/freetype</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Engine/Core/PreCompiledHeaders.h</PrecompiledHeaderFile>
@@ -243,7 +243,7 @@ call .\setdllpath.bat</Command>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;assimp-vc143-mt.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXCooking_64.lib;mono-2.0-sgen.lib;MonoPosixHelper.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;kernel32.lib;user32.lib;assimp-vc143-mt.lib;PhysX_64.lib;PhysXCommon_64.lib;PhysXFoundation_64.lib;PhysXExtensions_static_64.lib;PhysXCooking_64.lib;mono-2.0-sgen.lib;MonoPosixHelper.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -358,6 +358,7 @@ call .\setdllpath.bat</Command>
     </ClCompile>
     <ClCompile Include="Engine\Components\Rendering\Prefab.cpp" />
     <ClCompile Include="Engine\Components\Scripting\CppScriptComponent.cpp" />
+    <ClCompile Include="Engine\Components\Drawing\UI\TextRenderer.cpp" />
     <ClCompile Include="Engine\Core\Engine.cpp" />
     <ClCompile Include="Engine\Core\Input\Cursor.cpp" />
     <ClCompile Include="Engine\Core\Input\Input.cpp" />
@@ -673,6 +674,8 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Application\Serializer\ScriptManagerSerializer.h" />
     <ClInclude Include="Engine\Application\Window.h" />
     <ClInclude Include="Engine\Components\Core\Entity.h" />
+    <ClInclude Include="Engine\Components\Drawing\UI\TextRenderer.h" />
+    <ClInclude Include="Engine\Components\Drawing\UI\UI.h" />
     <ClInclude Include="Engine\Core\Input\Cursor.h" />
     <ClInclude Include="Engine\Core\Input\Input.h" />
     <ClInclude Include="Engine\Core\Scripting\Mono.h" />

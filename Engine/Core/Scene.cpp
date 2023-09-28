@@ -3,6 +3,7 @@
 #include "Engine/Core/Scripting/Mono.h"
 #include "Engine/Components/Core/Entity.h"
 #include "Editor/ScriptManager/ScriptManager.h"
+
 namespace Plaza {
 	Scene* Scene::Copy(Scene* newScene, Scene* copyScene) {
 		newScene->mainSceneEntity = new Entity(*copyScene->mainSceneEntity);
@@ -43,6 +44,7 @@ namespace Plaza {
 		newScene->cameraComponents = std::unordered_map<uint64_t, Camera>(copyScene->cameraComponents);
 		newScene->meshRendererComponents = std::unordered_map<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
 		newScene->csScriptComponents = std::unordered_multimap<uint64_t, CsScriptComponent>(copyScene->csScriptComponents);
+		newScene->UITextRendererComponents = std::unordered_multimap<uint64_t, Plaza::Drawing::UI::TextRenderer>(copyScene->UITextRendererComponents);
 		newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
 
 		for (auto& [key, value] : copyScene->rigidBodyComponents) {

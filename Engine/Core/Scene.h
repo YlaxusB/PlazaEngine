@@ -8,6 +8,9 @@
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Components/Physics/Collider.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
+#include "Engine/Components/Drawing/UI/TextRenderer.h"
+
+
 #include <unordered_set>
 #include "Engine/Core/Standards.h"
 using namespace std;
@@ -54,6 +57,8 @@ namespace Plaza {
 		std::unordered_map<uint64_t, RigidBody> rigidBodyComponents;
 		std::unordered_map<uint64_t, Collider> colliderComponents;
 		std::unordered_multimap<uint64_t, CsScriptComponent> csScriptComponents;
+		std::unordered_multimap<uint64_t, Plaza::Drawing::UI::TextRenderer> UITextRendererComponents;
+
 		std::vector<MeshRenderer*> meshRenderers;
 		std::unordered_map<uint64_t, shared_ptr<Mesh>> meshes;
 

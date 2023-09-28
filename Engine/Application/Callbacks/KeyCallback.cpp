@@ -11,11 +11,16 @@ uint64_t lastUuid;
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (Application->focusedMenu == "Editor") {
 
+		if (key == GLFW_KEY_R && action == GLFW_PRESS && Editor::selectedGameObject) {
+			Plaza::Drawing::UI::TextRenderer* textRenderer = new Plaza::Drawing::UI::TextRenderer();
+			textRenderer->uuid = Editor::selectedGameObject->uuid;
+			textRenderer->mText = "Eae galerinha, hoje vo ensina como conserva o play 2";
+			textRenderer->Init(Application->enginePath + "\\Font\\Roboto-Medium.ttf");
+			Editor::selectedGameObject->AddComponent<Plaza::Drawing::UI::TextRenderer>(textRenderer);
+		}
+
 		if (key == GLFW_KEY_G && action == GLFW_PRESS)
 			Application->Shadows->showDepth = !Application->Shadows->showDepth;
-
-		if (key == GLFW_KEY_R && action == GLFW_PRESS)
-			Editor::selectedGameObject->GetComponent<Transform>()->Rotate(glm::vec3(0.0f, 1.0f, 0.0f));
 
 		if (key == GLFW_KEY_U && action == GLFW_PRESS)
 			Application->activeCamera->Position = Plaza::Editor::selectedGameObject->GetComponent<Transform>()->GetWorldPosition();

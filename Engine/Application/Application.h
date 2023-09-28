@@ -81,6 +81,7 @@ namespace Plaza {
 		Shader* shadowsDepthShader = nullptr;
 		Shader* debugDepthShader = nullptr;
 		Shader* hdrShader = nullptr;
+		Shader* textRenderingShader = nullptr;
 
 		bool runProjectManagerGui = true;
 		bool runEngine = false;

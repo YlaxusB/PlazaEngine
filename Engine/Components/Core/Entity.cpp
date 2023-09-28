@@ -4,6 +4,7 @@
 #include "Engine/Components/Core/Transform.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
+#include "Engine/Components/Drawing/UI/TextRenderer.h"
 #include "Engine/Core/Scene.h"
 
 
@@ -28,6 +29,9 @@ namespace Plaza {
 		}
 		else if constexpr (std::is_same_v<T, CsScriptComponent>) {
 			return Application->activeScene->csScriptComponents;
+		}
+		else if constexpr (std::is_same_v<T, Plaza::Drawing::UI::TextRenderer>) {
+			return Application->activeScene->UITextRendererComponents;
 		}
 		else {
 			return Application->activeScene->transformComponents;
@@ -71,12 +75,13 @@ namespace Plaza {
 
 	}
 
-	template Transform* Entity::GetComponent<Transform>(); // Replace 'Transform' with the actual type
-	template Camera* Entity::GetComponent<Camera>(); // Replace 'Transform' with the actual type
-	template MeshRenderer* Entity::GetComponent<MeshRenderer>(); // Replace 'MeshRenderer' with the actual type
-	template RigidBody* Entity::GetComponent<RigidBody>(); // Replace 'MeshRenderer' with the actual type
-	template Collider* Entity::GetComponent<Collider>(); // Replace 'MeshRenderer' with the actual type
-	template CsScriptComponent* Entity::GetComponent<CsScriptComponent>(); // Replace 'MeshRenderer' with the actual type
+	template Transform* Entity::GetComponent<Transform>();
+	template Camera* Entity::GetComponent<Camera>();
+	template MeshRenderer* Entity::GetComponent<MeshRenderer>();
+	template RigidBody* Entity::GetComponent<RigidBody>();
+	template Collider* Entity::GetComponent<Collider>();
+	template CsScriptComponent* Entity::GetComponent<CsScriptComponent>();
+	template Plaza::Drawing::UI::TextRenderer* Entity::GetComponent<Plaza::Drawing::UI::TextRenderer>();
 	template<typename T>
 	T* Entity::GetComponent() {
 		Component* component = nullptr;
@@ -97,12 +102,14 @@ namespace Plaza {
 		return dynamic_cast<T*>(component);
 	}
 
-	template Transform* Entity::AddComponent<Transform>(Transform* component, bool addToComponentsList); // Replace 'Transform' with the actual type
-	template Camera* Entity::AddComponent<Camera>(Camera* component, bool addToComponentsList); // Replace 'Transform' with the actual type
-	template MeshRenderer* Entity::AddComponent<MeshRenderer>(MeshRenderer* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
-	template RigidBody* Entity::AddComponent<RigidBody>(RigidBody* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
-	template Collider* Entity::AddComponent<Collider>(Collider* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
-	template CsScriptComponent* Entity::AddComponent<CsScriptComponent>(CsScriptComponent* component, bool addToComponentsList); // Replace 'MeshRenderer' with the actual type
+	template Transform* Entity::AddComponent<Transform>(Transform* component, bool addToComponentsList);
+	template Camera* Entity::AddComponent<Camera>(Camera* component, bool addToComponentsList);
+	template MeshRenderer* Entity::AddComponent<MeshRenderer>(MeshRenderer* component, bool addToComponentsList);
+	template RigidBody* Entity::AddComponent<RigidBody>(RigidBody* component, bool addToComponentsList);
+	template Collider* Entity::AddComponent<Collider>(Collider* component, bool addToComponentsList);
+	template CsScriptComponent* Entity::AddComponent<CsScriptComponent>(CsScriptComponent* component, bool addToComponentsList);
+	template Plaza::Drawing::UI::TextRenderer* Entity::AddComponent<Plaza::Drawing::UI::TextRenderer>(Plaza::Drawing::UI::TextRenderer* component, bool addToComponentsList);
+
 	template <typename T>
 	T* Entity::AddComponent(T* component, bool addToComponentsList) {
 		component->uuid = this->uuid;
@@ -166,12 +173,13 @@ namespace Plaza {
 		return nullptr; // Component to replace not found
 	}
 
-	template bool Entity::HasComponent<Transform>(); // Replace 'Transform' with the actual type
-	template bool Entity::HasComponent<Camera>(); // Replace 'Transform' with the actual type
-	template bool Entity::HasComponent<MeshRenderer>(); // Replace 'MeshRenderer' with the actual type
-	template bool Entity::HasComponent<RigidBody>(); // Replace 'MeshRenderer' with the actual type
-	template bool Entity::HasComponent<Collider>(); // Replace 'MeshRenderer' with the actual type
-	template bool Entity::HasComponent<CsScriptComponent>(); // Replace 'MeshRenderer' with the actual type
+	template bool Entity::HasComponent<Transform>();
+	template bool Entity::HasComponent<Camera>();
+	template bool Entity::HasComponent<MeshRenderer>();
+	template bool Entity::HasComponent<RigidBody>();
+	template bool Entity::HasComponent<Collider>();
+	template bool Entity::HasComponent<CsScriptComponent>();
+	template bool Entity::HasComponent<Plaza::Drawing::UI::TextRenderer>();
 	template<typename T>
 	bool Entity::HasComponent() {
 		auto& components = GetComponentMap<T>();
@@ -180,12 +188,13 @@ namespace Plaza {
 		return false;
 	}
 
-	template void Entity::RemoveComponent<Transform>(); // Replace 'Transform' with the actual type
-	template void Entity::RemoveComponent<Camera>(); // Replace 'Transform' with the actual type
-	template void Entity::RemoveComponent<MeshRenderer>(); // Replace 'MeshRenderer' with the actual type
-	template void Entity::RemoveComponent<RigidBody>(); // Replace 'MeshRenderer' with the actual type
-	template void Entity::RemoveComponent<Collider>(); // Replace 'MeshRenderer' with the actual type
-	template void Entity::RemoveComponent<CsScriptComponent>(); // Replace 'MeshRenderer' with the actual type
+	template void Entity::RemoveComponent<Transform>();
+	template void Entity::RemoveComponent<Camera>();
+	template void Entity::RemoveComponent<MeshRenderer>();
+	template void Entity::RemoveComponent<RigidBody>();
+	template void Entity::RemoveComponent<Collider>();
+	template void Entity::RemoveComponent<CsScriptComponent>();
+	template void Entity::RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
 	template <typename T>
 	void Entity::RemoveComponent() {
 		auto& components = GetComponentMap<T>();
@@ -219,6 +228,8 @@ namespace Plaza {
 				this->RemoveComponent<Camera>();
 			if (this->HasComponent<CsScriptComponent>())
 				this->RemoveComponent<CsScriptComponent>();
+			if (this->HasComponent<Plaza::Drawing::UI::TextRenderer>())
+				this->RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
 		}
 	}
 }

@@ -8,12 +8,13 @@ namespace Plaza::Drawing::UI {
 		glm::ivec2   Bearing;  
 		unsigned int Advance;
 	};
-	class TextRenderer {
+	class TextRenderer : public Component {
 	public:
-		std::map<char, Character> characters;
-		float xPos, yPos, scale;
+		std::map<GLchar, Character> mCharacters;
+		std::string mText;
+		unsigned int mVAO, mVBO;
 		void Init(std::string fontPath);
-		void Render();
+		void Render(Shader& shader, float x, float y, float scale, glm::vec4 color);
 		void Terminate();
 	};
 

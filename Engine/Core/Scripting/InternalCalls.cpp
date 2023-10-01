@@ -70,6 +70,12 @@ namespace Plaza {
 		}
 	}
 
+	static bool IsKeyReleased(int keyCode) {
+		if (Application->focusedMenu == "Scene") {
+			return glfwGetKey(Application->Window->glfwWindow, keyCode) == GLFW_RELEASE;
+		}
+	}
+
 	static bool InputIsMouseDown(int button) {
 		if (Application->focusedMenu == "Scene") {
 			return glfwGetMouseButton(Application->Window->glfwWindow, button) == GLFW_PRESS;
@@ -91,6 +97,28 @@ namespace Plaza {
 			});
 
 	}
+
+#pragma region Entity
+	static uint64_t EntityGetParent(uint64_t uuid) {
+		auto it = Application->activeScene->entities.find(uuid);
+		if (it != Application->activeScene->entities.end()) {
+			return it->second.uuid;
+		}
+	}
+	static void EntitySetParent(uint64_t uuid, uint64_t parentUuid) {
+		auto it = Application->activeScene->entities.find(uuid);
+		if (it != Application->activeScene->entities.end()) {
+			if (parentUuid == 0) {
+				it->second.ChangeParent(it->second.GetParent(), Application->activeScene->entities.at(Application->activeScene->mainSceneEntity->uuid));
+			}
+			else {
+				auto parentIt = Application->activeScene->entities.find(parentUuid);
+				if (parentIt != Application->activeScene->entities.end())
+					it->second.ChangeParent(it->second.GetParent(), parentIt->second);
+			}
+		}
+	}
+#pragma endregion Entity
 
 #pragma region Components
 
@@ -299,10 +327,13 @@ namespace Plaza {
 
 
 		mono_add_internal_call("Plaza.InternalCalls::InputIsKeyDown", InputIsKeyDown);
+		mono_add_internal_call("Plaza.InternalCalls::IsKeyReleased", IsKeyReleased);
 		mono_add_internal_call("Plaza.InternalCalls::InputIsMouseDown", InputIsMouseDown);
 		mono_add_internal_call("Plaza.InternalCalls::GetMouseDelta", GetMouseDelta);
 		mono_add_internal_call("Plaza.InternalCalls::CursorHide", CursorHide);
 
+		mono_add_internal_call("Plaza.InternalCalls::EntityGetParent", EntityGetParent);
+		mono_add_internal_call("Plaza.InternalCalls::EntitySetParent", EntitySetParent);
 		mono_add_internal_call("Plaza.InternalCalls::HasComponent", HasComponent);
 
 		mono_add_internal_call("Plaza.InternalCalls::GetPositionCall", GetPositionCall);

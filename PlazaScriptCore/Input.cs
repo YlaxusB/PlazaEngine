@@ -13,6 +13,11 @@ namespace Plaza
             return InternalCalls.InputIsKeyDown(keycode);
         }
 
+        public static bool IsKeyReleased(KeyCode keycode)
+        {
+            return InternalCalls.IsKeyReleased(keycode);
+        }
+
         public static bool IsMouseDown(int button)
         {
             return InternalCalls.InputIsMouseDown(button);

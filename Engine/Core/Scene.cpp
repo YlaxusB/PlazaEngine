@@ -72,13 +72,10 @@ namespace Plaza {
 				Application->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->mainSceneEntity->uuid;
 		}
 
-
 		for (auto& [key, value] : copyScene->rigidBodyComponents) {
 			RigidBody* rigidBody = new RigidBody(value);
-			//RigidBody* rigidBody = new RigidBody(value);
 			rigidBody->uuid = key;
 			newScene->rigidBodyComponents.emplace(key, *rigidBody);
-			newScene->rigidBodyComponents.at(key).Init();
 		}
 
 		return newScene;
@@ -114,6 +111,11 @@ namespace Plaza {
 		Application->copyingScene = false;
 		Application->runningScene = true;
 		ImGui::SetWindowFocus("Scene");
+
+		// Init Rigid Bodies
+		for (auto& [key, value] : Application->activeScene->rigidBodyComponents) {
+			value.Init();
+		}
 
 		Mono::OnStartAll();
 	}

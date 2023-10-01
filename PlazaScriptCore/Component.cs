@@ -11,6 +11,17 @@ namespace Plaza
 {
     public class Entity
     {
+        public Entity parent
+        {
+            get
+            {
+                return new Entity(InternalCalls.EntityGetParent(this.Uuid));
+            }
+            set
+            {
+                InternalCalls.EntitySetParent(this.Uuid, value.Uuid);
+            }
+        }
         public UInt64 Uuid;
 
         public Entity()
@@ -52,7 +63,7 @@ namespace Plaza
         }
     }
 
-    public abstract class Component
+    public abstract class Component : Entity
     {
         public UInt64 Uuid;
         public Entity Entity { get; internal set; }
@@ -149,7 +160,8 @@ namespace Plaza
     }
 
     #region Rigid Body
-    public struct Angular {
+    public struct Angular
+    {
         public bool X, Y, Z;
     }
     public class RigidBody : Component
@@ -165,5 +177,13 @@ namespace Plaza
         }
     }
     #endregion
-    
+
+    #region Script Component
+    public class ScriptComponent : Component
+    { 
+        
+    }
+
+    #endregion Script Component
+
 }

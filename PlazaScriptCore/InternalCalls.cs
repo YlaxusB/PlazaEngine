@@ -27,6 +27,12 @@ namespace Plaza
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static bool InputIsKeyDown(KeyCode keyCode);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static bool IsKeyReleased(KeyCode keyCode);
+
+
+
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static bool InputIsMouseDown(int button);
 
@@ -43,6 +49,15 @@ namespace Plaza
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static UInt64 Instantiate(UInt64 uuid);
+
+
+        #region Entity;
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static UInt64 EntityGetParent(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void EntitySetParent(UInt64 uuid, UInt64 parentUuid);
+        #endregion Entity;
+
 
         #region Components
 

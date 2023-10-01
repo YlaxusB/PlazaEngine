@@ -12,6 +12,14 @@ namespace Plaza::Editor {
 
 	static class ColliderInspector {
 	public:
+		void AddChildrenMeshShape(Collider* collider, uint64_t parentUuid) {
+			for (uint64_t childUuid : Application->activeScene->entities.at(parentUuid).childrenUuid) {
+				if (Application->activeScene->entities.at(childUuid).HasComponent<MeshRenderer>()) {
+					collider->AddConvexMeshShape(new Mesh(*Application->activeScene->meshRendererComponents.at(childUuid).mesh));
+				}
+				AddChildrenMeshShape(collider, childUuid);
+			}
+		}
 		ColliderInspector(Collider* collider) {
 			ImGui::SetNextItemOpen(true);
 			ImVec2 oldCursorPos = ImGui::GetCursorPos();
@@ -67,7 +75,11 @@ namespace Plaza::Editor {
 					}
 					if (ImGui::MenuItem("Mesh"))
 					{
-						collider->AddMeshShape(new Mesh(*Application->activeScene->meshRendererComponents.at(collider->uuid).mesh));
+						if (collider->GetGameObject()->HasComponent<MeshRenderer>())
+							collider->AddMeshShape(new Mesh(*Application->activeScene->meshRendererComponents.at(collider->uuid).mesh));
+						if (collider->GetGameObject()->HasComponent<RigidBody>()) {
+							AddChildrenMeshShape(collider, collider->uuid);
+						}
 					}
 
 					ImGui::EndPopup();

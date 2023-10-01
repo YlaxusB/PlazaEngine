@@ -24,6 +24,8 @@
 #include "Editor/GUI/Hierarchy/HierarchyPopup.h"
 #include "Editor/GUI/Utils/ImageLoader.h"
 #include "Editor/ScriptManager/ScriptManager.h"
+#include "Engine/Core/Input/Input.h"
+#include "Engine/Core/Input/Cursor.h"
 //#include "Engine/Application/Application.h" //
 
 //
@@ -189,6 +191,13 @@ namespace Plaza {
 
 			if (ImGui::IsWindowFocused())
 			{
+				if (Application->focusedMenu != "Scene") {
+					if (Input::Cursor::show)
+						glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+					else
+						glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+				}
+
 				Application->focusedMenu = "Scene";
 			}
 			if (ImGui::IsWindowHovered())
@@ -282,6 +291,9 @@ namespace Plaza {
 			};
 			if (ImGui::IsWindowFocused())
 			{
+				if (Application->focusedMenu != "Editor") {
+					glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				}
 				Application->focusedMenu = "Editor";
 				Application->activeCamera = Application->editorCamera;
 			}

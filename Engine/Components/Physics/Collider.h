@@ -8,7 +8,8 @@ namespace Plaza {
 		CAPSULE,
 		PLANE,
 		CYLINDER,
-		MESH
+		MESH,
+		CONVEX_MESH
 	};
 	struct ColliderShape {
 		ColliderShape(physx::PxShape* shape, ColliderShapeEnum newEnum = ColliderShapeEnum::BOX, uint64_t meshUuid = 0) : mPxShape(shape), mEnum(newEnum), mMeshUuid(meshUuid){}
@@ -30,6 +31,7 @@ namespace Plaza {
 		void InitDynamic(RigidBody* rigidBody = nullptr);
 		void InitStatic();
 		void InitCollider(RigidBody* rigidBody = nullptr);
+		void RemoveCollider();
 		void Update();
 
 		void CreateShape(ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh = nullptr);

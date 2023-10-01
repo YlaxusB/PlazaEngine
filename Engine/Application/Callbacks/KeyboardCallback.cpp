@@ -31,10 +31,6 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 		ApplicationSizes& appSizes = *Application->appSizes;
 		ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 
-		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-			glfwSetWindowShouldClose(window, true);
-
-
 		if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS) {
 			int size = Application->activeScene->gameObjects.size();
 			for (int i = size; i < size + 10; i++) {

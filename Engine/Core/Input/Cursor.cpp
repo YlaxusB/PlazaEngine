@@ -2,6 +2,7 @@
 #include "Input.h"
 #include "Cursor.h"
 namespace Plaza {
+	bool Input::Cursor::show = true;
 	double Input::Cursor::lastX = 0;
 	double Input::Cursor::lastY = 0;
 	double Input::Cursor::deltaX = 0;

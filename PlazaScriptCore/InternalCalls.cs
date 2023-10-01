@@ -23,6 +23,8 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static bool HasComponent(UInt64 uuid, Type componentType);
 
+        #region Input
+
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static bool InputIsKeyDown(KeyCode keyCode);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -31,8 +33,18 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void GetMouseDelta(out Vector2 vector);
 
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void CursorHide(bool val);
+        #endregion Input
+
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void MoveTowards(UInt64 uuid, Vector3 vector3);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static UInt64 Instantiate(UInt64 uuid);
+
+        #region Components
 
         #region Transform
 
@@ -207,5 +219,9 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static Angular RigidBody_IsAngularLocked(UInt64 uuid);
         #endregion RigidBody
+
+        #endregion Components
+
+
     }
 }

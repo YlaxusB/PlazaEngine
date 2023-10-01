@@ -37,6 +37,19 @@ namespace Plaza
         }
     }
 
+    public class Cursor
+    {
+        public static void Hide()
+        {
+            InternalCalls.CursorHide(true);
+        }
+
+        public static void Show()
+        {
+            InternalCalls.CursorHide(false);
+        }
+    }
+
     public enum KeyCode
     {
         // From glfw3.h

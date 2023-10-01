@@ -86,13 +86,15 @@ namespace Plaza {
 		unique_ptr<Model> model = make_unique<Model>(*ModelSerializer::DeSerializeModel(filePath));
 		model.get()->meshRenderers;
 		uint64_t uuid = model->uuid;
-		LoadModelMeshes(filePath, model.get()->meshRenderers, model.get(), meshesMap);
+		ModelLoader::modelScale = model.get()->scale;
+		LoadModelMeshes(filePath, model.get()->meshRenderers, model.get(), model.get()->useTangent, meshesMap);
+		ModelLoader::modelScale = 0.01f;
 		EngineClass::models.emplace(model->uuid, move(model));
 		// delete(model)   //////////////////////////////////////////////////////////////////////////////////////////////
 		return uuid;
 	}
 
-	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName) {
+	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName, bool useTangent) {
 		vector<Texture>* textures_loaded = new vector<Texture>;
 		vector<Mesh>* meshes = new vector<Mesh>;
 		string directory;
@@ -109,10 +111,10 @@ namespace Plaza {
 		directory = path.substr(0, path.find_last_of('/'));
 
 		// process ASSIMP's root node recursively
-		Entity* modelMainObject = new Entity(modelName, Application->activeScene->gameObjects.front().get());
+		Entity* modelMainObject = new Entity(modelName, Application->activeScene->mainSceneEntity);
 		//modelMainObject->AddComponent(new Transform());
 		unsigned int index = 0;
-		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject, index);
+		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject, index, useTangent);
 		modelMainObject->GetComponent<Transform>()->UpdateChildrenTransform();
 
 		Editor::selectedGameObject = modelMainObject;
@@ -121,7 +123,7 @@ namespace Plaza {
 		return modelMainObject;
 	}
 
-	void ModelLoader::LoadModelMeshes(string filePath, unordered_map<uint64_t, shared_ptr<MeshRenderer>>& meshRenderers, Model* model, std::map<std::string, uint64_t> meshesMap) {
+	void ModelLoader::LoadModelMeshes(string filePath, unordered_map<uint64_t, shared_ptr<MeshRenderer>>& meshRenderers, Model* model, bool useTangent, std::map<std::string, uint64_t> meshesMap) {
 		vector<Texture>* texturesLoaded = new vector<Texture>;
 		vector<Mesh>* meshes = new vector<Mesh>;
 		string directory = filesystem::path{ filePath }.parent_path().string() + "\\textures";
@@ -131,7 +133,7 @@ namespace Plaza {
 		unsigned int index = 0;
 		for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 			aiMesh* aiMesh = scene->mMeshes[i];
-			Mesh* mesh = new Mesh(ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr));
+			Mesh* mesh = new Mesh(ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr, useTangent));
 			mesh->meshName = aiMesh->mName.C_Str() + to_string(index);
 			mesh->modelUuid = model->uuid;
 			if (meshesMap.size() > 0) {
@@ -146,7 +148,7 @@ namespace Plaza {
 		}
 	}
 
-	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName, aiScene const* scene) {
+	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName, aiScene const* scene, bool useTangent) {
 		vector<Texture>* textures_loaded = new vector<Texture>;
 		vector<Mesh>* meshes = new vector<Mesh>;
 		string directory;
@@ -157,7 +159,7 @@ namespace Plaza {
 		Entity* modelMainObject = new Entity(modelName, Application->activeScene->mainSceneEntity);
 		//modelMainObject->AddComponent(new Transform());
 		unsigned int index = 0;
-		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject, index);
+		ModelLoader::ProcessNode(scene->mRootNode, scene, *meshes, *textures_loaded, &directory, modelMainObject, index, useTangent);
 		modelMainObject->GetComponent<Transform>()->UpdateChildrenTransform();
 
 		Editor::selectedGameObject = modelMainObject;
@@ -167,14 +169,14 @@ namespace Plaza {
 	}
 
 	// processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
-	void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, string* directory, Entity* modelMainObject, unsigned int& index)
+	void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, string* directory, Entity* modelMainObject, unsigned int& index, bool useTangent)
 	{
 		for (unsigned int i = 0; i < node->mNumMeshes; i++)
 		{
 			// Get the assimp mesh of the current node
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			// Convert it to my own mesh
-			Mesh nodeMesh = ProcessMesh(mesh, scene, textures_loaded, directory, node);
+			Mesh nodeMesh = ProcessMesh(mesh, scene, textures_loaded, directory, node, useTangent);
 			std::string childName = std::string(node->mName.C_Str());
 			// Get the position of the mesh
 			aiMatrix4x4 transformationMatrix = node->mTransformation;
@@ -203,11 +205,11 @@ namespace Plaza {
 		// after we've processed all of the meshes (if any) we then recursively process each of the children nodes
 		for (unsigned int i = 0; i < node->mNumChildren; i++)
 		{
-			ProcessNode(node->mChildren[i], scene, meshes, textures_loaded, directory, modelMainObject, index);
+			ProcessNode(node->mChildren[i], scene, meshes, textures_loaded, directory, modelMainObject, index, useTangent);
 		}
 	}
 
-	Mesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node)
+	Mesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node, bool useTangent)
 	{
 		// data to fill
 		//vector<Vertex> vertices;
@@ -262,7 +264,7 @@ namespace Plaza {
 			else
 				uv = glm::vec2(0.0f, 0.0f);
 
-			if (mesh->HasTangentsAndBitangents()) {
+			if (mesh->HasTangentsAndBitangents() && useTangent) {
 				usingNormal = true;
 				// tangent
 				vector.x = mesh->mTangents[i].x * modelScale;

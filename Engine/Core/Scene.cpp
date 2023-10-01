@@ -4,6 +4,8 @@
 #include "Engine/Components/Core/Entity.h"
 #include "Editor/ScriptManager/ScriptManager.h"
 
+#include "Engine/Core/Physics.h"
+
 namespace Plaza {
 	Scene* Scene::Copy(Scene* newScene, Scene* copyScene) {
 		newScene->mainSceneEntity = new Entity(*copyScene->mainSceneEntity);
@@ -47,13 +49,7 @@ namespace Plaza {
 		newScene->UITextRendererComponents = std::unordered_multimap<uint64_t, Plaza::Drawing::UI::TextRenderer>(copyScene->UITextRendererComponents);
 		newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
 
-		for (auto& [key, value] : copyScene->rigidBodyComponents) {
-			RigidBody* rigidBody = new RigidBody(value);
-			//RigidBody* rigidBody = new RigidBody(value);
-			rigidBody->uuid = key;
-			newScene->rigidBodyComponents.emplace(key, *rigidBody);
-			newScene->rigidBodyComponents.at(key).Init();
-		}
+
 		for (auto& [key, value] : copyScene->colliderComponents) {
 			// RigidBody* rig = &copyScene->rigidBodyComponents.at(key);
 			if (copyScene->rigidBodyComponents.find(key) == copyScene->rigidBodyComponents.end()) {
@@ -65,6 +61,8 @@ namespace Plaza {
 				newScene->colliderComponents.emplace(key, value);
 			}
 		}
+
+
 		//newScene->colliderComponents = std::unordered_map<uint64_t, Collider>(copyScene->colliderComponents);
 		//newScene->rigidBodyComponents = std::unordered_map<uint64_t, RigidBody>(copyScene->rigidBodyComponents);
 		for (auto& gameObj : copyScene->gameObjects) {
@@ -73,6 +71,16 @@ namespace Plaza {
 			else if (gameObj->parentUuid == 0)
 				Application->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->mainSceneEntity->uuid;
 		}
+
+
+		for (auto& [key, value] : copyScene->rigidBodyComponents) {
+			RigidBody* rigidBody = new RigidBody(value);
+			//RigidBody* rigidBody = new RigidBody(value);
+			rigidBody->uuid = key;
+			newScene->rigidBodyComponents.emplace(key, *rigidBody);
+			newScene->rigidBodyComponents.at(key).Init();
+		}
+
 		return newScene;
 	}
 
@@ -105,6 +113,7 @@ namespace Plaza {
 		Application->activeScene = Application->runtimeScene;
 		Application->copyingScene = false;
 		Application->runningScene = true;
+		ImGui::SetWindowFocus("Scene");
 
 		Mono::OnStartAll();
 	}

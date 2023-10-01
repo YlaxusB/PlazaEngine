@@ -48,7 +48,7 @@ namespace Plaza {
 			std::cerr << "PhysX foundation creation failed!" << std::endl;
 		}
 		PxTolerancesScale toleranceScale;
-		toleranceScale.speed = 981;
+		toleranceScale.speed = 9.81f;
 		toleranceScale.length = 1;
 		m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *m_foundation, toleranceScale, true);
 		m_dispatcher = PxDefaultCpuDispatcherCreate(4); // 2 is the number of worker threads

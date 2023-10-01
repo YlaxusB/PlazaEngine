@@ -2,6 +2,8 @@
 namespace Plaza {
 	class Input::Cursor {
 	public:
+		static bool show;
+
 		static double lastX;
 		static double lastY;
 

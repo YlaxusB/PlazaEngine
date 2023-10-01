@@ -45,6 +45,11 @@ namespace Plaza
                 return null;
             return new Entity(entityUuid);
         }
+
+        public Entity Instantiate(Entity otherEntity)
+        {
+            return new Entity(InternalCalls.Instantiate(otherEntity.Uuid));
+        }
     }
 
     public abstract class Component

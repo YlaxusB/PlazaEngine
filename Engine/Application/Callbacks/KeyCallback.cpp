@@ -20,7 +20,8 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 		}
 
 		if (key == GLFW_KEY_G && action == GLFW_PRESS)
-			Application->Shadows->showDepth = !Application->Shadows->showDepth;
+			Application->activeScene->entities[Editor::selectedGameObject->uuid].RemoveComponent<RigidBody>();
+		//Application->Shadows->showDepth = !Application->Shadows->showDepth;
 
 		if (key == GLFW_KEY_U && action == GLFW_PRESS)
 			Application->activeCamera->Position = Plaza::Editor::selectedGameObject->GetComponent<Transform>()->GetWorldPosition();
@@ -92,8 +93,8 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 				script->Init(csFileName);;
 				d->AddComponent<CsScriptComponent>(script);
 				if (Application->runningScene) {
-					for(auto& [key, value] : script->scriptClasses)
-					Mono::OnStart(value->monoObject);
+					for (auto& [key, value] : script->scriptClasses)
+						Mono::OnStart(value->monoObject);
 				}
 				d->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 			}
@@ -114,4 +115,19 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 	if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS) {
 		Editor::Gui::sceneViewUsingEditorCamera = !Editor::Gui::sceneViewUsingEditorCamera;
 	}
+
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && Application->focusedMenu == "Scene") {
+#ifdef GAME_REL
+		glfwSetWindowShouldClose(Application->Window->glfwWindow, true);
+#else
+		ImGui::SetWindowFocus("Editor");
+#endif
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_PAGE_UP))
+		glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	else if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN))
+		glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
 }

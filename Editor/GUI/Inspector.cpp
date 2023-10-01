@@ -51,16 +51,16 @@ namespace Plaza::Editor {
 		if (Transform* transform = dynamic_cast<Transform*>(component)) {
 			Editor::Gui::TransformInspector inspector{ Editor::selectedGameObject };
 		}
-		if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {
+		else if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {
 			Plaza::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
 		}
-		if (RigidBody* rigidBody = dynamic_cast<RigidBody*>(component)) {
+		else if (RigidBody* rigidBody = dynamic_cast<RigidBody*>(component)) {
 			Plaza::Editor::RigidBodyInspector::RigidBodyInspector(rigidBody);
 		}
-		if (Collider* collider = dynamic_cast<Collider*>(component)) {
+		else if (Collider* collider = dynamic_cast<Collider*>(component)) {
 			Plaza::Editor::ColliderInspector::ColliderInspector(collider);
 		}
-		if (CsScriptComponent* csScriptComponent = dynamic_cast<CsScriptComponent*>(component)) {
+		else if (CsScriptComponent* csScriptComponent = dynamic_cast<CsScriptComponent*>(component)) {
 			Plaza::Editor::CppScriptComponentInspector::CppScriptComponentInspector(csScriptComponent);
 		}
 	}

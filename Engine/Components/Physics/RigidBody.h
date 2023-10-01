@@ -15,11 +15,14 @@ namespace Plaza {
 		void UpdateGlobalPose();
 		void UpdateRigidBody();
 
+		void AddCollidersOfChildren(uint64_t parent);
+
 		void ApplyForce(glm::vec3 force);
 
 
 		bool canUpdate = true;
 
+		bool kinematic = false;
 		bool dynamic = true;
 		float mStaticFriction = 0.0f;
 		float mDynamicFriction = 1.0f;

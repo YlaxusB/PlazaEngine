@@ -2,6 +2,8 @@
 #include "Mono.h"
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Input/Cursor.h"
+
+#include "Editor/Filewatcher.h"
 namespace Plaza {
 
 #define PL_ADD_INTERNAL_CALL(name) mono_add_internal_call("Plaza.InternalCalls::" #name, (void*)name)
@@ -28,6 +30,38 @@ namespace Plaza {
 		return entity->uuid;
 	}
 
+	static uint64_t Instantiate(uint64_t uuid) {
+		Entity* entityToInstantiate = &Application->activeScene->entities.at(uuid);
+		Entity* instantiatedEntity = new Entity(entityToInstantiate->name, &Application->activeScene->entities.at(entityToInstantiate->parentUuid));
+		instantiatedEntity = &Application->activeScene->entities.at(instantiatedEntity->uuid);
+
+		instantiatedEntity->GetComponent<Transform>()->SetRelativePosition(entityToInstantiate->GetComponent<Transform>()->relativePosition + glm::vec3(1.0f, 1.0f, 1.0f));
+		instantiatedEntity->GetComponent<Transform>()->SetRelativeRotation(entityToInstantiate->GetComponent<Transform>()->rotation);
+
+		if (entityToInstantiate->HasComponent<MeshRenderer>()) {
+			MeshRenderer* meshRendererToInstantiate = entityToInstantiate->GetComponent<MeshRenderer>();
+			MeshRenderer* newMeshRenderer = new MeshRenderer();
+			newMeshRenderer->uuid = instantiatedEntity->uuid;
+			newMeshRenderer->instanced = true;
+			newMeshRenderer->mesh = shared_ptr<Mesh>(meshRendererToInstantiate->mesh);
+			instantiatedEntity->AddComponent<MeshRenderer>(newMeshRenderer);
+		}
+
+		if (entityToInstantiate->HasComponent<Collider>()) {
+			Collider* newCollider = new Collider(*entityToInstantiate->GetComponent<Collider>());
+			newCollider->uuid = instantiatedEntity->uuid;
+			instantiatedEntity->AddComponent<Collider>(newCollider);
+		}
+
+		if (entityToInstantiate->HasComponent<RigidBody>()) {
+			RigidBody* newRigidBody = new RigidBody(*entityToInstantiate->GetComponent<RigidBody>());
+			newRigidBody->uuid = instantiatedEntity->uuid;
+			instantiatedEntity->AddComponent<RigidBody>(newRigidBody);
+			instantiatedEntity->GetComponent<RigidBody>()->Init();
+		}
+		return instantiatedEntity->uuid;
+	}
+
 #pragma region Input
 
 	static bool InputIsKeyDown(int keyCode) {
@@ -44,6 +78,18 @@ namespace Plaza {
 
 	static void GetMouseDelta(glm::vec2* out) {
 		*out = glm::vec2(Input::Cursor::deltaX, Input::Cursor::deltaY);
+	}
+
+	static void CursorHide(bool val) {
+		Editor::Filewatcher::mMainThreadQueue.push_back([val]() {
+			if (val && glfwGetInputMode(Application->Window->glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_HIDDEN) {
+				glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			}
+			else if (!val && glfwGetInputMode(Application->Window->glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_NORMAL)
+				glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			Input::Cursor::show = !val;
+			});
+
 	}
 
 #pragma region Components
@@ -249,11 +295,13 @@ namespace Plaza {
 	void InternalCalls::Init() {
 		//PL_ADD_INTERNAL_CALL(GetPositionCall);
 		mono_add_internal_call("Plaza.InternalCalls::FindEntityByNameCall", FindEntityByNameCall);
+		mono_add_internal_call("Plaza.InternalCalls::Instantiate", Instantiate);
 
 
 		mono_add_internal_call("Plaza.InternalCalls::InputIsKeyDown", InputIsKeyDown);
 		mono_add_internal_call("Plaza.InternalCalls::InputIsMouseDown", InputIsMouseDown);
 		mono_add_internal_call("Plaza.InternalCalls::GetMouseDelta", GetMouseDelta);
+		mono_add_internal_call("Plaza.InternalCalls::CursorHide", CursorHide);
 
 		mono_add_internal_call("Plaza.InternalCalls::HasComponent", HasComponent);
 

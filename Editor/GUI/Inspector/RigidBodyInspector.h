@@ -22,7 +22,7 @@ namespace Plaza::Editor {
 
 				currentBody = rigidBody;
 				physx::PxRigidActor& body = *rigidBody->mRigidActor;
-				bool dynamic = rigidBody->dynamic;
+				bool& kinematic = rigidBody->kinematic;
 				glm::vec3& gravity = rigidBody->gravity;
 				float& dynamicFriction = rigidBody->mDynamicFriction;
 				float& staticFriction = rigidBody->mStaticFriction;
@@ -57,6 +57,8 @@ namespace Plaza::Editor {
 				if (ImGui::Checkbox("Z", &isZLocked)) {
 					rigidBody->SetRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, isZLocked);
 				}
+
+				ImGui::Checkbox("Kinematic: ", &kinematic);
 
 				ImGui::PopID();
 				ImGui::TreePop();

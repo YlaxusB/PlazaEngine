@@ -18,12 +18,27 @@ namespace Plaza {
 	/// </summary>
 	void RigidBody::Init() {
 		Collider* collider = this->GetGameObject()->GetComponent<Collider>();
+		//AddCollidersOfChildren(this->uuid);
 		if (collider) {
 			if (Application->activeScene->colliderComponents.find(this->uuid) != Application->activeScene->colliderComponents.end())
 				Application->activeScene->colliderComponents.at(this->uuid).Init(this);
 			mRigidActor = collider->mRigidActor;
 		}
 		collider->SetFlags(collider, this->rigidDynamicLockFlags);
+	}
+
+	void RigidBody::AddCollidersOfChildren(uint64_t parent) {
+		for (uint64_t child : Application->activeScene->entities.at(parent).childrenUuid) {
+			if (Application->activeScene->entities.at(child).HasComponent<Collider>() && !Application->activeScene->entities.at(child).HasComponent<RigidBody>()) {
+				Collider* rigidBodyCollider = Application->activeScene->entities.at(this->uuid).GetComponent<Collider>();
+				Collider* collider = Application->activeScene->entities.at(child).GetComponent<Collider>();
+				for (ColliderShape* colliderShape : collider->mShapes) {
+					rigidBodyCollider->mShapes.push_back(colliderShape);
+				}
+				collider->RemoveActor();
+				AddCollidersOfChildren(child);
+			}
+		}
 	}
 
 	void RigidBody::UpdateRigidBody() {

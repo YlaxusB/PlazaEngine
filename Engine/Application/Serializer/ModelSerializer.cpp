@@ -47,6 +47,8 @@ namespace Plaza {
 		out << YAML::Key << "Model" << YAML::Value << mainObject->name;
 		out << YAML::Key << "ModelFilePath" << YAML::Value << modelFilePath;
 		out << YAML::Key << "ModelUuid" << YAML::Value << modelUuid;
+		out << YAML::Key << "ModelScale" << YAML::Value << 1.0f;
+		out << YAML::Key << "UseTangent" << YAML::Value << true;
 		out << YAML::Key << "MainObject" << YAML::Value << YAML::BeginSeq;
 		SerializeGameObject(out, mainObject);
 		out << YAML::EndSeq;
@@ -128,6 +130,8 @@ namespace Plaza {
 		Model* model = new Model();
 		model->modelName = data["Model"].as<string>();
 		model->uuid = data["ModelUuid"].as<uint64_t>();
+		model->scale = data["ModelScale"].as<float>();
+		model->useTangent = data["UseTangent"].as<bool>();
 		model->modelObjectPath = data["ModelFilePath"].as<string>();
 		model->modelPlazaPath = filePath;
 		// DeSerialize the model's main object

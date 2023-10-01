@@ -49,7 +49,7 @@ void SimplifyMesh(std::vector<Plaza::Vertex>& vertices, std::vector<unsigned int
 }
 
 namespace Plaza {
-	
+
 	Collider::Collider(std::uint64_t uuid, RigidBody* rigidBody) {
 		this->uuid = uuid;
 		if (Application->runningScene)
@@ -78,15 +78,21 @@ namespace Plaza {
 	void Collider::Init(RigidBody* rigidBody) {
 		// Check if Rigid Body exists
 		this->mDynamic = rigidBody != nullptr;
+		if (rigidBody)
+			this->mDynamic = !rigidBody->kinematic;
 		if (Application->runningScene || Application->copyingScene)
 			InitCollider(rigidBody);
+	}
+
+	void Collider::RemoveCollider() {
+		this->RemoveActor();
 	}
 
 	void Collider::InitCollider(RigidBody* rigidBody) {
 		this->RemoveActor();
 		physx::PxTransform* pxTransform = Physics::GetPxTransform(Application->activeScene->transformComponents.at(this->uuid));
 		this->mRigidActor = Physics::m_physics->createRigidDynamic(*pxTransform);
-		if(this->mRigidActor == nullptr)
+		if (this->mRigidActor == nullptr)
 			this->mRigidActor = Physics::m_physics->createRigidDynamic(*new physx::PxTransform(physx::PxIdentity(1.0f)));
 		physx::PxMaterial* material = Physics::defaultMaterial;
 
@@ -130,7 +136,7 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(physx::PxConvexMeshGeometry(convexMesh),
 			*Physics::defaultMaterial);
 
-		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::MESH, mesh->meshId));
+		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::CONVEX_MESH, mesh->meshId));
 		delete mesh;
 	}
 
@@ -196,6 +202,9 @@ namespace Plaza {
 		else if (shapeEnum == ColliderShapeEnum::MESH) {
 			this->AddMeshShape(new Mesh(*mesh));
 		}
+		else if (shapeEnum == ColliderShapeEnum::CONVEX_MESH) {
+			this->AddConvexMeshShape(new Mesh(*mesh));
+		}
 	}
 
 	void Collider::AddShape(ColliderShape* shape) {
@@ -239,7 +248,7 @@ namespace Plaza {
 
 			}
 
-			if (Application->runningScene) {
+			if (Application->runningScene && this->mRigidActor) {
 				if (this->mDynamic) {
 					this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
 					this->mShapes[i] = this->mShapes[i];
@@ -280,8 +289,9 @@ namespace Plaza {
 			glm::quat quaternion = transform->GetWorldQuaternion();
 			physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
+			glm::vec3 transformPos = transform->GetWorldPosition();
 			physx::PxTransform* pxTransform = new physx::PxTransform(
-				transform->GetWorldPosition().x, transform->GetWorldPosition().y, transform->GetWorldPosition().z,
+				transformPos.x, transformPos.y, transformPos.z,
 				pxQuaternion);
 			if (this->mRigidActor) {
 				this->mRigidActor->setGlobalPose(*pxTransform);

@@ -13,7 +13,7 @@ namespace Plaza {
 		Transform* transform;
 		bool instanced = false;
 		MeshRenderer(Mesh initialMesh, bool addToScene = false);
-		MeshRenderer(const MeshRenderer&) = default;
+		MeshRenderer(const MeshRenderer& other) = default;
 		~MeshRenderer();
 		MeshRenderer() {
 			uuid = Plaza::UUID::NewUUID();

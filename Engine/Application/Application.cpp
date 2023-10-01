@@ -383,8 +383,8 @@ void ApplicationClass::Terminate() {
 	for (const auto& meshRenderer : Application->activeScene->meshRenderers) {
 		meshRenderer->mesh->Terminate();
 	}
-	free(Application->editorScene);
-	free(Application->runtimeScene);
+	//free(Application->editorScene);
+	//free(Application->runtimeScene);
 	Skybox::Terminate();
 #ifndef GAME_REL
 	Gui::Delete();

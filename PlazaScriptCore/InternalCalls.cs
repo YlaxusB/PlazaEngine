@@ -22,6 +22,10 @@ namespace Plaza
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static bool HasComponent(UInt64 uuid, Type componentType);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static bool HasScript(UInt64 uuid, Type componentType);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static object GetScript(UInt64 uuid);
 
         #region Input
 

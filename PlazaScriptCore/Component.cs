@@ -37,6 +37,10 @@ namespace Plaza
         public bool HasComponent<T>() where T : Component, new()
         {
             Type componentType = typeof(T);
+            if (componentType.IsSubclassOf(typeof(ScriptComponent)))
+            {
+                return InternalCalls.HasScript(Uuid, componentType);
+            }
             return InternalCalls.HasComponent(Uuid, componentType);
         }
 
@@ -44,9 +48,22 @@ namespace Plaza
         {
             if (!HasComponent<T>())
                 return null;
-            T component = new T() { Entity = this };
-            component.Uuid = this.Uuid;
-            return component;
+            if(typeof(T).IsSubclassOf(typeof(ScriptComponent)))
+            {
+                T component = new T() { Entity = this };
+                component.Uuid = this.Uuid;
+                return component;
+            } else
+            {
+                T component = new T() { Entity = this };
+                component.Uuid = this.Uuid;
+                return component;
+            }
+        }
+
+        public T GetScript<T>() where T : Component, new()
+        {
+            return InternalCalls.GetScript(this.Uuid) as T;
         }
 
         public Entity FindEntityByName(string name)
@@ -180,9 +197,12 @@ namespace Plaza
 
     #region Script Component
     public class ScriptComponent : Component
-    { 
-        
+    {
+
     }
+
+    public class Script : ScriptComponent { }
+
 
     #endregion Script Component
 

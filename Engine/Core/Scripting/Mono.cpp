@@ -296,8 +296,10 @@ namespace Plaza {
 	void Mono::RegisterComponents() {
 		RegisterComponent<Transform>();
 		RegisterComponent<MeshRenderer>();
+		RegisterComponent<Camera>();
 		RegisterComponent<Collider>();
 		RegisterComponent<RigidBody>();
+		RegisterComponent<CsScriptComponent>();
 	}
 
 	void Mono::ReloadAppDomain() {

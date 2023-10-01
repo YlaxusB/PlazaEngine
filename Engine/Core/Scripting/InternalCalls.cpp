@@ -17,7 +17,21 @@ namespace Plaza {
 	static bool HasComponent(uint64_t uuid, MonoReflectionType* componentType) {
 		MonoType* monoType = mono_reflection_type_get_type(componentType);
 		return Mono::mEntityHasComponentFunctions.at(monoType)(*Application->activeScene->GetEntity(uuid));
-		//return Application->activeScene->entities.at(uuid).HasComponent<type>();
+	}
+
+	static bool HasScript(uint64_t uuid, MonoReflectionType* componentType) {
+		MonoType* monoType = mono_reflection_type_get_type(componentType);
+		return Mono::mEntityHasComponentFunctions.at(monoType)(*Application->activeScene->GetEntity(uuid));
+	}
+
+	static MonoObject* GetScript(uint64_t uuid) {
+		auto range = Application->activeScene->csScriptComponents.equal_range(uuid);
+
+		for (auto it = range.first; it != range.second; ++it) {
+			for (auto [key, value] : it->second.scriptClasses) {
+				return value->monoObject;
+			}
+		}
 	}
 
 	static uint64_t FindEntityByNameCall(MonoString* name) {
@@ -335,6 +349,9 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::EntityGetParent", EntityGetParent);
 		mono_add_internal_call("Plaza.InternalCalls::EntitySetParent", EntitySetParent);
 		mono_add_internal_call("Plaza.InternalCalls::HasComponent", HasComponent);
+		mono_add_internal_call("Plaza.InternalCalls::HasScript", HasScript);
+		mono_add_internal_call("Plaza.InternalCalls::GetScript", GetScript);
+		
 
 		mono_add_internal_call("Plaza.InternalCalls::GetPositionCall", GetPositionCall);
 		mono_add_internal_call("Plaza.InternalCalls::SetPosition", SetPosition);

@@ -123,6 +123,12 @@ namespace Plaza {
 
 	void Camera::updateCameraVectors()
 	{
+		if (Application) {
+			auto it = Application->activeScene->transformComponents.find(this->uuid);
+			if (it != Application->activeScene->transformComponents.end()) {
+				Application->activeScene->transformComponents.at(this->uuid).haveCamera = true;
+			}
+		}
 		if (this->isEditorCamera) {
 			// calculate the new Front vector
 			glm::vec3 front;

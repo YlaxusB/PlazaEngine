@@ -39,6 +39,9 @@ namespace Plaza::Editor {
 		Mono::mEntityClass = mono_object_get_class(Mono::mEntityObject);
 
 		mono_domain_set(Mono::mAppDomain, true);
+		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str());
+		std::cout << "DLL Path: " << Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll" << "\n";
+		Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
 
 		// Initialize all scripts again
 		for (auto& [key, value] : Application->activeScene->csScriptComponents) {
@@ -89,6 +92,12 @@ namespace Plaza::Editor {
 
 			mono_domain_set(Mono::mAppDomain, true);
 			ScriptManager::RecompileDll(dllPath, scriptPath);
+			Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + Application->activeProject->name + ".dll").c_str());
+			Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
+			if (!Mono::mScriptAssembly) {
+				// Handle assembly loading error
+				std::cout << "Failed to load assembly when recompiling on path: " << (Application->projectPath + "\\Binaries\\" + Application->activeProject->name + ".dll").c_str() << "\n";
+			}
 			// Initialize all scripts again
 			for (auto& [key, value] : Application->activeScene->csScriptComponents) {
 				std::string scriptPath = value.scriptPath;
@@ -97,21 +106,23 @@ namespace Plaza::Editor {
 			}
 
 			/* Todo: Fix it */
-			if (Application->runningScene) {
-				for (auto& [key, value] : Application->editorScene->csScriptComponents) {
-					std::string scriptPath = value.scriptPath;
-					value = *new CsScriptComponent(key);
-					value.Init(scriptPath);
-				}
-			}
+			//if (Application->runningScene) {
+			//	for (auto& [key, value] : Application->editorScene->csScriptComponents) {
+			//		std::string scriptPath = value.scriptPath;
+			//		value = *new CsScriptComponent(key);
+			//		value.Init(scriptPath);
+			//	}
+			//}
 			/* ScriptManager::SaveAllFields(fields); */
 		}
 	}
 
 	void ScriptManager::RecompileDll(std::filesystem::path dllPath, std::string scriptPath) {
 		// Recompile the C# script to .dll
-		std::string compileCommand = "mcs -target:library -out:\"" + dllPath.parent_path().string() + "\\" + dllPath.stem().string() + ".dll\" " + "\"" + std::string(scriptPath) + "\"";
-		compileCommand += " -reference:\"" + Application->dllPath + "\\PlazaScriptCore.dll\"";
+		//std::string compileCommand = "mcs -target:library -out:\"" + dllPath.parent_path().string() + "\\" + dllPath.stem().string() + ".dll\" " + "\"" + std::string(scriptPath) + "\"";
+		//compileCommand += " -reference:\"" + Application->dllPath + "\\PlazaScriptCore.dll\"";
+		std::string compileCommand = "dotnet build ";
+		compileCommand += "\"" + Application->projectPath + "\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".csproj \"";
 		int result = system(compileCommand.c_str());
 	}
 

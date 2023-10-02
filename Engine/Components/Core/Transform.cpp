@@ -147,6 +147,9 @@ namespace Plaza {
 		for (uint64_t child : this->GetGameObject()->childrenUuid) {
 			Application->activeScene->transformComponents.at(child).UpdateSelfAndChildrenTransform();
 		}
+		if (haveCamera) {
+			Application->activeCamera->Update();
+		}
 	}
 
 	void Transform::UpdateChildrenTransform() {

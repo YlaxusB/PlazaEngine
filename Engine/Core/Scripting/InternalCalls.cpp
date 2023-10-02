@@ -73,6 +73,27 @@ namespace Plaza {
 			instantiatedEntity->AddComponent<RigidBody>(newRigidBody);
 			instantiatedEntity->GetComponent<RigidBody>()->Init();
 		}
+
+		if (entityToInstantiate->HasComponent<CsScriptComponent>()) {
+			auto range = Application->activeScene->csScriptComponents.equal_range(entityToInstantiate->uuid);
+			vector<CsScriptComponent*> scriptsToAdd = vector<CsScriptComponent*>();
+			for (auto it = range.first; it != range.second && it != Application->activeScene->csScriptComponents.end(); ++it) {
+				if (it->second.uuid == entityToInstantiate->uuid) {
+					CsScriptComponent* newScript = new CsScriptComponent(instantiatedEntity->uuid);
+					newScript->Init(it->second.scriptPath);
+					Application->activeProject->scripts.at(it->second.scriptPath).entitiesUsingThisScript.emplace(instantiatedEntity->uuid);
+					if (Application->runningScene) {
+						for (auto& [key, value] : newScript->scriptClasses) {
+							Mono::OnStart(value->monoObject);
+						}
+					}
+					scriptsToAdd.push_back(newScript);
+				}
+			}
+			for (CsScriptComponent* script : scriptsToAdd) {
+				instantiatedEntity->AddComponent<CsScriptComponent>(script);
+			}
+		}
 		return instantiatedEntity->uuid;
 	}
 
@@ -129,6 +150,21 @@ namespace Plaza {
 				auto parentIt = Application->activeScene->entities.find(parentUuid);
 				if (parentIt != Application->activeScene->entities.end())
 					it->second.ChangeParent(it->second.GetParent(), parentIt->second);
+			}
+		}
+	}
+
+	static vector<uint64_t> EntityGetChildren(uint64_t uuid) {
+		return Application->activeScene->entities.at(uuid).childrenUuid;
+	}
+
+	static void EntityDelete(uint64_t uuid) {
+		std::cout << "Trying to delete: " << uuid << "\n";
+		if (uuid) {
+			Application->activeScene->entities.at(uuid).Delete();
+			auto it = Application->activeScene->entities.find(uuid); // Find the iterator for the key
+			if (it != Application->activeScene->entities.end()) {
+				Application->activeScene->entities.erase(it); // Erase the element if found
 			}
 		}
 	}
@@ -330,9 +366,19 @@ namespace Plaza {
 		}
 		return angular;
 	}
+
+	static void RigidBody_ApplyForce(uint64_t uuid, glm::vec3* vec3) {
+		Application->activeScene->rigidBodyComponents.at(uuid).ApplyForce(*vec3);
+	}
 #pragma endregion RigidBody
 
 #pragma endregion Components
+
+#pragma region Time
+	static float Time_GetDeltaTime() {
+		return Time::deltaTime;
+	}
+#pragma endregion Time
 
 	void InternalCalls::Init() {
 		//PL_ADD_INTERNAL_CALL(GetPositionCall);
@@ -348,10 +394,12 @@ namespace Plaza {
 
 		mono_add_internal_call("Plaza.InternalCalls::EntityGetParent", EntityGetParent);
 		mono_add_internal_call("Plaza.InternalCalls::EntitySetParent", EntitySetParent);
+		mono_add_internal_call("Plaza.InternalCalls::EntityGetChildren", EntityGetChildren);
+		mono_add_internal_call("Plaza.InternalCalls::EntityDelete", EntityDelete);
 		mono_add_internal_call("Plaza.InternalCalls::HasComponent", HasComponent);
 		mono_add_internal_call("Plaza.InternalCalls::HasScript", HasScript);
 		mono_add_internal_call("Plaza.InternalCalls::GetScript", GetScript);
-		
+
 
 		mono_add_internal_call("Plaza.InternalCalls::GetPositionCall", GetPositionCall);
 		mono_add_internal_call("Plaza.InternalCalls::SetPosition", SetPosition);
@@ -367,8 +415,12 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetNormals", MeshRenderer_GetNormals);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetNormals", MeshRenderer_SetNormals);
 
+		mono_add_internal_call("Plaza.InternalCalls::RigidBody_ApplyForce", RigidBody_ApplyForce);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_LockAngular", RigidBody_LockAngular);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_IsAngularLocked", RigidBody_IsAngularLocked);
+
+		mono_add_internal_call("Plaza.InternalCalls::Time_GetDeltaTime", Time_GetDeltaTime);
+
 
 		//mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetUvs", MeshRenderer_GetUvs);
 		//mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetUvs", MeshRenderer_SetUvs);

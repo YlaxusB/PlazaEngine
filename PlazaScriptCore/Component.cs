@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -11,6 +12,9 @@ namespace Plaza
 {
     public class Entity
     {
+
+        public UInt64 Uuid;
+
         public Entity parent
         {
             get
@@ -22,7 +26,20 @@ namespace Plaza
                 InternalCalls.EntitySetParent(this.Uuid, value.Uuid);
             }
         }
-        public UInt64 Uuid;
+
+        public List<Entity> Children
+        {
+            get
+            {
+                List<UInt64> childrenUuid = InternalCalls.EntityGetChildren(this.Uuid);
+                List<Entity> childrenList = new List<Entity>();
+                foreach (UInt64 child in childrenUuid)
+                {
+                    childrenList.Add(new Entity(child));
+                }
+                return childrenList;
+            }
+        }
 
         public Entity()
         {
@@ -61,7 +78,7 @@ namespace Plaza
             }
         }
 
-        public T GetScript<T>() where T : Component, new()
+        public T GetScript<T>() where T : Entity, new()
         {
             return InternalCalls.GetScript(this.Uuid) as T;
         }
@@ -77,6 +94,11 @@ namespace Plaza
         public Entity Instantiate(Entity otherEntity)
         {
             return new Entity(InternalCalls.Instantiate(otherEntity.Uuid));
+        }
+
+        public void Delete()
+        {
+            InternalCalls.EntityDelete(this.Uuid);
         }
     }
 
@@ -183,6 +205,10 @@ namespace Plaza
     }
     public class RigidBody : Component
     {
+        public void ApplyForce(Vector3 force)
+        {
+            InternalCalls.RigidBody_ApplyForce(Uuid, ref force);
+        }
         public void LockAngular(Axis axis, bool value)
         {
             InternalCalls.RigidBody_LockAngular(this.Uuid, axis, value);
@@ -198,7 +224,7 @@ namespace Plaza
     #region Script Component
     public class ScriptComponent : Component
     {
-
+        
     }
 
     public class Script : ScriptComponent { }

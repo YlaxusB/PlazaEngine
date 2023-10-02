@@ -28,6 +28,9 @@ namespace Plaza {
 	MonoImage* Mono::mCoreImage = nullptr;
 	MonoObject* Mono::mEntityObject = nullptr;
 	MonoClass* Mono::mEntityClass = nullptr;
+
+	MonoAssembly* Mono::mScriptAssembly = nullptr;
+	MonoImage* Mono::mScriptImage = nullptr;
 	char* ReadBytes(const std::string& filepath, uint32_t* outSize)
 	{
 		std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
@@ -219,6 +222,8 @@ namespace Plaza {
 		Mono::mAppDomain = mono_domain_create_appdomain(appDomainName, nullptr);
 		mono_domain_set(mAppDomain, true);
 
+
+
 		// Add all the internal calls
 		//mono_add_internal_call("Plaza.InternalCalls::CppFunction", CppFunction);
 		//mono_add_internal_call("Plaza.InternalCalls::Vector3Log", Vector3Log);
@@ -242,6 +247,11 @@ namespace Plaza {
 			// Handle the error (assembly not found or failed to load)
 			std::cout << "Didnt loaded assembly" << std::endl;
 		}
+
+
+
+
+
 		//// Load all scripts
 		//for (auto& [key, value] : Application->activeProject->scripts) {
 		//	Application->activeProject->scripts.emplace(key, Script());
@@ -249,6 +259,13 @@ namespace Plaza {
 
 		mEntityObject = InstantiateClass("Plaza", "Entity", LoadCSharpAssembly(Application->dllPath + "\\PlazaScriptCore.dll"), mAppDomain);
 		mEntityClass = mono_object_get_class(mEntityObject);
+
+		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str());
+		Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
+		if (!Mono::mScriptAssembly) {
+			// Handle assembly loading error
+			std::cout << "Failed to load assembly on path: " << (Application->projectPath + "\\Binaries\\" + Application->activeProject->name + ".dll").c_str() << "\n";
+		}
 	}
 
 	void Mono::OnStart(MonoObject* monoObject) {

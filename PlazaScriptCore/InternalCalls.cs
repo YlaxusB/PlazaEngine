@@ -59,7 +59,11 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static UInt64 EntityGetParent(UInt64 uuid);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static List<UInt64> EntityGetChildren(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void EntitySetParent(UInt64 uuid, UInt64 parentUuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void EntityDelete(UInt64 uuid);
         #endregion Entity;
 
 
@@ -233,6 +237,8 @@ namespace Plaza
 
         #region RigidBody
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void RigidBody_ApplyForce(UInt64 uuid, ref Vector3 force);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void RigidBody_LockAngular(UInt64 uuid, Axis axis, bool value);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -241,6 +247,9 @@ namespace Plaza
 
         #endregion Components
 
-
+        #region Time
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static float Time_GetDeltaTime();
+        #endregion Time
     }
 }

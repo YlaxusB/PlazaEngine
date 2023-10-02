@@ -314,6 +314,7 @@ void ApplicationClass::UpdateEngine() {
 		combineBuffers();
 	}
 
+	// Show the debug for shadows depth buffer
 	if (Application->Shadows->showDepth) {
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 		Application->debugDepthShader->use();

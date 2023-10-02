@@ -13,7 +13,19 @@ namespace Plaza {
 		}
 		void Init(MonoClass* klass, std::string namespaceName, std::string className, std::string dllPath, uint64_t uuid, MonoDomain* domain) {
 			this->name = className;
-			this->monoObject = Mono::InstantiateClass(namespaceName.c_str(), className.c_str(), Mono::LoadCSharpAssembly(dllPath), domain, uuid);
+			// Allocate an instance of our class
+			MonoObject* classInstance = mono_object_new(Mono::mAppDomain, klass);
+			unsigned int gcHandle = mono_gchandle_new(classInstance, true);
+			if (uuid) {
+				MonoClassField* uuidField = mono_class_get_field_from_name(klass, "Uuid");
+				mono_field_set_value(classInstance, uuidField, &uuid);
+			}
+
+			// Call the parameterless (default) constructor
+			mono_runtime_object_init(classInstance);
+			this->monoObject = classInstance;
+			//this->monoObject = mono_object_new(Mono::mAppDomain, klass);
+			//this->monoObject = Mono::InstantiateClass(namespaceName.c_str(), className.c_str(), Mono::mScriptAssembly, domain, uuid);
 		}
 		MonoObject* monoObject = nullptr;
 		MonoMethod* onStartMethod = nullptr;

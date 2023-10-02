@@ -44,21 +44,12 @@ namespace Plaza
 
         public static float squareRoot(float number, double epsilon = 1e-6)
         {
-            if (number < 0)
-                return -1.0f; // Negative numbers don't have real square roots
-
-            float guess = number; // Initial guess
-
-            while ((guess * guess - number) > float.Epsilon)
-            {
-                guess = 0.5f * (guess + number / guess); // Iterative approximation
-            }
-            return guess;
+            return (float)Math.Sqrt(number);
         }
 
         public static float Magnitude(Vector3 v)
         {
-            return squareRoot(v.X * v.Y + v.Y * v.Y + v.Z * v.Z);
+            return squareRoot(v.X * v.X + v.Y * v.Y + v.Z * v.Z);
         }
 
         public static Vector3 Normalize(Vector3 v)
@@ -75,7 +66,8 @@ namespace Plaza
 
         public static float Distance(Vector3 v1, Vector3 v2)
         {
-            return (v1.X - v2.X) + (v1.Y - v2.Y) + (v1.Z - v2.Z);
+            return Magnitude(v1 - v2);
+            //return (v1.X - v2.X) + (v1.Y - v2.Y) + (v1.Z - v2.Z);
         }
     }
 

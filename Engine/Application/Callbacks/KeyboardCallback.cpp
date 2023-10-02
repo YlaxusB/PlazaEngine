@@ -145,7 +145,13 @@ void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_DELETE) == GLFW_PRESS && Editor::selectedGameObject) {
+			uint64_t uuid = Editor::selectedGameObject->uuid;
 			Editor::selectedGameObject->~Entity();
+			auto it = Application->activeScene->entities.find(uuid); // Find the iterator for the key
+			if (it != Application->activeScene->entities.end()) {
+				Application->activeScene->entities.erase(it); // Erase the element if found
+			}
+			//Editor::selectedGameObject->~Entity();
 			//Editor::selectedGameObject->Delete();
 			/*
 			uint64_t uuid = Editor::selectedGameObject->uuid;

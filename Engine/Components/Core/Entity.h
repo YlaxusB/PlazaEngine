@@ -18,6 +18,7 @@ namespace Plaza {
 		Entity(std::string objName, Entity* parent = nullptr, bool addToScene = true, uint64_t newUuid = 0);
 		Entity(const Entity&) = default;
 		~Entity();
+		void Delete();
 
 		template<typename T>
 		T* GetComponent();

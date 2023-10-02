@@ -8,6 +8,10 @@ namespace Plaza {
 		static MonoImage* mCoreImage;
 		static MonoObject* mEntityObject;
 		static MonoClass* mEntityClass;
+
+		static MonoAssembly* mScriptAssembly;
+		static MonoImage* mScriptImage;
+
 		static std::unordered_map<MonoType*, std::function<bool(Entity)>> mEntityHasComponentFunctions;
 		static void Init();
 		static void OnStartAll();

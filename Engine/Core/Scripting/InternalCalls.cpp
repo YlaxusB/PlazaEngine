@@ -4,7 +4,51 @@
 #include "Engine/Core/Input/Cursor.h"
 
 #include "Editor/Filewatcher.h"
+
+#include "Engine/Components/Core/Entity.h"
+#include "Engine/Components/Core/Transform.h"
+#include "Engine/Components/Rendering/MeshRenderer.h"
+#include "Engine/Components/Scripting/CppScriptComponent.h"
+#include "Engine/Components/Drawing/UI/TextRenderer.h"
 namespace Plaza {
+
+	void GetComponentMap(uint64_t uuid, std::string name, Component* component) {
+		if (name == typeid(Transform).name()) {
+			Application->activeScene->transformComponents.emplace(uuid, *dynamic_cast<Transform*>(component));
+		}
+		else if (name == typeid(MeshRenderer).name()) {
+			Application->activeScene->meshRendererComponents.emplace(uuid, *dynamic_cast<MeshRenderer*>(component));
+		}
+		else if (name == typeid(RigidBody).name()) {
+			dynamic_cast<RigidBody*>(component)->Init();
+			Application->activeScene->rigidBodyComponents.emplace(uuid, *dynamic_cast<RigidBody*>(component));
+		}
+		else if (name == typeid(Collider).name()) {
+			Application->activeScene->colliderComponents.emplace(uuid, *dynamic_cast<Collider*>(component));
+		}
+		else if (name == typeid(Camera).name()) {
+			Application->activeScene->cameraComponents.emplace(uuid, *dynamic_cast<Camera*>(component));
+		}
+	}
+
+	void RemoveComponentFromEntity(uint64_t uuid, std::string name, Component* component) {
+		Entity& ent = Application->activeScene->entities.at(uuid);
+		if (name == typeid(Transform).name()) {
+			ent.RemoveComponent<Transform>();
+		}
+		else if (name == typeid(MeshRenderer).name()) {
+			ent.RemoveComponent<MeshRenderer>();
+		}
+		else if (name == typeid(RigidBody).name()) {
+			ent.RemoveComponent<RigidBody>();
+		}
+		else if (name == typeid(Collider).name()) {
+			ent.RemoveComponent<Collider>();
+		}
+		else if (name == typeid(Camera).name()) {
+			ent.RemoveComponent<Camera>();
+		}
+	}
 
 #define PL_ADD_INTERNAL_CALL(name) mono_add_internal_call("Plaza.InternalCalls::" #name, (void*)name)
 
@@ -18,6 +62,42 @@ namespace Plaza {
 		MonoType* monoType = mono_reflection_type_get_type(componentType);
 		return Mono::mEntityHasComponentFunctions.at(monoType)(*Application->activeScene->GetEntity(uuid));
 	}
+
+	static const std::string GetSubclassName(Component* component) {
+		const char* className = typeid(*component).name();
+
+		// Strip the namespace from the class name.
+		std::string classNameWithoutNamespace = className;
+		size_t namespaceEndPos = classNameWithoutNamespace.find_last_of('.');
+		if (namespaceEndPos != std::string::npos) {
+			classNameWithoutNamespace = classNameWithoutNamespace.substr(namespaceEndPos + 1);
+		}
+		return classNameWithoutNamespace;
+	}
+
+	static Component* CreateComponentByName(uint64_t uuid, MonoReflectionType* componentType) {
+		MonoType* monoType = mono_reflection_type_get_type(componentType);
+		if (Mono::mEntityHasComponentFunctions.find(monoType) != Mono::mEntityHasComponentFunctions.end()) {
+			return Mono::mEntityAddComponentFunctions[monoType](Application->activeScene->entities.at(uuid));
+		}
+		return nullptr; // Component type not found
+	}
+
+	static void AddComponent(uint64_t uuid, MonoReflectionType* componentType) {
+		auto* component = CreateComponentByName(uuid, componentType);
+		component->uuid = uuid;
+		GetComponentMap(uuid, GetSubclassName(component), component);
+		//Application->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
+	}
+
+	static void RemoveComponent(uint64_t uuid, MonoReflectionType* componentType) {
+		auto* component = CreateComponentByName(uuid, componentType);
+		component->uuid = uuid;
+		RemoveComponentFromEntity(uuid, GetSubclassName(component), component);
+		//Application->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
+	}
+
+
 
 	static bool HasScript(uint64_t uuid, MonoReflectionType* componentType) {
 		MonoType* monoType = mono_reflection_type_get_type(componentType);
@@ -155,7 +235,10 @@ namespace Plaza {
 	}
 
 	static vector<uint64_t> EntityGetChildren(uint64_t uuid) {
-		return Application->activeScene->entities.at(uuid).childrenUuid;
+
+		auto it = Application->activeScene->entities.find(uuid);
+		if (it != Application->activeScene->entities.end())
+			return Application->activeScene->entities.at(uuid).childrenUuid;
 	}
 
 	static void EntityDelete(uint64_t uuid) {
@@ -185,6 +268,13 @@ namespace Plaza {
 	}
 	static void GetRotationCall(uint64_t uuid, glm::vec3* out) {
 		*out = glm::degrees(Application->activeScene->transformComponents.at(uuid).rotation);
+	}
+
+	static void SetScaleCall(uint64_t uuid, glm::vec3* vec3) {
+		Application->activeScene->transformComponents.at(uuid).SetRelativeScale(*vec3);
+	}
+	static void GetScaleCall(uint64_t uuid, glm::vec3* out) {
+		*out = Application->activeScene->transformComponents.at(uuid).scale;
 	}
 
 	static void MoveTowards(uint64_t uuid, glm::vec3 vector3) {
@@ -372,6 +462,15 @@ namespace Plaza {
 	}
 #pragma endregion RigidBody
 
+#pragma region Collider
+	static void Collider_AddShape(uint64_t uuid, ColliderShapeEnum shape) {
+		auto it = Application->activeScene->colliderComponents.find(uuid);
+		if (it != Application->activeScene->colliderComponents.end()) {
+			it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid));
+		}
+	}
+#pragma endregion Collider
+
 #pragma endregion Components
 
 #pragma region Time
@@ -397,14 +496,18 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::EntityGetChildren", EntityGetChildren);
 		mono_add_internal_call("Plaza.InternalCalls::EntityDelete", EntityDelete);
 		mono_add_internal_call("Plaza.InternalCalls::HasComponent", HasComponent);
+		mono_add_internal_call("Plaza.InternalCalls::AddComponent", AddComponent);
+		mono_add_internal_call("Plaza.InternalCalls::RemoveComponent", RemoveComponent);
 		mono_add_internal_call("Plaza.InternalCalls::HasScript", HasScript);
 		mono_add_internal_call("Plaza.InternalCalls::GetScript", GetScript);
 
-
+		
 		mono_add_internal_call("Plaza.InternalCalls::GetPositionCall", GetPositionCall);
 		mono_add_internal_call("Plaza.InternalCalls::SetPosition", SetPosition);
 		mono_add_internal_call("Plaza.InternalCalls::GetRotationCall", GetRotationCall);
 		mono_add_internal_call("Plaza.InternalCalls::SetRotation", SetRotation);
+		mono_add_internal_call("Plaza.InternalCalls::GetScaleCall", GetScaleCall);
+		mono_add_internal_call("Plaza.InternalCalls::SetScaleCall", SetScaleCall);
 
 		mono_add_internal_call("Plaza.InternalCalls::MoveTowards", MoveTowards);
 
@@ -418,6 +521,9 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_ApplyForce", RigidBody_ApplyForce);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_LockAngular", RigidBody_LockAngular);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_IsAngularLocked", RigidBody_IsAngularLocked);
+
+		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShape", Collider_AddShape);
+
 
 		mono_add_internal_call("Plaza.InternalCalls::Time_GetDeltaTime", Time_GetDeltaTime);
 

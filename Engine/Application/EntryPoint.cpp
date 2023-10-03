@@ -88,6 +88,7 @@ int main() {
 
 				std::cout << "Starting Scene\n";
 				Scene::Play();
+				std::cout << "Scene Played \n";
 				Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
 			}
 		}

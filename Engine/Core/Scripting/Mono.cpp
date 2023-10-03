@@ -22,6 +22,7 @@ char* ConvertConstCharToChar(const char* constCharString) {
 #define PL_ADD_INTERNAL_CALL(name) mono_add_internal_call("Plaza.InternalCalls::" #name, (void*)InternalCalls::name)
 namespace Plaza {
 	std::unordered_map<MonoType*, std::function<bool(Entity)>> Mono::mEntityHasComponentFunctions = std::unordered_map<MonoType*, std::function<bool(Entity)>>();
+	std::unordered_map<MonoType*, std::function<Component*(Entity)>> Mono::mEntityAddComponentFunctions = std::unordered_map<MonoType*, std::function<Component*(Entity)>>();
 	MonoDomain* Mono::mAppDomain = nullptr;
 	MonoAssembly* Mono::mCoreAssembly = nullptr;
 	MonoDomain* Mono::mMonoRootDomain = nullptr;
@@ -308,6 +309,7 @@ namespace Plaza {
 		std::string  managedTypeName = "Plaza." + className;
 		MonoType* managedType = mono_reflection_type_from_name(managedTypeName.data(), Mono::mCoreImage);
 		Mono::mEntityHasComponentFunctions[managedType] = [](Entity entity) { return entity.HasComponent<Component>(); };
+		Mono::mEntityAddComponentFunctions[managedType] = [](Entity entity) { return entity.AddComp<Component>(); };
 	}
 
 	void Mono::RegisterComponents() {

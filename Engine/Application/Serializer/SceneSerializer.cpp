@@ -59,7 +59,10 @@ namespace Plaza {
 		out << YAML::BeginMap;
 		out << YAML::Key << "Model" << YAML::Value << model->uuid;
 		out << YAML::Key << "Name" << YAML::Value << model->modelName;
-		out << YAML::Key << "ModelPath" << YAML::Value << model->modelPlazaPath;
+		std::string modelPath = model->modelPlazaPath;
+		if (modelPath.starts_with(Application->projectPath))
+			modelPath = modelPath.substr(Application->projectPath.length(), modelPath.length() - Application->projectPath.length() + 2);
+		out << YAML::Key << "ModelPath" << YAML::Value << modelPath;
 		out << YAML::Key << "ObjectPath" << YAML::Value << model->modelObjectPath;
 		out << YAML::Key << "TexturesPath" << YAML::Value << model->texturesPaths;
 		out << YAML::EndMap;
@@ -129,12 +132,14 @@ namespace Plaza {
 		else
 			Application->activeScene->filePath = filePath;
 
+		std::cout << "Deserializing meshes \n";
 		/* Models and Meshes */
 		std::map<uint64_t, std::string> models = std::map<uint64_t, std::string>();
 		auto modelsDeserialized = data["Models"];
 		if (modelsDeserialized) {
 			for (auto model : modelsDeserialized) {
-				models.emplace(model["Model"].as<uint64_t>(), model["ModelPath"].as<std::string>());
+				std::string modelPath = Application->projectPath + "\\" + model["ModelPath"].as<std::string>();
+				models.emplace(model["Model"].as<uint64_t>(), modelPath);
 			}
 		}
 		// A map of model uuid and another map of mesh name and mesh id
@@ -157,13 +162,17 @@ namespace Plaza {
 			}
 		}
 
+		std::cout << "Loading meshes \n";
 		for (auto& [key, modelPath] : models) {
 			auto meshIt = meshes.find(key);
 			if (meshIt != meshes.end()) {
+				std::cout << "Loading model: " << modelPath << "\n";
 				ModelLoader::LoadImportedModelToMemory(modelPath, meshIt->second);
 			}
 		}
 
+
+		std::cout << "Loading entities \n";
 		/* Entities */
 		auto gameObjectsDeserialized = data["Entities"];
 		if (gameObjectsDeserialized) {

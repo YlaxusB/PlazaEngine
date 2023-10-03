@@ -23,6 +23,10 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static bool HasComponent(UInt64 uuid, Type componentType);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void AddComponent(UInt64 uuid, Type componentType);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void RemoveComponent(UInt64 uuid, Type componentType);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static bool HasScript(UInt64 uuid, Type componentType);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static object GetScript(UInt64 uuid);
@@ -51,8 +55,7 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void MoveTowards(UInt64 uuid, Vector3 vector3);
 
-        [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static UInt64 Instantiate(UInt64 uuid);
+
 
 
         #region Entity;
@@ -64,6 +67,8 @@ namespace Plaza
         public extern static void EntitySetParent(UInt64 uuid, UInt64 parentUuid);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void EntityDelete(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static UInt64 Instantiate(UInt64 uuid);
         #endregion Entity;
 
 
@@ -94,6 +99,11 @@ namespace Plaza
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void GetRotationCall(UInt64 uuid, out Vector3 vector);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void SetScaleCall(UInt64 uuid, ref Vector3 vector);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void GetScaleCall(UInt64 uuid, out Vector3 vector);
 
         #endregion Transform
 
@@ -244,6 +254,12 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static Angular RigidBody_IsAngularLocked(UInt64 uuid);
         #endregion RigidBody
+
+        #region Collider
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Collider_AddShape(UInt64 uuid, ColliderShapeEnum shape);
+        
+        #endregion Collider
 
         #endregion Components
 

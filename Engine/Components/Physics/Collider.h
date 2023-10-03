@@ -19,6 +19,7 @@ namespace Plaza {
 	};
 	class Collider : public Component {
 	public:
+		Collider() {};
 		vector<ColliderShape*> mShapes;
 		physx::PxRigidActor* mRigidActor;
 		physx::PxRigidBody* mStaticPxRigidBody;

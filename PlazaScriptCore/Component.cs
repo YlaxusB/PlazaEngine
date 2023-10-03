@@ -31,7 +31,7 @@ namespace Plaza
         {
             get
             {
-                List<UInt64> childrenUuid = InternalCalls.EntityGetChildren(this.Uuid);
+                List<UInt64> childrenUuid = InternalCalls.EntityGetChildren(Uuid);
                 List<Entity> childrenList = new List<Entity>();
                 foreach (UInt64 child in childrenUuid)
                 {
@@ -65,17 +65,35 @@ namespace Plaza
         {
             if (!HasComponent<T>())
                 return null;
-            if(typeof(T).IsSubclassOf(typeof(ScriptComponent)))
-            {
-                T component = new T() { Entity = this };
-                component.Uuid = this.Uuid;
-                return component;
-            } else
+            if (typeof(T).IsSubclassOf(typeof(ScriptComponent)))
             {
                 T component = new T() { Entity = this };
                 component.Uuid = this.Uuid;
                 return component;
             }
+            else
+            {
+                T component = new T() { Entity = this };
+                component.Uuid = this.Uuid;
+                return component;
+            }
+        }
+
+        public T AddComponent<T>() where T : Component, new()
+        {
+            if (HasComponent<T>())
+                return null;
+            T component = new T() { Entity = this };
+            component.Uuid = this.Uuid;
+            InternalCalls.AddComponent(this.Uuid, typeof(T));
+            return component;
+        }
+
+        public void RemoveComponent<T>() where T : Component, new()
+        {
+            if (!HasComponent<T>())
+                return;
+            InternalCalls.RemoveComponent(this.Uuid, typeof(T));
         }
 
         public T GetScript<T>() where T : Entity, new()
@@ -136,7 +154,18 @@ namespace Plaza
                 InternalCalls.SetRotation(Uuid, ref value);
             }
         }
-        public Vector3 scale;
+        public Vector3 scale
+        {
+            get
+            {
+                InternalCalls.GetScaleCall(Entity.Uuid, out Vector3 rotation);
+                return rotation;
+            }
+            set
+            {
+                InternalCalls.SetScaleCall(Uuid, ref value);
+            }
+        }
 
         public void MoveTowards(Vector3 vector3)
         {
@@ -221,10 +250,29 @@ namespace Plaza
     }
     #endregion
 
+    #region Collider
+    public enum ColliderShapeEnum
+    {
+        BOX,
+        SPHERE,
+        CAPSULE,
+        PLANE,
+        CYLINDER,
+        MESH,
+        CONVEX_MESH
+    };
+    public class Collider : Component
+    {
+        public void AddShape(ColliderShapeEnum shape) {
+            InternalCalls.Collider_AddShape(this.Uuid, shape);
+        }
+    }
+    #endregion Collider
+
     #region Script Component
     public class ScriptComponent : Component
     {
-        
+
     }
 
     public class Script : ScriptComponent { }

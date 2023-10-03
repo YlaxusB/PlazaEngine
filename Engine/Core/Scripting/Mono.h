@@ -13,6 +13,7 @@ namespace Plaza {
 		static MonoImage* mScriptImage;
 
 		static std::unordered_map<MonoType*, std::function<bool(Entity)>> mEntityHasComponentFunctions;
+		static std::unordered_map<MonoType*, std::function<Component* (Entity)>> mEntityAddComponentFunctions;
 		static void Init();
 		static void OnStartAll();
 		static void OnStart(MonoObject* monoObject);

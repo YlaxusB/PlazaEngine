@@ -26,6 +26,9 @@ namespace Plaza {
 		template<typename T>
 		T* AddComponent(T* component, bool addToComponentsList = true);
 
+		template<typename T>
+		T* AddComp();
+
 		//Component* AddComponent(Component* component, bool addToComponentsList = true);
 
 		template <typename T>

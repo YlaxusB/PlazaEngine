@@ -23,8 +23,13 @@ namespace Plaza {
 			if (Application->activeScene->colliderComponents.find(this->uuid) != Application->activeScene->colliderComponents.end())
 				Application->activeScene->colliderComponents.at(this->uuid).Init(this);
 			mRigidActor = collider->mRigidActor;
+			physx::PxRigidBodyExt::setMassAndUpdateInertia(*this->mRigidActor->is<physx::PxRigidDynamic>(), physx::PxReal(this->density));
+			physx::PxRigidBodyExt::updateMassAndInertia(*this->mRigidActor->is<physx::PxRigidDynamic>(), physx::PxReal(this->density));
+			collider->SetFlags(collider, this->rigidDynamicLockFlags);
 		}
-		collider->SetFlags(collider, this->rigidDynamicLockFlags);
+		else {
+			this->mRigidActor = Physics::m_physics->createRigidDynamic(*new physx::PxTransform(physx::PxIdentity(1.0f)));
+		}
 	}
 
 	void RigidBody::AddCollidersOfChildren(uint64_t parent) {

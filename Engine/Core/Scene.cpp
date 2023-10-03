@@ -3,6 +3,8 @@
 #include "Engine/Core/Scripting/Mono.h"
 #include "Engine/Components/Core/Entity.h"
 #include "Editor/ScriptManager/ScriptManager.h"
+#include "Engine/Core/Input/Input.h"
+#include "Engine/Core/Input/Cursor.h"
 
 #include "Engine/Core/Physics.h"
 
@@ -110,13 +112,20 @@ namespace Plaza {
 		Application->activeScene = Application->runtimeScene;
 		Application->copyingScene = false;
 		Application->runningScene = true;
+#ifndef GAME_REL
 		ImGui::SetWindowFocus("Scene");
-
+#endif
+		int width, height;
+		glfwGetWindowSize(Application->Window->glfwWindow, &width, &height);
+		glfwSetCursorPos(Application->Window->glfwWindow, width / 2, height / 2);
+		Input::Cursor::lastX = 0;
+		Input::Cursor::lastY = 0;
+		Input::Cursor::deltaX = 0;
+		Input::Cursor::deltaY = 0;
 		// Init Rigid Bodies
 		for (auto& [key, value] : Application->activeScene->rigidBodyComponents) {
 			value.Init();
 		}
-
 		Mono::OnStartAll();
 	}
 	void Scene::Stop() {

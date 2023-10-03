@@ -264,4 +264,17 @@ namespace Plaza {
 		}
 		this->~Entity();
 	}
+
+
+	template Transform* Entity::AddComp<Transform>();
+	template Camera* Entity::AddComp<Camera>();
+	template MeshRenderer* Entity::AddComp<MeshRenderer>();
+	template RigidBody* Entity::AddComp<RigidBody>();
+	template Collider* Entity::AddComp<Collider>();
+	template CsScriptComponent* Entity::AddComp<CsScriptComponent>();
+	template Plaza::Drawing::UI::TextRenderer* Entity::AddComp<Plaza::Drawing::UI::TextRenderer>();
+	template<typename T>
+	T* Entity::AddComp() {
+		return new T();
+	}
 }

@@ -6,6 +6,7 @@ namespace Plaza {
 	public:
 		//physx::PxRigidStatic* rb;
 		//physx::PxMaterial* mMaterial;
+		RigidBody() {};
 		RigidBody(uint64_t uuid, bool initWithPhysics, bool dynamic = true);
 		RigidBody(const RigidBody& other) = default;
 		~RigidBody();

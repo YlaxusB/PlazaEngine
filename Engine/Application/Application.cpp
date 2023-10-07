@@ -356,7 +356,7 @@ void ApplicationClass::UpdateEngine() {
 #endif // GAME_REL
 		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		for (auto& [key, value] : Application->activeScene->UITextRendererComponents) {
-			value.Render(*Application->textRenderingShader, 50, 50, 1.0f, glm::vec4(1.0f, 0.5f, 0.5f, 1.0f));
+			value.Render(*Application->textRenderingShader);
 		}
 	}
 

@@ -80,7 +80,8 @@ namespace Plaza::Drawing::UI {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 	}
-	void TextRenderer::Render(Shader& shader, float x, float y, float scale, glm::vec4 color) {
+	void TextRenderer::Render(Shader& shader) {
+		mScale = 1.0f;
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -88,7 +89,7 @@ namespace Plaza::Drawing::UI {
 		shader.use();
 		glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 		// activate corresponding render state	
-		glUniform3f(glGetUniformLocation(shader.ID, "textColor"), color.x, color.y, color.z);
+		glUniform3f(glGetUniformLocation(shader.ID, "textColor"), mColor.x, mColor.y, mColor.z);
 		glActiveTexture(GL_TEXTURE0);
 		glBindVertexArray(mVAO);
 
@@ -98,11 +99,11 @@ namespace Plaza::Drawing::UI {
 		{
 			Character ch = mCharacters[*c];
 
-			float xpos = x + ch.Bearing.x * scale;
-			float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+			float xpos = mPosX + ch.Bearing.x * mScale;
+			float ypos = mPosY - (ch.Size.y - ch.Bearing.y) * mScale;
 
-			float w = ch.Size.x * scale;
-			float h = ch.Size.y * scale;
+			float w = ch.Size.x * mScale;
+			float h = ch.Size.y * mScale;
 			// update VBO for each character
 			float vertices[6][4] = {
 				{ xpos,     ypos + h,   0.0f, 0.0f },
@@ -123,7 +124,7 @@ namespace Plaza::Drawing::UI {
 			// render quad
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-			x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+			mPosX += (ch.Advance >> 6) * mScale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 		}
 		glBindVertexArray(0);
 		glBindTexture(GL_TEXTURE_2D, 0);

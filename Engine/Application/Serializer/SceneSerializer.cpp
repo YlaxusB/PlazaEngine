@@ -62,6 +62,8 @@ namespace Plaza {
 		std::string modelPath = model->modelPlazaPath;
 		if (modelPath.starts_with(Application->projectPath))
 			modelPath = modelPath.substr(Application->projectPath.length(), modelPath.length() - Application->projectPath.length() + 2);
+		if (modelPath.starts_with("\\"))
+			modelPath = modelPath.substr(1, modelPath.length() - 1);
 		out << YAML::Key << "ModelPath" << YAML::Value << modelPath;
 		out << YAML::Key << "ObjectPath" << YAML::Value << model->modelObjectPath;
 		out << YAML::Key << "TexturesPath" << YAML::Value << model->texturesPaths;

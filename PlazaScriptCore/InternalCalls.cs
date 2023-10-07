@@ -258,8 +258,21 @@ namespace Plaza
         #region Collider
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void Collider_AddShape(UInt64 uuid, ColliderShapeEnum shape);
-        
+
         #endregion Collider
+
+        #region TextRenderer
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static string TextRenderer_GetText(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void TextRenderer_SetText(UInt64 uuid, string text);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static Vector2 TextRenderer_GetPosition(UInt64 uuid, out Vector2 position);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void TextRenderer_SetPosition(UInt64 uuid, ref Vector2 position);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void TextRenderer_SetFullText(UInt64 uuid, string text, float x, float y, float scale, Vector4 color);
+        #endregion TextRenderer
 
         #endregion Components
 

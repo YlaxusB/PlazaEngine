@@ -12,10 +12,21 @@ namespace Plaza::Drawing::UI {
 	public:
 		std::map<GLchar, Character> mCharacters;
 		std::string mText;
+		float mPosX, mPosY = 0;
+		float mScale = 1.0f;
+		glm::vec4 mColor = glm::vec4(1.0f);
 		unsigned int mVAO, mVBO;
 		void Init(std::string fontPath);
-		void Render(Shader& shader, float x, float y, float scale, glm::vec4 color);
+		void Render(Shader& shader);
 		void Terminate();
+
+		void SetFullText(string text = "", float x = 0.0f, float y = 0.0f, float scale = 1.0f, glm::vec4 color = glm::vec4(1.0f)) {
+			this->mPosX = x;
+			this->mPosY = y;
+			this->mScale = scale;
+			this->mColor = color;
+			this->mText = "";
+		}
 	};
 
 }

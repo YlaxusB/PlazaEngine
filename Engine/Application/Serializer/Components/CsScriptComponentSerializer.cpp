@@ -26,6 +26,23 @@ namespace Plaza {
 
 		out << YAML::Key << "Uuid" << YAML::Value << script.uuid;
 
+		out << YAML::Key << "SerializedFields" << YAML::BeginMap;
+		for (auto& [scriptClassKey, scriptClass] : script.scriptClasses) {
+			for (auto& [key, value] : scriptClass->fields) {
+				out << YAML::Key << "Field" << YAML::Value << YAML::BeginMap;
+				out << YAML::Key << "Name" << YAML::Value << mono_field_get_name(value);
+				int val = 0;
+				if (mono_type_get_type(mono_field_get_type(value)) == MONO_TYPE_I4)
+					mono_field_get_value(scriptClass->monoObject, value, &val);
+
+
+				out << YAML::Key << "Value" << YAML::Value << val;
+				out << YAML::EndMap;
+			}
+		}
+
+		out << YAML::EndMap;
+
 		out << YAML::EndMap;
 	}
 

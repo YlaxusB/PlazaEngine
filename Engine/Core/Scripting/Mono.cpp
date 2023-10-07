@@ -319,6 +319,7 @@ namespace Plaza {
 		RegisterComponent<Collider>();
 		RegisterComponent<RigidBody>();
 		RegisterComponent<CsScriptComponent>();
+		RegisterComponent<Plaza::Drawing::UI::TextRenderer>();
 	}
 
 	void Mono::ReloadAppDomain() {

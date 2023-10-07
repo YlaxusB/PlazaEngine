@@ -269,6 +269,47 @@ namespace Plaza
     }
     #endregion Collider
 
+    #region TextRenderer
+    public class TextRenderer : Component
+    {
+        public string text
+        {
+            get
+            {
+                return InternalCalls.TextRenderer_GetText(this.Uuid);
+            }
+            set
+            {
+                InternalCalls.TextRenderer_SetText(this.Uuid, value);
+            }
+        }
+        public Vector2 position
+        {
+            get
+            {
+                InternalCalls.TextRenderer_GetPosition(Entity.Uuid, out Vector2 position);
+                return position;
+            }
+            set
+            {
+                InternalCalls.TextRenderer_SetPosition(Uuid, ref value);
+            }
+/*            get
+            {
+                return InternalCalls.TextRenderer_GetPosition(this.Uuid);
+            }
+            set
+            {
+                InternalCalls.TextRenderer_SetPosition(this.Uuid, value);
+            }*/
+        }
+/*        public void SetText(string text = "",float x = 0, float y = 0, float scale = 1.0f, Vector4 color = Vector4(1.0f))
+        {
+            InternalCalls.TextRenderer_SetFullText(text, x, y, scale, color);
+        }*/
+    }
+    #endregion TextRenderer
+
     #region Script Component
     public class ScriptComponent : Component
     {

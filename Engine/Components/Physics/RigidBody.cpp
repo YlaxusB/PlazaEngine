@@ -81,7 +81,7 @@ namespace Plaza {
 			glm::vec3 transformedRotation = glm::eulerAngles(glm::quat_cast(glm::inverse(parentTransform.GetTransform()) * glm::toMat4(glm::quat(eulerAngles))));
 
 			// Apply the delta rotation to prevent gimbal lock
-			transform.rotation += transformedRotation - glm::eulerAngles(transform.GetLocalQuaternion());
+			transform.rotation += transformedRotation - glm::eulerAngles(glm::quat_cast(transform.localMatrix));
 			transform.relativePosition = glm::vec3(pxTransform.p.x, pxTransform.p.y, pxTransform.p.z);
 			transform.UpdateSelfAndChildrenTransform();
 		}

@@ -76,7 +76,18 @@ namespace Plaza {
 		Entity* GetEntity(uint64_t uuid);
 		Entity* GetEntityByName(std::string name);
 		template<typename T>
-		T* GetComponent(uint64_t uuid);
+		T* GetComponent(uint64_t uuid) {
+			return GetEntity(uuid)->GetComponent<T>();
+		}
+		template<typename T>
+		bool HasComponent(uint64_t uuid) {
+			return GetEntity(uuid)->HasComponent<T>();
+			//return map.find(uuid) != map.end();
+		}
+		template<typename T>
+		void RemoveComponent(uint64_t uuid) {
+			return GetEntity(uuid)->RemoveComponent<T>();
+		}
 
 		void RemoveMeshRenderer(uint64_t uuid);
 	};

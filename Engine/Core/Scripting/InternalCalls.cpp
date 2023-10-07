@@ -6,10 +6,12 @@
 #include "Editor/Filewatcher.h"
 
 #include "Engine/Components/Core/Entity.h"
-#include "Engine/Components/Core/Transform.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
+#include "Engine/Components/Physics/RigidBody.h"
+#include "Engine/Components/Physics/Collider.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
+#include "Engine/Core/Scene.h"
 namespace Plaza {
 
 	void GetComponentMap(uint64_t uuid, std::string name, Component* component) {
@@ -28,6 +30,9 @@ namespace Plaza {
 		}
 		else if (name == typeid(Camera).name()) {
 			Application->activeScene->cameraComponents.emplace(uuid, *dynamic_cast<Camera*>(component));
+		}
+		else if (name == typeid(Plaza::Drawing::UI::TextRenderer).name()) {
+			Application->activeScene->UITextRendererComponents.emplace(uuid, *dynamic_cast<Plaza::Drawing::UI::TextRenderer*>(component));
 		}
 	}
 
@@ -471,6 +476,44 @@ namespace Plaza {
 	}
 #pragma endregion Collider
 
+#pragma region TextRenderer
+	static string TextRenderer_GetText(uint64_t uuid) {
+		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+			return Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mText;
+		}
+		return "";
+	}
+	static void TextRenderer_SetText(uint64_t uuid, MonoString* monoString) {
+		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+			std::cout << "yeah, it has \n";
+			char* textCStr = mono_string_to_utf8(monoString);
+			Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mText = textCStr;
+			mono_free(textCStr);
+		}
+	}
+	static glm::vec2 TextRenderer_GetPosition(uint64_t uuid) {
+		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+			Drawing::UI::TextRenderer* comp = Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid);
+			return glm::vec2(comp->mPosX, comp->mPosY);
+		}
+		return glm::vec2(0.0f);
+	}
+	static void TextRenderer_SetPosition(uint64_t uuid, glm::vec2 position) {
+		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+			Drawing::UI::TextRenderer* comp = Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid);
+			comp->mPosX = position.x;
+			comp->mPosY = position.y;
+		}
+	}
+	static void TextRenderer_SetFullText(uint64_t uuid, MonoString* monoString, float x, float y, float scale, glm::vec4 color) {
+		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+			char* textCStr = mono_string_to_utf8(monoString);
+			Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->SetFullText(textCStr, x, y, scale, color);
+			mono_free(textCStr);
+		}
+	}
+#pragma endregion TextRenderer
+
 #pragma endregion Components
 
 #pragma region Time
@@ -501,7 +544,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::HasScript", HasScript);
 		mono_add_internal_call("Plaza.InternalCalls::GetScript", GetScript);
 
-		
+
 		mono_add_internal_call("Plaza.InternalCalls::GetPositionCall", GetPositionCall);
 		mono_add_internal_call("Plaza.InternalCalls::SetPosition", SetPosition);
 		mono_add_internal_call("Plaza.InternalCalls::GetRotationCall", GetRotationCall);
@@ -523,6 +566,12 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_IsAngularLocked", RigidBody_IsAngularLocked);
 
 		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShape", Collider_AddShape);
+
+		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_GetText", TextRenderer_GetText);
+		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetText", TextRenderer_SetText);
+		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_GetPosition", TextRenderer_GetPosition);
+		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetPosition", TextRenderer_SetPosition);
+		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetFullText", TextRenderer_SetFullText);
 
 
 		mono_add_internal_call("Plaza.InternalCalls::Time_GetDeltaTime", Time_GetDeltaTime);

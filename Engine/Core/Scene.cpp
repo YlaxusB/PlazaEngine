@@ -154,8 +154,4 @@ namespace Plaza {
 		}
 		return nullptr;
 	}
-	template<typename T>
-	T* Scene::GetComponent(uint64_t uuid) {
-		return &GetComponentMap<T>().at(uuid);
-	}
 }

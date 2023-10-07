@@ -296,7 +296,6 @@ namespace Plaza {
 			if (this->mRigidActor) {
 				this->mRigidActor->setGlobalPose(*pxTransform);
 			}
-
 		}
 	}
 

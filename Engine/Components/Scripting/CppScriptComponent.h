@@ -24,9 +24,15 @@ namespace Plaza {
 			// Call the parameterless (default) constructor
 			mono_runtime_object_init(classInstance);
 			this->monoObject = classInstance;
-			//this->monoObject = mono_object_new(Mono::mAppDomain, klass);
-			//this->monoObject = Mono::InstantiateClass(namespaceName.c_str(), className.c_str(), Mono::mScriptAssembly, domain, uuid);
+
+			// Get fields
+			MonoClassField* field;
+			void* iter = NULL;
+			while ((field = mono_class_get_fields(klass, &iter))) {
+				fields.emplace(mono_field_get_name(field), field);
+			}
 		}
+		unordered_map<std::string, MonoClassField*> fields = unordered_map<std::string, MonoClassField*>();
 		MonoObject* monoObject = nullptr;
 		MonoMethod* onStartMethod = nullptr;
 		MonoMethod* onUpdateMethod = nullptr;

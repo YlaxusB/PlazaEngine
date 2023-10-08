@@ -267,11 +267,15 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void TextRenderer_SetText(UInt64 uuid, string text);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static Vector2 TextRenderer_GetPosition(UInt64 uuid, out Vector2 position);
+        public extern static void TextRenderer_GetPosition(UInt64 uuid, out Vector2 position);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void TextRenderer_SetPosition(UInt64 uuid, ref Vector2 position);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static void TextRenderer_SetFullText(UInt64 uuid, string text, float x, float y, float scale, Vector4 color);
+        public extern static float TextRenderer_GetScale(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void TextRenderer_SetScale(UInt64 uuid, float position);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void TextRenderer_SetFullText(UInt64 uuid, string text, float x, float y, float scale, ref Vector4 color);
         #endregion TextRenderer
 
         #endregion Components

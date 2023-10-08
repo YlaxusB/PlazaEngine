@@ -287,26 +287,30 @@ namespace Plaza
         {
             get
             {
-                InternalCalls.TextRenderer_GetPosition(Entity.Uuid, out Vector2 position);
+                InternalCalls.TextRenderer_GetPosition(Uuid, out Vector2 position);
                 return position;
             }
             set
             {
                 InternalCalls.TextRenderer_SetPosition(Uuid, ref value);
             }
-/*            get
+        }
+
+        public float scale
+        {
+            get
             {
-                return InternalCalls.TextRenderer_GetPosition(this.Uuid);
+                return InternalCalls.TextRenderer_GetScale(Entity.Uuid);
             }
             set
             {
-                InternalCalls.TextRenderer_SetPosition(this.Uuid, value);
-            }*/
+                InternalCalls.TextRenderer_SetScale(Uuid, value);
+            }
         }
-/*        public void SetText(string text = "",float x = 0, float y = 0, float scale = 1.0f, Vector4 color = Vector4(1.0f))
+        public void SetText(string text = "",float x = 0, float y = 0, float scale = 1.0f, Vector4 color = default(Vector4))
         {
-            InternalCalls.TextRenderer_SetFullText(text, x, y, scale, color);
-        }*/
+            InternalCalls.TextRenderer_SetFullText(Uuid, text, x, y, scale, ref color);
+        }
     }
     #endregion TextRenderer
 

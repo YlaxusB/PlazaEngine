@@ -490,12 +490,11 @@ namespace Plaza {
 			mono_free(textCStr);
 		}
 	}
-	static glm::vec2 TextRenderer_GetPosition(uint64_t uuid) {
+	static void TextRenderer_GetPosition(uint64_t uuid, glm::vec2* out) {
 		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
 			Drawing::UI::TextRenderer* comp = Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid);
-			return glm::vec2(comp->mPosX, comp->mPosY);
+			*out = glm::vec2(comp->mPosX, comp->mPosY);
 		}
-		return glm::vec2(0.0f);
 	}
 	static void TextRenderer_SetPosition(uint64_t uuid, glm::vec2* position) {
 		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
@@ -509,6 +508,17 @@ namespace Plaza {
 			char* textCStr = mono_string_to_utf8(monoString);
 			Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->SetFullText(textCStr, x, y, scale, color);
 			mono_free(textCStr);
+		}
+	}
+
+	static float TextRenderer_GetScale(uint64_t uuid) {
+		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+			return Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mScale;
+		}
+	}
+	static void TextRenderer_SetScale(uint64_t uuid, float scale) {
+		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+			Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mScale = scale;
 		}
 	}
 #pragma endregion TextRenderer
@@ -570,6 +580,8 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetText", TextRenderer_SetText);
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_GetPosition", TextRenderer_GetPosition);
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetPosition", TextRenderer_SetPosition);
+		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_GetScale", TextRenderer_GetScale);
+		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetScale", TextRenderer_SetScale);
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetFullText", TextRenderer_SetFullText);
 
 

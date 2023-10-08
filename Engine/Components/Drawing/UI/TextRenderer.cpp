@@ -85,6 +85,8 @@ namespace Plaza::Drawing::UI {
 		glBindVertexArray(0);
 	}
 	void TextRenderer::Render(Shader& shader) {
+		float x = mPosX;
+		float y = mPosY;
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -102,8 +104,8 @@ namespace Plaza::Drawing::UI {
 		{
 			Character ch = mCharacters[*c];
 
-			float xpos = mPosX + ch.Bearing.x * mScale;
-			float ypos = mPosY - (ch.Size.y - ch.Bearing.y) * mScale;
+			float xpos = x + ch.Bearing.x * mScale;
+			float ypos = y - (ch.Size.y - ch.Bearing.y) * mScale;
 
 			float w = ch.Size.x * mScale;
 			float h = ch.Size.y * mScale;
@@ -127,7 +129,7 @@ namespace Plaza::Drawing::UI {
 			// render quad
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-			mPosX += (ch.Advance >> 6) * mScale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+			x += (ch.Advance >> 6) * mScale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 		}
 		glBindVertexArray(0);
 		glBindTexture(GL_TEXTURE_2D, 0);

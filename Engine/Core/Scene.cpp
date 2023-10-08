@@ -170,6 +170,7 @@ namespace Plaza {
 		auto it = Application->activeScene->entities.find(uuid);
 		if (it != Application->activeScene->entities.end())
 			return &it->second;
+
 	}
 	Entity* Scene::GetEntityByName(std::string name) {
 		if (Application->activeScene->entitiesNames.find(name) != Application->activeScene->entitiesNames.end()) {

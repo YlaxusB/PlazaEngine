@@ -7,7 +7,7 @@ namespace Plaza::Editor {
 	MonoObject* CopyMonoObject(MonoObject* objectToCopy);
 	MonoDomain* newDomain = nullptr;
 	MonoObject* objectTest = nullptr;
-	void ScriptManager::ReloadScriptsAssembly() {
+	void ScriptManager::ReloadScriptsAssembly(std::string dllPath) {
 		/* Load the new domain */
 		mono_set_assemblies_path("lib/mono");
 		//mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
@@ -39,8 +39,7 @@ namespace Plaza::Editor {
 		Mono::mEntityClass = mono_object_get_class(Mono::mEntityObject);
 
 		mono_domain_set(Mono::mAppDomain, true);
-		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str());
-		std::cout << "DLL Path: " << Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll" << "\n";
+		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, dllPath.c_str());
 		Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
 
 		// Initialize all scripts again
@@ -50,6 +49,14 @@ namespace Plaza::Editor {
 			value.Init(scriptPath);
 		}
 
+	}
+
+	void ScriptManager::ReloadScriptsAssembly() {
+#ifdef  GAME_REL
+		ScriptManager::ReloadScriptsAssembly((Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str());
+#else
+		ScriptManager::ReloadScriptsAssembly((Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll").c_str());
+#endif //  GAME_REL
 	}
 
 	void ScriptManager::ReloadSpecificAssembly(std::string scriptPath) {
@@ -92,7 +99,13 @@ namespace Plaza::Editor {
 
 			mono_domain_set(Mono::mAppDomain, true);
 			ScriptManager::RecompileDll(dllPath, scriptPath);
-			Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + Application->activeProject->name + ".dll").c_str());
+			/* Load a copy of the script dll if its running the editor, so it can recompile the dll without breaking anything (its temporary, since I dont have hot reloading yet)*/
+#ifdef GAME_REL
+			std::string scriptDllPath = (Application->projectPath + "\\Binaries\\" + Application->activeProject->name + ".dll");
+#else
+			std::string scriptDllPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll");
+#endif
+			Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, scriptDllPath.c_str());
 			Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
 			if (!Mono::mScriptAssembly) {
 				// Handle assembly loading error

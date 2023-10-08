@@ -24,8 +24,10 @@ namespace Plaza::Editor {
 				break;
 			case filewatch::Event::modified: // The file was modified. This can be a change in the time stamp or attributes
 				if (fsPath.extension() == ".cs") {
+					// TODO: For now its just recompiling the scripting but not hot reloading
 					if(Filewatcher::mMainThreadQueue.size() <= 0)
-					Filewatcher::AddToMainThread([finalPath]() {ScriptManager::ReloadSpecificAssembly(finalPath); });
+						Filewatcher::AddToMainThread([finalPath]() {ScriptManager::RecompileDll("", ""); });
+					//Filewatcher::AddToMainThread([finalPath]() {ScriptManager::ReloadSpecificAssembly(finalPath); });
 				}
 				break;
 			case filewatch::Event::renamed_old: // The file was renamed and this is the old name

@@ -217,50 +217,53 @@ namespace Plaza {
 	}
 
 	void Collider::UpdateShapeScale(glm::vec3 scale) {
-		for (int i = 0; i < this->mShapes.size(); ++i) {
-			physx::PxShape* shape = this->mShapes[i]->mPxShape;
-			physx::PxGeometryHolder geometry = this->mShapes[i]->mPxShape->getGeometry();
-			physx::PxShape* newShape = this->mShapes[i]->mPxShape;
-			physx::PxMaterial* material;
-			this->mShapes[i]->mPxShape->getMaterials(&material, 1);
-			// Scale the geometry parameters by the given factor
-			if (geometry.getType() == physx::PxGeometryType::eBOX) {
-				physx::PxBoxGeometry boxGeom = geometry.box();
-				boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
-				newShape = Physics::m_physics->createShape(boxGeom, *material);
-			}
-			else if (geometry.getType() == physx::PxGeometryType::eSPHERE) {
-				physx::PxSphereGeometry sphereGeometry = geometry.sphere();
-				//boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
-				sphereGeometry.radius = (scale.x + scale.y + scale.z) / 3;
-				newShape = Physics::m_physics->createShape(sphereGeometry, *material);
-				//physx::PxSphereGeometry sphereGeom;
-				//sphereGeom.radius *= 3;
-				//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
-			}
+		if(lastScale != scale){
+			for (int i = 0; i < this->mShapes.size(); ++i) {
+				physx::PxShape* shape = this->mShapes[i]->mPxShape;
+				physx::PxGeometryHolder geometry = this->mShapes[i]->mPxShape->getGeometry();
+				physx::PxShape* newShape = this->mShapes[i]->mPxShape;
+				physx::PxMaterial* material;
+				this->mShapes[i]->mPxShape->getMaterials(&material, 1);
+				// Scale the geometry parameters by the given factor
+				if (geometry.getType() == physx::PxGeometryType::eBOX) {
+					physx::PxBoxGeometry boxGeom = geometry.box();
+					boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
+					newShape = Physics::m_physics->createShape(boxGeom, *material);
+				}
+				else if (geometry.getType() == physx::PxGeometryType::eSPHERE) {
+					physx::PxSphereGeometry sphereGeometry = geometry.sphere();
+					//boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
+					sphereGeometry.radius = (scale.x + scale.y + scale.z) / 3;
+					newShape = Physics::m_physics->createShape(sphereGeometry, *material);
+					//physx::PxSphereGeometry sphereGeom;
+					//sphereGeom.radius *= 3;
+					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
+				}
 
-			if (Application->runningScene && Application->runtimeScene->rigidBodyComponents.find(this->uuid) != Application->runtimeScene->rigidBodyComponents.end()) {
-				// Found RigidBody
-				RigidBody* rigidBody = &Application->runtimeScene->rigidBodyComponents.at(this->uuid);
+				if (Application->runningScene && Application->runtimeScene->rigidBodyComponents.find(this->uuid) != Application->runtimeScene->rigidBodyComponents.end()) {
+					// Found RigidBody
+					RigidBody* rigidBody = &Application->runtimeScene->rigidBodyComponents.at(this->uuid);
 
-			}
-			else {
-
-			}
-
-			if (Application->runningScene && this->mRigidActor) {
-				if (this->mDynamic) {
-					this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
-					this->mShapes[i] = this->mShapes[i];
-					this->mRigidActor->attachShape(*this->mShapes[i]->mPxShape);
 				}
 				else {
-					this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
-					this->mShapes[i] = this->mShapes[i];
-					this->mRigidActor->attachShape(*this->mShapes[i]->mPxShape);
+
+				}
+
+				if (Application->runningScene && this->mRigidActor) {
+					if (this->mDynamic) {
+						this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
+						this->mShapes[i] = this->mShapes[i];
+						this->mRigidActor->attachShape(*this->mShapes[i]->mPxShape);
+					}
+					else {
+						this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
+						this->mShapes[i] = this->mShapes[i];
+						this->mRigidActor->attachShape(*this->mShapes[i]->mPxShape);
+					}
 				}
 			}
 		}
+		lastScale = scale;
 	}
 
 	template <typename EnumType>

@@ -485,7 +485,6 @@ namespace Plaza {
 	}
 	static void TextRenderer_SetText(uint64_t uuid, MonoString* monoString) {
 		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
-			std::cout << "yeah, it has \n";
 			char* textCStr = mono_string_to_utf8(monoString);
 			Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mText = textCStr;
 			mono_free(textCStr);
@@ -498,11 +497,11 @@ namespace Plaza {
 		}
 		return glm::vec2(0.0f);
 	}
-	static void TextRenderer_SetPosition(uint64_t uuid, glm::vec2 position) {
+	static void TextRenderer_SetPosition(uint64_t uuid, glm::vec2* position) {
 		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
 			Drawing::UI::TextRenderer* comp = Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid);
-			comp->mPosX = position.x;
-			comp->mPosY = position.y;
+			comp->mPosX = position->x;
+			comp->mPosY = position->y;
 		}
 	}
 	static void TextRenderer_SetFullText(uint64_t uuid, MonoString* monoString, float x, float y, float scale, glm::vec4 color) {

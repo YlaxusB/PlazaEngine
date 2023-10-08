@@ -16,6 +16,7 @@ namespace Plaza::Drawing::UI {
 		float mScale = 1.0f;
 		glm::vec4 mColor = glm::vec4(1.0f);
 		unsigned int mVAO, mVBO;
+		TextRenderer();
 		void Init(std::string fontPath);
 		void Render(Shader& shader);
 		void Terminate();

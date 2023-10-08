@@ -19,6 +19,7 @@ namespace Plaza {
 	};
 	class Collider : public Component {
 	public:
+		glm::vec3 lastScale = glm::vec3(1.0f);
 		Collider() {};
 		vector<ColliderShape*> mShapes;
 		physx::PxRigidActor* mRigidActor;

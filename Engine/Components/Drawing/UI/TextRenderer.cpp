@@ -5,6 +5,10 @@
 #include FT_FREETYPE_H
 
 namespace Plaza::Drawing::UI {
+	TextRenderer::TextRenderer() {
+		Init(Application->enginePath + "\\Font\\Roboto-Medium.ttf");
+	}
+
 	void TextRenderer::Init(std::string fontPath) {
 		FT_Library ft;
 		if (FT_Init_FreeType(&ft))
@@ -81,7 +85,6 @@ namespace Plaza::Drawing::UI {
 		glBindVertexArray(0);
 	}
 	void TextRenderer::Render(Shader& shader) {
-		mScale = 1.0f;
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

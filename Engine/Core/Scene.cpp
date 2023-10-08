@@ -106,6 +106,31 @@ namespace Plaza {
 
 	void Scene::Play() {
 		// Create a new empty Scene, change active scene to runtime, copy the contents of editor scene into runtime scene and update the selected object scene
+
+		/* Stop mono */
+			/* Load the new domain */
+		mono_set_assemblies_path("lib/mono");
+		//mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
+		if (Mono::mMonoRootDomain == nullptr)
+			Mono::mMonoRootDomain = mono_jit_init("MyScriptRuntime");
+		if (Mono::mMonoRootDomain == nullptr)
+		{
+			// Maybe log some error here
+			return;
+		}
+		// Create an App Domain
+		char appDomainName[] = "PlazaAppDomain";
+		MonoDomain* newDomain = mono_domain_create_appdomain(appDomainName, nullptr);
+		mono_domain_set(newDomain, true);
+		Mono::ReloadAppDomain();
+		Mono::mAppDomain = newDomain;
+
+		mono_domain_set(Mono::mAppDomain, true);
+		/* Copy the script dll */
+		std::string dllPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll");
+		std::string newPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll");
+		std::filesystem::copy_file(dllPath, newPath, filesystem::copy_options::overwrite_existing);
+
 		Application->runtimeScene = new Scene();
 		Application->copyingScene = true;
 		Application->runtimeScene = Scene::Copy(Application->runtimeScene, Application->editorScene);

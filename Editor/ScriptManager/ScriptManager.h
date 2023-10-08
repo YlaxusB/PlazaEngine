@@ -4,6 +4,7 @@ namespace Plaza::Editor {
 	class ScriptManager {
 	public:
 		static void NewCsScript(std::string fullPath);
+		static void ReloadScriptsAssembly(std::string dllPath);
 		static void ReloadScriptsAssembly();
 		static void ReloadSpecificAssembly(std::string scriptPath);
 

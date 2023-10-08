@@ -223,14 +223,6 @@ namespace Plaza {
 		Mono::mAppDomain = mono_domain_create_appdomain(appDomainName, nullptr);
 		mono_domain_set(mAppDomain, true);
 
-
-
-		// Add all the internal calls
-		//mono_add_internal_call("Plaza.InternalCalls::CppFunction", CppFunction);
-		//mono_add_internal_call("Plaza.InternalCalls::Vector3Log", Vector3Log);
-
-
-
 		// Load the PlazaScriptCore.dll assembly
 #ifdef GAME_REL
 		Application->dllPath = Application->projectPath + "\\dll";
@@ -261,7 +253,11 @@ namespace Plaza {
 		mEntityObject = InstantiateClass("Plaza", "Entity", LoadCSharpAssembly(Application->dllPath + "\\PlazaScriptCore.dll"), mAppDomain);
 		mEntityClass = mono_object_get_class(mEntityObject);
 
+#ifdef GAME_REL
 		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str());
+#else
+		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll").c_str());
+#endif
 		Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
 		if (!Mono::mScriptAssembly) {
 			// Handle assembly loading error
@@ -275,7 +271,14 @@ namespace Plaza {
 
 	// Execute OnStart on all scripts
 	void Mono::OnStartAll() {
+#ifdef GAME_REL
 		Editor::ScriptManager::ReloadScriptsAssembly();
+#else
+		/* Make a copy of the scripts dll, so it does not break when it updates */
+		std::string dllPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll");
+		std::string newPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll");
+		Editor::ScriptManager::ReloadScriptsAssembly(newPath);
+#endif
 		for (auto& [key, value] : Application->activeScene->csScriptComponents) {
 			std::string scriptPath = value.scriptPath;
 			CsScriptComponent* script = new CsScriptComponent(key);

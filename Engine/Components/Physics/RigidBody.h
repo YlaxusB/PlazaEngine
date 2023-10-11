@@ -20,6 +20,8 @@ namespace Plaza {
 		void AddCollidersOfChildren(uint64_t parent);
 
 		void ApplyForce(glm::vec3 force);
+		void AddForce(glm::vec3 force, physx::PxForceMode::Enum mode = physx::PxForceMode::eFORCE, bool autowake = true);
+		void AddTorque(glm::vec3 torque, physx::PxForceMode::Enum mode = physx::PxForceMode::eFORCE, bool autowake = true);
 
 
 		bool canUpdate = true;

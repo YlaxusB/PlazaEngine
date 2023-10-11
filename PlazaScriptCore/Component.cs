@@ -142,7 +142,7 @@ namespace Plaza
                 InternalCalls.SetPosition(Uuid, ref value);
             }
         }
-        public Vector3 rotation
+        public Vector3 Rotation
         {
             get
             {
@@ -154,7 +154,7 @@ namespace Plaza
                 InternalCalls.SetRotation(Uuid, ref value);
             }
         }
-        public Vector3 scale
+        public Vector3 Scale
         {
             get
             {
@@ -164,6 +164,33 @@ namespace Plaza
             set
             {
                 InternalCalls.SetScaleCall(Uuid, ref value);
+            }
+        }
+
+        public Vector3 ForwardVector
+        {
+            get
+            {
+                InternalCalls.Transform_GetForwardVector(Entity.Uuid, out Vector3 vec);
+                return vec;
+            }
+        }
+
+        public Vector3 UpVector
+        {
+            get
+            {
+                InternalCalls.Transform_GetUpVector(Entity.Uuid, out Vector3 vec);
+                return vec;
+            }
+        }
+
+        public Vector3 LeftVector
+        {
+            get
+            {
+                InternalCalls.Transform_GetLeftVector(Entity.Uuid, out Vector3 vec);
+                return vec;
             }
         }
 
@@ -232,11 +259,27 @@ namespace Plaza
     {
         public bool X, Y, Z;
     }
+    public enum ForceMode
+    {
+        FORCE,
+        IMPULSE,
+        VELOCITY_CHANGE,
+        ACCELERATION
+    }
+
     public class RigidBody : Component
     {
         public void ApplyForce(Vector3 force)
         {
             InternalCalls.RigidBody_ApplyForce(Uuid, ref force);
+        }
+        public void AddForce(Vector3 force, ForceMode mode = ForceMode.FORCE, bool autowake = true)
+        {
+            InternalCalls.RigidBody_AddForce(Uuid, ref force, mode, autowake);
+        }
+        public void AddTorque(Vector3 torque, ForceMode mode = ForceMode.FORCE, bool autowake = true)
+        {
+            InternalCalls.RigidBody_AddTorque(Uuid, ref torque, mode, autowake);
         }
         public void LockAngular(Axis axis, bool value)
         {
@@ -263,7 +306,8 @@ namespace Plaza
     };
     public class Collider : Component
     {
-        public void AddShape(ColliderShapeEnum shape) {
+        public void AddShape(ColliderShapeEnum shape)
+        {
             InternalCalls.Collider_AddShape(this.Uuid, shape);
         }
     }
@@ -307,7 +351,7 @@ namespace Plaza
                 InternalCalls.TextRenderer_SetScale(Uuid, value);
             }
         }
-        public void SetText(string text = "",float x = 0, float y = 0, float scale = 1.0f, Vector4 color = default(Vector4))
+        public void SetText(string text = "", float x = 0, float y = 0, float scale = 1.0f, Vector4 color = default(Vector4))
         {
             InternalCalls.TextRenderer_SetFullText(Uuid, text, x, y, scale, ref color);
         }

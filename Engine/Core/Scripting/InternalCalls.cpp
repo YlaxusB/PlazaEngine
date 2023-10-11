@@ -247,7 +247,6 @@ namespace Plaza {
 	}
 
 	static void EntityDelete(uint64_t uuid) {
-		std::cout << "Trying to delete: " << uuid << "\n";
 		if (uuid) {
 			Application->activeScene->entities.at(uuid).Delete();
 			auto it = Application->activeScene->entities.find(uuid); // Find the iterator for the key
@@ -280,6 +279,28 @@ namespace Plaza {
 	}
 	static void GetScaleCall(uint64_t uuid, glm::vec3* out) {
 		*out = Application->activeScene->transformComponents.at(uuid).scale;
+	}
+	/*
+			glm::mat4 matrix = this->GetTransform();
+		glm::vec3 currentPosition = glm::vec3(matrix[3]);
+		// Extract the forward, left, and up vectors from the matrix
+		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
+		glm::vec3 leftVector = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
+		glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
+	*/
+	static void Transform_GetUpVector(uint64_t uuid, glm::vec3* out) {
+		glm::mat4 matrix = Application->activeScene->transformComponents.at(uuid).GetTransform();
+		*out = glm::normalize(glm::vec3(matrix[1]));
+	}
+
+	static void Transform_GetForwardVector(uint64_t uuid, glm::vec3* out) {
+		*out = glm::normalize(glm::vec3(Application->activeScene->transformComponents.at(uuid).GetTransform()[2]));
+	}
+
+	static void Transform_GetLeftVector(uint64_t uuid, glm::vec3* out) {
+		glm::mat4 matrix = Application->activeScene->transformComponents.at(uuid).GetTransform();
+		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
+		*out = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
 	}
 
 	static void MoveTowards(uint64_t uuid, glm::vec3 vector3) {
@@ -465,13 +486,27 @@ namespace Plaza {
 	static void RigidBody_ApplyForce(uint64_t uuid, glm::vec3* vec3) {
 		Application->activeScene->rigidBodyComponents.at(uuid).ApplyForce(*vec3);
 	}
+
+	static void RigidBody_AddForce(uint64_t uuid, glm::vec3* vec3, physx::PxForceMode::Enum mode, bool autowake) {
+		if (Application->activeScene->HasComponent<RigidBody>(uuid))
+			Application->activeScene->rigidBodyComponents.at(uuid).AddForce(*vec3, mode, autowake);
+	}
+
+	static void RigidBody_AddTorque(uint64_t uuid, glm::vec3* vec3, physx::PxForceMode::Enum mode, bool autowake) {
+		if (Application->activeScene->HasComponent<RigidBody>(uuid))
+			Application->activeScene->rigidBodyComponents.at(uuid).AddTorque(*vec3, mode, autowake);
+	}
 #pragma endregion RigidBody
 
 #pragma region Collider
 	static void Collider_AddShape(uint64_t uuid, ColliderShapeEnum shape) {
 		auto it = Application->activeScene->colliderComponents.find(uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
-			it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid));
+			if (shape == ColliderShapeEnum::CONVEX_MESH || shape == ColliderShapeEnum::MESH && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
+				it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), Application->activeScene->meshRendererComponents.at(uuid).mesh.get());
+			}
+			else
+				it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid));
 		}
 	}
 #pragma endregion Collider
@@ -560,9 +595,11 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::SetRotation", SetRotation);
 		mono_add_internal_call("Plaza.InternalCalls::GetScaleCall", GetScaleCall);
 		mono_add_internal_call("Plaza.InternalCalls::SetScaleCall", SetScaleCall);
+		mono_add_internal_call("Plaza.InternalCalls::Transform_GetForwardVector", Transform_GetForwardVector);
+		mono_add_internal_call("Plaza.InternalCalls::Transform_GetUpVector", Transform_GetUpVector);
+		mono_add_internal_call("Plaza.InternalCalls::Transform_GetLeftVector", Transform_GetLeftVector);
 
 		mono_add_internal_call("Plaza.InternalCalls::MoveTowards", MoveTowards);
-
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetVertices", MeshRenderer_GetVertices);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetVertices", MeshRenderer_SetVertices);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetIndices", MeshRenderer_GetIndices);
@@ -571,6 +608,8 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetNormals", MeshRenderer_SetNormals);
 
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_ApplyForce", RigidBody_ApplyForce);
+		mono_add_internal_call("Plaza.InternalCalls::RigidBody_AddForce", RigidBody_AddForce);
+		mono_add_internal_call("Plaza.InternalCalls::RigidBody_AddTorque", RigidBody_AddTorque);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_LockAngular", RigidBody_LockAngular);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_IsAngularLocked", RigidBody_IsAngularLocked);
 

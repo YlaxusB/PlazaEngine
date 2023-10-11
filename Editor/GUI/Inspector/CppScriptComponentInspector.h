@@ -4,23 +4,40 @@
 namespace Plaza::Editor {
 	static class CppScriptComponentInspector {
 	public:
-		void CreateRespectiveInteractor(MonoObject* monoObject, MonoClassField* field) {
+		void CreateRespectiveInteractor(MonoObject* monoObject, MonoClassField* field, int& sliderIndex) {
 			int type = mono_type_get_type(mono_field_get_type(field));
 
 			if (type == MONO_TYPE_R4 || type == MONO_TYPE_R8) { // Float
 				float value;
 				mono_field_get_value(monoObject, field, &value);
-				if (ImGui::DragFloat("##: ", &value)) {
+				if (ImGui::DragFloat("##: " + sliderIndex, &value)) {
 					mono_field_set_value(monoObject, field, &value);
 				}
 			}
 			else if (type == MONO_TYPE_I4) { // Int
 				int value;
 				mono_field_get_value(monoObject, field, &value);
-				if (ImGui::DragInt("## ", &value)) {
+				if (ImGui::DragInt("## " + sliderIndex, &value)) {
 					mono_field_set_value(monoObject, field, &value);
 				}
 			}
+			else if (type == MONO_TYPE_CLASS) { // Class
+				MonoObject* newMonoObject = nullptr;
+				mono_field_get_value(monoObject, field, &newMonoObject);
+				if (newMonoObject != nullptr) {
+					void* iter = NULL;
+					MonoClass* classInstance = mono_object_get_class(newMonoObject);
+					MonoClassField* subField;
+					while ((subField = mono_class_get_fields(classInstance, &iter)) != NULL) {
+						sliderIndex++;
+						ImGui::Text(mono_field_get_name(subField));
+						ImGui::Text("  Sub  ");
+						CreateRespectiveInteractor(newMonoObject, subField, sliderIndex);
+					}
+				}
+			}
+
+			sliderIndex++;
 		}
 
 		//mono_class_get_fields(mono_object_get_class(scriptComponent->monoObject), iter);
@@ -43,7 +60,7 @@ namespace Plaza::Editor {
 			ImGui::SetCursorPos(oldCursorPos);
 			bool header = ImGui::CollapsingHeader("Scripts", ImGuiTreeNodeFlags_DefaultOpen);
 			if (header) {
-
+				int sliderIndex = 0;
 				ImGui::Text("helo");
 				// Get the fields of the class
 				for (auto& [key, scriptClass] : scriptComponent->scriptClasses) {
@@ -54,7 +71,7 @@ namespace Plaza::Editor {
 						while ((field = mono_class_get_fields(mono_object_get_class(scriptClass->monoObject), &iter)) != NULL)
 						{
 							ImGui::Text(mono_field_get_name(field));
-							CreateRespectiveInteractor(scriptClass->monoObject, field);
+							CreateRespectiveInteractor(scriptClass->monoObject, field, sliderIndex);
 						}
 					}
 					else {

@@ -22,7 +22,7 @@ char* ConvertConstCharToChar(const char* constCharString) {
 #define PL_ADD_INTERNAL_CALL(name) mono_add_internal_call("Plaza.InternalCalls::" #name, (void*)InternalCalls::name)
 namespace Plaza {
 	std::unordered_map<MonoType*, std::function<bool(Entity)>> Mono::mEntityHasComponentFunctions = std::unordered_map<MonoType*, std::function<bool(Entity)>>();
-	std::unordered_map<MonoType*, std::function<Component*(Entity)>> Mono::mEntityAddComponentFunctions = std::unordered_map<MonoType*, std::function<Component*(Entity)>>();
+	std::unordered_map<MonoType*, std::function<Component* (Entity)>> Mono::mEntityAddComponentFunctions = std::unordered_map<MonoType*, std::function<Component* (Entity)>>();
 	MonoDomain* Mono::mAppDomain = nullptr;
 	MonoAssembly* Mono::mCoreAssembly = nullptr;
 	MonoDomain* Mono::mMonoRootDomain = nullptr;
@@ -285,7 +285,6 @@ namespace Plaza {
 			std::string csFileName = filesystem::path{ scriptPath }.replace_extension(".cs").string();
 			script->Init(csFileName);
 
-			std::cout << "Nothing" << std::endl;
 			for (auto& [className, classScript] : script->scriptClasses) {
 				CallMethod(classScript->monoObject, classScript->onStartMethod, nullptr);
 			}
@@ -329,6 +328,7 @@ namespace Plaza {
 		/* Unload and Load again the app domain */
 		mono_domain_set(mono_get_root_domain(), false);
 		mono_domain_unload(Mono::mAppDomain);
+		//mono_domain_unload(Mono::mAppDomain);
 		//Mono::Init();
 	}
 }

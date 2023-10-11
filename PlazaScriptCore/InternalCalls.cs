@@ -105,6 +105,13 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void GetScaleCall(UInt64 uuid, out Vector3 vector);
 
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Transform_GetForwardVector(UInt64 uuid, out Vector3 vec);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Transform_GetUpVector(UInt64 uuid, out Vector3 vec);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Transform_GetLeftVector(UInt64 uuid, out Vector3 vec);
+
         #endregion Transform
 
         #region MeshRenderer
@@ -244,10 +251,15 @@ namespace Plaza
         private extern static void MeshRenderer_SetNormals(UInt64 uuid, IntPtr indices, int size);
         #endregion MeshRenderer
 
-
         #region RigidBody
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void RigidBody_ApplyForce(UInt64 uuid, ref Vector3 force);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void RigidBody_AddForce(UInt64 uuid, ref Vector3 force, ForceMode mode, bool autowake);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void RigidBody_AddTorque(UInt64 uuid, ref Vector3 torque, ForceMode mode, bool autowake);
+
+
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void RigidBody_LockAngular(UInt64 uuid, Axis axis, bool value);
 

@@ -96,9 +96,23 @@ namespace Plaza {
 
 	void RigidBody::ApplyForce(glm::vec3 force) {
 		if (this->mRigidActor) {
-			this->mRigidActor->is<PxRigidDynamic>()->addForce(PxVec3(force.x, force.y, force.z), physx::PxForceMode::eFORCE);
+			//this->mRigidActor->is<PxRigidDynamic>()->addForce(PxVec3(force.x, force.y, force.z), physx::PxForceMode::eFORCE);
+			this->mRigidActor->is<PxRigidDynamic>()->setLinearVelocity(PxVec3(force.x, force.y, force.z));
+			//this->mRigidActor->is<PxRigidDynamic>()->addForce(PxVec3(force.x, force.y, force.z), physx::PxForceMode::eFORCE);
 		}
 	};
+
+	void RigidBody::AddForce(glm::vec3 force, physx::PxForceMode::Enum mode, bool autowake) {
+		if (this->mRigidActor) {
+			this->mRigidActor->is<PxRigidDynamic>()->addForce(PxVec3(force.x, force.y, force.z), mode, autowake);
+		}
+	}
+
+	void RigidBody::AddTorque(glm::vec3 torque, physx::PxForceMode::Enum mode, bool autowake) {
+		if (this->mRigidActor) {
+			this->mRigidActor->is<PxRigidDynamic>()->addTorque(PxVec3(torque.x, torque.y, torque.z), mode, autowake);
+		}
+	}
 
 
 

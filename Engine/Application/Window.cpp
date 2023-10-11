@@ -30,7 +30,11 @@ namespace Plaza {
 		glfwWindowHint(GLFW_RED_BITS, mode->redBits);
 		glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
 		glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+#ifdef GAME_REL
+		glfwWindowHint(GLFW_REFRESH_RATE, 60);
+#else
 		glfwWindowHint(GLFW_REFRESH_RATE, 5000);
+#endif
 		GLFWwindow* window = glfwCreateWindow(Application->appSizes->appSize.x, Application->appSizes->appSize.y, "Plaza Engine", monitors[1], NULL); // ------------------------------------------------------------------ Change this to 0
 		if (!window) {
 			// Handle window creation failure
@@ -62,7 +66,10 @@ namespace Plaza {
 		glfwSetDropCallback(window, ApplicationClass::Callbacks::dropCallback);
 		glfwSetKeyCallback(window, ApplicationClass::Callbacks::keyCallback);
 
+
+#ifndef GAME_REL
 		glfwSwapInterval(0);
+#endif
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 		{

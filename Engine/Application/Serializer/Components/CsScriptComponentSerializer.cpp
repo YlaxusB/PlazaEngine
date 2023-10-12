@@ -1,5 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "CsScriptComponentSerializer.h"
+#include "Engine/Core/Scripting/FieldManager.h"
+
 namespace Plaza {
 	void ComponentSerializer::CsScriptComponentSerializer::SerializeObject(YAML::Emitter& out, MonoClassField* field, MonoObject* monoObject) {
 		out << YAML::Key << "Value" << YAML::BeginSeq;
@@ -60,7 +62,6 @@ namespace Plaza {
 		}
 		else {
 			std::cout << "Unsupported Mono Type for Serialization: " << mono_type_get_type(fieldType) << "\n";
-			out << YAML::Key << "Value" << YAML::Value << "";
 		}
 	}
 	void ComponentSerializer::CsScriptComponentSerializer::SerialieField(YAML::Emitter& out, MonoClassField* field, MonoObject* monoObject) {
@@ -108,50 +109,6 @@ namespace Plaza {
 
 		out << YAML::EndMap;
 	}
-
-	void ComponentSerializer::CsScriptComponentSerializer::DeSerializeFieldValue(YAML::Node data, MonoClassField* field, MonoObject* monoObject, int type) {
-		MonoType* fieldType = mono_field_get_type(field);
-		if (type == MONO_TYPE_I4) {
-			int val = data["Value"].as<int>();
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_R4) {
-			float val = data["Value"].as<float>();
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_R8) {
-			double val = data["Value"].as<double>();
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_STRING) {
-			std::string val = data["Value"].as<std::string>();
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_U8) {
-			uint64_t val = data["Value"].as<uint64_t>();
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_ENUM) {
-			int val = data["Value"].as<int>();
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_BOOLEAN) {
-			bool val = data["Value"].as<bool>();
-			mono_field_set_value(monoObject, field, &val);
-		}
-		//else if (type == MONO_TYPE_CLASS) {
-		//	ComponentSerializer::CsScriptComponentSerializer::DeSerializeField(data, mono_class_get_field_from_name(mono_object_get_class(monoObject), data["Name"].as<std::string>().c_str()), monoObject);
-		//}
-	}
-
-	void ComponentSerializer::CsScriptComponentSerializer::DeSerializeField(YAML::Node data, MonoClassField* field, MonoObject* monoObject) {
-		for (auto dataField : data["Value"]) {
-			std::cout << data["Name"].as<std::string>() << std::endl;
-			DeSerializeFieldValue(dataField, field, monoObject, dataField["Type"].as<int>());
-		}
-	}
-
-
 
 	std::any ComponentSerializer::CsScriptComponentSerializer::GetValue(YAML::Node data, int type) {
 		if (type == MONO_TYPE_I4) {
@@ -211,69 +168,6 @@ namespace Plaza {
 		}
 	}
 
-	void FieldSetValue(int type, std::any& value, MonoObject* monoObject, MonoClassField* field) {
-		if (type == MONO_TYPE_I4) {
-			int val = std::any_cast<int>(value);
-			std::cout << "Name" << mono_field_get_name(field) << " Val: " << val << std::endl;
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_R4) {
-			float val = std::any_cast<float>(value);
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_R8) {
-			double val = std::any_cast<double>(value);
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_STRING) {
-			//std::string val = std::any_cast<std::string>(value);
-			//mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_U8) {
-			uint64_t val = std::any_cast<uint64_t>(value);
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_ENUM) {
-			int val = std::any_cast<int>(value);
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_BOOLEAN) {
-			bool val = std::any_cast<bool>(value);
-			mono_field_set_value(monoObject, field, &val);
-		}
-	}
-
-	void ComponentSerializer::CsScriptComponentSerializer::SetFieldValue(MonoObject* monoObject, Field* field) {
-		if (field) {
-			if (field->mType != MONO_TYPE_CLASS) {
-				MonoClassField* classField = mono_class_get_field_from_name(mono_object_get_class(monoObject), field->mName.c_str());
-				//mono_field_set_value(monoObject, classField, &field->mValue);
-				FieldSetValue(field->mType, field->mValue, monoObject, classField);
-			}
-			else {
-				for (auto [name, child] : field->mChildren) {
-					MonoObject* newMonoObject = nullptr;
-					mono_field_get_value(monoObject, mono_class_get_field_from_name(mono_object_get_class(monoObject), field->mName.c_str()), &newMonoObject);
-					SetFieldValue(newMonoObject, child);
-				}
-			}
-		}
-	}
-
-	/*
-					MonoObject* newMonoObject = nullptr;
-				mono_field_get_value(monoObject, field, &newMonoObject);
-				if (newMonoObject != nullptr) {
-					void* iter = NULL;
-					MonoClass* classInstance = mono_object_get_class(newMonoObject);
-					MonoClassField* subField;
-					while ((subField = mono_class_get_fields(classInstance, &iter)) != NULL) {
-						ImGui::Text(mono_field_get_name(subField));
-						CreateRespectiveInteractor(newMonoObject, subField);
-					}
-				}
-	*/
-
 	CsScriptComponent* ComponentSerializer::CsScriptComponentSerializer::DeSerialize(YAML::Node data) {
 		CsScriptComponent* script = new CsScriptComponent(data["Uuid"].as<uint64_t>());
 		std::string csFileName = Application->projectPath + data["Path"].as<std::string>();
@@ -289,46 +183,20 @@ namespace Plaza {
 		}
 
 		/* Apply the values got from the yaml */
-		for (auto [scriptName, scriptClass] : script->scriptClasses) {
-			for (auto [key, value] : fields) {
-				if (value->mType != MONO_TYPE_CLASS && value->mType == MONO_TYPE_R4) {
-					//mono_gchandle_new(scriptClass->monoObject, true);
-					MonoClassField* classField = mono_class_get_field_from_name(mono_object_get_class(scriptClass->monoObject), value->mName.c_str());
-					// float val = 1.0f;
-					//mono_field_set_value(scriptClass->monoObject, classField, &val);
-					FieldSetValue(value->mType, value->mValue, scriptClass->monoObject, classField);
+		for (auto [scriptClassKey, scriptClassValue] : script->scriptClasses) {
+			MonoClassField* monoField = NULL;
+			void* iter = NULL;
+			uint64_t key = script->uuid;
 
-				}
-				else if (value->mType == MONO_TYPE_CLASS) {
-					for (auto [name, child] : value->mChildren) {
-						MonoObject* newMonoObject = nullptr;
-						mono_field_get_value(scriptClass->monoObject, mono_class_get_field_from_name(mono_object_get_class(scriptClass->monoObject), value->mName.c_str()), &newMonoObject);
-						SetFieldValue(newMonoObject, child);
-						//SetFieldValue(scriptClass->monoObject, child);
-					}
+			while ((monoField = mono_class_get_fields(mono_object_get_class(scriptClassValue->monoObject), &iter)) != NULL)
+			{
+				int type = mono_type_get_type(mono_field_get_type(monoField));
+				if (type != MONO_TYPE_ARRAY) {
+					if (fields.find(mono_field_get_name(monoField)) != fields.end())
+						FieldManager::FieldSetValue(type, fields.at(mono_field_get_name(monoField))->mValue, scriptClassValue->monoObject, monoField, fields.at(mono_field_get_name(monoField)));
 				}
 			}
 		}
 		return script;
 	}
 }
-
-/*
-					MonoClassField* field = NULL;
-					void* iter = NULL;
-					std::unordered_map<std::string, uint32_t> classFields;
-					if (scriptClass->monoObject->vtable) {
-						while ((field = mono_class_get_fields(mono_object_get_class(scriptClass->monoObject), &iter)) != NULL)
-						{
-							ImGui::Text(mono_field_get_name(field));
-							CreateRespectiveInteractor(scriptClass->monoObject, field);
-*/
-
-//for (auto& [key, scriptClass] : script->scriptClasses) {
-//	MonoClass* klass = mono_object_get_class(scriptClass->monoObject);
-//	MonoClassField* field;
-//	void* iter = NULL;
-//	while ((field = mono_class_get_fields(klass, &iter))) {
-//		ComponentSerializer::CsScriptComponentSerializer::DeSerializeField(data, field, scriptClass->monoObject);
-//	}
-//}

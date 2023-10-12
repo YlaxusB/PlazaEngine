@@ -15,7 +15,7 @@ namespace Plaza {
 		static std::unordered_map<MonoType*, std::function<bool(Entity)>> mEntityHasComponentFunctions;
 		static std::unordered_map<MonoType*, std::function<Component* (Entity)>> mEntityAddComponentFunctions;
 		static void Init();
-		static void OnStartAll();
+		static void OnStartAll(bool callOnStart = true);
 		static void OnStart(MonoObject* monoObject);
 		static void Update();
 		static void RegisterComponents();

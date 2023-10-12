@@ -1,16 +1,8 @@
 #pragma once
 #include "ComponentSerializer.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
+#include "Engine/Core/Scripting/FieldManager.h"
 namespace Plaza {
-	class Field {
-	public:
-		Field() {};
-		Field(std::string name, std::any value, int type) : mName(name), mValue(value), mType(type) {}
-		std::any mValue;
-		std::string mName;
-		int mType;
-		std::map<std::string, Field*> mChildren = std::map<std::string, Field*>();
-	};
 	class ComponentSerializer::CsScriptComponentSerializer {
 	public:
 		static void SerializeObject(YAML::Emitter& out, MonoClassField* field, MonoObject* monoObject);

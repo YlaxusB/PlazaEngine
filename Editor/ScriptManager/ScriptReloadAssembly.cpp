@@ -99,6 +99,7 @@ namespace Plaza::Editor {
 	void ScriptManager::ReloadSpecificAssembly(std::string scriptPath) {
 		const auto& script = Application->activeProject->scripts.find(scriptPath);
 		if (script != Application->activeProject->scripts.end()) {
+			std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = FieldManager::GetAllScritpsFields();
 			std::filesystem::path dllPath = std::filesystem::path{ scriptPath }.replace_extension(".dll");
 
 			/* Load the new domain */
@@ -155,6 +156,8 @@ namespace Plaza::Editor {
 				value.Init(scriptPath);
 			}
 
+			/* Reapply fields values */
+			FieldManager::ApplyAllScritpsFields(allFields);
 			/* Todo: Fix it */
 			//if (Application->runningScene) {
 			//	for (auto& [key, value] : Application->editorScene->csScriptComponents) {

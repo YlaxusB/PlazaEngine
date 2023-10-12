@@ -270,7 +270,7 @@ namespace Plaza {
 	}
 
 	// Execute OnStart on all scripts
-	void Mono::OnStartAll() {
+	void Mono::OnStartAll(bool callOnStart) {
 #ifdef GAME_REL
 		Editor::ScriptManager::ReloadScriptsAssembly();
 #else
@@ -279,16 +279,12 @@ namespace Plaza {
 		std::string newPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll");
 		Editor::ScriptManager::ReloadScriptsAssembly(newPath);
 #endif
-		for (auto& [key, value] : Application->activeScene->csScriptComponents) {
-			std::string scriptPath = value.scriptPath;
-			CsScriptComponent* script = new CsScriptComponent(key);
-			std::string csFileName = filesystem::path{ scriptPath }.replace_extension(".cs").string();
-			script->Init(csFileName);
-
-			for (auto& [className, classScript] : script->scriptClasses) {
-				CallMethod(classScript->monoObject, classScript->onStartMethod, nullptr);
+		if (callOnStart) {
+			for (auto& [key, value] : Application->activeScene->csScriptComponents) {
+				for (auto& [className, classScript] : value.scriptClasses) {
+					CallMethod(classScript->monoObject, classScript->onStartMethod, nullptr);
+				}
 			}
-			value = *script;
 		}
 	}
 

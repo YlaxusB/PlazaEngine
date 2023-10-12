@@ -405,6 +405,9 @@
     <ClCompile Include="Engine\Components\Drawing\UI\TextRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Core\Scripting\FieldManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h">
@@ -2109,6 +2112,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Components\Drawing\UI\UI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Core\Scripting\FieldManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

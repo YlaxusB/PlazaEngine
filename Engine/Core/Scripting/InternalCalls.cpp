@@ -12,6 +12,7 @@
 #include "Engine/Components/Scripting/CppScriptComponent.h"
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
 #include "Engine/Core/Scene.h"
+#include "Engine/Core/Scripting/FieldManager.h"
 namespace Plaza {
 
 	void GetComponentMap(uint64_t uuid, std::string name, Component* component) {
@@ -64,6 +65,8 @@ namespace Plaza {
 	};
 
 	static bool HasComponent(uint64_t uuid, MonoReflectionType* componentType) {
+		if (Application->activeScene->entities.find(uuid) == Application->activeScene->entities.end())
+			return false;
 		MonoType* monoType = mono_reflection_type_get_type(componentType);
 		return Mono::mEntityHasComponentFunctions.at(monoType)(*Application->activeScene->GetEntity(uuid));
 	}
@@ -81,6 +84,8 @@ namespace Plaza {
 	}
 
 	static Component* CreateComponentByName(uint64_t uuid, MonoReflectionType* componentType) {
+		if (!uuid)
+			return nullptr;
 		MonoType* monoType = mono_reflection_type_get_type(componentType);
 		if (Mono::mEntityHasComponentFunctions.find(monoType) != Mono::mEntityHasComponentFunctions.end()) {
 			return Mono::mEntityAddComponentFunctions[monoType](Application->activeScene->entities.at(uuid));
@@ -89,10 +94,12 @@ namespace Plaza {
 	}
 
 	static void AddComponent(uint64_t uuid, MonoReflectionType* componentType) {
-		auto* component = CreateComponentByName(uuid, componentType);
-		component->uuid = uuid;
-		GetComponentMap(uuid, GetSubclassName(component), component);
-		//Application->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
+		if (uuid) {
+			auto* component = CreateComponentByName(uuid, componentType);
+			component->uuid = uuid;
+			GetComponentMap(uuid, GetSubclassName(component), component);
+			//Application->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
+		}
 	}
 
 	static void RemoveComponent(uint64_t uuid, MonoReflectionType* componentType) {
@@ -166,12 +173,39 @@ namespace Plaza {
 				if (it->second.uuid == entityToInstantiate->uuid) {
 					CsScriptComponent* newScript = new CsScriptComponent(instantiatedEntity->uuid);
 					newScript->Init(it->second.scriptPath);
+
+					/* Get all fields from the entity to instantiate */
+					std::map<std::string, Field*> fields = std::map<std::string, Field*>();
+					for (auto [key, value] : it->second.scriptClasses) { fields = FieldManager::GetFieldsValues(value->monoObject); };
+
+					/* Apply all fields to the instantiated entity */
+					uint64_t key = newScript->uuid;
+					for (auto [scriptClassKey, scriptClassValue] : newScript->scriptClasses) {
+						MonoClassField* monoField = NULL;
+						void* iter = NULL;
+						while ((monoField = mono_class_get_fields(mono_object_get_class(scriptClassValue->monoObject), &iter)) != NULL)
+						{
+							int type = mono_type_get_type(mono_field_get_type(monoField));
+							if (type != MONO_TYPE_ARRAY && type != MONO_TYPE_CLASS) {
+								if (fields.find(mono_field_get_name(monoField)) != fields.end())
+									FieldManager::FieldSetValue(type, fields.at(mono_field_get_name(monoField))->mValue, scriptClassValue->monoObject, monoField, fields.at(mono_field_get_name(monoField)));
+							}
+							else if (type == MONO_TYPE_CLASS) {
+								MonoObject* currentFieldMonoObject = nullptr;
+								mono_field_get_value(scriptClassValue->monoObject, mono_class_get_field_from_name(mono_object_get_class(scriptClassValue->monoObject), mono_field_get_name(monoField)), &currentFieldMonoObject);
+								if (fields.find(mono_field_get_name(monoField)) != fields.end())
+									FieldManager::FieldSetValue(type, fields.at(mono_field_get_name(monoField))->mValue, scriptClassValue->monoObject, monoField, fields.at(mono_field_get_name(monoField)));
+							}
+						}
+					}
+
 					Application->activeProject->scripts.at(it->second.scriptPath).entitiesUsingThisScript.emplace(instantiatedEntity->uuid);
 					if (Application->runningScene) {
 						for (auto& [key, value] : newScript->scriptClasses) {
 							Mono::OnStart(value->monoObject);
 						}
 					}
+
 					scriptsToAdd.push_back(newScript);
 				}
 			}

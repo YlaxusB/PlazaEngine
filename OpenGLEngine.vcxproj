@@ -359,6 +359,7 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Engine\Components\Rendering\Prefab.cpp" />
     <ClCompile Include="Engine\Components\Scripting\CppScriptComponent.cpp" />
     <ClCompile Include="Engine\Components\Drawing\UI\TextRenderer.cpp" />
+    <ClCompile Include="Engine\Core\Scripting\FieldManager.cpp" />
     <ClCompile Include="Engine\Core\Engine.cpp" />
     <ClCompile Include="Engine\Core\Input\Cursor.cpp" />
     <ClCompile Include="Engine\Core\Input\Input.cpp" />
@@ -676,6 +677,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Components\Core\Entity.h" />
     <ClInclude Include="Engine\Components\Drawing\UI\TextRenderer.h" />
     <ClInclude Include="Engine\Components\Drawing\UI\UI.h" />
+    <ClInclude Include="Engine\Core\Scripting\FieldManager.h" />
     <ClInclude Include="Engine\Core\Input\Cursor.h" />
     <ClInclude Include="Engine\Core\Input\Input.h" />
     <ClInclude Include="Engine\Core\Scripting\Mono.h" />

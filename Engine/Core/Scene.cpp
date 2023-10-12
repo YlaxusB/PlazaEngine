@@ -6,6 +6,7 @@
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Input/Cursor.h"
 #include "Engine/Application/Serializer/Components/CsScriptComponentSerializer.h"
+#include "Engine/Core/Scripting/FieldManager.h"
 
 #include "Engine/Core/Physics.h"
 
@@ -105,118 +106,12 @@ namespace Plaza {
 		}
 	}
 
-	std::any GetFieldValue(MonoClassField* field, MonoObject* monoObject) {
-		int type = mono_type_get_type(mono_field_get_type(field));
-		if (type == MONO_TYPE_I4) {
-			int val;
-			mono_field_get_value(monoObject, field, &val);
-			return val;
-		}
-		else if (type == MONO_TYPE_R4) {
-			float val;
-			mono_field_get_value(monoObject, field, &val);
-			return val;
-		}
-		else if (type == MONO_TYPE_R8) {
-			double val;
-			mono_field_get_value(monoObject, field, &val);
-			return val;
-		}
-		else if (type == MONO_TYPE_STRING) {
-			MonoString* str = nullptr;
-			mono_field_get_value(monoObject, field, &str);
-			if (str != nullptr) {
-				const char* val = mono_string_to_utf8(str);
-				return mono_string_to_utf8(str);
-			}
-		}
-		else if (type == MONO_TYPE_U8) {
-			uint64_t val;
-			mono_field_get_value(monoObject, field, &val);
-			return val;
-		}
-		else if (type == MONO_TYPE_ENUM) {
-			int val;
-			mono_field_get_value(monoObject, field, &val);
-			return val;
-		}
-		else if (type == MONO_TYPE_BOOLEAN) {
-			bool val;
-			mono_field_get_value(monoObject, field, &val);
-			return val;
-		}
-		else if (type == MONO_TYPE_CLASS) {
-			//bool val;
-			//mono_field_get_value(monoObject, field, &val);
-			//return val;
-		}
-		else {
-			std::cout << "Unsupported " << type << "\n";
-		}
-		return std::any();
-	}
-	std::map<std::string, Field*> GetFieldsValues(MonoObject* monoObject) {
-		std::map<std::string, Field*> fields = std::map<std::string, Field*>();
-		MonoClassField* monoField = NULL;
-		void* iter = NULL;
-		std::unordered_map<std::string, uint32_t> classFields;
-		while ((monoField = mono_class_get_fields(mono_object_get_class(monoObject), &iter)) != NULL)
-		{
-			Field* field = new Field();
-			field->mName = mono_field_get_name(monoField);
-			auto result = GetFieldValue(monoField, monoObject);
-			field->mValue = result;
-			field->mType = mono_type_get_type(mono_field_get_type(monoField));
-			fields.emplace(field->mName, field);
-		}
-		return fields;
-	}
-
-	void FieldSetVal(int type, std::any& value, MonoObject* monoObject, MonoClassField* field) {
-		if (type == MONO_TYPE_I4) {
-			int val = std::any_cast<int>(value);
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_R4) {
-			float val = std::any_cast<float>(value);
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_R8) {
-			double val = std::any_cast<double>(value);
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_STRING) {
-			//std::string val = std::any_cast<std::string>(value);
-			//mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_U8) {
-			uint64_t val = std::any_cast<uint64_t>(value);
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_ENUM) {
-			int val = std::any_cast<int>(value);
-			mono_field_set_value(monoObject, field, &val);
-		}
-		else if (type == MONO_TYPE_BOOLEAN) {
-			bool val = std::any_cast<bool>(value);
-			mono_field_set_value(monoObject, field, &val);
-		}
-	}
-
 	void Scene::Play() {
 		/* Get fields values */
-		std::map<uint64_t, std::map<std::string, Field*>> allFields = std::map<uint64_t, std::map<std::string, Field*>>();
-		for (auto [key, value] : Application->activeScene->csScriptComponents) {
-			for (auto [scriptClassKey, scriptClassValue] : value.scriptClasses) {
-				allFields.emplace(key, GetFieldsValues(scriptClassValue->monoObject));
-			}
-		}
-
-
-		// Create a new empty Scene, change active scene to runtime, copy the contents of editor scene into runtime scene and update the selected object scene
-
+		std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = FieldManager::GetAllScritpsFields();
+		Editor::lastSavedScriptsFields = allFields;
 		/* Stop mono */
-			/* Load the new domain */
+		/* Load the new domain */
 		mono_set_assemblies_path("lib/mono");
 		//mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
 		if (Mono::mMonoRootDomain == nullptr)
@@ -263,24 +158,15 @@ namespace Plaza {
 
 
 
-		Mono::OnStartAll();
-
-		/* Reapply all scripts fields */
+		Mono::OnStartAll(false);
+		FieldManager::ApplyAllScritpsFields(allFields);
 		for (auto [key, value] : Application->activeScene->csScriptComponents) {
-			for (auto [scriptClassKey, scriptClassValue] : value.scriptClasses) {
-				MonoClassField* monoField = NULL;
-				void* iter = NULL;
-				while ((monoField = mono_class_get_fields(mono_object_get_class(scriptClassValue->monoObject), &iter)) != NULL)
-				{
-					int type = mono_type_get_type(mono_field_get_type(monoField));
-					if (type != MONO_TYPE_ARRAY && type != MONO_TYPE_CLASS) {
-						if (allFields.find(key) != allFields.end())
-							FieldSetVal(type, allFields.at(key).at(mono_field_get_name(monoField))->mValue, scriptClassValue->monoObject, monoField);
-					}
-				}
+			for (auto& [className, classScript] : value.scriptClasses) {
+				Mono::CallMethod(classScript->monoObject, classScript->onStartMethod, nullptr);
 			}
 		}
 	}
+
 	void Scene::Stop() {
 		// Change active scene, update the selected object scene, delete runtime and set running to false.
 		Editor::selectedGameObject = nullptr;
@@ -289,6 +175,7 @@ namespace Plaza {
 		Application->activeScene = Application->editorScene;
 		Application->activeCamera = Application->editorCamera;
 		Editor::ScriptManager::ReloadScriptsAssembly();
+		FieldManager::ApplyAllScritpsFields(Editor::lastSavedScriptsFields);
 	}
 	void Scene::Pause() {
 

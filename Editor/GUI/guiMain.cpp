@@ -70,6 +70,7 @@ namespace Plaza {
 		}
 
 		void Gui::Init(GLFWwindow* window) {
+			EditorStyle* editorStyle = new EditorStyle();
 			ImGui::CreateContext();
 			ImGui::StyleColorsDark();
 			ImGuiIO& io = ImGui::GetIO();
@@ -81,6 +82,19 @@ namespace Plaza {
 			//C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
 			io.Fonts->AddFontFromFileTTF((Application->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
 			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
+
+#pragma region ImGui Style
+			auto& colors = ImGui::GetStyle().Colors;
+			colors[ImGuiCol_WindowBg] = editorStyle->backgroundColor;
+			colors[ImGuiCol_Header] = editorStyle->CollapsingHeaderBackgroundColor;
+			colors[ImGuiCol_HeaderHovered] = editorStyle->treeNodeHoverBackgroundColor;
+			colors[ImGuiCol_HeaderActive] = editorStyle->treeNodeActiveBackgroundColor;
+			colors[ImGuiCol_TabActive] = editorStyle->tabActiveColor;
+			colors[ImGuiCol_Tab] = ImVec4(0.295f, 0.295f, 0.295f, 1.0f);
+			colors[ImGuiCol_TitleBgActive] = ImVec4(0.255f, 0.255f, 0.255f, 1.0f);
+			colors[ImGuiCol_TabUnfocused] = ImVec4(0.10f, 0.10f, 0.10f, 1.0f);
+#pragma endregion
+
 			ImGui::GetStyle().ScrollbarSize = 9.0f;
 			Icon::Init();
 
@@ -103,8 +117,6 @@ namespace Plaza {
 		void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera) {
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
-
-			ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.hierarchyBackgroundColor);
 
 			//	ImGuiWindowFlags  windowFlags = ImGuiWindowFlags_MenuBar;
 
@@ -146,9 +158,6 @@ namespace Plaza {
 			ImGui::End();
 
 
-			ImGui::PopStyleColor();
-
-
 			Overlay::beginTransformOverlay(*Application->activeCamera);
 			fpsCounter->Update();
 			// Update the sizes after resizing
@@ -169,7 +178,6 @@ namespace Plaza {
 
 			// Set the window to be the content size + header size
 			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove;
-			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
 			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
 			windowFlags |= ImGuiWindowFlags_NoScrollbar;
@@ -186,7 +194,6 @@ namespace Plaza {
 						Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
 				}
 			}
-
 
 
 			if (ImGui::IsWindowFocused())
@@ -206,9 +213,6 @@ namespace Plaza {
 			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x / 2, 25));
 
 			ImGuiStyle& style = ImGui::GetStyle();
-
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.30f, 0.30f, 0.30f, 1.0f));
 
 			// Change the background color of the button
 			if (Application->runningScene) {
@@ -237,9 +241,6 @@ namespace Plaza {
 						Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
 				}
 			}
-
-			ImGui::PopStyleColor();
-			ImGui::PopStyleColor();
 			ImGui::PopStyleColor();
 
 			ImVec2 uv0(0, 1); // bottom-left corner
@@ -266,7 +267,6 @@ namespace Plaza {
 			}
 
 			ImGui::End();
-			ImGui::PopStyleColor();
 		}
 
 		// Create the Editor view
@@ -277,7 +277,6 @@ namespace Plaza {
 
 			// Set the window to be the content size + header size
 			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove;
-			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
 			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
 			windowFlags |= ImGuiWindowFlags_NoScrollbar;
@@ -286,6 +285,11 @@ namespace Plaza {
 			windowFlags |= ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_NoScrollbar;*/
 
 			ImGui::SetNextWindowSize(ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y));
+			// Get a reference to the current ImGui style
+			ImGuiStyle& style = ImGui::GetStyle();
+
+			// Adjust padding and margin sizes
+			style.WindowPadding = ImVec2(0.0f, 0.0f);  // Change window padding
 			if (ImGui::Begin("Editor", &Gui::isSceneOpen, windowFlags)) {
 				Application->activeCamera = Application->editorCamera;
 			};
@@ -304,10 +308,7 @@ namespace Plaza {
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x / 2, 25));
 
-			ImGuiStyle& style = ImGui::GetStyle();
-
-			ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.30f, 0.30f, 0.30f, 1.0f));
+			//ImGuiStyle& style = ImGui::GetStyle();
 
 			// Change the background color of the button
 			if (Application->runningScene) {
@@ -327,8 +328,6 @@ namespace Plaza {
 			if (ImGui::Button("Reload C# Script Assembly")) {
 				ScriptManager::ReloadScriptsAssembly();
 			}
-			ImGui::PopStyleColor();
-			ImGui::PopStyleColor();
 			ImGui::PopStyleColor();
 
 			ImVec2 uv0(0, 1); // bottom-left corner
@@ -365,7 +364,6 @@ namespace Plaza {
 			}
 
 			ImGui::End();
-			ImGui::PopStyleColor();
 		}
 
 		void Gui::beginHierarchyView(int gameFrameBuffer) {
@@ -376,7 +374,6 @@ namespace Plaza {
 			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoFocusOnAppearing | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_HorizontalScrollbar | ImGuiScrollFlags_NoScrollParent;
 
 			//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
-			ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.treeNodeBackgroundColor);
 			ImGui::SetNextWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y));
 			ImGui::Begin("Hierarchy", &Gui::isHierarchyOpen, sceneWindowFlags);
 			if (ImGui::IsWindowFocused())
@@ -384,20 +381,22 @@ namespace Plaza {
 			if (ImGui::IsWindowHovered()) {
 				Application->hoveredMenu = "Hierarchy";
 			}
-			ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.treeNodeBackgroundColor);
 
+			appSizes.hierarchySize.x = ImGui::GetWindowSize().x;
 			HierarchyPopup::Update();
 
 			// Create the main collapser
 			ImGui::SetCursorPosX(0);
-			Editor::Gui::Hierarchy::Item(Application->activeScene->entities[Application->activeScene->mainSceneEntity->uuid], selectedGameObject);
-			ImGui::PopStyleColor(); // Background Color
 
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+			Editor::Gui::Hierarchy::Item(Application->activeScene->entities[Application->activeScene->mainSceneEntity->uuid], selectedGameObject);
+			ImGui::PopStyleVar();
+			ImGui::PopStyleVar();
 
 
 			curHierarchySize = ImGui::glmVec2(ImGui::GetWindowSize());
 			ImGui::End();
-			ImGui::PopStyleColor(); // Background Color
 		}
 
 		void Gui::beginInspector(int gameFrameBuffer, Camera camera) {

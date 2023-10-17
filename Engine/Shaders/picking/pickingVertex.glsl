@@ -14,6 +14,8 @@ out VS_OUT {
 
 
 out float objectID;
+uniform uint uuidArray[2];
+flat out uint array[2];
 
 uniform float pixelObjectID;
 uniform mat4 projection;
@@ -25,4 +27,6 @@ void main()
     vs_out.FragPos = vec3(model * vec4(aPos, 1.0));
     gl_Position = projection * view * vec4(vs_out.FragPos, 1.0);
     objectID = pixelObjectID;
+    array[0] = uuidArray[0];
+    array[1] = uuidArray[1];
 }

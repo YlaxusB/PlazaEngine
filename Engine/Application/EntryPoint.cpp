@@ -18,6 +18,8 @@ using namespace Plaza;
 #include "Engine/Core/Scripting/Mono.h"
 #include "Editor/Project.h"
 #include "Engine/Core/Scene.h"
+#include "Engine/Core/Audio/Audio.h"
+#include "Editor/Settings/SettingsSerializer.h"
 
 
 #include <windows.h>
@@ -60,6 +62,15 @@ int main() {
 	// Start
 	std::cout << "Creating Application \n";
 	Application->CreateApplication();
+
+	/* Load Editor settings */
+#ifndef GAME_REL
+	Editor::EditorSettingsSerializer::DeSerialize();
+#endif // GAME_REL
+
+	/* Initialize Audio */
+	Audio::Init();
+
 	std::cout << "Initializating Physics \n";
 	Physics::Init();
 	Application->activeScene->mainSceneEntity = new Entity("Scene");

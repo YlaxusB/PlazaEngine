@@ -51,6 +51,8 @@ namespace Plaza {
 		newScene->meshRendererComponents = std::unordered_map<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
 		newScene->csScriptComponents = std::unordered_multimap<uint64_t, CsScriptComponent>(copyScene->csScriptComponents);
 		newScene->UITextRendererComponents = std::unordered_multimap<uint64_t, Plaza::Drawing::UI::TextRenderer>(copyScene->UITextRendererComponents);
+		newScene->audioSourceComponents = std::unordered_map<uint64_t, AudioSource>(copyScene->audioSourceComponents);
+		newScene->audioListenerComponents = std::unordered_map<uint64_t, AudioListener>(copyScene->audioListenerComponents);
 		newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
 
 
@@ -107,9 +109,13 @@ namespace Plaza {
 	}
 
 	void Scene::Play() {
+		bool scriptDllExists = std::filesystem::exists(Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll");
 		/* Get fields values */
-		std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = FieldManager::GetAllScritpsFields();
-		Editor::lastSavedScriptsFields = allFields;
+		std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields;
+		if (scriptDllExists) {
+			allFields = FieldManager::GetAllScritpsFields();
+			Editor::lastSavedScriptsFields = allFields;
+		}
 		/* Stop mono */
 		/* Load the new domain */
 		mono_set_assemblies_path("lib/mono");
@@ -130,10 +136,11 @@ namespace Plaza {
 
 		mono_domain_set(Mono::mAppDomain, true);
 		/* Copy the script dll */
-		std::string dllPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll");
-		std::string newPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll");
-		std::filesystem::copy_file(dllPath, newPath, filesystem::copy_options::overwrite_existing);
-
+		if (scriptDllExists) {
+			std::string dllPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll");
+			std::string newPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll");
+			std::filesystem::copy_file(dllPath, newPath, filesystem::copy_options::overwrite_existing);
+		}
 		Application->runtimeScene = new Scene();
 		Application->copyingScene = true;
 		Application->runtimeScene = Scene::Copy(Application->runtimeScene, Application->editorScene);
@@ -157,12 +164,13 @@ namespace Plaza {
 
 
 
-
-		Mono::OnStartAll(false);
-		FieldManager::ApplyAllScritpsFields(allFields);
-		for (auto [key, value] : Application->activeScene->csScriptComponents) {
-			for (auto& [className, classScript] : value.scriptClasses) {
-				Mono::CallMethod(classScript->monoObject, classScript->onStartMethod, nullptr);
+		if (scriptDllExists) {
+			Mono::OnStartAll(false);
+			FieldManager::ApplyAllScritpsFields(allFields);
+			for (auto [key, value] : Application->activeScene->csScriptComponents) {
+				for (auto& [className, classScript] : value.scriptClasses) {
+					Mono::CallMethod(classScript->monoObject, classScript->onStartMethod, nullptr);
+				}
 			}
 		}
 	}
@@ -174,8 +182,12 @@ namespace Plaza {
 		Application->runningScene = false;
 		Application->activeScene = Application->editorScene;
 		Application->activeCamera = Application->editorCamera;
-		Editor::ScriptManager::ReloadScriptsAssembly();
-		FieldManager::ApplyAllScritpsFields(Editor::lastSavedScriptsFields);
+
+		bool scriptDllExists = std::filesystem::exists(Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll");
+		if (scriptDllExists) {
+			Editor::ScriptManager::ReloadScriptsAssembly();
+			FieldManager::ApplyAllScritpsFields(Editor::lastSavedScriptsFields);
+		}
 	}
 	void Scene::Pause() {
 

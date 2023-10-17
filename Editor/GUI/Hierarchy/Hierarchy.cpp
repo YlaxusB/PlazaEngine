@@ -16,6 +16,7 @@ namespace Plaza::Editor {
 		ImGui::PushID(entity.uuid);
 		// Start the treenode before the component selectable, but only assign its values after creating the button
 
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f)); // Remove the padding of the window
 		ImGui::PushStyleColor(ImGuiCol_HeaderActive, editorStyle.treeNodeActiveBackgroundColor);
 
 		bool itemIsSelectedObject = false;
@@ -38,7 +39,7 @@ namespace Plaza::Editor {
 
 
 
-		style.IndentSpacing = 20.0f;
+		style.IndentSpacing = 15.0f;
 		//ImGui::SetCursorPosX(ImGui::GetCursorPosX());
 		float indentSpacing = ImGui::GetStyle().IndentSpacing;
 		const int depth = 1.0f;
@@ -147,7 +148,7 @@ namespace Plaza::Editor {
 				ImGui::TreePop();
 		}
 		//ImGui::Unindent(indentSpacing * depth);
-
+		ImGui::PopStyleVar();
 
 		ImGui::PopID();
 	};
@@ -194,6 +195,20 @@ namespace Plaza::Editor {
 					Camera* camera = new Camera();
 					camera->uuid = entity.uuid;
 					entity.AddComponent<Camera>(camera);
+				}
+
+				if (ImGui::MenuItem("Audio Source"))
+				{
+					AudioSource* audioSource = new AudioSource();
+					audioSource->uuid = entity.uuid;
+					entity.AddComponent<AudioSource>(audioSource);
+				}
+
+				if (ImGui::MenuItem("Audio Listener"))
+				{
+					AudioListener* audioListener = new AudioListener();
+					audioListener->uuid = entity.uuid;
+					entity.AddComponent<AudioListener>(audioListener);
 				}
 
 				if (ImGui::MenuItem("Rename")) {

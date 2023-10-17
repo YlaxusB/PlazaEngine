@@ -2,6 +2,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Editor/GUI/Utils/DataVisualizer.h"
+#include "Editor/GUI/Utils/Utils.h"
 #include <functional>
 #include <iostream>
 
@@ -17,7 +18,7 @@ namespace Plaza::Editor {
 	static class RigidBodyInspector {
 	public:
 		RigidBodyInspector(RigidBody* rigidBody) {
-			if (ImGui::TreeNodeEx("Rigid Body", ImGuiTreeNodeFlags_DefaultOpen)) {
+			if (Utils::ComponentInspectorHeader(rigidBody, "Rigid Body")) {
 				ImGui::PushID("RigidBodyInspector");
 
 				currentBody = rigidBody;
@@ -61,7 +62,6 @@ namespace Plaza::Editor {
 				ImGui::Checkbox("Kinematic: ", &kinematic);
 
 				ImGui::PopID();
-				ImGui::TreePop();
 			}
 
 		}

@@ -32,6 +32,7 @@
 #include "Engine/Core/Scripting/Mono.h"
 #include "Editor/Filewatcher.h"
 #include "Engine/Core/Input/Input.h"
+#include "Engine/Core/Audio/Audio.h"
 char* appdataValue;
 size_t len;
 errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");
@@ -156,7 +157,7 @@ void ApplicationClass::InitShaders() {
 	//Application->debugDepthShader = new Shader((Application->enginePath + "\\Shaders\\debug\\debugDepthVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\debug\\debugDepthFragment.glsl").c_str());
 
 	Application->hdrShader = new Shader((shadersFolder + "\\Shaders\\hdr\\hdrVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\hdr\\hdrFragment.glsl").c_str());
-	
+
 	Application->distortionCorrectionShader = new Shader((shadersFolder + "\\Shaders\\distortionCorrection\\distortionCorrectionVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\distortionCorrection\\distortionCorrectionFragment.glsl").c_str());
 
 	Application->textRenderingShader = new Shader((shadersFolder + "\\Shaders\\textRendering\\textRenderingVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\textRendering\\textRenderingFragment.glsl").c_str());
@@ -200,7 +201,7 @@ void ApplicationClass::CreateApplication() {
 		if (!std::filesystem::exists(Application->enginePathAppData + "\\cache.yaml")) {
 
 		}
-}
+	}
 #endif 
 
 	// Initialize OpenGL, Shaders and Skybox
@@ -265,6 +266,8 @@ void ApplicationClass::UpdateEngine() {
 
 	// Update Camera Position and Rotation
 	Application->activeCamera->Update();
+	// Update Audio Listener
+	Audio::UpdateListener();
 
 	// Update Filewatcher main thread
 	Filewatcher::UpdateOnMainThread();
@@ -287,6 +290,8 @@ void ApplicationClass::UpdateEngine() {
 #endif // GAME_REL == 0
 
 
+
+
 	// Clear buffers
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -306,9 +311,9 @@ void ApplicationClass::UpdateEngine() {
 	// Update Skybox
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 	Skybox::Update();
-	//  Draw Outline
 
-	if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth)
+	// Draw Outline
+	if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth && Application->focusedMenu != "Scene")
 	{
 		Renderer::RenderOutline(*Application->outlineShader);
 		combineBuffers();

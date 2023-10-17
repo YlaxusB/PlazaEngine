@@ -11,5 +11,7 @@ namespace Plaza {
 		class MaterialSerializer;
 		class TextureSerializer;
 		class CsScriptComponentSerializer;
+		class AudioSourceSerializer;
+		class AudioListenerSerializer;
 	};
 }

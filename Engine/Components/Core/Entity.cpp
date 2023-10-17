@@ -33,6 +33,12 @@ namespace Plaza {
 		else if constexpr (std::is_same_v<T, Plaza::Drawing::UI::TextRenderer>) {
 			return Application->activeScene->UITextRendererComponents;
 		}
+		else if constexpr (std::is_same_v<T, AudioSource>) {
+			return Application->activeScene->audioSourceComponents;
+		}
+		else if constexpr (std::is_same_v<T, AudioListener>) {
+			return Application->activeScene->audioListenerComponents;
+		}
 		else {
 			return Application->activeScene->transformComponents;
 		}
@@ -82,6 +88,8 @@ namespace Plaza {
 	template Collider* Entity::GetComponent<Collider>();
 	template CsScriptComponent* Entity::GetComponent<CsScriptComponent>();
 	template Plaza::Drawing::UI::TextRenderer* Entity::GetComponent<Plaza::Drawing::UI::TextRenderer>();
+	template AudioSource* Entity::GetComponent<AudioSource>();
+	template AudioListener* Entity::GetComponent<AudioListener>();
 	template<typename T>
 	T* Entity::GetComponent() {
 		Component* component = nullptr;
@@ -109,6 +117,8 @@ namespace Plaza {
 	template Collider* Entity::AddComponent<Collider>(Collider* component, bool addToComponentsList);
 	template CsScriptComponent* Entity::AddComponent<CsScriptComponent>(CsScriptComponent* component, bool addToComponentsList);
 	template Plaza::Drawing::UI::TextRenderer* Entity::AddComponent<Plaza::Drawing::UI::TextRenderer>(Plaza::Drawing::UI::TextRenderer* component, bool addToComponentsList);
+	template AudioSource* Entity::AddComponent<AudioSource>(AudioSource* component, bool addToComponentsList);
+	template AudioListener* Entity::AddComponent<AudioListener>(AudioListener* component, bool addToComponentsList);
 
 	template <typename T>
 	T* Entity::AddComponent(T* component, bool addToComponentsList) {
@@ -180,6 +190,8 @@ namespace Plaza {
 	template bool Entity::HasComponent<Collider>();
 	template bool Entity::HasComponent<CsScriptComponent>();
 	template bool Entity::HasComponent<Plaza::Drawing::UI::TextRenderer>();
+	template bool Entity::HasComponent<AudioSource>();
+	template bool Entity::HasComponent<AudioListener>();
 	template<typename T>
 	bool Entity::HasComponent() {
 		auto& components = GetComponentMap<T>();
@@ -195,6 +207,9 @@ namespace Plaza {
 	template void Entity::RemoveComponent<Collider>();
 	template void Entity::RemoveComponent<CsScriptComponent>();
 	template void Entity::RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
+	template void Entity::RemoveComponent<AudioSource>();
+	template void Entity::RemoveComponent<AudioListener>();
+
 	template <typename T>
 	void Entity::RemoveComponent() {
 		auto& components = GetComponentMap<T>();
@@ -233,6 +248,11 @@ namespace Plaza {
 				this->RemoveComponent<CsScriptComponent>();
 			if (this->HasComponent<Plaza::Drawing::UI::TextRenderer>())
 				this->RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
+			if (this->HasComponent<AudioSource>())
+				this->RemoveComponent<AudioSource>();
+			if (this->HasComponent<AudioListener>())
+				this->RemoveComponent<AudioListener>();
+
 			this->GetParent().childrenUuid.erase(std::remove(this->GetParent().childrenUuid.begin(), this->GetParent().childrenUuid.end(), this->uuid), this->GetParent().childrenUuid.end());
 			if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
 				Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
@@ -260,6 +280,10 @@ namespace Plaza {
 				this->RemoveComponent<CsScriptComponent>();
 			if (this->HasComponent<Plaza::Drawing::UI::TextRenderer>())
 				this->RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
+			if (this->HasComponent<AudioSource>())
+				this->RemoveComponent<AudioSource>();
+			if (this->HasComponent<AudioListener>())
+				this->RemoveComponent<AudioListener>();
 
 			if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
 				Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
@@ -268,7 +292,6 @@ namespace Plaza {
 		this->~Entity();
 	}
 
-
 	template Transform* Entity::AddComp<Transform>();
 	template Camera* Entity::AddComp<Camera>();
 	template MeshRenderer* Entity::AddComp<MeshRenderer>();
@@ -276,6 +299,8 @@ namespace Plaza {
 	template Collider* Entity::AddComp<Collider>();
 	template CsScriptComponent* Entity::AddComp<CsScriptComponent>();
 	template Plaza::Drawing::UI::TextRenderer* Entity::AddComp<Plaza::Drawing::UI::TextRenderer>();
+	template AudioSource* Entity::AddComp<AudioSource>();
+	template AudioListener* Entity::AddComp<AudioListener>();
 	template<typename T>
 	T* Entity::AddComp() {
 		return new T();

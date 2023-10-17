@@ -63,12 +63,17 @@ public:
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
 
-	int readPixel(int x, int y) {
+	uint64_t readPixel(int x, int y) {
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferId);
 		glReadBuffer(GL_COLOR_ATTACHMENT2);
-		float pixels[3];
+		uint32_t pixels[3];
 		glReadPixels(x, y, 1, 1, GL_RGB, GL_FLOAT, pixels);
-		return (int)pixels[0];
+		uint32_t value1 = pixels[0]; // Assuming value1 is the first pixel value
+		uint32_t value2 = pixels[1];
+		uint64_t reconstructedValue = (static_cast<uint64_t>(value2) << 32) | value1;
+		std::cout << reconstructedValue << "\n";
+
+		return reconstructedValue;
 	}
 
 	/// <summary>

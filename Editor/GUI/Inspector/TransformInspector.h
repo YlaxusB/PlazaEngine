@@ -3,6 +3,7 @@
 //#include "Editor/GUI/Inspector.h"
 //#include "Editor/GUI/gizmo.h"
 #include "Editor/GUI/Utils/DataVisualizer.h"
+#include "Editor/GUI/Utils/Utils.h"
 //#include "Editor/GUI/Utils/DataVisualizer.h"
 namespace Plaza::Editor {
 	class Gui::TransformInspector {
@@ -34,7 +35,7 @@ namespace Plaza::Editor {
 
 
 		TransformInspector(Entity* entity) {
-			if (ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+			if (Utils::ComponentInspectorHeader(entity->GetComponent<Transform>(), "Transform")) {
 				glm::vec3 startingPosition = entity->GetComponent<Transform>()->relativePosition;
 				glm::vec3 startingRotation = entity->GetComponent<Transform>()->rotation;
 				glm::vec3 startingScale = entity->GetComponent<Transform>()->scale;
@@ -78,7 +79,6 @@ namespace Plaza::Editor {
 
 
 				ImGui::PopID();
-				ImGui::TreePop();
 			}
 		}
 	};

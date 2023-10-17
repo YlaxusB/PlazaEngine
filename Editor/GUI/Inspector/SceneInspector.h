@@ -4,6 +4,7 @@
 #include "Editor/GUI/Utils/DataVisualizer.h"
 
 #include "Engine/Application/EditorCamera.h"
+#include "Editor/GUI/EditorInspector.h"
 bool visualizingNormals = false;
 namespace Plaza::Editor {
 	void callback(float) {
@@ -69,6 +70,7 @@ namespace Plaza::Editor {
 
 				ImGui::TreePop();
 			}
+			EditorInspector::Update();
 		}
 	};
 }

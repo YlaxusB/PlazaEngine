@@ -89,11 +89,14 @@ namespace Plaza::Editor {
 	}
 
 	void ScriptManager::ReloadScriptsAssembly() {
+		bool scriptDllExists = std::filesystem::exists(Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll");
+		if (scriptDllExists) {
 #ifdef  GAME_REL
-		ScriptManager::ReloadScriptsAssembly((Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str());
+			ScriptManager::ReloadScriptsAssembly((Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str());
 #else
-		ScriptManager::ReloadScriptsAssembly((Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll").c_str());
+			ScriptManager::ReloadScriptsAssembly((Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll").c_str());
 #endif //  GAME_REL
+		}
 	}
 
 	void ScriptManager::ReloadSpecificAssembly(std::string scriptPath) {

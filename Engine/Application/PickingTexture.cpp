@@ -23,15 +23,18 @@ void PickingTexture::Render(Shader& shader) {
 	glm::mat4 view = Application->activeCamera->GetViewMatrix();
 	shader.setMat4("projection", projection);
 	shader.setMat4("view", view);
-	for (const auto& entity : Application->activeScene->gameObjects) {
-		MeshRenderer* meshRenderer = entity.get()->GetComponent<MeshRenderer>();
+	for (auto& entity : Application->activeScene->entities) {
+		MeshRenderer* meshRenderer = entity.second.GetComponent<MeshRenderer>();
 		if (meshRenderer) {
-			Transform* transform = entity.get()->GetComponent<Transform>();
+			Transform* transform = entity.second.GetComponent<Transform>();
 
 			if (Application->activeCamera->IsInsideViewFrustum(transform->worldPosition)) {
 				glm::mat4 modelMatrix = transform->modelMatrix;
 				shader.setMat4("model", modelMatrix);
-				//shader.setFloat("objectID", entity.get()->id);
+				uint32_t lower32 = static_cast<uint32_t>(entity.first);
+				uint32_t upper32 = static_cast<uint32_t>(entity.first >> 32);
+				std::vector<uint32_t> uint32Values = { lower32, upper32 };
+				glUniform1uiv(glGetUniformLocation(shader.ID, "uuidArray"), uint32Values.size(), uint32Values.data());
 
 				meshRenderer->mesh->Draw(shader);
 			}

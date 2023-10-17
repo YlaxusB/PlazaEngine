@@ -33,16 +33,16 @@ namespace Plaza {
 
 		template <typename T>
 		void RemoveComponent(); //{
-			//Plaza::GetComponentMap(T);
-			//static_assert(std::is_base_of<Component, T>::value, "T must be a subclass of Component");
+		//Plaza::GetComponentMap(T);
+		//static_assert(std::is_base_of<Component, T>::value, "T must be a subclass of Component");
 
-			//auto it = std::remove_if(this->components.begin(), this->components.end(),
-			//	[](const std::shared_ptr<Component>& comp) {
-			//		return dynamic_cast<T*>(comp.get()) != nullptr;
-			//	});
+		//auto it = std::remove_if(this->components.begin(), this->components.end(),
+		//	[](const std::shared_ptr<Component>& comp) {
+		//		return dynamic_cast<T*>(comp.get()) != nullptr;
+		//	});
 
-			//this->components.erase(it, this->components.end());
-		//}
+		//this->components.erase(it, this->components.end());
+	//}
 
 		Entity& GetParent();
 		template<typename T>
@@ -60,6 +60,16 @@ namespace Plaza {
 				oldParent.childrenUuid.erase(oldParentIt);
 				newParent.childrenUuid.push_back(this->uuid);
 			}
+		}
+
+		void ChangeParent(Entity* oldParent, Entity* newParent) {
+			this->parentUuid = newParent->uuid;
+			auto oldParentIt = std::find(oldParent->childrenUuid.begin(), oldParent->childrenUuid.end(), this->uuid);
+			auto newParentIt = std::find(newParent->childrenUuid.begin(), newParent->childrenUuid.end(), this->uuid);
+			if (oldParentIt != oldParent->childrenUuid.end()) {
+				oldParent->childrenUuid.erase(oldParentIt);
+			}
+			newParent->childrenUuid.push_back(this->uuid);
 		}
 
 		void Rename(std::string newName);

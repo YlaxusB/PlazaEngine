@@ -5,6 +5,8 @@
 #include "Editor/GUI/Inspector/SceneInspector.h"
 #include "Editor/GUI/Inspector/ColliderInspector.h"
 #include "Editor/GUI/Inspector/CppScriptComponentInspector.h"
+#include "Editor/GUI/Inspector/AudioListenerInspector.h"
+#include "Editor/GUI/Inspector/AudioSourceInspector.h"
 
 namespace Plaza::Editor {
 	std::vector<Component*> Inspector::ComponentInspector::components;
@@ -19,6 +21,9 @@ namespace Plaza::Editor {
 			for (Component* component : components) {
 				CreateRespectiveInspector(component);
 			}
+			ImGui::Text("Parent Uuid: ");
+			std::string uuidString = std::to_string(Editor::selectedGameObject->parentUuid);
+			ImGui::Text(uuidString.c_str());
 		}
 	}
 	void Inspector::ComponentInspector::UpdateComponents() {
@@ -45,6 +50,10 @@ namespace Plaza::Editor {
 			}
 		}
 
+		if (activeScene->audioSourceComponents.contains(uuid))
+			components.push_back(&activeScene->audioSourceComponents.at(uuid));
+		if (activeScene->audioListenerComponents.contains(uuid))
+			components.push_back(&activeScene->audioListenerComponents.at(uuid));
 	}
 
 	void Inspector::ComponentInspector::CreateRespectiveInspector(Component* component) {
@@ -62,6 +71,12 @@ namespace Plaza::Editor {
 		}
 		else if (CsScriptComponent* csScriptComponent = dynamic_cast<CsScriptComponent*>(component)) {
 			Plaza::Editor::CppScriptComponentInspector::CppScriptComponentInspector(csScriptComponent);
+		}
+		else if (AudioSource* audioSource = dynamic_cast<AudioSource*>(component)) {
+			Plaza::Editor::AudioSourceInspector::AudioSourceInspector(audioSource);
+		}
+		else if (AudioListener* audioListener = dynamic_cast<AudioListener*>(component)) {
+			Plaza::Editor::AudioListenerInspector::AudioListenerInspector(audioListener);
 		}
 	}
 }

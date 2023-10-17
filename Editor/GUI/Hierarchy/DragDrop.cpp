@@ -73,8 +73,9 @@ void InsertAfter(Plaza::Entity* payloadObj, Plaza::Entity* currentObj) {
 }
 
 void InsertAsChild(Plaza::Entity* payloadObj, Plaza::Entity* currentObj) {
-	payloadObj->GetParent().childrenUuid.erase(std::remove(payloadObj->GetParent().childrenUuid.begin(), payloadObj->GetParent().childrenUuid.end(), payloadObj->uuid), payloadObj->GetParent().childrenUuid.end());
-	Application->activeScene->entities.at(payloadObj->uuid).parentUuid = currentObj->uuid;
-	currentObj->childrenUuid.insert(currentObj->childrenUuid.begin(), payloadObj->uuid);
-	payloadObj->GetParent().GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+	payloadObj->ChangeParent(&payloadObj->GetParent(), currentObj);
+	//payloadObj->GetParent().childrenUuid.erase(std::remove(payloadObj->GetParent().childrenUuid.begin(), payloadObj->GetParent().childrenUuid.end(), payloadObj->uuid), payloadObj->GetParent().childrenUuid.end());
+	//Application->activeScene->entities.at(payloadObj->uuid).parentUuid = currentObj->uuid;
+	//currentObj->childrenUuid.insert(currentObj->childrenUuid.begin(), payloadObj->uuid);
+	//payloadObj->GetParent().GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 }

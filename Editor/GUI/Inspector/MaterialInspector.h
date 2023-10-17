@@ -3,13 +3,13 @@
 
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Components/Core/Entity.h"
-
+#include "Editor/GUI/Utils/Utils.h"
 
 namespace Plaza::Editor {
 	static class MaterialInspector {
 	public:
 		MaterialInspector(Entity* entity) {
-			if (ImGui::TreeNodeEx("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
+			if (Utils::ComponentInspectorHeader(entity->GetComponent<MeshRenderer>(), "Material")) {
 				ImGui::PushID("MaterialInspector");
 				Material& material = entity->GetComponent<MeshRenderer>()->mesh->material;
 				glm::vec4& diffuse = material.diffuse.rgba;
@@ -36,7 +36,6 @@ namespace Plaza::Editor {
 				ImGui::Text(Editor::selectedGameObject->GetComponent<Transform>()->scene.c_str());
 
 				ImGui::PopID();
-				ImGui::TreePop();
 			}
 
 		}

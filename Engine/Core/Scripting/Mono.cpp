@@ -258,11 +258,12 @@ namespace Plaza {
 #else
 		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll").c_str());
 #endif
-		Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
 		if (!Mono::mScriptAssembly) {
 			// Handle assembly loading error
 			std::cout << "Failed to load assembly on path: " << (Application->projectPath + "\\Binaries\\" + Application->activeProject->name + ".dll").c_str() << "\n";
 		}
+		else
+			Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
 	}
 
 	void Mono::OnStart(MonoObject* monoObject) {

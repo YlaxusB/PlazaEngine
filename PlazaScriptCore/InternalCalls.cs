@@ -60,6 +60,10 @@ namespace Plaza
 
         #region Entity;
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static string EntityGetName(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void EntitySetName(UInt64 uuid, string name);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static UInt64 EntityGetParent(UInt64 uuid);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static List<UInt64> EntityGetChildren(UInt64 uuid);
@@ -249,6 +253,49 @@ namespace Plaza
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         private extern static void MeshRenderer_SetNormals(UInt64 uuid, IntPtr indices, int size);
+
+        /* Uvs */
+        public static Vector2[] MeshRenderer_GetUvs(UInt64 uuid)
+        {
+            int size = 0;
+            IntPtr ptr = IntPtr.Zero;
+            MeshRenderer_GetUvs(uuid, ref ptr, ref size);
+
+            if (size > 0 && ptr != IntPtr.Zero)
+            {
+                Vector2[] result = new Vector2[size];
+                for (int i = 0; i < size; i++)
+                {
+                    result[i] = (Vector2)Marshal.PtrToStructure(ptr + i * Marshal.SizeOf<Vector2>(), typeof(Vector2));
+                }
+                return result;
+            }
+            else
+            {
+                return null; // Handle empty or null data
+            }
+        }
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        private extern static void MeshRenderer_GetUvs(UInt64 uuid, ref IntPtr ptr, ref int size);
+
+        public static void MeshRenderer_SetUvs(UInt64 uuid, Vector2[] normals)
+        {
+            int size = normals.Length;
+            IntPtr ptr = Marshal.AllocHGlobal(size * Marshal.SizeOf<Vector2>());
+            for (int i = 0; i < size; i++)
+            {
+                Marshal.StructureToPtr(normals[i], ptr + i * Marshal.SizeOf<Vector2>(), false);
+            }
+
+            MeshRenderer_SetUvs(uuid, ptr, size);
+
+            Marshal.FreeHGlobal(ptr);
+        }
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        private extern static void MeshRenderer_SetUvs(UInt64 uuid, IntPtr indices, int size);
+
         #endregion MeshRenderer
 
         #region RigidBody

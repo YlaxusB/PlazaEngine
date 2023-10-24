@@ -295,9 +295,8 @@ namespace Plaza {
 			for (auto& [className, classScript] : value.scriptClasses) {
 				CallMethod(classScript->monoObject, classScript->onUpdateMethod, nullptr);
 			}
-
-			//CallMethod(value.monoObject, "OnUpdate");
 		}
+		//CallMethod(value.monoObject, "OnUpdate");
 	}
 
 	template<typename Component>

@@ -14,6 +14,16 @@ namespace Plaza
     {
 
         public UInt64 Uuid;
+        public string Name
+        {
+            get
+            {
+                return InternalCalls.EntityGetName(this.Uuid);
+            }
+            set {
+                InternalCalls.EntitySetName(this.Uuid, value);
+            }
+        }
 
         public Entity parent
         {
@@ -200,8 +210,33 @@ namespace Plaza
         }
     }
 
+    public class Mesh
+    {
+        public Mesh()
+        {
+
+        }
+        public UInt64 uuid;
+        public Vector3[] Vertices;
+
+        public int[] Indices;
+
+        public Vector3[] Normals;
+        public Vector2[] Uvs;
+    }
+
     public class MeshRenderer : Component
     {
+        public Mesh mesh
+        {
+            set
+            {
+                InternalCalls.MeshRenderer_SetVertices(Uuid, value.Vertices);
+                InternalCalls.MeshRenderer_SetIndices(Uuid, value.Indices);
+                InternalCalls.MeshRenderer_SetNormals(Uuid, value.Normals);
+                InternalCalls.MeshRenderer_SetUvs(Uuid, value.Uvs);
+            }
+        }
         public Vector3[] Vertices
         {
             get
@@ -237,21 +272,18 @@ namespace Plaza
                 InternalCalls.MeshRenderer_SetNormals(Uuid, value);
             }
         }
-        /*
+        
         public Vector2[] Uvs
         {
             get
             {
-                InternalCalls.MeshRenderer_GetUvs(Entity.Uuid, out Vector2[] uvs);
-                return uvs;
+                return InternalCalls.MeshRenderer_GetUvs(Entity.Uuid);
             }
             set
             {
-                InternalCalls.MeshRenderer_SetUvs(Uuid, ref value);
+                InternalCalls.MeshRenderer_SetUvs(Uuid, value);
             }
         }
-
-        */
     }
 
     #region Rigid Body

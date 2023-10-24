@@ -648,6 +648,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Editor\GUI\Hierarchy\HierarchyPopup.h" />
     <ClInclude Include="Editor\GUI\Inspector\AudioListenerInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\AudioSourceInspector.h" />
+    <ClInclude Include="Editor\GUI\Inspector\CameraInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\ColliderInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\CppScriptComponentInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\RigidBodyInspector.h" />

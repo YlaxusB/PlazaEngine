@@ -7,6 +7,7 @@
 #include "Editor/GUI/Inspector/CppScriptComponentInspector.h"
 #include "Editor/GUI/Inspector/AudioListenerInspector.h"
 #include "Editor/GUI/Inspector/AudioSourceInspector.h"
+#include "Editor/GUI/Inspector/CameraInspector.h"
 
 namespace Plaza::Editor {
 	std::vector<Component*> Inspector::ComponentInspector::components;
@@ -37,6 +38,9 @@ namespace Plaza::Editor {
 		if (activeScene->meshRendererComponents.contains(uuid))
 			components.push_back(&activeScene->meshRendererComponents.at(uuid));
 
+		if (activeScene->cameraComponents.contains(uuid))
+			components.push_back(&activeScene->cameraComponents.at(uuid));
+
 		if (activeScene->rigidBodyComponents.contains(uuid))
 			components.push_back(&activeScene->rigidBodyComponents.at(uuid));
 
@@ -62,6 +66,9 @@ namespace Plaza::Editor {
 		}
 		else if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {
 			Plaza::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
+		}
+		else if (Camera* camera = dynamic_cast<Camera*>(component)) {
+			Plaza::Editor::CameraInspector::CameraInspector(camera);
 		}
 		else if (RigidBody* rigidBody = dynamic_cast<RigidBody*>(component)) {
 			Plaza::Editor::RigidBodyInspector::RigidBodyInspector(rigidBody);

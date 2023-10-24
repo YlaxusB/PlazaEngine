@@ -67,6 +67,12 @@ namespace Plaza::Editor {
 						physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
 						collider->AddShape(new ColliderShape(shape, ColliderShapeEnum::BOX, 0));
 					}
+					if (ImGui::MenuItem("Plane"))
+					{
+						physx::PxBoxGeometry geometry(transform.scale.x / 2.1, 0.001f, transform.scale.z / 2.1);
+						physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
+						collider->AddShape(new ColliderShape(shape, ColliderShapeEnum::PLANE, 0));
+					}
 					if (ImGui::MenuItem("Sphere"))
 					{
 						physx::PxSphereGeometry geometry(1.0f);

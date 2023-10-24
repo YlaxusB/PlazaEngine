@@ -78,10 +78,12 @@ namespace Plaza {
 	void Collider::Init(RigidBody* rigidBody) {
 		// Check if Rigid Body exists
 		this->mDynamic = rigidBody != nullptr;
+		this->lastScale = glm::vec3(0.0f);
 		if (rigidBody)
 			this->mDynamic = !rigidBody->kinematic;
-		if (Application->runningScene || Application->copyingScene)
+		if (Application->runningScene || Application->copyingScene) {
 			InitCollider(rigidBody);
+		}
 	}
 
 	void Collider::RemoveCollider() {
@@ -109,6 +111,7 @@ namespace Plaza {
 			this->mRigidActor->attachShape(*shape->mPxShape);
 		}
 		Physics::m_scene->addActor(*this->mRigidActor);
+		//this->UpdateShapeScale(Application->activeScene->transformComponents.at(this->uuid).GetWorldScale());
 	}
 
 	void Collider::AddConvexMeshShape(Mesh* mesh) {
@@ -188,7 +191,7 @@ namespace Plaza {
 			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShapeEnum::SPHERE, 0));
 		}
 		else if (shapeEnum == ColliderShapeEnum::PLANE) {
-			physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
+			physx::PxBoxGeometry geometry(transform->scale.x / 2.1, 0.001f, transform->scale.z / 2.1);
 			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShapeEnum::PLANE, 0));
 		}
 		else if (shapeEnum == ColliderShapeEnum::CAPSULE) {
@@ -213,57 +216,53 @@ namespace Plaza {
 	}
 
 	void Collider::UpdateAllShapesScale() {
-
+		UpdateShapeScale(Application->activeScene->transformComponents.at(this->uuid).GetWorldScale());
 	}
 
 	void Collider::UpdateShapeScale(glm::vec3 scale) {
-		if(lastScale != scale){
-			for (int i = 0; i < this->mShapes.size(); ++i) {
-				physx::PxShape* shape = this->mShapes[i]->mPxShape;
-				physx::PxGeometryHolder geometry = this->mShapes[i]->mPxShape->getGeometry();
-				physx::PxShape* newShape = this->mShapes[i]->mPxShape;
-				physx::PxMaterial* material;
-				this->mShapes[i]->mPxShape->getMaterials(&material, 1);
-				// Scale the geometry parameters by the given factor
-				if (geometry.getType() == physx::PxGeometryType::eBOX) {
-					physx::PxBoxGeometry boxGeom = geometry.box();
-					boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
-					newShape = Physics::m_physics->createShape(boxGeom, *material);
-				}
-				else if (geometry.getType() == physx::PxGeometryType::eSPHERE) {
-					physx::PxSphereGeometry sphereGeometry = geometry.sphere();
-					//boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
-					sphereGeometry.radius = (scale.x + scale.y + scale.z) / 3;
-					newShape = Physics::m_physics->createShape(sphereGeometry, *material);
-					//physx::PxSphereGeometry sphereGeom;
-					//sphereGeom.radius *= 3;
-					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
-				}
+		for (int i = 0; i < this->mShapes.size(); ++i) {
+			physx::PxShape* shape = this->mShapes[i]->mPxShape;
+			physx::PxGeometryHolder geometry = this->mShapes[i]->mPxShape->getGeometry();
+			physx::PxShape* newShape = this->mShapes[i]->mPxShape;
+			physx::PxMaterial* material;
+			this->mShapes[i]->mPxShape->getMaterials(&material, 1);
+			// Scale the geometry parameters by the given factor
+			if (this->mShapes[i]->mEnum == ColliderShapeEnum::BOX) {
+				physx::PxBoxGeometry boxGeom = geometry.box();
+				boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
+				newShape = Physics::m_physics->createShape(boxGeom, *material);
+			}
+			else if (this->mShapes[i]->mEnum == ColliderShapeEnum::PLANE) {
+				physx::PxBoxGeometry planeGeom = geometry.box();
+				planeGeom.halfExtents = physx::PxVec3(scale.x / 2, 0.001f, scale.z / 2);
+				newShape = Physics::m_physics->createShape(planeGeom, *material);
+			}
+			else if (this->mShapes[i]->mEnum == ColliderShapeEnum::SPHERE) {
+				physx::PxSphereGeometry sphereGeometry = geometry.sphere();
+				//boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
+				sphereGeometry.radius = (scale.x + scale.y + scale.z) / 3;
+				newShape = Physics::m_physics->createShape(sphereGeometry, *material);
+				//physx::PxSphereGeometry sphereGeom;
+				//sphereGeom.radius *= 3;
+				//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
+			}
 
-				if (Application->runningScene && Application->runtimeScene->rigidBodyComponents.find(this->uuid) != Application->runtimeScene->rigidBodyComponents.end()) {
-					// Found RigidBody
-					RigidBody* rigidBody = &Application->runtimeScene->rigidBodyComponents.at(this->uuid);
 
+			if (Application->runningScene && this->mRigidActor) {
+				if (this->mDynamic) {
+					this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
+					this->mShapes[i]->mPxShape = newShape;
+					this->mRigidActor->attachShape(*newShape);
 				}
 				else {
-
-				}
-
-				if (Application->runningScene && this->mRigidActor) {
-					if (this->mDynamic) {
-						this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
-						this->mShapes[i] = this->mShapes[i];
-						this->mRigidActor->attachShape(*this->mShapes[i]->mPxShape);
-					}
-					else {
-						this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
-						this->mShapes[i] = this->mShapes[i];
-						this->mRigidActor->attachShape(*this->mShapes[i]->mPxShape);
-					}
+					this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
+					this->mShapes[i]->mPxShape = newShape;
+					this->mRigidActor->attachShape(*newShape);
 				}
 			}
 		}
 		lastScale = scale;
+
 	}
 
 	template <typename EnumType>

@@ -147,6 +147,9 @@ namespace Plaza {
 		Application->activeScene = Application->runtimeScene;
 		Application->copyingScene = false;
 		Application->runningScene = true;
+		for (auto& [key, collider] : Application->activeScene->colliderComponents) {
+			collider.UpdateShapeScale(Application->activeScene->transformComponents.at(collider.uuid).GetWorldScale());;
+		}
 #ifndef GAME_REL
 		ImGui::SetWindowFocus("Scene");
 #endif
@@ -202,7 +205,8 @@ namespace Plaza {
 	Entity* Scene::GetEntityByName(std::string name) {
 		if (Application->activeScene->entitiesNames.find(name) != Application->activeScene->entitiesNames.end()) {
 			for (const auto& element : Application->activeScene->entitiesNames.at(name)) {
-				return &Application->activeScene->entities.at(element);
+				if (Application->activeScene->entities.find(element) != Application->activeScene->entities.end())
+					return &Application->activeScene->entities.at(element);
 			}
 		}
 		return nullptr;

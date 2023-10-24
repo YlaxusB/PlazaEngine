@@ -98,7 +98,7 @@ namespace Plaza::Editor {
 						while ((field = mono_class_get_fields(mono_object_get_class(scriptClass->monoObject), &iter)) != NULL)
 						{
 							ImGui::Text(mono_field_get_name(field));
-							CreateRespectiveInteractor(scriptClass->monoObject, field, sliderIndex);
+							//CreateRespectiveInteractor(scriptClass->monoObject, field, sliderIndex);
 						}
 					}
 					else {

@@ -67,20 +67,20 @@ namespace Plaza::Editor {
 
 			// --- Rotation
 			glm::mat4 updatedTransform = glm::inverse(parentTransform.GetTransform()) * glm::toMat4(glm::quat(rotation));
-				/*
-				glm::translate(glm::mat4(1.0f), position)
-				* glm::toMat4(glm::inverse(glm::quat(parentTransform.GetWorldQuaternion())))
-				* glm::toMat4(glm::quat(rotation))
-				* glm::scale(glm::mat4(1.0f), parentTransform.scale);
-				*/
+			/*
+			glm::translate(glm::mat4(1.0f), position)
+			* glm::toMat4(glm::inverse(glm::quat(parentTransform.GetWorldQuaternion())))
+			* glm::toMat4(glm::quat(rotation))
+			* glm::scale(glm::mat4(1.0f), parentTransform.scale);
+			*/
 			glm::vec3 parentPosition, parentRotation, parentScale;
-			DecomposeTransform(parentTransform.modelMatrix , parentPosition, parentRotation, parentScale); // The rotation is radians
+			DecomposeTransform(parentTransform.modelMatrix, parentPosition, parentRotation, parentScale); // The rotation is radians
 
 			glm::vec3 updatedPosition, updatedRotation, updatedScale;
 			DecomposeTransform(updatedTransform, updatedPosition, updatedRotation, updatedScale); // The rotation is radians
 
 			glm::mat4 rotationMatrix = glm::inverse(glm::mat4_cast(parentTransform.GetWorldQuaternion()));
-		//	rotation = glm::eulerAngles(glm::quat(glm::inverse(transform.modelMatrix) * (glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z))));
+			//	rotation = glm::eulerAngles(glm::quat(glm::inverse(transform.modelMatrix) * (glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z))));
 			rotation = updatedRotation;
 			//rotation = -parentRotation * rotation;
 			// Adding the deltaRotation avoid the gimbal lock
@@ -102,7 +102,7 @@ namespace Plaza::Editor {
 			rotationMatrix = glm::rotate(rotationMatrix, -parentWorldRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
 			rotationMatrix = glm::rotate(rotationMatrix, -parentWorldRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 			rotationMatrix = glm::rotate(rotationMatrix, -parentWorldRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-			
+
 
 			glm::vec3 localPoint = glm::vec3(rotationMatrix * glm::vec4(position - parentPosition, 1.0f));
 			transform.relativePosition = localPoint / parentScale;//localPoint;
@@ -131,9 +131,13 @@ namespace Plaza::Editor {
 
 			//}
 			//transform.SetRelativeScale(transform.scale);
-			if (collider && collider->mDynamic) {
-				collider->mRigidActor->is<physx::PxRigidDynamic>()->setLinearVelocity(physx::PxVec3(0.0f));
-				collider->mRigidActor->is<physx::PxRigidDynamic>()->setAngularVelocity(physx::PxVec3(0.0f));
+			if (collider) {
+				collider->UpdateAllShapesScale();
+
+				//if (collider->mDynamic) {
+				//	collider->mRigidActor->is<physx::PxRigidDynamic>()->setLinearVelocity(physx::PxVec3(0.0f));
+				//	collider->mRigidActor->is<physx::PxRigidDynamic>()->setAngularVelocity(physx::PxVec3(0.0f));
+				//}
 			}
 		}
 
@@ -208,7 +212,7 @@ namespace Plaza::Editor {
 				scale[i] *= static_cast<T>(-1);
 				Row[i] *= static_cast<T>(-1);
 			}
-	}
+		}
 #endif
 
 		rotation.y = asin(-Row[0][2]);
@@ -223,5 +227,5 @@ namespace Plaza::Editor {
 
 
 		return true;
-}
+	}
 }

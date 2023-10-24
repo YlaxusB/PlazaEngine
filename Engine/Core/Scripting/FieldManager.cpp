@@ -152,10 +152,6 @@ namespace Plaza {
 		while ((monoField = mono_class_get_fields(mono_object_get_class(monoObject), &iter)) != NULL)
 		{
 			std::cout << mono_field_get_name(monoField) << "\n";
-			std::string a = mono_field_get_name(monoField);
-			if (a == "truck") {
-				std::cout << "this is a truck 4 \n";
-			}
 			Field* field = new Field();
 			field->mType = mono_type_get_type(mono_field_get_type(monoField));
 			field->mName = mono_field_get_name(monoField);
@@ -170,9 +166,6 @@ namespace Plaza {
 				MonoObject* newMonoObject = nullptr;
 				mono_field_get_value(monoObject, mono_class_get_field_from_name(mono_object_get_class(monoObject), field->mName.c_str()), &newMonoObject);
 				MonoObject* fieldObject = mono_field_get_value_object(Mono::mAppDomain, monoField, monoObject);
-				if (mono_field_get_name(mono_class_get_field_from_name(mono_object_get_class(monoObject), field->mName.c_str())) == "truck") {
-					std::cout << "this is a truck 4 \n";
-				}
 				if (newMonoObject) {
 					field->mChildren = FieldManager::GetFieldsValues(newMonoObject, field);
 					fields.emplace(field->mName, field);

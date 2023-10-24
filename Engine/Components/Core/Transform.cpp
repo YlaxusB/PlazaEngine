@@ -26,11 +26,11 @@ namespace Plaza {
 
 	glm::vec3 Transform::GetWorldScale() {
 		glm::vec3 scale;
-		glm::vec3 translation;
-		glm::quat rotation;
-		glm::vec3 skew;
-		glm::vec4 perspective;
-		glm::decompose(this->modelMatrix, scale, rotation, translation, skew, perspective);
+		 
+		scale.x = glm::length(modelMatrix[0]);
+		scale.y = glm::length(modelMatrix[1]);
+		scale.z = glm::length(modelMatrix[2]);
+
 		return scale;
 	}
 
@@ -185,7 +185,7 @@ namespace Plaza {
 
 	void Transform::SetRelativeScale(glm::vec3 vector) {
 		this->scale = vector;
-		//this->UpdateChildrenTransform();
+		this->UpdateSelfAndChildrenTransform();
 		if (Collider* collider = GetGameObject()->GetComponent<Collider>()) {
 			collider->UpdateShapeScale(this->worldScale);
 		}

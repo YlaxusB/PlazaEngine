@@ -137,12 +137,15 @@ namespace Plaza {
 	}
 
 	static uint64_t Instantiate(uint64_t uuid) {
+		if (Application->activeScene->entities.find(uuid) == Application->activeScene->entities.end())
+			return 0;
 		Entity* entityToInstantiate = &Application->activeScene->entities.at(uuid);
 		Entity* instantiatedEntity = new Entity(entityToInstantiate->name, &Application->activeScene->entities.at(entityToInstantiate->parentUuid));
 		instantiatedEntity = &Application->activeScene->entities.at(instantiatedEntity->uuid);
 
-		instantiatedEntity->GetComponent<Transform>()->SetRelativePosition(entityToInstantiate->GetComponent<Transform>()->relativePosition + glm::vec3(1.0f, 1.0f, 1.0f));
+		instantiatedEntity->GetComponent<Transform>()->SetRelativePosition(entityToInstantiate->GetComponent<Transform>()->relativePosition);
 		instantiatedEntity->GetComponent<Transform>()->SetRelativeRotation(entityToInstantiate->GetComponent<Transform>()->rotation);
+		instantiatedEntity->GetComponent<Transform>()->scale = entityToInstantiate->GetComponent<Transform>()->scale;
 
 		if (entityToInstantiate->HasComponent<MeshRenderer>()) {
 			MeshRenderer* meshRendererToInstantiate = entityToInstantiate->GetComponent<MeshRenderer>();
@@ -157,6 +160,7 @@ namespace Plaza {
 			Collider* newCollider = new Collider(*entityToInstantiate->GetComponent<Collider>());
 			newCollider->uuid = instantiatedEntity->uuid;
 			instantiatedEntity->AddComponent<Collider>(newCollider);
+			newCollider->Init(nullptr);
 		}
 
 		if (entityToInstantiate->HasComponent<RigidBody>()) {
@@ -213,6 +217,17 @@ namespace Plaza {
 				instantiatedEntity->AddComponent<CsScriptComponent>(script);
 			}
 		}
+		for (unsigned int i = 0; i < entityToInstantiate->childrenUuid.size(); i++) {
+			uint64_t childUuid = entityToInstantiate->childrenUuid[i];
+			uint64_t uuid = Instantiate(childUuid);
+			if (uuid)
+				Application->activeScene->entities.at(uuid).ChangeParent(Application->activeScene->entities.at(uuid).GetParent(), *instantiatedEntity);
+		}
+
+		instantiatedEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+		//if (instantiatedEntity->HasComponent<Collider>()) {
+		//	instantiatedEntity->GetComponent<Collider>()->UpdateShapeScale(instantiatedEntity->GetComponent<Transform>()->GetWorldScale());
+		//}
 		return instantiatedEntity->uuid;
 	}
 
@@ -251,8 +266,21 @@ namespace Plaza {
 			});
 
 	}
+#pragma endregion Input
 
 #pragma region Entity
+	static MonoString* EntityGetName(uint64_t uuid) {
+		auto it = Application->activeScene->entities.find(uuid);
+		if (it != Application->activeScene->entities.end()) {
+			return mono_string_new(Mono::mAppDomain, it->second.name.c_str());
+		}
+	}
+	static void EntitySetName(uint64_t uuid, MonoString* name) {
+		auto it = Application->activeScene->entities.find(uuid);
+		if (it != Application->activeScene->entities.end()) {
+			it->second.name = mono_string_to_utf8(name);
+		}
+	}
 	static uint64_t EntityGetParent(uint64_t uuid) {
 		auto it = Application->activeScene->entities.find(uuid);
 		if (it != Application->activeScene->entities.end()) {
@@ -282,11 +310,13 @@ namespace Plaza {
 
 	static void EntityDelete(uint64_t uuid) {
 		if (uuid) {
-			Application->activeScene->entities.at(uuid).Delete();
-			auto it = Application->activeScene->entities.find(uuid); // Find the iterator for the key
-			if (it != Application->activeScene->entities.end()) {
-				Application->activeScene->entities.erase(it); // Erase the element if found
-			}
+			Editor::Filewatcher::AddToMainThread([uuid]() {
+				Application->activeScene->entities.at(uuid).Delete();
+				auto it = Application->activeScene->entities.find(uuid); // Find the iterator for the key
+				if (it != Application->activeScene->entities.end()) {
+					Application->activeScene->entities.erase(it); // Erase the element if found
+				}
+				});
 		}
 	}
 #pragma endregion Entity
@@ -480,6 +510,50 @@ namespace Plaza {
 		}
 	}
 
+	static void MeshRenderer_GetUvs(uint64_t uuid, glm::vec2** out, int* size) {
+		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+			vector<glm::vec2> uvs = meshRendererIt->second.mesh.get()->uvs;
+			*size = static_cast<int>(uvs.size());
+			*out = uvs.data();
+		}
+		else {
+			*size = 0;
+			*out = nullptr;
+		}
+	}
+
+	static void MeshRenderer_SetUvs(uint64_t uuid, glm::vec2* uvs, int size) {
+		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
+			shared_ptr<Mesh> oldMesh = meshRendererIt->second.mesh;
+			Mesh* newMesh = new Mesh(*oldMesh);
+			newMesh->meshId = Plaza::UUID::NewUUID();
+			newMesh->temporaryMesh = true;
+			if (oldMesh->temporaryMesh) {
+				newMesh->meshId = oldMesh->meshId;
+				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
+			}
+			else {
+				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+			}
+			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId);
+			vector<glm::vec2>& meshUvs = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->uvs;
+			meshUvs.clear();
+
+			// Reserve space for the new vertices (optional but can improve performance)
+			meshUvs.reserve(size);
+
+			// Copy the provided vertices into the meshVertices vector
+			for (int i = 0; i < size; ++i) {
+				meshUvs.push_back(uvs[i]);
+			}
+			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			delete newMesh;
+		}
+	}
+
 #pragma endregion Mesh Renderer Component
 
 #pragma region RigidBody
@@ -612,6 +686,8 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::GetMouseDelta", GetMouseDelta);
 		mono_add_internal_call("Plaza.InternalCalls::CursorHide", CursorHide);
 
+		mono_add_internal_call("Plaza.InternalCalls::EntityGetName", EntityGetName);
+		mono_add_internal_call("Plaza.InternalCalls::EntitySetName", EntitySetName);
 		mono_add_internal_call("Plaza.InternalCalls::EntityGetParent", EntityGetParent);
 		mono_add_internal_call("Plaza.InternalCalls::EntitySetParent", EntitySetParent);
 		mono_add_internal_call("Plaza.InternalCalls::EntityGetChildren", EntityGetChildren);
@@ -621,6 +697,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::RemoveComponent", RemoveComponent);
 		mono_add_internal_call("Plaza.InternalCalls::HasScript", HasScript);
 		mono_add_internal_call("Plaza.InternalCalls::GetScript", GetScript);
+
 
 
 		mono_add_internal_call("Plaza.InternalCalls::GetPositionCall", GetPositionCall);
@@ -640,6 +717,8 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetIndices", MeshRenderer_SetIndices);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetNormals", MeshRenderer_GetNormals);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetNormals", MeshRenderer_SetNormals);
+		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetUvs", MeshRenderer_GetUvs);
+		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetUvs", MeshRenderer_SetUvs);
 
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_ApplyForce", RigidBody_ApplyForce);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_AddForce", RigidBody_AddForce);

@@ -253,6 +253,9 @@ namespace Plaza {
 			if (this->HasComponent<AudioListener>())
 				this->RemoveComponent<AudioListener>();
 
+			if (Editor::selectedGameObject && Editor::selectedGameObject->uuid == this->uuid)
+				Editor::selectedGameObject = nullptr;
+
 			this->GetParent().childrenUuid.erase(std::remove(this->GetParent().childrenUuid.begin(), this->GetParent().childrenUuid.end(), this->uuid), this->GetParent().childrenUuid.end());
 			if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
 				Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
@@ -276,14 +279,28 @@ namespace Plaza {
 				this->RemoveComponent<RigidBody>();
 			if (this->HasComponent<Camera>())
 				this->RemoveComponent<Camera>();
-			if (this->HasComponent<CsScriptComponent>())
+			if (this->HasComponent<CsScriptComponent>()) {
 				this->RemoveComponent<CsScriptComponent>();
+				Application->activeScene->csScriptComponents.erase(this->uuid);
+			}
 			if (this->HasComponent<Plaza::Drawing::UI::TextRenderer>())
 				this->RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
 			if (this->HasComponent<AudioSource>())
 				this->RemoveComponent<AudioSource>();
 			if (this->HasComponent<AudioListener>())
 				this->RemoveComponent<AudioListener>();
+
+			/*
+						MeshRenderer* meshRendererToInstantiate = entityToInstantiate->GetComponent<MeshRenderer>();
+			MeshRenderer* newMeshRenderer = new MeshRenderer();
+			newMeshRenderer->uuid = instantiatedEntity->uuid;
+			newMeshRenderer->instanced = true;
+			newMeshRenderer->mesh = shared_ptr<Mesh>(meshRendererToInstantiate->mesh);
+			instantiatedEntity->AddComponent<MeshRenderer>(newMeshRenderer);
+			*/
+
+			if (Editor::selectedGameObject && Editor::selectedGameObject->uuid == this->uuid)
+				Editor::selectedGameObject = nullptr;
 
 			if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
 				Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));

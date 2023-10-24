@@ -78,13 +78,15 @@ namespace Plaza::Editor {
 
 		mono_domain_set(Mono::mAppDomain, true);
 		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, dllPath.c_str());
-		Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
+		if (Mono::mScriptAssembly) {
+			Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
 
-		// Initialize all scripts again
-		for (auto& [key, value] : Application->activeScene->csScriptComponents) {
-			std::string scriptPath = value.scriptPath;
-			value = *new CsScriptComponent(key);
-			value.Init(scriptPath);
+			// Initialize all scripts again
+			for (auto& [key, value] : Application->activeScene->csScriptComponents) {
+				std::string scriptPath = value.scriptPath;
+				value = *new CsScriptComponent(key);
+				value.Init(scriptPath);
+			}
 		}
 	}
 
@@ -96,8 +98,8 @@ namespace Plaza::Editor {
 #else
 			ScriptManager::ReloadScriptsAssembly((Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll").c_str());
 #endif //  GAME_REL
-		}
 	}
+}
 
 	void ScriptManager::ReloadSpecificAssembly(std::string scriptPath) {
 		const auto& script = Application->activeProject->scripts.find(scriptPath);

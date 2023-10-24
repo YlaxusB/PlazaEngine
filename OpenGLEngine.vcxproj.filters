@@ -2168,6 +2168,9 @@
     <ClInclude Include="Engine\Core\Audio\Audio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Editor\GUI\Inspector\CameraInspector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Engine\Shaders\skybox\skyboxVertex.glsl" />

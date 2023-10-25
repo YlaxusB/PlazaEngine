@@ -149,7 +149,9 @@ namespace Plaza {
 
 		if (entityToInstantiate->HasComponent<MeshRenderer>()) {
 			MeshRenderer* meshRendererToInstantiate = entityToInstantiate->GetComponent<MeshRenderer>();
-			MeshRenderer* newMeshRenderer = new MeshRenderer();
+			Material& mat1 = *meshRendererToInstantiate->material.get();
+			Material& mat2 = meshRendererToInstantiate->mesh->material;
+			MeshRenderer* newMeshRenderer = new MeshRenderer(*meshRendererToInstantiate->mesh.get(), mat2);
 			newMeshRenderer->uuid = instantiatedEntity->uuid;
 			newMeshRenderer->instanced = true;
 			newMeshRenderer->mesh = shared_ptr<Mesh>(meshRendererToInstantiate->mesh);
@@ -180,28 +182,28 @@ namespace Plaza {
 
 					/* Get all fields from the entity to instantiate */
 					std::map<std::string, Field*> fields = std::map<std::string, Field*>();
-					for (auto [key, value] : it->second.scriptClasses) { fields = FieldManager::GetFieldsValues(value->monoObject); };
+					//for (auto [key, value] : it->second.scriptClasses) { fields = FieldManager::GetFieldsValues(value->monoObject); };
 
 					/* Apply all fields to the instantiated entity */
 					uint64_t key = newScript->uuid;
-					for (auto [scriptClassKey, scriptClassValue] : newScript->scriptClasses) {
-						MonoClassField* monoField = NULL;
-						void* iter = NULL;
-						while ((monoField = mono_class_get_fields(mono_object_get_class(scriptClassValue->monoObject), &iter)) != NULL)
-						{
-							int type = mono_type_get_type(mono_field_get_type(monoField));
-							if (type != MONO_TYPE_ARRAY && type != MONO_TYPE_CLASS) {
-								if (fields.find(mono_field_get_name(monoField)) != fields.end())
-									FieldManager::FieldSetValue(type, fields.at(mono_field_get_name(monoField))->mValue, scriptClassValue->monoObject, monoField, fields.at(mono_field_get_name(monoField)));
-							}
-							else if (type == MONO_TYPE_CLASS) {
-								MonoObject* currentFieldMonoObject = nullptr;
-								mono_field_get_value(scriptClassValue->monoObject, mono_class_get_field_from_name(mono_object_get_class(scriptClassValue->monoObject), mono_field_get_name(monoField)), &currentFieldMonoObject);
-								if (fields.find(mono_field_get_name(monoField)) != fields.end())
-									FieldManager::FieldSetValue(type, fields.at(mono_field_get_name(monoField))->mValue, scriptClassValue->monoObject, monoField, fields.at(mono_field_get_name(monoField)));
-							}
-						}
-					}
+					//for (auto [scriptClassKey, scriptClassValue] : newScript->scriptClasses) {
+					//	MonoClassField* monoField = NULL;
+					//	void* iter = NULL;
+					//	while ((monoField = mono_class_get_fields(mono_object_get_class(scriptClassValue->monoObject), &iter)) != NULL)
+					//	{
+					//		int type = mono_type_get_type(mono_field_get_type(monoField));
+					//		if (type != MONO_TYPE_ARRAY && type != MONO_TYPE_CLASS) {
+					//			if (fields.find(mono_field_get_name(monoField)) != fields.end())
+					//				FieldManager::FieldSetValue(type, fields.at(mono_field_get_name(monoField))->mValue, scriptClassValue->monoObject, monoField, fields.at(mono_field_get_name(monoField)));
+					//		}
+					//		else if (type == MONO_TYPE_CLASS) {
+					//			MonoObject* currentFieldMonoObject = nullptr;
+					//			mono_field_get_value(scriptClassValue->monoObject, mono_class_get_field_from_name(mono_object_get_class(scriptClassValue->monoObject), mono_field_get_name(monoField)), &currentFieldMonoObject);
+					//			if (fields.find(mono_field_get_name(monoField)) != fields.end())
+					//				FieldManager::FieldSetValue(type, fields.at(mono_field_get_name(monoField))->mValue, scriptClassValue->monoObject, monoField, fields.at(mono_field_get_name(monoField)));
+					//		}
+					//	}
+					//}
 
 					Application->activeProject->scripts.at(it->second.scriptPath).entitiesUsingThisScript.emplace(instantiatedEntity->uuid);
 					if (Application->runningScene) {
@@ -217,6 +219,7 @@ namespace Plaza {
 				instantiatedEntity->AddComponent<CsScriptComponent>(script);
 			}
 		}
+		/* Instantiate children */
 		for (unsigned int i = 0; i < entityToInstantiate->childrenUuid.size(); i++) {
 			uint64_t childUuid = entityToInstantiate->childrenUuid[i];
 			uint64_t uuid = Instantiate(childUuid);
@@ -418,7 +421,7 @@ namespace Plaza {
 				meshVertices.push_back(vertices[i]);
 			}
 			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
-			delete newMesh;
+			//delete newMesh;
 		}
 	}
 

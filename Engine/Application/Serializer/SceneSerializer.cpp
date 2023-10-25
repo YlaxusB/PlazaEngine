@@ -208,8 +208,10 @@ namespace Plaza {
 							}
 							if (entity["Components"]["MeshRendererComponent"]) {
 								auto meshRenderDeserialized = entity["Components"]["MeshRendererComponent"];
-								MeshRenderer* meshRenderer = new MeshRenderer();
+								MeshRenderer* meshRenderer = new MeshRenderer(*shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>())).get(), Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>())->material);
 								meshRenderer->instanced = entity["Components"]["MeshRendererComponent"]["Instanced"].as<bool>();
+								if (entity["Components"]["MeshRendererComponent"]["CastShadows"])
+									meshRenderer->castShadows = entity["Components"]["MeshRendererComponent"]["CastShadows"].as<bool>();
 								meshRenderer->mesh = shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()));
 								newEntity->AddComponent<MeshRenderer>(meshRenderer);
 							}

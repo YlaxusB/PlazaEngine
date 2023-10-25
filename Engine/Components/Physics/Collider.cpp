@@ -91,7 +91,7 @@ namespace Plaza {
 	}
 
 	void Collider::InitCollider(RigidBody* rigidBody) {
-		this->RemoveActor();
+		//this->RemoveActor();
 		physx::PxTransform* pxTransform = Physics::GetPxTransform(Application->activeScene->transformComponents.at(this->uuid));
 		this->mRigidActor = Physics::m_physics->createRigidDynamic(*pxTransform);
 		if (this->mRigidActor == nullptr)
@@ -107,7 +107,7 @@ namespace Plaza {
 
 		// Attach the shapes with the material to the actor
 		for (ColliderShape* shape : mShapes) {
-			shape->mPxShape->setMaterials(&material, 1);
+			//shape->mPxShape->setMaterials(&material, 1);
 			this->mRigidActor->attachShape(*shape->mPxShape);
 		}
 		Physics::m_scene->addActor(*this->mRigidActor);

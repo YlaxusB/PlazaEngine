@@ -695,6 +695,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Components\Drawing\UI\UI.h" />
     <ClInclude Include="Engine\Core\Audio\Audio.h" />
     <ClInclude Include="Engine\Core\Audio\AudioSourceLoader.h" />
+    <ClInclude Include="Engine\Core\RenderGroup.h" />
     <ClInclude Include="Engine\Core\Scripting\FieldManager.h" />
     <ClInclude Include="Engine\Core\Input\Cursor.h" />
     <ClInclude Include="Engine\Core\Input\Input.h" />

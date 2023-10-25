@@ -7,6 +7,7 @@
 
 #include "Editor/GUI/Popups/NewEntityPopup.h"
 #include "Engine/Core/Scripting/Mono.h"
+#include "Engine/Core/RenderGroup.h"
 namespace Plaza::Editor {
 	bool Gui::Hierarchy::Item::firstFocus = false;
 	float inputTextWidth = 0;
@@ -160,7 +161,7 @@ namespace Plaza::Editor {
 			{
 				if (ImGui::MenuItem("Mesh Renderer"))
 				{
-					MeshRenderer* meshRenderer = new MeshRenderer(*Editor::DefaultModels::Cube());
+					MeshRenderer* meshRenderer = new MeshRenderer(*Editor::DefaultModels::Cube(), Material());
 					meshRenderer->instanced = true;
 					meshRenderer->mesh = DefaultModels::Cube();
 					entity.AddComponent<MeshRenderer>(meshRenderer);

@@ -11,7 +11,7 @@ namespace Plaza::Editor {
 		Application->activeScene->entities.at(obj->uuid).changingName = true;
 		Gui::Hierarchy::Item::firstFocus = true;
 		obj->GetComponent<Transform>()->UpdateChildrenTransform();
-		MeshRenderer* meshRenderer = new MeshRenderer();
+		MeshRenderer* meshRenderer = new MeshRenderer(*mesh.get(), Material());
 		meshRenderer->instanced = true;
 		meshRenderer->mesh = mesh;
 		obj->AddComponent<MeshRenderer>(meshRenderer);

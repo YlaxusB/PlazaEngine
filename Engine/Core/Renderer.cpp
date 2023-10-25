@@ -64,11 +64,16 @@ namespace Plaza {
 	void Renderer::RenderInstances(Shader& shader) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		for (auto [key, mesh] : Application->activeScene->meshes) {
-			if (mesh->instanceModelMatrices.size() > 0) {
-				mesh->DrawInstanced(shader);
+		for (auto [renderGroupUuid, renderGroup] : Application->activeScene->renderGroups) {
+			if (renderGroup->instanceModelMatrices.size() > 0) {
+				renderGroup->DrawInstanced(shader);
 			}
 		}
+		//for (auto [key, mesh] : Application->activeScene->meshes) {
+		//	if (mesh->instanceModelMatrices.size() > 0) {
+		//		mesh->DrawInstanced(shader);
+		//	}
+		//}
 	}
 
 	void Renderer::RenderInstancesShadowMap(Shader& shader) {

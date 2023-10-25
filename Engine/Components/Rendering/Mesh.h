@@ -53,12 +53,12 @@ namespace Plaza {
 		Mesh(const Mesh&) = default;
 		~Mesh() {
 			if (temporaryMesh) {
-				if(VAO)
-				glDeleteVertexArrays(1, &VAO);
+				if (VAO)
+					glDeleteVertexArrays(1, &VAO);
 				if (VBO)
-				glDeleteBuffers(1, &VBO);
+					glDeleteBuffers(1, &VBO);
 				if (EBO)
-				glDeleteBuffers(1, &EBO);
+					glDeleteBuffers(1, &EBO);
 			}
 		};
 		Mesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material) {
@@ -178,9 +178,10 @@ namespace Plaza {
 			}
 		}
 
-		void DrawInstanced(Shader& shader) {
+		void DrawInstanced(Shader& shader, bool automaticallyBindTextures = true) {
 			if (instanceModelMatrices.size() > 0) {
-				BindTextures(shader);
+				if (automaticallyBindTextures)
+					BindTextures(shader);
 				// Setup instance buffer
 				glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
 				glBufferData(GL_ARRAY_BUFFER, instanceModelMatrices.size() * sizeof(glm::mat4), &instanceModelMatrices[0], GL_STATIC_DRAW);
@@ -222,15 +223,15 @@ namespace Plaza {
 			// again translates to 3/2 floats which translates to a byte array.
 			vector<Vertex> convertedVertices = vector<Vertex>();
 			for (unsigned int i = 0; i < vertices.size(); i++) {
-				if(tangent.size() > i)
-				convertedVertices.push_back(Vertex(vertices[i], normals[i], uvs[i], tangent[i], bitangent[i]));
-				else if(normals.size() > i && uvs.size() > i)
+				if (tangent.size() > i)
+					convertedVertices.push_back(Vertex(vertices[i], normals[i], uvs[i], tangent[i], bitangent[i]));
+				else if (normals.size() > i && uvs.size() > i)
 					convertedVertices.push_back(Vertex(vertices[i], normals[i], uvs[i], glm::vec3(0.0f), glm::vec3(0.0f)));
-				else if(normals.size() > i)
+				else if (normals.size() > i)
 					convertedVertices.push_back(Vertex(vertices[i], normals[i], glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)));
 				else if (uvs.size() > i)
 					convertedVertices.push_back(Vertex(vertices[i], glm::vec3(0.0f), uvs[i], glm::vec3(0.0f), glm::vec3(0.0f)));
-				else 
+				else
 					convertedVertices.push_back(Vertex(vertices[i], glm::vec3(0.0f), glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)));
 			}
 			glBufferData(GL_ARRAY_BUFFER, convertedVertices.size() * sizeof(Vertex), &convertedVertices[0], GL_STATIC_DRAW);

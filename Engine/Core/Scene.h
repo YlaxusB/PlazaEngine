@@ -5,12 +5,15 @@
 
 #include "Engine/Components/Core/Entity.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
+#include "Engine/Components/Rendering/Material.h"
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Components/Physics/Collider.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
 #include "Engine/Components/Audio/AudioSource.h"
 #include "Engine/Components/Audio/AudioListener.h"
+
+#include "Engine/Core/RenderGroup.h"
 
 
 #include <unordered_set>
@@ -32,6 +35,27 @@ namespace Plaza {
 			v ^= v << 5;
 
 			return v;
+		}
+	};
+
+	struct RenderGroupKey
+	{
+		uint64_t first;
+		uint64_t second;
+
+		bool operator==(const RenderGroupKey& other) const
+		{
+			return (first == other.first
+				&& second == other.second);
+		}
+	};
+
+	struct PairHash {
+		std::size_t operator () (const std::pair<uint64_t, uint64_t>& p) const {
+			// Combine the hash values of the two uint64_t values
+			std::size_t h1 = std::hash<uint64_t>{}(p.first);
+			std::size_t h2 = std::hash<uint64_t>{}(p.second);
+			return h1 ^ h2;
 		}
 	};
 
@@ -65,6 +89,10 @@ namespace Plaza {
 
 		std::vector<MeshRenderer*> meshRenderers;
 		std::unordered_map<uint64_t, shared_ptr<Mesh>> meshes;
+		std::unordered_map<uint64_t, Material*> materials;
+
+		std::unordered_map<uint64_t, shared_ptr<RenderGroup>> renderGroups;
+		std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash> renderGroupsFindMap;
 
 		std::unordered_map<std::string, std::unordered_set<uint64_t>> entitiesNames;
 		Scene();

@@ -309,6 +309,7 @@ void ApplicationClass::UpdateEngine() {
 	Renderer::RenderInstances(*Application->shader);
 
 	// Update Skybox
+
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 	Skybox::Update();
 

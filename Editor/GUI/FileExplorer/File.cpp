@@ -38,10 +38,12 @@ namespace Plaza {
 					ImGui::SetDragDropPayload(Gui::scenePayloadName.c_str(), &filePtr, sizeof(Editor::File&));
 					ImGui::EndDragDropSource();
 				}
+				// Draw background
 				ImDrawList* drawList = ImGui::GetWindowDrawList();
 				ImVec2 size = ImGui::imVec2(ImGui::glmVec2(ImGui::GetWindowPos()) + glm::vec2(75, 75));
 				drawList->AddRectFilled(ImGui::GetWindowPos(), size, ImGui::ColorConvertFloat4ToU32(backgroundColor));
 
+				// Image
 				ImGui::SetCursorPos(ImGui::imVec2(ImGui::glmVec2(ImGui::GetCursorPos()) + glm::vec2(75 / 2 - 25)));
 				ImGui::Image(ImTextureID(this->textureId), ImVec2(50, 50));
 				ImGui::SetCursorPos(ImGui::imVec2(ImGui::glmVec2(ImGui::GetCursorPos()) - glm::vec2(0, 10)));
@@ -80,7 +82,7 @@ namespace Plaza {
 				}
 
 			}
-			Popup::FileExplorerFilePopup::Update();
+			Popup::FileExplorerFilePopup::Update(this);
 			ImGui::EndChild();
 
 			// Open, or add the file to the selected files map when user clicked on a file
@@ -131,39 +133,6 @@ namespace Plaza {
 						if (!pipe2) {
 							std::cerr << "Error: Unable to execute the command." << std::endl;
 						}
-
-
-						//LPCWSTR csFilePath = L"C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\Speed Runners\\scriptchola.cs";
-						////const char* visualStudioExecutable = "C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Visual Studio 2022"; // Replace with your Visual Studio path //
-						//LPCWSTR visualStudioExecutable = L"C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\Speed Runners\\Speed Runers.sln";
-
-						//HINSTANCE result = ShellExecute(NULL, L"open", visualStudioExecutable, csFilePath, NULL, SW_SHOWNORMAL);
-
-						////HINSTANCE result = ShellExecute(NULL, L"open", csFilePath, NULL, NULL, SW_SHOWNORMAL);
-
-						//if ((intptr_t)result > 32)
-						//{
-						//	std::cout << "File opened successfully." << std::endl;
-						//}
-						//else
-						//{
-						//	DWORD error = GetLastError();
-						//	LPVOID errorMsg;
-						//	FormatMessage(
-						//		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-						//		NULL,
-						//		error,
-						//		0, // Default language
-						//		(LPWSTR)&errorMsg,
-						//		0,
-						//		NULL
-						//	);
-
-						//	std::wcerr << L"Error opening file: " << errorMsg << std::endl;
-						//	LocalFree(errorMsg);
-						//}
-
-						//delete[] wFilePath;
 					}
 				}
 				else {

@@ -9,7 +9,7 @@
 ApplicationClass* Plaza::Application = new Plaza::ApplicationClass();
 
 using namespace Plaza;
-
+ 
 
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 

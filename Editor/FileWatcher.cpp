@@ -1,15 +1,17 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Filewatcher.h"
-#include "Engine/Vendor/Filewatcher/Filewatcher.h"
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
+#include "Editor/GUI/FileExplorer/RenamedFile.h"
 namespace Plaza::Editor {
 	std::vector<std::function<void()>> Filewatcher::mMainThreadQueue = std::vector<std::function<void()>>();
+	std::map< filewatch::Event, std::string> Filewatcher::mQueuedEvents = std::map<filewatch::Event, std::string>();
 	void Filewatcher::Start(std::string pathToWatch) {
 		filewatch::FileWatch<std::string>* watch = new filewatch::FileWatch<std::string>(pathToWatch, [pathToWatch](const std::string path, const filewatch::Event changeType) {
 			//std::cout << path << " - ";
 			std::filesystem::path fsPath = std::filesystem::path{ path };
 			std::string finalPath = pathToWatch + "\\" + path;
+			mQueuedEvents.emplace(changeType, finalPath);
 			switch (changeType)
 			{
 			case filewatch::Event::added: // The file was added to the directory
@@ -56,9 +58,33 @@ namespace Plaza::Editor {
 	}
 
 	void Filewatcher::UpdateOnMainThread() {
+		/* Execute queued functions*/
 		for (auto& function : mMainThreadQueue)
 			function();
 		mMainThreadQueue.clear();
+
+		/* Check the queued events, to check for renamed files */
+		if (mQueuedEvents.size() >= 3) {
+			std::string newPath;
+			std::string oldPath;
+			bool renamed = false;
+			for (auto [event, path] : mQueuedEvents) {
+				if (event == filewatch::Event::renamed_old || event == filewatch::Event::renamed_new || event == filewatch::Event::modified)
+					renamed = true;
+				else
+					renamed = false;
+
+				if (event == filewatch::Event::renamed_old)
+					oldPath = path;
+				if (event == filewatch::Event::renamed_new)
+					newPath = path;
+			}
+
+			if (renamed) {
+				Editor::RenamedFileManager::Run(oldPath, newPath);
+			}
+		}
+		mQueuedEvents.clear();
 	}
 
 	void Filewatcher::AddToMainThread(const std::function<void()>& function) {

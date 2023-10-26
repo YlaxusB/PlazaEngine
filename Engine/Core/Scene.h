@@ -89,7 +89,8 @@ namespace Plaza {
 
 		std::vector<MeshRenderer*> meshRenderers;
 		std::unordered_map<uint64_t, shared_ptr<Mesh>> meshes;
-		std::unordered_map<uint64_t, Material*> materials;
+		std::unordered_map<uint64_t, shared_ptr<Material>> materials;
+		std::unordered_map<std::string, uint64_t> materialsNames;
 
 		std::unordered_map<uint64_t, shared_ptr<RenderGroup>> renderGroups;
 		std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash> renderGroupsFindMap;

@@ -5,6 +5,7 @@
 namespace Plaza {
 	struct Material : public Component {
 	public:
+		std::string name;
 		Texture diffuse;
 		Texture albedo;
 		Texture normal;

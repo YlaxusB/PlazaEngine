@@ -55,7 +55,8 @@ namespace Plaza {
 		newScene->audioListenerComponents = std::unordered_map<uint64_t, AudioListener>(copyScene->audioListenerComponents);
 		newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
 
-		newScene->materials = std::unordered_map<uint64_t, Material*>(copyScene->materials);
+		newScene->materials = std::unordered_map<uint64_t, std::shared_ptr<Material>>(copyScene->materials);
+		newScene->materialsNames = std::unordered_map<std::string, uint64_t>(copyScene->materialsNames);
 		newScene->renderGroups = std::unordered_map<uint64_t, shared_ptr<RenderGroup>>(copyScene->renderGroups);
 		newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash>(copyScene->renderGroupsFindMap);
 

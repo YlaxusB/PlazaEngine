@@ -302,6 +302,7 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Editor\GUI\EditorInspector.cpp" />
     <ClCompile Include="Editor\GUI\FileExplorer\File.cpp" />
     <ClCompile Include="Editor\GUI\FileExplorer\FileExplorer.cpp" />
+    <ClCompile Include="Editor\GUI\FileExplorer\RenamedFile.cpp" />
     <ClCompile Include="Editor\GUI\Hierarchy\HierarchyPopup.cpp" />
     <ClCompile Include="Editor\GUI\Inspector.cpp" />
     <ClCompile Include="Editor\GUI\Popups\FileExplorerFilePopup.cpp" />
@@ -645,6 +646,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Editor\GUI\FileExplorer\CreateFolder.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\File.h" />
     <ClInclude Include="Editor\GUI\FileExplorer\FileExplorer.h" />
+    <ClInclude Include="Editor\GUI\FileExplorer\RenamedFile.h" />
     <ClInclude Include="Editor\GUI\Hierarchy\HierarchyPopup.h" />
     <ClInclude Include="Editor\GUI\Inspector\AudioListenerInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\AudioSourceInspector.h" />

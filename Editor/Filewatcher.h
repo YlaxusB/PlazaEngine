@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/Vendor/Filewatcher/Filewatcher.h"
 namespace Plaza::Editor {
 	class Filewatcher {
 	public:
@@ -7,5 +8,6 @@ namespace Plaza::Editor {
 		static void AddToMainThread(const std::function<void()>& function);
 
 		static std::vector<std::function<void()>> mMainThreadQueue;
+		static std::map<filewatch::Event, std::string> mQueuedEvents;
 	};
 }

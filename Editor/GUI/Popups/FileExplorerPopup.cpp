@@ -32,6 +32,19 @@ namespace Plaza::Editor {
 				ImGui::EndMenu();
 			}
 
+			if (ImGui::BeginMenu("Rendering"))
+			{
+				if (ImGui::MenuItem("Material")) {
+					Editor::File::changingName = Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed." + Standards::materialExtName);
+					Editor::File::changingName = std::filesystem::path{ Editor::File::changingName }.filename().string();
+					Editor::File::firstFocus = true;
+					Material material = Material();
+					material.uuid = Plaza::UUID::NewUUID();
+					Application->activeScene->materials.emplace(material.uuid, std::make_shared<Material>(material));
+				}
+				ImGui::EndMenu();
+			}
+
 			ImGui::EndMenu();
 		}
 	}

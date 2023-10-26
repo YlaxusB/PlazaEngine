@@ -429,6 +429,9 @@
     <ClCompile Include="Engine\Core\Audio\Audio.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\GUI\FileExplorer\RenamedFile.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h">
@@ -2172,6 +2175,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Core\RenderGroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\GUI\FileExplorer\RenamedFile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

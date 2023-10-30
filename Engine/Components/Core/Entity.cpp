@@ -10,47 +10,11 @@
 
 
 namespace Plaza {
-	template <typename T>
-	auto& GetComponentMap() {
-		if constexpr (std::is_same_v<T, Transform>) {
-			return Application->activeScene->transformComponents;
-		}
-		else if constexpr (std::is_same_v<T, Camera>) {
-			return Application->activeScene->cameraComponents;
-		}
-		else if constexpr (std::is_same_v<T, MeshRenderer>) {
-			return Application->activeScene->meshRendererComponents;
-		}
-		else if constexpr (std::is_same_v<T, RigidBody>) {
-			return Application->activeScene->rigidBodyComponents;
-		}
-		else if constexpr (std::is_same_v<T, Collider>) {
-			return Application->activeScene->colliderComponents;
-		}
-		else if constexpr (std::is_same_v<T, CsScriptComponent>) {
-			return Application->activeScene->csScriptComponents;
-		}
-		else if constexpr (std::is_same_v<T, Plaza::Drawing::UI::TextRenderer>) {
-			return Application->activeScene->UITextRendererComponents;
-		}
-		else if constexpr (std::is_same_v<T, AudioSource>) {
-			return Application->activeScene->audioSourceComponents;
-		}
-		else if constexpr (std::is_same_v<T, AudioListener>) {
-			return Application->activeScene->audioListenerComponents;
-		}
-		else {
-			return Application->activeScene->transformComponents;
-		}
-	}
-
-	Transform;
 	Entity::Entity() {
 		// Default constructor implementation
 		uuid = Plaza::UUID::NewUUID();
 		this->AddComponent<Transform>(new Transform(), true);
 		this->name = "Entity";
-		//Application->activeScene->entities.emplace(this->uuid, std::unique_ptr<Entity>(this));
 		Application->activeScene->entities.emplace(this->uuid, *this);
 		Application->activeScene->mainSceneEntity->childrenUuid.push_back(this->uuid);
 		Application->activeScene->entitiesNames[this->name].insert(this->uuid);
@@ -63,17 +27,12 @@ namespace Plaza {
 
 		this->AddComponent<Transform>(new Transform(), addToScene);
 		name = objName;
-		//id = Application->activeScene->gameObjects.size() > 0 ? Application->activeScene->gameObjects.back()->id + 1 : 1; // IT WILL PROBABLY BREAK IN THE NEAR FUTURE
-
 		// Set the new parent
 		if (parent != nullptr && addToScene) {
 			this->parentUuid = parent->uuid;
 			Application->activeScene->entities[parentUuid].childrenUuid.push_back(this->uuid);
 		}
 		// Add to the gameobjects list
-		//if (addToScene)
-			//Application->activeScene->entities.emplace(this->uuid, this);
-		//Application->activeScene->gameObjects.push_back(std::unique_ptr<Entity>(this));
 		if (addToScene) {
 			Application->activeScene->entities.emplace(this->uuid, *this);
 			Application->activeScene->entitiesNames[this->name].insert(this->uuid);
@@ -81,55 +40,18 @@ namespace Plaza {
 
 	}
 
-	template Transform* Entity::GetComponent<Transform>();
-	template Camera* Entity::GetComponent<Camera>();
-	template MeshRenderer* Entity::GetComponent<MeshRenderer>();
-	template RigidBody* Entity::GetComponent<RigidBody>();
-	template Collider* Entity::GetComponent<Collider>();
-	template CsScriptComponent* Entity::GetComponent<CsScriptComponent>();
-	template Plaza::Drawing::UI::TextRenderer* Entity::GetComponent<Plaza::Drawing::UI::TextRenderer>();
-	template AudioSource* Entity::GetComponent<AudioSource>();
-	template AudioListener* Entity::GetComponent<AudioListener>();
-	template<typename T>
-	T* Entity::GetComponent() {
-		Component* component = nullptr;
+	std::unordered_map<std::string, void*> Entity::GetAllComponentsMaps() {
+		return Application->activeScene->componentsMap;
+	}
 
-		auto& components = GetComponentMap<T>();
+	Component* Entity::GetComponentByName(std::string className) {
+		Component* component = nullptr;
+		auto& components = *static_cast<ComponentMultiMap<uint64_t, Component>*>(Application->activeScene->componentsMap[className]);
 		auto it = components.find(this->uuid);
 		if (it != components.end()) {
 			component = &(it->second);
 		}
-		else if (std::is_same_v<T, CsScriptComponent>) {
-			std::unordered_multimap<uint64_t, CsScriptComponent>& components = Application->activeScene->csScriptComponents;
-			auto it = components.find(this->uuid);
-			if (it != components.end()) {
-				component = &(it->second);
-			}
-		}
-
-		return dynamic_cast<T*>(component);
-	}
-
-	template Transform* Entity::AddComponent<Transform>(Transform* component, bool addToComponentsList);
-	template Camera* Entity::AddComponent<Camera>(Camera* component, bool addToComponentsList);
-	template MeshRenderer* Entity::AddComponent<MeshRenderer>(MeshRenderer* component, bool addToComponentsList);
-	template RigidBody* Entity::AddComponent<RigidBody>(RigidBody* component, bool addToComponentsList);
-	template Collider* Entity::AddComponent<Collider>(Collider* component, bool addToComponentsList);
-	template CsScriptComponent* Entity::AddComponent<CsScriptComponent>(CsScriptComponent* component, bool addToComponentsList);
-	template Plaza::Drawing::UI::TextRenderer* Entity::AddComponent<Plaza::Drawing::UI::TextRenderer>(Plaza::Drawing::UI::TextRenderer* component, bool addToComponentsList);
-	template AudioSource* Entity::AddComponent<AudioSource>(AudioSource* component, bool addToComponentsList);
-	template AudioListener* Entity::AddComponent<AudioListener>(AudioListener* component, bool addToComponentsList);
-
-	template <typename T>
-	T* Entity::AddComponent(T* component, bool addToComponentsList) {
-		component->uuid = this->uuid;
-
-		if (addToComponentsList) {
-			auto& components = GetComponentMap<T>();
-			components.emplace(component->uuid, *component);
-		}
-
-		return dynamic_cast<T*>(component);
+		return component;
 	}
 
 	Entity& Entity::GetParent() {
@@ -183,40 +105,6 @@ namespace Plaza {
 		return nullptr; // Component to replace not found
 	}
 
-	template bool Entity::HasComponent<Transform>();
-	template bool Entity::HasComponent<Camera>();
-	template bool Entity::HasComponent<MeshRenderer>();
-	template bool Entity::HasComponent<RigidBody>();
-	template bool Entity::HasComponent<Collider>();
-	template bool Entity::HasComponent<CsScriptComponent>();
-	template bool Entity::HasComponent<Plaza::Drawing::UI::TextRenderer>();
-	template bool Entity::HasComponent<AudioSource>();
-	template bool Entity::HasComponent<AudioListener>();
-	template<typename T>
-	bool Entity::HasComponent() {
-		auto& components = GetComponentMap<T>();
-		if (components.find(this->uuid) != components.end())
-			return true;
-		return false;
-	}
-
-	template void Entity::RemoveComponent<Transform>();
-	template void Entity::RemoveComponent<Camera>();
-	template void Entity::RemoveComponent<MeshRenderer>();
-	template void Entity::RemoveComponent<RigidBody>();
-	template void Entity::RemoveComponent<Collider>();
-	template void Entity::RemoveComponent<CsScriptComponent>();
-	template void Entity::RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
-	template void Entity::RemoveComponent<AudioSource>();
-	template void Entity::RemoveComponent<AudioListener>();
-
-	template <typename T>
-	void Entity::RemoveComponent() {
-		auto& components = GetComponentMap<T>();
-		if (components.find(this->uuid) != components.end())
-			components.erase(components.find(this->uuid));
-	}
-
 	void Entity::Rename(std::string newName) {
 		// Erase the old name
 		Application->activeScene->entitiesNames.at(this->name).erase(Application->activeScene->entitiesNames.at(this->name).find(this->uuid));
@@ -231,8 +119,10 @@ namespace Plaza {
 
 	Entity::~Entity() {
 		if (!Application->runningScene) {
-			for (uint64_t child : this->childrenUuid) {
-				Application->activeScene->entities.at(child).~Entity();
+			std::vector<uint64_t> children = this->childrenUuid;
+			for (uint64_t child : children) {
+				if (Application->activeScene->entities.find(child) != Application->activeScene->entities.end())
+					Application->activeScene->entities.at(child).~Entity();
 			}
 			if (this->HasComponent<Transform>())
 				this->RemoveComponent<Transform>();
@@ -259,6 +149,7 @@ namespace Plaza {
 			this->GetParent().childrenUuid.erase(std::remove(this->GetParent().childrenUuid.begin(), this->GetParent().childrenUuid.end(), this->uuid), this->GetParent().childrenUuid.end());
 			if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
 				Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
+			Application->activeScene->entities.erase(Application->activeScene->entities.find(this->uuid));
 			//Application->activeScene->entities.
 			//Application->activeScene->entities.erase(Application->activeScene->entities.find(this->uuid));
 		}
@@ -266,15 +157,19 @@ namespace Plaza {
 
 	void Entity::Delete() {
 		if (Application->runningScene) {
-			for (uint64_t child : this->childrenUuid) {
-				Application->activeScene->entities.at(child).~Entity();
+			std::vector<uint64_t> children = this->childrenUuid;
+			for (uint64_t child : children) {
+				if (Application->activeScene->entities.find(child) != Application->activeScene->entities.end())
+					Application->activeScene->entities.at(child).Delete();
 			}
 			if (this->HasComponent<Transform>())
 				this->RemoveComponent<Transform>();
 			if (this->HasComponent<MeshRenderer>())
 				this->RemoveComponent<MeshRenderer>();
-			if (this->HasComponent<Collider>())
+			if (this->HasComponent<Collider>()) {
+				this->GetComponent<Collider>()->RemoveActor();
 				this->RemoveComponent<Collider>();
+			}
 			if (this->HasComponent<RigidBody>())
 				this->RemoveComponent<RigidBody>();
 			if (this->HasComponent<Camera>())
@@ -302,11 +197,12 @@ namespace Plaza {
 			if (Editor::selectedGameObject && Editor::selectedGameObject->uuid == this->uuid)
 				Editor::selectedGameObject = nullptr;
 
+			this->GetParent().childrenUuid.erase(std::remove(this->GetParent().childrenUuid.begin(), this->GetParent().childrenUuid.end(), this->uuid), this->GetParent().childrenUuid.end());
 			if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
 				Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
-			this->GetParent().childrenUuid.erase(std::remove(this->GetParent().childrenUuid.begin(), this->GetParent().childrenUuid.end(), this->uuid), this->GetParent().childrenUuid.end());
+			Application->activeScene->entities.erase(Application->activeScene->entities.find(this->uuid));
 		}
-		this->~Entity();
+		//this->~Entity();
 	}
 
 	template Transform* Entity::AddComp<Transform>();
@@ -321,5 +217,12 @@ namespace Plaza {
 	template<typename T>
 	T* Entity::AddComp() {
 		return new T();
+	}
+
+	void Entity::RemoveComponent(Component* component) {
+		std::string className = typeid(*component).name();
+		auto& components = *static_cast<ComponentMultiMap<uint64_t, Component>*>(Application->activeScene->componentsMap[className]);
+		if (components.find(this->uuid) != components.end())
+			components.erase(components.find(this->uuid));
 	}
 }

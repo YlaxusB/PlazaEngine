@@ -11,6 +11,7 @@ namespace Plaza {
 		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
 
 		RenderGroup(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> mat) {
+			this->uuid = Plaza::UUID::NewUUID();
 			this->mesh = mesh;
 			this->material = mat;
 		}

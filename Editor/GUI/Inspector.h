@@ -22,6 +22,12 @@ namespace Plaza::Editor {
 		}
 		//class TransformInspector;
 
+		class FileInspector {
+		public:
+			static void CreateInspector();
+			static void CreateRespectiveInspector(File* file);
+		};
+
 		class ComponentInspector {
 		public:
 			static vector<Component*> components;

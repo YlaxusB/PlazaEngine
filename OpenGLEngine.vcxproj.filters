@@ -1976,9 +1976,6 @@
     <ClInclude Include="Editor\Settings\SettingsSerializer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Core\Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Core\Engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -2178,6 +2175,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Editor\GUI\FileExplorer\RenamedFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Core\ComponentMapStructure.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\GUI\Inspector\FileInspector\MaterialInspector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Core\Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

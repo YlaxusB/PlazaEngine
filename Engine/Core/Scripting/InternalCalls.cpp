@@ -13,6 +13,7 @@
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Scripting/FieldManager.h"
+#include "Engine/Core/Physics.h"
 namespace Plaza {
 
 	void GetComponentMap(uint64_t uuid, std::string name, Component* component) {
@@ -160,8 +161,20 @@ namespace Plaza {
 
 		if (entityToInstantiate->HasComponent<Collider>()) {
 			Collider* newCollider = new Collider(*entityToInstantiate->GetComponent<Collider>());
+			newCollider->mShapes.clear();
 			newCollider->uuid = instantiatedEntity->uuid;
+			newCollider->mRigidActor = nullptr;
 			instantiatedEntity->AddComponent<Collider>(newCollider);
+			for (ColliderShape* shape : entityToInstantiate->GetComponent<Collider>()->mShapes) {
+				physx::PxTransform shapeTransform = shape->mPxShape->getLocalPose();
+				physx::PxGeometryHolder geometry = shape->mPxShape->getGeometry();
+				physx::PxMaterial* shapeMaterial = Physics::defaultMaterial;
+
+				// Create a new shape with the same properties
+				physx::PxShape* newShape = Physics::m_physics->createShape(geometry.triangleMesh(), *shapeMaterial, true);
+				//newCollider->mRigidActor->attachShape(*newShape);
+				newCollider->mShapes.push_back(new ColliderShape(newShape, shape->mEnum, shape->mMeshUuid));
+			}
 			newCollider->Init(nullptr);
 		}
 
@@ -225,6 +238,7 @@ namespace Plaza {
 			uint64_t uuid = Instantiate(childUuid);
 			if (uuid)
 				Application->activeScene->entities.at(uuid).ChangeParent(Application->activeScene->entities.at(uuid).GetParent(), *instantiatedEntity);
+			instantiatedEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 		}
 
 		instantiatedEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
@@ -314,10 +328,10 @@ namespace Plaza {
 	static void EntityDelete(uint64_t uuid) {
 		if (uuid) {
 			Editor::Filewatcher::AddToMainThread([uuid]() {
-				Application->activeScene->entities.at(uuid).Delete();
+
 				auto it = Application->activeScene->entities.find(uuid); // Find the iterator for the key
 				if (it != Application->activeScene->entities.end()) {
-					Application->activeScene->entities.erase(it); // Erase the element if found
+					Application->activeScene->entities.at(uuid).Delete();
 				}
 				});
 		}

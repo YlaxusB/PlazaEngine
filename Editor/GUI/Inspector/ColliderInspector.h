@@ -22,14 +22,17 @@ namespace Plaza::Editor {
 		}
 		ColliderInspector(Collider* collider) {
 			ImGui::SetNextItemOpen(true);
-			ImVec2 oldCursorPos = ImGui::GetCursorPos();
-			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 150.0f, ImGui::GetCursorPosY()));
+			ImVec2 old = ImGui::GetCursorPos();
+			float arrowSize = old.x + 30.0f;
+			ImGui::SetCursorPos(ImVec2(ImGui::CalcTextSize("Collider").x + arrowSize, ImGui::GetCursorPos().y));
 			if (ImGui::Button("Remove Component")) {
 				collider->GetGameObject()->RemoveComponent<Collider>();
 			}
 			ImGui::SameLine();
-			ImGui::SetCursorPos(oldCursorPos);
+			ImGui::SetCursorPos(old);
 			bool header = ImGui::CollapsingHeader("Collider", ImGuiTreeNodeFlags_DefaultOpen);
+			ImGui::SameLine();
+			ImGui::Button("Remove Component");
 			if (header) {
 				ImGui::PushID("ColliderInspector");
 

@@ -2,7 +2,7 @@
 #include "Engine/Components/Component.h"
 #include "Engine/Components/Rendering/Mesh.h"
 #include "Engine/Core/RenderGroup.h"
-
+#include "Engine/Components/Core/Transform.h"
 using namespace std;
 namespace Plaza {
 	class MeshRenderer : public Component {

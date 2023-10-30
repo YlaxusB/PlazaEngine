@@ -12,7 +12,11 @@ namespace Plaza {
 	class Component {
 	public:
 		uint64_t uuid;
+		uint64_t componentUuid;
 		Entity* GetGameObject();
 		virtual ~Component() = default;
+		Component() {
+			this->componentUuid = Plaza::UUID::NewUUID();
+		}
 	};
 }

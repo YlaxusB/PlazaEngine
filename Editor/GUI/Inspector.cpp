@@ -9,22 +9,44 @@
 #include "Editor/GUI/Inspector/AudioSourceInspector.h"
 #include "Editor/GUI/Inspector/CameraInspector.h"
 
+#include "Editor/GUI/Inspector/FileInspector/MaterialInspector.h"
+
+
 namespace Plaza::Editor {
+	/* File Inspector*/
 	std::vector<Component*> Inspector::ComponentInspector::components;
-	void Inspector::ComponentInspector::CreateInspector() {
+	void Inspector::FileInspector::CreateInspector() {
 		ImGui::SetCursorPosY(50);
 		ImGui::Indent(10);
-		if (Editor::selectedGameObject->uuid == Application->activeScene->mainSceneEntity->uuid) {
-			SceneInspector::SceneInspector(Application->activeScene);
+		for (auto& [key, value] : Editor::selectedFiles) {
+			CreateRespectiveInspector(value);
 		}
-		else {
-			ImGui::Text(Editor::selectedGameObject->name.c_str());
-			for (Component* component : components) {
-				CreateRespectiveInspector(component);
+	}
+
+	void Inspector::FileInspector::CreateRespectiveInspector(File* file) {
+		std::string extension = std::filesystem::path{ file->directory }.extension().string();
+		if (extension == Standards::materialExtName) {
+			Editor::MaterialFileInspector::MaterialFileInspector(file);
+		}
+	}
+
+	/* Component Inspector*/
+	void Inspector::ComponentInspector::CreateInspector() {
+		if (Editor::selectedGameObject) {
+			ImGui::SetCursorPosY(50);
+			ImGui::Indent(10);
+			if (Editor::selectedGameObject->uuid == Application->activeScene->mainSceneEntity->uuid) {
+				SceneInspector::SceneInspector(Application->activeScene);
 			}
-			ImGui::Text("Parent Uuid: ");
-			std::string uuidString = std::to_string(Editor::selectedGameObject->parentUuid);
-			ImGui::Text(uuidString.c_str());
+			else {
+				ImGui::Text(Editor::selectedGameObject->name.c_str());
+				for (Component* component : components) {
+					CreateRespectiveInspector(component);
+				}
+				ImGui::Text("Parent Uuid: ");
+				std::string uuidString = std::to_string(Editor::selectedGameObject->parentUuid);
+				ImGui::Text(uuidString.c_str());
+			}
 		}
 	}
 	void Inspector::ComponentInspector::UpdateComponents() {

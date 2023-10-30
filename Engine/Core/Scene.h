@@ -3,7 +3,19 @@
 #include <variant>
 #include <unordered_map>
 
-#include "Engine/Components/Core/Entity.h"
+
+//#include "Engine/Components/Core/Entity.h"
+
+
+
+#include "Engine/Core/RenderGroup.h"
+
+
+#include <unordered_set>
+#include "Engine/Core/Standards.h"
+#include "Engine/Core/ComponentMapStructure.h"
+
+#include "Engine/Components/Core/Camera.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Components/Physics/RigidBody.h"
@@ -13,11 +25,6 @@
 #include "Engine/Components/Audio/AudioSource.h"
 #include "Engine/Components/Audio/AudioListener.h"
 
-#include "Engine/Core/RenderGroup.h"
-
-
-#include <unordered_set>
-#include "Engine/Core/Standards.h"
 using namespace std;
 namespace Plaza {
 	struct Uint64Hash {
@@ -74,18 +81,20 @@ namespace Plaza {
 
 		Entity* mainSceneEntity;
 
-		std::unordered_map<std::string, std::any> componentMaps;
+
 
 		std::unordered_map<uint64_t, Entity> entities;
-		std::unordered_map<uint64_t, Transform> transformComponents;
-		std::unordered_map<uint64_t, Camera> cameraComponents;
-		std::unordered_map<uint64_t, MeshRenderer> meshRendererComponents;
-		std::unordered_map<uint64_t, RigidBody> rigidBodyComponents;
-		std::unordered_map<uint64_t, Collider> colliderComponents;
-		std::unordered_multimap<uint64_t, CsScriptComponent> csScriptComponents;
-		std::unordered_multimap<uint64_t, Plaza::Drawing::UI::TextRenderer> UITextRendererComponents;
-		std::unordered_map<uint64_t, AudioSource> audioSourceComponents;
-		std::unordered_map<uint64_t, AudioListener> audioListenerComponents;
+		ComponentMultiMap<uint64_t, Transform> transformComponents;
+		ComponentMultiMap<uint64_t, Camera> cameraComponents;
+		ComponentMultiMap<uint64_t, MeshRenderer> meshRendererComponents;
+		ComponentMultiMap<uint64_t, RigidBody> rigidBodyComponents;
+		ComponentMultiMap<uint64_t, Collider> colliderComponents;
+		ComponentMultiMap<uint64_t, CsScriptComponent> csScriptComponents;
+		ComponentMultiMap<uint64_t, Plaza::Drawing::UI::TextRenderer> UITextRendererComponents;
+		ComponentMultiMap<uint64_t, AudioSource> audioSourceComponents;
+		ComponentMultiMap<uint64_t, AudioListener> audioListenerComponents;
+
+		std::unordered_map<std::string, void*> componentsMap;
 
 		std::vector<MeshRenderer*> meshRenderers;
 		std::unordered_map<uint64_t, shared_ptr<Mesh>> meshes;
@@ -123,5 +132,24 @@ namespace Plaza {
 		}
 
 		void RemoveMeshRenderer(uint64_t uuid);
+
+		void RegisterMaps() {
+			componentsMap["class Plaza::Transform"] = &transformComponents;
+			componentsMap["class Plaza::Camera"] = &cameraComponents;
+			componentsMap["class Plaza::MeshRenderer"] = &meshRendererComponents;
+			componentsMap["class Plaza::RigidBody"] = &rigidBodyComponents;
+			componentsMap["class Plaza::Collider"] = &colliderComponents;
+			componentsMap["class Plaza::CsScriptComponent"] = &csScriptComponents;
+			componentsMap["class Plaza::Drawing::UI::TextRenderer"] = &UITextRendererComponents;
+			componentsMap["class Plaza::AudioSource"] = &audioSourceComponents;
+			componentsMap["class Plaza::AudioListener"] = &audioListenerComponents;
+			//componentsMap.emplace("Camera", &cameraComponents);
+			//componentsMap.emplace("MeshRenderer", &meshRendererComponents);
+			//componentsMap.emplace("RigidBody", &rigidBodyComponents);
+			//componentsMap.emplace("Collider", &colliderComponents);
+			//componentsMap.emplace("Plaza::Drawing::UI::TextRenderer", &UITextRendererComponents);
+			//componentsMap.emplace("AudioSource", &audioSourceComponents);
+			//componentsMap.emplace("AudioListener", &audioListenerComponents);
+		}
 	};
 }

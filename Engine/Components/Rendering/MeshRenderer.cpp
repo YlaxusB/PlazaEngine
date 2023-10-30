@@ -22,7 +22,10 @@ namespace Plaza {
 		else {
 			uint64_t renderGroupUuid = Plaza::UUID::NewUUID();
 			Application->activeScene->renderGroups.emplace(renderGroupUuid, new RenderGroup(this->mesh, this->material));
-			Application->activeScene->renderGroupsFindMap.emplace(std::make_pair(this->mesh->uuid, this->material->uuid), renderGroupUuid);
+			std::cout << "ok \n";
+			uint64_t meshUuid = this->mesh->uuid;
+			uint64_t materialUuid = this->material->uuid;
+			Application->activeScene->renderGroupsFindMap.emplace(std::make_pair(meshUuid, materialUuid), renderGroupUuid);
 			this->renderGroup = Application->activeScene->renderGroups.at(renderGroupUuid);
 		}
 		if (addToScene)

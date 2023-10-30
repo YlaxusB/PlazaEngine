@@ -11,6 +11,7 @@ namespace Plaza::Editor {
 		MaterialInspector(Entity* entity) {
 			if (Utils::ComponentInspectorHeader(entity->GetComponent<MeshRenderer>(), "Material")) {
 				ImGui::PushID("MaterialInspector");
+				MeshRenderer* meshr = entity->GetComponent<MeshRenderer>();
 				Material& material = *(entity->GetComponent<MeshRenderer>()->renderGroup->material);
 				glm::vec4& diffuse = material.diffuse.rgba;
 				glm::vec4& specular = material.specular.rgba;

@@ -46,13 +46,13 @@ namespace Plaza {
 			//delete(newObj);
 		}
 		newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
-		newScene->transformComponents = std::unordered_map<uint64_t, Transform>(copyScene->transformComponents);
-		newScene->cameraComponents = std::unordered_map<uint64_t, Camera>(copyScene->cameraComponents);
-		newScene->meshRendererComponents = std::unordered_map<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
-		newScene->csScriptComponents = std::unordered_multimap<uint64_t, CsScriptComponent>(copyScene->csScriptComponents);
-		newScene->UITextRendererComponents = std::unordered_multimap<uint64_t, Plaza::Drawing::UI::TextRenderer>(copyScene->UITextRendererComponents);
-		newScene->audioSourceComponents = std::unordered_map<uint64_t, AudioSource>(copyScene->audioSourceComponents);
-		newScene->audioListenerComponents = std::unordered_map<uint64_t, AudioListener>(copyScene->audioListenerComponents);
+		newScene->transformComponents = ComponentMultiMap<uint64_t, Transform>(copyScene->transformComponents);
+		newScene->cameraComponents = ComponentMultiMap<uint64_t, Camera>(copyScene->cameraComponents);
+		newScene->meshRendererComponents = ComponentMultiMap<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
+		newScene->csScriptComponents = ComponentMultiMap<uint64_t, CsScriptComponent>(copyScene->csScriptComponents);
+		newScene->UITextRendererComponents = ComponentMultiMap<uint64_t, Plaza::Drawing::UI::TextRenderer>(copyScene->UITextRendererComponents);
+		newScene->audioSourceComponents = ComponentMultiMap<uint64_t, AudioSource>(copyScene->audioSourceComponents);
+		newScene->audioListenerComponents = ComponentMultiMap<uint64_t, AudioListener>(copyScene->audioListenerComponents);
 		newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
 
 		newScene->materials = std::unordered_map<uint64_t, std::shared_ptr<Material>>(copyScene->materials);
@@ -88,11 +88,12 @@ namespace Plaza {
 			newScene->rigidBodyComponents.emplace(key, *rigidBody);
 		}
 
+		newScene->RegisterMaps();
 		return newScene;
 	}
 
 	Scene::Scene() {
-
+		this->RegisterMaps();
 		//componentMaps.emplace("class Plaza::Transform", transformComponents);
 		//componentMaps.emplace("class Plaza::MeshRenderer", meshRendererComponents);
 		//componentMaps.emplace("class Plaza::RigidBody", rigidBodyComponents);
@@ -145,6 +146,27 @@ namespace Plaza {
 			std::string newPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll");
 			std::filesystem::copy_file(dllPath, newPath, filesystem::copy_options::overwrite_existing);
 		}
+
+		/* Restart physics */
+		Physics::m_scene->release();
+		physx::PxTolerancesScale toleranceScale;
+		toleranceScale.speed = 9.81f;
+		toleranceScale.length = 1;
+		Physics::m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Physics::m_foundation, toleranceScale, true);
+		Physics::m_dispatcher = physx::PxDefaultCpuDispatcherCreate(4); // 2 is the number of worker threads
+		if (!Physics::m_dispatcher) {
+			std::cerr << "PhysX CPU dispatcher creation failed!" << std::endl;
+		}
+
+		// Create the PhysX scene
+		physx::PxSceneDesc sceneDesc(Physics::m_physics->getTolerancesScale());
+		sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f); // Set your desired gravity
+		sceneDesc.cpuDispatcher = Physics::m_dispatcher;
+		sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
+		Physics::m_scene = Physics::m_physics->createScene(sceneDesc);
+
+
+
 		Application->runtimeScene = new Scene();
 		Application->copyingScene = true;
 		Application->runtimeScene = Scene::Copy(Application->runtimeScene, Application->editorScene);

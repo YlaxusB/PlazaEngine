@@ -1,6 +1,7 @@
 #pragma once
 using namespace std;
 #include "Engine/Vendor/assimp/scene.h"
+#include "Engine/Components/Rendering/MeshRenderer.h"
 namespace Plaza {
 	class ModelLoader
 	{

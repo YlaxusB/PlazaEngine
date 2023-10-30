@@ -429,15 +429,14 @@ namespace Plaza {
 			//	//ImGui::SetWindowPos(ImVec2(appSizes.appSize.x - appSizes.inspectorSize.x, 0));
 			//}
 
-
-			if (selectedGameObject) {
+			if (Editor::selectedFiles.size() > 0) {
+				Editor::Inspector::FileInspector::CreateInspector();
+			}
+			else if (selectedGameObject) {
 				if (selectedGameObject->parentUuid)
 					Inspector::ComponentInspector::UpdateComponents();
 				Editor::Inspector::ComponentInspector::CreateInspector();
 				ImGui::Text(std::to_string(selectedGameObject->uuid).c_str());
-				//Editor::Inspector* asd = new Inspector();
-				//asd->addComponentButton();
-				//Gui::Inspector::addComponentButton(appSizes);
 			}
 
 

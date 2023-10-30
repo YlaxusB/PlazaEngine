@@ -201,6 +201,10 @@ namespace Plaza {
 					if (newEntity)
 						if (entity["Components"]) {
 							if (entity["Components"]["TransformComponent"]) {
+								Transform* tra = newEntity->GetComponent<Transform>();
+								if (!tra) {
+									std::cout << "shfui \n";
+								}
 								newEntity->GetComponent<Transform>()->relativePosition = entity["Components"]["TransformComponent"]["Position"].as<glm::vec3>();
 								newEntity->GetComponent<Transform>()->rotation = entity["Components"]["TransformComponent"]["Rotation"].as<glm::vec3>();
 								newEntity->GetComponent<Transform>()->scale = entity["Components"]["TransformComponent"]["Scale"].as<glm::vec3>();
@@ -208,11 +212,13 @@ namespace Plaza {
 							}
 							if (entity["Components"]["MeshRendererComponent"]) {
 								auto meshRenderDeserialized = entity["Components"]["MeshRendererComponent"];
-								MeshRenderer* meshRenderer = new MeshRenderer(*shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>())).get(), Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>())->material);
+								MeshRenderer* meshRenderer = new MeshRenderer();//new MeshRenderer(*shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>())).get(), Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>())->material);
 								meshRenderer->instanced = entity["Components"]["MeshRendererComponent"]["Instanced"].as<bool>();
 								if (entity["Components"]["MeshRendererComponent"]["CastShadows"])
 									meshRenderer->castShadows = entity["Components"]["MeshRendererComponent"]["CastShadows"].as<bool>();
 								meshRenderer->mesh = shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()));
+								meshRenderer->renderGroup = std::make_shared<RenderGroup>(meshRenderer->mesh, std::make_shared<Material>(meshRenderer->mesh->material));
+								Application->activeScene->renderGroups.emplace(meshRenderer->renderGroup->uuid, meshRenderer->renderGroup);
 								newEntity->AddComponent<MeshRenderer>(meshRenderer);
 							}
 							if (entity["Components"]["CameraComponent"]) {

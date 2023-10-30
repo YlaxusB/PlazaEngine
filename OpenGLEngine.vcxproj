@@ -653,6 +653,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Editor\GUI\Inspector\CameraInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\ColliderInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\CppScriptComponentInspector.h" />
+    <ClInclude Include="Editor\GUI\Inspector\FileInspector\MaterialInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\RigidBodyInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\SceneInspector.h" />
     <ClInclude Include="Editor\GUI\Popups\FileExplorerFilePopup.h" />
@@ -697,7 +698,9 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Components\Drawing\UI\UI.h" />
     <ClInclude Include="Engine\Core\Audio\Audio.h" />
     <ClInclude Include="Engine\Core\Audio\AudioSourceLoader.h" />
+    <ClInclude Include="Engine\Core\ComponentMapStructure.h" />
     <ClInclude Include="Engine\Core\RenderGroup.h" />
+    <ClInclude Include="Engine\Core\Scene.h" />
     <ClInclude Include="Engine\Core\Scripting\FieldManager.h" />
     <ClInclude Include="Engine\Core\Input\Cursor.h" />
     <ClInclude Include="Engine\Core\Input\Input.h" />
@@ -717,7 +720,6 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Core\ModelLoader\Model.h" />
     <ClInclude Include="Engine\Core\ModelLoader\ModelLoader.h" />
     <ClInclude Include="Engine\Core\Physics.h" />
-    <ClInclude Include="Engine\Core\Scene.h" />
     <ClInclude Include="Engine\Core\Scripting\Script.h" />
     <ClInclude Include="Engine\Core\Standards.h" />
     <ClInclude Include="Engine\Core\UUID.h" />

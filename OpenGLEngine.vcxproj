@@ -345,6 +345,7 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Engine\Application\Serializer\Components\RigidBodySerializer.cpp" />
     <ClCompile Include="Engine\Application\Serializer\Components\TextureSerializer.cpp" />
     <ClCompile Include="Engine\Application\Serializer\Components\TransformSerializer.cpp" />
+    <ClCompile Include="Engine\Application\Serializer\FileSerializer\MaterialFileSerializer.cpp" />
     <ClCompile Include="Engine\Application\Serializer\ModelSerializer.cpp" />
     <ClCompile Include="Engine\Application\Serializer\ProjectSerializer.cpp" />
     <ClCompile Include="Engine\Application\Serializer\ScriptManagerSerializer.cpp" />
@@ -363,6 +364,7 @@ call .\setdllpath.bat</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='GameReleaseConfig|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Engine\Components\Rendering\Prefab.cpp" />
+    <ClCompile Include="Engine\Components\Rendering\Texture.cpp" />
     <ClCompile Include="Engine\Components\Scripting\CppScriptComponent.cpp" />
     <ClCompile Include="Engine\Components\Drawing\UI\TextRenderer.cpp" />
     <ClCompile Include="Engine\Core\Audio\Audio.cpp" />
@@ -687,6 +689,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Application\Serializer\Components\RigidBodySerializer.h" />
     <ClInclude Include="Engine\Application\Serializer\Components\TextureSerializer.h" />
     <ClInclude Include="Engine\Application\Serializer\Components\TransformSerializer.h" />
+    <ClInclude Include="Engine\Application\Serializer\FileSerializer\FileSerializer.h" />
     <ClInclude Include="Engine\Application\Serializer\ModelSerializer.h" />
     <ClInclude Include="Engine\Application\Serializer\ProjectSerializer.h" />
     <ClInclude Include="Engine\Application\Serializer\ScriptManagerSerializer.h" />

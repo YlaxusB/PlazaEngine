@@ -78,9 +78,10 @@ namespace Plaza {
 
 	void Renderer::RenderInstancesShadowMap(Shader& shader) {
 		shader.use();
-		for (auto [key, mesh] : Application->activeScene->meshes) {
-			if (mesh->instanceModelMatrices.size() > 0) {
-				mesh->DrawInstancedToShadowMap(shader);
+		for (auto [renderGroupUuid, renderGroup] : Application->activeScene->renderGroups) {
+			if (renderGroup->instanceModelMatrices.size() > 0) {
+				//renderGroup->DrawInstanced(shader);
+				renderGroup->DrawInstancedToShadowMap(shader);
 			}
 		}
 	}

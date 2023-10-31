@@ -2036,7 +2036,7 @@ ImGuiID ImHashStr(const char* data_p, size_t data_size, ImGuiID seed)
 	}
 	else
 	{
-		while (unsigned char c = *data++)
+       		while (unsigned char c = *data++)
 		{
 			if (c == '#' && data[0] == '#' && data[1] == '#')
 				crc = seed;

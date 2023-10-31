@@ -156,6 +156,8 @@ namespace Plaza {
 			newMeshRenderer->uuid = instantiatedEntity->uuid;
 			newMeshRenderer->instanced = true;
 			newMeshRenderer->mesh = shared_ptr<Mesh>(meshRendererToInstantiate->mesh);
+			newMeshRenderer->material = meshRendererToInstantiate->material;
+			newMeshRenderer->renderGroup = meshRendererToInstantiate->renderGroup;
 			instantiatedEntity->AddComponent<MeshRenderer>(newMeshRenderer);
 		}
 

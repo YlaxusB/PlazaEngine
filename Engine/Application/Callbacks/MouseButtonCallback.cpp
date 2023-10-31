@@ -8,7 +8,7 @@ using namespace Plaza::Editor;
 using namespace Plaza;
 
 void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-	if (Application->hoveredMenu != "File Explorer")
+	if (Application->hoveredMenu != "File Explorer" && Application->hoveredMenu != "Inspector")
 		Editor::selectedFiles.clear();
 	if (Application->hoveredMenu == "Editor") {
 		ApplicationSizes& appSizes = *Application->appSizes;

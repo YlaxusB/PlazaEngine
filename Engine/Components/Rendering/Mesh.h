@@ -155,6 +155,7 @@ namespace Plaza {
 			// always good practice to set everything back to defaults once configured.
 			glActiveTexture(GL_TEXTURE0);
 			Time::drawCalls += 1;
+
 		}
 
 		void AddInstance(Shader& shader, glm::mat4 model) {

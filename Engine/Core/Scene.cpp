@@ -94,6 +94,17 @@ namespace Plaza {
 
 	Scene::Scene() {
 		this->RegisterMaps();
+
+
+		Material* defaultMaterial = new Material();
+		defaultMaterial->uuid = 0;
+		defaultMaterial->diffuse.rgba = glm::vec4(1.0f);
+		defaultMaterial->specular.rgba = glm::vec4(1.0f);
+		defaultMaterial->shininess = 3.0f;
+		defaultMaterial->name = "Default Material";
+		defaultMaterial->uuid = 0;
+		//this->materials.emplace(0, defaultMaterial);
+		this->AddMaterial(defaultMaterial);
 		//componentMaps.emplace("class Plaza::Transform", transformComponents);
 		//componentMaps.emplace("class Plaza::MeshRenderer", meshRendererComponents);
 		//componentMaps.emplace("class Plaza::RigidBody", rigidBodyComponents);
@@ -236,5 +247,9 @@ namespace Plaza {
 			}
 		}
 		return nullptr;
+	}
+
+	Material* Scene::DefaultMaterial() {
+		return Application->activeScene->materials.at(0).get();
 	}
 }

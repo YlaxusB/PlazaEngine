@@ -3,6 +3,7 @@
 
 namespace YAML {
 	extern YAML::Emitter& operator <<(YAML::Emitter& out, const glm::vec3& v);
+	extern YAML::Emitter& operator <<(YAML::Emitter& out, const glm::vec4& v);
 
 
 	template<>

@@ -23,7 +23,7 @@ namespace Plaza {
 				Texture texture;
 				texture.id = TextureFromFile(str.C_Str(), *directory, true);
 				texture.type = typeName;
-				texture.path = str.C_Str();
+				texture.path = ".\\" + std::filesystem::path(str.C_Str()).filename().string();
 				textures.push_back(texture);
 				textures_loaded.push_back(texture); // Add it to textures loaded to prevent other textures being loaded multiple times
 			}
@@ -78,6 +78,46 @@ namespace Plaza {
 		else
 		{
 			std::cout << "Texture failed to load at path: " << fileName << std::endl;
+			stbi_image_free(data);
+		}
+		return textureID;
+	}
+
+	unsigned int ModelLoader::TextureFromFile(std::string filePath, bool gamma) {
+		int width, height, nrComponents;
+		unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nrComponents, 4);
+		unsigned int textureID = 0;
+		if (data)
+		{
+			glGenTextures(1, &textureID);
+
+			GLenum format;
+			if (nrComponents == 1)
+				format = GL_RED;
+			else if (nrComponents == 2)
+				format = GL_RG;
+			else if (nrComponents == 3)
+				format = GL_RGB;
+			else if (nrComponents == 4)
+				format = GL_RGBA;
+			format = GL_SRGB8_ALPHA8;
+			glBindTexture(GL_TEXTURE_2D, textureID);
+			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+			GLenum error = glGetError();
+			if (error != GL_NO_ERROR) {
+				std::cerr << "OpenGL error after glTexImage2D: " << error << std::endl;
+			}
+			glGenerateMipmap(GL_TEXTURE_2D);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			stbi_image_free(data);
+		}
+		else
+		{
+			std::cout << "Texture failed to load at path: " << filePath << std::endl;
 			stbi_image_free(data);
 		}
 		return textureID;

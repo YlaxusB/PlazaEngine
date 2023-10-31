@@ -8,13 +8,13 @@ namespace Plaza::Editor::Utils {
 			ImGui::SetNextItemOpen(true);
 			ImVec2 old = ImGui::GetCursorPos();
 			float arrowSize = old.x + 30.0f;
-			ImGui::SetCursorPos(ImVec2(ImGui::CalcTextSize("Collider").x + arrowSize, ImGui::GetCursorPos().y));
+			ImGui::SetCursorPos(ImVec2(ImGui::CalcTextSize(name.c_str()).x + arrowSize, ImGui::GetCursorPos().y));
 			if (ImGui::Button("Remove Component")) {
 				component->GetGameObject()->RemoveComponent(component);
 			}
 			ImGui::SameLine();
 			ImGui::SetCursorPos(old);
-			header = ImGui::CollapsingHeader("Collider", ImGuiTreeNodeFlags_DefaultOpen);
+			header = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen);
 			ImGui::SameLine();
 			ImGui::Button("Remove Component");
 		}

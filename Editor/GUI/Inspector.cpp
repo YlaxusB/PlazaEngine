@@ -24,9 +24,11 @@ namespace Plaza::Editor {
 	}
 
 	void Inspector::FileInspector::CreateRespectiveInspector(File* file) {
-		std::string extension = std::filesystem::path{ file->directory }.extension().string();
-		if (extension == Standards::materialExtName) {
-			Editor::MaterialFileInspector::MaterialFileInspector(file);
+		if (!file->name.empty()) {
+			std::string extension = std::filesystem::path{ file->directory }.extension().string();
+			if (extension == Standards::materialExtName) {
+				Editor::MaterialFileInspector::MaterialFileInspector(file);
+			}
 		}
 	}
 

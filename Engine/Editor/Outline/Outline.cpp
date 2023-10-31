@@ -81,6 +81,7 @@ namespace Plaza::Editor {
 		if (mr) {
 			glm::mat4 modelMatrix = entity->GetComponent<Transform>()->modelMatrix;
 			shader.setMat4("model", modelMatrix);
+			if(mr->mesh)
 			mr->mesh->Draw(shader);
 		}
 		for (uint64_t child : entity->childrenUuid) {

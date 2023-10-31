@@ -40,7 +40,8 @@ namespace Plaza::Editor {
 					Editor::File::firstFocus = true;
 					Material material = Material();
 					material.uuid = Plaza::UUID::NewUUID();
-					Application->activeScene->materials.emplace(material.uuid, std::make_shared<Material>(material));
+					//Application->activeScene->materials.emplace(material.uuid, std::make_shared<Material>(material));
+					Application->activeScene->AddMaterial(&material);
 				}
 				ImGui::EndMenu();
 			}

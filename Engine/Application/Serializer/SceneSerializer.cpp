@@ -117,7 +117,7 @@ namespace Plaza {
 		fout << out.c_str();
 	}
 
-	void Serializer::DeSerialize(const std::string filePath)
+	void Serializer::DeSerialize(const std::string filePath, bool deserializingProject)
 	{
 		std::ifstream stream(filePath);
 		std::stringstream strStream;
@@ -130,7 +130,8 @@ namespace Plaza {
 		std::string sceneName = data["Scene"]["Name"].as<std::string>();
 
 		/* Scene */
-		Application->editorScene = new Scene();
+		if (!deserializingProject)
+			Application->editorScene = new Scene();
 		Application->activeScene = Application->editorScene;
 		Editor::DefaultModels::Init();
 		Entity* oldScene = Application->activeScene->mainSceneEntity;
@@ -177,7 +178,8 @@ namespace Plaza {
 			auto meshIt = meshes.find(key);
 			if (meshIt != meshes.end()) {
 				std::cout << "Loading model: " << modelPath << "\n";
-				ModelLoader::LoadImportedModelToMemory(modelPath, meshIt->second);
+				if (std::filesystem::exists(modelPath))
+					ModelLoader::LoadImportedModelToMemory(modelPath, meshIt->second);
 			}
 		}
 
@@ -201,25 +203,13 @@ namespace Plaza {
 					if (newEntity)
 						if (entity["Components"]) {
 							if (entity["Components"]["TransformComponent"]) {
-								Transform* tra = newEntity->GetComponent<Transform>();
-								if (!tra) {
-									std::cout << "shfui \n";
-								}
 								newEntity->GetComponent<Transform>()->relativePosition = entity["Components"]["TransformComponent"]["Position"].as<glm::vec3>();
 								newEntity->GetComponent<Transform>()->rotation = entity["Components"]["TransformComponent"]["Rotation"].as<glm::vec3>();
 								newEntity->GetComponent<Transform>()->scale = entity["Components"]["TransformComponent"]["Scale"].as<glm::vec3>();
 								//newEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 							}
 							if (entity["Components"]["MeshRendererComponent"]) {
-								auto meshRenderDeserialized = entity["Components"]["MeshRendererComponent"];
-								MeshRenderer* meshRenderer = new MeshRenderer();//new MeshRenderer(*shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>())).get(), Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>())->material);
-								meshRenderer->instanced = entity["Components"]["MeshRendererComponent"]["Instanced"].as<bool>();
-								if (entity["Components"]["MeshRendererComponent"]["CastShadows"])
-									meshRenderer->castShadows = entity["Components"]["MeshRendererComponent"]["CastShadows"].as<bool>();
-								meshRenderer->mesh = shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()));
-								meshRenderer->renderGroup = std::make_shared<RenderGroup>(meshRenderer->mesh, std::make_shared<Material>(meshRenderer->mesh->material));
-								Application->activeScene->renderGroups.emplace(meshRenderer->renderGroup->uuid, meshRenderer->renderGroup);
-								newEntity->AddComponent<MeshRenderer>(meshRenderer);
+								newEntity->AddComponent<MeshRenderer>(ComponentSerializer::MeshRendererSerializer::DeSerialize(entity["Components"]["MeshRendererComponent"]));
 							}
 							if (entity["Components"]["CameraComponent"]) {
 								newEntity->AddComponent<Camera>(ComponentSerializer::CameraSerializer::DeSerialize(entity["Components"]["CameraComponent"]));

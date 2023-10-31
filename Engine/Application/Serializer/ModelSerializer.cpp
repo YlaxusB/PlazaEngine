@@ -2,6 +2,7 @@
 #include "ModelSerializer.h"
 #include "Engine/Application/Serializer/Components/MaterialSerializer.h"
 #include "Engine/Application/Serializer/Components/TransformSerializer.h"
+#include "Engine/Application/Serializer/Components/MeshRendererSerializer.h"
 
 namespace Plaza {
 	void SerializeGameObject(YAML::Emitter& out, Entity* entity) {
@@ -31,6 +32,8 @@ namespace Plaza {
 				out << YAML::Key << "AiMeshName" << YAML::Value << meshRenderer->aiMeshName;
 				out << YAML::Key << "MeshName" << YAML::Value << entity->name;
 				out << YAML::Key << "MeshUUID" << YAML::Value << meshRenderer->mesh.get()->uuid;
+				out << YAML::Key << "MaterialUuid" << YAML::Value << meshRenderer->material->uuid;
+				out << YAML::Key << "MaterialPath" << YAML::Value << meshRenderer->material->filePath;
 				ComponentSerializer::MaterialSerializer::Serialize(out, meshRenderer->mesh.get()->material);
 				out << YAML::EndMap;
 			}
@@ -40,7 +43,7 @@ namespace Plaza {
 	}
 
 	void ModelSerializer::SerializeModel(Entity* mainObject, string filePath, string modelFilePath) {
-		
+
 		uint64_t modelUuid = Plaza::UUID::NewUUID();
 		YAML::Emitter out;
 		out << YAML::BeginMap;
@@ -60,7 +63,7 @@ namespace Plaza {
 		out << YAML::EndMap;
 		std::ofstream fout(filePath);
 		fout << out.c_str();
-		
+
 	}
 
 	void DeSerializeTexture(Material& material, const auto& textureNode) {
@@ -90,7 +93,7 @@ namespace Plaza {
 		}
 	}
 	void DeSerializeGameObject(const auto& gameObjectEntry, Model* model) {
-		
+
 		const auto& componentsEntry = gameObjectEntry["Components"];
 		Entity* entity = new Entity(gameObjectEntry["Name"].as<string>(), nullptr, false);
 		entity->uuid = gameObjectEntry["Uuid"].as<uint64_t>();
@@ -114,33 +117,38 @@ namespace Plaza {
 			newMeshRenderer->aiMeshName = componentsEntry["MeshComponent"]["AiMeshName"].as<string>();
 			DeSerializeMaterial(componentsEntry["MeshComponent"]["MaterialComponent"], model, newMeshRenderer);
 			newMeshRenderer->uuid = entity->uuid;
+			uint64_t materialUuid = componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>();
+			if (componentsEntry["MeshComponent"]["MaterialUuid"])
+				newMeshRenderer->material = Application->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>());
 			model->meshRenderers.emplace(entity->uuid, newMeshRenderer);
 		}
 		model->transforms.emplace(entity->uuid, newTransform);
 		model->gameObjects.push_back(make_shared<Entity>(*entity));
-		
+
 	}
 
 
 	Model* ModelSerializer::DeSerializeModel(string filePath) {
-		std::ifstream stream(filePath);
-		std::stringstream strStream;
-		strStream << stream.rdbuf();
-		YAML::Node data = YAML::Load(strStream.str());
 		Model* model = new Model();
-		model->modelName = data["Model"].as<string>();
-		model->uuid = data["ModelUuid"].as<uint64_t>();
-		model->scale = data["ModelScale"].as<float>();
-		model->useTangent = data["UseTangent"].as<bool>();
-		model->modelObjectPath = data["ModelFilePath"].as<string>();
-		model->modelPlazaPath = filePath;
-		// DeSerialize the model's main object
-		DeSerializeGameObject(data["MainObject"][0], model);
+		if (std::filesystem::exists(filePath)) {
+			std::ifstream stream(filePath);
+			std::stringstream strStream;
+			strStream << stream.rdbuf();
+			YAML::Node data = YAML::Load(strStream.str());
+			model->modelName = data["Model"].as<string>();
+			model->uuid = data["ModelUuid"].as<uint64_t>();
+			model->scale = data["ModelScale"].as<float>();
+			model->useTangent = data["UseTangent"].as<bool>();
+			model->modelObjectPath = data["ModelFilePath"].as<string>();
+			model->modelPlazaPath = filePath;
+			// DeSerialize the model's main object
+			DeSerializeGameObject(data["MainObject"][0], model);
 
-		// DeSerialize the model's GameObjects
-		const YAML::Node& gameObjects = data["GameObjects"];
-		for (const auto& gameObjectEntry : gameObjects) {
-			DeSerializeGameObject(gameObjectEntry, model);
+			// DeSerialize the model's GameObjects
+			const YAML::Node& gameObjects = data["GameObjects"];
+			for (const auto& gameObjectEntry : gameObjects) {
+				DeSerializeGameObject(gameObjectEntry, model);
+			}
 		}
 		return model;
 	}

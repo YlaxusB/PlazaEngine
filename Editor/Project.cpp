@@ -10,6 +10,8 @@
 #include "Editor/Filewatcher.h"
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
+#include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
+#include "Engine/Core/ModelLoader/ModelLoader.h"
 
 namespace Plaza::Editor {
 	void Project::Load(const std::string filePath) {
@@ -40,6 +42,7 @@ namespace Plaza::Editor {
 			Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 #endif // !GAME_REL
 
+			Application->activeProject->directory = projectFile.parent_path().string();
 
 
 			//free(Application->editorScene);
@@ -53,18 +56,26 @@ namespace Plaza::Editor {
 			std::cout << "Mono \n";
 			Mono::Init();
 
-			std::cout << "Deserializing \n";
-			ProjectSerializer::DeSerialize(filePath);
-			std::cout << "Finished Deserializing \n";
-			Application->activeProject->directory = projectFile.parent_path().string();
-			/* Detect all the scripts in this folder */
+			/* Iterate over all files and subfolders of the project folder*/
 			for (const auto& entry : filesystem::recursive_directory_iterator(Application->activeProject->directory)) {
 				if (entry.is_regular_file() && entry.path().extension() == ".cs") {
 					Application->activeProject->scripts.emplace(entry.path().string(), Script());
-					// Reload all .dll files
-					//ScriptManager::ReloadSpecificAssembly(entry.path().string());
+				}
+
+				if (entry.is_regular_file() && entry.path().extension() == Standards::materialExtName) {
+					std::shared_ptr<Material> deserializedMaterial = std::shared_ptr<Material>(MaterialFileSerializer::DeSerialize(entry.path().string()));
+					if (deserializedMaterial->uuid) {
+						deserializedMaterial->LoadTextures(entry.path().parent_path().string());
+						Application->activeScene->AddMaterial(deserializedMaterial);
+						//Application->activeScene->materials.emplace(deserializedMaterial->uuid, deserializedMaterial);
+					}
 				}
 			}
+
+			std::cout << "Deserializing \n";
+			ProjectSerializer::DeSerialize(filePath);
+			std::cout << "Finished Deserializing \n";
+
 
 			return;
 		}

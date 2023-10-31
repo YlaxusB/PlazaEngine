@@ -22,10 +22,12 @@ namespace Plaza {
 		Collider* collider = new Collider(data["Uuid"].as<uint64_t>(), nullptr);
 		Transform* transform = &Application->activeScene->transformComponents.at(collider->uuid);
 		for (auto shapeDeserialized : data["Shapes"]) {
-			if (shapeDeserialized["MeshUuid"].as<uint64_t>())
-				collider->CreateShape(ColliderShapeEnum(shapeDeserialized["Shape"].as<int>()), transform, Application->activeScene->meshes.at(shapeDeserialized["MeshUuid"].as<uint64_t>()).get());
-			else
-				collider->CreateShape(ColliderShapeEnum(shapeDeserialized["Shape"].as<int>()), transform, 0);
+			if (Application->activeScene->meshes.find(shapeDeserialized["MeshUuid"].as<uint64_t>()) != Application->activeScene->meshes.end()) {
+				if (shapeDeserialized["MeshUuid"].as<uint64_t>())
+					collider->CreateShape(ColliderShapeEnum(shapeDeserialized["Shape"].as<int>()), transform, Application->activeScene->meshes.at(shapeDeserialized["MeshUuid"].as<uint64_t>()).get());
+				else
+					collider->CreateShape(ColliderShapeEnum(shapeDeserialized["Shape"].as<int>()), transform, 0);
+			}
 		}
 		return collider;
 	}

@@ -151,5 +151,17 @@ namespace Plaza {
 			//componentsMap.emplace("AudioSource", &audioSourceComponents);
 			//componentsMap.emplace("AudioListener", &audioListenerComponents);
 		}
+
+		static Material* DefaultMaterial();
+
+		void AddMaterial(Material* material) {
+			this->materials.emplace(material->uuid, material);
+			this->materialsNames.emplace(material->name, material->uuid);
+		}
+
+		void AddMaterial(std::shared_ptr<Material> material) {
+			this->materials.emplace(material->uuid, material);
+			this->materialsNames.emplace(material->name, material->uuid);
+		}
 	};
 }

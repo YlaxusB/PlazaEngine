@@ -149,7 +149,7 @@ namespace Plaza {
 			this->GetParent().childrenUuid.erase(std::remove(this->GetParent().childrenUuid.begin(), this->GetParent().childrenUuid.end(), this->uuid), this->GetParent().childrenUuid.end());
 			if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
 				Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
-			Application->activeScene->entities.erase(Application->activeScene->entities.find(this->uuid));
+			//Application->activeScene->entities.erase(Application->activeScene->entities.find(this->uuid));
 			//Application->activeScene->entities.
 			//Application->activeScene->entities.erase(Application->activeScene->entities.find(this->uuid));
 		}

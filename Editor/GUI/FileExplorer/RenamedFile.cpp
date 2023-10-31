@@ -6,10 +6,12 @@ namespace Plaza::Editor {
 
 		/* Material */
 		if (newExtension == Standards::materialExtName) {
-			uint64_t materialUuid = Application->activeScene->materialsNames.at(oldPath);
-			Application->activeScene->materials.at(materialUuid)->name = newPath;
-			Application->activeScene->materialsNames.emplace(newPath, materialUuid);
-			Application->activeScene->materialsNames.erase(oldPath);
+			if (Application->activeScene->materialsNames.find(oldPath) != Application->activeScene->materialsNames.end()) {
+				uint64_t materialUuid = Application->activeScene->materialsNames.at(oldPath);
+				Application->activeScene->materials.at(materialUuid)->name = newPath;
+				Application->activeScene->materialsNames.emplace(newPath, materialUuid);
+				Application->activeScene->materialsNames.erase(oldPath);
+			}
 		}
 	}
 }

@@ -41,7 +41,7 @@ namespace Plaza {
 
 		if (std::filesystem::exists(Application->projectPath + "\\" + lastActiveScenePath))
 		{
-			Serializer::DeSerialize(Application->projectPath + "\\" + lastActiveScenePath);
+			Serializer::DeSerialize(Application->projectPath + "\\" + lastActiveScenePath, true);
 		}
 		else {
 			Application->editorScene = new Scene();

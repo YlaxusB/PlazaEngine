@@ -79,7 +79,7 @@ namespace Plaza::Editor::Utils {
 		static void DeleteFileF(std::string fullPath) {
 			filesystem::path path(fullPath);
 			if (filesystem::exists(path)) {
-				std::filesystem::remove(path);
+				std::filesystem::remove_all(path);
 				Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 			}
 		}

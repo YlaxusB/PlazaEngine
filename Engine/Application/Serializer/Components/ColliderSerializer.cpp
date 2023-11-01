@@ -7,7 +7,11 @@ namespace Plaza {
 
 		out << YAML::Key << "Uuid" << YAML::Value << collider.uuid;
 		out << YAML::Key << "Shapes" << YAML::Value << YAML::BeginSeq;
-		for (ColliderShape* shape : collider.mShapes) {
+		if (collider.mShapes.size() == 0) {
+			std::cout << "000qweqewq \n";
+		}
+		vector<ColliderShape*> mShapes = collider.mShapes;
+		for (ColliderShape* shape : mShapes) {
 			out << YAML::BeginMap;
 			out << YAML::Key << "Shape" << YAML::Value << shape->mEnum;
 			out << YAML::Key << "MeshUuid" << YAML::Value << shape->mMeshUuid;
@@ -22,7 +26,7 @@ namespace Plaza {
 		Collider* collider = new Collider(data["Uuid"].as<uint64_t>(), nullptr);
 		Transform* transform = &Application->activeScene->transformComponents.at(collider->uuid);
 		for (auto shapeDeserialized : data["Shapes"]) {
-			if (Application->activeScene->meshes.find(shapeDeserialized["MeshUuid"].as<uint64_t>()) != Application->activeScene->meshes.end()) {
+			if (Application->activeScene->meshes.find(shapeDeserialized["MeshUuid"].as<uint64_t>()) != Application->activeScene->meshes.end() || shapeDeserialized["Shape"].as<int>() != ColliderShapeEnum::MESH) {
 				if (shapeDeserialized["MeshUuid"].as<uint64_t>())
 					collider->CreateShape(ColliderShapeEnum(shapeDeserialized["Shape"].as<int>()), transform, Application->activeScene->meshes.at(shapeDeserialized["MeshUuid"].as<uint64_t>()).get());
 				else

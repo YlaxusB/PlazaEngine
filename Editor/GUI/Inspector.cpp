@@ -10,6 +10,7 @@
 #include "Editor/GUI/Inspector/CameraInspector.h"
 
 #include "Editor/GUI/Inspector/FileInspector/MaterialInspector.h"
+#include "Editor/GUI/Inspector/FileInspector/TextEditor.h"
 
 
 namespace Plaza::Editor {
@@ -18,7 +19,7 @@ namespace Plaza::Editor {
 	void Inspector::FileInspector::CreateInspector() {
 		ImGui::SetCursorPosY(50);
 		ImGui::Indent(10);
-		for (auto& [key, value] : Editor::selectedFiles) {
+		for (auto [key, value] : Editor::selectedFiles) {
 			CreateRespectiveInspector(value);
 		}
 	}
@@ -28,6 +29,9 @@ namespace Plaza::Editor {
 			std::string extension = std::filesystem::path{ file->directory }.extension().string();
 			if (extension == Standards::materialExtName) {
 				Editor::MaterialFileInspector::MaterialFileInspector(file);
+			}
+			else if (extension == Standards::modelExtName) {
+				Editor::TextEditor::TextEditor(file);
 			}
 		}
 	}

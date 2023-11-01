@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/Core/Standards.h"
 #include "Editor/GUI/Style/EditorStyle.h"
 #include "Editor/GUI/guiMain.h"
 
@@ -58,6 +59,14 @@ namespace Plaza {
 				// Obj Icon
 				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/objIcon.png").c_str(), &imageTextureID);
 				textures.emplace(".obj", IconTexture(imageTextureID, ".obj"));
+
+				// Model Icon
+				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/modelIcon.png").c_str(), &imageTextureID);
+				textures.emplace(Standards::modelExtName, IconTexture(imageTextureID, Standards::modelExtName));
+
+				// Scene Icon
+				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/sceneIcon.png").c_str(), &imageTextureID);
+				textures.emplace(Standards::sceneExtName, IconTexture(imageTextureID, Standards::sceneExtName));
 			}
 
 			static void LoadImageToImGuiTexture(const char* path, unsigned int* out_textureID) {

@@ -415,10 +415,14 @@ namespace Plaza {
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
 			shared_ptr<Mesh> oldMesh = meshRendererIt->second.mesh;
-			Mesh* newMesh = new Mesh(*oldMesh);
+			Mesh* newMesh;
+			if (oldMesh.get())
+				newMesh = new Mesh(*oldMesh);
+			else
+				newMesh = new Mesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
-			if (oldMesh->temporaryMesh) {
+			if (oldMesh.get() && oldMesh->temporaryMesh) {
 				newMesh->meshId = oldMesh->meshId;
 				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
 			}
@@ -436,7 +440,12 @@ namespace Plaza {
 			for (int i = 0; i < size; ++i) {
 				meshVertices.push_back(vertices[i]);
 			}
+
 			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			//RenderGroup* rend = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup.get();
+			//Mesh* mes = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh.get();
+			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			//delete newMesh;
 		}
 	}
@@ -459,7 +468,11 @@ namespace Plaza {
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
 			shared_ptr<Mesh> oldMesh = meshRendererIt->second.mesh;
-			Mesh* newMesh = new Mesh(*oldMesh);
+			Mesh* newMesh;
+			if (oldMesh.get())
+				newMesh = new Mesh(*oldMesh);
+			else
+				newMesh = new Mesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
 			if (oldMesh->temporaryMesh) {
@@ -480,7 +493,10 @@ namespace Plaza {
 			for (int i = 0; i < size; ++i) {
 				meshIndices.push_back(indices[i]);
 			}
+
 			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			delete newMesh;
 		}
 	}
@@ -503,7 +519,11 @@ namespace Plaza {
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
 			shared_ptr<Mesh> oldMesh = meshRendererIt->second.mesh;
-			Mesh* newMesh = new Mesh(*oldMesh);
+			Mesh* newMesh;
+			if (oldMesh.get())
+				newMesh = new Mesh(*oldMesh);
+			else
+				newMesh = new Mesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
 			if (oldMesh->temporaryMesh) {
@@ -525,6 +545,8 @@ namespace Plaza {
 				meshNormals.push_back(normals[i]);
 			}
 			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			delete newMesh;
 		}
 	}
@@ -547,7 +569,11 @@ namespace Plaza {
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
 			shared_ptr<Mesh> oldMesh = meshRendererIt->second.mesh;
-			Mesh* newMesh = new Mesh(*oldMesh);
+			Mesh* newMesh;
+			if (oldMesh.get())
+				newMesh = new Mesh(*oldMesh);
+			else
+				newMesh = new Mesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
 			if (oldMesh->temporaryMesh) {
@@ -569,6 +595,8 @@ namespace Plaza {
 				meshUvs.push_back(uvs[i]);
 			}
 			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			delete newMesh;
 		}
 	}

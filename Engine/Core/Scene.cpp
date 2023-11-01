@@ -28,7 +28,15 @@ namespace Plaza {
 			//newObj->ReplaceComponent<Transform>(newObj->GetComponent<Transform>(), newObj->transform);
 			MeshRenderer* meshRenderer = gameObj.second.GetComponent<MeshRenderer>();
 			if (gameObj.second.GetComponent<MeshRenderer>()) {
-				MeshRenderer* newMeshRenderer = new MeshRenderer(*(gameObj.second.GetComponent<MeshRenderer>()->mesh));
+				MeshRenderer* newMeshRenderer;
+				if(gameObj.second.GetComponent<MeshRenderer>()->mesh.get())
+					newMeshRenderer = new MeshRenderer(*(gameObj.second.GetComponent<MeshRenderer>()->mesh));
+				else {
+					newMeshRenderer = new MeshRenderer();
+					newMeshRenderer->uuid = Plaza::UUID::NewUUID();
+					Application->activeScene->meshRenderers.emplace_back(newMeshRenderer);
+				}
+
 				newMeshRenderer->uuid = newObj->uuid;
 				//newObj->RemoveComponent<MeshRenderer>();
 				newObj->AddComponent<MeshRenderer>(newMeshRenderer);
@@ -59,6 +67,8 @@ namespace Plaza {
 		newScene->materialsNames = std::unordered_map<std::string, uint64_t>(copyScene->materialsNames);
 		newScene->renderGroups = std::unordered_map<uint64_t, shared_ptr<RenderGroup>>(copyScene->renderGroups);
 		newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash>(copyScene->renderGroupsFindMap);
+		newScene->rederGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>(copyScene->rederGroupsFindMapWithMeshUuid);
+		newScene->rederGroupsFindMapWithMaterialUuid = std::unordered_map<uint64_t, uint64_t>(copyScene->rederGroupsFindMapWithMaterialUuid);
 
 		for (auto& [key, value] : copyScene->colliderComponents) {
 			// RigidBody* rig = &copyScene->rigidBodyComponents.at(key);

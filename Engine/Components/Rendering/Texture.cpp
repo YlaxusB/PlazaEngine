@@ -10,6 +10,7 @@ namespace Plaza {
 			else {
 				this->id = ModelLoader::TextureFromFile(path);
 			}
+			this->rgba = glm::vec4(INFINITY);
 		}
 	}
 }

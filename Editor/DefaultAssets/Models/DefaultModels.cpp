@@ -15,12 +15,12 @@ namespace Plaza::Editor {
 		InitSphere();
 		InitPlane();
 		InitCylinder();
-		Material defaultMaterial = Material();
-		defaultMaterial.albedo.rgba = glm::vec4(1.0f);
-		defaultMaterial.diffuse.rgba = glm::vec4(1.0f);
-		defaultMaterial.uuid = -1;
-		//Application->activeScene->materials.emplace(-1, std::make_shared<Material>(defaultMaterial));
-		Application->activeScene->AddMaterial(&defaultMaterial);
+		//Material defaultMaterial = Material();
+		//defaultMaterial.albedo.rgba = glm::vec4(1.0f);
+		//defaultMaterial.diffuse.rgba = glm::vec4(1.0f);
+		//defaultMaterial.uuid = -1;
+		////Application->activeScene->materials.emplace(-1, std::make_shared<Material>(defaultMaterial));
+		//Application->activeScene->AddMaterial(&defaultMaterial);
 	}
 	shared_ptr<Mesh> DefaultModels::Cube() {
 		return Application->editorScene->meshes.at(cubeUuid);

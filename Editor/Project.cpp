@@ -56,10 +56,11 @@ namespace Plaza::Editor {
 			std::cout << "Mono \n";
 			Mono::Init();
 
+			std::map<std::string, Script> scripts = std::map<std::string, Script>();
 			/* Iterate over all files and subfolders of the project folder*/
 			for (const auto& entry : filesystem::recursive_directory_iterator(Application->activeProject->directory)) {
 				if (entry.is_regular_file() && entry.path().extension() == ".cs") {
-					Application->activeProject->scripts.emplace(entry.path().string(), Script());
+					scripts.emplace(entry.path().string(), Script());
 				}
 
 				if (entry.is_regular_file() && entry.path().extension() == Standards::materialExtName) {
@@ -75,7 +76,7 @@ namespace Plaza::Editor {
 			std::cout << "Deserializing \n";
 			ProjectSerializer::DeSerialize(filePath);
 			std::cout << "Finished Deserializing \n";
-
+			Application->activeProject->scripts = scripts;
 
 			return;
 		}

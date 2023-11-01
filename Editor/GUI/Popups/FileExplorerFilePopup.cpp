@@ -10,7 +10,7 @@ namespace Plaza::Editor {
 	void Popup::FileExplorerFilePopup::UpdateContent(File* file) {
 		if (!Editor::selectedFiles.contains(file->name)) {
 			Editor::selectedFiles.clear();
-			Editor::selectedFiles.emplace(file->directory, file);
+			Editor::selectedFiles.emplace(file->directory, new File(*file));
 		}
 		if (ImGui::MenuItem("Delete"))
 		{

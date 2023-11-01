@@ -202,10 +202,18 @@ namespace Plaza {
 		void Terminate() {
 			glDeleteVertexArrays(1, &VAO);
 			glDeleteBuffers(1, &VBO);
+			//glDeleteBuffers(1, &EBO);
 		}
 
 		void Restart() {
-			setupMesh();
+			if (indices.size() > 0 && vertices.size() > 0) {
+	/*			glDeleteBuffers(1, &VBO);
+				glDeleteBuffers(1, &EBO);
+				glDeleteBuffers(1, &instanceBuffer);
+				glDeleteBuffers(1, &this->uniformBuffer);
+				glDeleteVertexArrays(1, &VAO);*/
+				setupMesh();
+			}
 		}
 
 	private:

@@ -103,8 +103,25 @@ namespace Plaza {
 
 		std::unordered_map<uint64_t, shared_ptr<RenderGroup>> renderGroups;
 		std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash> renderGroupsFindMap;
+		std::unordered_map<uint64_t, uint64_t> rederGroupsFindMapWithMeshUuid;
+		std::unordered_map<uint64_t, uint64_t> rederGroupsFindMapWithMaterialUuid;
 
 		std::unordered_map<std::string, std::unordered_set<uint64_t>> entitiesNames;
+
+		void AddRenderGroup(shared_ptr<RenderGroup> renderGroup) {
+			this->renderGroups.emplace(renderGroup->uuid, renderGroup);
+			this->rederGroupsFindMapWithMeshUuid.emplace(renderGroup->mesh->uuid, renderGroup->uuid);
+			this->rederGroupsFindMapWithMaterialUuid.emplace(renderGroup->material->uuid, renderGroup->uuid);
+			this->renderGroupsFindMap.emplace(std::make_pair(renderGroup->mesh->uuid, renderGroup->material->uuid), renderGroup->uuid);
+		}
+
+		void AddRenderGroup(RenderGroup* renderGroup) {
+			this->renderGroups.emplace(renderGroup->uuid, renderGroup);
+			this->rederGroupsFindMapWithMeshUuid.emplace(renderGroup->mesh->uuid, renderGroup->uuid);
+			this->rederGroupsFindMapWithMaterialUuid.emplace(renderGroup->material->uuid, renderGroup->uuid);
+			this->renderGroupsFindMap.emplace(std::make_pair(renderGroup->mesh->uuid, renderGroup->material->uuid), renderGroup->uuid);
+		}
+
 		Scene();
 
 		//unordered_map<uint64_t, Transform*> meshRenderersComponents;

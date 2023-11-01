@@ -17,9 +17,9 @@ namespace Plaza {
 				);
 		}
 
-		void Load(std::string relativePath = "");
-
 		Texture() = default;
+
+		void Load(std::string relativePath = "");
 
 		Texture(std::string type) {
 			this->type = type;

@@ -54,13 +54,15 @@ namespace Plaza {
 
 	void SerializeMeshes(YAML::Emitter& out, MeshRenderer* meshRenderer) {
 		Mesh* mesh = meshRenderer->mesh.get();
-		out << YAML::BeginMap;
-		out << YAML::Key << "Mesh" << YAML::Value << mesh->uuid;
-		out << YAML::Key << "MeshId" << YAML::Value << mesh->meshId;
-		out << YAML::Key << "Name" << YAML::Value << mesh->meshName;
-		out << YAML::Key << "TemporaryMesh" << YAML::Value << mesh->temporaryMesh;
-		out << YAML::Key << "ModelUuid" << YAML::Value << mesh->modelUuid;
-		out << YAML::EndMap;
+		if (mesh) {
+			out << YAML::BeginMap;
+			out << YAML::Key << "Mesh" << YAML::Value << mesh->uuid;
+			out << YAML::Key << "MeshId" << YAML::Value << mesh->meshId;
+			out << YAML::Key << "Name" << YAML::Value << mesh->meshName;
+			out << YAML::Key << "TemporaryMesh" << YAML::Value << mesh->temporaryMesh;
+			out << YAML::Key << "ModelUuid" << YAML::Value << mesh->modelUuid;
+			out << YAML::EndMap;
+		}
 	}
 
 	void SerializeModels(YAML::Emitter& out, Model* model) {

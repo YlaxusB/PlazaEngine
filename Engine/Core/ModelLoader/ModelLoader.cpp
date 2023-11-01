@@ -61,8 +61,8 @@ namespace Plaza {
 					} else {
 						//newMeshRenderer->material = Application->activeScene->materials.at(Application->activeScene->materialsNames.at(newMeshRenderer->material->name));
 					}
-
-					Application->activeScene->renderGroups.emplace(newMeshRenderer->renderGroup->uuid, newMeshRenderer->renderGroup);
+					Application->activeScene->AddRenderGroup(newMeshRenderer->renderGroup);
+					//Application->activeScene->renderGroups.emplace(newMeshRenderer->renderGroup->uuid, newMeshRenderer->renderGroup);
 					newGameObject->AddComponent<MeshRenderer>(newMeshRenderer, true);
 					//newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
 					Collider* collider = new Collider(newGameObject->uuid);

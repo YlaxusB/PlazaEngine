@@ -204,6 +204,46 @@ namespace Plaza
             }
         }
 
+        public Matrix4 WorldMatrix
+        {
+            get
+            {
+                float[] receivedMatrix = InternalCalls.Transform_GetWorldMatrix(Entity.Uuid);
+
+                Console.WriteLine("Start C# " + receivedMatrix.Length);
+                foreach(float f in receivedMatrix)
+                {
+                    Console.WriteLine(f);
+                }
+
+                // Process the received matrix as needed
+                // Convert the linear array to a 4x4 matrix
+                float[,] matrix4x4 = new float[4, 4];
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        matrix4x4[i, j] = receivedMatrix[i * 4 + j];
+                    }
+                }
+
+                // Print the matrix or perform other operations
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        Console.Write(matrix4x4[i, j].ToString("F6") + " ");
+                    }
+                    Console.WriteLine();
+                }
+                return new Matrix4(matrix4x4);
+            }
+            set
+            {
+                //InternalCalls.Transform_SetWorldMatrix(Uuid, ref value);
+            }
+        }
+
         public void MoveTowards(Vector3 vector3)
         {
             Plaza.InternalCalls.MoveTowards(this.Uuid, vector3);
@@ -231,10 +271,7 @@ namespace Plaza
         {
             set
             {
-                InternalCalls.MeshRenderer_SetVertices(Uuid, value.Vertices);
-                InternalCalls.MeshRenderer_SetIndices(Uuid, value.Indices);
-                InternalCalls.MeshRenderer_SetNormals(Uuid, value.Normals);
-                InternalCalls.MeshRenderer_SetUvs(Uuid, value.Uvs);
+                InternalCalls.MeshRenderer_SetMesh(Uuid, value.Vertices, value.Indices, value.Normals, value.Uvs);
             }
         }
         public Vector3[] Vertices

@@ -241,8 +241,14 @@ void ApplicationClass::Loop() {
 		}
 
 		// GLFW
-		glfwSwapBuffers(Application->Window->glfwWindow);
-		glfwPollEvents();
+		{
+			PLAZA_PROFILE_SECTION("Swap Buffers");
+			glfwSwapBuffers(Application->Window->glfwWindow);
+		}
+		{
+			PLAZA_PROFILE_SECTION("Poll Events");
+			glfwPollEvents();
+		}
 
 	}
 }

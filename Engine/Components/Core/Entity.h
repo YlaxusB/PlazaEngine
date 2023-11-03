@@ -32,7 +32,7 @@ namespace Plaza {
 		T* GetComponent() {
 			Component* component = nullptr;
 			std::string className = typeid(T).name();
-			auto& components = *static_cast<ComponentMultiMap<uint64_t, T>*>(GetAllComponentsMaps()[className]);
+			auto& components = *static_cast<ComponentMultiMap<uint64_t, T>*>(GetAllComponentsMaps().find(className)->second);
 			auto it = components.find(this->uuid);
 			if (it != components.end()) {
 				component = &(it->second);

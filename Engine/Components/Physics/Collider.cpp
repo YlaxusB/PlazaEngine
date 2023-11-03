@@ -60,11 +60,14 @@ namespace Plaza {
 		if (mRigidActor) {
 			for (ColliderShape* shape : mShapes) {
 				this->mRigidActor->detachShape(*shape->mPxShape);
-				shape->mPxShape->release();
+				if (shape->mPxShape->userData)
+					shape->mPxShape->release();
 			}
 			Physics::m_scene->removeActor(*this->mRigidActor);
-			this->mRigidActor->release();
-			this->material->release();
+			if (this->mRigidActor->userData)
+				this->mRigidActor->release();
+			if (this->material->userData)
+				this->material->release();
 		}
 	}
 
@@ -227,59 +230,62 @@ namespace Plaza {
 	}
 
 	void Collider::UpdateShapeScale(glm::vec3 scale) {
-		for (int i = 0; i < this->mShapes.size(); ++i) {
-			physx::PxShape* shape = this->mShapes[i]->mPxShape;
-			physx::PxGeometryHolder geometry = this->mShapes[i]->mPxShape->getGeometry();
-			physx::PxShape* newShape = this->mShapes[i]->mPxShape;
-			physx::PxMaterial* material;
-			this->mShapes[i]->mPxShape->getMaterials(&material, 1);
-			// Scale the geometry parameters by the given factor
-			if (this->mShapes[i]->mEnum == ColliderShapeEnum::BOX) {
-				physx::PxBoxGeometry boxGeom = geometry.box();
-				boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
-				shape->release();
-				newShape = Physics::m_physics->createShape(boxGeom, *material);
-			}
-			else if (this->mShapes[i]->mEnum == ColliderShapeEnum::PLANE) {
-				physx::PxBoxGeometry planeGeom = geometry.box();
-				planeGeom.halfExtents = physx::PxVec3(scale.x / 2, 0.001f, scale.z / 2);
-				shape->release();
-				newShape = Physics::m_physics->createShape(planeGeom, *material);
-			}
-			else if (this->mShapes[i]->mEnum == ColliderShapeEnum::SPHERE) {
-				physx::PxSphereGeometry sphereGeometry = geometry.sphere();
-				//boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
-				sphereGeometry.radius = (scale.x + scale.y + scale.z) / 3;
-				shape->release();
-				newShape = Physics::m_physics->createShape(sphereGeometry, *material);
-				//physx::PxSphereGeometry sphereGeom;
-				//sphereGeom.radius *= 3;
-				//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
-			}
-			else if (this->mShapes[i]->mEnum == ColliderShapeEnum::MESH) {
-				physx::PxTriangleMeshGeometry meshGeometry = geometry.triangleMesh();
-				meshGeometry.scale = physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z));
-				shape->release();
-				newShape = Physics::m_physics->createShape(meshGeometry, *material);
-				//physx::PxSphereGeometry sphereGeom;
-				//sphereGeom.radius *= 3;
-				//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
-			}
-			else {
-				std::cout << "Shape not supported for scaling" << std::endl;
-			}
-
-
-			if (Application->runningScene && this->mRigidActor) {
-				if (this->mDynamic) {
-					this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
-					this->mShapes[i]->mPxShape = newShape;
-					this->mRigidActor->attachShape(*newShape);
+		PLAZA_PROFILE_SECTION("Collider: Update Shape Scale");
+		if (lastScale != scale) {
+			for (int i = 0; i < this->mShapes.size(); ++i) {
+				physx::PxShape* shape = this->mShapes[i]->mPxShape;
+				physx::PxGeometryHolder geometry = this->mShapes[i]->mPxShape->getGeometry();
+				physx::PxShape* newShape = this->mShapes[i]->mPxShape;
+				physx::PxMaterial* material;
+				this->mShapes[i]->mPxShape->getMaterials(&material, 1);
+				// Scale the geometry parameters by the given factor
+				if (this->mShapes[i]->mEnum == ColliderShapeEnum::BOX) {
+					physx::PxBoxGeometry boxGeom = geometry.box();
+					boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
+					shape->release();
+					newShape = Physics::m_physics->createShape(boxGeom, *material);
+				}
+				else if (this->mShapes[i]->mEnum == ColliderShapeEnum::PLANE) {
+					physx::PxBoxGeometry planeGeom = geometry.box();
+					planeGeom.halfExtents = physx::PxVec3(scale.x / 2, 0.001f, scale.z / 2);
+					shape->release();
+					newShape = Physics::m_physics->createShape(planeGeom, *material);
+				}
+				else if (this->mShapes[i]->mEnum == ColliderShapeEnum::SPHERE) {
+					physx::PxSphereGeometry sphereGeometry = geometry.sphere();
+					//boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
+					sphereGeometry.radius = (scale.x + scale.y + scale.z) / 3;
+					shape->release();
+					newShape = Physics::m_physics->createShape(sphereGeometry, *material);
+					//physx::PxSphereGeometry sphereGeom;
+					//sphereGeom.radius *= 3;
+					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
+				}
+				else if (this->mShapes[i]->mEnum == ColliderShapeEnum::MESH) {
+					physx::PxTriangleMeshGeometry meshGeometry = geometry.triangleMesh();
+					meshGeometry.scale = physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z));
+					shape->release();
+					newShape = Physics::m_physics->createShape(meshGeometry, *material);
+					//physx::PxSphereGeometry sphereGeom;
+					//sphereGeom.radius *= 3;
+					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
 				}
 				else {
-					this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
-					this->mShapes[i]->mPxShape = newShape;
-					this->mRigidActor->attachShape(*newShape);
+					std::cout << "Shape not supported for scaling" << std::endl;
+				}
+
+
+				if (Application->runningScene && this->mRigidActor) {
+					if (this->mDynamic) {
+						this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
+						this->mShapes[i]->mPxShape = newShape;
+						this->mRigidActor->attachShape(*newShape);
+					}
+					else {
+						this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
+						this->mShapes[i]->mPxShape = newShape;
+						this->mRigidActor->attachShape(*newShape);
+					}
 				}
 			}
 		}
@@ -309,16 +315,18 @@ namespace Plaza {
 	}
 
 	void Collider::UpdatePose(Transform* transform) {
+		PLAZA_PROFILE_SECTION("Collider: Update Pose");
 		if (transform) {
-			glm::quat quaternion = transform->GetWorldQuaternion();
-			physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-
-			glm::vec3 transformPos = transform->GetWorldPosition();
-			physx::PxTransform* pxTransform = new physx::PxTransform(
-				transformPos.x, transformPos.y, transformPos.z,
-				pxQuaternion);
 			if (this->mRigidActor) {
+				glm::quat quaternion = transform->GetWorldQuaternion();
+				physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+
+				glm::vec3 transformPos = transform->GetWorldPosition();
+				physx::PxTransform* pxTransform = new physx::PxTransform(
+					transformPos.x, transformPos.y, transformPos.z,
+					pxQuaternion);
 				this->mRigidActor->setGlobalPose(*pxTransform);
+				delete pxTransform;
 			}
 		}
 	}

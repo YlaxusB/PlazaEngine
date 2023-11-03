@@ -208,6 +208,7 @@ namespace Plaza {
 								newEntity->GetComponent<Transform>()->relativePosition = entity["Components"]["TransformComponent"]["Position"].as<glm::vec3>();
 								newEntity->GetComponent<Transform>()->rotation = entity["Components"]["TransformComponent"]["Rotation"].as<glm::vec3>();
 								newEntity->GetComponent<Transform>()->scale = entity["Components"]["TransformComponent"]["Scale"].as<glm::vec3>();
+								//newEntity->GetComponent<Transform>()->UpdateLocalMatrix();
 								//newEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 							}
 							if (entity["Components"]["MeshRendererComponent"]) {

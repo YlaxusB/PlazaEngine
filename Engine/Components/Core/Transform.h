@@ -55,5 +55,17 @@ namespace Plaza {
 		glm::vec3 GetWorldScale();
 
 		void UpdatePhysics();
-	};
+
+	private:
+		/* Matrices calculation cache */
+		glm::mat4 lastLocalMatrix = glm::mat4(-1.0f);
+		glm::vec3 lastRelativePositionLocalMatrix = glm::vec3(-1.0f);
+		glm::vec3 lastRotationLocalMatrix = glm::vec3(-1.0f);
+		glm::vec3 lastScaleLocalMatrix = glm::vec3(-1.0f);
+
+		glm::mat4 lastParentModelMatrix = glm::mat4(-1.0f);
+		//this->localMatrix = glm::translate(glm::mat4(1.0f), this->relativePosition)
+		//	* glm::toMat4(glm::quat(rotation))
+		//	* glm::scale(glm::mat4(1.0f), scale);
+	}; 
 }

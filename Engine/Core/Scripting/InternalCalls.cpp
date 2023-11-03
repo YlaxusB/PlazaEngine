@@ -173,11 +173,11 @@ namespace Plaza {
 				physx::PxMaterial* shapeMaterial = Physics::defaultMaterial;
 
 				// Create a new shape with the same properties
-				physx::PxShape* newShape = shape->mPxShape;//Physics::m_physics->createShape(geometry.triangleMesh(), *shapeMaterial, false);
+				physx::PxShape* newShape = Physics::m_physics->createShape(geometry.triangleMesh(), *shapeMaterial, false);
 				//newCollider->mRigidActor->attachShape(*newShape);
-				newCollider->mShapes.push_back(new ColliderShape(newShape, shape->mEnum, shape->mMeshUuid));
+				instantiatedEntity->GetComponent<Collider>()->mShapes.push_back(new ColliderShape(newShape, shape->mEnum, shape->mMeshUuid));
 			}
-			newCollider->Init(nullptr);
+			instantiatedEntity->GetComponent<Collider>()->Init(nullptr);
 		}
 
 		if (entityToInstantiate->HasComponent<RigidBody>()) {
@@ -344,6 +344,7 @@ namespace Plaza {
 
 #pragma region Transform Component
 	static void SetPosition(uint64_t uuid, glm::vec3* vec3) {
+		PLAZA_PROFILE_SECTION("Mono: Set Position");
 		Application->activeScene->transformComponents.at(uuid).SetRelativePosition(*vec3);
 	}
 	static void GetPositionCall(uint64_t uuid, glm::vec3* out) {
@@ -386,12 +387,29 @@ namespace Plaza {
 		*out = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
 	}
 
+	static void Transform_GetWorldMatrix(uint64_t uuid, float** out, int* size) {
+		glm::mat4 matrix = Application->activeScene->transformComponents.find(uuid)->second.GetTransform();
+
+
+		vector<float> floats = vector<float>();
+
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				floats.push_back(matrix[i][j]);
+			}
+		}
+
+		*size = static_cast<float>(floats.size());
+		*out = floats.data();
+	}
+
 	static void MoveTowards(uint64_t uuid, glm::vec3 vector3) {
 		auto transformIt = Application->activeScene->transformComponents.find(uuid);
 		if (transformIt != Application->activeScene->transformComponents.end())
 			transformIt->second.MoveTowards(vector3);
 
 	}
+
 
 
 #pragma endregion Transform Component
@@ -601,6 +619,59 @@ namespace Plaza {
 		}
 	}
 
+	static void MeshRenderer_SetMesh(uint64_t uuid, glm::vec3* vertices, int verticesSize, unsigned int* indices, int indicesSize, glm::vec3* normals, int normalsSize, glm::vec2* uvs, int uvsSize) {
+		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
+			shared_ptr<Mesh> oldMesh = meshRendererIt->second.mesh;
+			Mesh* newMesh;
+			if (oldMesh.get())
+				newMesh = new Mesh(*oldMesh);
+			else
+				newMesh = new Mesh();
+			newMesh->meshId = Plaza::UUID::NewUUID();
+			newMesh->temporaryMesh = true;
+			if (oldMesh->temporaryMesh) {
+				newMesh->meshId = oldMesh->meshId;
+				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
+			}
+			else {
+				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+			}
+			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId);
+			vector<glm::vec3>& meshVertices = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->vertices;
+			meshVertices.clear();
+			meshVertices.reserve(verticesSize);
+			for (int i = 0; i < verticesSize; ++i) {
+				meshVertices.push_back(vertices[i]);
+			}
+			vector<unsigned int>& meshIndices = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->indices;
+			meshIndices.clear();
+			meshIndices.reserve(indicesSize);
+			for (int i = 0; i < indicesSize; ++i) {
+				meshIndices.push_back(indices[i]);
+			}
+			vector<glm::vec3>& meshNormals = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->normals;
+			meshNormals.clear();
+			meshNormals.reserve(normalsSize);
+			for (int i = 0; i < normalsSize; ++i) {
+				meshNormals.push_back(normals[i]);
+			}
+			vector<glm::vec2>& meshUvs = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->uvs;
+			meshUvs.clear();
+			meshUvs.reserve(uvsSize);
+			for (int i = 0; i < uvsSize; ++i) {
+				meshUvs.push_back(uvs[i]);
+			}
+
+
+			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+			delete newMesh;
+		}
+	}
+
 #pragma endregion Mesh Renderer Component
 
 #pragma region RigidBody
@@ -756,6 +827,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::Transform_GetForwardVector", Transform_GetForwardVector);
 		mono_add_internal_call("Plaza.InternalCalls::Transform_GetUpVector", Transform_GetUpVector);
 		mono_add_internal_call("Plaza.InternalCalls::Transform_GetLeftVector", Transform_GetLeftVector);
+		mono_add_internal_call("Plaza.InternalCalls::Transform_GetWorldMatrix", Transform_GetWorldMatrix);
 
 		mono_add_internal_call("Plaza.InternalCalls::MoveTowards", MoveTowards);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetVertices", MeshRenderer_GetVertices);
@@ -764,6 +836,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetIndices", MeshRenderer_SetIndices);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetNormals", MeshRenderer_GetNormals);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetNormals", MeshRenderer_SetNormals);
+		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetMesh", MeshRenderer_SetMesh);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetUvs", MeshRenderer_GetUvs);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetUvs", MeshRenderer_SetUvs);
 

@@ -54,8 +54,9 @@ namespace Plaza {
 	}
 
 	RigidBody::~RigidBody() {
-		if (mRigidActor)
+		if (mRigidActor && mRigidActor->userData) 
 			Physics::m_scene->removeActor(*mRigidActor);
+		
 	}
 
 	glm::vec3 QuaternionToEulerAngles(const physx::PxQuat& quat) {
@@ -78,7 +79,7 @@ namespace Plaza {
 			glm::vec3 eulerAngles = glm::eulerAngles(glm::normalize(glmQuaternion));
 
 			// Transform the world rotation of the PxTransform to local rotation
-			glm::vec3 transformedRotation = glm::eulerAngles(glm::quat_cast(glm::inverse(parentTransform.GetTransform()) * glm::toMat4(glm::quat(eulerAngles))));
+			glm::vec3 transformedRotation = glm::eulerAngles(glm::normalize(glm::quat_cast(glm::inverse(parentTransform.GetTransform()) * glm::toMat4(glm::quat(eulerAngles)))));
 
 			// Apply the delta rotation to prevent gimbal lock
 			transform.rotation += transformedRotation - glm::eulerAngles(glm::quat_cast(transform.localMatrix));

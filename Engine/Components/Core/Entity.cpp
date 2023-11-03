@@ -167,7 +167,7 @@ namespace Plaza {
 			if (this->HasComponent<MeshRenderer>())
 				this->RemoveComponent<MeshRenderer>();
 			if (this->HasComponent<Collider>()) {
-				this->GetComponent<Collider>()->RemoveActor();
+				//this->GetComponent<Collider>()->RemoveActor();
 				this->RemoveComponent<Collider>();
 			}
 			if (this->HasComponent<RigidBody>())

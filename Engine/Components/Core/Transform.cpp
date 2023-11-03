@@ -26,11 +26,10 @@ namespace Plaza {
 
 	glm::vec3 Transform::GetWorldScale() {
 		glm::vec3 scale;
-		 
+
 		scale.x = glm::length(modelMatrix[0]);
 		scale.y = glm::length(modelMatrix[1]);
 		scale.z = glm::length(modelMatrix[2]);
-
 		return scale;
 	}
 
@@ -62,8 +61,16 @@ namespace Plaza {
 	}
 
 	void Transform::UpdateWorldMatrix() {
-		if (this->GetGameObject()->parentUuid)
-			this->modelMatrix = Application->activeScene->transformComponents.at(this->GetGameObject()->parentUuid).modelMatrix * this->localMatrix;
+		PLAZA_PROFILE_SECTION("Transform: Update World Matrix");
+		uint64_t parentUuid = Application->activeScene->entities.find(this->uuid)->second.parentUuid;
+		if (parentUuid) {
+			glm::mat4 parentModelMatrix = Application->activeScene->transformComponents.find(parentUuid)->second.modelMatrix;
+			if (this->lastParentModelMatrix != parentModelMatrix || this->lastLocalMatrix != this->localMatrix) {
+				this->modelMatrix = parentModelMatrix * this->localMatrix;
+				this->lastParentModelMatrix = parentModelMatrix;
+				this->lastLocalMatrix = this->localMatrix;
+			}
+		}
 	}
 
 	/// <summary>
@@ -83,15 +90,20 @@ namespace Plaza {
 	}
 
 	void Transform::UpdateLocalMatrix() {
-		this->localMatrix = glm::translate(glm::mat4(1.0f), this->relativePosition)
-			* glm::toMat4(glm::quat(rotation))
-			* glm::scale(glm::mat4(1.0f), scale);
+		PLAZA_PROFILE_SECTION("Transform: Update Local Matrix");
+		if (this->relativePosition != this->lastRelativePositionLocalMatrix || this->rotation != this->lastRotationLocalMatrix || this->scale != this->lastScaleLocalMatrix) {
+			this->localMatrix = glm::translate(glm::mat4(1.0f), this->relativePosition)
+				* glm::toMat4(glm::quat(rotation))
+				* glm::scale(glm::mat4(1.0f), scale);
+			this->lastRelativePositionLocalMatrix = this->relativePosition;
+			this->lastRotationLocalMatrix = this->rotation;
+			this->lastScaleLocalMatrix = this->scale;
+			//return this->localMatrix;
+		}
+		//return this->localMatrix;
 	}
 
 	glm::mat4 Transform::GetLocalMatrix() {
-		this->localMatrix = glm::translate(glm::mat4(1.0f), this->relativePosition)
-			* glm::toMat4(glm::quat(rotation))
-			* glm::scale(glm::mat4(1.0f), scale);
 		return this->localMatrix;
 	}
 
@@ -141,6 +153,7 @@ namespace Plaza {
 	}
 
 	void Transform::UpdateSelfAndChildrenTransform() {
+		PLAZA_PROFILE_SECTION("Transform: Update Self And Children Transform");
 		this->UpdateLocalMatrix();
 		this->UpdateWorldMatrix();
 		this->UpdatePhysics();
@@ -171,11 +184,9 @@ namespace Plaza {
 
 	// Set Functions
 	void Transform::SetRelativePosition(glm::vec3 vector) {
+		PLAZA_PROFILE_SECTION("Transform: Set Relative Position");
 		this->relativePosition = vector;
 		this->UpdateSelfAndChildrenTransform();
-		if (Collider* collider = GetGameObject()->GetComponent<Collider>()) {
-			//collider->UpdatePose(this);
-		}
 	}
 
 	void Transform::SetRelativeRotation(glm::vec3 vector) {
@@ -186,15 +197,18 @@ namespace Plaza {
 	void Transform::SetRelativeScale(glm::vec3 vector) {
 		this->scale = vector;
 		this->UpdateSelfAndChildrenTransform();
-		if (Collider* collider = GetGameObject()->GetComponent<Collider>()) {
-			collider->UpdateShapeScale(this->worldScale);
+		auto it = Application->activeScene->colliderComponents.find(this->uuid);
+		if (it != Application->activeScene->colliderComponents.end()) {
+			it->second.UpdateShapeScale(this->worldScale);
 		}
 	}
 
 	void Transform::UpdatePhysics() {
-		if (Collider* collider = GetGameObject()->GetComponent<Collider>()) {
-			collider->UpdatePose(this);
-			collider->UpdateShapeScale(this->GetWorldScale());
+		PLAZA_PROFILE_SECTION("Transform: Update Physics");
+		auto it = Application->activeScene->colliderComponents.find(this->uuid);
+		if (it != Application->activeScene->colliderComponents.end()) {
+			it->second.UpdatePose(this);
+			it->second.UpdateShapeScale(this->GetWorldScale());
 		}
 	}
 

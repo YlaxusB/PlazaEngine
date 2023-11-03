@@ -6,8 +6,87 @@ using System.Threading.Tasks;
 
 namespace Plaza
 {
+    public class Matrix4
+    {
+        public float[,] data;
 
-    public struct Vector3
+        public Matrix4()
+        {
+            data = new float[4, 4];
+        }
+
+        public Matrix4(float [,] newData)
+        {
+            data = newData;
+        }
+
+        // Accessor for individual elements
+        public float this[int row, int col]
+        {
+            get => data[row, col];
+            set => data[row, col] = value;
+        }
+
+        // Identity matrix creation
+        public static Matrix4 Identity()
+        {
+            Matrix4 result = new Matrix4();
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    result[i, j] = (i == j) ? 1.0f : 0.0f;
+                }
+            }
+            return result;
+        }
+
+        public static Vector3 operator *(Vector3 vector, Matrix4 matrix)
+        {
+            float[] result = new float[4];
+
+            for (int i = 0; i < 4; i++)
+            {
+                result[i] = vector.X * matrix[i, 0] +
+                            vector.Y * matrix[i, 1] +
+                            vector.Z * matrix[i, 2] +
+                            1 * matrix[i, 3];
+            }
+
+            return new Vector3(result[0] / result[3], result[1] / result[3], result[2] / result[3]);
+        }
+
+        public static Vector3 operator *(Matrix4 matrix, Vector3 vector)
+        {
+            float[] result = new float[4];
+
+            for (int i = 0; i < 4; i++)
+            {
+                result[i] = matrix[i, 0] * vector.X +
+                            matrix[i, 1] * vector.Y +
+                            matrix[i, 2] * vector.Z +
+                            1 * matrix[i, 3];
+            }
+
+            return new Vector3(result[0] / result[3], result[1] / result[3], result[2] / result[3]);
+        }
+
+        public Vector3 Transform(Vector3 localPosition)
+        {
+
+            float[] worldPosition = new float[3];
+
+            for (int i = 0; i < 3; i++)
+            {
+                worldPosition[i] = localPosition.X * this[i, 0] +
+                                   localPosition.Y * this[i, 1] +
+                                   localPosition.Z * this[i, 2] +
+                                   this[i, 3];
+            }
+            return new Vector3(worldPosition[0], worldPosition[1], worldPosition[2]);
+        }
+    }
+        public struct Vector3
     {
         public float X, Y, Z;
         public Vector3(float x, float y, float z)
@@ -36,6 +115,11 @@ namespace Plaza
         public static Vector3 operator *(Vector3 a, float b)
         {
             return new Vector3(a.X * b, a.Y * b, a.Z * b);
+        }
+
+        public static Vector3 operator /(Vector3 a, float b)
+        {
+            return new Vector3(a.X / b, a.Y / b, a.Z / b);
         }
 
         public static Vector3 Cross(Vector3 v1, Vector3 v2)

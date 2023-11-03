@@ -115,6 +115,32 @@ namespace Plaza
         public extern static void Transform_GetUpVector(UInt64 uuid, out Vector3 vec);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void Transform_GetLeftVector(UInt64 uuid, out Vector3 vec);
+        public static float[] Transform_GetWorldMatrix(UInt64 uuid)
+        {
+            int size = 0;
+            IntPtr ptr = IntPtr.Zero;
+            Transform_GetWorldMatrix(uuid, ref ptr, ref size);
+
+            if (size > 0 && ptr != IntPtr.Zero)
+            {
+                float[] result = new float[size];
+                for (int i = 0; i < size; i++)
+                {
+                    result[i] = (float)Marshal.PtrToStructure(ptr + i * Marshal.SizeOf<float>(), typeof(float));
+                }
+                return result;
+            }
+            else
+            {
+                return null; // Handle empty or null data
+            }
+        }
+
+        // Import the C++ function with the modified signature
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        private extern static void Transform_GetWorldMatrix(UInt64 uuid, ref IntPtr ptr, ref int size);
+
+
 
         #endregion Transform
 
@@ -295,6 +321,53 @@ namespace Plaza
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         private extern static void MeshRenderer_SetUvs(UInt64 uuid, IntPtr indices, int size);
+
+        static void MarshalMesh()
+        {
+
+        }
+        public static void MeshRenderer_SetMesh(UInt64 uuid, Vector3[] vertices, int[] indices, Vector3[] normals, Vector2[]uvs)
+        {
+            int verticesSize = vertices.Length;
+            int indicesSize = indices.Length;
+            int normalsSize = normals.Length;
+            int uvsSize = uvs.Length;
+
+            IntPtr verticesPtr = Marshal.AllocHGlobal(verticesSize * Marshal.SizeOf<Vector3>());
+            for (int i = 0; i < verticesSize; i++)
+            {
+                Marshal.StructureToPtr(vertices[i], verticesPtr + i * Marshal.SizeOf<Vector3>(), false);
+            }
+
+            IntPtr indicesPtr = Marshal.AllocHGlobal(indicesSize * Marshal.SizeOf<int>());
+            for (int i = 0; i < indicesSize; i++)
+            {
+                Marshal.StructureToPtr(indices[i], indicesPtr + i * Marshal.SizeOf<int>(), false);
+            }
+
+            IntPtr normalsPtr = Marshal.AllocHGlobal(normalsSize * Marshal.SizeOf<Vector3>());
+            for (int i = 0; i < normalsSize; i++)
+            {
+                Marshal.StructureToPtr(normals[i], normalsPtr + i * Marshal.SizeOf<Vector3>(), false);
+            }
+
+            IntPtr uvsPtr = Marshal.AllocHGlobal(uvsSize * Marshal.SizeOf<Vector2>());
+            for (int i = 0; i < uvsSize; i++)
+            {
+                Marshal.StructureToPtr(uvs[i], uvsPtr + i * Marshal.SizeOf<Vector2>(), false);
+            }
+
+            MeshRenderer_SetMesh(uuid, verticesPtr, verticesSize, indicesPtr, indicesSize, normalsPtr, normalsSize, uvsPtr, uvsSize);
+
+            Marshal.FreeHGlobal(verticesPtr);
+            Marshal.FreeHGlobal(indicesPtr);
+            Marshal.FreeHGlobal(normalsPtr);
+            Marshal.FreeHGlobal(uvsPtr);
+        }
+
+        // Import the C++ function with the modified signature
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        private extern static void MeshRenderer_SetMesh(UInt64 uuid, IntPtr vertices, int verticesSize, IntPtr indices, int indicesSize, IntPtr normals, int normalsSize, IntPtr uvs, int uvsSize);
 
         #endregion MeshRenderer
 

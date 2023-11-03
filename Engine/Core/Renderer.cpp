@@ -21,6 +21,7 @@ namespace Plaza {
 	}
 	// Render all GameObjects
 	void Renderer::Render(Shader& shader) {
+		PLAZA_PROFILE_SECTION("Render");
 		shader.use();
 
 		glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
@@ -62,6 +63,7 @@ namespace Plaza {
 	}
 
 	void Renderer::RenderInstances(Shader& shader) {
+		PLAZA_PROFILE_SECTION("Render Instances");
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		for (auto [renderGroupUuid, renderGroup] : Application->activeScene->renderGroups) {
@@ -135,6 +137,7 @@ namespace Plaza {
 	}
 
 	void Renderer::RenderHDR() {
+		PLAZA_PROFILE_SECTION("HDR");
 #ifdef GAME_REL
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #else

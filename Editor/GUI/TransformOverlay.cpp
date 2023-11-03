@@ -6,6 +6,7 @@ namespace Plaza::Editor {
 	ImGuizmo::OPERATION Editor::Overlay::activeOperation = ImGuizmo::OPERATION::TRANSLATE;
 
 	void Editor::Overlay::beginTransformOverlay(Camera camera) {
+		PLAZA_PROFILE_SECTION("Update Transform Overlay");
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse
 			| ImGuiWindowFlags_NoDocking;
 		bool showOverlay = true;

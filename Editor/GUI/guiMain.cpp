@@ -55,7 +55,7 @@ namespace Plaza {
 
 		unsigned int Gui::playPauseButtonImageId;
 		void Gui::Update() {
-
+			PLAZA_PROFILE_SECTION("ImGui Update");
 			ImGuiIO& io = ImGui::GetIO();
 			io.DeltaTime = Time::deltaTime;
 			Gui::setupDockspace(Application->Window->glfwWindow, Application->textureColorbuffer, Application->activeCamera);
@@ -64,6 +64,7 @@ namespace Plaza {
 		}
 
 		void Gui::NewFrame() {
+			PLAZA_PROFILE_SECTION("ImGui New Frame");
 			ImGui_ImplOpenGL3_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
@@ -115,6 +116,7 @@ namespace Plaza {
 			selectedGameObject = newSelectedGameObject;
 		}
 		void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera) {
+			PLAZA_PROFILE_SECTION("Setup Dockspace");
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 
@@ -172,6 +174,7 @@ namespace Plaza {
 
 		// Create the scene view
 		inline void Gui::beginScene(int gameFrameBuffer, Camera& camera) {
+			PLAZA_PROFILE_SECTION("Begin Scene");
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
@@ -271,6 +274,7 @@ namespace Plaza {
 
 		// Create the Editor view
 		inline void Gui::beginEditor(int gameFrameBuffer, Camera& camera) {
+			PLAZA_PROFILE_SECTION("Begin Editor");
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
@@ -367,6 +371,7 @@ namespace Plaza {
 		}
 
 		void Gui::beginHierarchyView(int gameFrameBuffer) {
+			PLAZA_PROFILE_SECTION("Begin Hierarchy");
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
@@ -400,6 +405,7 @@ namespace Plaza {
 		}
 
 		void Gui::beginInspector(int gameFrameBuffer, Camera camera) {
+			PLAZA_PROFILE_SECTION("Begin Inspector");
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;

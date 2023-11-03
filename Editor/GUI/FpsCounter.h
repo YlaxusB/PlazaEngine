@@ -8,6 +8,7 @@ namespace Plaza::Editor {
 		}
 
 		void Update() {
+			PLAZA_PROFILE_SECTION("Update FPS Counter");
 			ImGuiWindowFlags windowflags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing;
 			windowflags |= ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking;
 			bool showFPSCounter = true;

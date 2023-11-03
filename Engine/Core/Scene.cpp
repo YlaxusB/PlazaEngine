@@ -172,18 +172,11 @@ namespace Plaza {
 		Physics::m_scene->release();
 		physx::PxTolerancesScale toleranceScale;
 		toleranceScale.speed = 9.81f;
-		toleranceScale.length = 1;
+		toleranceScale.length = 100;
 		Physics::m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Physics::m_foundation, toleranceScale, true);
-		Physics::m_dispatcher = physx::PxDefaultCpuDispatcherCreate(4); // 2 is the number of worker threads
-		if (!Physics::m_dispatcher) {
-			std::cerr << "PhysX CPU dispatcher creation failed!" << std::endl;
-		}
 
 		// Create the PhysX scene
-		physx::PxSceneDesc sceneDesc(Physics::m_physics->getTolerancesScale());
-		sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f); // Set your desired gravity
-		sceneDesc.cpuDispatcher = Physics::m_dispatcher;
-		sceneDesc.filterShader = physx::PxDefaultSimulationFilterShader;
+		physx::PxSceneDesc sceneDesc = Physics::GetSceneDesc();
 		Physics::m_scene = Physics::m_physics->createScene(sceneDesc);
 
 

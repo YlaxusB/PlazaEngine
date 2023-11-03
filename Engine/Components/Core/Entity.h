@@ -62,8 +62,10 @@ namespace Plaza {
 		void RemoveComponent() {
 			std::string className = typeid(T).name();
 			auto& components = *static_cast<ComponentMultiMap<uint64_t, Component>*>(GetAllComponentsMaps()[className]);
-			if (components.find(this->uuid) != components.end())
+			if (components.find(this->uuid) != components.end()) {
+				components.find(this->uuid)->second.~Component();
 				components.erase(components.find(this->uuid));
+			}
 		}
 		//{
 		//Plaza::GetComponentMap(T);

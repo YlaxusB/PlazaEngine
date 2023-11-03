@@ -59,9 +59,12 @@ namespace Plaza {
 	Collider::~Collider() {
 		if (mRigidActor) {
 			for (ColliderShape* shape : mShapes) {
-				//this->mRigidActor->detachShape(*shape->mPxShape);
+				this->mRigidActor->detachShape(*shape->mPxShape);
+				shape->mPxShape->release();
 			}
-			//Physics::m_scene->removeActor(*this->mRigidActor);
+			Physics::m_scene->removeActor(*this->mRigidActor);
+			this->mRigidActor->release();
+			this->material->release();
 		}
 	}
 
@@ -71,6 +74,7 @@ namespace Plaza {
 				this->mRigidActor->detachShape(*shape->mPxShape);
 			}
 			Physics::m_scene->removeActor(*this->mRigidActor);
+			this->mRigidActor->release();
 			mRigidActor = nullptr;
 		}
 	}
@@ -96,14 +100,17 @@ namespace Plaza {
 		this->mRigidActor = Physics::m_physics->createRigidDynamic(*pxTransform);
 		if (this->mRigidActor == nullptr)
 			this->mRigidActor = Physics::m_physics->createRigidDynamic(*new physx::PxTransform(physx::PxIdentity(1.0f)));
-		physx::PxMaterial* material = Physics::defaultMaterial;
+		if (!material) {
+			material = Physics::defaultMaterial;
+			if (this->mDynamic) {
+				material = Physics::m_physics->createMaterial(rigidBody->mStaticFriction, rigidBody->mDynamicFriction, rigidBody->mRestitution);
+			}
+		}
 
-		if (this->mDynamic) {
-			material = Physics::m_physics->createMaterial(rigidBody->mStaticFriction, rigidBody->mDynamicFriction, rigidBody->mRestitution);
-		}
-		else {
+		if (!mDynamic)
 			this->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
-		}
+
+
 
 		// Attach the shapes with the material to the actor
 		for (ColliderShape* shape : mShapes) {

@@ -25,9 +25,10 @@ namespace Plaza {
 		physx::PxRigidActor* mRigidActor;
 		physx::PxRigidBody* mStaticPxRigidBody;
 		physx::PxRigidBody* pxRigidBody;
+		physx::PxMaterial* material;
 		bool mDynamic = false;
 		Collider(std::uint64_t uuid, RigidBody* rigidBody = nullptr);
-		~Collider();
+		~Collider() override;
 		void RemoveActor();
 		void Init(RigidBody* rigidBody);
 		void InitDynamic(RigidBody* rigidBody = nullptr);

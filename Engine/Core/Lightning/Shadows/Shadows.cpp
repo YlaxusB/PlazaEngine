@@ -52,6 +52,7 @@ namespace Plaza {
 	}
 
 	void ShadowsClass::GenerateDepthMap() {
+		PLAZA_PROFILE_SECTION("Generate Depth Map");
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// 0. UBO setup

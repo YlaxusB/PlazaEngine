@@ -24,8 +24,6 @@
 #include <cstdlib> // Include the appropriate header for _dupenv_s
 
 //#include "Engine/Vendor/Tracy/tracy/TracyC.h"
-//TRACY_ENABLE = true;
-// ...
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Core/Physics.h"
 #include "Engine/Components/Core/Camera.h"
@@ -33,6 +31,7 @@
 #include "Editor/Filewatcher.h"
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Audio/Audio.h"
+
 char* appdataValue;
 size_t len;
 errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");
@@ -232,6 +231,7 @@ void ApplicationClass::UpdateProjectManagerGui() {
 
 void ApplicationClass::Loop() {
 	while (!glfwWindowShouldClose(Application->Window->glfwWindow)) {
+		PLAZA_PROFILE_SECTION("Loop");
 		// Run the Engine (Update Time, Shadows, Inputs, Buffers, Rendering, etc.)
 		if (Application->runEngine) {
 			Application->UpdateEngine();
@@ -248,12 +248,14 @@ void ApplicationClass::Loop() {
 }
 
 void ApplicationClass::UpdateEngine() {
+	PLAZA_PROFILE_SECTION("Update Engine");
 	// Update time
 	Time::Update();
 	float currentFrame = static_cast<float>(glfwGetTime());
 
 	// Update Buffers
 	if (Application->appSizes->sceneSize != Application->lastAppSizes->sceneSize || Application->appSizes->sceneStart != Application->lastAppSizes->sceneStart) {
+		PLAZA_PROFILE_SECTION("Update Buffers");
 		Application->updateBuffers(Application->textureColorbuffer, Application->rbo);
 		Application->pickingTexture->updateSize(Application->appSizes->sceneSize);
 		glBindTexture(GL_TEXTURE_2D, Application->pick);
@@ -274,12 +276,14 @@ void ApplicationClass::UpdateEngine() {
 
 	/* Update Physics */
 	if (Application->runningScene) {
+		PLAZA_PROFILE_SECTION("Update Physics");
 		Physics::Advance(Time::deltaTime);
 		Physics::Update();
 	}
 
 	/* Update Scripts */
 	if (Application->runningScene) {
+		PLAZA_PROFILE_SECTION("Mono Update");
 		Mono::Update();
 	}
 
@@ -316,12 +320,14 @@ void ApplicationClass::UpdateEngine() {
 	// Draw Outline
 	if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth && Application->focusedMenu != "Scene")
 	{
+		PLAZA_PROFILE_SECTION("Draw Outline");
 		Renderer::RenderOutline(*Application->outlineShader);
 		combineBuffers();
 	}
 
 	// Show the debug for shadows depth buffer
 	if (Application->Shadows->showDepth) {
+		PLAZA_PROFILE_SECTION("Debug Depth Buffer");
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 		Application->debugDepthShader->use();
 		float near_plane = 0.1f, far_plane = 7.5f;
@@ -361,7 +367,9 @@ void ApplicationClass::UpdateEngine() {
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 #endif // GAME_REL
 		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		/* Draw Texts */
 		for (auto& [key, value] : Application->activeScene->UITextRendererComponents) {
+			PLAZA_PROFILE_SECTION("Draw UI Components Text");
 			value.Render(*Application->textRenderingShader);
 		}
 	}
@@ -374,7 +382,6 @@ void ApplicationClass::UpdateEngine() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	Gui::Update();
 #endif // GAME_REL == 0
-
 	// Update last frame
 
 	Time::lastFrame = currentFrame;

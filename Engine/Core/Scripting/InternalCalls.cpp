@@ -173,7 +173,7 @@ namespace Plaza {
 				physx::PxMaterial* shapeMaterial = Physics::defaultMaterial;
 
 				// Create a new shape with the same properties
-				physx::PxShape* newShape = Physics::m_physics->createShape(geometry.triangleMesh(), *shapeMaterial, true);
+				physx::PxShape* newShape = shape->mPxShape;//Physics::m_physics->createShape(geometry.triangleMesh(), *shapeMaterial, false);
 				//newCollider->mRigidActor->attachShape(*newShape);
 				newCollider->mShapes.push_back(new ColliderShape(newShape, shape->mEnum, shape->mMeshUuid));
 			}

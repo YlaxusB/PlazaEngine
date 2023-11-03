@@ -6,6 +6,7 @@ namespace Plaza {
 	namespace Editor {
 		std::string Gui::FileExplorer::currentDirectory = "";
 		void Gui::FileExplorer::UpdateGui() {
+			PLAZA_PROFILE_SECTION("Update File Explorer");
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;

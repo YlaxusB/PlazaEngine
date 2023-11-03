@@ -20,6 +20,8 @@ namespace Plaza {
 		static float accumulatedTime;
 		static float stepSize;
 
+		static physx::PxSceneDesc GetSceneDesc();
+
 		static bool Advance(float dt);
 		static void Init();
 		static void Update();

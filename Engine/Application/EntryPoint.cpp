@@ -11,9 +11,9 @@ ApplicationClass* Plaza::Application = new Plaza::ApplicationClass();
 using namespace Plaza;
  
 
+#define TRACY_NO_INVARIANT_CHECK 1
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 
-#define TRACY_NO_INVARIANT_CHECK 1
 #include "Engine/Core/Physics.h"
 #include "Engine/Core/Scripting/Mono.h"
 #include "Editor/Project.h"

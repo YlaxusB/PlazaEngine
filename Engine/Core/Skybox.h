@@ -100,6 +100,7 @@ namespace Plaza {
 			skyboxShader->setInt("skybox", 0);
 		}
 		static void Update() {
+			PLAZA_PROFILE_SECTION("Update Skybox");
 			//Shader& skyboxShader = skyboxShader;
 			// Render Skybox
 			glStencilFunc(GL_ALWAYS, 0, 0xFF);

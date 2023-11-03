@@ -58,6 +58,7 @@ namespace Plaza::Editor {
 	}
 
 	void Filewatcher::UpdateOnMainThread() {
+
 		/* Execute queued functions*/
 		for (auto& function : mMainThreadQueue)
 			function();

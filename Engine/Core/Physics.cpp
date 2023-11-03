@@ -25,20 +25,36 @@ namespace Plaza {
 
 	const float Physics::maxFrameAdvance = 0.1f;
 	float Physics::accumulatedTime = 0.0f;
-	float Physics::stepSize = 1/60.0f;
+	float Physics::stepSize = 1 / 60.0f;
 
 	bool Physics::m_canRun = true;
 
 	bool Physics::Advance(float dt) {
+		PLAZA_PROFILE_SECTION("Advance");
 		accumulatedTime += dt;
 		if (accumulatedTime < stepSize) {
 			return false;
 		}
 
-		accumulatedTime -= stepSize;
-		m_scene->simulate(stepSize);
-		Physics::m_scene->fetchResults(true);
+		accumulatedTime -= stepSize; 
+		{
+			PLAZA_PROFILE_SECTION("Simulate");
+			m_scene->simulate(stepSize); 
+		}
+		{
+			PLAZA_PROFILE_SECTION("Fetch Results");
+			Physics::m_scene->fetchResults(true);
+		}
 		return true;
+	}
+
+	physx::PxSceneDesc Physics::GetSceneDesc() {
+		physx::PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
+		sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f); // Set your desired gravity
+		sceneDesc.cpuDispatcher = m_dispatcher;
+		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+		//sceneDesc.dynamicTreeRebuildRateHint = 100;
+		return sceneDesc;
 	}
 
 	void Physics::Init() {
@@ -51,17 +67,13 @@ namespace Plaza {
 		toleranceScale.speed = 9.81f;
 		toleranceScale.length = 1;
 		m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *m_foundation, toleranceScale, true);
-		m_dispatcher = PxDefaultCpuDispatcherCreate(4); // 2 is the number of worker threads
+		m_dispatcher = PxDefaultCpuDispatcherCreate(2); // 2 is the number of worker threads
 		if (!m_dispatcher) {
 			std::cerr << "PhysX CPU dispatcher creation failed!" << std::endl;
 		}
 
 		// Create the PhysX scene
-		physx::PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
-		sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f); // Set your desired gravity
-		sceneDesc.cpuDispatcher = m_dispatcher;
-		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
-		m_scene = m_physics->createScene(sceneDesc);
+		m_scene = m_physics->createScene(Physics::GetSceneDesc());
 
 		std::cout << "Physics Initialized" << std::endl;
 
@@ -69,6 +81,7 @@ namespace Plaza {
 	}
 
 	void Physics::Update() {
+		PLAZA_PROFILE_SECTION("Update");
 		for (auto& [key, value] : Application->runtimeScene->rigidBodyComponents) {
 			value.Update();
 		}

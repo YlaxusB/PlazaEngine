@@ -209,32 +209,15 @@ namespace Plaza
             get
             {
                 float[] receivedMatrix = InternalCalls.Transform_GetWorldMatrix(Entity.Uuid);
-
-                Console.WriteLine("Start C# " + receivedMatrix.Length);
-                foreach(float f in receivedMatrix)
-                {
-                    Console.WriteLine(f);
-                }
-
-                // Process the received matrix as needed
-                // Convert the linear array to a 4x4 matrix
                 float[,] matrix4x4 = new float[4, 4];
+                int matInd = 0;
                 for (int i = 0; i < 4; i++)
                 {
                     for (int j = 0; j < 4; j++)
                     {
-                        matrix4x4[i, j] = receivedMatrix[i * 4 + j];
+                        matrix4x4[i, j] = receivedMatrix[matInd];
+                        matInd++;
                     }
-                }
-
-                // Print the matrix or perform other operations
-                for (int i = 0; i < 4; i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        Console.Write(matrix4x4[i, j].ToString("F6") + " ");
-                    }
-                    Console.WriteLine();
                 }
                 return new Matrix4(matrix4x4);
             }
@@ -263,6 +246,13 @@ namespace Plaza
 
         public Vector3[] Normals;
         public Vector2[] Uvs;
+
+        public Mesh InvertTriangleOrder()
+        {
+            Mesh newMesh = this;
+            newMesh.Indices = this.Indices.Reverse<int>().ToArray();
+            return newMesh;
+        }
     }
 
     public class MeshRenderer : Component

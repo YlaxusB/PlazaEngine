@@ -170,16 +170,8 @@ namespace Plaza {
 
 		/* Restart physics */
 		Physics::m_scene->release();
-		physx::PxTolerancesScale toleranceScale;
-		toleranceScale.speed = 9.81f;
-		toleranceScale.length = 100;
-		Physics::m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *Physics::m_foundation, toleranceScale, true);
-
-		// Create the PhysX scene
-		physx::PxSceneDesc sceneDesc = Physics::GetSceneDesc();
-		Physics::m_scene = Physics::m_physics->createScene(sceneDesc);
-
-
+		Physics::InitPhysics();
+		Physics::InitScene();
 
 		Application->runtimeScene = new Scene();
 		Application->copyingScene = true;

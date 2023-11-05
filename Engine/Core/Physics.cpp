@@ -3,6 +3,60 @@
 #include <physx/cooking/Pxc.h>
 using namespace physx;
 namespace Plaza {
+	class CollisionCallback : public physx::PxSimulationEventCallback {
+	public:
+		virtual void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs) override {
+			// Your collision handling implementation
+			for (PxU32 i = 0; i < nbPairs; i++) {
+				const PxContactPair& cp = pairs[i];
+				if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND) {
+					uint64_t uuid = (uint64_t)(pairHeader.actors[0]->userData);
+
+					std::cout << "Collision detected \n UUID1: " << uuid << "\n UUID2: " << (uint64_t)(pairHeader.actors[1]->userData) << "\n";
+					// Place your logic for handling collisions here
+					// You can call your Mono::CallMethod or perform any other required actions
+				}
+			}
+		}
+
+		virtual void onTrigger(PxTriggerPair* pairs, PxU32 count) override {
+			// Your trigger handling implementation
+			for (PxU32 i = 0; i < count; i++) {
+				const PxTriggerPair& tp = pairs[i];
+				std::cout << "Trigger detected\n";
+				// Handle trigger events if necessary
+			}
+		}
+
+		virtual void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) override {
+			// Handle constraint break events
+			for (physx::PxU32 i = 0; i < count; i++) {
+				// Implement the logic for constraint break events
+			}
+		}
+
+		virtual void onWake(physx::PxActor** actors, physx::PxU32 count) override {
+			// Handle wake events
+			for (physx::PxU32 i = 0; i < count; i++) {
+				// Implement the logic for wake events
+			}
+		}
+
+		virtual void onSleep(physx::PxActor** actors, physx::PxU32 count) override {
+			// Handle sleep events
+			for (physx::PxU32 i = 0; i < count; i++) {
+				// Implement the logic for sleep events
+			}
+		}
+
+		virtual void onAdvance(const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count) override {
+			// Handle advance events
+			for (physx::PxU32 i = 0; i < count; i++) {
+				// Implement the logic for advance events
+			}
+		}
+	};
+	CollisionCallback mCollisionCallback;
 	class UserErrorCallback : public physx::PxErrorCallback
 	{
 	public:
@@ -36,10 +90,10 @@ namespace Plaza {
 			return false;
 		}
 
-		accumulatedTime -= stepSize; 
+		accumulatedTime -= stepSize;
 		{
 			PLAZA_PROFILE_SECTION("Simulate");
-			m_scene->simulate(stepSize); 
+			m_scene->simulate(stepSize);
 		}
 		{
 			PLAZA_PROFILE_SECTION("Fetch Results");
@@ -48,11 +102,72 @@ namespace Plaza {
 		return true;
 	}
 
+	PxFilterFlags FilterShaderExample(
+		PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+		PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+		PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize)
+	{
+		// let triggers through
+		if (PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1))
+		{
+			pairFlags = PxPairFlag::eTRIGGER_DEFAULT;
+			return PxFilterFlag::eDEFAULT;
+		}
+		// generate contacts for all that were not filtered above
+		pairFlags = PxPairFlag::eCONTACT_DEFAULT;
+
+		// trigger the contact callback for pairs (A,B) where 
+		// the filtermask of A contains the ID of B and vice versa.
+		if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
+			pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
+
+		pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
+		return PxFilterFlag::eDEFAULT;
+	}
+	class ContactCallBack : public PxSimulationEventCallback
+	{
+		// PxSimulationEventCallback
+		virtual void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) override {};
+		virtual void onWake(PxActor** actors, PxU32 count) override {};
+		virtual void onSleep(PxActor** actors, PxU32 count) override {};
+		virtual void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs) override {};
+		virtual void onTrigger(PxTriggerPair* pairs, PxU32 count) override {};
+		virtual void onAdvance(const PxRigidBody* const* bodyBuffer, const PxTransform* poseBuffer, const PxU32 count) override {};
+	};
+
+	class FilterCallback : public PxSimulationFilterCallback {
+		virtual		PxFilterFlags	pairFound(PxU64 pairID,
+			PxFilterObjectAttributes attributes0, PxFilterData filterData0, const PxActor* a0, const PxShape* s0,
+			PxFilterObjectAttributes attributes1, PxFilterData filterData1, const PxActor* a1, const PxShape* s1,
+			PxPairFlags& pairFlags) override {
+			return PxFilterFlag::eDEFAULT;
+		}
+		virtual		void			pairLost(PxU64 pairID,
+			PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+			PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+			bool objectRemoved) override {};
+		virtual		bool			statusChange(PxU64& pairID, PxPairFlags& pairFlags, PxFilterFlags& filterFlags) override {
+			return false;
+		}
+	};
+
+	void setupFiltering(PxShape* shape, PxU32 filterGroup, PxU32 filterMask)
+	{
+		PxFilterData filterData;
+		filterData.word0 = filterGroup; // word0 = own ID
+		filterData.word1 = filterMask;  // word1 = ID mask to filter pairs that trigger a contact callback
+		shape->setSimulationFilterData(filterData);
+	}
+	CollisionCallback simulationEventCallback;
+	FilterCallback filterCallback;
 	physx::PxSceneDesc Physics::GetSceneDesc() {
 		physx::PxSceneDesc sceneDesc(m_physics->getTolerancesScale());
 		sceneDesc.gravity = physx::PxVec3(0.0f, -9.81f, 0.0f); // Set your desired gravity
 		sceneDesc.cpuDispatcher = m_dispatcher;
-		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
+		sceneDesc.filterShader = FilterShaderExample;
+		sceneDesc.filterCallback = &filterCallback;
+		sceneDesc.simulationEventCallback = &simulationEventCallback;
+		//sceneDesc.simulationEventCallback = &collisionCallback;
 		//sceneDesc.dynamicTreeRebuildRateHint = 100;
 		return sceneDesc;
 	}
@@ -63,6 +178,11 @@ namespace Plaza {
 		if (!m_foundation) {
 			std::cerr << "PhysX foundation creation failed!" << std::endl;
 		}
+		Physics::InitPhysics();
+		Physics::InitScene();
+	}
+
+	void Physics::InitPhysics() {
 		PxTolerancesScale toleranceScale;
 		toleranceScale.speed = 9.81f;
 		toleranceScale.length = 1;
@@ -71,13 +191,14 @@ namespace Plaza {
 		if (!m_dispatcher) {
 			std::cerr << "PhysX CPU dispatcher creation failed!" << std::endl;
 		}
+	}
 
+	void Physics::InitScene() {
 		// Create the PhysX scene
 		m_scene = m_physics->createScene(Physics::GetSceneDesc());
-
-		std::cout << "Physics Initialized" << std::endl;
-
+		//m_scene->setSimulationEventCallback(&collisionCallback);
 		Physics::defaultMaterial = Physics::m_physics->createMaterial(0.0f, 1.0f, 0.5f);
+		std::cout << "Physics Initialized" << std::endl;
 	}
 
 	void Physics::Update() {

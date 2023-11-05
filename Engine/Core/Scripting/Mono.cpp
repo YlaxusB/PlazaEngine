@@ -156,17 +156,6 @@ namespace Plaza {
 	{
 		MonoObject* exception = nullptr;
 		mono_runtime_invoke(method, objectInstance, nullptr, &exception);
-		//mono_runtime_invoke(method, objectInstance, params, &exception);
-
-		//// Check if an exception occurred
-		//if (exception != nullptr) {
-		//	// Get the MonoException type
-		//	MonoClass* exceptionClass = mono_get_exception_class();
-		//	MonoString* messageString = mono_object_to_string((MonoObject*)exception, nullptr);
-		//	const char* message = mono_string_to_utf8(messageString);
-		//	printf("Exception occurred: %s\n", message);
-
-		//}
 	}
 
 	void Mono::CallMethod(MonoObject* objectInstance, std::string methodName)

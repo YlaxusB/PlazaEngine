@@ -115,6 +115,12 @@ namespace Plaza
         public extern static void Transform_GetUpVector(UInt64 uuid, out Vector3 vec);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void Transform_GetLeftVector(UInt64 uuid, out Vector3 vec);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct FloatArray
+        {
+            public float Value;
+        }
         public static float[] Transform_GetWorldMatrix(UInt64 uuid)
         {
             int size = 0;
@@ -123,10 +129,13 @@ namespace Plaza
 
             if (size > 0 && ptr != IntPtr.Zero)
             {
-                float[] result = new float[size];
-                for (int i = 0; i < size; i++)
+                int floatArrayLength = size;
+                float[] result = new float[floatArrayLength];
+
+                for (int i = 0; i < floatArrayLength; i++)
                 {
-                    result[i] = (float)Marshal.PtrToStructure(ptr + i * Marshal.SizeOf<float>(), typeof(float));
+                    FloatArray floatArray = (FloatArray)Marshal.PtrToStructure(ptr + i * Marshal.SizeOf(typeof(FloatArray)), typeof(FloatArray));
+                    result[i] = floatArray.Value;
                 }
                 return result;
             }
@@ -138,7 +147,7 @@ namespace Plaza
 
         // Import the C++ function with the modified signature
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        private extern static void Transform_GetWorldMatrix(UInt64 uuid, ref IntPtr ptr, ref int size);
+        public extern static void Transform_GetWorldMatrix(UInt64 uuid, ref IntPtr ptr, ref int size);
 
 
 

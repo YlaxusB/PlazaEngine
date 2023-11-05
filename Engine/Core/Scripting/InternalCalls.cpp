@@ -14,6 +14,7 @@
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Scripting/FieldManager.h"
 #include "Engine/Core/Physics.h"
+
 namespace Plaza {
 
 	void GetComponentMap(uint64_t uuid, std::string name, Component* component) {
@@ -390,17 +391,19 @@ namespace Plaza {
 	static void Transform_GetWorldMatrix(uint64_t uuid, float** out, int* size) {
 		glm::mat4 matrix = Application->activeScene->transformComponents.find(uuid)->second.GetTransform();
 
+		// Create a statically allocated array to store the matrix data
+		float* data = new float[16]; // Assuming 4x4 matrix
 
-		vector<float> floats = vector<float>();
-
+		int index = 0;
 		for (int i = 0; i < 4; ++i) {
 			for (int j = 0; j < 4; ++j) {
-				floats.push_back(matrix[i][j]);
+				data[index] = matrix[i][j];
+				++index;
 			}
 		}
 
-		*size = static_cast<float>(floats.size());
-		*out = floats.data();
+		*size = 16; // Size of the float array
+		*out = data;
 	}
 
 	static void MoveTowards(uint64_t uuid, glm::vec3 vector3) {

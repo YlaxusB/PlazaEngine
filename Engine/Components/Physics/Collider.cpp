@@ -114,10 +114,15 @@ namespace Plaza {
 			this->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
 
 
-
+		this->mRigidActor->userData = reinterpret_cast<void*>(this->uuid);
 		// Attach the shapes with the material to the actor
 		for (ColliderShape* shape : mShapes) {
 			//shape->mPxShape->setMaterials(&material, 1);
+			//physx::PxFilterData filterData;
+			//filterData.word0 = 0; // word0 = own ID
+			//filterData.word1 = 0;  // word1 = ID mask to filter pairs that trigger a contact callback
+			//shape->mPxShape->setSimulationFilterData(filterData);
+			shape->mPxShape->userData = new uint64_t(this->uuid);
 			this->mRigidActor->attachShape(*shape->mPxShape);
 		}
 		Physics::m_scene->addActor(*this->mRigidActor);

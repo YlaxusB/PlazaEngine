@@ -24,6 +24,8 @@ namespace Plaza {
 
 		static bool Advance(float dt);
 		static void Init();
+		static void InitScene();
+		static void InitPhysics();
 		static void Update();
 
 		static physx::PxTransform* GetPxTransform(Transform& transform);

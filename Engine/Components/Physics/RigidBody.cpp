@@ -54,8 +54,8 @@ namespace Plaza {
 	}
 
 	RigidBody::~RigidBody() {
-		if (mRigidActor && mRigidActor->userData) 
-			Physics::m_scene->removeActor(*mRigidActor);
+		//if (mRigidActor) 
+		//	Physics::m_scene->removeActor(*mRigidActor);
 		
 	}
 

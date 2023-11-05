@@ -204,7 +204,7 @@ namespace Plaza {
 			FieldManager::ApplyAllScritpsFields(allFields);
 			for (auto [key, value] : Application->activeScene->csScriptComponents) {
 				for (auto& [className, classScript] : value.scriptClasses) {
-					Mono::CallMethod(classScript->monoObject, classScript->onStartMethod, nullptr);
+					Mono::CallMethod(classScript->monoObject, classScript->onStartMethod);
 				}
 			}
 		}

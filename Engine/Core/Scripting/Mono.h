@@ -24,7 +24,9 @@ namespace Plaza {
 		static void ReloadAppDomain();
 		static MonoMethod* GetMethod(MonoObject* objectInstance, const std::string& methodName, int parameterCount = 0);
 		static void CallMethod(MonoObject* objectInstance, std::string methodName);
-		static void CallMethod(MonoObject* objectInstance, MonoMethod* method, void** params);
+		static void CallMethod(MonoObject* objectInstance, MonoMethod* method);
+		static void CallMethod(MonoObject* objectInstance, MonoMethod* method, void* param);
+		static void CallMethod(MonoObject* objectInstance, MonoMethod* method, void* params[]);
 		static MonoClass* GetClassInAssembly(MonoAssembly* assembly, const char* namespaceName, const char* className, bool isCore = false);
 		static MonoAssembly* LoadCSharpAssembly(const std::string& assemblyPath);
 	};

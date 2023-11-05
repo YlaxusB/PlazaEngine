@@ -17,6 +17,7 @@ namespace Plaza {
 			this->scriptClasses.emplace(scriptName, script);
 			script->onStartMethod = mono_class_get_method_from_name(klass, "OnStart", 0);
 			script->onUpdateMethod = mono_class_get_method_from_name(klass, "OnUpdate", 0);
+			script->GetMethods();
 		}
 		Application->activeProject->scripts[csScriptPath].entitiesUsingThisScript.emplace(this->uuid);
 

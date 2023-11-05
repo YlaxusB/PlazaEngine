@@ -4,19 +4,23 @@ namespace Plaza::Editor::Utils {
 	static bool ComponentInspectorHeader(Component* component, std::string name, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen) {
 		ImGui::PushID(("ComponentInspectorHeader" + name).c_str());
 		bool header;
+		bool deleted = false;
 		if (component) {
 			ImGui::SetNextItemOpen(true);
 			ImVec2 old = ImGui::GetCursorPos();
 			float arrowSize = old.x + 30.0f;
 			ImGui::SetCursorPos(ImVec2(ImGui::CalcTextSize(name.c_str()).x + arrowSize, ImGui::GetCursorPos().y));
 			if (ImGui::Button("Remove Component")) {
-				component->GetGameObject()->RemoveComponent(component);
+				Application->activeScene->entities.find(component->uuid)->second.RemoveComponent(component);
+				deleted = true;
 			}
 			ImGui::SameLine();
 			ImGui::SetCursorPos(old);
 			header = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen);
 			ImGui::SameLine();
 			ImGui::Button("Remove Component");
+			if (deleted)
+				header = false;
 		}
 		else
 			header = ImGui::CollapsingHeader(name.c_str(), flags);

@@ -152,10 +152,28 @@ namespace Plaza {
 		return method;
 	}
 
-	void Mono::CallMethod(MonoObject* objectInstance, MonoMethod* method, void** params)
+	void Mono::CallMethod(MonoObject* objectInstance, MonoMethod* method)
 	{
-		MonoObject* exception = nullptr;
-		mono_runtime_invoke(method, objectInstance, nullptr, &exception);
+		if (method) {
+			MonoObject* exception = nullptr;
+			mono_runtime_invoke(method, objectInstance, nullptr, &exception);
+		}
+	}
+
+	void Mono::CallMethod(MonoObject* objectInstance, MonoMethod* method, void* param)
+	{
+		if (method) {
+			MonoObject* exception = nullptr;
+			mono_runtime_invoke(method, objectInstance, &param, &exception);
+		}
+	}
+
+	void Mono::CallMethod(MonoObject* objectInstance, MonoMethod* method, void* params[])
+	{
+		if (method) {
+			MonoObject* exception = nullptr;
+			mono_runtime_invoke(method, objectInstance, params, &exception);
+		}
 	}
 
 	void Mono::CallMethod(MonoObject* objectInstance, std::string methodName)
@@ -272,7 +290,7 @@ namespace Plaza {
 		if (callOnStart) {
 			for (auto& [key, value] : Application->activeScene->csScriptComponents) {
 				for (auto& [className, classScript] : value.scriptClasses) {
-					CallMethod(classScript->monoObject, classScript->onStartMethod, nullptr);
+					CallMethod(classScript->monoObject, classScript->onStartMethod);
 				}
 			}
 		}
@@ -282,7 +300,7 @@ namespace Plaza {
 	void Mono::Update() {
 		for (auto& [key, value] : Application->activeScene->csScriptComponents) {
 			for (auto& [className, classScript] : value.scriptClasses) {
-				CallMethod(classScript->monoObject, classScript->onUpdateMethod, nullptr);
+				CallMethod(classScript->monoObject, classScript->onUpdateMethod);
 			}
 		}
 		//CallMethod(value.monoObject, "OnUpdate");

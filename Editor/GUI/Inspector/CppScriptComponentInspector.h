@@ -77,16 +77,7 @@ namespace Plaza::Editor {
 
 		CppScriptComponentInspector(CsScriptComponent* scriptComponent) {
 			ImGui::PushID("CppScriptComponentInspector");
-			ImGui::SetNextItemOpen(true);
-			ImVec2 oldCursorPos = ImGui::GetCursorPos();
-			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 150.0f, ImGui::GetCursorPosY()));
-			if (ImGui::Button("Remove Component")) {
-				scriptComponent->GetGameObject()->RemoveComponent<CsScriptComponent>();
-			}
-			ImGui::SameLine();
-			ImGui::SetCursorPos(oldCursorPos);
-			bool header = ImGui::CollapsingHeader("Scripts", ImGuiTreeNodeFlags_DefaultOpen);
-			if (header) {
+			if (Utils::ComponentInspectorHeader(scriptComponent, "Script Component")) {
 				int sliderIndex = 0;
 				ImGui::Text("helo");
 				// Get the fields of the class

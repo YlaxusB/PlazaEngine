@@ -6,7 +6,7 @@ namespace Plaza {
 	class PlazaScriptClass {
 	public:
 		PlazaScriptClass(MonoClass* klass, std::string namespaceName, std::string className, std::string dllPath, uint64_t uuid, MonoDomain* domain) {
-				Init(klass, namespaceName, className, dllPath, uuid, domain);
+			Init(klass, namespaceName, className, dllPath, uuid, domain);
 			//this->name = className;
 			//this->klass = klass;
 			//this->monoObject = Mono::InstantiateClass(namespaceName.c_str(), className.c_str(), Mono::LoadCSharpAssembly(dllPath), domain, uuid);
@@ -38,6 +38,18 @@ namespace Plaza {
 		MonoMethod* onUpdateMethod = nullptr;
 		MonoClass* klass;
 		std::string name;
+		std::unordered_map<std::string, MonoMethod*> methods = std::unordered_map<std::string, MonoMethod*>();
+
+		void GetMethods() {
+			methods.clear();
+			methods.emplace("OnCollide", GetMethod(this->monoObject, "OnCollide"));
+			methods.emplace("OnTrigger", GetMethod(this->monoObject, "OnTrigger"));
+		}
+
+	private:
+		MonoMethod* GetMethod(MonoObject* monoObject, std::string methodName) {
+			return Mono::GetMethod(monoObject, methodName, 2);
+		}
 	};
 
 	class CsScriptComponent : public  Component {
@@ -58,6 +70,7 @@ namespace Plaza {
 			for (auto& [key, value] : scriptClasses) {
 				value->onStartMethod = Mono::GetMethod(value->monoObject, "OnStart", 0);
 				value->onUpdateMethod = Mono::GetMethod(value->monoObject, "OnUpdate", 0);
+				value->GetMethods();
 			}
 		}
 		void FreeMethods() {

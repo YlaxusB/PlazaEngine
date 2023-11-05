@@ -222,7 +222,9 @@ namespace Plaza {
 	void Entity::RemoveComponent(Component* component) {
 		std::string className = typeid(*component).name();
 		auto& components = *static_cast<ComponentMultiMap<uint64_t, Component>*>(Application->activeScene->componentsMap[className]);
-		if (components.find(this->uuid) != components.end())
+		if (components.find(this->uuid) != components.end()) {
+			component->~Component();
 			components.erase(components.find(this->uuid));
+		}
 	}
 }

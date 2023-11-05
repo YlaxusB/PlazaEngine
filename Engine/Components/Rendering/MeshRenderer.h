@@ -9,7 +9,7 @@ namespace Plaza {
 	public:
 		bool castShadows = true;
 		string aiMeshName;
-		uint64_t uuid;
+		//uint64_t uuid;
 		std::string meshName;
 		std::shared_ptr<Mesh> mesh;	
 		std::shared_ptr<Material> material;

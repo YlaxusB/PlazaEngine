@@ -353,6 +353,11 @@ namespace Plaza
     #endregion
 
     #region Collider
+
+    public class Collision
+    {
+        public Entity collidedEntity;
+    }
     public enum ColliderShapeEnum
     {
         BOX,

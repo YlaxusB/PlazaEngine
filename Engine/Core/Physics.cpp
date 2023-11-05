@@ -9,10 +9,38 @@ namespace Plaza {
 			// Your collision handling implementation
 			for (PxU32 i = 0; i < nbPairs; i++) {
 				const PxContactPair& cp = pairs[i];
-				if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND) {
-					uint64_t uuid = (uint64_t)(pairHeader.actors[0]->userData);
+				PxContactPairPoint contacts[1];
+				PxU32 nbContacts = cp.extractContacts(contacts, 1);
 
-					std::cout << "Collision detected \n UUID1: " << uuid << "\n UUID2: " << (uint64_t)(pairHeader.actors[1]->userData) << "\n";
+				if (cp.events & PxPairFlag::eNOTIFY_TOUCH_FOUND) {
+					PxVec3 collisionPoint = contacts[0].position;
+					uint64_t uuid1 = (uint64_t)(pairHeader.actors[0]->userData);
+					uint64_t uuid2 = (uint64_t)(pairHeader.actors[1]->userData);
+					//if (name != "Road")
+					//	std::cout << "Found: " << name << "\n";
+					auto it1 = Application->activeScene->csScriptComponents.find(uuid1);
+					if (it1 != Application->activeScene->csScriptComponents.end()) {
+						for (auto [key, value] : it1->second.scriptClasses) {
+							void* params[] =
+							{
+								(void*)(new uint64_t(uuid2)),
+								new glm::vec3(collisionPoint.x, collisionPoint.y, collisionPoint.z)
+							};
+							Mono::CallMethod(value->monoObject, value->methods.find("OnCollide")->second, params);
+						}
+					}
+
+					auto it2 = Application->activeScene->csScriptComponents.find(uuid2);
+					if (it2 != Application->activeScene->csScriptComponents.end()) {
+						for (auto [key, value] : it2->second.scriptClasses) {
+							void* params[] =
+							{
+								(void*)(new uint64_t(uuid1)),
+								new glm::vec3(collisionPoint.x, collisionPoint.y, collisionPoint.z)
+							};
+							Mono::CallMethod(value->monoObject, value->methods.find("OnCollide")->second, params);
+						}
+					}
 					// Place your logic for handling collisions here
 					// You can call your Mono::CallMethod or perform any other required actions
 				}
@@ -122,6 +150,7 @@ namespace Plaza {
 			pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
 
 		pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
+		pairFlags |= PxPairFlag::eNOTIFY_CONTACT_POINTS;
 		return PxFilterFlag::eDEFAULT;
 	}
 	class ContactCallBack : public PxSimulationEventCallback

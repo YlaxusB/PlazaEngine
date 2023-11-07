@@ -115,6 +115,8 @@ namespace Plaza {
 
 		void Rename(std::string newName);
 
+		static uint64_t Instantiate(uint64_t uuid);
+
 	private:
 		Scene* mScene = nullptr;
 	};

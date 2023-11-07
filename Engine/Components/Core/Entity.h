@@ -107,10 +107,10 @@ namespace Plaza {
 			this->parentUuid = newParent->uuid;
 			auto oldParentIt = std::find(oldParent->childrenUuid.begin(), oldParent->childrenUuid.end(), this->uuid);
 			auto newParentIt = std::find(newParent->childrenUuid.begin(), newParent->childrenUuid.end(), this->uuid);
-			if (oldParentIt != oldParent->childrenUuid.end()) {
+			if (oldParentIt != oldParent->childrenUuid.end() && newParentIt == newParent->childrenUuid.end()) {
 				oldParent->childrenUuid.erase(oldParentIt);
+				newParent->childrenUuid.push_back(this->uuid);
 			}
-			newParent->childrenUuid.push_back(this->uuid);
 		}
 
 		void Rename(std::string newName);

@@ -16,6 +16,7 @@ namespace Plaza {
 					PxVec3 collisionPoint = contacts[0].position;
 					uint64_t uuid1 = (uint64_t)(pairHeader.actors[0]->userData);
 					uint64_t uuid2 = (uint64_t)(pairHeader.actors[1]->userData);
+
 					//if (name != "Road")
 					//	std::cout << "Found: " << name << "\n";
 					auto it1 = Application->activeScene->csScriptComponents.find(uuid1);
@@ -41,6 +42,8 @@ namespace Plaza {
 							Mono::CallMethod(value->monoObject, value->methods.find("OnCollide")->second, params);
 						}
 					}
+
+
 					// Place your logic for handling collisions here
 					// You can call your Mono::CallMethod or perform any other required actions
 				}

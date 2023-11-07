@@ -3,6 +3,6 @@
 
 namespace Plaza {
 	Entity* Component::GetGameObject() {
-		return &Application->activeScene->entities.at(this->uuid);
+		return &Application->activeScene->entities.find(this->uuid)->second;
 	}
 }

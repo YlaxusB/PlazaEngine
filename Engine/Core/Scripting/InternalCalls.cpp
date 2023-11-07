@@ -175,6 +175,13 @@ namespace Plaza {
 			}
 			else if (!val && glfwGetInputMode(Application->Window->glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_NORMAL)
 				glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			double currentX;
+			double currentY;
+			glfwGetCursorPos(Application->Window->glfwWindow, &currentX, &currentY);
+			Input::Cursor::deltaX = 0;
+			Input::Cursor::deltaY = 0;
+			Input::Cursor::lastX = currentX;
+			Input::Cursor::lastY = currentY;
 			Input::Cursor::show = !val;
 			});
 
@@ -191,7 +198,7 @@ namespace Plaza {
 	static void EntitySetName(uint64_t uuid, MonoString* name) {
 		auto it = Application->activeScene->entities.find(uuid);
 		if (it != Application->activeScene->entities.end()) {
-			it->second.name = mono_string_to_utf8(name);
+			it->second.Rename(mono_string_to_utf8(name));
 		}
 	}
 	static uint64_t EntityGetParent(uint64_t uuid) {
@@ -239,24 +246,24 @@ namespace Plaza {
 #pragma region Transform Component
 	static void SetPosition(uint64_t uuid, glm::vec3* vec3) {
 		PLAZA_PROFILE_SECTION("Mono: Set Position");
-		Application->activeScene->transformComponents.at(uuid).SetRelativePosition(*vec3);
+		Application->activeScene->transformComponents.find(uuid)->second.SetRelativePosition(*vec3);
 	}
 	static void GetPositionCall(uint64_t uuid, glm::vec3* out) {
 		*out = Application->activeScene->transformComponents.at(uuid).relativePosition;
 	}
 
 	static void SetRotation(uint64_t uuid, glm::vec3* vec3) {
-		Application->activeScene->transformComponents.at(uuid).SetRelativeRotation(glm::radians(*vec3));
+		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(glm::radians(*vec3));
 	}
 	static void GetRotationCall(uint64_t uuid, glm::vec3* out) {
-		*out = glm::degrees(Application->activeScene->transformComponents.at(uuid).rotation);
+		*out = glm::degrees(Application->activeScene->transformComponents.find(uuid)->second.rotation);
 	}
 
 	static void SetScaleCall(uint64_t uuid, glm::vec3* vec3) {
-		Application->activeScene->transformComponents.at(uuid).SetRelativeScale(*vec3);
+		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeScale(*vec3);
 	}
 	static void GetScaleCall(uint64_t uuid, glm::vec3* out) {
-		*out = Application->activeScene->transformComponents.at(uuid).scale;
+		*out = Application->activeScene->transformComponents.find(uuid)->second.scale;
 	}
 	/*
 			glm::mat4 matrix = this->GetTransform();
@@ -680,6 +687,33 @@ namespace Plaza {
 	}
 #pragma endregion TextRenderer
 
+#pragma region AudioSource
+	static void AudioSource_Play(uint64_t uuid) {
+		Application->activeScene->audioSourceComponents.find(uuid)->second.Play();
+	}
+	static void AudioSource_Stop(uint64_t uuid) {
+		Application->activeScene->audioSourceComponents.find(uuid)->second.Play();
+	}
+	static bool AudioSource_GetSpatial(uint64_t uuid) {
+		return Application->activeScene->audioSourceComponents.find(uuid)->second.mSpatial;
+	}
+	static void AudioSource_SetSpatial(uint64_t uuid, bool value) {
+		Application->activeScene->audioSourceComponents.find(uuid)->second.mSpatial = value;
+	}
+	static float AudioSource_GetVolume(uint64_t uuid) {
+		return Application->activeScene->audioSourceComponents.find(uuid)->second.mGain;
+	}
+	static void AudioSource_SetVolume(uint64_t uuid, bool value) {
+		Application->activeScene->audioSourceComponents.find(uuid)->second.mGain = value;
+	}
+	static float AudioSource_GetPitch(uint64_t uuid) {
+		return Application->activeScene->audioSourceComponents.find(uuid)->second.mPitch;
+	}
+	static void AudioSource_SetPitch(uint64_t uuid, bool value) {
+		Application->activeScene->audioSourceComponents.find(uuid)->second.mPitch = value;
+	}
+#pragma endregion AudioSource
+
 #pragma endregion Components
 
 #pragma region Time
@@ -752,6 +786,14 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetScale", TextRenderer_SetScale);
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetFullText", TextRenderer_SetFullText);
 
+		mono_add_internal_call("Plaza.InternalCalls::AudioSource_Play", AudioSource_Play);
+		mono_add_internal_call("Plaza.InternalCalls::AudioSource_Stop", AudioSource_Stop);
+		PL_ADD_INTERNAL_CALL("AudioSource_GetSpatial");
+		PL_ADD_INTERNAL_CALL("AudioSource_SetSpatial");
+		PL_ADD_INTERNAL_CALL("AudioSource_GetVolume");
+		PL_ADD_INTERNAL_CALL("AudioSource_SetVolume");
+		PL_ADD_INTERNAL_CALL("AudioSource_GetPitch");
+		PL_ADD_INTERNAL_CALL("AudioSource_SetPitch");
 
 		mono_add_internal_call("Plaza.InternalCalls::Time_GetDeltaTime", Time_GetDeltaTime);
 

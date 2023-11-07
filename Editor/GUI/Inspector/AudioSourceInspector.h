@@ -18,8 +18,8 @@ namespace Plaza::Editor {
 				}
 
 				if (ImGui::Button("Play Sound")) {
-					component->SetPosition(component->GetGameObject()->GetComponent<Transform>()->GetWorldPosition());
-					component->SetSpatial(true);
+					//component->SetPosition(component->GetGameObject()->GetComponent<Transform>()->GetWorldPosition());
+					//component->SetSpatial(true);
 					component->Play();
 				}
 
@@ -33,6 +33,10 @@ namespace Plaza::Editor {
 
 				if (ImGui::DragFloat("Pitch", &component->mPitch)) {
 					component->SetPitch(component->mPitch);
+				}
+
+				if (ImGui::Checkbox("Spatial", &component->mSpatial)) {
+					component->SetSpatial(component->mSpatial);
 				}
 
 				ImGui::PopID();

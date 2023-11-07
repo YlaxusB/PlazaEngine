@@ -56,7 +56,7 @@ namespace Plaza {
 
 	Entity& Entity::GetParent() {
 		if (!parentUuid)
-			return Application->activeScene->entities.at(Application->activeScene->mainSceneEntity->uuid);
+			return Application->activeScene->entities.find(Application->activeScene->mainSceneEntity->uuid)->second;
 		auto parentIt = Application->activeScene->entities.find(parentUuid);
 		if (parentIt != Application->activeScene->entities.end())
 			return parentIt->second;
@@ -232,54 +232,58 @@ namespace Plaza {
 		PLAZA_PROFILE_SECTION("Instantiate");
 		if (Application->activeScene->entities.find(uuid) == Application->activeScene->entities.end())
 			return 0;
-		Entity* entityToInstantiate = &Application->activeScene->entities.at(uuid);
-		Entity* instantiatedEntity = new Entity(entityToInstantiate->name, &Application->activeScene->entities.at(entityToInstantiate->parentUuid));
-		instantiatedEntity = &Application->activeScene->entities.at(instantiatedEntity->uuid);
+		Entity* entityToInstantiate = &Application->activeScene->entities.find(uuid)->second;
+		Entity* instantiatedEntity = new Entity(entityToInstantiate->name, &Application->activeScene->entities.find(entityToInstantiate->parentUuid)->second);
+		instantiatedEntity = &Application->activeScene->entities.find(instantiatedEntity->uuid)->second;
 
-		instantiatedEntity->GetComponent<Transform>()->SetRelativePosition(entityToInstantiate->GetComponent<Transform>()->relativePosition);
-		instantiatedEntity->GetComponent<Transform>()->SetRelativeRotation(entityToInstantiate->GetComponent<Transform>()->rotation);
-		instantiatedEntity->GetComponent<Transform>()->scale = entityToInstantiate->GetComponent<Transform>()->scale;
+		Transform* toInstantiateTransform = &Application->activeScene->transformComponents.find(entityToInstantiate->uuid)->second;
+		Transform* newTransform = &Application->activeScene->transformComponents.find(instantiatedEntity->uuid)->second;
+		newTransform->SetRelativePosition(toInstantiateTransform->relativePosition);
+		newTransform->SetRelativeRotation(toInstantiateTransform->rotation);
+		newTransform->scale = toInstantiateTransform->scale;
 
-		if (entityToInstantiate->HasComponent<MeshRenderer>()) {
+		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(entityToInstantiate->uuid);
+		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
 			PLAZA_PROFILE_SECTION("MeshRenderer");
-			MeshRenderer* meshRendererToInstantiate = entityToInstantiate->GetComponent<MeshRenderer>();
+			//MeshRenderer* meshRendererToInstantiate = meshRendererIt->second;
 			MeshRenderer* newMeshRenderer = new MeshRenderer();
 			newMeshRenderer->uuid = instantiatedEntity->uuid;
 			newMeshRenderer->instanced = true;
-			newMeshRenderer->mesh = meshRendererToInstantiate->mesh;//shared_ptr<Mesh>(meshRendererToInstantiate->mesh);
-			newMeshRenderer->material = meshRendererToInstantiate->material;
-			newMeshRenderer->renderGroup = meshRendererToInstantiate->renderGroup;
+			newMeshRenderer->mesh = meshRendererIt->second.mesh;//shared_ptr<Mesh>(meshRendererToInstantiate->mesh);
+			newMeshRenderer->material = meshRendererIt->second.material;
+			newMeshRenderer->renderGroup = meshRendererIt->second.renderGroup;
 			instantiatedEntity->AddComponent<MeshRenderer>(newMeshRenderer);
 		}
 
-		if (entityToInstantiate->HasComponent<Collider>()) {
+		auto colliderIt = Application->activeScene->colliderComponents.find(entityToInstantiate->uuid);
+		if (colliderIt != Application->activeScene->colliderComponents.end()) {
 			PLAZA_PROFILE_SECTION("Collider");
-			Collider* newCollider = new Collider(*entityToInstantiate->GetComponent<Collider>());
+			Collider* newCollider = new Collider(colliderIt->second);
 			newCollider->mShapes.clear();
 			newCollider->uuid = instantiatedEntity->uuid;
 			newCollider->mRigidActor = nullptr;
-			instantiatedEntity->AddComponent<Collider>(newCollider);
-			for (ColliderShape* shape : entityToInstantiate->GetComponent<Collider>()->mShapes) {
-				physx::PxTransform shapeTransform = shape->mPxShape->getLocalPose();
+			for (ColliderShape* shape : colliderIt->second.mShapes) {
 				physx::PxGeometryHolder geometry = shape->mPxShape->getGeometry();
 				physx::PxMaterial* shapeMaterial = Physics::defaultMaterial;
 				// Create a new shape with the same properties
 				physx::PxShape* newShape = Physics::m_physics->createShape(geometry.triangleMesh(), *shapeMaterial, false);
-				//newCollider->mRigidActor->attachShape(*newShape);
-				instantiatedEntity->GetComponent<Collider>()->mShapes.push_back(new ColliderShape(newShape, shape->mEnum, shape->mMeshUuid));
+				newCollider->mShapes.push_back(new ColliderShape(newShape, shape->mEnum, shape->mMeshUuid));
 			}
-			instantiatedEntity->GetComponent<Collider>()->Init(nullptr);
+			instantiatedEntity->AddComponent<Collider>(newCollider);//->Init(nullptr);
+			Application->activeScene->colliderComponents.find(instantiatedEntity->uuid)->second.Init(nullptr);
 		}
 
-		if (entityToInstantiate->HasComponent<RigidBody>()) {
+		auto rigidBodyIt = Application->activeScene->rigidBodyComponents.find(entityToInstantiate->uuid);
+		if (rigidBodyIt != Application->activeScene->rigidBodyComponents.end()) {
 			PLAZA_PROFILE_SECTION("RigidBody");
-			RigidBody* newRigidBody = new RigidBody(*entityToInstantiate->GetComponent<RigidBody>());
+			RigidBody* newRigidBody = new RigidBody(rigidBodyIt->second);
 			newRigidBody->uuid = instantiatedEntity->uuid;
 			instantiatedEntity->AddComponent<RigidBody>(newRigidBody);
 			instantiatedEntity->GetComponent<RigidBody>()->Init();
 		}
 
-		if (entityToInstantiate->HasComponent<CsScriptComponent>()) {
+		auto csScriptComponentIt = Application->activeScene->csScriptComponents.find(entityToInstantiate->uuid);
+		if (csScriptComponentIt != Application->activeScene->csScriptComponents.end()) {
 			PLAZA_PROFILE_SECTION("CsScriptComponent");
 			auto range = Application->activeScene->csScriptComponents.equal_range(entityToInstantiate->uuid);
 			vector<CsScriptComponent*> scriptsToAdd = vector<CsScriptComponent*>();
@@ -327,12 +331,26 @@ namespace Plaza {
 				instantiatedEntity->AddComponent<CsScriptComponent>(script);
 			}
 		}
+
+		auto audioSourceIt = Application->activeScene->audioSourceComponents.find(entityToInstantiate->uuid);
+		if (audioSourceIt != Application->activeScene->audioSourceComponents.end()) {
+			PLAZA_PROFILE_SECTION("AudioSource");
+			AudioSource* newAudioSource = new AudioSource(audioSourceIt->second);
+			newAudioSource->uuid = instantiatedEntity->uuid;
+			newAudioSource->SetGain(audioSourceIt->second.mGain);
+			newAudioSource->SetPitch(audioSourceIt->second.mPitch);
+			newAudioSource->SetLoop(audioSourceIt->second.mLoop);
+			newAudioSource->SetSpatial(audioSourceIt->second.mSpatial);
+			instantiatedEntity->AddComponent<AudioSource>(newAudioSource);
+		}
+
+
 		/* Instantiate children */
 		for (unsigned int i = 0; i < entityToInstantiate->childrenUuid.size(); i++) {
 			uint64_t childUuid = entityToInstantiate->childrenUuid[i];
 			uint64_t uuid = Instantiate(childUuid);
 			if (uuid)
-				Application->activeScene->entities.at(uuid).ChangeParent(Application->activeScene->entities.at(uuid).GetParent(), *instantiatedEntity);
+				Application->activeScene->entities.at(uuid).ChangeParent(&Application->activeScene->entities.at(uuid).GetParent(), instantiatedEntity);
 			//instantiatedEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 		}
 

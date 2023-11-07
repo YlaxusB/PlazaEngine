@@ -8,6 +8,7 @@ namespace Plaza {
 		out << YAML::Key << "SourcePath" << YAML::Value << audioSource.mSourcePath;
 		out << YAML::Key << "Gain" << YAML::Value << audioSource.mGain;
 		out << YAML::Key << "Pitch" << YAML::Value << audioSource.mPitch;
+		out << YAML::Key << "Spatial" << YAML::Value << audioSource.mSpatial;
 
 		out << YAML::EndMap;
 	}
@@ -17,13 +18,15 @@ namespace Plaza {
 		audioSource->uuid = data["Uuid"].as<uint64_t>();
 		if (data["SourcePath"])
 			audioSource->mSourcePath = data["SourcePath"].as<std::string>();
-		if (data["Gain"])
-			audioSource->mGain = data["Gain"].as<float>();
-		if (data["Pitch"])
-			audioSource->mPitch = data["Pitch"].as<float>();
 		if (!audioSource->mSourcePath.empty()) {
 			audioSource->LoadFile(audioSource->mSourcePath);
 		}
+		if (data["Gain"])
+			audioSource->SetGain(data["Gain"].as<float>());
+		if (data["Pitch"])
+			audioSource->SetPitch(data["Pitch"].as<float>());
+		if (data["Spatial"])
+			audioSource->SetSpatial(data["Spatial"].as<bool>());
 		return audioSource;
 	}
 }

@@ -27,5 +27,16 @@ namespace Plaza {
 		void SetPitch(float value);
 		void SetLoop(bool loop);
 		void SetSpatial(bool spatial);
+
+		//AudioSource(AudioSource& other) {
+		//	this->SetGain(other.mGain);
+		//	this->SetPitch(other.mPitch);
+		//	this->SetLoop(other.mLoop);
+		//	this->SetSpatial(other.mSpatial);
+		//}
+
+		~AudioSource() override {
+			//this->Stop();
+		}
 	};
 }

@@ -20,7 +20,8 @@ namespace Plaza
             {
                 return InternalCalls.EntityGetName(this.Uuid);
             }
-            set {
+            set
+            {
                 InternalCalls.EntitySetName(this.Uuid, value);
             }
         }
@@ -299,7 +300,7 @@ namespace Plaza
                 InternalCalls.MeshRenderer_SetNormals(Uuid, value);
             }
         }
-        
+
         public Vector2[] Uvs
         {
             get
@@ -433,4 +434,57 @@ namespace Plaza
 
     #endregion Script Component
 
+    #region AudioSource Component
+    public class AudioSource : Component
+    {
+
+        public void Play()
+        {
+            InternalCalls.AudioSource_Play(this.Uuid);
+        }
+        public void Stop()
+        {
+            InternalCalls.AudioSource_Stop(this.Uuid);
+        }
+        public bool spatial
+        {
+            get
+            {
+                return InternalCalls.AudioSource_GetSpatial(this.Uuid);
+            }
+            set
+            {
+                InternalCalls.AudioSource_SetSpatial(this.Uuid, value);
+            }
+        }
+
+        public float volume
+        {
+            get
+            {
+                return InternalCalls.AudioSource_GetVolume(this.Uuid);
+            }
+            set
+            {
+                InternalCalls.AudioSource_SetVolume(this.Uuid, value);
+            }
+        }
+
+        public float pitch
+        {
+            get
+            {
+                return InternalCalls.AudioSource_GetPitch(this.Uuid);
+            }
+            set
+            {
+                InternalCalls.AudioSource_SetPitch(this.Uuid, value);
+            }
+        }
+    }
+
+
+    #endregion
 }
+
+

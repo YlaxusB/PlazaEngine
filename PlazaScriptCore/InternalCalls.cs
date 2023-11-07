@@ -419,6 +419,25 @@ namespace Plaza
         public extern static void TextRenderer_SetFullText(UInt64 uuid, string text, float x, float y, float scale, ref Vector4 color);
         #endregion TextRenderer
 
+        #region AudioSource
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void AudioSource_Play(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void AudioSource_Stop(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static bool AudioSource_GetSpatial(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void AudioSource_SetSpatial(UInt64 uuid, bool value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static float AudioSource_GetVolume(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void AudioSource_SetVolume(UInt64 uuid, float value);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static float AudioSource_GetPitch(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void AudioSource_SetPitch(UInt64 uuid, float value);
+        #endregion AudioSource
+
         #endregion Components
 
         #region Time

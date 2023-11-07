@@ -325,6 +325,8 @@ namespace Plaza {
 		RegisterComponent<RigidBody>();
 		RegisterComponent<CsScriptComponent>();
 		RegisterComponent<Plaza::Drawing::UI::TextRenderer>();
+		RegisterComponent<AudioSource>();
+		RegisterComponent<AudioListener>();
 	}
 
 	void Mono::ReloadAppDomain() {

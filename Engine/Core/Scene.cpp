@@ -211,6 +211,9 @@ namespace Plaza {
 	}
 
 	void Scene::Stop() {
+		for (auto [key, value] : Application->activeScene->audioSourceComponents) {
+			value.Stop();
+		}
 		// Change active scene, update the selected object scene, delete runtime and set running to false.
 		Editor::selectedGameObject = nullptr;
 		delete(Application->runtimeScene);

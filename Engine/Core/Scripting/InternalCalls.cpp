@@ -241,6 +241,24 @@ namespace Plaza {
 	}
 #pragma endregion Entity
 
+#pragma region Physics
+	struct RaycastHit {
+		uint64_t hitUuid;
+		glm::vec3 point;
+	};
+	physx::PxVec3 glmToPx(glm::vec3 vector) {
+		return physx::PxVec3(vector.x, vector.y, vector.z);
+	}
+	static void Physics_Raycast(glm::vec3 origin, glm::vec3 direction, float maxDistance, RaycastHit* hit) {
+		physx::PxRaycastBuffer hitPhysx;
+		bool status = Physics::m_scene->raycast(glmToPx(origin), glmToPx(direction), maxDistance, hitPhysx);
+		if (status) {
+			hit->hitUuid = (uint64_t)hitPhysx.block.actor->userData;
+			hit->point = glm::vec3(hitPhysx.block.position.x, hitPhysx.block.position.y, hitPhysx.block.position.z);
+		}
+	}
+#pragma endregion Physics
+
 #pragma region Components
 
 #pragma region Transform Component
@@ -528,9 +546,9 @@ namespace Plaza {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
 			shared_ptr<Mesh> oldMesh = meshRendererIt->second.mesh;
 			Mesh* newMesh;
-			if (oldMesh.get())
-				newMesh = new Mesh(*oldMesh);
-			else
+			//if (oldMesh.get())
+			//	newMesh = new Mesh(*oldMesh);
+			//else
 				newMesh = new Mesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
@@ -542,36 +560,36 @@ namespace Plaza {
 				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
 			}
 			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId);
-			vector<glm::vec3>& meshVertices = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->vertices;
+			vector<glm::vec3>& meshVertices = newMesh->vertices;
 			meshVertices.clear();
 			meshVertices.reserve(verticesSize);
 			for (int i = 0; i < verticesSize; ++i) {
 				meshVertices.push_back(vertices[i]);
 			}
-			vector<unsigned int>& meshIndices = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->indices;
+			vector<unsigned int>& meshIndices = newMesh->indices;
 			meshIndices.clear();
 			meshIndices.reserve(indicesSize);
 			for (int i = 0; i < indicesSize; ++i) {
 				meshIndices.push_back(indices[i]);
 			}
-			vector<glm::vec3>& meshNormals = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->normals;
+			vector<glm::vec3>& meshNormals = newMesh->normals;
 			meshNormals.clear();
 			meshNormals.reserve(normalsSize);
 			for (int i = 0; i < normalsSize; ++i) {
 				meshNormals.push_back(normals[i]);
 			}
-			vector<glm::vec2>& meshUvs = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->uvs;
+			vector<glm::vec2>& meshUvs = newMesh->uvs;
 			meshUvs.clear();
 			meshUvs.reserve(uvsSize);
 			for (int i = 0; i < uvsSize; ++i) {
 				meshUvs.push_back(uvs[i]);
 			}
-
-
+			newMesh->Restart();
+			meshRendererIt->second.mesh = std::shared_ptr<Mesh>(newMesh);
 			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
 			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
 				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
-			delete newMesh;
+			//delete newMesh;
 		}
 	}
 
@@ -746,7 +764,8 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::HasScript", HasScript);
 		mono_add_internal_call("Plaza.InternalCalls::GetScript", GetScript);
 
-
+		mono_add_internal_call("Plaza.InternalCalls::Physics_Raycast", Physics_Raycast);
+		//PL_ADD_INTERNAL_CALL("Physics_Raycast");
 
 		mono_add_internal_call("Plaza.InternalCalls::GetPositionCall", GetPositionCall);
 		mono_add_internal_call("Plaza.InternalCalls::SetPosition", SetPosition);

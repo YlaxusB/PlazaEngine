@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static Plaza.Physics;
 
 namespace Plaza
 {
@@ -75,7 +76,10 @@ namespace Plaza
         public extern static UInt64 Instantiate(UInt64 uuid);
         #endregion Entity;
 
-
+        #region Physics
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Physics_Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit);
+        #endregion Physics
         #region Components
 
         #region Transform
@@ -335,7 +339,7 @@ namespace Plaza
         {
 
         }
-        public static void MeshRenderer_SetMesh(UInt64 uuid, Vector3[] vertices, int[] indices, Vector3[] normals, Vector2[]uvs)
+        public static void MeshRenderer_SetMesh(UInt64 uuid, Vector3[] vertices, int[] indices, Vector3[] normals, Vector2[] uvs)
         {
             int verticesSize = vertices.Length;
             int indicesSize = indices.Length;

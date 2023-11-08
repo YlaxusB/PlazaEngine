@@ -66,9 +66,11 @@ namespace Plaza::Editor {
 					MeshRenderer* meshR = entity->GetComponent<MeshRenderer>();
 					RenderGroup* oldRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup.get();
 					for (auto [key, value] : Application->activeScene->materials) {
-						if (!value.get()->name.empty() && ImGui::Button(value->name.c_str())) {
-							entity->GetComponent<MeshRenderer>()->material = value;
-							entity->GetComponent<MeshRenderer>()->renderGroup->material = value;
+						if (value.get()) {
+							if (!value.get()->name.empty() && ImGui::Button(value->name.c_str())) {
+								entity->GetComponent<MeshRenderer>()->material = value;
+								entity->GetComponent<MeshRenderer>()->renderGroup->material = value;
+							}
 						}
 					}
 					RenderGroup* newRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup.get();

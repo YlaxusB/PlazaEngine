@@ -14,6 +14,8 @@ namespace Plaza::Editor {
 		MeshRenderer* meshRenderer = new MeshRenderer(*mesh.get(), Material());
 		meshRenderer->instanced = true;
 		meshRenderer->mesh = mesh;
+		meshRenderer->material = shared_ptr<Material>(Scene::DefaultMaterial());
+		meshRenderer->renderGroup->material = shared_ptr<Material>(Scene::DefaultMaterial());
 		obj->AddComponent<MeshRenderer>(meshRenderer);
 		Editor::selectedGameObject = obj;
 

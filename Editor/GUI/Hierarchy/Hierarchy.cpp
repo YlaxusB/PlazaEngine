@@ -198,6 +198,14 @@ namespace Plaza::Editor {
 					entity.AddComponent<Camera>(camera);
 				}
 
+				if (ImGui::MenuItem("Text Renderer"))
+				{
+					Plaza::Drawing::UI::TextRenderer* textRenderer = new Plaza::Drawing::UI::TextRenderer();
+					textRenderer->Init(Application->activeProject->directory + "\\font.ttf");
+					textRenderer->uuid = entity.uuid;
+					entity.AddComponent<Plaza::Drawing::UI::TextRenderer>(textRenderer);
+				}
+
 				if (ImGui::MenuItem("Audio Source"))
 				{
 					AudioSource* audioSource = new AudioSource();

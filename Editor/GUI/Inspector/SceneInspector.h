@@ -26,6 +26,7 @@ namespace Plaza::Editor {
 				glm::vec3& lightDir = Application->Shadows->lightDir;
 				Utils::DragFloat3("Light Direction: ", lightDir, 0.1f, callbacke, -360.0f, 360.0f);
 				ImGui::DragInt("Depth Map Resolution: ", reinterpret_cast<int*>(&Application->Shadows->depthMapResolution), 1024, 0, *"%d");
+				ImGui::DragFloat3("Light Distance: ", &Application->Shadows->lightDistance.x);
 
 				ImGui::TreePop();
 			}

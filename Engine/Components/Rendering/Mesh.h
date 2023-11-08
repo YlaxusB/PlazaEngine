@@ -9,6 +9,10 @@
 using namespace std;
 using namespace Plaza;
 namespace Plaza {
+	enum MeshType {
+		Triangle = 0,
+		HeightField
+	};
 	struct Vertex {
 		glm::vec3 position;
 		glm::vec3 normal;
@@ -26,6 +30,7 @@ namespace Plaza {
 
 	class Mesh {
 	public:
+		MeshType meshType = MeshType::Triangle;
 		bool temporaryMesh = false;
 		unsigned int instanceBuffer;
 		unsigned int uniformBuffer;

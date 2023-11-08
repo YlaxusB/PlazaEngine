@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Numerics;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Plaza
 {
@@ -27,6 +29,43 @@ namespace Plaza
             set => data[row, col] = value;
         }
 
+        public Vector3 ExtractRotationAsEulerAngles()
+        {
+            var m = new Matrix4x4(
+                data[0, 0], data[0, 1], data[0, 2], 0,
+                data[1, 0], data[1, 1], data[1, 2], 0,
+                data[2, 0], data[2, 1], data[2, 2], 0,
+                0, 0, 0, 1
+            ); // Convert the float[,] data to Matrix4x4
+
+            Quaternion quaternionRotation = Quaternion.CreateFromRotationMatrix(m);
+            Vector3 eulerRotation = QuaternionToEulerAngles(quaternionRotation);
+
+            return eulerRotation;
+        }
+
+        private Vector3 QuaternionToEulerAngles(Quaternion q)
+        {
+            // Convert a Quaternion to Euler Angles
+            Vector3 euler = new Vector3();
+
+            double sinr_cosp = 2 * (q.W * q.X + q.Y * q.Z);
+            double cosr_cosp = 1 - 2 * (q.X * q.X + q.Y * q.Y);
+            euler.X = (float)Math.Atan2(sinr_cosp, cosr_cosp);
+
+            double sinp = 2 * (q.W * q.Y - q.Z * q.X);
+            if (Math.Abs(sinp) >= 1)
+                euler.Y = (float)(sinp >= 0 ? Math.PI / 2 : -Math.PI / 2); // Use 90 degrees if out of range
+            else
+                euler.Y = (float)Math.Asin(sinp);
+
+            double siny_cosp = 2 * (q.W * q.Z + q.X * q.Y);
+            double cosy_cosp = 1 - 2 * (q.Y * q.Y + q.Z * q.Z);
+            euler.Z = (float)Math.Atan2(siny_cosp, cosy_cosp);
+
+            return euler;
+        }
+
         // Identity matrix creation
         public static Matrix4 Identity()
         {
@@ -38,6 +77,65 @@ namespace Plaza
                     result[i, j] = (i == j) ? 1.0f : 0.0f;
                 }
             }
+            return result;
+        }
+
+        public Matrix4x4 ToSystemNumericsMatrix4x4()
+        {
+            Matrix4x4 result = new Matrix4x4();
+
+            for (int row = 0; row < 4; row++)
+            {
+                for (int col = 0; col < 4; col++)
+                {
+                    result.M11 = data[0, 0];
+                    result.M12 = data[0, 1];
+                    result.M13 = data[0, 2];
+                    result.M14 = data[0, 3];
+
+                    result.M21 = data[1, 0];
+                    result.M22 = data[1, 1];
+                    result.M23 = data[1, 2];
+                    result.M24 = data[1, 3];
+
+                    result.M31 = data[2, 0];
+                    result.M32 = data[2, 1];
+                    result.M33 = data[2, 2];
+                    result.M34 = data[2, 3];
+
+                    result.M41 = data[3, 0];
+                    result.M42 = data[3, 1];
+                    result.M43 = data[3, 2];
+                    result.M44 = data[3, 3];
+                }
+            }
+
+            return result;
+        }
+        public static Matrix4 FromSystemNumericsMatrix4x4(Matrix4x4 inputMatrix)
+        {
+            Matrix4 result = new Matrix4();
+
+            result[0, 0] = inputMatrix.M11;
+            result[0, 1] = inputMatrix.M12;
+            result[0, 2] = inputMatrix.M13;
+            result[0, 3] = inputMatrix.M14;
+
+            result[1, 0] = inputMatrix.M21;
+            result[1, 1] = inputMatrix.M22;
+            result[1, 2] = inputMatrix.M23;
+            result[1, 3] = inputMatrix.M24;
+
+            result[2, 0] = inputMatrix.M31;
+            result[2, 1] = inputMatrix.M32;
+            result[2, 2] = inputMatrix.M33;
+            result[2, 3] = inputMatrix.M34;
+
+            result[3, 0] = inputMatrix.M41;
+            result[3, 1] = inputMatrix.M42;
+            result[3, 2] = inputMatrix.M43;
+            result[3, 3] = inputMatrix.M44;
+
             return result;
         }
 
@@ -129,6 +227,14 @@ namespace Plaza
             Y = y;
             Z = z;
         }
+
+        public Vector3(double x, double y, double z)
+        {
+            X = (float)x;
+            Y = (float)y;
+            Z = (float)z;
+        }
+
         public Vector3(float x)
         {
             X = x;
@@ -214,11 +320,46 @@ namespace Plaza
             return new Vector3(transformedVector[0], transformedVector[1], transformedVector[2]);
         }
 
+        public Vector3 InverseTransform(Matrix4 transformationMatrix, Vector3 worldCoordinate)
+        {
+            if (transformationMatrix.data.GetLength(0) != 4 || transformationMatrix.data.GetLength(1) != 4)
+            {
+                throw new ArgumentException("Matrix should be a 4x4 transformation matrix");
+            }
+
+            // Extend the vector to a 4x1 by adding a 1 as the fourth component (homogeneous coordinates)
+            float[] vector = new float[] { worldCoordinate.X, worldCoordinate.Y, worldCoordinate.Z, 1 };
+
+            // Create the inverse of the transformation matrix
+            System.Numerics.Matrix4x4.Invert(transformationMatrix.ToSystemNumericsMatrix4x4(), out Matrix4x4 result);
+            Matrix4 inverseMatrix = Matrix4.FromSystemNumericsMatrix4x4(result);
+            // Perform the inverse transformation
+            float[] transformedVector = new float[3];
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    transformedVector[i] += vector[j] * inverseMatrix[j, i];
+                }
+            }
+
+            return new Vector3(transformedVector[0], transformedVector[1], transformedVector[2]);
+        }
+
         public static Vector3 MoveTowards(Vector3 current, Vector3 target, float maxDistanceDelta)
         {
             Vector3 direction = target - current;
             float distance = Magnitude(direction);
             return maxDistanceDelta >= distance ? target : current + Normalize(direction) * maxDistanceDelta;
+        }
+
+        public Vector3 Sin()
+        {
+            return new Vector3(Math.Sin(this.X), Math.Sin(this.Y), Math.Sin(this.Z));
+        }
+        public Vector3 Cos()
+        {
+            return new Vector3(Math.Cos(this.X), Math.Cos(this.Y), Math.Cos(this.Z));
         }
     }
 
@@ -245,6 +386,32 @@ namespace Plaza
         public static Vector2 operator -(Vector2 a, Vector2 b)
         {
             return new Vector2(a.X - b.X, a.Y - b.Y);
+        }
+
+        public static float squareRoot(float number, double epsilon = 1e-6)
+        {
+            return (float)Math.Sqrt(number);
+        }
+
+        public static float Magnitude(Vector2 v)
+        {
+            return squareRoot(v.X * v.X + v.Y * v.Y);
+        }
+
+        public Vector2 Normalize()
+        {
+            float mag = Magnitude(this);
+            if (mag == 0)
+                mag = float.Epsilon;
+            Vector2 result;
+            result.X = this.X / mag;
+            result.Y = this.Y / mag;
+            return result;
+        }
+
+        public static float Dot(Vector2 a, Vector2 b)
+        {
+            return a.X * b.X + a.Y * b.Y;
         }
     }
 

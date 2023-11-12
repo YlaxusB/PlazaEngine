@@ -13,5 +13,11 @@ namespace Plaza::Editor {
 				Application->activeScene->materialsNames.erase(oldPath);
 			}
 		}
+		/* C# Script */
+		else if (newExtension == ".cs") {
+			auto it = Application->activeProject->scripts.find(oldPath);
+			if (it != Application->activeProject->scripts.end())
+				Application->activeProject->scripts.emplace(newPath, it->second);
+		}
 	}
 }

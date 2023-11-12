@@ -122,7 +122,7 @@ namespace Plaza {
 			//filterData.word0 = 0; // word0 = own ID
 			//filterData.word1 = 0;  // word1 = ID mask to filter pairs that trigger a contact callback
 			//shape->mPxShape->setSimulationFilterData(filterData);
-			shape->mPxShape->userData = new uint64_t(this->uuid);
+			shape->mPxShape->userData = reinterpret_cast<void*>(this->uuid);
 			this->mRigidActor->attachShape(*shape->mPxShape);
 		}
 		Physics::m_scene->addActor(*this->mRigidActor);
@@ -193,7 +193,7 @@ namespace Plaza {
 			*Physics::defaultMaterial);
 
 		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::MESH, mesh->meshId));
-		delete mesh;
+		//delete mesh;
 	}
 
 	void Collider::CreateShape(ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh) {

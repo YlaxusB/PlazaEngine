@@ -12,12 +12,49 @@ namespace Plaza::Editor {
 			if (Utils::ComponentInspectorHeader(entity->GetComponent<MeshRenderer>(), "Material")) {
 				ImGui::PushID("MaterialInspector");
 				MeshRenderer* meshRenderer = entity->GetComponent<MeshRenderer>();
-				Material& material = *(entity->GetComponent<MeshRenderer>()->material);
-				glm::vec4& diffuse = material.diffuse.rgba;
-				glm::vec4& specular = material.specular.rgba;
-				float shininess = material.shininess;
 
-				if (meshRenderer->mesh.get() && meshRenderer->renderGroup.get()) {
+				MeshRenderer* meshR = entity->GetComponent<MeshRenderer>();
+				RenderGroup* oldRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup.get();
+
+				/*
+						std::shared_ptr<Material> material;
+		if (Application->activeScene->materials.find(materialUuid) != Application->activeScene->materials.end() && materialUuid != 0) {
+			material = Application->activeScene->materials.at(materialUuid);
+		}
+		else
+			material = std::shared_ptr<Material>(Scene::DefaultMaterial());
+		meshRenderer->material = material;
+		if (meshRenderer->mesh && meshRenderer->material) {
+			meshRenderer->renderGroup = std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);
+			Application->activeScene->AddRenderGroup(meshRenderer->renderGroup);
+		}
+				
+				*/
+				for (auto [key, value] : Application->activeScene->materials) {
+					try {
+						if (value.get()) {
+							if (value && value.get() && !value.get()->name.empty() && ImGui::Button(value->name.c_str())) {
+								entity->GetComponent<MeshRenderer>()->material.swap(value); //= std::shared_ptr<Material>();
+								if (!oldRenderGroup) {
+									entity->GetComponent<MeshRenderer>()->renderGroup = std::make_shared<RenderGroup>(entity->GetComponent<MeshRenderer>()->mesh, entity->GetComponent<MeshRenderer>()->material);
+									Application->activeScene->AddRenderGroup(entity->GetComponent<MeshRenderer>()->renderGroup);
+								}
+								entity->GetComponent<MeshRenderer>()->renderGroup->material = entity->GetComponent<MeshRenderer>()->material;
+							}
+						}
+					}
+					catch (exception) {
+
+					}
+				}
+				RenderGroup* newRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup.get();
+
+				Material& material = *(entity->GetComponent<MeshRenderer>()->material);
+				if (meshRenderer->mesh.get() && meshRenderer->renderGroup.get() && meshRenderer->material.get()) {
+					glm::vec4& diffuse = material.diffuse.rgba;
+					glm::vec4& specular = material.specular.rgba;
+					float shininess = material.shininess;
+
 					ImGui::Text("Mesh VAO: ");
 					ImGui::SameLine();
 					ImGui::Text(std::to_string(meshRenderer->mesh->VAO).c_str());
@@ -63,17 +100,7 @@ namespace Plaza::Editor {
 
 					ImGui::Checkbox("Cast Shadows", &entity->GetComponent<MeshRenderer>()->castShadows);
 
-					MeshRenderer* meshR = entity->GetComponent<MeshRenderer>();
-					RenderGroup* oldRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup.get();
-					for (auto [key, value] : Application->activeScene->materials) {
-						if (value.get()) {
-							if (!value.get()->name.empty() && ImGui::Button(value->name.c_str())) {
-								entity->GetComponent<MeshRenderer>()->material = value;
-								entity->GetComponent<MeshRenderer>()->renderGroup->material = value;
-							}
-						}
-					}
-					RenderGroup* newRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup.get();
+
 
 					if (ImGui::Button("New Material")) {
 						uint64_t renderGroupUuid = Plaza::UUID::NewUUID();

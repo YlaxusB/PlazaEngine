@@ -413,6 +413,16 @@ namespace Plaza
         {
             return a.X * b.X + a.Y * b.Y;
         }
+
+        public float LengthSquared()
+        {
+            return X * X + Y * Y;
+        }
+
+        public static float Distance(Vector2 v1, Vector2 v2)
+        {
+            return Magnitude(v1 - v2);
+        }
     }
 
     public struct Vector4

@@ -60,6 +60,12 @@ namespace Plaza {
 
 #define PL_ADD_INTERNAL_CALL(name) mono_add_internal_call("Plaza.InternalCalls::" #name, (void*)name)
 
+	static uint64_t NewEntity() {
+		Entity* newEntity = new Entity("New Entity", Application->activeScene->mainSceneEntity, true);
+		newEntity->GetComponent<Transform>()->UpdateChildrenTransform();
+		return newEntity->uuid;
+	}
+
 	enum Axis {
 		X,
 		Y,
@@ -128,6 +134,15 @@ namespace Plaza {
 		}
 	}
 
+	static void AddScript(uint64_t uuid, MonoReflectionType* scriptType) {
+		if (uuid) {
+			auto* script = CreateComponentByName(uuid, scriptType);
+			script->uuid = uuid;
+			GetComponentMap(uuid, GetSubclassName(script), script);
+			//Application->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
+		}
+	}
+
 	static uint64_t FindEntityByNameCall(MonoString* name) {
 		char* nameCStr = mono_string_to_utf8(name);
 
@@ -140,7 +155,8 @@ namespace Plaza {
 
 	static uint64_t Instantiate(uint64_t uuid) {
 		uint64_t newUuid = Entity::Instantiate(uuid);
-		Application->activeScene->transformComponents.find(newUuid)->second.UpdateSelfAndChildrenTransform();
+		if (newUuid)
+			Application->activeScene->transformComponents.find(newUuid)->second.UpdateSelfAndChildrenTransform();
 		return newUuid;
 	}
 
@@ -336,6 +352,17 @@ namespace Plaza {
 #pragma endregion Transform Component
 
 #pragma region Mesh Renderer Component
+	static void MeshRenderer_SetMaterial(uint64_t uuid, uint64_t materialUuid) {
+		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application->activeScene->meshRendererComponents.end() && Application->activeScene->materials.find(materialUuid) != Application->activeScene->materials.end()) {
+			meshRendererIt->second.material = Application->activeScene->materials.find(materialUuid)->second;
+			if (!meshRendererIt->second.renderGroup.get()) {
+				meshRendererIt->second.renderGroup = std::shared_ptr<RenderGroup>(new RenderGroup(meshRendererIt->second.mesh, meshRendererIt->second.material));
+				Application->activeScene->AddRenderGroup(meshRendererIt->second.renderGroup);
+			}
+
+		}
+	}
 	static void MeshRenderer_GetVertices(uint64_t uuid, glm::vec3** out, int* size) {
 		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
@@ -549,10 +576,10 @@ namespace Plaza {
 			//if (oldMesh.get())
 			//	newMesh = new Mesh(*oldMesh);
 			//else
-				newMesh = new Mesh();
+			newMesh = new Mesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
-			if (oldMesh->temporaryMesh) {
+			if (oldMesh.get() && oldMesh->temporaryMesh) {
 				newMesh->meshId = oldMesh->meshId;
 				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
 			}
@@ -586,10 +613,23 @@ namespace Plaza {
 			}
 			newMesh->Restart();
 			meshRendererIt->second.mesh = std::shared_ptr<Mesh>(newMesh);
-			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
-			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
+			//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			if (oldMesh->uuid == newMesh->uuid && Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup.get()) {
 				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+			}
+			else {
+				RenderGroup* newRenderGroup = new RenderGroup(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh, Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->material);
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
+			}
 			//delete newMesh;
+			//Application->activeScene->meshRendererComponents.find(uuid)->second.renderGroup->mesh = meshRendererIt->second.mesh;
+		}
+	}
+
+	static float MeshRenderer_GetHeight(uint64_t uuid, float pixelX, float pixelY) {
+		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+			return meshRendererIt->second.GetHeight(pixelX, pixelY);
 		}
 	}
 
@@ -654,6 +694,7 @@ namespace Plaza {
 			}
 			else
 				it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid));
+			it->second.Init(nullptr);
 		}
 	}
 #pragma endregion Collider
@@ -743,6 +784,7 @@ namespace Plaza {
 	void InternalCalls::Init() {
 		//PL_ADD_INTERNAL_CALL(GetPositionCall);
 		mono_add_internal_call("Plaza.InternalCalls::FindEntityByNameCall", FindEntityByNameCall);
+		mono_add_internal_call("Plaza.InternalCalls::NewEntity", NewEntity);
 		mono_add_internal_call("Plaza.InternalCalls::Instantiate", Instantiate);
 
 
@@ -763,6 +805,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::RemoveComponent", RemoveComponent);
 		mono_add_internal_call("Plaza.InternalCalls::HasScript", HasScript);
 		mono_add_internal_call("Plaza.InternalCalls::GetScript", GetScript);
+		mono_add_internal_call("Plaza.InternalCalls::AddScript", AddScript);
 
 		mono_add_internal_call("Plaza.InternalCalls::Physics_Raycast", Physics_Raycast);
 		//PL_ADD_INTERNAL_CALL("Physics_Raycast");
@@ -779,6 +822,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::Transform_GetWorldMatrix", Transform_GetWorldMatrix);
 
 		mono_add_internal_call("Plaza.InternalCalls::MoveTowards", MoveTowards);
+		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetMaterial", MeshRenderer_SetMaterial);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetVertices", MeshRenderer_GetVertices);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetVertices", MeshRenderer_SetVertices);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetIndices", MeshRenderer_GetIndices);
@@ -788,6 +832,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetMesh", MeshRenderer_SetMesh);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetUvs", MeshRenderer_GetUvs);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetUvs", MeshRenderer_SetUvs);
+		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetHeight", MeshRenderer_GetHeight);
 
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_ApplyForce", RigidBody_ApplyForce);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_AddForce", RigidBody_AddForce);

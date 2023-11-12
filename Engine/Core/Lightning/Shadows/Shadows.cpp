@@ -92,7 +92,7 @@ namespace Plaza {
 				if (Application->activeCamera->IsInsideViewFrustum(transform.worldPosition)) {
 					//Application->activeScene->entities[transform->uuid].GetComponent<Transform>()->UpdateObjectTransform(&Application->activeScene->entities[meshRendererPair.first]);
 					glm::mat4 modelMatrix = transform.modelMatrix;
-					if (meshRenderer.instanced && meshRenderer.renderGroup) {
+					if (meshRenderer.instanced&& meshRenderer.renderGroup && meshRenderer.renderGroup->mesh) {
 						meshRenderer.renderGroup->AddInstance(shader, modelMatrix);
 					}
 					else if(meshRenderer.renderGroup) {

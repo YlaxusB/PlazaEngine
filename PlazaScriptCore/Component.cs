@@ -52,6 +52,11 @@ namespace Plaza
             }
         }
 
+        public static Entity NewEntity()
+        {
+            return new Entity(InternalCalls.NewEntity());
+        }
+
         public Entity()
         {
 
@@ -110,6 +115,22 @@ namespace Plaza
         public T GetScript<T>() where T : Entity, new()
         {
             return InternalCalls.GetScript(this.Uuid) as T;
+        }
+
+        public bool HasScript<T>() where T : Entity, new()
+        {
+            Type scriptType = typeof(T);
+            return InternalCalls.HasScript(Uuid, scriptType);
+        }
+
+        public T AddScript<T>() where T : Entity, new()
+        {
+            if (HasScript<T>())
+                return null;
+            T script = new T() { Uuid = this.Uuid };
+            script.Uuid = this.Uuid;
+            InternalCalls.AddScript(this.Uuid, typeof(T));
+            return script as T;
         }
 
         public Entity FindEntityByName(string name)
@@ -264,6 +285,11 @@ namespace Plaza
             {
                 InternalCalls.MeshRenderer_SetMesh(Uuid, value.Vertices, value.Indices, value.Normals, value.Uvs);
             }
+        }
+
+       public void SetMaterial(UInt64 materialUuid)
+        {
+            InternalCalls.MeshRenderer_SetMaterial(Uuid, materialUuid);
         }
         public Vector3[] Vertices
         {

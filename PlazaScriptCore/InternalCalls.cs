@@ -20,6 +20,8 @@ namespace Plaza
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static ulong FindEntityByNameCall(string name);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static UInt64 NewEntity();
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static bool HasComponent(UInt64 uuid, Type componentType);
@@ -28,9 +30,11 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void RemoveComponent(UInt64 uuid, Type componentType);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static bool HasScript(UInt64 uuid, Type componentType);
+        public extern static bool HasScript(UInt64 uuid, Type scriptType);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static object GetScript(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void AddScript(UInt64 uuid, Type scriptType);
 
         #region Input
 
@@ -158,7 +162,8 @@ namespace Plaza
         #endregion Transform
 
         #region MeshRenderer
-
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void MeshRenderer_SetMaterial(UInt64 uuid, UInt64 materialUuid);
         public static Vector3[] MeshRenderer_GetVertices(UInt64 uuid)
         {
             int size = 0;
@@ -381,6 +386,8 @@ namespace Plaza
         // Import the C++ function with the modified signature
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         private extern static void MeshRenderer_SetMesh(UInt64 uuid, IntPtr vertices, int verticesSize, IntPtr indices, int indicesSize, IntPtr normals, int normalsSize, IntPtr uvs, int uvsSize);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static float MeshRenderer_GetHeight(UInt64 uuid, float pixelX, float pixelY);
 
         #endregion MeshRenderer
 

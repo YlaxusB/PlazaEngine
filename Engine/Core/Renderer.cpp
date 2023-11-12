@@ -51,9 +51,9 @@ namespace Plaza {
 		for (const auto& meshRendererPair : Application->activeScene->meshRendererComponents) {
 			const MeshRenderer& meshRenderer = (meshRendererPair.second);
 			if (!meshRenderer.instanced) {
-				const Transform& transform = Application->activeScene->transformComponents[meshRendererPair.first];
-				if (Application->activeCamera->IsInsideViewFrustum(transform.worldPosition)) {
-					glm::mat4 modelMatrix = transform.modelMatrix;
+				const auto transformIt = Application->activeScene->transformComponents.find(meshRendererPair.first);
+				if (transformIt != Application->activeScene->transformComponents.end() && Application->activeCamera->IsInsideViewFrustum(transformIt->second.worldPosition)) {
+					glm::mat4 modelMatrix = transformIt->second.modelMatrix;
 					shader.setMat4("model", modelMatrix);
 					//meshRenderer.mesh->BindTextures(shader);
 					//meshRenderer.mesh->Draw(shader);

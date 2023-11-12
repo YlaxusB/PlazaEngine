@@ -23,26 +23,27 @@ namespace Plaza {
 				transform->scene = "Runtime Scene";
 				newObj->RemoveComponent<Transform>();
 				newObj->AddComponent<Transform>(transform);
-				newObj->GetComponent<Transform>()->UpdateChildrenTransform();
+				newObj->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 			}
 			//newObj->ReplaceComponent<Transform>(newObj->GetComponent<Transform>(), newObj->transform);
-			MeshRenderer* meshRenderer = gameObj.second.GetComponent<MeshRenderer>();
-			if (gameObj.second.GetComponent<MeshRenderer>()) {
-				MeshRenderer* newMeshRenderer;
-				if(gameObj.second.GetComponent<MeshRenderer>()->mesh.get())
-					newMeshRenderer = new MeshRenderer(*(gameObj.second.GetComponent<MeshRenderer>()->mesh));
-				else {
-					newMeshRenderer = new MeshRenderer();
-					newMeshRenderer->uuid = Plaza::UUID::NewUUID();
-					Application->activeScene->meshRenderers.emplace_back(newMeshRenderer);
-				}
+			//MeshRenderer* meshRenderer = gameObj.second.GetComponent<MeshRenderer>();
+			//if (gameObj.second.GetComponent<MeshRenderer>()) {
+			//	MeshRenderer* newMeshRenderer;
+			//	if(gameObj.second.GetComponent<MeshRenderer>()->mesh.get())
+			//		newMeshRenderer = new MeshRenderer(*(gameObj.second.GetComponent<MeshRenderer>()->mesh));
+			//	else {
+			//		newMeshRenderer = new MeshRenderer();
+			//		newMeshRenderer->uuid = Plaza::UUID::NewUUID();
+			//		Application->activeScene->meshRenderers.emplace_back(newMeshRenderer);
+			//	}
 
-				newMeshRenderer->uuid = newObj->uuid;
-				//newObj->RemoveComponent<MeshRenderer>();
-				newObj->AddComponent<MeshRenderer>(newMeshRenderer);
-				//newObj->ReplaceComponent<MeshRenderer>(newObj->GetComponent<MeshRenderer>(), newMeshRenderer);
-				//newScene->meshRenderers.push_back(newMeshRenderer);
-			}
+			//	newMeshRenderer->uuid = newObj->uuid;
+			//	//newObj->RemoveComponent<MeshRenderer>();
+			//	newScene->meshRendererComponents.emplace()
+			//	//newObj->AddComponent<MeshRenderer>(newMeshRenderer);
+			//	//newObj->ReplaceComponent<MeshRenderer>(newObj->GetComponent<MeshRenderer>(), newMeshRenderer);
+			//	//newScene->meshRenderers.push_back(newMeshRenderer);
+			//}
 
 
 
@@ -125,13 +126,17 @@ namespace Plaza {
 	}
 
 	void Scene::RemoveMeshRenderer(uint64_t uuid) {
-		auto it = std::find_if(meshRenderers.begin(), meshRenderers.end(), [uuid](MeshRenderer* meshRenderer) {
+		auto it = std::find_if(Application->editorScene->meshRenderers.begin(), Application->editorScene->meshRenderers.end(), [uuid](MeshRenderer* meshRenderer) {
 			return meshRenderer->uuid == uuid;
 			});
 
-		if (it != meshRenderers.end()) {
-			meshRenderers.erase(it);
+		if (it != Application->editorScene->meshRenderers.end()) {
+			Application->editorScene->meshRenderers.erase(it);
 		}
+	}
+
+	void Scene::RemoveRenderGroup(uint64_t uuid) {
+		//this->ren
 	}
 
 	void Scene::Play() {

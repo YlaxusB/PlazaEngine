@@ -84,11 +84,15 @@ namespace Plaza::Editor {
 					}
 					if (ImGui::MenuItem("Mesh"))
 					{
-						if (collider->GetGameObject()->HasComponent<MeshRenderer>())
-							collider->AddMeshShape(new Mesh(*Application->activeScene->meshRendererComponents.at(collider->uuid).mesh));
+						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {
+							collider->AddMeshShape(new Mesh(*Application->activeScene->meshRendererComponents.at(collider->uuid).mesh.get()));
+							collider->Init(nullptr);
+						}
 						if (collider->GetGameObject()->HasComponent<RigidBody>()) {
 							AddChildrenMeshShape(collider, collider->uuid);
+
 						}
+
 					}
 
 					ImGui::EndPopup();

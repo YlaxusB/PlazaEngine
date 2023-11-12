@@ -10,6 +10,9 @@ using namespace Plaza;
 uint64_t lastUuid;
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (Application->focusedMenu == "Editor") {
+		if (key == GLFW_KEY_N && action == GLFW_PRESS) {
+			Editor::selectedGameObject->GetComponent<MeshRenderer>()->LoadHeightMap("C:\\Users\\Giovane\\Desktop\\Workspace\\heightmap.save");
+		}
 		if (key == GLFW_KEY_G && action == GLFW_PRESS)
 			Application->activeScene->entities[Editor::selectedGameObject->uuid].RemoveComponent<RigidBody>();
 

@@ -54,9 +54,9 @@ namespace Plaza::Editor {
 					if (baseClass) {
 						void* iter2 = NULL;
 						MonoClassField* parentField;
-						std::cout << mono_field_get_name(field) << "\n";
+						//std::cout << mono_field_get_name(field) << "\n";
 						while ((parentField = mono_class_get_fields(baseClass, &iter2)) != NULL) {
-							std::cout << mono_field_get_name(parentField) << "\n";
+							//std::cout << mono_field_get_name(parentField) << "\n";
 							CreateRespectiveInteractor(newMonoObject, parentField, sliderIndex);
 							//CreateRespectiveInteractor(nullptr, parentField, sliderIndex);
 						}
@@ -89,7 +89,7 @@ namespace Plaza::Editor {
 						while ((field = mono_class_get_fields(mono_object_get_class(scriptClass->monoObject), &iter)) != NULL)
 						{
 							ImGui::Text(mono_field_get_name(field));
-							//CreateRespectiveInteractor(scriptClass->monoObject, field, sliderIndex);
+							CreateRespectiveInteractor(scriptClass->monoObject, field, sliderIndex);
 						}
 					}
 					else {

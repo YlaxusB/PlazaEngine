@@ -108,11 +108,12 @@ namespace Plaza {
 
 		std::unordered_map<std::string, std::unordered_set<uint64_t>> entitiesNames;
 
-		void AddRenderGroup(shared_ptr<RenderGroup> renderGroup) {
+		shared_ptr<RenderGroup> AddRenderGroup(shared_ptr<RenderGroup> renderGroup) {
 			this->renderGroups.emplace(renderGroup->uuid, renderGroup);
 			this->rederGroupsFindMapWithMeshUuid.emplace(renderGroup->mesh->uuid, renderGroup->uuid);
 			this->rederGroupsFindMapWithMaterialUuid.emplace(renderGroup->material->uuid, renderGroup->uuid);
 			this->renderGroupsFindMap.emplace(std::make_pair(renderGroup->mesh->uuid, renderGroup->material->uuid), renderGroup->uuid);
+			return renderGroup;
 		}
 
 		void AddRenderGroup(RenderGroup* renderGroup) {
@@ -149,6 +150,7 @@ namespace Plaza {
 		}
 
 		void RemoveMeshRenderer(uint64_t uuid);
+		void RemoveRenderGroup(uint64_t uuid);
 
 		void RegisterMaps() {
 			componentsMap["class Plaza::Transform"] = &transformComponents;

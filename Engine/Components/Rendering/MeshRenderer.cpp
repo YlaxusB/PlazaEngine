@@ -38,5 +38,7 @@ namespace Plaza {
 
 	MeshRenderer::~MeshRenderer() {
 		Application->activeScene->RemoveMeshRenderer(this->uuid);
+		Application->activeScene->RemoveRenderGroup(this->uuid);
+		this->renderGroup.~shared_ptr();
 	}
 }

@@ -116,11 +116,12 @@ namespace Plaza {
 			return renderGroup;
 		}
 
-		void AddRenderGroup(RenderGroup* renderGroup) {
+		shared_ptr<RenderGroup>  AddRenderGroup(RenderGroup* renderGroup) {
 			this->renderGroups.emplace(renderGroup->uuid, renderGroup);
 			this->rederGroupsFindMapWithMeshUuid.emplace(renderGroup->mesh->uuid, renderGroup->uuid);
 			this->rederGroupsFindMapWithMaterialUuid.emplace(renderGroup->material->uuid, renderGroup->uuid);
 			this->renderGroupsFindMap.emplace(std::make_pair(renderGroup->mesh->uuid, renderGroup->material->uuid), renderGroup->uuid);
+			return shared_ptr<RenderGroup>(renderGroup);
 		}
 
 		Scene();

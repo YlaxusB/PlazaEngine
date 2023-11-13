@@ -54,7 +54,6 @@ namespace Plaza {
 			//newScene->gameObjects.push_back(std::make_unique<Entity>(newObj.get()));
 			//delete(newObj);
 		}
-		newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
 		newScene->transformComponents = ComponentMultiMap<uint64_t, Transform>(copyScene->transformComponents);
 		newScene->cameraComponents = ComponentMultiMap<uint64_t, Camera>(copyScene->cameraComponents);
 		newScene->meshRendererComponents = ComponentMultiMap<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
@@ -64,12 +63,26 @@ namespace Plaza {
 		newScene->audioListenerComponents = ComponentMultiMap<uint64_t, AudioListener>(copyScene->audioListenerComponents);
 		newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
 
+		newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
 		newScene->materials = std::unordered_map<uint64_t, std::shared_ptr<Material>>(copyScene->materials);
 		newScene->materialsNames = std::unordered_map<std::string, uint64_t>(copyScene->materialsNames);
-		newScene->renderGroups = std::unordered_map<uint64_t, shared_ptr<RenderGroup>>(copyScene->renderGroups);
-		newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash>(copyScene->renderGroupsFindMap);
-		newScene->rederGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>(copyScene->rederGroupsFindMapWithMeshUuid);
-		newScene->rederGroupsFindMapWithMaterialUuid = std::unordered_map<uint64_t, uint64_t>(copyScene->rederGroupsFindMapWithMaterialUuid);
+
+		newScene->renderGroups = std::unordered_map<uint64_t, shared_ptr<RenderGroup>>();
+		newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash>();
+		newScene->rederGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>();
+		newScene->rederGroupsFindMapWithMaterialUuid = std::unordered_map<uint64_t, uint64_t>();
+
+		for (auto& [key, value] : newScene->meshRendererComponents) {
+			if (value.material.get() && value.mesh.get()) {
+				RenderGroup* newRenderGroup = new RenderGroup(value.mesh, value.material);
+				//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
+				value.renderGroup = newScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
+			}
+		}
+		//newScene->renderGroups = std::unordered_map<uint64_t, shared_ptr<RenderGroup>>(copyScene->renderGroups);
+		//newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash>(copyScene->renderGroupsFindMap);
+		//newScene->rederGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>(copyScene->rederGroupsFindMapWithMeshUuid);
+		//newScene->rederGroupsFindMapWithMaterialUuid = std::unordered_map<uint64_t, uint64_t>(copyScene->rederGroupsFindMapWithMaterialUuid);
 
 		for (auto& [key, value] : copyScene->colliderComponents) {
 			// RigidBody* rig = &copyScene->rigidBodyComponents.at(key);

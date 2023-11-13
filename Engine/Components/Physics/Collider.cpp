@@ -160,20 +160,34 @@ namespace Plaza {
 
 	void Collider::AddMeshShape(Mesh* mesh) {
 		//SimplifyMesh(mesh->vertices, mesh->indices, 50);
+		auto start0 = std::chrono::high_resolution_clock::now();
 		physx::PxShape* shape;
 		physx::PxTriangleMeshGeometry triangleGeometry;
-		std::vector<physx::PxVec3> vertices;
-		std::vector<physx::PxU32> indices;
+		std::vector<physx::PxVec3> vertices = std::vector<physx::PxVec3>();
+		std::vector<physx::PxU32> indices = std::vector<physx::PxU32>();
 
 		// Extract vertices and indices from the mesh
-		for (const glm::vec3& vertex : mesh->vertices) {
-			vertices.push_back(physx::PxVec3(vertex.x, vertex.y, vertex.z));
-		}
-		for (const unsigned int& index : mesh->indices) {
-			indices.push_back(static_cast<physx::PxU32>(index));
-		}
+		auto start1 = std::chrono::high_resolution_clock::now();
+		vertices.resize(mesh->vertices.size());
+		std::transform(mesh->vertices.begin(), mesh->vertices.end(), vertices.begin(),
+			[](const glm::vec3& glmVertex) {
+				return physx::PxVec3(glmVertex.x, glmVertex.y, glmVertex.z);
+			}
+		);
+		indices.resize(mesh->indices.size());
+		indices = mesh->indices;
 
+		auto end1 = std::chrono::high_resolution_clock::now();
+		//for (const glm::vec3& vertex : mesh->vertices) {
+		//	vertices.push_back(physx::PxVec3(vertex.x, vertex.y, vertex.z));
+		//}
+		//for (const unsigned int& index : mesh->indices) {
+		//	indices.push_back(static_cast<physx::PxU32>(index));
+		//}
+
+		auto start2 = std::chrono::high_resolution_clock::now();
 		physx::PxTriangleMeshDesc meshDesc;
+
 		meshDesc.points.data = vertices.data();
 		meshDesc.points.count = static_cast<physx::PxU32>(vertices.size());
 		meshDesc.points.stride = sizeof(physx::PxVec3);
@@ -182,17 +196,33 @@ namespace Plaza {
 		meshDesc.triangles.stride = sizeof(physx::PxU32) * 3;
 		//meshDesc. = physx::PxSDFDesc::
 		physx::PxCookingParams params(Physics::m_physics->getTolerancesScale());
+		params.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
+		// disable edge precompute, edges are set for each triangle, slows contact generation
+		params.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
+		// lower hierarchy for internal mesh
+		//params.meshcook = physx::PxMeshCookingHint::eCOOKING_PERFORMANCE;
+
 		//params. = physx::PxMeshCookingHint::eSIM_PERFORMANCE;
+		auto end2 = std::chrono::high_resolution_clock::now();
+		auto start3 = std::chrono::high_resolution_clock::now();
 		physx::PxDefaultMemoryOutputStream buf;
 		if (!PxCookTriangleMesh(params, meshDesc, buf))
 			printf("failed");
-
+		auto end3 = std::chrono::high_resolution_clock::now();
+		auto start4 = std::chrono::high_resolution_clock::now();
 		physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
 		physx::PxTriangleMesh* triangleMesh = Physics::m_physics->createTriangleMesh(input);
 		shape = Physics::m_physics->createShape(physx::PxTriangleMeshGeometry(triangleMesh),
 			*Physics::defaultMaterial);
-
+		auto end4 = std::chrono::high_resolution_clock::now();
 		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::MESH, mesh->meshId));
+		auto end0 = std::chrono::high_resolution_clock::now();
+
+		std::cout << "Time taken by function 1: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " milliseconds" << std::endl;
+		std::cout << "Time taken by function 2: " << std::chrono::duration_cast<std::chrono::milliseconds>(end2 - start2).count() << " milliseconds" << std::endl;
+		std::cout << "Time taken by function 3: " << std::chrono::duration_cast<std::chrono::milliseconds>(end3 - start3).count() << " milliseconds" << std::endl;
+		std::cout << "Time taken by function 4: " << std::chrono::duration_cast<std::chrono::milliseconds>(end4 - start4).count() << " milliseconds" << std::endl;
+		std::cout << "Time taken by function 0: " << std::chrono::duration_cast<std::chrono::milliseconds>(end0 - start0).count() << " milliseconds" << std::endl;
 		//delete mesh;
 	}
 
@@ -218,10 +248,10 @@ namespace Plaza {
 			std::cout << "Cylinder not yet implemented" << std::endl;
 		}
 		else if (shapeEnum == ColliderShapeEnum::MESH) {
-			this->AddMeshShape(new Mesh(*mesh));
+			this->AddMeshShape(mesh);
 		}
 		else if (shapeEnum == ColliderShapeEnum::CONVEX_MESH) {
-			this->AddConvexMeshShape(new Mesh(*mesh));
+			this->AddConvexMeshShape(mesh);
 		}
 	}
 

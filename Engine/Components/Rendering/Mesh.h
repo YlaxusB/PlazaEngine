@@ -212,12 +212,54 @@ namespace Plaza {
 
 		void Restart() {
 			if (indices.size() > 0 && vertices.size() > 0) {
-	/*			glDeleteBuffers(1, &VBO);
-				glDeleteBuffers(1, &EBO);
-				glDeleteBuffers(1, &instanceBuffer);
-				glDeleteBuffers(1, &this->uniformBuffer);
-				glDeleteVertexArrays(1, &VAO);*/
-				setupMesh();
+				/*			glDeleteBuffers(1, &VBO);
+							glDeleteBuffers(1, &EBO);
+							glDeleteBuffers(1, &instanceBuffer);
+							glDeleteBuffers(1, &this->uniformBuffer);
+							glDeleteVertexArrays(1, &VAO);*/
+							//setupMesh();
+				// Update vertices
+				if (VBO && EBO) {
+					glBindBuffer(GL_ARRAY_BUFFER, VBO);
+					glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), &this->vertices[0], GL_DYNAMIC_DRAW);
+
+					glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+					glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_STATIC_DRAW);
+
+					// Assuming that normals and UVs are part of the Vertex struct
+					// If not, adjust the offsets accordingly
+					// vertex normals
+					glEnableVertexAttribArray(1);
+					glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+
+					// vertex texture coords
+					glEnableVertexAttribArray(2);
+					glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+
+					// Note: Assuming tangent and bitangent are also part of the Vertex struct
+					// If not, adjust the offsets accordingly
+					// vertex tangent
+					glEnableVertexAttribArray(3);
+					glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
+
+					// vertex bitangent
+					glEnableVertexAttribArray(4);
+					glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+
+					// Update normals and UVs
+					glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+					// Assuming normals are stored after the position in Vertex struct
+					glBufferSubData(GL_ARRAY_BUFFER, sizeof(glm::vec3), this->normals.size() * sizeof(glm::vec3), &this->normals[0]);
+
+					// Assuming UVs are stored after the position and normals in Vertex struct
+					glBufferSubData(GL_ARRAY_BUFFER, sizeof(glm::vec3) + sizeof(glm::vec3), this->uvs.size() * sizeof(glm::vec2), &this->uvs[0]);
+
+					glBindBuffer(GL_ARRAY_BUFFER, 0);
+				}
+				else {
+					setupMesh();
+				}
 			}
 		}
 
@@ -235,18 +277,17 @@ namespace Plaza {
 			// A great thing about structs is that their memory layout is sequential for all its items.
 			// The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
 			// again translates to 3/2 floats which translates to a byte array.
-			vector<Vertex> convertedVertices = vector<Vertex>();
+			vector<Vertex> convertedVertices;
+			convertedVertices.reserve(vertices.size()); // Reserve space for better performance
+
 			for (unsigned int i = 0; i < vertices.size(); i++) {
-				if (tangent.size() > i)
-					convertedVertices.push_back(Vertex(vertices[i], normals[i], uvs[i], tangent[i], bitangent[i]));
-				else if (normals.size() > i && uvs.size() > i)
-					convertedVertices.push_back(Vertex(vertices[i], normals[i], uvs[i], glm::vec3(0.0f), glm::vec3(0.0f)));
-				else if (normals.size() > i)
-					convertedVertices.push_back(Vertex(vertices[i], normals[i], glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)));
-				else if (uvs.size() > i)
-					convertedVertices.push_back(Vertex(vertices[i], glm::vec3(0.0f), uvs[i], glm::vec3(0.0f), glm::vec3(0.0f)));
-				else
-					convertedVertices.push_back(Vertex(vertices[i], glm::vec3(0.0f), glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)));
+				convertedVertices.push_back(Vertex{
+					vertices[i],
+					(normals.size() > i) ? normals[i] : glm::vec3(0.0f),
+					(uvs.size() > i) ? uvs[i] : glm::vec2(0.0f),
+					(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f),
+					(bitangent.size() > i) ? bitangent[i] : glm::vec3(0.0f)
+					});
 			}
 			glBufferData(GL_ARRAY_BUFFER, convertedVertices.size() * sizeof(Vertex), &convertedVertices[0], GL_STATIC_DRAW);
 

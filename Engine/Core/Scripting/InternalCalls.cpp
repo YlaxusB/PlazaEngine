@@ -586,31 +586,23 @@ namespace Plaza {
 			else {
 				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId);
-			vector<glm::vec3>& meshVertices = newMesh->vertices;
-			meshVertices.clear();
-			meshVertices.reserve(verticesSize);
-			for (int i = 0; i < verticesSize; ++i) {
-				meshVertices.push_back(vertices[i]);
-			}
-			vector<unsigned int>& meshIndices = newMesh->indices;
-			meshIndices.clear();
-			meshIndices.reserve(indicesSize);
-			for (int i = 0; i < indicesSize; ++i) {
-				meshIndices.push_back(indices[i]);
-			}
-			vector<glm::vec3>& meshNormals = newMesh->normals;
-			meshNormals.clear();
-			meshNormals.reserve(normalsSize);
-			for (int i = 0; i < normalsSize; ++i) {
-				meshNormals.push_back(normals[i]);
-			}
-			vector<glm::vec2>& meshUvs = newMesh->uvs;
-			meshUvs.clear();
-			meshUvs.reserve(uvsSize);
-			for (int i = 0; i < uvsSize; ++i) {
-				meshUvs.push_back(uvs[i]);
-			}
+			Application->activeScene->meshRendererComponents.find(uuid)->second.mesh = Application->activeScene->meshes.find(newMesh->meshId)->second;
+			newMesh->vertices.clear();
+			newMesh->vertices.reserve(verticesSize);
+			newMesh->vertices.assign(vertices, vertices + verticesSize);
+
+			newMesh->indices.clear();
+			newMesh->indices.reserve(indicesSize);
+			newMesh->indices.assign(indices, indices + indicesSize);
+
+			newMesh->normals.clear();
+			newMesh->normals.reserve(normalsSize);
+			newMesh->normals.assign(normals, normals + normalsSize);
+
+			newMesh->uvs.clear();
+			newMesh->uvs.reserve(uvsSize);
+			newMesh->uvs.assign(uvs, uvs + uvsSize);
+
 			newMesh->Restart();
 			meshRendererIt->second.mesh = std::shared_ptr<Mesh>(newMesh);
 			//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
@@ -689,7 +681,7 @@ namespace Plaza {
 	static void Collider_AddShape(uint64_t uuid, ColliderShapeEnum shape) {
 		auto it = Application->activeScene->colliderComponents.find(uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
-			if (shape == ColliderShapeEnum::CONVEX_MESH || shape == ColliderShapeEnum::MESH && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
+			if ((shape == ColliderShapeEnum::CONVEX_MESH || shape == ColliderShapeEnum::MESH) && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
 				it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), Application->activeScene->meshRendererComponents.at(uuid).mesh.get());
 			}
 			else

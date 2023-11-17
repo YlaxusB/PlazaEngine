@@ -19,6 +19,15 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 		if (key == GLFW_KEY_U && action == GLFW_PRESS)
 			Application->activeCamera->Position = Plaza::Editor::selectedGameObject->GetComponent<Transform>()->GetWorldPosition();
 
+		if (key == GLFW_KEY_END && action == GLFW_PRESS) {
+			Editor::selectedGameObject->GetComponent<Transform>()->rotation *= glm::quat(glm::vec3(0.0f, 0.1f, 0.0f));
+			Editor::selectedGameObject->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+		}
+		if (key == GLFW_KEY_HOME && action == GLFW_PRESS) {
+			Editor::selectedGameObject->GetComponent<Transform>()->rotation *= glm::quat(glm::vec3(0.0f, -0.1f, 0.0f));
+			Editor::selectedGameObject->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+		}
+
 		// Play and Pause
 		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
 			if (Application->runningScene)
@@ -29,6 +38,17 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 
 		if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
 			Application->InitShaders();
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
+			if (RenderGroup::renderMode == GL_TRIANGLES) {
+				RenderGroup::renderMode = GL_TRIANGLE_STRIP;
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			}
+			else {
+				RenderGroup::renderMode = GL_TRIANGLES;
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			}
 		}
 	}
 

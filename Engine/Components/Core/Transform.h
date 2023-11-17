@@ -14,8 +14,8 @@ namespace Plaza {
 		glm::vec3 position = { 0,0,0 };
 		glm::vec3 worldPosition = { 0, 0, 0 };
 		glm::vec3 relativePosition = { 0, 0, 0 };
-		glm::vec3 rotation = { 0.0f, 0.0f, 0.0f };
-		glm::vec3 worldRotation = { 0.0f, 0.0f, 0.0f };
+		glm::quat rotation = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);
+		glm::quat worldRotation = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);
 		glm::vec3 scale = { 1,1,1, };
 		glm::vec3 worldScale = { 1, 1, 1 };
 		glm::mat4 modelMatrix = glm::mat4(1.0f);
@@ -24,7 +24,9 @@ namespace Plaza {
 		Transform();
 		Transform(const Transform&) = default;
 		glm::quat GetLocalQuaternion();
+		glm::vec3 GetLocalEuler();
 		glm::quat GetWorldQuaternion();
+		glm::vec3 GetWorldEuler();
 		glm::mat4 GetTransform(glm::vec3 position, glm::vec3 scale);
 		glm::mat4 GetTransform(glm::vec3 position);
 		glm::mat4 GetTransform();
@@ -41,7 +43,7 @@ namespace Plaza {
 		void UpdateLocalMatrix();
 
 		void SetRelativePosition(glm::vec3 vector);
-		void SetRelativeRotation(glm::vec3 vector);
+		void SetRelativeRotation(glm::quat quat);
 		void SetRelativeScale(glm::vec3 vector);
 		
 		void SetWorldPosition(glm::vec3 vector);
@@ -60,7 +62,7 @@ namespace Plaza {
 		/* Matrices calculation cache */
 		glm::mat4 lastLocalMatrix = glm::mat4(-1.0f);
 		glm::vec3 lastRelativePositionLocalMatrix = glm::vec3(-1.0f);
-		glm::vec3 lastRotationLocalMatrix = glm::vec3(-1.0f);
+		glm::quat lastRotationLocalMatrix = glm::quat(-1.0f, -1.0f, -1.0f, -1.0f);
 		glm::vec3 lastScaleLocalMatrix = glm::vec3(-1.0f);
 
 		glm::mat4 lastParentModelMatrix = glm::mat4(-1.0f);

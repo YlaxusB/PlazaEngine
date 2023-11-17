@@ -287,10 +287,27 @@ namespace Plaza {
 	}
 
 	static void SetRotation(uint64_t uuid, glm::vec3* vec3) {
-		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(glm::radians(*vec3));
+		glm::vec3 radVector = glm::normalize(*vec3) * ((float)(glm::pi<float>() / 180.0f));
+		float w = std::sqrt(1.0f - radVector.x * radVector.x - radVector.y * radVector.y - radVector.z * radVector.z);
+		if (glm::isnan(w))
+			w = 0.0f;
+		radVector = *vec3 * ((float)(glm::pi<float>() / 180.0f));
+		glm::quat rotationQuat = glm::quat(radVector);
+		glm::quat quaternion = Application->activeScene->transformComponents.find(uuid)->second.rotation;
+
+		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(rotationQuat);
+		glm::vec3 asd = glm::degrees(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation());
 	}
 	static void GetRotationCall(uint64_t uuid, glm::vec3* out) {
-		*out = glm::degrees(Application->activeScene->transformComponents.find(uuid)->second.rotation);
+		*out = glm::degrees(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation());
+	}
+
+	static void SetRotationQuaternion(uint64_t uuid, glm::vec4* quat) {
+		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(glm::quat(quat->w, quat->x, quat->y, quat->z));
+	}
+	static void GetRotationQuaternionCall(uint64_t uuid, glm::vec4* out) {
+		glm::quat worldQuat = Application->activeScene->transformComponents.find(uuid)->second.GetWorldQuaternion();
+		*out = glm::vec4(worldQuat.x, worldQuat.y, worldQuat.z, worldQuat.w);
 	}
 
 	static void SetScaleCall(uint64_t uuid, glm::vec3* vec3) {
@@ -603,16 +620,20 @@ namespace Plaza {
 			newMesh->uvs.reserve(uvsSize);
 			newMesh->uvs.assign(uvs, uvs + uvsSize);
 
-			newMesh->Restart();
-			meshRendererIt->second.mesh = std::shared_ptr<Mesh>(newMesh);
-			//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
-			if (oldMesh->uuid == newMesh->uuid && Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup.get()) {
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
-			}
-			else {
-				RenderGroup* newRenderGroup = new RenderGroup(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh, Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->material);
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
-			}
+			Editor::Filewatcher::AddToMainThread([uuid, newMesh, meshRendererIt, oldMesh]() {
+				newMesh->Restart();
+				meshRendererIt->second.mesh = std::shared_ptr<Mesh>(newMesh);
+				//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+				if (oldMesh->uuid == newMesh->uuid && Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup.get()) {
+					Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				}
+				else {
+					RenderGroup* newRenderGroup = new RenderGroup(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh, Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->material);
+					Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
+				}
+
+				});
+
 			//delete newMesh;
 			//Application->activeScene->meshRendererComponents.find(uuid)->second.renderGroup->mesh = meshRendererIt->second.mesh;
 		}
@@ -689,6 +710,16 @@ namespace Plaza {
 			it->second.Init(nullptr);
 		}
 	}
+	static void Collider_AddShapeHeightField(uint64_t uuid, ColliderShapeEnum shape, float** heightData, int size) {
+		auto it = Application->activeScene->colliderComponents.find(uuid);
+		if (it != Application->activeScene->colliderComponents.end()) {
+			if (shape == ColliderShapeEnum::HEIGHT_FIELD && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
+				it->second.AddHeightShape(heightData, size);//.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), Application->activeScene->meshRendererComponents.at(uuid).mesh.get());
+			}
+			it->second.Init(nullptr);
+		}
+	}
+
 #pragma endregion Collider
 
 #pragma region TextRenderer
@@ -806,6 +837,8 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::SetPosition", SetPosition);
 		mono_add_internal_call("Plaza.InternalCalls::GetRotationCall", GetRotationCall);
 		mono_add_internal_call("Plaza.InternalCalls::SetRotation", SetRotation);
+		mono_add_internal_call("Plaza.InternalCalls::SetRotationQuaternion", SetRotationQuaternion);
+		mono_add_internal_call("Plaza.InternalCalls::GetRotationQuaternionCall", GetRotationQuaternionCall);
 		mono_add_internal_call("Plaza.InternalCalls::GetScaleCall", GetScaleCall);
 		mono_add_internal_call("Plaza.InternalCalls::SetScaleCall", SetScaleCall);
 		mono_add_internal_call("Plaza.InternalCalls::Transform_GetForwardVector", Transform_GetForwardVector);
@@ -833,6 +866,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_IsAngularLocked", RigidBody_IsAngularLocked);
 
 		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShape", Collider_AddShape);
+		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShapeHeightField", Collider_AddShapeHeightField);
 
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_GetText", TextRenderer_GetText);
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetText", TextRenderer_SetText);

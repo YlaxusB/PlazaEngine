@@ -226,6 +226,36 @@ namespace Plaza {
 		//delete mesh;
 	}
 
+	void Collider::AddHeightShape(float** heightData, int size) {
+		//SimplifyMesh(mesh->vertices, mesh->indices, 50);
+		auto start0 = std::chrono::high_resolution_clock::now();
+		physx::PxShape* shape;
+		physx::PxTriangleMeshGeometry triangleGeometry;
+		std::vector<physx::PxVec3> vertices = std::vector<physx::PxVec3>();
+		std::vector<physx::PxU32> indices = std::vector<physx::PxU32>();
+
+		// Cook the height field
+		physx::PxHeightFieldDesc heightFieldDesc = physx::PxHeightFieldDesc();
+		heightFieldDesc.format = physx::PxHeightFieldDesc().format;
+		heightFieldDesc.nbColumns = size;
+		heightFieldDesc.nbRows = size;
+		heightFieldDesc.samples.data = heightData;
+		heightFieldDesc.samples.stride = sizeof(float);
+
+		physx::PxDefaultMemoryOutputStream heightFieldStream = physx::PxDefaultMemoryOutputStream();
+		if (!PxCookHeightField(heightFieldDesc, heightFieldStream))
+			printf("failed");
+		physx::PxDefaultMemoryInputData input(heightFieldStream.getData(), heightFieldStream.getSize());
+		physx::PxHeightField* heightField = Physics::m_physics->createHeightField(input);
+		shape = Physics::m_physics->createShape(physx::PxHeightFieldGeometry(heightField),
+			*Physics::defaultMaterial);
+		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::HEIGHT_FIELD));
+		auto end0 = std::chrono::high_resolution_clock::now();
+
+		std::cout << "Time taken by function 0: " << std::chrono::duration_cast<std::chrono::milliseconds>(end0 - start0).count() << " milliseconds" << std::endl;
+		//delete mesh;
+	}
+
 	void Collider::CreateShape(ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh) {
 		if (shapeEnum == ColliderShapeEnum::BOX) {
 			physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
@@ -301,6 +331,15 @@ namespace Plaza {
 					meshGeometry.scale = physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z));
 					shape->release();
 					newShape = Physics::m_physics->createShape(meshGeometry, *material);
+					//physx::PxSphereGeometry sphereGeom;
+					//sphereGeom.radius *= 3;
+					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
+				}
+				else if (this->mShapes[i]->mEnum == ColliderShapeEnum::HEIGHT_FIELD) {
+					physx::PxHeightFieldGeometry heightGeometry = geometry.heightField();
+					heightGeometry.heightScale = 1.0f;
+					shape->release();
+					newShape = Physics::m_physics->createShape(heightGeometry, *material);
 					//physx::PxSphereGeometry sphereGeom;
 					//sphereGeom.radius *= 3;
 					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));

@@ -315,8 +315,10 @@ void ApplicationClass::UpdateEngine() {
 	// Draw GameObjects
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
 
+	glPolygonMode(GL_FRONT_AND_BACK, RenderGroup::renderMode == GL_TRIANGLES ? GL_FILL : GL_LINE);
 	Renderer::Render(*Application->shader);
 	Renderer::RenderInstances(*Application->shader);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	// Update Skybox
 

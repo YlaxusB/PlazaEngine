@@ -287,7 +287,7 @@ namespace Plaza
             }
         }
 
-       public void SetMaterial(UInt64 materialUuid)
+        public void SetMaterial(UInt64 materialUuid)
         {
             InternalCalls.MeshRenderer_SetMaterial(Uuid, materialUuid);
         }
@@ -393,13 +393,19 @@ namespace Plaza
         PLANE,
         CYLINDER,
         MESH,
-        CONVEX_MESH
+        CONVEX_MESH,
+        HEIGHT_FIELD
     };
     public class Collider : Component
     {
         public void AddShape(ColliderShapeEnum shape)
         {
-            InternalCalls.Collider_AddShape(this.Uuid, shape);
+                InternalCalls.Collider_AddShape(this.Uuid, shape);
+        }
+
+        public void AddShape(ColliderShapeEnum shape, float[,] heightData, int size)
+        {
+            InternalCalls.Collider_AddShapeHeightField(this.Uuid, shape, heightData, size);
         }
     }
     #endregion Collider

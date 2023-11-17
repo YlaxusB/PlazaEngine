@@ -84,7 +84,11 @@ namespace Plaza::Editor {
 			rotation = updatedRotation;
 			//rotation = -parentRotation * rotation;
 			// Adding the deltaRotation avoid the gimbal lock
-			glm::vec3 deltaRotation = rotation - transform.rotation;
+			glm::vec3 eulerRotation = rotation;
+			glm::quat quaternion = glm::quat_cast(glm::mat3(glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f))
+				* glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 1.0f, 0.0f))
+				* glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))));
+			glm::quat deltaRotation = quaternion - transform.rotation;
 			transform.rotation = rotation;
 			//std::cout << "X: " << glm::degrees(rotation.x) << std::endl;
 			//std::cout << "Y: " << glm::degrees(rotation.y) << std::endl;

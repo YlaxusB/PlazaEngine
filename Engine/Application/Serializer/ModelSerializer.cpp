@@ -18,7 +18,7 @@ namespace Plaza {
 			out << YAML::BeginMap;
 			glm::vec3& relativePosition = entity->GetComponent<Transform>()->relativePosition;
 			out << YAML::Key << "Position" << YAML::Value << relativePosition;
-			glm::vec3& relativeRotation = entity->GetComponent<Transform>()->rotation;
+			glm::vec3 relativeRotation = glm::eulerAngles(entity->GetComponent<Transform>()->rotation);
 			out << YAML::Key << "Rotation" << YAML::Value << relativeRotation;
 			glm::vec3& scale = entity->GetComponent<Transform>()->scale;
 			out << YAML::Key << "Scale" << YAML::Value << scale;

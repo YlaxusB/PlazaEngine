@@ -38,13 +38,13 @@ namespace Plaza
                 0, 0, 0, 1
             ); // Convert the float[,] data to Matrix4x4
 
-            Quaternion quaternionRotation = Quaternion.CreateFromRotationMatrix(m);
+            System.Numerics.Quaternion quaternionRotation = System.Numerics.Quaternion.CreateFromRotationMatrix(m);
             Vector3 eulerRotation = QuaternionToEulerAngles(quaternionRotation);
 
             return eulerRotation;
         }
 
-        private Vector3 QuaternionToEulerAngles(Quaternion q)
+        private Vector3 QuaternionToEulerAngles(System.Numerics.Quaternion q)
         {
             // Convert a Quaternion to Euler Angles
             Vector3 euler = new Vector3();
@@ -449,4 +449,74 @@ namespace Plaza
         }
     }
 
+    public class Quaternion
+    {
+        public float x, y, z, w;
+
+        public Quaternion() { }
+        public Quaternion(float X, float Y, float Z, float W)
+        {
+            this.x = X;
+            this.y = Y;
+            this.z = Z;
+            this.w = W;
+        }
+
+        public static Quaternion Euler(float x, float y, float z)
+        {
+            double cy = Math.Cos(x * 0.5);
+            double sy = Math.Sin(x * 0.5);
+            double cp = Math.Cos(y * 0.5);
+            double sp = Math.Sin(y * 0.5);
+            double cr = Math.Cos(z * 0.5);
+            double sr = Math.Sin(z * 0.5);
+
+            Quaternion q = new Quaternion();
+            q.w = (float)(cr * cp * cy + sr * sp * sy);
+            q.x = (float)(sr * cp * cy - cr * sp * sy);
+            q.y = (float)(cr * sp * cy + sr * cp * sy);
+            q.z = (float)(cr * cp * sy - sr * sp * cy);
+
+            return q;
+
+        }
+
+        public static Quaternion operator +(Quaternion a, Quaternion b)
+        {
+            return new Quaternion(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
+        }
+
+        public static Quaternion operator -(Quaternion a, Quaternion b)
+        {
+            return new Quaternion(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
+        }
+
+        public Quaternion ToDegrees()
+        {
+            return new Quaternion(this.x * Mathf.Rad2Deg, this.y * Mathf.Rad2Deg, this.z * Mathf.Rad2Deg, this.w);
+        }
+
+        public Quaternion ToRadians()
+        {
+            return new Quaternion(this.x * Mathf.Deg2Rad, this.y * Mathf.Deg2Rad, this.z * Mathf.Deg2Rad, this.w);
+        }
+
+        // Other Quaternion operations (multiplication, normalization, etc.) can be added here.
+    }
+
+    public static class Mathf
+    {
+        public const float Deg2Rad = (float)(Math.PI / 180.0);
+        public const float Rad2Deg = (float)(180.0 / Math.PI);
+
+        public static float Sin(float angle)
+        {
+            return (float)Math.Sin(angle);
+        }
+
+        public static float Cos(float angle)
+        {
+            return (float)Math.Cos(angle);
+        }
+    }
 }

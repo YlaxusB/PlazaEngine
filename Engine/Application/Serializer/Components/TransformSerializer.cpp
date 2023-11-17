@@ -7,7 +7,7 @@ namespace Plaza {
 
 		glm::vec3& relativePosition = transform.relativePosition;
 		out << YAML::Key << "Position" << YAML::Value << relativePosition;
-		glm::vec3& relativeRotation = transform.rotation;
+		glm::vec3 relativeRotation = glm::eulerAngles(transform.rotation);
 		out << YAML::Key << "Rotation" << YAML::Value << relativeRotation;
 		glm::vec3& scale = transform.scale;
 		out << YAML::Key << "Scale" << YAML::Value << scale;

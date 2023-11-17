@@ -112,6 +112,11 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void GetRotationCall(UInt64 uuid, out Vector3 vector);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void SetRotationQuaternion(UInt64 uuid, ref Vector4 quaternion);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void GetRotationQuaternionCall(UInt64 uuid, out Vector4 quaternion);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void SetScaleCall(UInt64 uuid, ref Vector3 vector);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -410,6 +415,8 @@ namespace Plaza
         #region Collider
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void Collider_AddShape(UInt64 uuid, ColliderShapeEnum shape);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Collider_AddShapeHeightField(UInt64 uuid, ColliderShapeEnum shape, float[,] heightData, int size);
 
         #endregion Collider
 

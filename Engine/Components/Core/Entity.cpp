@@ -239,7 +239,7 @@ namespace Plaza {
 		Transform* toInstantiateTransform = &Application->activeScene->transformComponents.find(entityToInstantiate->uuid)->second;
 		Transform* newTransform = &Application->activeScene->transformComponents.find(instantiatedEntity->uuid)->second;
 		newTransform->SetRelativePosition(toInstantiateTransform->relativePosition);
-		newTransform->SetRelativeRotation(toInstantiateTransform->rotation);
+		newTransform->SetRelativeRotation(glm::eulerAngles(toInstantiateTransform->rotation));
 		newTransform->scale = toInstantiateTransform->scale;
 
 		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(entityToInstantiate->uuid);

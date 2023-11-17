@@ -86,14 +86,15 @@ namespace Plaza {
 	/// </summary>
 	/// <returns></returns>
 	glm::quat Transform::GetWorldQuaternion() {
-		return glm::normalize(glm::quat_cast(this->modelMatrix));
+		return glm::quat(glm::mat3(this->modelMatrix));
+		//return glm::normalize(glm::quat_cast(this->modelMatrix));
 	}
 
 	void Transform::UpdateLocalMatrix() {
 		PLAZA_PROFILE_SECTION("Transform: Update Local Matrix");
 		if (this->relativePosition != this->lastRelativePositionLocalMatrix || this->rotation != this->lastRotationLocalMatrix || this->scale != this->lastScaleLocalMatrix) {
 			this->localMatrix = glm::translate(glm::mat4(1.0f), this->relativePosition)
-				* glm::toMat4(glm::quat(rotation))
+				* glm::toMat4(rotation)
 				* glm::scale(glm::mat4(1.0f), scale);
 			this->lastRelativePositionLocalMatrix = this->relativePosition;
 			this->lastRotationLocalMatrix = this->rotation;
@@ -189,8 +190,8 @@ namespace Plaza {
 		this->UpdateSelfAndChildrenTransform();
 	}
 
-	void Transform::SetRelativeRotation(glm::vec3 vector) {
-		this->rotation = vector;
+	void Transform::SetRelativeRotation(glm::quat quat) {
+		this->rotation = quat;
 		this->UpdateSelfAndChildrenTransform();
 	}
 
@@ -233,7 +234,7 @@ namespace Plaza {
 		glm::vec3 updatedPosition, updatedRotation, updatedScale;
 		Editor::Gizmo::DecomposeTransform(updatedTransform, updatedPosition, updatedRotation, updatedScale); // The rotation is radians
 
-		this->rotation += glm::vec3(0.0f, 0.2f, 0.0f);
+		//this->rotation += glm::vec3(0.0f, 0.2f, 0.0f);
 
 		this->UpdateLocalMatrix();
 		this->UpdateWorldMatrix();

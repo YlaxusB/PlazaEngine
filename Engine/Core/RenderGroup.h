@@ -5,6 +5,7 @@
 namespace Plaza {
 	class RenderGroup {
 	public:
+		static GLenum renderMode;
 		uint64_t uuid;
 		std::shared_ptr<Mesh> mesh;
 		std::shared_ptr<Material> material;
@@ -86,7 +87,7 @@ namespace Plaza {
 		}
 
 		void DrawInstancedToShadowMap(Shader& shader) {
-			if (instanceModelMatrices.size() > 0) {
+			if (instanceModelMatrices.size() > 0 && renderMode != GL_TRIANGLE_STRIP) {
 				// Setup instance buffer
 				glBindBuffer(GL_ARRAY_BUFFER, mesh->instanceBuffer);
 				glBufferData(GL_ARRAY_BUFFER, instanceModelMatrices.size() * sizeof(glm::mat4), &instanceModelMatrices[0], GL_STATIC_DRAW);
@@ -106,14 +107,15 @@ namespace Plaza {
 				//if (this->mesh->meshType == MeshType::Triangle) {
 				BindTextures(shader);
 				// Setup instance buffer
+
+
 				glBindBuffer(GL_ARRAY_BUFFER, mesh->instanceBuffer);
 				glBufferData(GL_ARRAY_BUFFER, instanceModelMatrices.size() * sizeof(glm::mat4), &instanceModelMatrices[0], GL_STATIC_DRAW);
 				// draw mesh
 				glBindVertexArray(mesh->VAO);
 				//glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-				glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(mesh->indices.size()), GL_UNSIGNED_INT, 0, instanceModelMatrices.size());
+				glDrawElementsInstanced(RenderGroup::renderMode, static_cast<unsigned int>(mesh->indices.size()), GL_UNSIGNED_INT, 0, instanceModelMatrices.size());
 				glBindVertexArray(0);
-
 				//instanceModelMatrices.resize(0);
 			//}
 			//else if (this->mesh->meshType == MeshType::HeightField) {
@@ -132,3 +134,5 @@ namespace Plaza {
 		}
 	};
 }
+
+inline GLenum RenderGroup::renderMode = GL_TRIANGLES;

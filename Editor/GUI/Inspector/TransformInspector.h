@@ -4,10 +4,17 @@
 //#include "Editor/GUI/gizmo.h"
 #include "Editor/GUI/Utils/DataVisualizer.h"
 #include "Editor/GUI/Utils/Utils.h"
+
+#include <math.h>
 //#include "Editor/GUI/Utils/DataVisualizer.h"
 namespace Plaza::Editor {
 	class Gui::TransformInspector {
 	public:
+		glm::quat eulerToQuaternion(float pitch, float yaw, float roll) {
+			glm::quat quaternion;
+			quaternion = glm::quat(glm::vec3(glm::radians(pitch), glm::radians(yaw), glm::radians(roll)));
+			return quaternion;
+		}
 		glm::vec3 moveTowards(const glm::vec3 position, const glm::vec3 eulerRotation, glm::vec3& targetPosition) {
 			// Convert Euler angles rotation to radians
 			float yaw = glm::radians(eulerRotation.y);
@@ -37,12 +44,12 @@ namespace Plaza::Editor {
 		TransformInspector(Entity* entity) {
 			if (Utils::ComponentInspectorHeader(entity->GetComponent<Transform>(), "Transform")) {
 				glm::vec3 startingPosition = entity->GetComponent<Transform>()->relativePosition;
-				glm::vec3 startingRotation = entity->GetComponent<Transform>()->rotation;
+				glm::quat startingRotation = entity->GetComponent<Transform>()->rotation;
 				glm::vec3 startingScale = entity->GetComponent<Transform>()->scale;
 
 				glm::vec3& currentPosition = entity->GetComponent<Transform>()->relativePosition;
-				glm::vec3& currentRotation = entity->GetComponent<Transform>()->rotation;
-				glm::vec3 rotationField = glm::degrees(currentRotation);
+				glm::quat& currentRotation = entity->GetComponent<Transform>()->rotation;
+				glm::vec3 rotationField = glm::degrees(glm::eulerAngles(currentRotation));
 				glm::vec3& currentScale = entity->GetComponent<Transform>()->scale;
 
 				if (Utils::DragFloat3("Position: ", currentPosition, 0.1f)) {
@@ -53,7 +60,8 @@ namespace Plaza::Editor {
 				ImGui::PushID("Rotation");
 				if (Utils::DragFloat3("Rotation: ", rotationField, 0.1f)) {
 					//ImGuiSliderFlags_Logarithmic
-					currentRotation = glm::radians(rotationField);
+					glm::vec3 radians = glm::radians(rotationField);
+					currentRotation = glm::normalize(eulerToQuaternion(rotationField.x, rotationField.y, rotationField.z));//glm::quat(glm::vec3(fmod(radians.x, 360.0f), fmod(radians.y, 360.0f), fmod(radians.z, 360.0f)));
 					entity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 				}
 				ImGui::PopID();

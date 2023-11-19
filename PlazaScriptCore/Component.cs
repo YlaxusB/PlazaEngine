@@ -174,7 +174,20 @@ namespace Plaza
                 InternalCalls.SetPosition(Uuid, ref value);
             }
         }
-        public Vector3 Rotation
+        public Quaternion Rotation
+        {
+            get
+            {
+                InternalCalls.GetRotationQuaternionCall(Entity.Uuid, out Vector4 rotation);
+                return new Quaternion(rotation.X, rotation.Y, rotation.Z, rotation.W);
+            }
+            set
+            {
+                Vector4 quaternion = new Vector4(value.x, value.y, value.z, value.w);
+                InternalCalls.SetRotationQuaternion(Uuid, ref quaternion);
+            }
+        }
+/*        public Vector3 Rotation
         {
             get
             {
@@ -185,7 +198,7 @@ namespace Plaza
             {
                 InternalCalls.SetRotation(Uuid, ref value);
             }
-        }
+        }*/
         public Vector3 Scale
         {
             get

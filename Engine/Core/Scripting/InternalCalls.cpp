@@ -306,7 +306,7 @@ namespace Plaza {
 		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(glm::quat(quat->w, quat->x, quat->y, quat->z));
 	}
 	static void GetRotationQuaternionCall(uint64_t uuid, glm::vec4* out) {
-		glm::quat worldQuat = Application->activeScene->transformComponents.find(uuid)->second.GetWorldQuaternion();
+		glm::quat worldQuat = Application->activeScene->transformComponents.find(uuid)->second.GetLocalQuaternion();
 		*out = glm::vec4(worldQuat.x, worldQuat.y, worldQuat.z, worldQuat.w);
 	}
 

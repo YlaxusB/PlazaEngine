@@ -462,6 +462,19 @@ namespace Plaza
             this.w = W;
         }
 
+        public Quaternion(Vector3 vector)
+        {
+            this.x = vector.X;
+            this.y = vector.Y;
+            this.z = vector.Z;
+            this.w = CalculateW();
+        }
+
+        private float CalculateW()
+        {
+            return (float)Math.Sqrt(1.0 - x * x - y * y - z * z);
+        }
+
         public static Quaternion Euler(float x, float y, float z)
         {
             double cy = Math.Cos(x * 0.5);
@@ -489,6 +502,44 @@ namespace Plaza
         public static Quaternion operator -(Quaternion a, Quaternion b)
         {
             return new Quaternion(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
+        }
+
+        public static Quaternion operator *(Quaternion a, Quaternion b)
+        {
+            Quaternion result = new Quaternion();
+
+            result.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
+            result.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
+            result.y = a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x;
+            result.z = a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w;
+
+            // Normalize the result to ensure it represents a valid rotation
+            result.Normalize();
+
+            return result;
+        }
+
+        public void Normalize()
+        {
+            float magnitude = (float)Math.Sqrt(x * x + y * y + z * z + w * w);
+            if (magnitude > 0)
+            {
+                float invMagnitude = 1.0f / magnitude;
+                x *= invMagnitude;
+                y *= invMagnitude;
+                z *= invMagnitude;
+                w *= invMagnitude;
+            }
+            else
+            {
+                // Handle the case when the quaternion has zero magnitude
+                // Set to identity or take another appropriate action.
+                // For now, set to identity.
+                this.x = 0;
+                this.y = 0;
+                this.z = 0;
+                this.w = 1;
+            }
         }
 
         public Quaternion ToDegrees()

@@ -49,8 +49,11 @@ namespace Plaza::Editor {
 
 				glm::vec3& currentPosition = entity->GetComponent<Transform>()->relativePosition;
 				glm::quat& currentRotation = entity->GetComponent<Transform>()->rotation;
-				glm::vec3 rotationField = glm::degrees(glm::eulerAngles(currentRotation));
+				glm::vec3 rotationField = glm::degrees(entity->GetComponent<Transform>()->rotationEuler);//glm::degrees(glm::eulerAngles(currentRotation));
 				glm::vec3& currentScale = entity->GetComponent<Transform>()->scale;
+
+				if (glm::quat(entity->GetComponent<Transform>()->rotationEuler) != currentRotation)
+					rotationField = glm::degrees(glm::eulerAngles(entity->GetComponent<Transform>()->rotation));
 
 				if (Utils::DragFloat3("Position: ", currentPosition, 0.1f)) {
 					//ImGuiSliderFlags_Logarithmic
@@ -61,7 +64,9 @@ namespace Plaza::Editor {
 				if (Utils::DragFloat3("Rotation: ", rotationField, 0.1f)) {
 					//ImGuiSliderFlags_Logarithmic
 					glm::vec3 radians = glm::radians(rotationField);
-					currentRotation = glm::normalize(eulerToQuaternion(rotationField.x, rotationField.y, rotationField.z));//glm::quat(glm::vec3(fmod(radians.x, 360.0f), fmod(radians.y, 360.0f), fmod(radians.z, 360.0f)));
+					entity->GetComponent<Transform>()->rotationEuler = radians;
+					entity->GetComponent<Transform>()->rotation = glm::quat(radians);
+					//currentRotation *= glm::quat(glm::inverse(currentRotation) * glm::quat(radians));//glm::quat(glm::vec3(fmod(radians.x, 360.0f), fmod(radians.y, 360.0f), fmod(radians.z, 360.0f)));
 					entity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 				}
 				ImGui::PopID();

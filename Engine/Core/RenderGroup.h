@@ -94,7 +94,7 @@ namespace Plaza {
 		}
 
 		void DrawInstancedToShadowMap(Shader& shader) {
-			if (instanceModelMatrices.size() > 0 && renderMode != GL_TRIANGLE_STRIP) {
+			if (instanceModelMatrices.size() > 0 && renderMode != GL_TRIANGLE_STRIP && mesh) {
 				// Setup instance buffer
 				glBindBuffer(GL_ARRAY_BUFFER, mesh->instanceBuffer);
 				glBufferData(GL_ARRAY_BUFFER, instanceModelMatrices.size() * sizeof(glm::mat4), &instanceModelMatrices[0], GL_STATIC_DRAW);
@@ -110,7 +110,7 @@ namespace Plaza {
 		}
 
 		void DrawInstanced(Shader& shader) {
-			if (instanceModelMatrices.size() > 0) {
+			if (instanceModelMatrices.size() > 0 && mesh) {
 				//if (this->mesh->meshType == MeshType::Triangle) {
 				BindTextures(shader);
 				// Setup instance buffer

@@ -5,18 +5,18 @@
 #include "Engine/Core/Physics.h"
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 namespace Plaza::Editor {
-	Entity* NewEntity(string name, Entity* parent, shared_ptr<Mesh> mesh, bool instanced = true, bool addToScene = true) {
+	Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true, bool addToScene = true) {
 		Entity* obj = new Entity(name, parent, addToScene);
 		obj->changingName = true;
 		Application->activeScene->entities.at(obj->uuid).changingName = true;
 		Gui::Hierarchy::Item::firstFocus = true;
 		obj->GetComponent<Transform>()->UpdateChildrenTransform();
-		MeshRenderer* meshRenderer = new MeshRenderer(*mesh.get(), Material());
+		MeshRenderer* meshRenderer = new MeshRenderer(*mesh, Scene::DefaultMaterial());
 		meshRenderer->instanced = true;
-		meshRenderer->mesh =make_shared<Mesh>(*new Mesh(*mesh));
-		meshRenderer->material = make_shared<Material>(*new Material(*Scene::DefaultMaterial()));
+		meshRenderer->mesh = new Mesh(*mesh);
+		meshRenderer->material = Scene::DefaultMaterial();
 		RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
-		meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
+		meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
 		//meshRenderer->renderGroup->material = make_shared<Material>(*Scene::DefaultMaterial());
 		obj->AddComponent<MeshRenderer>(meshRenderer);
 		Editor::selectedGameObject = obj;

@@ -43,8 +43,8 @@ namespace Plaza {
 		string aiMeshName;
 		//uint64_t uuid;
 		std::string meshName;
-		std::shared_ptr<Mesh> mesh;
-		std::shared_ptr<Material> material;
+		Mesh* mesh;
+		Material* material;
 		std::shared_ptr<RenderGroup> renderGroup;
 		GLuint heightMap;
 

@@ -26,7 +26,7 @@ namespace Plaza::Editor {
 		}
 		if (entity->HasComponent<MeshRenderer>() && entity->GetComponent<MeshRenderer>()->material) {
 			if (serializedMaterials.find(entity->GetComponent<MeshRenderer>()->material->uuid) == serializedMaterials.end()) {
-				MaterialFileSerializer::Serialize(entity->GetComponent<MeshRenderer>()->material->filePath, entity->GetComponent<MeshRenderer>()->material.get());
+				MaterialFileSerializer::Serialize(entity->GetComponent<MeshRenderer>()->material->filePath, entity->GetComponent<MeshRenderer>()->material);
 				serializedMaterials.emplace(entity->GetComponent<MeshRenderer>()->material->uuid);
 			}
 		}

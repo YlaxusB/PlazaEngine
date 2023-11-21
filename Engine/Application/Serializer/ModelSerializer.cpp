@@ -31,10 +31,10 @@ namespace Plaza {
 				out << YAML::Key << "MeshComponent" << YAML::Value << YAML::BeginMap;
 				out << YAML::Key << "AiMeshName" << YAML::Value << meshRenderer->aiMeshName;
 				out << YAML::Key << "MeshName" << YAML::Value << entity->name;
-				out << YAML::Key << "MeshUUID" << YAML::Value << meshRenderer->mesh.get()->uuid;
+				out << YAML::Key << "MeshUUID" << YAML::Value << meshRenderer->mesh->uuid;
 				out << YAML::Key << "MaterialUuid" << YAML::Value << meshRenderer->material->uuid;
 				out << YAML::Key << "MaterialPath" << YAML::Value << meshRenderer->material->filePath;
-				ComponentSerializer::MaterialSerializer::Serialize(out, meshRenderer->mesh.get()->material);
+				ComponentSerializer::MaterialSerializer::Serialize(out, meshRenderer->mesh->material);
 				out << YAML::EndMap;
 			}
 		}
@@ -80,7 +80,7 @@ namespace Plaza {
 
 	void DeSerializeMaterial(const auto& materialNode, Model* model, MeshRenderer* meshRenderer) {
 		if (meshRenderer->mesh != nullptr) {
-			Material* material = &meshRenderer->mesh.get()->material;
+			Material* material = &meshRenderer->mesh->material;
 			material->shininess = materialNode["Shininess"].as<float>();
 			const auto& textureDiffuseNode = materialNode["texture_diffuse"];
 			DeSerializeTexture(*material, textureDiffuseNode);
@@ -119,7 +119,7 @@ namespace Plaza {
 			newMeshRenderer->uuid = entity->uuid;
 			uint64_t materialUuid = componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>();
 			if (componentsEntry["MeshComponent"]["MaterialUuid"])
-				newMeshRenderer->material = Application->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>());
+				newMeshRenderer->material = Application->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>()).get();
 			model->meshRenderers.emplace(entity->uuid, newMeshRenderer);
 		}
 		model->transforms.emplace(entity->uuid, newTransform);

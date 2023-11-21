@@ -34,12 +34,12 @@ namespace Plaza::Editor {
 					try {
 						if (value.get()) {
 							if (value && value.get() && !value.get()->name.empty() && ImGui::Button(value->name.c_str())) {
-								entity->GetComponent<MeshRenderer>()->material.swap(value); //= std::shared_ptr<Material>();
+								entity->GetComponent<MeshRenderer>()->material = value.get(); //= std::shared_ptr<Material>();
 								if (!oldRenderGroup) {
 									entity->GetComponent<MeshRenderer>()->renderGroup = std::make_shared<RenderGroup>(entity->GetComponent<MeshRenderer>()->mesh, entity->GetComponent<MeshRenderer>()->material);
 									Application->activeScene->AddRenderGroup(entity->GetComponent<MeshRenderer>()->renderGroup);
 								}
-								entity->GetComponent<MeshRenderer>()->renderGroup->material = entity->GetComponent<MeshRenderer>()->material.get();
+								entity->GetComponent<MeshRenderer>()->renderGroup->material = entity->GetComponent<MeshRenderer>()->material;
 							}
 						}
 					}
@@ -50,7 +50,7 @@ namespace Plaza::Editor {
 				RenderGroup* newRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup.get();
 
 				Material& material = *(entity->GetComponent<MeshRenderer>()->material);
-				if (meshRenderer->mesh.get() && meshRenderer->renderGroup.get() && meshRenderer->material.get()) {
+				if (meshRenderer->mesh && meshRenderer->renderGroup.get() && meshRenderer->material) {
 					glm::vec4& diffuse = material.diffuse.rgba;
 					glm::vec4& specular = material.specular.rgba;
 					float shininess = material.shininess;
@@ -105,7 +105,7 @@ namespace Plaza::Editor {
 					if (ImGui::Button("New Material")) {
 						uint64_t renderGroupUuid = Plaza::UUID::NewUUID();
 						std::shared_ptr<Material> material = std::make_shared<Material>(Material());
-						RenderGroup* renderGroup = new RenderGroup(entity->GetComponent<MeshRenderer>()->mesh.get(), material.get());
+						RenderGroup* renderGroup = new RenderGroup(entity->GetComponent<MeshRenderer>()->mesh, material.get());
 						renderGroup->uuid = renderGroupUuid;
 						Application->activeScene->AddRenderGroup(renderGroup);
 						entity->GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->renderGroups.at(renderGroupUuid);

@@ -53,7 +53,7 @@ namespace Plaza {
 	}
 
 	void SerializeMeshes(YAML::Emitter& out, MeshRenderer* meshRenderer) {
-		Mesh* mesh = meshRenderer->mesh.get();
+		Mesh* mesh = meshRenderer->mesh;
 		if (mesh) {
 			out << YAML::BeginMap;
 			out << YAML::Key << "Mesh" << YAML::Value << mesh->uuid;

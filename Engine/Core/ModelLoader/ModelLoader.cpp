@@ -48,9 +48,9 @@ namespace Plaza {
 					MeshRenderer* newMeshRenderer = new MeshRenderer();
 					newMeshRenderer->instanced = true;
 					newMeshRenderer->uuid = newGameObject->uuid;
-					newMeshRenderer->mesh = shared_ptr<Mesh>(model->meshes.at(meshRenderer->aiMeshName));
-					newMeshRenderer->material = make_shared<Material>(model->meshes.at(meshRenderer->aiMeshName)->material);
-					newMeshRenderer->material = Application->activeScene->materials.at(meshRenderer->material->uuid);
+					newMeshRenderer->mesh = model->meshes.at(meshRenderer->aiMeshName).get();
+					newMeshRenderer->material = &model->meshes.at(meshRenderer->aiMeshName)->material;
+					newMeshRenderer->material = Application->activeScene->materials.at(meshRenderer->material->uuid).get();
 					newMeshRenderer->renderGroup = make_shared<RenderGroup>(newMeshRenderer->mesh, newMeshRenderer->material);
 					//newMeshRenderer->material = Application->activeScene->materials.at(entity->GetComponent<MeshRenderer>()->material->uuid);
 
@@ -66,7 +66,7 @@ namespace Plaza {
 					newGameObject->AddComponent<MeshRenderer>(newMeshRenderer, true);
 					//newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
 					Collider* collider = new Collider(newGameObject->uuid);
-					collider->CreateShape(ColliderShapeEnum::MESH, transform, newMeshRenderer->mesh.get());
+					collider->CreateShape(ColliderShapeEnum::MESH, transform, newMeshRenderer->mesh);
 					//collider->AddMeshShape(new Mesh(*newMeshRenderer->mesh));
 					newGameObject->AddComponent<Collider>(collider);
 				}
@@ -246,7 +246,7 @@ namespace Plaza {
 			childMeshRenderer->aiMeshName = string(mesh->mName.C_Str()) + to_string(index);
 			nodeMesh.material.name = childMeshRenderer->aiMeshName + nodeMesh.material.name;
 			nodeMesh.material.filePath = currentPath + "\\" + modelName + "\\textures\\" + nodeMesh.material.name;
-			childMeshRenderer->material = std::make_shared<Material>(*new Material(nodeMesh.material));
+			childMeshRenderer->material = new Material(nodeMesh.material);
 
 			//childMeshRenderer->material->uuid = Plaza::UUID::NewUUID();
 			childObject->AddComponent<MeshRenderer>(childMeshRenderer);

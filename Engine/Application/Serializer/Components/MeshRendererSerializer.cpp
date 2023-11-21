@@ -10,7 +10,7 @@ namespace Plaza {
 		out << YAML::Key << "AiMeshName" << YAML::Value << meshRenderer.aiMeshName;
 		out << YAML::Key << "MeshName" << YAML::Value << meshRenderer.meshName;
 		out << YAML::Key << "Instanced" << YAML::Value << meshRenderer.instanced;
-		uint64_t meshId = meshRenderer.mesh.use_count() == 0 ? 0 : meshRenderer.mesh->meshId;
+		uint64_t meshId = meshRenderer.mesh->meshId;
 		out << YAML::Key << "MeshId" << YAML::Value << meshId;
 		out << YAML::Key << "Material" << YAML::Value << meshRenderer.material->uuid;
 		//ComponentSerializer::MeshSerializer::Serialize(out, *meshRenderer.mesh);
@@ -24,18 +24,18 @@ namespace Plaza {
 		if (data["CastShadows"])
 			meshRenderer->castShadows = data["CastShadows"].as<bool>();
 		if (Application->activeScene->meshes.find(meshRenderDeserialized["MeshId"].as<uint64_t>()) != Application->activeScene->meshes.end())
-			meshRenderer->mesh = shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()));
+			meshRenderer->mesh = Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()).get();
 		else
-			meshRenderer->mesh = shared_ptr<Mesh>(new Mesh());
+			meshRenderer->mesh = new Mesh();
 		uint64_t materialUuid;
 		if (data["Material"])
 			materialUuid = data["Material"].as<uint64_t>();;
-		std::shared_ptr<Material> material;
+		Material* material;
 		if (Application->activeScene->materials.find(materialUuid) != Application->activeScene->materials.end() && materialUuid != 0) {
-			material = Application->activeScene->materials.at(materialUuid);
+			material = Application->activeScene->materials.at(materialUuid).get();
 		}
 		else
-			material = std::shared_ptr<Material>(Scene::DefaultMaterial());
+			material = Scene::DefaultMaterial();
 		meshRenderer->material = material;
 		if (meshRenderer->mesh && meshRenderer->material) {
 			meshRenderer->renderGroup = std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);

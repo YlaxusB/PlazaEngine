@@ -5,15 +5,15 @@
 namespace Plaza {
 	MeshRenderer::MeshRenderer(Plaza::Mesh initialMesh, bool addToScene) {
 		this->uuid = Plaza::UUID::NewUUID();
-		this->mesh = std::make_unique<Mesh>(initialMesh);
+		this->mesh = &initialMesh;//std::make_unique<Mesh>(initialMesh);
 		if (addToScene)
 			Application->activeScene->meshRenderers.emplace_back(this);
 	}
 
 	MeshRenderer::MeshRenderer(Plaza::Mesh initialMesh, Material material, bool addToScene) {
 		this->uuid = Plaza::UUID::NewUUID();
-		this->mesh = std::make_unique<Mesh>(initialMesh);
-		this->material = std::make_unique<Material>(material);
+		this->mesh = &initialMesh;
+		this->material = &material;
 
 		auto renderGroupIt = Application->activeScene->renderGroupsFindMap.find(std::make_pair(this->mesh->uuid, this->material->uuid));
 		if (renderGroupIt != Application->activeScene->renderGroupsFindMap.end()) {
@@ -21,7 +21,7 @@ namespace Plaza {
 		}
 		else {
 			uint64_t renderGroupUuid = Plaza::UUID::NewUUID();
-			RenderGroup* renderGroup = new RenderGroup(this->mesh.get(), this->material.get());
+			RenderGroup* renderGroup = new RenderGroup(this->mesh, this->material);
 			renderGroup->uuid = renderGroupUuid;
 			Application->activeScene->AddRenderGroup(renderGroup);
 			//Application->activeScene->renderGroups.emplace(renderGroupUuid, new RenderGroup(this->mesh, this->material));
@@ -39,6 +39,6 @@ namespace Plaza {
 	MeshRenderer::~MeshRenderer() {
 		Application->activeScene->RemoveMeshRenderer(this->uuid);
 		Application->activeScene->RemoveRenderGroup(this->uuid);
-		this->renderGroup.~shared_ptr();
+		//this->renderGroup.~shared_ptr();
 	}
 }

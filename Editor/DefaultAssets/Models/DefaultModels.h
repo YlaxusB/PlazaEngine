@@ -6,10 +6,10 @@ namespace Plaza::Editor {
 
 		static void Init();
 
-		static shared_ptr<Mesh> Cube();
-		static shared_ptr<Mesh> Sphere();
-		static shared_ptr<Mesh> Plane();
-		static shared_ptr<Mesh> Cylinder();
+		static Mesh* Cube();
+		static Mesh* Sphere();
+		static Mesh* Plane();
+		static Mesh* Cylinder();
 
 	private:
 		static uint64_t cubeUuid;

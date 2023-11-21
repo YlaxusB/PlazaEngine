@@ -185,7 +185,7 @@ namespace Plaza {
 	}
 
 	static void CursorHide(bool val) {
-		Editor::Filewatcher::mMainThreadQueue.push_back([val]() {
+		Editor::Filewatcher::AddToMainThread([val]() {
 			if (val && glfwGetInputMode(Application->Window->glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_HIDDEN) {
 				glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			}
@@ -212,10 +212,13 @@ namespace Plaza {
 		}
 	}
 	static void EntitySetName(uint64_t uuid, MonoString* name) {
-		auto it = Application->activeScene->entities.find(uuid);
-		if (it != Application->activeScene->entities.end()) {
-			it->second.Rename(mono_string_to_utf8(name));
-		}
+		std::string nameStr = mono_string_to_utf8(name);
+		Editor::Filewatcher::AddToMainThread([uuid, nameStr]() {
+			auto it = Application->activeScene->entities.find(uuid);
+			if (it != Application->activeScene->entities.end()) {
+				it->second.Rename(nameStr);
+			}
+			});
 	}
 	static uint64_t EntityGetParent(uint64_t uuid) {
 		auto it = Application->activeScene->entities.find(uuid);
@@ -428,7 +431,7 @@ namespace Plaza {
 			//RenderGroup* rend = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup.get();
 			//Mesh* mes = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh.get();
 			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh.get();
 			//delete newMesh;
 		}
 	}
@@ -479,7 +482,7 @@ namespace Plaza {
 
 			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
 			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh.get();
 			delete newMesh;
 		}
 	}
@@ -529,7 +532,7 @@ namespace Plaza {
 			}
 			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
 			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh.get();
 			delete newMesh;
 		}
 	}
@@ -579,7 +582,7 @@ namespace Plaza {
 			}
 			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
 			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh.get();
 			delete newMesh;
 		}
 	}
@@ -620,17 +623,18 @@ namespace Plaza {
 			newMesh->uvs.reserve(uvsSize);
 			newMesh->uvs.assign(uvs, uvs + uvsSize);
 
-			Editor::Filewatcher::AddToMainThread([uuid, newMesh, meshRendererIt, oldMesh]() {
-				newMesh->Restart();
-				meshRendererIt->second.mesh = std::shared_ptr<Mesh>(newMesh);
-				//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
-				if (oldMesh->uuid == newMesh->uuid && Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup.get()) {
-					Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
-				}
-				else {
-					RenderGroup* newRenderGroup = new RenderGroup(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh, Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->material);
-					Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
-				}
+			meshRendererIt->second.mesh = std::shared_ptr<Mesh>(newMesh);
+			uint64_t oldMeshUuid = oldMesh->uuid;
+			//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			if (oldMeshUuid == meshRendererIt->second.mesh->uuid && Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup.get()) {
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh.get();
+			}
+			else {
+				RenderGroup* newRenderGroup = new RenderGroup(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh.get(), Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->material);
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
+			}
+			Editor::Filewatcher::AddToMainThread([uuid]() {
+				Application->activeScene->meshRendererComponents.find(uuid)->second.mesh->Restart();
 
 				});
 
@@ -702,19 +706,62 @@ namespace Plaza {
 	static void Collider_AddShape(uint64_t uuid, ColliderShapeEnum shape) {
 		auto it = Application->activeScene->colliderComponents.find(uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
-			if ((shape == ColliderShapeEnum::CONVEX_MESH || shape == ColliderShapeEnum::MESH) && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
-				it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), Application->activeScene->meshRendererComponents.at(uuid).mesh.get());
-			}
-			else
-				it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid));
-			it->second.Init(nullptr);
+			Editor::Filewatcher::AddToMainThread([it, uuid, shape]() {
+
+				if ((shape == ColliderShapeEnum::CONVEX_MESH || shape == ColliderShapeEnum::MESH) && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
+					it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), Application->activeScene->meshRendererComponents.at(uuid).mesh.get());
+				}
+				else
+					it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid));
+				it->second.Init(nullptr);
+				});
 		}
 	}
-	static void Collider_AddShapeHeightField(uint64_t uuid, ColliderShapeEnum shape, float** heightData, int size) {
+
+	static void Collider_AddShapeMeshCall(uint64_t uuid, ColliderShapeEnum shape, glm::vec3* vertices, int verticesSize, unsigned int* indices, int indicesSize, glm::vec3* normals, int normalsSize, glm::vec2* uvs, int uvsSize) {
 		auto it = Application->activeScene->colliderComponents.find(uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
+			Mesh* newMesh = new Mesh();
+			newMesh->meshId = Plaza::UUID::NewUUID();
+			newMesh->temporaryMesh = true;
+			newMesh->vertices.clear();
+			newMesh->vertices.reserve(verticesSize);
+			newMesh->vertices.assign(vertices, vertices + verticesSize);
+
+			newMesh->indices.clear();
+			newMesh->indices.reserve(indicesSize);
+			newMesh->indices.assign(indices, indices + indicesSize);
+
+			newMesh->normals.clear();
+			newMesh->normals.reserve(normalsSize);
+			newMesh->normals.assign(normals, normals + normalsSize);
+
+			newMesh->uvs.clear();
+			newMesh->uvs.reserve(uvsSize);
+			newMesh->uvs.assign(uvs, uvs + uvsSize);
+
+
+			it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), newMesh);
+			Editor::Filewatcher::AddToMainThread([uuid]() {
+				Application->activeScene->colliderComponents.find(uuid)->second.Init(nullptr);
+				});
+		}
+	}
+	static void Collider_AddShapeHeightFieldCall(uint64_t uuid, ColliderShapeEnum shape, MonoArray* floatArray, int size) {
+		auto it = Application->activeScene->colliderComponents.find(uuid);
+		if (it != Application->activeScene->colliderComponents.end()) {
+			float min = 0;
 			if (shape == ColliderShapeEnum::HEIGHT_FIELD && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
-				it->second.AddHeightShape(heightData, size);//.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), Application->activeScene->meshRendererComponents.at(uuid).mesh.get());
+				float** data = new float* [size];
+				for (int i = 0; i < size; ++i) {
+					data[i] = new float[size];
+					for (int j = 0; j < size; ++j) {
+						mono_array_get(floatArray, int, i * size + j);
+						data[i][j] = *reinterpret_cast<float*>(mono_array_addr_with_size(floatArray, sizeof(float), i * size + j));
+						min = data[i][j] < min ? data[i][j] : min;
+					}
+				}
+				it->second.AddHeightShape(data, size);//.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), Application->activeScene->meshRendererComponents.at(uuid).mesh.get());
 			}
 			it->second.Init(nullptr);
 		}
@@ -866,7 +913,8 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_IsAngularLocked", RigidBody_IsAngularLocked);
 
 		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShape", Collider_AddShape);
-		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShapeHeightField", Collider_AddShapeHeightField);
+		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShapeMeshCall", Collider_AddShapeMeshCall);
+		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShapeHeightFieldCall", Collider_AddShapeHeightFieldCall);
 
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_GetText", TextRenderer_GetText);
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetText", TextRenderer_SetText);

@@ -416,7 +416,79 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void Collider_AddShape(UInt64 uuid, ColliderShapeEnum shape);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static void Collider_AddShapeHeightField(UInt64 uuid, ColliderShapeEnum shape, float[,] heightData, int size);
+        public extern static void Collider_AddShapeMeshCall(UInt64 uuid, ColliderShapeEnum shape, IntPtr vertices, int verticesSize, IntPtr indices, int indicesSize, IntPtr normals, int normalsSize, IntPtr uvs, int uvsSize);
+        public static void Collider_AddShapeMesh(UInt64 uuid, ColliderShapeEnum shape, Mesh mesh) {
+            int verticesSize = mesh.Vertices.Length;
+            int indicesSize = mesh.Indices.Length;
+            int normalsSize = mesh.Normals.Length;
+            int uvsSize = mesh.Uvs.Length;
+
+            IntPtr verticesPtr = Marshal.AllocHGlobal(verticesSize * Marshal.SizeOf<Vector3>());
+            for (int i = 0; i < verticesSize; i++)
+            {
+                Marshal.StructureToPtr(mesh.Vertices[i], verticesPtr + i * Marshal.SizeOf<Vector3>(), false);
+            }
+
+            IntPtr indicesPtr = Marshal.AllocHGlobal(indicesSize * Marshal.SizeOf<int>());
+            for (int i = 0; i < indicesSize; i++)
+            {
+                Marshal.StructureToPtr(mesh.Indices[i], indicesPtr + i * Marshal.SizeOf<int>(), false);
+            }
+
+            IntPtr normalsPtr = Marshal.AllocHGlobal(normalsSize * Marshal.SizeOf<Vector3>());
+            for (int i = 0; i < normalsSize; i++)
+            {
+                Marshal.StructureToPtr(mesh.Normals[i], normalsPtr + i * Marshal.SizeOf<Vector3>(), false);
+            }
+
+            IntPtr uvsPtr = Marshal.AllocHGlobal(uvsSize * Marshal.SizeOf<Vector2>());
+            for (int i = 0; i < uvsSize; i++)
+            {
+                Marshal.StructureToPtr(mesh.Uvs[i], uvsPtr + i * Marshal.SizeOf<Vector2>(), false);
+            }
+
+            //MeshRenderer_SetMesh(uuid, verticesPtr, verticesSize, indicesPtr, indicesSize, normalsPtr, normalsSize, uvsPtr, uvsSize);
+
+            Collider_AddShapeMeshCall(uuid, shape, verticesPtr, verticesSize, indicesPtr, indicesSize, normalsPtr, normalsSize, uvsPtr, uvsSize);
+            Marshal.FreeHGlobal(verticesPtr);
+            Marshal.FreeHGlobal(indicesPtr);
+            Marshal.FreeHGlobal(normalsPtr);
+            Marshal.FreeHGlobal(uvsPtr);
+        }
+        /*
+                 public UInt64 uuid;
+        public Vector3[] Vertices;
+
+        public int[] Indices;
+
+        public Vector3[] Normals;
+        public Vector2[] Uvs;
+         */
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Collider_AddShapeHeightFieldCall(UInt64 uuid, ColliderShapeEnum shape, float[] heightData, int size);
+        static float[] FlattenArray(float[,] array)
+        {
+            int rows = array.GetLength(0);
+            int cols = array.GetLength(1);
+
+            float[] flattenedArray = new float[rows * cols];
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    flattenedArray[i * cols + j] = array[i, j];
+                }
+            }
+
+            return flattenedArray;
+        }
+        public static void Collider_AddShapeHeightField(UInt64 uuid, ColliderShapeEnum shape, float[,] array, int size)
+        {
+            float[] flattenArray = FlattenArray(array);
+            InternalCalls.Collider_AddShapeHeightFieldCall(uuid, shape, flattenArray, size);
+        }
 
         #endregion Collider
 

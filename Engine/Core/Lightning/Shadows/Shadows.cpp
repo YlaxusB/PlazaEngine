@@ -71,7 +71,7 @@ namespace Plaza {
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowsFBO);
 		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, depthMapResolution, depthMapResolution);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		glCullFace(GL_BACK);
+		glCullFace(GL_FRONT);
 		ShadowsClass::RenderScene(*Application->shadowsDepthShader);
 		Renderer::RenderInstancesShadowMap(*Application->shadowsDepthShader);
 		glCullFace(GL_BACK);

@@ -21,7 +21,7 @@ namespace Plaza {
 		}
 		else {
 			uint64_t renderGroupUuid = Plaza::UUID::NewUUID();
-			RenderGroup* renderGroup = new RenderGroup(this->mesh, this->material);
+			RenderGroup* renderGroup = new RenderGroup(this->mesh.get(), this->material.get());
 			renderGroup->uuid = renderGroupUuid;
 			Application->activeScene->AddRenderGroup(renderGroup);
 			//Application->activeScene->renderGroups.emplace(renderGroupUuid, new RenderGroup(this->mesh, this->material));

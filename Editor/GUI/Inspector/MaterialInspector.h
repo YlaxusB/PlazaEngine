@@ -39,7 +39,7 @@ namespace Plaza::Editor {
 									entity->GetComponent<MeshRenderer>()->renderGroup = std::make_shared<RenderGroup>(entity->GetComponent<MeshRenderer>()->mesh, entity->GetComponent<MeshRenderer>()->material);
 									Application->activeScene->AddRenderGroup(entity->GetComponent<MeshRenderer>()->renderGroup);
 								}
-								entity->GetComponent<MeshRenderer>()->renderGroup->material = entity->GetComponent<MeshRenderer>()->material;
+								entity->GetComponent<MeshRenderer>()->renderGroup->material = entity->GetComponent<MeshRenderer>()->material.get();
 							}
 						}
 					}
@@ -105,7 +105,7 @@ namespace Plaza::Editor {
 					if (ImGui::Button("New Material")) {
 						uint64_t renderGroupUuid = Plaza::UUID::NewUUID();
 						std::shared_ptr<Material> material = std::make_shared<Material>(Material());
-						RenderGroup* renderGroup = new RenderGroup(entity->GetComponent<MeshRenderer>()->mesh, material);
+						RenderGroup* renderGroup = new RenderGroup(entity->GetComponent<MeshRenderer>()->mesh.get(), material.get());
 						renderGroup->uuid = renderGroupUuid;
 						Application->activeScene->AddRenderGroup(renderGroup);
 						entity->GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->renderGroups.at(renderGroupUuid);

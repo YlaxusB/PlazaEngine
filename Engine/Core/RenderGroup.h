@@ -7,15 +7,22 @@ namespace Plaza {
 	public:
 		static GLenum renderMode;
 		uint64_t uuid;
-		std::shared_ptr<Mesh> mesh;
-		std::shared_ptr<Material> material;
+		Mesh* mesh;
+		Material* material;
 		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
 
-		RenderGroup(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> mat) {
+		RenderGroup(Mesh* mesh, Material* mat) {
 			this->uuid = Plaza::UUID::NewUUID();
 			this->mesh = mesh;
 			this->material = mat;
 		}
+
+		RenderGroup(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> mat) {
+			this->uuid = Plaza::UUID::NewUUID();
+			this->mesh = mesh.get();
+			this->material = mat.get();
+		}
+
 
 		void AddInstance(Shader& shader, glm::mat4 model) {
 			//Time::addInstanceCalls += 1;

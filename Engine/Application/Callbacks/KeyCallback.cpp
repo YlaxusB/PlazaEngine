@@ -42,8 +42,8 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 
 		if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
 			if (RenderGroup::renderMode == GL_TRIANGLES) {
-				RenderGroup::renderMode = GL_TRIANGLE_STRIP;
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				RenderGroup::renderMode = GL_POINTS;
+				glPolygonMode(GL_FRONT_AND_BACK, RenderGroup::renderMode);
 			}
 			else {
 				RenderGroup::renderMode = GL_TRIANGLES;

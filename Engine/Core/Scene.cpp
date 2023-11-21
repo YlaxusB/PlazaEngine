@@ -7,8 +7,9 @@
 #include "Engine/Core/Input/Cursor.h"
 #include "Engine/Application/Serializer/Components/CsScriptComponentSerializer.h"
 #include "Engine/Core/Scripting/FieldManager.h"
-
+#include "Editor/Filewatcher.h"
 #include "Engine/Core/Physics.h"
+#include <mutex>
 
 namespace Plaza {
 	Scene* Scene::Copy(Scene* newScene, Scene* copyScene) {
@@ -229,15 +230,44 @@ namespace Plaza {
 	}
 
 	void Scene::Stop() {
+		//mono_jit_cleanup(Mono::mAppDomain);
+		/* Clear the queue on the main thread */
+		std::lock_guard<std::mutex> lock(Editor::Filewatcher::queueMutex);
+		while (!Editor::Filewatcher::taskQueue.empty()) {
+			Editor::Filewatcher::taskQueue.pop();
+		}
+
+
 		for (auto [key, value] : Application->activeScene->audioSourceComponents) {
 			value.Stop();
 		}
+
+		mono_set_assemblies_path("lib/mono");
+		//mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
+		if (Mono::mMonoRootDomain == nullptr)
+			Mono::mMonoRootDomain = mono_jit_init("MyScriptRuntime");
+		if (Mono::mMonoRootDomain == nullptr)
+		{
+			// Maybe log some error here
+			return;
+		}
+		// Create an App Domain
+		char appDomainName[] = "PlazaAppDomain";
+		MonoDomain* newDomain = mono_domain_create_appdomain(appDomainName, nullptr);
+		mono_domain_set(newDomain, true);
+		Mono::ReloadAppDomain();
+		Mono::mAppDomain = newDomain;
+
+		mono_domain_set(Mono::mAppDomain, true);
+
 		// Change active scene, update the selected object scene, delete runtime and set running to false.
 		Editor::selectedGameObject = nullptr;
 		delete(Application->runtimeScene);
 		Application->runningScene = false;
 		Application->activeScene = Application->editorScene;
 		Application->activeCamera = Application->editorCamera;
+
+
 
 		bool scriptDllExists = std::filesystem::exists(Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll");
 		if (scriptDllExists) {

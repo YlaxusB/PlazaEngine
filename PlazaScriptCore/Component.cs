@@ -416,6 +416,11 @@ namespace Plaza
                 InternalCalls.Collider_AddShape(this.Uuid, shape);
         }
 
+        public void AddShape(ColliderShapeEnum shape, Mesh mesh)
+        {
+            InternalCalls.Collider_AddShapeMesh(this.Uuid, shape, mesh);
+        }
+
         public void AddShape(ColliderShapeEnum shape, float[,] heightData, int size)
         {
             InternalCalls.Collider_AddShapeHeightField(this.Uuid, shape, heightData, size);

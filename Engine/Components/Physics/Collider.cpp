@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Collider.h"
 #include "Engine/Core/Physics.h"
+#include "Engine/Vendor/physx/geometry/PxHeightFieldGeometry.h"
 
 Plaza::Vertex CombineVertices(const Plaza::Vertex& v1, const Plaza::Vertex& v2) {
 	// Calculate the new position by averaging the positions of v1 and v2
@@ -227,30 +228,85 @@ namespace Plaza {
 	}
 
 	void Collider::AddHeightShape(float** heightData, int size) {
-		//SimplifyMesh(mesh->vertices, mesh->indices, 50);
 		auto start0 = std::chrono::high_resolution_clock::now();
 		physx::PxShape* shape;
-		physx::PxTriangleMeshGeometry triangleGeometry;
-		std::vector<physx::PxVec3> vertices = std::vector<physx::PxVec3>();
-		std::vector<physx::PxU32> indices = std::vector<physx::PxU32>();
+		physx::PxHeightFieldSample* hfSamples = new physx::PxHeightFieldSample[size * size];
+
+		physx::PxReal min = PX_MAX_F32;
+		physx::PxReal max = -PX_MAX_F32;
+
+		Mesh* debugMesh = new Mesh();
+		debugMesh->vertices.reserve(size);
+		debugMesh->indices.reserve(size);
+		debugMesh->indices.push_back(0);
+		debugMesh->indices.push_back(0);
+		debugMesh->indices.push_back(0);
+		physx::PxReal quantization = (physx::PxReal)0x7fff;
+
+		for (unsigned int col = 0; col < size; col++)
+		{
+			for (unsigned int row = 0; row < size; row++)
+			{
+				min = physx::PxMin(min, heightData[col][row]);
+				max = physx::PxMax(max, heightData[col][row]);
+			}
+		}
+		using namespace physx;
+		physx::PxReal deltaHeight = max - min;
+		physx::PxReal heightScale = physx::PxMax<physx::PxReal>(deltaHeight / quantization, PX_MIN_HEIGHTFIELD_Y_SCALE);
+
+		for (unsigned int col = 0; col < size; col++)
+		{
+			for (unsigned int row = 0; row < size; row++)
+			{
+				physx::PxI16 height = physx::PxI16(quantization * ((heightData[col][row] - min) / deltaHeight));
+				physx::PxHeightFieldSample& smp = hfSamples[(row * size) + col];  // Corrected indexing here
+				smp.height = heightData[col][row];
+			}
+		}
+
+
 
 		// Cook the height field
-		physx::PxHeightFieldDesc heightFieldDesc = physx::PxHeightFieldDesc();
-		heightFieldDesc.format = physx::PxHeightFieldDesc().format;
+		physx::PxHeightFieldDesc heightFieldDesc;
+		heightFieldDesc.format = physx::PxHeightFieldFormat::eS16_TM;
 		heightFieldDesc.nbColumns = size;
 		heightFieldDesc.nbRows = size;
-		heightFieldDesc.samples.data = heightData;
+		heightFieldDesc.samples.data = hfSamples;
+		heightFieldDesc.flags = physx::PxHeightFieldFlags();
+		heightFieldDesc.samples.data = new float[size * size];
 		heightFieldDesc.samples.stride = sizeof(float);
+		char* currentByte = (char*)heightFieldDesc.samples.data;
+		for (physx::PxU32 row = 0; row < size; row++)
+		{
+			for (physx::PxU32 col = 0; col < size; col++)
+			{
+				physx::PxHeightFieldSample* currentSample = (physx::PxHeightFieldSample*)currentByte;
+				currentSample->height = (float)heightData[row][col];
+				currentByte += heightFieldDesc.samples.stride;
+			}
+		}
 
-		physx::PxDefaultMemoryOutputStream heightFieldStream = physx::PxDefaultMemoryOutputStream();
-		if (!PxCookHeightField(heightFieldDesc, heightFieldStream))
-			printf("failed");
-		physx::PxDefaultMemoryInputData input(heightFieldStream.getData(), heightFieldStream.getSize());
-		physx::PxHeightField* heightField = Physics::m_physics->createHeightField(input);
-		shape = Physics::m_physics->createShape(physx::PxHeightFieldGeometry(heightField),
-			*Physics::defaultMaterial);
+		physx::PxHeightField* aHeightField = PxCreateHeightField(heightFieldDesc);
+		std::cout << "First: " << heightData[255][255] << "\n";
+		std::cout << "Second: " << aHeightField->getSample(255, 255).height << "\n";
+		std::cout << "Third: " << size * 0.5f * 20 << "\n";
+		physx::PxHeightFieldGeometry hfGeom(aHeightField, physx::PxMeshGeometryFlags(), 1, 20,
+			20);
+		
+
+		float terrainWidth = 256 / 2 * 20;
+		PxTransform localPose;
+		localPose.p = PxVec3(-terrainWidth,    // make it so that the center of the
+			0, -terrainWidth);         // heightfield is at world (0,minHeight,0)
+		localPose.q = PxQuat(PxIdentity);
+		//shape->setLocalPose(localPose);
+		shape = Physics::m_physics->createShape(hfGeom,
+			*Physics::defaultMaterial, false);
+		shape->setLocalPose(localPose);
 		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::HEIGHT_FIELD));
 		auto end0 = std::chrono::high_resolution_clock::now();
+		delete[] hfSamples;
 
 		std::cout << "Time taken by function 0: " << std::chrono::duration_cast<std::chrono::milliseconds>(end0 - start0).count() << " milliseconds" << std::endl;
 		//delete mesh;

@@ -4,8 +4,10 @@
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Editor/GUI/FileExplorer/RenamedFile.h"
 namespace Plaza::Editor {
-	std::vector<std::function<void()>> Filewatcher::mMainThreadQueue = std::vector<std::function<void()>>();
+	std::unordered_map<uint64_t, std::function<void()>> Filewatcher::mMainThreadQueue = std::unordered_map<uint64_t, std::function<void()>>();
 	std::map< filewatch::Event, std::string> Filewatcher::mQueuedEvents = std::map<filewatch::Event, std::string>();
+	std::queue<std::function<void()>> Filewatcher::taskQueue = std::queue<std::function<void()>>();
+	std::mutex Filewatcher::queueMutex = std::mutex();
 	void Filewatcher::Start(std::string pathToWatch) {
 		filewatch::FileWatch<std::string>* watch = new filewatch::FileWatch<std::string>(pathToWatch, [pathToWatch](const std::string path, const filewatch::Event changeType) {
 			//std::cout << path << " - ";
@@ -59,11 +61,29 @@ namespace Plaza::Editor {
 
 	void Filewatcher::UpdateOnMainThread() {
 
-		/* Execute queued functions*/
-		for (auto& function : mMainThreadQueue)
-			function();
-		mMainThreadQueue.clear();
+		std::function<void()> task;
 
+		{
+			std::lock_guard<std::mutex> lock(queueMutex);
+
+			if (!taskQueue.empty()) {
+				task = taskQueue.front();
+				taskQueue.pop();
+			}
+		}
+
+		if (task) {
+			task(); // Execute the task on the main thread
+		}
+		/* Execute queued functions*/
+		//for (auto [key, function] : Filewatcher::mMainThreadQueue)
+		//{
+		//	function();
+		//	//Filewatcher::mMainThreadQueue.erase(Filewatcher::mMainThreadQueue.find(key));
+		//	//Filewatcher::mMainThreadQueue.erase(key);
+		//	//mMainThreadQueue.erase(mMainThreadQueue.find(function));
+		//}
+		//Filewatcher::mMainThreadQueue.clear();
 		/* Check the queued events, to check for renamed files */
 		if (mQueuedEvents.size() >= 3) {
 			std::string newPath;
@@ -89,6 +109,8 @@ namespace Plaza::Editor {
 	}
 
 	void Filewatcher::AddToMainThread(const std::function<void()>& function) {
-		mMainThreadQueue.push_back(function);
+		//mMainThreadQueue.emplace(Plaza::UUID::NewUUID(), function);
+		std::lock_guard<std::mutex> lock(queueMutex);
+		taskQueue.push(function);
 	}
 }

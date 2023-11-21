@@ -13,8 +13,8 @@ namespace Plaza::Editor {
 		obj->GetComponent<Transform>()->UpdateChildrenTransform();
 		MeshRenderer* meshRenderer = new MeshRenderer(*mesh.get(), Material());
 		meshRenderer->instanced = true;
-		meshRenderer->mesh = mesh;
-		meshRenderer->material = make_shared<Material>(*Scene::DefaultMaterial());
+		meshRenderer->mesh =make_shared<Mesh>(*new Mesh(*mesh));
+		meshRenderer->material = make_shared<Material>(*new Material(*Scene::DefaultMaterial()));
 		RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
 		meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
 		//meshRenderer->renderGroup->material = make_shared<Material>(*Scene::DefaultMaterial());

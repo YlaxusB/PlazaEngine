@@ -14,6 +14,7 @@ out VS_OUT {
     vec3 TangentLightPos;
     vec3 TangentViewPos;
     vec3 TangentFragPos;
+    vec3 worldPos;
 } vs_out;
 
 uniform mat4 projection;
@@ -55,5 +56,6 @@ void main()
     } else{
         vs_out.Normal = transpose(inverse(mat3(finalInstanceMatrix))) * aNormal;
     }
+    vs_out.worldPos = vec3(model);
     gl_Position = projection * (view) * model;
 }

@@ -147,8 +147,8 @@ void main()
     metallic = texture(texture_metalness, fs_in.TexCoords).r;//pow(texture(texture_metalness, fs_in.TexCoords), vec4(2.2)).r;
     roughness = texture(texture_metalness, fs_in.TexCoords).r;//pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(2.2)).r;
     //metallic *= 2;
-    metallic = 0f;
-    roughness = 0.3f * 255;
+    //metallic = 1f;
+    //roughness = 0.3f;
     vec3 normal;
     vec3 lightDir;
     float diff;
@@ -210,7 +210,7 @@ void main()
         
         vec3 kD = -F * 1;
         kD *= -(metallic / 1);
-        kD /= 1;
+        kD /= 255;
         //kD = pow(kD, vec3(2.2));
         // scale light by NdotL
         float NdotL = max(dot(N, L), 0.0);        
@@ -220,7 +220,7 @@ void main()
     } 
 
     vec3 lighting = ((ambient * (color / 255)  * 1) + ((1.0 - shadow) * 2) * (diffuse + specular)) * (color / 255);    
-    vec3 ambientPBR = vec3(0.03) * (pow(color / 255, vec3(2.2)) * 255) * 1;
+    vec3 ambientPBR = vec3(0.16) * albedo * 1;
     vec3 finalColor = ambientPBR + (Lo);
     //finalColor = finalColor / (finalColor + vec3(1.0));
     //// gamma correct
@@ -228,7 +228,7 @@ void main()
     //finalColor = finalColor / (finalColor + vec3(1.0));
     //finalColor = pow(finalColor, vec3(1.0/2.2)); 
 
-    FragColor = vec4(ambientPBR + (finalColor) * (-shadow / 1.1), 1.0);
+    FragColor = vec4(ambientPBR + (((1 - shadow) * 2) * finalColor), 1.0);
     //FragColor = vec4(lighting, 1.0);
 
 }

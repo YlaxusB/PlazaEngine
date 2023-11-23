@@ -127,8 +127,8 @@ void ApplicationClass::InitShaders() {
 	Application->shader->setInt("texture_specular", 1);
 	Application->shader->setInt("texture_normal", 2);
 	Application->shader->setInt("texture_height", 3);
-
-
+	Application->shader->setInt("texture_metalness", 4);
+	Application->shader->setInt("texture_roughness", 5);
 
 
 

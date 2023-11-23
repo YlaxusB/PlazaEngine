@@ -34,7 +34,7 @@ namespace Plaza {
 				out << YAML::Key << "MeshUUID" << YAML::Value << meshRenderer->mesh->uuid;
 				out << YAML::Key << "MaterialUuid" << YAML::Value << meshRenderer->material->uuid;
 				out << YAML::Key << "MaterialPath" << YAML::Value << meshRenderer->material->filePath;
-				ComponentSerializer::MaterialSerializer::Serialize(out, meshRenderer->mesh->material);
+				ComponentSerializer::MaterialSerializer::Serialize(out, *meshRenderer->material);
 				out << YAML::EndMap;
 			}
 		}

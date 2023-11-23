@@ -37,6 +37,8 @@ namespace Plaza {
 			constexpr const char* textureSpecularUniform = "texture_specular";
 			constexpr const char* textureNormalUniform = "texture_normal";
 			constexpr const char* textureHeightUniform = "texture_height";
+			constexpr const char* textureMetalnessUniform = "texture_metalness";
+			constexpr const char* textureRoughnessUniform = "texture_roughness";
 
 			shader.setBool("usingNormal", mesh->usingNormal);
 			if (material->shininess != 64.0f) {
@@ -80,6 +82,18 @@ namespace Plaza {
 				glActiveTexture(GL_TEXTURE0 + textureHeightUnit);
 				glBindTexture(GL_TEXTURE_2D, material->height.id);
 			}
+
+			if (!material->metalness.IsTextureEmpty()) {
+				constexpr GLint textureHeightUnit = 4;
+				glActiveTexture(GL_TEXTURE0 + textureHeightUnit);
+				glBindTexture(GL_TEXTURE_2D, material->metalness.id);
+			}
+
+			if (!material->roughness.IsTextureEmpty()) {
+				constexpr GLint textureHeightUnit = 5;
+				glActiveTexture(GL_TEXTURE0 + textureHeightUnit);
+				glBindTexture(GL_TEXTURE_2D, material->roughness.id);
+			}
 		}
 
 		void Draw(Shader& shader) {
@@ -114,7 +128,6 @@ namespace Plaza {
 				//if (this->mesh->meshType == MeshType::Triangle) {
 				BindTextures(shader);
 				// Setup instance buffer
-
 
 				glBindBuffer(GL_ARRAY_BUFFER, mesh->instanceBuffer);
 				glBufferData(GL_ARRAY_BUFFER, instanceModelMatrices.size() * sizeof(glm::mat4), &instanceModelMatrices[0], GL_STATIC_DRAW);

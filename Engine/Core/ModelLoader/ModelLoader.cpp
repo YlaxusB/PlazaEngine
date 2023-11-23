@@ -51,6 +51,8 @@ namespace Plaza {
 					newMeshRenderer->mesh = model->meshes.at(meshRenderer->aiMeshName).get();
 					newMeshRenderer->material = &model->meshes.at(meshRenderer->aiMeshName)->material;
 					newMeshRenderer->material = Application->activeScene->materials.at(meshRenderer->material->uuid).get();
+					//newMeshRenderer->material = MaterialFileSerializer::DeSerialize(newMeshRenderer->material->filePath);
+					//newMeshRenderer->material->LoadTextures(std::filesystem::path{ newMeshRenderer->material->filePath }.parent_path().string());
 					newMeshRenderer->renderGroup = make_shared<RenderGroup>(newMeshRenderer->mesh, newMeshRenderer->material);
 					//newMeshRenderer->material = Application->activeScene->materials.at(entity->GetComponent<MeshRenderer>()->material->uuid);
 
@@ -58,7 +60,8 @@ namespace Plaza {
 						//MaterialFileSerializer::Serialize(newMeshRenderer->material->filePath, newMeshRenderer->material.get());
 						//Application->activeScene->materials.emplace(newMeshRenderer->material->uuid, newMeshRenderer->material);
 						//Application->activeScene->AddMaterial(newMeshRenderer->material.get());
-					} else {
+					}
+					else {
 						//newMeshRenderer->material = Application->activeScene->materials.at(Application->activeScene->materialsNames.at(newMeshRenderer->material->name));
 					}
 					Application->activeScene->AddRenderGroup(newMeshRenderer->renderGroup);
@@ -104,6 +107,17 @@ namespace Plaza {
 		ModelLoader::modelScale = model.get()->scale;
 		LoadModelMeshes(filePath, model.get()->meshRenderers, model.get(), model.get()->useTangent, meshesMap);
 		ModelLoader::modelScale = 0.01f;
+		unordered_set<std::string> loadedNames = unordered_set<std::string>();
+		//for (auto [key, meshRenderer] : model->meshRenderers) {
+		//	if (!loadedNames.contains(meshRenderer->material->filePath)) {
+		//		if (Application->activeScene->materials.find(meshRenderer->material->uuid) != Application->activeScene->materials.end()) {
+		//			Application->activeScene->materials.find(meshRenderer->material->uuid)->second = std::shared_ptr<Material>(MaterialFileSerializer::DeSerialize(meshRenderer->material->filePath));
+		//			//Application->activeScene->materials.find(meshRenderer->material->uuid)->second->LoadTextures();
+		//			loadedNames.emplace(meshRenderer->material->filePath);
+		//		}
+
+		//	}
+		//}
 		EngineClass::models.emplace(model->uuid, move(model));
 		// delete(model)   //////////////////////////////////////////////////////////////////////////////////////////////
 		return uuid;
@@ -154,7 +168,7 @@ namespace Plaza {
 		for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 			aiMesh* aiMesh = scene->mMeshes[i];
 			Mesh* mesh = new Mesh(ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr, useTangent));
-			
+
 			for (Material& material : materialsLoaded) {
 				if (mesh->material.SameAs(material)) {
 					mesh->material = material;
@@ -350,33 +364,17 @@ namespace Plaza {
 		// specular: texture_specularN
 		// normal: texture_normalN
 
-		// 1. diffuse maps
-		vector<Texture> diffuseMaps = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", textures_loaded, directory);
-		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-		// 2. specular maps
-		vector<Texture> specularMaps = ModelLoader::LoadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular", textures_loaded, directory);
-		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-		// 3. normal maps
-		std::vector<Texture> normalMaps = ModelLoader::LoadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal", textures_loaded, directory);
-		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-		// 4. height maps
-		std::vector<Texture> heightMaps = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height", textures_loaded, directory);
-		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-
-		// return a mesh object created from the extracted mesh data
 		Material convertedMaterial = DefaultMaterial();
 		convertedMaterial.uuid = Plaza::UUID::NewUUID();
-		if (diffuseMaps.size() > 0)
-			convertedMaterial.diffuse = diffuseMaps[0];
 
-		if (specularMaps.size() > 0)
-			convertedMaterial.specular = specularMaps[0];
+		convertedMaterial.diffuse = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse", textures_loaded, directory)[0];
+		convertedMaterial.specular = ModelLoader::LoadMaterialTextures(material, aiTextureType_SPECULAR, "specular", textures_loaded, directory)[0];
+		convertedMaterial.normal = ModelLoader::LoadMaterialTextures(material, aiTextureType_HEIGHT, "normal", textures_loaded, directory)[0];
+		convertedMaterial.height = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT, "height", textures_loaded, directory)[0];
+		convertedMaterial.metalness = ModelLoader::LoadMaterialTextures(material, aiTextureType_METALNESS, "metalness", textures_loaded, directory)[0];
+		convertedMaterial.roughness = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "roughness", textures_loaded, directory)[0];
+		convertedMaterial.aoMap = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "aoMap", textures_loaded, directory)[0];
 
-		if (normalMaps.size() > 0)
-			convertedMaterial.normal = normalMaps[0];
-
-		if (heightMaps.size() > 0)
-			convertedMaterial.height = heightMaps[0];
 
 		convertedMaterial.name = std::string(material->GetName().C_Str()) + "_" + std::string(material->GetName().C_Str()) + Standards::materialExtName;
 		convertedMaterial.filePath = std::string(directory->c_str()) + "\\" + convertedMaterial.name;

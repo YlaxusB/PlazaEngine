@@ -7,9 +7,11 @@ namespace Plaza {
 			if (!relativePath.empty() && path.starts_with(".\\")) {
 				this->id = ModelLoader::TextureFromFile(relativePath + "\\" + path);
 			}
-			else {
-				this->id = ModelLoader::TextureFromFile(path);
+			else if (!relativePath.empty()) {
+				this->id = ModelLoader::TextureFromFile(relativePath + "\\" + path);
 			}
+			else
+				this->id = ModelLoader::TextureFromFile(path);
 			this->rgba = glm::vec4(INFINITY);
 		}
 	}

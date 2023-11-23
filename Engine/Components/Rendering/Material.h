@@ -13,6 +13,9 @@ namespace Plaza {
 		Texture normal = Texture("normal");
 		Texture specular = Texture("specular");
 		Texture height = Texture("height");
+		Texture metalness = Texture("metalness");
+		Texture roughness = Texture("roughness");
+		Texture aoMap = Texture("aoMap");
 		float shininess = 3.0f;
 
 		void LoadTextures(std::string relativePath = "") {

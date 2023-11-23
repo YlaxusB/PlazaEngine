@@ -21,10 +21,23 @@ namespace Plaza::Editor {
 			ImGui::ColorPicker4("Specular", &material->specular.rgba.x);
 			if (ImGui::Button("Difusse Texture")) {
 				material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");
-				//material->diffuse.id = ModelLoader::TextureFromFile(material->diffuse.path.c_str(), material->diffuse.path, true);
 				material->diffuse.rgba = glm::vec4(INFINITY);
-
 				material->diffuse.id = ModelLoader::TextureFromFile(material->diffuse.path);
+			}
+			if (ImGui::Button("Normal Texture")) {
+				material->normal.path = FileDialog::OpenFileDialog(".jpeg");
+				material->normal.rgba = glm::vec4(INFINITY);
+				material->normal.id = ModelLoader::TextureFromFile(material->normal.path);
+			}
+			if (ImGui::Button("Metalic Texture")) {
+				material->metalness.path = FileDialog::OpenFileDialog(".jpeg");
+				material->metalness.rgba = glm::vec4(INFINITY);
+				material->metalness.id = ModelLoader::TextureFromFile(material->metalness.path);
+			}
+			if (ImGui::Button("Roughness Texture")) {
+				material->roughness.path = FileDialog::OpenFileDialog(".jpeg");
+				material->roughness.rgba = glm::vec4(INFINITY);
+				material->roughness.id = ModelLoader::TextureFromFile(material->roughness.path);
 			}
 
 			//if (Application->activeScene->materials.find(material->uuid) != Application->activeScene->materials.end()) {

@@ -24,6 +24,8 @@ namespace Plaza {
 			normal.Load(relativePath);
 			specular.Load(relativePath);
 			height.Load(relativePath);
+			metalness.Load(relativePath);
+			roughness.Load(relativePath);
 		}
 
 		Material() {

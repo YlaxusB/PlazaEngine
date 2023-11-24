@@ -23,6 +23,7 @@ uniform float cascadePlaneDistances[32];
 uniform int cascadeCount;   // number of frusta - 1
 uniform mat4 view;
 uniform vec3 lightDir;
+uniform vec3 lightDirection;
 
 
 layout (std140) uniform LightSpaceMatrices
@@ -83,8 +84,7 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
     } else {
         normal = normalize(fs_in.Normal);
     }
-    vec3 lightDir = normalize(lightPos - fs_in.FragPos);
-    float bias = max(0.0005 * (1.0 - dot(normal, lightDir)), 0.00005);
+    float bias = max(0.0005 * (1.0 - dot(normal, lightDirection)), 0.00005);
     const float biasModifier = 0.5f;
     if (layer == cascadeCount)
     {
@@ -128,6 +128,32 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
 
+vec3 schlickFresnel(float vDotH, vec3 color)
+{
+    vec3 F0 = vec3(0.04);
+    F0 = color;
+
+    vec3 ret = F0 + (1 - F0) * pow(clamp(1.0 - vDotH, 0.0, 1.0), 5);
+
+    return ret;
+}
+
+
+float geomSmith(float dp, float roughness)
+{
+    float k = (roughness + 1.0) * (roughness + 1.0) / 8.0;
+    float denom = dp * (1 - k) + k;
+    return dp / denom;
+}
+
+
+float ggxDistribution(float nDotH, float roughness)
+{
+    float alpha2 = roughness * roughness * roughness * roughness;
+    float d = nDotH * nDotH * (alpha2 - 1) + 1;
+    float ggxdistrib = alpha2 / (PI * d * d);
+    return ggxdistrib;
+}
 
 void main()
 {       
@@ -138,17 +164,19 @@ void main()
     else{
         color = texture(texture_diffuse, fs_in.TexCoords).rgb;
     }
-    color = color * 255;
-    vec3 lightColor = vec3(2.0 * 255);
+    color = color / 1;
+    vec3 lightColor = vec3(1.0f, 0.85f, 0.85f) * 255;
     // ambient
-    vec3 ambient = 0.16 * (lightColor / 255);
+    vec3 ambient = 1.32 * (lightColor / 1);
     // diffuse
 
-    metallic = texture(texture_metalness, fs_in.TexCoords).r;//pow(texture(texture_metalness, fs_in.TexCoords), vec4(2.2)).r;
-    roughness = texture(texture_metalness, fs_in.TexCoords).r;//pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(2.2)).r;
+    metallic = pow(texture(texture_metalness, fs_in.TexCoords) / 1, vec4(1/ 2.2)).r * 1;
+    roughness = pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(1/ 2.2)).r * 1;
+    //metallic = texture(texture_metalness, fs_in.TexCoords).r / 255;//pow(texture(texture_metalness, fs_in.TexCoords), vec4(2.2)).r;
+    //roughness = texture(texture_metalness, fs_in.TexCoords).r / 255;//pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(2.2)).r;
     //metallic *= 2;
-    metallic = 0f;
-    roughness = 0.3f * 255;
+    //metallic = 0.5 * 1;
+    //roughness = 0.3f * 1;
     vec3 normal;
     vec3 lightDir;
     float diff;
@@ -157,80 +185,69 @@ void main()
     if(usingNormal){
         normal = texture(texture_normal, fs_in.TexCoords).rgb;
         normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space
-        lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
-        diff = max(dot(lightDir, normal), 0.0);
-        // specular
+        //lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
+        diff = max(dot(lightDirection, normal), 0.0);
         viewDir = normalize(fs_in.TangentViewPos - fs_in.TangentFragPos);
     } else {
         normal = normalize(fs_in.Normal);
-        vec3 lightDir = normalize(lightPos - fs_in.FragPos);
-        diff = max(dot(lightDir, normal), 0.0);
+        //lightDir = normalize(lightPos - fs_in.FragPos);
+        diff = max(dot(lightDirection, normal), 0.0);
         viewDir = normalize(viewPos - fs_in.FragPos);
     }
-    diffuse = diff * (lightColor / 255);
 
-    vec3 reflectDir = reflect(-lightDir, normal);
-    vec3 halfwayDir = normalize(lightDir + viewDir);  
-    float spec = 0.0;
-    spec = pow(max(dot(normal, halfwayDir), 0.0), shininess * 100);
-    vec3 texSpec;
-    if(texture_specular_rgba != vec4(300, 300, 300, 300)){
-         texSpec = texture_specular_rgba.rgb;
-    }
-    else{
-        texSpec = texture(texture_specular, fs_in.TexCoords).rgb;
-    }
-    vec3 specular = (spec * texSpec) * (lightColor / 255); 
+    vec3 l = lightDirection;
+    vec3 n = normal;
+    vec3 v = normalize(viewPos - fs_in.worldPos);
+    vec3 h = normalize(v + l);
+
+    float nDotH = max(dot(n, h), 0.0);
+    float vDotH = max(dot(v, h), 0.0);
+    float nDotL = max(dot(n, l), 0.0);
+    float nDotV = max(dot(n, v), 0.0);
+
+    vec3  F0 = mix (vec3 (0.04), color, metallic);
+    vec3 F = fresnelSchlick(vDotH, F0);   
+
+    vec3 kS = F;
+    vec3 kD = 1.0 - kS;
+
+    vec3 SpecBRDF_nom  = ggxDistribution(nDotH, roughness) *
+                         F *
+                         geomSmith(nDotL, roughness) *
+                         geomSmith(nDotV, roughness);
+
+    float SpecBRDF_denom = 4.0 * nDotV * nDotL + 0.0001;
+
+    vec3 SpecBRDF = SpecBRDF_nom / SpecBRDF_denom;
+
+    vec3 fLambert = vec3(0.0);
+    fLambert = color * 1;
+
+    vec3 DiffuseBRDF = kD * fLambert / PI;
+
+    float shadow = ShadowCalculation(fs_in.FragPos);
+    vec3 amb = vec3(0.16f);
+    vec3 shad = (amb + (1 - shadow) * 2);
+    //shad += ambient;
+    shad /= 1;
+    float specularIntensity = 13.0f;
+    SpecBRDF = shadow == 0 ? SpecBRDF : vec3(0);
+    vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color * nDotL;//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
+
+    //FinalColor += vec3(0.13f / 255);
+    //FinalColor *= vec3(1);
+    //FinalColor -= shadow;
+
+//    FinalColor = FinalColor / (FinalColor + vec3(1.0));
+    //FinalColor *= ambient;
+    //FinalColor *= (1 - shadow) * 1;
+    //FinalColor += vec3(0.01f);
+
+    // Gamma correction
+    vec4 FinalLight = vec4(FinalColor, 1.0);
 
     // calculate shadow
-    float shadow = ShadowCalculation(fs_in.FragPos);                      
-
-    vec3 Lo = vec3(0.0);
-    vec3 N = normal;
-    vec3 V = normalize(viewPos - fs_in.worldPos);
-    vec3 F0 = vec3(0.04 * 255); 
-    F0 = mix(F0, color/255,metallic/1);
-    vec3 albedo = pow(color / 255, vec3(2.2));
-    for(int i = 0; i < 4; ++i) 
-    {
-        // calculate per-light radiance
-        vec3 L = normalize(lightPos - fs_in.worldPos);
-        vec3 H = normalize(V + L);
-        float distanc = length(lightPos - fs_in.worldPos);
-        float attenuation = 1.0 / (distanc * distanc);
-        vec3 radiance = lightColor * attenuation;
-
-        // Cook-Torrance BRDF
-        float NDF = DistributionGGX(N, H, roughness);   
-        float G   = GeometrySmith(N, V, L, roughness);      
-        vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);   
-        vec3 numerator    = NDF * G * (F); 
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // + 0.0001 to prevent divide by zero
-        vec3 specular = numerator / denominator;
-        
-        vec3 kD = -F * 1;
-        kD *= -(metallic / 1);
-        kD /= 1;
-        //kD = pow(kD, vec3(2.2));
-        // scale light by NdotL
-        float NdotL = max(dot(N, L), 0.0);        
-
-        // add to outgoing radiance Lo
-        Lo += (kD * color  / (PI) + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
-    } 
-
-    vec3 lighting = ((ambient * (color / 255)  * 1) + ((1.0 - shadow) * 2) * (diffuse + specular)) * (color / 255);    
-    vec3 ambientPBR = vec3(0.03) * (pow(color / 255, vec3(2.2)) * 255) * 1;
-    vec3 finalColor = ambientPBR + (Lo);
-    //finalColor = finalColor / (finalColor + vec3(1.0));
-    //// gamma correct
-    //finalColor = pow(finalColor, vec3(1.0/2.2)); 
-    //finalColor = finalColor / (finalColor + vec3(1.0));
-    //finalColor = pow(finalColor, vec3(1.0/2.2)); 
-
-    FragColor = vec4(ambientPBR + (finalColor) * (-shadow / 1.1), 1.0);
-    //FragColor = vec4(lighting, 1.0);
-
+    FragColor = vec4(FinalLight.xyz, 1.0f);
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)

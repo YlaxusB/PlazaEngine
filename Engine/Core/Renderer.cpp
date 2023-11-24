@@ -38,6 +38,7 @@ namespace Plaza {
 		shader.setVec3("lightDir", Application->Shadows->lightDir);
 		shader.setFloat("farPlane", Application->activeCamera->farPlane);
 		shader.setInt("cascadeCount", Application->Shadows->shadowCascadeLevels.size());
+		shader.setVec3("lightDirection", Application->Shadows->lightDir);
 		for (size_t i = 0; i < Application->Shadows->shadowCascadeLevels.size(); ++i)
 		{
 			shader.setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", Application->Shadows->shadowCascadeLevels[i]);

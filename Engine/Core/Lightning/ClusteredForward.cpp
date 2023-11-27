@@ -146,15 +146,36 @@ namespace Plaza {
 
 		/* Merge the scene frame buffer with the light frame buffer */
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		mLightMergerShader->use();
+		mLightMergerShader->setVec3("viewPos", Application->activeCamera->Position);
+		mLightMergerShader->setFloat("time", glfwGetTime());
+		GLuint lightsBindingLocation2 = glGetUniformLocation(mLightMergerShader->ID, "LightsBuffer");
+		glProgramUniform1i(mLightMergerShader->ID, lightsBindingLocation2, 1);
+
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Application->textureColorbuffer);
+		glBindTexture(GL_TEXTURE_2D, Application->gPosition);
+
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, Lightning::textureColorbuffer);
+		glBindTexture(GL_TEXTURE_2D, Application->gNormal);
+
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, Application->gDiffuse);
+
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, Application->gOthers);
+
 		Renderer::RenderQuadOnScreen();
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glActiveTexture(GL_TEXTURE4);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glEnable(GL_DEPTH_TEST);

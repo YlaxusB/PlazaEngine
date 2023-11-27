@@ -15,6 +15,7 @@ out VS_OUT {
     vec3 TangentViewPos;
     vec3 TangentFragPos;
     vec3 worldPos;
+
 } vs_out;
 
 uniform mat4 projection;

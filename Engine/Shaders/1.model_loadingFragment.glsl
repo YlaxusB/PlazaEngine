@@ -1,4 +1,8 @@
 #version 410 core
+layout (location = 0) out vec4 gPosition;
+layout (location = 1) out vec4 gNormal;
+layout (location = 2) out vec4 gDiffuse;
+layout (location = 3) out vec4 gOthers;
 
 out vec4 FragColor;
 
@@ -231,6 +235,7 @@ void main()
     //shad += ambient;
     shad /= 1;
     float specularIntensity = 13.0f;
+    gOthers = vec4(SpecBRDF, 1.0f);
     SpecBRDF = shadow == 0 ? SpecBRDF : vec3(0);
     vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color * (nDotL + amb / 2);//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
 
@@ -243,6 +248,12 @@ void main()
     //FinalColor *= (1 - shadow) * 1;
     //FinalColor += vec3(0.01f);
 
+    /* Geometry */
+    gPosition = vec4(fs_in.FragPos, 1.0f);
+    gDiffuse = vec4(FinalColor, 1.0f);
+    gNormal = vec4(normalize(normal), 1.0f);
+
+     //gPosition = vec4(1.0f, 0.2f, 0.2f, 1.0f);
     // Gamma correction
     vec4 FinalLight = vec4(FinalColor, 1.0);
 

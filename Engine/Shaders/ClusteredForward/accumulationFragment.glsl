@@ -35,15 +35,7 @@ float attenuate(vec3 lightDirection, float radius) {
 void main() {
     vec3 totalLighting = vec3(0.0);
 
-    // Iterate through lights in the current cluster
-    for (int i = 0; i < lights.length(); ++i) {
-        Light light = lights[i];
-        vec4 posit = viewMatrix * vec4(light.position, 1.0f);
-        float radius = 15.0f;
-        float distanceToLight = distance(posit.xyz, FragPos);
-            float attenuation =  attenuate(posit.xyz - FragPos, radius);
-            totalLighting += (light.color * attenuation);//(light.color * (a - distance(light.position, pos)));
-    }
+
 
     FragColor = vec4(totalLighting, 1.0);
 }

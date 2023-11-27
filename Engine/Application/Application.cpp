@@ -163,8 +163,10 @@ void ApplicationClass::InitShaders() {
 	Lightning::mLightAccumulationShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\accumulationVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\accumulationFragment.glsl").c_str());
 	Lightning::mLightMergerShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\lightMergerVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\lightMergerFragment.glsl").c_str());
 	Lightning::mLightMergerShader->use();
-	Lightning::mLightMergerShader->setInt("sceneTexture", 0);
-	Lightning::mLightMergerShader->setInt("lightTexture", 1);
+	Lightning::mLightMergerShader->setInt("gPosition", 0);
+	Lightning::mLightMergerShader->setInt("gNormal", 1);
+	Lightning::mLightMergerShader->setInt("gDiffuse", 2);
+	Lightning::mLightMergerShader->setInt("gOthers", 3);
 
 	Application->textRenderingShader = new Shader((shadersFolder + "\\Shaders\\textRendering\\textRenderingVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\textRendering\\textRenderingFragment.glsl").c_str());
 
@@ -237,9 +239,9 @@ void ApplicationClass::CreateApplication() {
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-	std::uniform_real_distribution<float> dis2(-10.0f, 10.0f);
+	std::uniform_real_distribution<float> dis2(-100.0f, 100.0f);
 
-	for (int i = 0; i < 20; i++) {
+	for (int i = 0; i < 2000; i++) {
 		glm::vec3 randomPos(dis2(gen), dis2(gen), dis2(gen));
 		glm::vec3 randomColor(dis(gen), dis(gen), dis(gen));
 		Lightning::mLights.push_back(Lightning::Light(randomPos, randomColor));
@@ -339,7 +341,9 @@ void ApplicationClass::UpdateEngine() {
 	// Render to shadows depth map
 	Application->Shadows->GenerateDepthMap();
 	// Draw GameObjects
-	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, Application->geometryFramebuffer);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glPolygonMode(GL_FRONT_AND_BACK, RenderGroup::renderMode == GL_TRIANGLES ? GL_FILL : RenderGroup::renderMode);
 	Renderer::Render(*Application->shader);
@@ -349,8 +353,9 @@ void ApplicationClass::UpdateEngine() {
 	Lightning::LightingPass(Lightning::mClusters, Lightning::mLights);
 
 	// Update Skybox
-
-	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, Application->geometryFramebuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, Application->frameBuffer);
+	glBlitFramebuffer(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	Skybox::Update();
 
 	// Draw Outline
@@ -495,7 +500,58 @@ void ApplicationClass::InitOpenGL() {
 	Application->Shadows = new ShadowsClass();
 	Application->Shadows->Init();
 
+
 #pragma region Framebuffer
+	/* Geometry Framebuffer */
+	unsigned int& geometryBuffer = Application->geometryFramebuffer;
+	glGenFramebuffers(1, &Application->geometryFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, Application->geometryFramebuffer);
+	// - position color buffer
+	glGenTextures(1, &Application->gPosition);
+	glBindTexture(GL_TEXTURE_2D, Application->gPosition);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Application->gPosition, 0);
+
+	// - normal color buffer
+	glGenTextures(1, &Application->gNormal);
+	glBindTexture(GL_TEXTURE_2D, Application->gNormal);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, Application->gNormal, 0);
+
+	// - color + specular color buffer
+	glGenTextures(1, &Application->gDiffuse);
+	glBindTexture(GL_TEXTURE_2D, Application->gDiffuse);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, Application->gDiffuse, 0);
+
+	// - others, metalness specular and roughness
+	glGenTextures(1, &Application->gOthers);
+	glBindTexture(GL_TEXTURE_2D, Application->gOthers);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, Application->gOthers, 0);
+
+	GLenum geometryAttachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+	glDrawBuffers(4, geometryAttachments);
+
+	glGenRenderbuffers(1, &Application->geometryRboDepth);
+	glBindRenderbuffer(GL_RENDERBUFFER, Application->geometryRboDepth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, appSizes.sceneSize.x, appSizes.sceneSize.y);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, Application->geometryRboDepth);
+	// finally check if framebuffer is complete
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		std::cout << "Framebuffer not complete!" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+
 	unsigned int& frameBuffer = Application->frameBuffer;
 	//unsigned int& textureColorbuffer = Application->textureColorbuffer;
 	glGenFramebuffers(1, &Application->frameBuffer);
@@ -528,8 +584,8 @@ void ApplicationClass::InitOpenGL() {
 	glReadBuffer(GL_NONE);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
-	GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_RED_INTEGER, GL_COLOR_ATTACHMENT4 };
-	glDrawBuffers(4, attachments);
+	GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_RED_INTEGER, GL_COLOR_ATTACHMENT4, GL_COLOR_ATTACHMENT8, GL_COLOR_ATTACHMENT9, GL_COLOR_ATTACHMENT10 };
+	glDrawBuffers(7, attachments);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

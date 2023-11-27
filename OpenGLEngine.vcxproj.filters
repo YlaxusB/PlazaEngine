@@ -438,6 +438,9 @@
     <ClCompile Include="Engine\Components\Rendering\Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Core\Lightning\ClusteredForward.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h">
@@ -2205,6 +2208,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Core\Debugging\Profiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Core\Lightning\ClusteredForward.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

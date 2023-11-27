@@ -195,7 +195,7 @@ void main()
         viewDir = normalize(viewPos - fs_in.FragPos);
     }
 
-    vec3 l = lightDirection;
+    vec3 l = normalize(lightDirection);
     vec3 n = normal;
     vec3 v = normalize(viewPos - fs_in.worldPos);
     vec3 h = normalize(v + l);
@@ -232,7 +232,7 @@ void main()
     shad /= 1;
     float specularIntensity = 13.0f;
     SpecBRDF = shadow == 0 ? SpecBRDF : vec3(0);
-    vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color * nDotL;//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
+    vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color * (nDotL + amb / 2);//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
 
     //FinalColor += vec3(0.13f / 255);
     //FinalColor *= vec3(1);

@@ -369,6 +369,7 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Engine\Components\Drawing\UI\TextRenderer.cpp" />
     <ClCompile Include="Engine\Core\Audio\Audio.cpp" />
     <ClCompile Include="Engine\Core\Audio\AudioSourceLoader.cpp" />
+    <ClCompile Include="Engine\Core\Lightning\ClusteredForward.cpp" />
     <ClCompile Include="Engine\Core\Scripting\FieldManager.cpp" />
     <ClCompile Include="Engine\Core\Engine.cpp" />
     <ClCompile Include="Engine\Core\Input\Cursor.cpp" />
@@ -706,6 +707,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Core\Audio\AudioSourceLoader.h" />
     <ClInclude Include="Engine\Core\ComponentMapStructure.h" />
     <ClInclude Include="Engine\Core\Debugging\Profiler.h" />
+    <ClInclude Include="Engine\Core\Lightning\ClusteredForward.h" />
     <ClInclude Include="Engine\Core\RenderGroup.h" />
     <ClInclude Include="Engine\Core\Scene.h" />
     <ClInclude Include="Engine\Core\Scripting\FieldManager.h" />

@@ -31,6 +31,7 @@
 #include "Editor/Filewatcher.h"
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Audio/Audio.h"
+#include "Engine/Core/Lightning/ClusteredForward.h"
 
 char* appdataValue;
 size_t len;
@@ -159,8 +160,13 @@ void ApplicationClass::InitShaders() {
 
 	Application->distortionCorrectionShader = new Shader((shadersFolder + "\\Shaders\\distortionCorrection\\distortionCorrectionVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\distortionCorrection\\distortionCorrectionFragment.glsl").c_str());
 
-	Application->textRenderingShader = new Shader((shadersFolder + "\\Shaders\\textRendering\\textRenderingVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\textRendering\\textRenderingFragment.glsl").c_str());
+	Lightning::mLightAccumulationShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\accumulationVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\accumulationFragment.glsl").c_str());
+	Lightning::mLightMergerShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\lightMergerVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\lightMergerFragment.glsl").c_str());
+	Lightning::mLightMergerShader->use();
+	Lightning::mLightMergerShader->setInt("sceneTexture", 0);
+	Lightning::mLightMergerShader->setInt("lightTexture", 1);
 
+	Application->textRenderingShader = new Shader((shadersFolder + "\\Shaders\\textRendering\\textRenderingVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\textRendering\\textRenderingFragment.glsl").c_str());
 
 	Skybox::skyboxShader = new Shader((shadersFolder + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
 	Skybox::skyboxShader->use();
@@ -222,6 +228,26 @@ void ApplicationClass::CreateApplication() {
 	std::cout << "Gui Initialized \n";
 	Editor::Gui::Init(Application->Window->glfwWindow);
 #endif // !GAME_REL
+
+
+
+	/* Initialize clustered forward rendering */
+	Lightning::InitializeClusters(12, 12, 12, Lightning::mClusters);
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+	std::uniform_real_distribution<float> dis2(-10.0f, 10.0f);
+
+	for (int i = 0; i < 20; i++) {
+		glm::vec3 randomPos(dis2(gen), dis2(gen), dis2(gen));
+		glm::vec3 randomColor(dis(gen), dis(gen), dis(gen));
+		Lightning::mLights.push_back(Lightning::Light(randomPos, randomColor));
+	}
+	Lightning::AssignLightsToClusters(Lightning::mLights, Lightning::mClusters);
+
+
+	Lightning::CreateClusterBuffers(Lightning::mClusters);
 }
 
 
@@ -320,6 +346,8 @@ void ApplicationClass::UpdateEngine() {
 	Renderer::RenderInstances(*Application->shader);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+	Lightning::LightingPass(Lightning::mClusters, Lightning::mLights);
+
 	// Update Skybox
 
 	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
@@ -380,7 +408,7 @@ void ApplicationClass::UpdateEngine() {
 			PLAZA_PROFILE_SECTION("Draw UI Components Text");
 			value.Render(*Application->textRenderingShader);
 		}
-	}
+}
 
 	// Update ImGui (only if running editor)
 

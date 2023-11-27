@@ -39,6 +39,11 @@ namespace Plaza::Editor {
 				material->roughness.rgba = glm::vec4(INFINITY);
 				material->roughness.id = ModelLoader::TextureFromFile(material->roughness.path);
 			}
+			if (ImGui::Button("Height Texture")) {
+				material->height.path = FileDialog::OpenFileDialog(".jpeg");
+				material->height.rgba = glm::vec4(INFINITY);
+				material->height.id = ModelLoader::TextureFromFile(material->height.path);
+			}
 
 			//if (Application->activeScene->materials.find(material->uuid) != Application->activeScene->materials.end()) {
 			//	Application->activeScene->materials.at(material->uuid) = std::make_shared<Material>(*new Material(*material));

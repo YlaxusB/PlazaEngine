@@ -32,6 +32,7 @@
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Audio/Audio.h"
 #include "Engine/Core/Lightning/ClusteredForward.h"
+#include "Engine/Shaders/ComputeShader.h"
 
 char* appdataValue;
 size_t len;
@@ -167,6 +168,8 @@ void ApplicationClass::InitShaders() {
 	Lightning::mLightMergerShader->setInt("gNormal", 1);
 	Lightning::mLightMergerShader->setInt("gDiffuse", 2);
 	Lightning::mLightMergerShader->setInt("gOthers", 3);
+
+	Lightning::mLightSorterComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\ClusteredForward\\lightSorterCompute.glsl").c_str());
 
 	Application->textRenderingShader = new Shader((shadersFolder + "\\Shaders\\textRendering\\textRenderingVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\textRendering\\textRenderingFragment.glsl").c_str());
 

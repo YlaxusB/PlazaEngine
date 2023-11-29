@@ -2213,6 +2213,9 @@
     <ClInclude Include="Engine\Core\Lightning\ClusteredForward.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Shaders\ComputeShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Engine\Shaders\skybox\skyboxVertex.glsl" />

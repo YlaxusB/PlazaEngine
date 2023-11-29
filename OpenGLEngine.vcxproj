@@ -757,6 +757,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Editor\GUI\ProjectManager\ProjectManager.h" />
     <ClInclude Include="Editor\GUI\Style\EditorStyle.h" />
     <ClInclude Include="Editor\GUI\TransformOverlay.h" />
+    <ClInclude Include="Engine\Shaders\ComputeShader.h" />
     <ClInclude Include="Engine\Shaders\Shader.h" />
     <ClInclude Include="Engine\stb_image.h" />
     <ClInclude Include="Engine\Utils\fileUtils.h" />

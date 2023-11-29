@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/Shaders/ComputeShader.h"
 namespace Plaza {
 	class Lightning {
 	public:
@@ -12,12 +13,13 @@ namespace Plaza {
 
 		struct Cluster {
 			std::vector<int> lightIndices;
-			glm::vec3 minBounds;
-			glm::vec3 maxBounds;
+			int lightsCount;
 		};
+		static GLuint mClustersBuffer;
 		static unsigned int frameBuffer, textureColorbuffer, rbo;
 		static Shader* mLightMergerShader;
 		static Shader* mLightAccumulationShader;
+		static ComputeShader* mLightSorterComputeShader;
 		static std::vector<Cluster> mClusters;
 		static std::vector<Light> mLights;
 		static void InitializeClusters(float numberClustersX, float numberClustersY, float numberClustersZ, std::vector<Cluster>& clusters);

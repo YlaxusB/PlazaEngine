@@ -12,8 +12,8 @@ namespace Plaza {
 		};
 
 		struct Cluster {
-			std::vector<int> lightIndices;
-			int lightsCount;
+			int lightIndices[256];
+			int lightsCount = 0;
 		};
 		static GLuint mClustersBuffer;
 		static unsigned int frameBuffer, textureColorbuffer, rbo;

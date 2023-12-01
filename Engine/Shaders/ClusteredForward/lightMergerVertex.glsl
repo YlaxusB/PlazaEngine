@@ -11,7 +11,7 @@ struct Light {
     // Add other light properties as needed
 };
 struct Cluster {
-    int[2048] lightsIndex;
+    int[256] lightsIndex;
     int lightsCount;
     //Light[64] lights;
 };

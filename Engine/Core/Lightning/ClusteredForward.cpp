@@ -15,7 +15,7 @@ namespace Plaza {
 		mLightAccumulationShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\accumulationVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\accumulationFragment.glsl").c_str());
 		// Clear any existing data in clusters
 		clusters.clear();
-		
+
 		// Calculate the size of each cluster in the X, Y, and Z directions
 		float clusterSizeX = Application->appSizes->sceneSize.x / numberClustersX /* calculate based on screen size and numClustersX */;
 		float clusterSizeY = Application->appSizes->sceneSize.y / numberClustersY/* calculate based on screen size and numClustersY */;
@@ -32,9 +32,6 @@ namespace Plaza {
 
 	void Lightning::AssignLightsToClusters(const std::vector<Light>& lights, std::vector<Cluster>& clusters) {
 		// Clear existing light indices in clusters
-		for (auto& cluster : clusters) {
-			cluster.lightIndices.clear();
-		}
 
 		// Iterate over lights and assign them to clusters based on intersection
 		for (int lightIndex = 0; lightIndex < lights.size(); ++lightIndex) {
@@ -56,16 +53,16 @@ namespace Plaza {
 	}
 
 	void Lightning::CreateClusterBuffers(const std::vector<Cluster>& clusters) {
+		int size = 32;
+		int clusterCount = glm::round(Application->appSizes->sceneSize.y / size) * glm::round(Application->appSizes->sceneSize.x / size);
+		for (int i = 0; i < clusterCount; i++) {
+			mClusters.push_back(*new Cluster());
+		}
 		// Create OpenGL buffers to store information about lights in each cluster
 
 		// Example buffer for light indices in each cluster
 		std::vector<int> lightIndexData;
 		std::vector<glm::vec3> lightColors;
-
-		for (const Cluster& cluster : clusters) {
-			// Append light indices for each cluster
-			lightIndexData.insert(lightIndexData.end(), cluster.lightIndices.begin(), cluster.lightIndices.end());
-		}
 
 		// Create and bind buffer for light indices
 		GLuint clusterBuffer;
@@ -143,7 +140,7 @@ namespace Plaza {
 		//GLenum attachments[] = { GL_COLOR_ATTACHMENT0 };
 		//frameBuffer->DrawAttachments(attachments, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
 
-				/* Compute Shader */
+		/* Compute Shader */
 		GLuint lightsBuffer2;
 		glGenBuffers(1, &lightsBuffer2);
 		glGenBuffers(1, &mClustersBuffer);
@@ -157,7 +154,13 @@ namespace Plaza {
 		// Bind the output buffer to the SSBO binding point 1
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mClustersBuffer);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, mClustersBuffer);
-		glBufferData(GL_SHADER_STORAGE_BUFFER, 2048 * sizeof(Cluster), mClusters.data(), GL_DYNAMIC_DRAW);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, clusterCount * sizeof(Cluster), mClusters.data(), GL_DYNAMIC_DRAW);
+
+		GLuint resultBuffer;
+		glGenBuffers(1, &resultBuffer);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, resultBuffer);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, resultBuffer);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, clusterCount * sizeof(glm::vec3), vector<glm::vec3>().data(), GL_DYNAMIC_DRAW);
 	}
 
 	void Lightning::LightingPass(const std::vector<Cluster>& clusters, const std::vector<Light>& lights) {
@@ -182,8 +185,13 @@ namespace Plaza {
 
 		mLightSorterComputeShader->use();
 		mLightSorterComputeShader->setMat4("view", Application->activeCamera->GetViewMatrix());
+		mLightSorterComputeShader->setMat4("projection", Application->activeCamera->GetProjectionMatrix());
 		//glProgramUniform1i(mLightSorterComputeShader->ID, glGetUniformLocation(mLightSorterComputeShader->ID, "LightsArray"), 1);
-		glDispatchCompute(2048, 1, 1);
+		mLightSorterComputeShader->setBool("first", true);
+		glDispatchCompute(1, 1, 1);
+		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		mLightSorterComputeShader->setBool("first", false);
+		glDispatchCompute(1, 1, 1);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 

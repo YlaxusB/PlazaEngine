@@ -18,7 +18,7 @@ struct Light {
 };
 
 struct Cluster {
-    int[2048] lightsIndex;
+    int[256] lightsIndex;
     int lightsCount;
     //Light[64] lights;
 };
@@ -49,6 +49,25 @@ vec2 screenSize = vec2(1820, 720);
 
 vec3 clusterSize = vec3(32, 32, 32);
 
+int roundUp(float numToRound, float multiple)
+{
+numToRound = round(numToRound);
+    if (multiple == 0)
+        return int(numToRound);
+
+    int remainder = int(numToRound) % int(multiple);
+    if (remainder == 0)
+        return int(round(numToRound));
+
+    return int(round(numToRound + multiple - remainder));
+}
+
+float roundToMultiple(float value, float multiple) {
+    return round(value / multiple) * multiple;
+}
+
+#define MAX_POINT_LIGHT_PER_TILE 256
+
 void main()
 {  
     // retrieve data from gbuffer
@@ -63,10 +82,13 @@ void main()
     // then calculate lighting as usual
     vec3 lighting  = Diffuse * 0.1; // hard-coded ambient component
     vec3 viewDir  = normalize(viewPos - FragPos);
-    float radius = 15.0f;
-                vec4 viewSpace = view * vec4(FragPos, 1.0);
-            vec2 viewSpaceCoords = viewSpace.xy / viewSpace.w;
-            int clusterIndex = int((viewSpaceCoords.x * screenSize.x / clusterSize.x) * (viewSpaceCoords.y * screenSize.y / clusterSize.y));
+    float radius = 2.01f;
+    vec2 clusterCount = round(screenSize / clusterSize.xy);
+    vec4 viewSpace = view * vec4(FragPos, 1.0);
+    vec2 viewSpaceCoords = viewSpace.xy / viewSpace.w;
+    vec2 currentClusterPosition = vec2(round(roundToMultiple(TexCoords.x * screenSize.x, clusterSize.x) / clusterSize.x), round(roundToMultiple(TexCoords.y * screenSize.y, clusterSize.y) / clusterSize.y));
+    int clusterIndex = int((round(currentClusterPosition.y * (clusterCount.x)) + (currentClusterPosition.x)));
+
     Cluster currentCluster = clusters[clusterIndex];
 
     /*
@@ -74,23 +96,24 @@ void main()
             vec2 viewSpaceCoords = viewSpace.xy / viewSpace.w;
             int clusterIndex = int((viewSpaceCoords.x * screenSize.x / clusterSize.x) * (viewSpaceCoords.y * screenSize.y / clusterSize.y));
     */
-    for (int i = 0; i < currentCluster.lightsCount; ++i)
+    for (int i = 0; i < MAX_POINT_LIGHT_PER_TILE && currentCluster.lightsIndex[i] != -1; ++i)
     {
-//        lights[i].color = vec3(0.5f, 0.5f, 0.9f);
         Light light = lights[currentCluster.lightsIndex[i]];
+        //light.color = vec3(1.0f, 0.0f, 0.0f);
         vec3 lightPosition = light.position;
 
         float angle = time * 0.1f;
         mat2 rotationMatrix = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
-vec2 rotatedXZ = rotationMatrix * lightPosition.xz;
+        vec2 rotatedXZ = rotationMatrix * lightPosition.xz;
 
-lightPosition.x = rotatedXZ.x;
-lightPosition.y = 0;
-lightPosition.z = rotatedXZ.y;
+        //lightPosition.x = rotatedXZ.x;
+        lightPosition.y = 0;
+        //lightPosition.z = rotatedXZ.y;
 
         // calculate distance between light source and current fragment
         float distance = length(lightPosition - FragPos);
-        if(distance < radius * radius)
+        //if(distance < radius * radius)
+        if(1 < 2)
         {
             // diffuse
             vec3 lightDir = normalize(lightPosition - FragPos);
@@ -108,27 +131,17 @@ lightPosition.z = rotatedXZ.y;
             attenuation *= radius;
             diffuse *= attenuation;
             specular *= attenuation;
-            lighting += diffuse + specular;
+            lighting += (diffuse + specular) * attenuation;
         }
      }    
     lighting += 1.0f;
-
-    vec3 clusterColorDebugg;
-    int lightsLength = currentCluster.lightsCount;
-    if(lightsLength == 0)
-        clusterColorDebugg = vec3(0.7f, 1.0f, 0.7f);
-    else if(lightsLength <= 3)
-        clusterColorDebugg = vec3(0.5f, 1.0f, 0.5f);
-    else if(lightsLength <= 10)
-        clusterColorDebugg = vec3(0.7f, 1.0f, 0.4f);
-    else if(lightsLength <= 100)
-        clusterColorDebugg = vec3(1.0f, 0.8f, 0.3f);
-    else if(lightsLength > 100)
-        clusterColorDebugg = vec3(1.0f, 0.2f, 0.2f);
-    else 
-        clusterColorDebugg = vec3(1.0f);
-    FragColor = vec4(clusterColorDebugg, 1.0f);
-    //FragColor = vec4(Diffuse * lighting, 1.0);
+    
+    FragColor = vec4(Diffuse * lighting, 1.0f);
+    //FragColor = vec4(currentCluster.lightsCount / MAX_POINT_LIGHT_PER_TILE, 0.0f, 0.0f, 1.0f);
+    //FragColor = vec4(int(currentClusterPosition.x) % 2 == 0 && int(currentClusterPosition.y) % 2 == 0 ? 1.0f : 0.0f, 0.0f, 0.0f, 1.0f);
+    //FragColor = vec4(currentClusterPosition.x, currentClusterPosition.y, clusterIndex, 1.0f);
+    //FragColor = vec4(clusterColorDebugg, clusterIndex);
+    //FragColor = vec4(clusterIndex, clusterIndex, clusterIndex, 1.0f);
 
 
     //FragColor = vec4(0.2f) + vec4(mod(viewSpaceCoords.x, clusterSize.x), mod(viewSpaceCoords.y, clusterSize.y), 0.0f, 1.0);

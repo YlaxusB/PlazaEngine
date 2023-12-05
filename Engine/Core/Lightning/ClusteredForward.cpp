@@ -161,6 +161,12 @@ namespace Plaza {
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, resultBuffer);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, resultBuffer);
 		glBufferData(GL_SHADER_STORAGE_BUFFER, clusterCount * sizeof(glm::vec3), vector<glm::vec3>().data(), GL_DYNAMIC_DRAW);
+
+		GLuint frustumsBuffer;
+		glGenBuffers(1, &frustumsBuffer);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, frustumsBuffer);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, frustumsBuffer);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, clusterCount * sizeof(Frustum), vector<Frustum>().data(), GL_DYNAMIC_DRAW);
 	}
 
 	void Lightning::LightingPass(const std::vector<Cluster>& clusters, const std::vector<Light>& lights) {
@@ -187,11 +193,13 @@ namespace Plaza {
 		mLightSorterComputeShader->setMat4("view", Application->activeCamera->GetViewMatrix());
 		mLightSorterComputeShader->setMat4("projection", Application->activeCamera->GetProjectionMatrix());
 		//glProgramUniform1i(mLightSorterComputeShader->ID, glGetUniformLocation(mLightSorterComputeShader->ID, "LightsArray"), 1);
-		mLightSorterComputeShader->setBool("first", true);
-		glDispatchCompute(1, 1, 1);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-		mLightSorterComputeShader->setBool("first", false);
-		glDispatchCompute(1, 1, 1);
+		//mLightSorterComputeShader->setBool("first", true);
+		//glDispatchCompute(1, 1, 1);
+		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		//mLightSorterComputeShader->setBool("first", false);
+		glm::vec2 clusterSize = glm::vec2(32.0f);
+		glm::vec2 clusterCount = glm::ceil(Application->appSizes->sceneSize / clusterSize);
+		glDispatchCompute(clusterCount.x, clusterCount.y, 1);
 		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 
@@ -209,6 +217,8 @@ namespace Plaza {
 		glProgramUniform1i(mLightMergerShader->ID, clustersBindingLocation, 1);
 		GLuint clustersBindingLocation3 = glGetUniformLocation(mLightMergerShader->ID, "SizesBuffer");
 		glProgramUniform1i(mLightMergerShader->ID, clustersBindingLocation3, 3);
+		GLuint frustumsBindingLocation = glGetUniformLocation(mLightMergerShader->ID, "FrustumsBuffer");
+		glProgramUniform1i(mLightMergerShader->ID, frustumsBindingLocation, 7);
 
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mClustersBuffer);
 

@@ -245,7 +245,7 @@ void ApplicationClass::CreateApplication() {
 	std::uniform_real_distribution<float> dis2(-100.0f, 100.0f);
 
 	for (int i = 0; i < 2000; i++) {
-		glm::vec3 randomPos(dis2(gen), dis2(gen), dis2(gen));
+		glm::vec3 randomPos(dis2(gen), 0, dis2(gen));
 		glm::vec3 randomColor(dis(gen), dis(gen), dis(gen));
 		Lightning::mLights.push_back(Lightning::Light(randomPos, randomColor));
 	}

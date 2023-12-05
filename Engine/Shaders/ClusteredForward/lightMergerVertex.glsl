@@ -10,10 +10,11 @@ struct Light {
     vec3 color;
     // Add other light properties as needed
 };
-struct Cluster {
+struct Cluster{
     int[256] lightsIndex;
     int lightsCount;
-    //Light[64] lights;
+    vec3 minBounds;
+    vec3 maxBounds;
 };
 
 layout (std430, binding = 0) buffer LightsBuffer {

@@ -17,10 +17,22 @@ struct Light {
     // Add other light properties as needed
 };
 
-struct Cluster {
+struct Cluster{
     int[256] lightsIndex;
     int lightsCount;
-    //Light[64] lights;
+    vec3 minBounds;
+    vec3 maxBounds;
+};
+
+struct Plane
+{
+    vec3 Normal;
+    float Distance;
+};
+
+struct Frustum
+{
+    Plane planes[4];
 };
 
 layout (std430, binding = 0) buffer LightsBuffer {
@@ -34,6 +46,10 @@ layout (std430, binding = 1) buffer ClusterBuffer {
 layout (std430, binding = 3) buffer SizesBuffer {
     int[] sizes;
     //int[] sizes;
+};
+
+layout (std430, binding = 7) buffer FrustumsBuffer {
+    Frustum frustums[];
 };
 
 float attenuate(vec3 lightDirection, float radius) {
@@ -66,7 +82,22 @@ float roundToMultiple(float value, float multiple) {
     return round(value / multiple) * multiple;
 }
 
-#define MAX_POINT_LIGHT_PER_TILE 256
+vec2 indexToRowCol(int index, vec2 clusterCount) {
+    float col = mod(float(index), clusterCount.x);
+    float row = floor(float(index) / clusterCount.x);
+    return vec2(row, col);
+}
+
+int GetGridIndex(vec2 posXY)
+{
+    const vec2 pos = vec2(uint(posXY.x), uint(posXY.y));
+    const uint tileX = uint(ceil(screenSize.x / clusterSize.x));
+    return int((pos.x / clusterSize.x) + (tileX * (pos.y / clusterSize.x)));
+}
+
+
+
+#define MAX_POINT_LIGHT_PER_TILE 512
 
 void main()
 {  
@@ -88,6 +119,8 @@ void main()
     vec2 viewSpaceCoords = viewSpace.xy / viewSpace.w;
     vec2 currentClusterPosition = vec2(round(roundToMultiple(TexCoords.x * screenSize.x, clusterSize.x) / clusterSize.x), round(roundToMultiple(TexCoords.y * screenSize.y, clusterSize.y) / clusterSize.y));
     int clusterIndex = int((round(currentClusterPosition.y * (clusterCount.x)) + (currentClusterPosition.x)));
+
+    vec2 clusterIndexXY = indexToRowCol(clusterIndex, clusterCount);
 
     Cluster currentCluster = clusters[clusterIndex];
 
@@ -135,8 +168,36 @@ void main()
         }
      }    
     lighting += 1.0f;
+
+    #if 1
+    vec2 pos = viewSpaceCoords.xy;
+    const float w = screenSize.x;
+    const uint gridIndex = uint(GetGridIndex(pos));
+    const Frustum f = frustums[gridIndex];
+    const uint halfTile = uint(clusterSize.x / 2);
+    vec3 color = abs(f.planes[0].Normal);
+    if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTile)) == gridIndex)
+    {
+        color = vec3(0.0f, 1.0f, 0.0f);
+    }
+    if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) != gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTile)) == gridIndex)
+    {
+        color = vec3(0.0f, 0.0f, 1.0f);
+    }
+    if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTile)) != gridIndex)
+    {
+        color = vec3(1.0f, 0.0f, 0.0f);//abs(f.planes[3].Normal);
+    }
+    //color = mix(Diffuse, color, 0.1f);
+    #endif
     
-    FragColor = vec4(Diffuse * lighting, 1.0f);
+    float c = (clusterIndexXY.x + clusterCount.x * clusterIndexXY.y) * 0.00001f;
+    if(int(clusterIndexXY.x) % 2 == 0) c += 0.1f;
+    if(int(clusterIndexXY.y) % 2 == 0) c += 0.1f;
+
+
+    FragColor = vec4(color, 1.0f);
+    //FragColor = vec4(Diffuse * lighting, 1.0f);
     //FragColor = vec4(currentCluster.lightsCount / MAX_POINT_LIGHT_PER_TILE, 0.0f, 0.0f, 1.0f);
     //FragColor = vec4(int(currentClusterPosition.x) % 2 == 0 && int(currentClusterPosition.y) % 2 == 0 ? 1.0f : 0.0f, 0.0f, 0.0f, 1.0f);
     //FragColor = vec4(currentClusterPosition.x, currentClusterPosition.y, clusterIndex, 1.0f);
@@ -148,3 +209,6 @@ void main()
     //FragColor = vec4(attenuation, 1.0f);//vec4(Diffuse, 1.0);
     //FragColor = vec4(pow(Diffuse, vec3(2.2f)) * vec3(1 + texture(lightTexture, TexCoords)), 1.0);
 }
+
+
+//     FragColor = vec4(Diffuse * lighting, 1.0f);

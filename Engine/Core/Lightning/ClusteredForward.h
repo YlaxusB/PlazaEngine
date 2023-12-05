@@ -14,7 +14,19 @@ namespace Plaza {
 		struct Cluster {
 			int lightIndices[256];
 			int lightsCount = 0;
+			glm::vec3 minBounds;
+			glm::vec3 maxBounds;
 		};
+
+		struct Plane {
+			glm::vec3 Normal;
+			float Distance;
+		};
+
+		struct Frustum {
+			Plane planes[4];
+		};
+
 		static GLuint mClustersBuffer;
 		static unsigned int frameBuffer, textureColorbuffer, rbo;
 		static Shader* mLightMergerShader;

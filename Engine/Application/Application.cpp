@@ -541,8 +541,16 @@ void ApplicationClass::InitOpenGL() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, Application->gOthers, 0);
 
-	GLenum geometryAttachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-	glDrawBuffers(4, geometryAttachments);
+	// - Depth
+	glGenTextures(1, &Application->gDepth);
+	glBindTexture(GL_TEXTURE_2D, Application->gDepth);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // GL_FLOAT for a depth texture
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, Application->gDepth, 0);
+
+	GLenum geometryAttachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_COLOR_ATTACHMENT4 };
+	glDrawBuffers(5, geometryAttachments);
 
 	glGenRenderbuffers(1, &Application->geometryRboDepth);
 	glBindRenderbuffer(GL_RENDERBUFFER, Application->geometryRboDepth);

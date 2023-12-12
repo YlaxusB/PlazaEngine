@@ -28,6 +28,7 @@ namespace Plaza {
 		};
 
 		static GLuint mClustersBuffer;
+		static GLuint mLightsBuffer;
 		static unsigned int frameBuffer, textureColorbuffer, rbo;
 		static Shader* mLightMergerShader;
 		static Shader* mLightAccumulationShader;

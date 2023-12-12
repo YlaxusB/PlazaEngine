@@ -6,6 +6,7 @@ uniform sampler2D gOthers;
 uniform vec3 viewPos;
 uniform float time;
 uniform mat4 view;
+uniform mat4 projection;
 
 out vec4 FragColor;
 
@@ -95,7 +96,44 @@ int GetGridIndex(vec2 posXY)
     return int((pos.x / clusterSize.x) + (tileX * (pos.y / clusterSize.x)));
 }
 
+vec4 HeatMap(int clusterIndex, int numLights)
+{
+    vec3 color;
+    if(numLights <= 0)
+    {
+        color = vec3(0.5f, 0.5f, 0.5f);    
+    }
+    else if(numLights < 10)
+    {
+        color = vec3(0.2f, 1.0f, 0.0f);    
+    }
+    else if(numLights < 50)
+    {
+        color = vec3(0.4f, 0.8f, 0.0f);    
+    }
+    else if(numLights < 100)
+    {
+        color = vec3(0.8f, 0.4f, 0.0f);    
+    }
+    else if(numLights >= 100)
+    {
+        color = vec3(1.0f, 0.0f, 0.0f);    
+    }
+    return vec4(color, 1.0f);
+}
 
+vec2 worldToScreen(vec3 position){
+    vec4 viewSpace = projection * (view * vec4(position, 1.0));
+    vec3 ndcPosition = viewSpace.xyz / viewSpace.w;
+    vec2 uvCoordinates = (ndcPosition.xy + 1.0) / 2.0;
+    return uvCoordinates;
+}
+
+int GetIndex(vec2 screenPos, vec2 clusterCount)
+{
+    vec2 currentClusterPosition = vec2(round(roundToMultiple(screenPos.x * screenSize.x, clusterSize.x) / clusterSize.x), round(roundToMultiple(screenPos.y * screenSize.y, clusterSize.y) / clusterSize.y));
+    return int(((currentClusterPosition.y * (clusterCount.x)) + (currentClusterPosition.x)));
+}
 
 #define MAX_POINT_LIGHT_PER_TILE 512
 
@@ -114,11 +152,12 @@ void main()
     vec3 lighting  = Diffuse * 0.1; // hard-coded ambient component
     vec3 viewDir  = normalize(viewPos - FragPos);
     float radius = 2.01f;
-    vec2 clusterCount = round(screenSize / clusterSize.xy);
+    vec2 clusterCount = ceil(screenSize / clusterSize.xy);
     vec4 viewSpace = view * vec4(FragPos, 1.0);
     vec2 viewSpaceCoords = viewSpace.xy / viewSpace.w;
     vec2 currentClusterPosition = vec2(round(roundToMultiple(TexCoords.x * screenSize.x, clusterSize.x) / clusterSize.x), round(roundToMultiple(TexCoords.y * screenSize.y, clusterSize.y) / clusterSize.y));
-    int clusterIndex = int((round(currentClusterPosition.y * (clusterCount.x)) + (currentClusterPosition.x)));
+    int clusterIndex = int(((currentClusterPosition.y * (clusterCount.x)) + (currentClusterPosition.x)));
+    //clusterIndex = GetGridIndex(viewSpaceCoords);
 
     vec2 clusterIndexXY = indexToRowCol(clusterIndex, clusterCount);
 
@@ -170,33 +209,42 @@ void main()
     lighting += 1.0f;
 
     #if 1
-    vec2 pos = viewSpaceCoords.xy;
+    vec2 co = TexCoords * screenSize;// (clusterSize.xy );//* clusterSize.xy);
+    vec2 pos = co.xy;
     const float w = screenSize.x;
     const uint gridIndex = uint(GetGridIndex(pos));
     const Frustum f = frustums[gridIndex];
-    const uint halfTile = uint(clusterSize.x / 2);
-    vec3 color = abs(f.planes[0].Normal);
-    if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTile)) == gridIndex)
+    const float halfTile = 32 / 2; // (screenSize.x);//clusterSize.x / 2 / screenSize.x);
+    const float halfTileY = halfTile; // (screenSize.y);//clusterSize.x / 2 / screenSize.x);
+    vec3 color = abs(f.planes[1].Normal);
+    if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) == gridIndex)
     {
-        color = vec3(0.0f, 1.0f, 0.0f);
+        color = abs(f.planes[0].Normal);
     }
-    if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) != gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTile)) == gridIndex)
+    else if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) != gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) == gridIndex)
     {
-        color = vec3(0.0f, 0.0f, 1.0f);
+        color = abs(f.planes[2].Normal);
     }
-    if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTile)) != gridIndex)
+    else if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) != gridIndex)
     {
-        color = vec3(1.0f, 0.0f, 0.0f);//abs(f.planes[3].Normal);
+        color = abs(f.planes[3].Normal);//abs(f.planes[3].Normal);
     }
     //color = mix(Diffuse, color, 0.1f);
     #endif
-    
+
+    //color.x = GetGridIndex(vec2(pos.x + halfTile, pos.y));
+    //color.y = GetGridIndex(vec2(pos.x, pos.y));
+    clusterIndexXY = pos / 32;
     float c = (clusterIndexXY.x + clusterCount.x * clusterIndexXY.y) * 0.00001f;
     if(int(clusterIndexXY.x) % 2 == 0) c += 0.1f;
     if(int(clusterIndexXY.y) % 2 == 0) c += 0.1f;
 
-
-    FragColor = vec4(color, 1.0f);
+    vec3 heatmap = HeatMap(clusterIndex, currentCluster.lightsCount).xyz;
+    heatmap = heatmap == vec3(0.0f, 1.0f, 0.0f) ? vec3(0.0f, 0.0f, 0.0f) : heatmap;
+    //FragColor = vec4(c, c, c, 1.0f);
+    FragColor = vec4(mix(Diffuse * lighting, heatmap, 0.8f), 1.0f);
+    //FragColor = vec4(heatmap, 1.0f);
+    //FragColor = vec4(color, 1.0f);
     //FragColor = vec4(Diffuse * lighting, 1.0f);
     //FragColor = vec4(currentCluster.lightsCount / MAX_POINT_LIGHT_PER_TILE, 0.0f, 0.0f, 1.0f);
     //FragColor = vec4(int(currentClusterPosition.x) % 2 == 0 && int(currentClusterPosition.y) % 2 == 0 ? 1.0f : 0.0f, 0.0f, 0.0f, 1.0f);

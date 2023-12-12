@@ -4,6 +4,7 @@
 
 namespace Plaza {
 	GLuint Lightning::mClustersBuffer = 0;
+	GLuint Lightning::mLightsBuffer = 0;
 	unsigned int Lightning::frameBuffer, Lightning::textureColorbuffer, Lightning::rbo = 0;
 	Shader* Lightning::mLightAccumulationShader = nullptr;
 	Shader* Lightning::mLightMergerShader = nullptr;
@@ -78,14 +79,14 @@ namespace Plaza {
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
 		// Create and bind buffer for light indices
-		GLuint lightsBuffer;
-		glGenBuffers(1, &lightsBuffer);
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsBuffer);
+		//GLuint lightsBuffer;
+		glGenBuffers(1, &mLightsBuffer);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, mLightsBuffer);
 
 		// Upload data to the buffer
 		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Light) * mLights.size(), mLights.data(), GL_STATIC_DRAW);
 
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, lightsBuffer);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mLightsBuffer);
 
 		// Unbind the buffer
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
@@ -167,6 +168,12 @@ namespace Plaza {
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 7, frustumsBuffer);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, frustumsBuffer);
 		glBufferData(GL_SHADER_STORAGE_BUFFER, clusterCount * sizeof(Frustum), vector<Frustum>().data(), GL_DYNAMIC_DRAW);
+
+		GLuint depthsBuffer;
+		glGenBuffers(1, &depthsBuffer);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 8, depthsBuffer);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, depthsBuffer);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, clusterCount * sizeof(glm::vec2), vector<glm::vec2>().data(), GL_DYNAMIC_DRAW);
 	}
 
 	void Lightning::LightingPass(const std::vector<Cluster>& clusters, const std::vector<Light>& lights) {
@@ -192,6 +199,24 @@ namespace Plaza {
 		mLightSorterComputeShader->use();
 		mLightSorterComputeShader->setMat4("view", Application->activeCamera->GetViewMatrix());
 		mLightSorterComputeShader->setMat4("projection", Application->activeCamera->GetProjectionMatrix());
+		mLightSorterComputeShader->setInt("depthMap", 30);
+		glActiveTexture(GL_TEXTURE30);
+		glBindTexture(GL_TEXTURE_2D, Application->gDepth);
+		GLuint lightsBindingLocation2 = glGetUniformLocation(mLightSorterComputeShader->ID, "LightsBuffer");
+		glProgramUniform1i(mLightSorterComputeShader->ID, lightsBindingLocation2, 0);
+		GLuint clustersBindingLocation = glGetUniformLocation(mLightSorterComputeShader->ID, "ClusterBuffer");
+		glProgramUniform1i(mLightSorterComputeShader->ID, clustersBindingLocation, 1);
+		GLuint clustersBindingLocation3 = glGetUniformLocation(mLightSorterComputeShader->ID, "SizesBuffer");
+		glProgramUniform1i(mLightSorterComputeShader->ID, clustersBindingLocation3, 3);
+		GLuint frustumsBindingLocation = glGetUniformLocation(mLightSorterComputeShader->ID, "FrustumsBuffer");
+		glProgramUniform1i(mLightSorterComputeShader->ID, frustumsBindingLocation, 7);
+		//GLuint frustumsBindingLocation2 = glGetUniformLocation(mLightSorterComputeShader->ID, "DepthTileBuffer");
+		//glProgramUniform1i(mLightSorterComputeShader->ID, frustumsBindingLocation2, 30);
+
+		//glBindImageTexture(2, Application->gDepth, 0, GL_TRUE, 0, GL_READ_WRITE, GL_R32F);
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mClustersBuffer);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mLightsBuffer);
 		//glProgramUniform1i(mLightSorterComputeShader->ID, glGetUniformLocation(mLightSorterComputeShader->ID, "LightsArray"), 1);
 		//mLightSorterComputeShader->setBool("first", true);
 		//glDispatchCompute(1, 1, 1);
@@ -200,7 +225,7 @@ namespace Plaza {
 		glm::vec2 clusterSize = glm::vec2(32.0f);
 		glm::vec2 clusterCount = glm::ceil(Application->appSizes->sceneSize / clusterSize);
 		glDispatchCompute(clusterCount.x, clusterCount.y, 1);
-		glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
 
 		/* Merge the scene frame buffer with the light frame buffer */
@@ -211,13 +236,14 @@ namespace Plaza {
 		mLightMergerShader->setVec3("viewPos", Application->activeCamera->Position);
 		mLightMergerShader->setFloat("time", glfwGetTime());
 		mLightMergerShader->setMat4("view", Application->activeCamera->GetViewMatrix());
-		GLuint lightsBindingLocation2 = glGetUniformLocation(mLightMergerShader->ID, "LightsBuffer");
+		mLightMergerShader->setMat4("projection", Application->activeCamera->GetProjectionMatrix());
+		//GLuint lightsBindingLocation2 = glGetUniformLocation(mLightMergerShader->ID, "LightsBuffer");
 		glProgramUniform1i(mLightMergerShader->ID, lightsBindingLocation2, 0);
-		GLuint clustersBindingLocation = glGetUniformLocation(mLightMergerShader->ID, "ClusterBuffer");
+		//GLuint clustersBindingLocation = glGetUniformLocation(mLightMergerShader->ID, "ClusterBuffer");
 		glProgramUniform1i(mLightMergerShader->ID, clustersBindingLocation, 1);
-		GLuint clustersBindingLocation3 = glGetUniformLocation(mLightMergerShader->ID, "SizesBuffer");
+		//GLuint clustersBindingLocation3 = glGetUniformLocation(mLightMergerShader->ID, "SizesBuffer");
 		glProgramUniform1i(mLightMergerShader->ID, clustersBindingLocation3, 3);
-		GLuint frustumsBindingLocation = glGetUniformLocation(mLightMergerShader->ID, "FrustumsBuffer");
+		//GLuint frustumsBindingLocation = glGetUniformLocation(mLightMergerShader->ID, "FrustumsBuffer");
 		glProgramUniform1i(mLightMergerShader->ID, frustumsBindingLocation, 7);
 
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mClustersBuffer);

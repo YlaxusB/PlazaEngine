@@ -100,7 +100,7 @@ bool GetProjectedBounds(vec3 center, float radius, inout vec3 boxMin, inout vec3
 
     return true;
 }
-float radius = 3.0f;
+float radius = 25.1f;
 bool pointLightIntersectsCluster(Light light, Cluster cluster)
 {
     // NOTE: expects light.position to be in view space like the cluster bounds
@@ -114,30 +114,6 @@ bool pointLightIntersectsCluster(Light light, Cluster cluster)
     return dot(dist, dist) <= (radius * radius);    
 }
 
-//vec4 screen2Eye(vec4 coord)
-//{
-//#if BGFX_SHADER_LANGUAGE_GLSL
-//    // https://www.khronos.org/opengl/wiki/Compute_eye_space_from_window_space
-//    vec3 ndc = vec3(
-//        2.0 * (coord.x - u_viewRect.x) / u_viewRect.z - 1.0,
-//        2.0 * (coord.y - u_viewRect.y) / u_viewRect.w - 1.0,
-//        2.0 * coord.z - 1.0 // -> [-1, 1]
-//    );
-//#else
-//    vec3 ndc = vec3(
-//        2.0 * (coord.x - u_viewRect.x) / u_viewRect.z - 1.0,
-//        2.0 * (u_viewRect.w - coord.y - 1 - u_viewRect.y) / u_viewRect.w - 1.0, // y is flipped
-//        coord.z // -> [0, 1]
-//    );
-//#endif
-//
-//    // https://stackoverflow.com/a/16597492/862300
-//    vec4 eye = mul(-projection, vec4(ndc, 1.0));
-//    eye = eye / eye.w;
-//
-//    return eye;
-//}
-
 struct Plane
 {
     vec3 Normal;
@@ -146,7 +122,7 @@ struct Plane
 
 struct Frustum
 {
-    Plane planes[4];
+    vec4 planes[4];
 };
 
 layout (std430, binding = 7) buffer FrustumsBuffer {
@@ -164,92 +140,404 @@ Plane ComputePlane(vec3 p0, vec3 p1, vec3 p2)
     return plane;
 }
 
-vec4 ClipToView(vec4 clip, mat4 inverseProjection)
+vec4 ClipToView(vec4 clip)
 {
-    vec4 view = inverseProjection * clip;
+    vec4 view = inverse(projection) * clip;
     view /= view.w;
     return view;
 }
 
-vec4 ScreenToView(vec4 screen, mat4 inverseProjection)
+vec4 ScreenToView(vec4 screen)
 {
-    vec2 texCoord = screen.xy / screenSize;
+    vec2 texCoord = screen.xy * (1 / screenSize);
     vec4 clip = vec4(vec2(texCoord.x, 1.f - texCoord.y) * 2.f - 1.f, screen.z, screen.w);
-    return ClipToView(clip, inverseProjection);
+    return ClipToView(clip);
 }
 
-bool SphereInsidePlane(Light light, Plane plane)
+bool SphereInsidePlane(Light light, vec4 plane)
 {
-    return dot(plane.Normal, light.position) - plane.Distance < -radius;
+    return dot(plane.xyz, light.position) - plane.w < -radius;
 }
 
 bool SphereInsideFrustum(Light light, Frustum frustum, float zNear, float zFar)
 {
     bool result = true;
-    if(light.position.z - radius > zNear || light.position.z + radius < zFar)
+ 
+    // First check depth
+    // Note: Here, the view vector points in the -Z axis so the 
+    // far depth value will be approaching -infinity.
+    if ( light.position.z - radius > zNear || light.position.z + radius < zFar )
     {
         result = false;
     }
-    for(int i = 0; i < 4 && result; i++)
+
+    // Then check frustum planes
+    for ( int i = 0; i < 4 && result; i++ )
     {
-        if(SphereInsidePlane(light, frustum.planes[i]))
+        if ( SphereInsidePlane( light, frustum.planes[i] ) )
         {
             result = false;
         }
     }
+ 
     return result;
+   //bool insidePlane = SphereInsidePlane(light, frustum.planes[0]) || SphereInsidePlane(light, frustum.planes[1]) || SphereInsidePlane(light, frustum.planes[2]) || SphereInsidePlane(light, frustum.planes[3]);
+   // //return !((light.position.z - radius < zNear || light.position.z + radius < zFar) || insidePlane);
+   // return !insidePlane;
 }
 
+layout (std430, binding = 8) buffer DepthTileBuffer {
+    vec2 tileDepthStats[];
+};
+//layout (location = 30) uniform sampler2D depthMap;
+uniform sampler2D depthMap;
+
+const int tileSizeX = 32;
+const int tileSizeY = 32;
+vec2 calculateTileDepthStats(int tileX, int tileY) {
+    vec2 clusterCount = ceil(screenSize / clusterSize);
+    ivec2 tileCoords = ivec2(tileX * tileSizeX, tileY * tileSizeY);
+    
+    float minDepth = 0x7f7fffff;//= texture(depthMap, vec2(tileCoords) / textureSize(depthMap, 0)).r;
+    float maxDepth = 0.0f;//= minDepth;
+
+    for (int i = 0; i < tileSizeX; ++i) {
+        for (int j = 0; j < tileSizeY; ++j) {
+            ivec2 texCoords = tileCoords + ivec2(i, j);
+            float depth = texture(depthMap, vec2(texCoords) / textureSize(depthMap, 0)).r;
+            float depthVS = -ClipToView(vec4(0.0f, 0.0f, depth, 1.0f)).z;
+
+            if(depth != 0)
+            {
+            
+            minDepth = min(minDepth, depthVS);
+            maxDepth = max(maxDepth, depthVS);
+            }
+
+        }
+    }
+    return vec2(minDepth, maxDepth);
+}
+
+
+shared uint minDepthInt;
+shared uint maxDepthInt;
+shared uint visibleLightCount;
+shared vec4 frustumPlanes[6];
+
+shared int visibleLightIndices[1024];
+
+shared mat4 viewProjection;
 const int TILE_SIZE = 32;
 
-layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+vec4 calculateFrustumPlane(vec4 col1, vec4 col2, vec4 col3, vec4 col4)
+{
+    vec3 normal = normalize(cross(col1.xyz, col2.xyz));
+    float distance = -dot(normal, col3.xyz) / dot(normal, normal);
+    return vec4(normal, distance);
+}
+
+Frustum calculateFrustum(mat4 viewProj)
+{
+    Frustum frustum;
+    
+    // Extract frustum planes in view space
+    frustum.planes[0] = calculateFrustumPlane(viewProj[3] + viewProj[0], viewProj[3] - viewProj[0], viewProj[3] + viewProj[1], viewProj[3] - viewProj[1]); // Left
+    frustum.planes[1] = calculateFrustumPlane(viewProj[3] + viewProj[0], viewProj[3] - viewProj[0], viewProj[3] + viewProj[2], viewProj[3] - viewProj[2]); // Bottom
+    frustum.planes[2] = calculateFrustumPlane(viewProj[3] - viewProj[0], viewProj[3] - viewProj[0], viewProj[3] - viewProj[1], viewProj[3] - viewProj[1]); // Right
+    frustum.planes[3] = calculateFrustumPlane(viewProj[3] - viewProj[0], viewProj[3] - viewProj[0], viewProj[3] - viewProj[2], viewProj[3] - viewProj[2]); // Top
+    
+    return frustum;
+}
+
+layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 void main()
 {
+
+vec2 clusterCount = ceil(screenSize / clusterSize);
+ vec4 frustumPlanes[6];
+	ivec2 location = ivec2(gl_GlobalInvocationID.xy);
+	ivec2 itemID = ivec2(gl_LocalInvocationID.xy);
+	ivec2 tileID = ivec2(gl_WorkGroupID.xy);
+	ivec2 tileNumber = ivec2(gl_NumWorkGroups.xy);
+	uint index = tileID.y * tileNumber.x + tileID.x;
+
+	// Initialize shared global values for depth and light count
+	if (gl_LocalInvocationIndex == 0) {
+		minDepthInt = 0xFFFFFFFF;
+		maxDepthInt = 0;
+		visibleLightCount = 0;
+		viewProjection = projection * view;
+	}
+
+	barrier();
+
+	// Step 1: Calculate the minimum and maximum depth values (from the depth buffer) for this group's tile
+	float maxDepth, minDepth;
+	vec2 text = vec2(location) / ivec2(screenSize.x, screenSize.y);
+	float depth = texture(depthMap, text).r;
+	// Linearize the depth value from depth buffer (must do this because we created it using projection)
+	//depth = (0.5 * projection[3][2]) / (depth + 0.5 * projection[2][2] - 0.5);
+
+	// Convert depth to uint so we can do atomic min and max comparisons between the threads
+	uint depthInt = floatBitsToUint(depth);
+	atomicMin(minDepthInt, depthInt);
+	atomicMax(maxDepthInt, depthInt);
+
+    barrier();
+
+    if (gl_LocalInvocationIndex == 0) {
+        // Convert the min and max across the entire tile back to float
+        minDepth = uintBitsToFloat(minDepthInt);
+        maxDepth = uintBitsToFloat(maxDepthInt);
+        
+		// Steps based on tile sale
+		vec2 negativeStep = (2.0 * vec2(tileID)) / vec2(tileNumber);
+		vec2 positiveStep = (2.0 * vec2(tileID + ivec2(1, 1))) / vec2(tileNumber);
+
+		// Set up starting values for planes using steps and min and max z values
+		frustumPlanes[0] = vec4(1.0, 0.0, 0.0, 1.0 - negativeStep.x); // Left
+		frustumPlanes[1] = vec4(-1.0, 0.0, 0.0, -1.0 + positiveStep.x); // Right
+		frustumPlanes[2] = vec4(0.0, 1.0, 0.0, 1.0 - negativeStep.y); // Bottom
+		frustumPlanes[3] = vec4(0.0, -1.0, 0.0, -1.0 + positiveStep.y); // Top
+		frustumPlanes[4] = vec4(0.0, 0.0, -1.0, -minDepth); // Near
+		frustumPlanes[5] = vec4(0.0, 0.0, 1.0, maxDepth); // Far
+
+		// Transform the first four planes
+		for (uint i = 0; i < 4; i++) {
+			frustumPlanes[i] *= viewProjection;
+			frustumPlanes[i] /= length(frustumPlanes[i].xyz);
+		}
+
+		// Transform the depth planes
+		frustumPlanes[4] *= view;
+		frustumPlanes[4] /= length(frustumPlanes[4].xyz);
+		frustumPlanes[5] *= view;
+		frustumPlanes[5] /= length(frustumPlanes[5].xyz);
+	}
+    barrier();
+        
+        int totalClusterCount = int(ceil(clusterCount.x * clusterCount.y));
+    int x = int(gl_WorkGroupID.x);
+    int y = int(gl_WorkGroupID.y);
+    int clusterIndex = int(y * clusterCount.x + x);
+
+    uint threadCount = TILE_SIZE * TILE_SIZE;
+    int lightCount = 256;
+
+        tileDepthStats[index] = vec2(minDepth, maxDepth);
+    if (gl_LocalInvocationIndex == 0) {
+            clusters[clusterIndex].lightsCount = 0;
+    for(int i = 0; i < lightCount; i++)
+    {   
+        clusters[clusterIndex].lightsIndex[i] = -1;    
+    }
+    barrier();
+	uint passCount = (lightCount + threadCount - 1) / threadCount;
+    if (gl_LocalInvocationIndex == 0){
+	for (uint i = 0; i < lightCount; i++) {
+		// Get the lightIndex to test for this thread / pass. If the index is >= light count, then this thread can stop testing lights
+		uint lightIndex = i; //* threadCount + gl_LocalInvocationIndex;
+		if (lightIndex >= lightCount) {
+			break;
+		}
+
+		vec4 position = vec4(lights[lightIndex].position, 1.0f);
+
+		// We check if the light exists in our frustum
+		float distance = 0.0;
+		for (uint j = 0; j < 6; j++) {
+			distance = dot(position, frustumPlanes[j]) + radius;
+
+			// If one of the tests fails, then there is no intersection
+			if (distance <= 0.0) {
+				break;
+			}
+		}
+
+		// If greater than zero, then it is a visible light
+		if (distance > 0.0) {
+			// Add index to the shared array of visible indices
+                        //int lightIndex = int(clusters[index].lightsCount);
+
+			uint offset = visibleLightCount; 
+			visibleLightIndices[offset] = int(lightIndex);
+            offset = atomicAdd(visibleLightCount, 1);
+            //atomicAdd(clusters[clusterIndex].lightsCount, 1);
+            //int index = int(clusters[clusterIndex].lightsCount) - 1;
+            //clusters[clusterIndex].lightsIndex[index] = i;
+		}
+	}
+    }
+	barrier();
+
+
+		uint offset = index * lightCount; // Determine bosition in global buffer
+		for (uint i = 0; i < visibleLightCount; i++) {
+            int lightIndex = int(clusters[index].lightsCount);
+            clusters[index].lightsIndex[lightIndex] = int(visibleLightIndices[i]);
+            clusters[index].lightsCount += 1;
+			//visibleLightIndicesBuffer.data[offset + i].index = visibleLightIndices[i];
+		}
+
+		if (visibleLightCount != 1024) {
+			// Unless we have totally filled the entire array, mark it's end with -1
+			// Final shader step will use this to determine where to stop (without having to pass the light count)
+			//visibleLightIndicesBuffer.data[offset + visibleLightCount].index = -1;
+		}
+	}
+    barrier();
+   // if (gl_LocalInvocationIndex == 0){
+    for(int i = 0; i < clusterIndex; i++)
+    {
+      //clusters[clusterIndex].lightsCount += 1;
+      //clusters[clusterIndex].lightsIndex[ clusters[clusterIndex].lightsCount - 1] = i;
+      //visibleLightIndicesBuffer.data[offset + i].index = visibleLightIndices[i];
+    }
+    
+    //for(int i = 0; i < lightCount; i++)
+    //{
+    //    Light light = lights[i];
+    //    vec4 position = vec4(lights[i].position, 1.0f);
+    //    float radius = 15.0f;
+    //
+    //    float distance = 0.0;
+    //    for (uint j = 0; j < 6; j++) {
+	//		distance = dot(position, frustumPlanes[j]) + radius;
+    //
+	//		// If one of the tests fails, then there is no intersection
+	//		if (distance <= 0.0) {
+	//			break;
+	//		}
+	//	}
+    //    //if(SphereInsideFrustum(light, frustums[clusterIndex], tileDepthStats[clusterIndex].x, tileDepthStats[clusterIndex].y))
+    //    if(distance > 0.0)
+    //    {
+    //        atomicAdd(clusters[clusterIndex].lightsCount, 1);
+    //        int index = int(clusters[clusterIndex].lightsCount) - 1;
+    //        clusters[clusterIndex].lightsIndex[index] = i;
+    //    }
+    //}
+	//uint passCount = (lightCount + threadCount - 1) / threadCount;
+    
+    /*
+	for (uint i = 0; i < passCount; i++) {
+		// Get the lightIndex to test for this thread / pass. If the index is >= light count, then this thread can stop testing lights
+		uint lightIndex = i * threadCount + gl_LocalInvocationIndex;
+		if (lightIndex >= lightCount) {
+			break;
+		}
+
+		vec4 position = vec4(lights[lightIndex].position, 1.0f);
+		float radius = 1.0f;//lightBuffer.data[lightIndex].paddingAndRadius.w;
+
+		// We check if the light exists in our frustum
+		float distance = 0.0;
+		for (uint j = 0; j < 6; j++) {
+			distance = dot(position, frustumPlanes[j]) + radius;
+
+			// If one of the tests fails, then there is no intersection
+			if (distance <= 0.0) {
+				break;
+			}
+		}
+
+		// If greater than zero, then it is a visible light
+		if (distance > 0.0) {
+			// Add index to the shared array of visible indices
+            atomicAdd(clusters[clusterIndex].lightsCount, 1);
+            int index = int(clusters[clusterIndex].lightsCount) - 1;
+            clusters[clusterIndex].lightsIndex[lightIndex] = int(lightIndex);
+
+		}
+	}
+    
+	barrier();
+
+    /*
+     //------------------------ 
     vec2 clusterCount = ceil(screenSize / clusterSize);
+    // Calculate the tile coordinates based on the global thread ID
+    int tileX = int(gl_GlobalInvocationID.x / tileSizeX);
+    int tileY = int(gl_GlobalInvocationID.y / tileSizeY);
+
+    // Calculate the minimum and maximum depth values for the tile
+    calculateTileDepthStats(tileX, tileY);
+    
+    // Synchronize threads if needed
+    barrier();
+
+        if (gl_GlobalInvocationID.x == 0 && gl_GlobalInvocationID.y == 0) {
+        float globalMinDepth = tileDepthStats[0].x;
+        float globalMaxDepth = tileDepthStats[0].y;
+
+        for (int i = 1; i < (clusterCount.x / tileSizeX) * (clusterCount.y / tileSizeY); ++i) {
+            globalMinDepth = min(globalMinDepth, tileDepthStats[i].x);
+            globalMaxDepth = max(globalMaxDepth, tileDepthStats[i].y);
+        }
+
+        // Now globalMinDepth and globalMaxDepth contain the overall minimum and maximum depths
+    }
+
+
+
+    
     int totalClusterCount = int(ceil(clusterCount.x * clusterCount.y));
     int x = int(gl_WorkGroupID.x);
     int y = int(gl_WorkGroupID.y);
     int clusterIndex = int(x * clusterCount.y + y);
 
-    vec4 screenSpace[4];
-    screenSpace[0] = vec4(vec2(x, y) * TILE_SIZE, 0.f, 1.f);
-    screenSpace[1] = vec4(vec2(x + 1, y) * TILE_SIZE, 0.f, 1.f);
-    screenSpace[2] = vec4(vec2(x, y + 1) * TILE_SIZE, 0.f, 1.f);
-    screenSpace[3] = vec4(vec2(x + 1, y + 1) * TILE_SIZE, 0.f, 1.f);
+    vec2 minMax = calculateTileDepthStats(x, y);
+    float minDepthInt = (minMax.x);
+    float maxDepthInt = (minMax.y);
+    barrier();
 
-    const vec2 invViewDimensions = 1.0f / vec2(screenSize.x, screenSize.y);
+    int x1 = int(x * 1);
+    int y1 = int(y * 1);
+    vec4 screenSpace[4];
+    screenSpace[0] = vec4(vec2(x1, y1) * TILE_SIZE, -1.0f, 1.0f);
+    screenSpace[1] = vec4(vec2(x1 + 1, y1) * TILE_SIZE, -1.0f, 1.0f);
+    screenSpace[2] = vec4(vec2(x1, y1 + 1) * TILE_SIZE, -1.0f, 1.0f);
+    screenSpace[3] = vec4(vec2(x1 + 1, y1 + 1) * TILE_SIZE, -1.0f, 1.0f);
+
+    const vec2 invViewDimensions = 1.0f / screenSize;
     vec3 viewSpace[4];
-    viewSpace[0] = ScreenToView(screenSpace[0], inverse(projection)).xyz;
-    viewSpace[1] = ScreenToView(screenSpace[1], inverse(projection)).xyz;
-    viewSpace[2] = ScreenToView(screenSpace[2], inverse(projection)).xyz;
-    viewSpace[3] = ScreenToView(screenSpace[3], inverse(projection)).xyz;
+    // Now convert the screen space points to view space
+    for ( int i = 0; i < 4; i++ )
+    {
+        viewSpace[i] = ScreenToView( screenSpace[i] ).xyz;
+    }
 
     const vec3 eyePos = vec3(0.0f);
-    Frustum frustum;
-    frustum.planes[0] = ComputePlane(viewSpace[0], eyePos, viewSpace[2]);
-    frustum.planes[1] = ComputePlane(viewSpace[3], eyePos, viewSpace[1]);
-    frustum.planes[2] = ComputePlane(viewSpace[1], eyePos, viewSpace[0]);
-    frustum.planes[3] = ComputePlane(viewSpace[2], eyePos, viewSpace[3]);
+    Frustum frustum = calculateFrustum(projection * view);
+    //frustum.planes[0] = ComputePlane(viewSpace[0], eyePos, viewSpace[2]);
+    //frustum.planes[1] = ComputePlane(viewSpace[3], eyePos, viewSpace[1]);
+    //frustum.planes[2] = ComputePlane(viewSpace[1], eyePos, viewSpace[0]);
+    //frustum.planes[3] = ComputePlane(viewSpace[2], eyePos, viewSpace[3]);
 
     frustums[clusterIndex] = frustum;
 
+//    calculateFrustumPlanes(projection * view, clusterIndex);
+
     clusters[clusterIndex].lightsCount = 0;
 
-    for(int i = 0; i < 256; i++)
+    for(int i = 0; i < 1024; i++)
     {
          clusters[clusterIndex].lightsIndex[i] = -1;    
     }
-
     barrier();
+   
+   tileDepthStats[clusterIndex] = minMax;
     
-    for(int i = 0; i < 256; i++)
+    for(int i = 0; i < 1024; i++)
     {
         Light light = lights[i];
-        if(SphereInsideFrustum(light, frustum, -1, 0))
+        if(SphereInsideFrustum(light, frustums[clusterIndex], minDepthInt, maxDepthInt))
         {
-            clusters[clusterIndex].lightsIndex[clusters[clusterIndex].lightsCount] = i;
-            clusters[clusterIndex].lightsCount += 1;
+            atomicAdd(clusters[clusterIndex].lightsCount, 1);
+            int index = int(clusters[clusterIndex].lightsCount) - 1;
+            clusters[clusterIndex].lightsIndex[index] = i;
         }
     }
-    
+    */
 }

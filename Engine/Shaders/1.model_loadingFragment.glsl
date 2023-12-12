@@ -3,6 +3,7 @@ layout (location = 0) out vec4 gPosition;
 layout (location = 1) out vec4 gNormal;
 layout (location = 2) out vec4 gDiffuse;
 layout (location = 3) out vec4 gOthers;
+layout (location = 4) out vec4 gDepth;
 
 out vec4 FragColor;
 
@@ -158,6 +159,12 @@ float ggxDistribution(float nDotH, float roughness)
     float ggxdistrib = alpha2 / (PI * d * d);
     return ggxdistrib;
 }
+float far = 15000.0f;
+float near = 0.01f;
+float LinearizeDepth(float depth) {
+	float z = depth * 2.0 - 1.0;
+	return (2.0 * near * far) / (far + near - z * (far - near));
+}
 
 void main()
 {       
@@ -252,6 +259,8 @@ void main()
     gPosition = vec4(fs_in.FragPos, 1.0f);
     gDiffuse = vec4(FinalColor, 1.0f);
     gNormal = vec4(normalize(normal), 1.0f);
+    float dep = gl_FragCoord.z / gl_FragCoord.w;//LinearizeDepth(gl_FragCoord.z) / far;//
+    gDepth = vec4(dep, dep, dep, 1.0f);//gl_FragCoord.z / gl_FragCoord.w;
 
      //gPosition = vec4(1.0f, 0.2f, 0.2f, 1.0f);
     // Gamma correction

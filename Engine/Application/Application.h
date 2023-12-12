@@ -51,7 +51,7 @@ namespace Plaza {
 		Plaza::Editor::ProjectManagerGui* projectManagerGui = new Plaza::Editor::ProjectManagerGui();
 
 		unsigned int frameBuffer, textureColorbuffer, rbo = 0;
-		unsigned int geometryFramebuffer, gPosition, gNormal, gDiffuse, gOthers, geometryRboDepth = 0;
+		unsigned int geometryFramebuffer, gPosition, gNormal, gDiffuse, gOthers, gDepth, geometryRboDepth = 0;
 		unsigned int edgeDetectionFramebuffer, edgeDetectionColorBuffer, edgeDetectionDepthStencilRBO = 0;
 		unsigned int blurFramebuffer, blurColorBuffer, blurDepthStencilRBO = 0;
 		unsigned int selectedFramebuffer, selectedColorBuffer, selectedDepthStencilRBO = 0;

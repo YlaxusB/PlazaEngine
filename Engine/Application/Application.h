@@ -8,7 +8,7 @@
 #include "Engine/Shaders/Shader.h"
 #include "Editor/GUI/guiMain.h"
 #include "Engine/Application/PickingTexture.h"
-#include "Engine/Core/Lightning/Shadows/Shadows.h"
+#include "Engine/Core/Lighting/Shadows/Shadows.h"
 #include "Engine/Application/Window.h"
 #include "Engine/Editor/Editor.h"
 #include "Editor/GUI/ProjectManager/ProjectManager.h"

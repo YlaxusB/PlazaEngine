@@ -1,7 +1,9 @@
 #version 430 core
 struct Light{
+    vec4 color;
     vec3 position;
-    vec3 color;
+    float radius;
+    float cutoff;
 };
 
 layout(std430, binding = 0) buffer LightsArray {
@@ -45,12 +47,12 @@ float roundToMultiple(float value, float multiple) {
 }
 
 int rowColToIndex(vec2 rowCol, vec2 clusterCount) {
-    return int((round(rowCol.y * (clusterCount.x)) + (rowCol.x)));
+    return int((ceil(rowCol.y * (clusterCount.x)) + (rowCol.x)));
 }
 
 vec2 indexToRowCol(int index, vec2 clusterCount) {
     float col = mod(float(index), clusterCount.x);
-    float row = floor(float(index) / clusterCount.x);
+    float row = ceil(float(index) / clusterCount.x);
     return vec2(row, col);
 }
 
@@ -277,7 +279,7 @@ vec2 clusterCount = ceil(screenSize / clusterSize);
 	vec2 text = vec2(location) / ivec2(screenSize.x, screenSize.y);
 	float depth = texture(depthMap, text).r;
 	// Linearize the depth value from depth buffer (must do this because we created it using projection)
-	//depth = (0.5 * projection[3][2]) / (depth + 0.5 * projection[2][2] - 0.5);
+	//depth = projection * depth;//(0.5 * projection[3][2]) / (depth + 0.5 * projection[2][2] );
 
 	// Convert depth to uint so we can do atomic min and max comparisons between the threads
 	uint depthInt = floatBitsToUint(depth);
@@ -317,7 +319,7 @@ vec2 clusterCount = ceil(screenSize / clusterSize);
 	}
     barrier();
         
-        int totalClusterCount = int(ceil(clusterCount.x * clusterCount.y));
+    int totalClusterCount = int(ceil(clusterCount.x * clusterCount.y));
     int x = int(gl_WorkGroupID.x);
     int y = int(gl_WorkGroupID.y);
     int clusterIndex = int(y * clusterCount.x + x);
@@ -325,19 +327,19 @@ vec2 clusterCount = ceil(screenSize / clusterSize);
     uint threadCount = TILE_SIZE * TILE_SIZE;
     int lightCount = 256;
 
-        tileDepthStats[index] = vec2(minDepth, maxDepth);
+    tileDepthStats[index] = vec2(minDepth, maxDepth);
     if (gl_LocalInvocationIndex == 0) {
             clusters[clusterIndex].lightsCount = 0;
     for(int i = 0; i < lightCount; i++)
     {   
-        clusters[clusterIndex].lightsIndex[i] = -1;    
+        clusters[index].lightsIndex[i] = -1;    
     }
     barrier();
 	uint passCount = (lightCount + threadCount - 1) / threadCount;
     if (gl_LocalInvocationIndex == 0){
 	for (uint i = 0; i < lightCount; i++) {
 		// Get the lightIndex to test for this thread / pass. If the index is >= light count, then this thread can stop testing lights
-		uint lightIndex = i; //* threadCount + gl_LocalInvocationIndex;
+		uint lightIndex = i; // threadCount + gl_LocalInvocationIndex;
 		if (lightIndex >= lightCount) {
 			break;
 		}
@@ -379,21 +381,15 @@ vec2 clusterCount = ceil(screenSize / clusterSize);
             clusters[index].lightsCount += 1;
 			//visibleLightIndicesBuffer.data[offset + i].index = visibleLightIndices[i];
 		}
-
-		if (visibleLightCount != 1024) {
-			// Unless we have totally filled the entire array, mark it's end with -1
-			// Final shader step will use this to determine where to stop (without having to pass the light count)
-			//visibleLightIndicesBuffer.data[offset + visibleLightCount].index = -1;
-		}
 	}
-    barrier();
-   // if (gl_LocalInvocationIndex == 0){
-    for(int i = 0; i < clusterIndex; i++)
-    {
-      //clusters[clusterIndex].lightsCount += 1;
-      //clusters[clusterIndex].lightsIndex[ clusters[clusterIndex].lightsCount - 1] = i;
-      //visibleLightIndicesBuffer.data[offset + i].index = visibleLightIndices[i];
-    }
+    ////barrier();
+   //// if (gl_LocalInvocationIndex == 0){
+    //for(int i = 0; i < clusterIndex; i++)
+    //{
+    //  //clusters[clusterIndex].lightsCount += 1;
+    //  //clusters[clusterIndex].lightsIndex[ clusters[clusterIndex].lightsCount - 1] = i;
+    //  //visibleLightIndicesBuffer.data[offset + i].index = visibleLightIndices[i];
+    //}
     
     //for(int i = 0; i < lightCount; i++)
     //{

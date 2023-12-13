@@ -102,7 +102,7 @@
     <ClCompile Include="Engine\Editor\Outline\Outline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp">
+    <ClCompile Include="Engine\Core\Lighting\Shadows\Shadows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Editor\GUI\gizmo.cpp">
@@ -438,7 +438,10 @@
     <ClCompile Include="Engine\Components\Rendering\Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Core\Lightning\ClusteredForward.cpp">
+    <ClCompile Include="Engine\Core\Lighting\ClusteredForward.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Components\Rendering\Light.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -569,7 +572,7 @@
     <ClInclude Include="Engine\Editor\Outline\Outline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h">
+    <ClInclude Include="Engine\Core\Lighting\Shadows\Shadows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Application\EntryPoint.h">
@@ -2210,10 +2213,13 @@
     <ClInclude Include="Engine\Core\Debugging\Profiler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Core\Lightning\ClusteredForward.h">
+    <ClInclude Include="Engine\Core\Lighting\ClusteredForward.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Shaders\ComputeShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Components\Rendering\Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

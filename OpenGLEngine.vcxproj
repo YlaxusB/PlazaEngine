@@ -358,6 +358,7 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Engine\Components\Core\ModelComponent.cpp" />
     <ClCompile Include="Engine\Components\Physics\Collider.cpp" />
     <ClCompile Include="Engine\Components\Physics\RigidBody.cpp" />
+    <ClCompile Include="Engine\Components\Rendering\Light.cpp" />
     <ClCompile Include="Engine\Components\Rendering\MeshRenderer.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='GameRel|x64'">Use</PrecompiledHeader>
@@ -369,12 +370,12 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Engine\Components\Drawing\UI\TextRenderer.cpp" />
     <ClCompile Include="Engine\Core\Audio\Audio.cpp" />
     <ClCompile Include="Engine\Core\Audio\AudioSourceLoader.cpp" />
-    <ClCompile Include="Engine\Core\Lightning\ClusteredForward.cpp" />
+    <ClCompile Include="Engine\Core\Lighting\ClusteredForward.cpp" />
     <ClCompile Include="Engine\Core\Scripting\FieldManager.cpp" />
     <ClCompile Include="Engine\Core\Engine.cpp" />
     <ClCompile Include="Engine\Core\Input\Cursor.cpp" />
     <ClCompile Include="Engine\Core\Input\Input.cpp" />
-    <ClCompile Include="Engine\Core\Lightning\Shadows\Shadows.cpp" />
+    <ClCompile Include="Engine\Core\Lighting\Shadows\Shadows.cpp" />
     <ClCompile Include="Engine\Core\ModelLoader\ModelLoader.cpp" />
     <ClCompile Include="Engine\Core\ModelLoader\TexturesHandler.cpp" />
     <ClCompile Include="Engine\Core\Scripting\InternalCalls.cpp" />
@@ -703,11 +704,12 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Components\Core\Entity.h" />
     <ClInclude Include="Engine\Components\Drawing\UI\TextRenderer.h" />
     <ClInclude Include="Engine\Components\Drawing\UI\UI.h" />
+    <ClInclude Include="Engine\Components\Rendering\Light.h" />
     <ClInclude Include="Engine\Core\Audio\Audio.h" />
     <ClInclude Include="Engine\Core\Audio\AudioSourceLoader.h" />
     <ClInclude Include="Engine\Core\ComponentMapStructure.h" />
     <ClInclude Include="Engine\Core\Debugging\Profiler.h" />
-    <ClInclude Include="Engine\Core\Lightning\ClusteredForward.h" />
+    <ClInclude Include="Engine\Core\Lighting\ClusteredForward.h" />
     <ClInclude Include="Engine\Core\RenderGroup.h" />
     <ClInclude Include="Engine\Core\Scene.h" />
     <ClInclude Include="Engine\Core\Scripting\FieldManager.h" />
@@ -725,7 +727,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Components\Scripting\CppScriptComponent.h" />
     <ClInclude Include="Engine\Core\Engine.h" />
     <ClInclude Include="Engine\Core\FrameBuffer.h" />
-    <ClInclude Include="Engine\Core\Lightning\Shadows\Shadows.h" />
+    <ClInclude Include="Engine\Core\Lighting\Shadows\Shadows.h" />
     <ClInclude Include="Engine\Core\ModelLoader\Model.h" />
     <ClInclude Include="Engine\Core\ModelLoader\ModelLoader.h" />
     <ClInclude Include="Engine\Core\Physics.h" />

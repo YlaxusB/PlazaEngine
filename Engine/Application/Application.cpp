@@ -31,8 +31,9 @@
 #include "Editor/Filewatcher.h"
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Audio/Audio.h"
-#include "Engine/Core/Lightning/ClusteredForward.h"
+#include "Engine/Core/Lighting/ClusteredForward.h"
 #include "Engine/Shaders/ComputeShader.h"
+#include "Engine/Components/Rendering/Light.h"
 
 char* appdataValue;
 size_t len;
@@ -161,15 +162,15 @@ void ApplicationClass::InitShaders() {
 
 	Application->distortionCorrectionShader = new Shader((shadersFolder + "\\Shaders\\distortionCorrection\\distortionCorrectionVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\distortionCorrection\\distortionCorrectionFragment.glsl").c_str());
 
-	Lightning::mLightAccumulationShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\accumulationVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\accumulationFragment.glsl").c_str());
-	Lightning::mLightMergerShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\lightMergerVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\lightMergerFragment.glsl").c_str());
-	Lightning::mLightMergerShader->use();
-	Lightning::mLightMergerShader->setInt("gPosition", 0);
-	Lightning::mLightMergerShader->setInt("gNormal", 1);
-	Lightning::mLightMergerShader->setInt("gDiffuse", 2);
-	Lightning::mLightMergerShader->setInt("gOthers", 3);
+	Lighting::mLightAccumulationShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\accumulationVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\accumulationFragment.glsl").c_str());
+	Lighting::mLightMergerShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\lightMergerVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\lightMergerFragment.glsl").c_str());
+	Lighting::mLightMergerShader->use();
+	Lighting::mLightMergerShader->setInt("gPosition", 0);
+	Lighting::mLightMergerShader->setInt("gNormal", 1);
+	Lighting::mLightMergerShader->setInt("gDiffuse", 2);
+	Lighting::mLightMergerShader->setInt("gOthers", 3);
 
-	Lightning::mLightSorterComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\ClusteredForward\\lightSorterCompute.glsl").c_str());
+	Lighting::mLightSorterComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\ClusteredForward\\lightSorterCompute.glsl").c_str());
 
 	Application->textRenderingShader = new Shader((shadersFolder + "\\Shaders\\textRendering\\textRenderingVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\textRendering\\textRenderingFragment.glsl").c_str());
 
@@ -237,7 +238,7 @@ void ApplicationClass::CreateApplication() {
 
 
 	/* Initialize clustered forward rendering */
-	Lightning::InitializeClusters(12, 12, 12, Lightning::mClusters);
+	Lighting::InitializeClusters(12, 12, 12, Lighting::mClusters);
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -247,12 +248,12 @@ void ApplicationClass::CreateApplication() {
 	for (int i = 0; i < 2000; i++) {
 		glm::vec3 randomPos(dis2(gen), 0, dis2(gen));
 		glm::vec3 randomColor(dis(gen), dis(gen), dis(gen));
-		Lightning::mLights.push_back(Lightning::Light(randomPos, randomColor));
+		Lighting::mLights.push_back(Lighting::LightStruct(randomPos, glm::vec4(randomColor, 1.0f), 1.0f, 1.0f));
 	}
-	Lightning::AssignLightsToClusters(Lightning::mLights, Lightning::mClusters);
+	Lighting::AssignLightsToClusters(Lighting::mLights, Lighting::mClusters);
 
 
-	Lightning::CreateClusterBuffers(Lightning::mClusters);
+	Lighting::CreateClusterBuffers(Lighting::mClusters);
 }
 
 
@@ -324,6 +325,9 @@ void ApplicationClass::UpdateEngine() {
 		Mono::Update();
 	}
 
+	/* Update lights buffer */
+	Lighting::UpdateBuffers();
+
 	// Imgui New Frame (only if running editor)
 #ifdef GAME_REL
 #else
@@ -353,7 +357,7 @@ void ApplicationClass::UpdateEngine() {
 	Renderer::RenderInstances(*Application->shader);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	Lightning::LightingPass(Lightning::mClusters, Lightning::mLights);
+	Lighting::LightingPass(Lighting::mClusters, Lighting::mLights);
 
 	// Update Skybox
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, Application->geometryFramebuffer);

@@ -6,7 +6,7 @@
 
 #include "Engine/Core/Skybox.h"
 #include "Editor/GUI/guiMain.h"
-#include "Engine/Core/Lightning/ClusteredForward.h"
+#include "Engine/Core/Lighting/ClusteredForward.h"
 using namespace Plaza;
 uint64_t lastUuid;
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -42,7 +42,7 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-			for (Lightning::Light& light : Lightning::mLights) {
+			for (Lighting::LightStruct& light : Lighting::mLights) {
 				uint64_t uuid = *Application->activeScene->entitiesNames.find("Light")->second.begin();
 				uint64_t instantiatedUuid = Application->activeScene->entities.at(uuid).Instantiate(uuid);
 				Application->activeScene->entities.find(instantiatedUuid)->second.GetComponent<Transform>()->SetRelativePosition(light.position);

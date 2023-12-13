@@ -12,10 +12,11 @@ out vec4 FragColor;
 
 in vec2 TexCoords;
 
-struct Light {
+struct Light{
+    vec4 color;
     vec3 position;
-    vec3 color;
-    // Add other light properties as needed
+    float radius;
+    float cutoff;
 };
 
 struct Cluster{
@@ -131,11 +132,11 @@ vec2 worldToScreen(vec3 position){
 
 int GetIndex(vec2 screenPos, vec2 clusterCount)
 {
-    vec2 currentClusterPosition = vec2(round(roundToMultiple(screenPos.x * screenSize.x, clusterSize.x) / clusterSize.x), round(roundToMultiple(screenPos.y * screenSize.y, clusterSize.y) / clusterSize.y));
+    vec2 currentClusterPosition = vec2(ceil(roundToMultiple(screenPos.x * screenSize.x, clusterSize.x) / clusterSize.x), ceil(roundToMultiple(screenPos.y * screenSize.y, clusterSize.y) / clusterSize.y));
     return int(((currentClusterPosition.y * (clusterCount.x)) + (currentClusterPosition.x)));
 }
 
-#define MAX_POINT_LIGHT_PER_TILE 512
+#define MAX_POINT_LIGHT_PER_TILE 2048
 
 void main()
 {  
@@ -151,13 +152,14 @@ void main()
     // then calculate lighting as usual
     vec3 lighting  = Diffuse * 0.1; // hard-coded ambient component
     vec3 viewDir  = normalize(viewPos - FragPos);
-    float radius = 2.01f;
+    float radius = 5.01f;
     vec2 clusterCount = ceil(screenSize / clusterSize.xy);
     vec4 viewSpace = view * vec4(FragPos, 1.0);
     vec2 viewSpaceCoords = viewSpace.xy / viewSpace.w;
-    vec2 currentClusterPosition = vec2(round(roundToMultiple(TexCoords.x * screenSize.x, clusterSize.x) / clusterSize.x), round(roundToMultiple(TexCoords.y * screenSize.y, clusterSize.y) / clusterSize.y));
+    vec2 currentClusterPosition = vec2(ceil(roundToMultiple(TexCoords.x * screenSize.x, clusterSize.x) / clusterSize.x), ceil(roundToMultiple(TexCoords.y * screenSize.y, clusterSize.y) / clusterSize.y));
     int clusterIndex = int(((currentClusterPosition.y * (clusterCount.x)) + (currentClusterPosition.x)));
-    //clusterIndex = GetGridIndex(viewSpaceCoords);
+   // clusterIndex = GetGridIndex(viewSpaceCoords);
+   clusterIndex = GetIndex(TexCoords, clusterCount);
 
     vec2 clusterIndexXY = indexToRowCol(clusterIndex, clusterCount);
 
@@ -189,11 +191,11 @@ void main()
         {
             // diffuse
             vec3 lightDir = normalize(lightPosition - FragPos);
-            vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * light.color * 20;
+            vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * light.color.xyz * 20;
             // specular
             vec3 halfwayDir = normalize(lightDir + viewDir);  
             float spec = pow(max(dot(Normal, halfwayDir), 0.0), 16.0);
-            vec3 specular = light.color * 20 * spec * Specular;
+            vec3 specular = light.color.xyz * 20 * spec * Specular;
             // attenuation
             float constant = 1.0f;
             float quadratic = 0.032f;
@@ -240,12 +242,12 @@ void main()
     if(int(clusterIndexXY.y) % 2 == 0) c += 0.1f;
 
     vec3 heatmap = HeatMap(clusterIndex, currentCluster.lightsCount).xyz;
-    heatmap = heatmap == vec3(0.0f, 1.0f, 0.0f) ? vec3(0.0f, 0.0f, 0.0f) : heatmap;
+    heatmap = heatmap == vec3(0.0f, 1.0f, 0.0f) ? vec3(0.0f, 0.0f, 0.5f) : heatmap;
     //FragColor = vec4(c, c, c, 1.0f);
-    FragColor = vec4(mix(Diffuse * lighting, heatmap, 0.8f), 1.0f);
+    //FragColor = vec4(mix(Diffuse * lighting, heatmap, 0.8f), 1.0f);
     //FragColor = vec4(heatmap, 1.0f);
     //FragColor = vec4(color, 1.0f);
-    //FragColor = vec4(Diffuse * lighting, 1.0f);
+    FragColor = vec4(Diffuse * lighting, 1.0f);
     //FragColor = vec4(currentCluster.lightsCount / MAX_POINT_LIGHT_PER_TILE, 0.0f, 0.0f, 1.0f);
     //FragColor = vec4(int(currentClusterPosition.x) % 2 == 0 && int(currentClusterPosition.y) % 2 == 0 ? 1.0f : 0.0f, 0.0f, 0.0f, 1.0f);
     //FragColor = vec4(currentClusterPosition.x, currentClusterPosition.y, clusterIndex, 1.0f);

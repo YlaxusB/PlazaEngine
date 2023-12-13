@@ -1,17 +1,20 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ClusteredForward.h"
 #include "Engine/Core/Renderer.h"
+#include "Engine/Components/Rendering/Light.h"
+#include <vector>
 
 namespace Plaza {
-	GLuint Lightning::mClustersBuffer = 0;
-	GLuint Lightning::mLightsBuffer = 0;
-	unsigned int Lightning::frameBuffer, Lightning::textureColorbuffer, Lightning::rbo = 0;
-	Shader* Lightning::mLightAccumulationShader = nullptr;
-	Shader* Lightning::mLightMergerShader = nullptr;
-	ComputeShader* Lightning::mLightSorterComputeShader = nullptr;
-	std::vector<Lightning::Cluster> Lightning::mClusters = std::vector<Cluster>();
-	std::vector<Lightning::Light> Lightning::mLights = std::vector<Light>();
-	void Lightning::InitializeClusters(float numberClustersX, float numberClustersY, float numberClustersZ, std::vector<Cluster>& clusters) {
+	GLuint Lighting::mClustersBuffer = 0;
+	GLuint Lighting::mLightsBuffer = 0;
+	GLuint Lighting::mLightsBuffer2 = 0;
+	unsigned int Lighting::frameBuffer, Lighting::textureColorbuffer, Lighting::rbo = 0;
+	Shader* Lighting::mLightAccumulationShader = nullptr;
+	Shader* Lighting::mLightMergerShader = nullptr;
+	ComputeShader* Lighting::mLightSorterComputeShader = nullptr;
+	std::vector<Lighting::Cluster> Lighting::mClusters = std::vector<Cluster>();
+	std::vector<Lighting::LightStruct> Lighting::mLights = std::vector<LightStruct>();
+	void Lighting::InitializeClusters(float numberClustersX, float numberClustersY, float numberClustersZ, std::vector<Cluster>& clusters) {
 		std::string shadersFolder = Application->enginePath;
 		mLightAccumulationShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\accumulationVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\accumulationFragment.glsl").c_str());
 		// Clear any existing data in clusters
@@ -31,12 +34,12 @@ namespace Plaza {
 		}
 	}
 
-	void Lightning::AssignLightsToClusters(const std::vector<Light>& lights, std::vector<Cluster>& clusters) {
+	void Lighting::AssignLightsToClusters(const std::vector<LightStruct>& lights, std::vector<Cluster>& clusters) {
 		// Clear existing light indices in clusters
 
 		// Iterate over lights and assign them to clusters based on intersection
 		for (int lightIndex = 0; lightIndex < lights.size(); ++lightIndex) {
-			const Light& light = lights[lightIndex];
+			const LightStruct& light = lights[lightIndex];
 
 			// Find the clusters that the light intersects
 			for (int clusterIndex = 0; clusterIndex < clusters.size(); ++clusterIndex) {
@@ -53,9 +56,9 @@ namespace Plaza {
 		}
 	}
 
-	void Lightning::CreateClusterBuffers(const std::vector<Cluster>& clusters) {
+	void Lighting::CreateClusterBuffers(const std::vector<Cluster>& clusters) {
 		int size = 32;
-		int clusterCount = glm::round(Application->appSizes->sceneSize.y / size) * glm::round(Application->appSizes->sceneSize.x / size);
+		int clusterCount = glm::ceil(glm::ceil(Application->appSizes->sceneSize.x / size + 1) * glm::ceil(Application->appSizes->sceneSize.y / size + 1));
 		for (int i = 0; i < clusterCount; i++) {
 			mClusters.push_back(*new Cluster());
 		}
@@ -71,7 +74,7 @@ namespace Plaza {
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, clusterBuffer);
 
 		// Upload data to the buffer
-		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Cluster) * mClusters.size(), mClusters.data(), GL_STATIC_DRAW);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Cluster) * clusterCount, mClusters.data(), GL_STATIC_DRAW);
 
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, clusterBuffer);
 
@@ -84,7 +87,7 @@ namespace Plaza {
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, mLightsBuffer);
 
 		// Upload data to the buffer
-		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(Light) * mLights.size(), mLights.data(), GL_STATIC_DRAW);
+		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(LightStruct) * mLights.size(), mLights.data(), GL_STATIC_DRAW);
 
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mLightsBuffer);
 
@@ -112,23 +115,23 @@ namespace Plaza {
 
 		ApplicationSizes& appSizes = *Application->appSizes;
 		//unsigned int& textureColorbuffer = Application->textureColorbuffer;
-		glGenFramebuffers(1, &Lightning::frameBuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, Lightning::frameBuffer);
+		glGenFramebuffers(1, &Lighting::frameBuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, Lighting::frameBuffer);
 		// create a color attachment texture
-		glGenTextures(1, &Lightning::textureColorbuffer);
-		glBindTexture(GL_TEXTURE_2D, Lightning::textureColorbuffer);
+		glGenTextures(1, &Lighting::textureColorbuffer);
+		glBindTexture(GL_TEXTURE_2D, Lighting::textureColorbuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGBA, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Lightning::textureColorbuffer, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Lighting::textureColorbuffer, 0);
 
 
 		// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-		glGenRenderbuffers(1, &Lightning::rbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, Lightning::rbo);
+		glGenRenderbuffers(1, &Lighting::rbo);
+		glBindRenderbuffer(GL_RENDERBUFFER, Lighting::rbo);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, appSizes.sceneSize.x, appSizes.sceneSize.y); // use a single renderbuffer object for both a depth AND stencil buffer.
 		glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, Lightning::rbo); // now actually attach it
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, Lighting::rbo); // now actually attach it
 
 		// Disable reading
 		glReadBuffer(GL_NONE);
@@ -142,15 +145,10 @@ namespace Plaza {
 		//frameBuffer->DrawAttachments(attachments, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
 
 		/* Compute Shader */
-		GLuint lightsBuffer2;
-		glGenBuffers(1, &lightsBuffer2);
+		//GLuint lightsBuffer2;
+
 		glGenBuffers(1, &mClustersBuffer);
 
-		// Bind the input buffer to the SSBO binding point 0
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, lightsBuffer2);
-
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, lightsBuffer2);
-		glBufferData(GL_SHADER_STORAGE_BUFFER, mLights.size() * sizeof(Light), mLights.data(), GL_DYNAMIC_DRAW);
 
 		// Bind the output buffer to the SSBO binding point 1
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mClustersBuffer);
@@ -176,7 +174,7 @@ namespace Plaza {
 		glBufferData(GL_SHADER_STORAGE_BUFFER, clusterCount * sizeof(glm::vec2), vector<glm::vec2>().data(), GL_DYNAMIC_DRAW);
 	}
 
-	void Lightning::LightingPass(const std::vector<Cluster>& clusters, const std::vector<Light>& lights) {
+	void Lighting::LightingPass(const std::vector<Cluster>& clusters, const std::vector<LightStruct>& lights) {
 		// Set up shaders and framebuffer for the lighting pass
 
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
@@ -224,6 +222,7 @@ namespace Plaza {
 		//mLightSorterComputeShader->setBool("first", false);
 		glm::vec2 clusterSize = glm::vec2(32.0f);
 		glm::vec2 clusterCount = glm::ceil(Application->appSizes->sceneSize / clusterSize);
+		int extraX = int(Application->appSizes->sceneSize.x) % 32 != 0 ? 1 : 0;
 		glDispatchCompute(clusterCount.x, clusterCount.y, 1);
 		//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
@@ -273,5 +272,22 @@ namespace Plaza {
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glEnable(GL_DEPTH_TEST);
+	}
+
+	void Lighting::UpdateBuffers() {
+		std::vector<LightStruct> lightsVector = std::vector<LightStruct>();
+		for (auto [key, value] : Application->activeScene->lightComponents) {
+			Transform& transform = Application->activeScene->transformComponents.find(key)->second;
+			lightsVector.push_back(LightStruct(transform.worldPosition, value.color, value.radius, value.cutoff));
+		}
+		glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_ARRAY_BUFFER, GL_ARRAY_BUFFER, GL_ARRAY_BUFFER, &mLights);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, mLightsBuffer);
+		// get pointer
+		void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
+		// now copy data into memory
+		memcpy(ptr, lightsVector.data(), lightsVector.size() * sizeof(LightStruct));
+		// make sure to tell OpenGL we're done with the pointer
+		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		mLights = lightsVector;
 	}
 }

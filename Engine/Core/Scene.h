@@ -165,7 +165,7 @@ namespace Plaza {
 			componentsMap["class Plaza::Drawing::UI::TextRenderer"] = &UITextRendererComponents;
 			componentsMap["class Plaza::AudioSource"] = &audioSourceComponents;
 			componentsMap["class Plaza::AudioListener"] = &audioListenerComponents;
-			componentsMap["class Plaza::Light"] = &audioListenerComponents;
+			componentsMap["class Plaza::Light"] = &lightComponents;
 			//componentsMap.emplace("Camera", &cameraComponents);
 			//componentsMap.emplace("MeshRenderer", &meshRendererComponents);
 			//componentsMap.emplace("RigidBody", &rigidBodyComponents);

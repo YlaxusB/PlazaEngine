@@ -246,6 +246,13 @@ namespace Plaza::Editor {
 					ImGui::EndMenu();
 				}
 
+				if (ImGui::MenuItem("Light"))
+				{
+					Light* light = new Light();
+					light->uuid = entity.uuid;
+					entity.AddComponent<Light>(light);
+				}
+
 				ImGui::EndMenu();
 			}
 

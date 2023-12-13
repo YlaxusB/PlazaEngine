@@ -1,7 +1,5 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 
-
-//#include "Engine/Application/Application.h"
 #include "Editor/GUI/guiMain.h"
 
 #include "Engine/Application/PickingTexture.h"
@@ -18,8 +16,6 @@
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
 #include "Engine/Editor/Outline/Outline.h"
 #include "Engine/Editor/Editor.h"
-
-#include "Engine/Application/EntryPoint.h"
 
 #include <cstdlib> // Include the appropriate header for _dupenv_s
 
@@ -248,7 +244,7 @@ void ApplicationClass::CreateApplication() {
 	for (int i = 0; i < 2000; i++) {
 		glm::vec3 randomPos(dis2(gen), 0, dis2(gen));
 		glm::vec3 randomColor(dis(gen), dis(gen), dis(gen));
-		Lighting::mLights.push_back(Lighting::LightStruct(randomPos, glm::vec4(randomColor, 1.0f), 1.0f, 1.0f));
+		//Lighting::mLights.push_back(Lighting::LightStruct(randomPos, glm::vec3(randomColor), 1.0f, 1.0f, 1.0f));
 	}
 	Lighting::AssignLightsToClusters(Lighting::mLights, Lighting::mClusters);
 

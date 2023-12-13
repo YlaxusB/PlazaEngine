@@ -3,14 +3,18 @@
 namespace Plaza {
 	class Lighting {
 	public:
+		/*
+		    vec4 color;
+    float radius;
+    float cutoff;
+    float intensity;
+    vec4 position;
+		*/
 		struct LightStruct {
-			glm::vec4 color;
-			glm::vec3 position;
+			glm::vec3 color;
 			float radius;
-			float cutoff;
-			// Add other light properties as needed
-			LightStruct(glm::vec3 pos) : position(pos) {};
-			LightStruct(glm::vec3 pos, glm::vec4 col, float rad, float cut) : position(pos), color(col), radius(rad), cutoff(cut) {};
+			glm::vec3 position;
+			float intensity;
 		};
 
 		struct Cluster {
@@ -29,6 +33,7 @@ namespace Plaza {
 			Plane planes[4];
 		};
 
+		static int mLightsSize;
 		static GLuint mClustersBuffer;
 		static GLuint mLightsBuffer;
 		static GLuint mLightsBuffer2;

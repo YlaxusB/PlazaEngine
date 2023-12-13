@@ -660,6 +660,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Editor\GUI\Inspector\FileInspector\MaterialInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\FileInspector\ModelFileInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\FileInspector\TextEditor.h" />
+    <ClInclude Include="Editor\GUI\Inspector\LightInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\RigidBodyInspector.h" />
     <ClInclude Include="Editor\GUI\Inspector\SceneInspector.h" />
     <ClInclude Include="Editor\GUI\Popups\FileExplorerFilePopup.h" />

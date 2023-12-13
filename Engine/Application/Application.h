@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/Core/PreCompiledHeaders.h"
+//#include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Application/ApplicationSizes.h"
 #include "Engine/Components/Core/Camera.h"
 #include "Engine/Application/Application.h"

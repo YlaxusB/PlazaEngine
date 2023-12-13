@@ -70,7 +70,8 @@ namespace Plaza {
 				this->lastParentModelMatrix = parentModelMatrix;
 				this->lastLocalMatrix = this->localMatrix;
 			}
-		}
+		} else
+			this->modelMatrix = glm::mat4(1.0f) * this->localMatrix;
 	}
 
 	/// <summary>

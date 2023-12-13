@@ -2222,6 +2222,9 @@
     <ClInclude Include="Engine\Components\Rendering\Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Editor\GUI\Inspector\LightInspector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Engine\Shaders\skybox\skyboxVertex.glsl" />

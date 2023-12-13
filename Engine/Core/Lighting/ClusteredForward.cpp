@@ -5,6 +5,7 @@
 #include <vector>
 
 namespace Plaza {
+	int Lighting::mLightsSize = 0;
 	GLuint Lighting::mClustersBuffer = 0;
 	GLuint Lighting::mLightsBuffer = 0;
 	GLuint Lighting::mLightsBuffer2 = 0;
@@ -197,6 +198,7 @@ namespace Plaza {
 		mLightSorterComputeShader->use();
 		mLightSorterComputeShader->setMat4("view", Application->activeCamera->GetViewMatrix());
 		mLightSorterComputeShader->setMat4("projection", Application->activeCamera->GetProjectionMatrix());
+		mLightSorterComputeShader->setInt("lightCount", mLightsSize);
 		mLightSorterComputeShader->setInt("depthMap", 30);
 		glActiveTexture(GL_TEXTURE30);
 		glBindTexture(GL_TEXTURE_2D, Application->gDepth);
@@ -278,16 +280,29 @@ namespace Plaza {
 		std::vector<LightStruct> lightsVector = std::vector<LightStruct>();
 		for (auto [key, value] : Application->activeScene->lightComponents) {
 			Transform& transform = Application->activeScene->transformComponents.find(key)->second;
-			lightsVector.push_back(LightStruct(transform.worldPosition, value.color, value.radius, value.cutoff));
+			glm::vec3 pos = transform.GetWorldPosition();
+			lightsVector.push_back(LightStruct(value.color, value.radius, transform.GetWorldPosition(), value.intensity));
 		}
-		glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_ARRAY_BUFFER, GL_ARRAY_BUFFER, GL_ARRAY_BUFFER, &mLights);
+		mLightsSize = lightsVector.size();
+		//glDeleteBuffers(1, &mLightsBuffer);
+		//glGenBuffers(1, &mLightsBuffer);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, mLightsBuffer);
-		// get pointer
-		void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
+
+		// Allocate storage without initializing the data
+		glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(LightStruct) * lightsVector.size(), nullptr, GL_STATIC_DRAW);
+
+		// Upload the new data
+		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(LightStruct) * lightsVector.size(), lightsVector.data());
+
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mLightsBuffer);
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+		//// get pointer
+		//void* ptr = glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_WRITE_ONLY);
 		// now copy data into memory
-		memcpy(ptr, lightsVector.data(), lightsVector.size() * sizeof(LightStruct));
+		//memcpy(ptr, lightsVector.data(), lightsVector.size() * sizeof(LightStruct));
 		// make sure to tell OpenGL we're done with the pointer
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-		mLights = lightsVector;
+		//glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		//mLights = lightsVector;
 	}
 }

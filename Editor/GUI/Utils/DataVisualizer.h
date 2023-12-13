@@ -21,6 +21,12 @@ namespace Plaza::Editor::Utils {
 		if (ImGui::DragFloat(("##" + name).c_str(), &value, speed, min, max, format, ImGuiInputTextFlags_CallbackEdit))
 			callback(value);
 	}
+	static void DragFloat(std::string name, float& value, float speed, float min = std::numeric_limits<float>().max(), float max = std::numeric_limits<float>().max(), const char* format = "%.3f", bool maxZero = false) {
+
+		ImGui::Text(name.c_str());
+		ImGui::SameLine();
+		ImGui::DragFloat(("##" + name).c_str(), &value, speed, min, max, format, ImGuiInputTextFlags_CallbackEdit);
+	}
 
 	static void DragFloat3(std::string name, glm::vec3& value, float speed, std::function<void(glm::vec3) > callback, float min = std::numeric_limits<float>().max(), float max = std::numeric_limits<float>().max(), const char* format = "%.3f", bool maxZero = false) {
 		ImGui::PushItemWidth(75);
@@ -62,6 +68,35 @@ namespace Plaza::Editor::Utils {
 		ImGui::Text("Z:");
 		ImGui::SameLine();
 		if (ImGui::DragFloat(("##z" + name).c_str(), &value.z, speed, min, max, format, ImGuiInputTextFlags_CallbackEdit))
+			isDragging = true;
+
+		return isDragging;
+	}
+
+	static bool DragFloat4(std::string name, glm::vec4& value, float speed, float min = std::numeric_limits<float>().max(), float max = std::numeric_limits<float>().max(), const char* format = "%.3f", bool maxZero = false) {
+		ImGui::PushItemWidth(75);
+		ImGui::Text(name.c_str());
+		ImGui::SameLine();
+		ImGui::Text("X:");
+		ImGui::SameLine();
+		bool isDragging = false;
+		if (ImGui::DragFloat(("##x" + name).c_str(), &value.x, speed, min, max, format, ImGuiInputTextFlags_CallbackEdit))
+			isDragging = true;
+		//ImGui::SetWindowSize(ImVec2(10, 50));
+		ImGui::SameLine();
+		ImGui::Text("Y:");
+		ImGui::SameLine();
+		if (ImGui::DragFloat(("##y" + name).c_str(), &value.y, speed, min, max, format, ImGuiInputTextFlags_CallbackEdit))
+			isDragging = true;
+		ImGui::SameLine();
+		ImGui::Text("Z:");
+		ImGui::SameLine();
+		if (ImGui::DragFloat(("##z" + name).c_str(), &value.z, speed, min, max, format, ImGuiInputTextFlags_CallbackEdit))
+			isDragging = true;
+		ImGui::SameLine();
+		ImGui::Text("W:");
+		ImGui::SameLine();
+		if (ImGui::DragFloat(("##W" + name).c_str(), &value.w, speed, min, max, format, ImGuiInputTextFlags_CallbackEdit))
 			isDragging = true;
 
 		return isDragging;

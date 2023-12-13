@@ -1,13 +1,13 @@
 #version 430 core
-struct Light{
-    vec4 color;
-    vec3 position;
+struct LightStruct {
+    vec3 color;
     float radius;
-    float cutoff;
+    vec3 position;
+    float intensity;
 };
 
 layout(std430, binding = 0) buffer LightsArray {
-    Light lights[];
+    LightStruct lights[];
 };
 
 struct Cluster{
@@ -22,7 +22,9 @@ layout(std430, binding = 1) buffer ClusterBuffer {
 };
 layout (location = 3) uniform mat4 view;  
 layout (location = 4) uniform mat4 projection;
-layout (location = 5) uniform bool first;
+layout (location = 5) uniform int lightCount;
+//int lightCount = 0;
+layout (location = 6) uniform bool first;
 //uniform mat4 view;
 
 vec2 screenSize = vec2(1820, 720);
@@ -103,16 +105,16 @@ bool GetProjectedBounds(vec3 center, float radius, inout vec3 boxMin, inout vec3
     return true;
 }
 float radius = 25.1f;
-bool pointLightIntersectsCluster(Light light, Cluster cluster)
+bool pointLightIntersectsCluster(LightStruct light, Cluster cluster)
 {
     // NOTE: expects light.position to be in view space like the cluster bounds
     // global light list has world space coordinates, but we transform the
     // coordinates in the shared array of lights after copying
 
     // get closest point to sphere center
-    vec3 closest = max(cluster.minBounds, min(light.position, cluster.maxBounds));
+    vec3 closest = max(cluster.minBounds, min(light.position.xyz, cluster.maxBounds));
     // check if point is inside the sphere
-    vec3 dist = closest - light.position;
+    vec3 dist = closest - light.position.xyz;
     return dot(dist, dist) <= (radius * radius);    
 }
 
@@ -156,12 +158,12 @@ vec4 ScreenToView(vec4 screen)
     return ClipToView(clip);
 }
 
-bool SphereInsidePlane(Light light, vec4 plane)
+bool SphereInsidePlane(LightStruct light, vec4 plane)
 {
-    return dot(plane.xyz, light.position) - plane.w < -radius;
+    return dot(plane.xyz, light.position.xyz) - plane.w < -radius;
 }
 
-bool SphereInsideFrustum(Light light, Frustum frustum, float zNear, float zFar)
+bool SphereInsideFrustum(LightStruct light, Frustum frustum, float zNear, float zFar)
 {
     bool result = true;
  
@@ -255,14 +257,31 @@ Frustum calculateFrustum(mat4 viewProj)
 layout (local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 void main()
 {
-
-vec2 clusterCount = ceil(screenSize / clusterSize);
- vec4 frustumPlanes[6];
-	ivec2 location = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 location = ivec2(gl_GlobalInvocationID.xy);
 	ivec2 itemID = ivec2(gl_LocalInvocationID.xy);
 	ivec2 tileID = ivec2(gl_WorkGroupID.xy);
 	ivec2 tileNumber = ivec2(gl_NumWorkGroups.xy);
 	uint index = tileID.y * tileNumber.x + tileID.x;
+    vec2 clusterCount = ceil(screenSize / clusterSize);
+    int totalClusterCount = int(ceil(clusterCount.x * clusterCount.y));
+    int x = int(gl_WorkGroupID.x);
+    int y = int(gl_WorkGroupID.y);
+    int clusterIndex = int(y * clusterCount.x + x);
+
+    if(lightCount <= 0)
+    {
+        if (gl_LocalInvocationIndex == 0) {
+            clusters[index].lightsCount = 0;
+            for(int i = 0; i < lightCount; i++)
+            {   
+                clusters[index].lightsIndex[i] = -1;    
+            }
+        }
+        return;
+    }
+
+ vec4 frustumPlanes[6];
+
 
 	// Initialize shared global values for depth and light count
 	if (gl_LocalInvocationIndex == 0) {
@@ -302,7 +321,7 @@ vec2 clusterCount = ceil(screenSize / clusterSize);
 		frustumPlanes[1] = vec4(-1.0, 0.0, 0.0, -1.0 + positiveStep.x); // Right
 		frustumPlanes[2] = vec4(0.0, 1.0, 0.0, 1.0 - negativeStep.y); // Bottom
 		frustumPlanes[3] = vec4(0.0, -1.0, 0.0, -1.0 + positiveStep.y); // Top
-		frustumPlanes[4] = vec4(0.0, 0.0, -1.0, -minDepth); // Near
+		frustumPlanes[4] = vec4(0.0, 0.0, -1.0, minDepth); // Near
 		frustumPlanes[5] = vec4(0.0, 0.0, 1.0, maxDepth); // Far
 
 		// Transform the first four planes
@@ -319,13 +338,10 @@ vec2 clusterCount = ceil(screenSize / clusterSize);
 	}
     barrier();
         
-    int totalClusterCount = int(ceil(clusterCount.x * clusterCount.y));
-    int x = int(gl_WorkGroupID.x);
-    int y = int(gl_WorkGroupID.y);
-    int clusterIndex = int(y * clusterCount.x + x);
+
 
     uint threadCount = TILE_SIZE * TILE_SIZE;
-    int lightCount = 256;
+//    int lightCount = 256;
 
     tileDepthStats[index] = vec2(minDepth, maxDepth);
     if (gl_LocalInvocationIndex == 0) {
@@ -344,12 +360,12 @@ vec2 clusterCount = ceil(screenSize / clusterSize);
 			break;
 		}
 
-		vec4 position = vec4(lights[lightIndex].position, 1.0f);
+		vec4 position = vec4(lights[lightIndex].position.xyz, 1.0f);
 
 		// We check if the light exists in our frustum
 		float distance = 0.0;
 		for (uint j = 0; j < 6; j++) {
-			distance = dot(position, frustumPlanes[j]) + radius;
+			distance = dot(position, frustumPlanes[j]) + (lights[lightIndex].radius); // lights[lightIndex].radius);
 
 			// If one of the tests fails, then there is no intersection
 			if (distance <= 0.0) {

@@ -12,11 +12,11 @@ out vec4 FragColor;
 
 in vec2 TexCoords;
 
-struct Light{
-    vec4 color;
-    vec3 position;
+struct LightStruct {
+    vec3 color;
     float radius;
-    float cutoff;
+    vec3 position;
+    float intensity;
 };
 
 struct Cluster{
@@ -38,7 +38,7 @@ struct Frustum
 };
 
 layout (std430, binding = 0) buffer LightsBuffer {
-    Light lights[];
+    LightStruct lights[];
 };
 
 layout (std430, binding = 1) buffer ClusterBuffer {
@@ -172,43 +172,36 @@ void main()
     */
     for (int i = 0; i < MAX_POINT_LIGHT_PER_TILE && currentCluster.lightsIndex[i] != -1; ++i)
     {
-        Light light = lights[currentCluster.lightsIndex[i]];
+        LightStruct light = lights[currentCluster.lightsIndex[i]];
         //light.color = vec3(1.0f, 0.0f, 0.0f);
-        vec3 lightPosition = light.position;
-
-        float angle = time * 0.1f;
-        mat2 rotationMatrix = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
-        vec2 rotatedXZ = rotationMatrix * lightPosition.xz;
-
-        //lightPosition.x = rotatedXZ.x;
-        lightPosition.y = 0;
-        //lightPosition.z = rotatedXZ.y;
+        vec3 lightPosition = light.position.xyz;
 
         // calculate distance between light source and current fragment
         float distance = length(lightPosition - FragPos);
         //if(distance < radius * radius)
-        if(1 < 2)
+        //if(distance < light.radius)
+        if(distance < light.radius)
         {
+            vec3 lightColor = light.color;
             // diffuse
             vec3 lightDir = normalize(lightPosition - FragPos);
-            vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * light.color.xyz * 20;
+            vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * (lightColor * light.intensity);
             // specular
             vec3 halfwayDir = normalize(lightDir + viewDir);  
             float spec = pow(max(dot(Normal, halfwayDir), 0.0), 16.0);
-            vec3 specular = light.color.xyz * 20 * spec * Specular;
+            vec3 specular = (lightColor * light.intensity) * spec * Specular;
             // attenuation
             float constant = 1.0f;
-            float quadratic = 0.032f;
-            float linear = 0.09f;
-            float attenuation = 1.0 / (constant + linear * distance + 
-    		    quadratic * (distance * distance));    
-            attenuation *= radius;
+            float quadratic = 1.8f;
+            float linear = 0.7f;
+            float attenuation = 1.0 / (1.0 + linear * distance + quadratic * distance * distance);
+            attenuation *= (light.radius / 1);
             diffuse *= attenuation;
             specular *= attenuation;
-            lighting += (diffuse + specular) * attenuation;
+            lighting += (diffuse + specular); //* attenuation;
         }
      }    
-    lighting += 1.0f;
+    //lighting += 1.0f;
 
     #if 1
     vec2 co = TexCoords * screenSize;// (clusterSize.xy );//* clusterSize.xy);
@@ -247,7 +240,7 @@ void main()
     //FragColor = vec4(mix(Diffuse * lighting, heatmap, 0.8f), 1.0f);
     //FragColor = vec4(heatmap, 1.0f);
     //FragColor = vec4(color, 1.0f);
-    FragColor = vec4(Diffuse * lighting, 1.0f);
+    FragColor = vec4(Diffuse + lighting, 1.0f);
     //FragColor = vec4(currentCluster.lightsCount / MAX_POINT_LIGHT_PER_TILE, 0.0f, 0.0f, 1.0f);
     //FragColor = vec4(int(currentClusterPosition.x) % 2 == 0 && int(currentClusterPosition.y) % 2 == 0 ? 1.0f : 0.0f, 0.0f, 0.0f, 1.0f);
     //FragColor = vec4(currentClusterPosition.x, currentClusterPosition.y, clusterIndex, 1.0f);

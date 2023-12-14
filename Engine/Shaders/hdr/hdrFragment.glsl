@@ -1,9 +1,9 @@
 #version 330 core
-out vec4 FragColor;
-
 in vec2 TexCoords;
 
 uniform sampler2D hdrBuffer;
+layout (location = 0) out vec4 FragColor;
+layout (location = 1) out vec4 brightTexture;
 uniform bool hdr;
 uniform float exposure;
 
@@ -19,6 +19,12 @@ void main()
 
     // Apply gamma correction
     adjustedColor = pow(adjustedColor, vec3(1.0 / gamma));
+
+    float brightness = dot(adjustedColor, vec3(0.2126, 0.7152, 0.0722));
+    if(brightness > 1.0)
+        brightTexture = vec4(adjustedColor, 1.0);
+    else
+        brightTexture = vec4(0.0, 0.0, 0.0, 1.0);
 
     // Output the final color
     FragColor = vec4(adjustedColor, 1.0);

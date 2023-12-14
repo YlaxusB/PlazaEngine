@@ -12,12 +12,45 @@ void renderFullscreenQuad() {
 	//glBindVertexArray(0);
 
 }
-int i = 0;
+int i = 0; 
 namespace Plaza {
+	unsigned int Renderer::pingpongFBO[2];
+	unsigned int Renderer::pingpongColorbuffers[2];
+	Shader* Renderer::mergeShader = nullptr;
+	Shader* Renderer::blurShader = nullptr;
 	FrameBuffer* Renderer::hdrFramebuffer = nullptr;
+	FrameBuffer* Renderer::bloomBlurFrameBuffer = nullptr;
+	FrameBuffer* Renderer::bloomFrameBuffer = nullptr;
 	void Renderer::Init() {
 		//hdrFramebuffer.
 		InitQuad();
+
+		bloomBlurFrameBuffer = new FrameBuffer(GL_FRAMEBUFFER);
+		bloomBlurFrameBuffer->InitColorAttachment(GL_TEXTURE_2D, GL_RGBA32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, GL_RGBA, GL_FLOAT, GL_LINEAR);
+		GLenum attachments[] = { GL_COLOR_ATTACHMENT0 };
+		bloomBlurFrameBuffer->DrawAttachments(attachments, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+
+		bloomFrameBuffer = new FrameBuffer(GL_FRAMEBUFFER);
+		bloomFrameBuffer->InitColorAttachment(GL_TEXTURE_2D, GL_RGBA32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, GL_RGBA, GL_FLOAT, GL_LINEAR);
+		bloomFrameBuffer->DrawAttachments(attachments, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+
+		/* Blur pingpong framebuffer */
+		glGenFramebuffers(2, pingpongFBO);
+		glGenTextures(2, pingpongColorbuffers);
+		for (unsigned int i = 0; i < 2; i++)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
+			glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, GL_RGBA, GL_FLOAT, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongColorbuffers[i], 0);
+			// also check if framebuffers are complete (no need for depth buffer)
+			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				std::cout << "Framebuffer not complete!" << std::endl;
+		}
 	}
 	// Render all GameObjects
 	void Renderer::Render(Shader& shader) {
@@ -89,12 +122,38 @@ namespace Plaza {
 		}
 	}
 
-	void Renderer::BlurBuffer()
+	void Renderer::BlurBuffer(GLint colorBuffer, int passes)
 	{
 
+		blurShader->use();
+		blurShader->setInt("image", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, colorBuffer);
+		bool firstIteration = true;
+		bool horizontal = true;
+
+		for (unsigned int i = 0; i < passes; i++)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
+			blurShader->setInt("horizontal", horizontal);
+			glBindTexture(GL_TEXTURE_2D, firstIteration ? colorBuffer : pingpongColorbuffers[!horizontal]);  // bind texture of other framebuffer (or scene if first iteration)
+			Renderer::RenderQuadOnScreen();
+			horizontal = !horizontal;
+			if (firstIteration)
+				firstIteration = false;
+		}
 	}
 
-
+	void Renderer::MergeColors(GLint texture1, GLint texture2) {
+		mergeShader->use();
+		mergeShader->setInt("texture1", 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		mergeShader->setInt("texture2", 1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+		Renderer::RenderQuadOnScreen();
+	}
 
 	void Renderer::RenderOutline(Shader outlineShader) {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -138,12 +197,8 @@ namespace Plaza {
 	}
 
 	void Renderer::RenderHDR() {
-		PLAZA_PROFILE_SECTION("HDR");
-#ifdef GAME_REL
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#else
-		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-#endif // GAME_REL
+		PLAZA_PROFILE_SECTION("HDR/Bloom");
+		glBindFramebuffer(GL_FRAMEBUFFER, Application->hdrFramebuffer);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		Application->hdrShader->use();
@@ -155,6 +210,20 @@ namespace Plaza {
 		Renderer::RenderQuadOnScreen();
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		//renderFullscreenQuad();
+	}
+
+	void Renderer::RenderBloom() {
+		/* Blur only the bright fragments */
+		Renderer::bloomBlurFrameBuffer->Bind();
+		Renderer::BlurBuffer(Application->hdrBloomColor, 10);
+		//Renderer::bloomBlurFrameBuffer->Bind();
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		Renderer::CopyFrameBufferColor(Renderer::pingpongFBO[1], bloomBlurFrameBuffer->buffer);
+		/* Merge the bright fragments with the scene */
+		glBindFramebuffer(GL_FRAMEBUFFER, Renderer::bloomFrameBuffer->buffer);
+		Renderer::MergeColors(Renderer::bloomBlurFrameBuffer->colorBuffer, Application->hdrSceneColor);
+
+
 	}
 
 	unsigned int Renderer::quadVAO = 0;
@@ -182,4 +251,15 @@ namespace Plaza {
 		renderFullscreenQuad();
 	}
 
+	void Renderer::CopyFrameBufferColor(GLint readBuffer, GLint drawBuffer) {
+		glBindFramebuffer(GL_FRAMEBUFFER, drawBuffer);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, readBuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawBuffer);
+		glBlitFramebuffer(
+			0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y,
+			0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y,
+			GL_COLOR_BUFFER_BIT,
+			GL_LINEAR
+		);
+	}
 }

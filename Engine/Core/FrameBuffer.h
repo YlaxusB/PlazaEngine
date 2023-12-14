@@ -18,6 +18,16 @@ namespace Plaza {
 		void Unbind();
 
 		void InitRenderBufferObject(GLenum internalFormat, int width, int height);
+		/// <summary>
+		/// Example: (GL_TEXTURE_2D, GL_RGBA32F, x, y, GL_RGBA, GL_FLOAT, GL_LINEAR);
+		/// </summary>
+		/// <param name="textureTarget"></param>
+		/// <param name="internalFormat"></param>
+		/// <param name="width"></param>
+		/// <param name="height"></param>
+		/// <param name="format"></param>
+		/// <param name="type"></param>
+		/// <param name="param"></param>
 		void InitColorAttachment(GLenum textureTarget, GLenum internalFormat, int width, int height, GLenum format, GLenum type, GLint param);
 		void InitDepthAttachment(GLint level, GLenum internalFormat, int width, int height, GLenum format, GLenum type);
 

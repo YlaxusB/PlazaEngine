@@ -142,6 +142,8 @@ namespace Plaza {
 				this->RemoveComponent<AudioSource>();
 			if (this->HasComponent<AudioListener>())
 				this->RemoveComponent<AudioListener>();
+			if (this->HasComponent<Light>())
+				this->RemoveComponent<Light>();
 
 			if (Editor::selectedGameObject && Editor::selectedGameObject->uuid == this->uuid)
 				Editor::selectedGameObject = nullptr;
@@ -184,6 +186,8 @@ namespace Plaza {
 				this->RemoveComponent<AudioSource>();
 			if (this->HasComponent<AudioListener>())
 				this->RemoveComponent<AudioListener>();
+			if (this->HasComponent<Light>())
+				this->RemoveComponent<Light>();
 
 			/*
 						MeshRenderer* meshRendererToInstantiate = entityToInstantiate->GetComponent<MeshRenderer>();

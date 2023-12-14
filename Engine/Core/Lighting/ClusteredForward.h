@@ -3,13 +3,6 @@
 namespace Plaza {
 	class Lighting {
 	public:
-		/*
-		    vec4 color;
-    float radius;
-    float cutoff;
-    float intensity;
-    vec4 position;
-		*/
 		struct LightStruct {
 			glm::vec3 color;
 			float radius;

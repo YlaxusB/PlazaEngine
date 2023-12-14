@@ -23,6 +23,10 @@ namespace Plaza::Editor {
 		int width = Application->appSizes->sceneSize.x;
 		int height = Application->appSizes->sceneSize.y;
 		blurringBuffer->InitColorAttachment(GL_TEXTURE_2D, GL_RGB32F, width, height, GL_RGB, GL_FLOAT, GL_LINEAR);
+		blurringBuffer->Bind();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+		glBindBuffer(GL_FRAMEBUFFER, 0);
 		blurringBuffer->InitRenderBufferObject(GL_DEPTH24_STENCIL8, width, height);
 		GLenum attachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_RED_INTEGER };
 		blurringBuffer->DrawAttachments(attachments, width, height);

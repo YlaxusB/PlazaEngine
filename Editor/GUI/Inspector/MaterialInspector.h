@@ -99,6 +99,7 @@ namespace Plaza::Editor {
 					ImGui::Text(Editor::selectedGameObject->GetComponent<Transform>()->scene.c_str());
 
 					ImGui::Checkbox("Cast Shadows", &entity->GetComponent<MeshRenderer>()->castShadows);
+					ImGui::DragFloat("Intensity", &entity->GetComponent<MeshRenderer>()->material->intensity);
 
 
 

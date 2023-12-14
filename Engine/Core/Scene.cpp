@@ -62,6 +62,7 @@ namespace Plaza {
 		newScene->UITextRendererComponents = ComponentMultiMap<uint64_t, Plaza::Drawing::UI::TextRenderer>(copyScene->UITextRendererComponents);
 		newScene->audioSourceComponents = ComponentMultiMap<uint64_t, AudioSource>(copyScene->audioSourceComponents);
 		newScene->audioListenerComponents = ComponentMultiMap<uint64_t, AudioListener>(copyScene->audioListenerComponents);
+		newScene->lightComponents = ComponentMultiMap<uint64_t, Light>(copyScene->lightComponents);
 		newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
 
 		newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);

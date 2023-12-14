@@ -40,6 +40,8 @@ namespace Plaza {
 			constexpr const char* textureMetalnessUniform = "texture_metalness";
 			constexpr const char* textureRoughnessUniform = "texture_roughness";
 
+			shader.setFloat("intensity", material->intensity);
+
 			shader.setBool("usingNormal", mesh->usingNormal);
 			if (material->shininess != 64.0f) {
 				shader.setFloat(shininessUniform, material->shininess);

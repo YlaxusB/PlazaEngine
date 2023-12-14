@@ -137,6 +137,10 @@ void ApplicationClass::InitShaders() {
 
 	Application->outlineBlurShader = new Shader((shadersFolder + "\\Shaders\\blur\\blurVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\blur\\blurFragment.glsl").c_str());
 
+	Renderer::blurShader = new Shader((shadersFolder + "\\Shaders\\blur\\gaussianBlurVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\blur\\gaussianBlurFragment.glsl").c_str());
+
+	Renderer::mergeShader = new Shader((shadersFolder + "\\Shaders\\merge\\mergeVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\merge\\mergeFragment.glsl").c_str());
+
 	Application->outlineBlurShader->use();
 
 	Application->outlineBlurShader->setInt("sceneBuffer", 0);
@@ -400,16 +404,35 @@ void ApplicationClass::UpdateEngine() {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	// Render HDR
+	// Render HDR and Bloom
 	Renderer::RenderHDR();
+	Renderer::RenderBloom();
+
+	/* Copy contents of HDR/Bloom to app framebuffer or 0 (when its a game)*/
+	GLint drawBuffer;
+#ifdef GAME_REL
+	drawBuffer = 0;
+#else
+	drawBuffer = Application->frameBuffer;
+#endif
+	glBindFramebuffer(GL_FRAMEBUFFER, drawBuffer);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, Renderer::bloomFrameBuffer->buffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawBuffer);
+	glBlitFramebuffer(
+		0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y,
+		0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y,
+		GL_COLOR_BUFFER_BIT,
+		GL_LINEAR
+	);
+
 
 	// Render In-Game UI
 	if (Application->focusedMenu == "Scene") {
-#ifdef GAME_REL
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#else
-		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-#endif // GAME_REL
+//#ifdef GAME_REL
+//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//#else
+//		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+//#endif // GAME_REL
 		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		/* Draw Texts */
 		for (auto& [key, value] : Application->activeScene->UITextRendererComponents) {
@@ -419,13 +442,10 @@ void ApplicationClass::UpdateEngine() {
 }
 
 	// Update ImGui (only if running editor)
-
-#ifdef GAME_REL
-
-#else
+#ifndef GAME_REL
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	Gui::Update();
-#endif // GAME_REL == 0
+#endif
 	// Update last frame
 
 	Time::lastFrame = currentFrame;
@@ -608,7 +628,26 @@ void ApplicationClass::InitOpenGL() {
 #pragma endregion
 
 
-
+	/* HDR/Bloom */
+	//unsigned int& textureColorbuffer = Application->textureColorbuffer;
+	glGenFramebuffers(1, &Application->hdrFramebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, Application->hdrFramebuffer);
+	// HDR Scene
+	glGenTextures(1, &Application->hdrSceneColor);
+	glBindTexture(GL_TEXTURE_2D, Application->hdrSceneColor);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Application->hdrSceneColor, 0);
+	// Bloom
+	glGenTextures(1, &Application->hdrBloomColor);
+	glBindTexture(GL_TEXTURE_2D, Application->hdrBloomColor);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, Application->hdrBloomColor, 0);
+	GLenum hdrAttachments[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, hdrAttachments);
 
 	glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
 	glBindTexture(GL_TEXTURE_2D, 0);

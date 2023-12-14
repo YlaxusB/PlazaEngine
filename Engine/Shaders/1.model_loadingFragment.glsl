@@ -15,6 +15,7 @@ uniform sampler2D texture_height;
 uniform sampler2D texture_metalness;
 uniform sampler2D texture_roughness;
 uniform float shininess;
+uniform float intensity;
 
 uniform vec4 texture_diffuse_rgba = vec4(300, 300, 300, 300);
 uniform bool texture_diffuse_rgba_bool;
@@ -175,7 +176,8 @@ void main()
     else{
         color = texture(texture_diffuse, fs_in.TexCoords).rgb;
     }
-    color = color / 1;
+    color = color * intensity;
+
     vec3 lightColor = vec3(1.0f, 0.85f, 0.85f) * 255;
     // ambient
     vec3 ambient = 1.32 * (lightColor / 1);

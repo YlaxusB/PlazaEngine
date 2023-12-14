@@ -5,7 +5,11 @@
 namespace Plaza {
 	class Renderer {
 	public:
+		static Shader* mergeShader;
+		static Shader* blurShader;
 		static FrameBuffer* hdrFramebuffer;
+		static FrameBuffer* bloomBlurFrameBuffer;
+		static FrameBuffer* bloomFrameBuffer;
 		/// <summary>
 		/// Init the HDR framebuffer and others
 		/// </summary>
@@ -29,9 +33,14 @@ namespace Plaza {
 		static void RenderOutline(Shader outlineShader);
 
 		/// <summary>
-		/// Renders the plane with HDR using the scene color buffer
+		/// Renders a fullscreen quad with HDR using the scene color buffer
 		/// </summary>
 		static void RenderHDR();
+
+		/// <summary>
+		/// Renders a fullscreen quad blurring all fragments that its color exceeds a clamp, then merges it into the scene buffer
+		/// </summary>
+		static void RenderBloom();
 
 		/// <summary>
 		/// <p>Renders a full quad on the screen with a Shader</p>
@@ -42,8 +51,19 @@ namespace Plaza {
 		static unsigned int quadVAO;
 		static unsigned int quadVBO;
 		static void InitQuad();
+
+		static void BlurBuffer(GLint colorBuffer, int passes);
+		/// <summary>
+		/// Merge two textures
+		/// </summary>
+		/// <param name="outBuffer"></param>
+		/// <param name="colorBuffer"></param>
+		static void MergeColors(GLint texture1, GLint texture2);
+
+		static void CopyFrameBufferColor(GLint readBuffer, GLint drawBuffer);
 	private:
-		static void BlurBuffer();
+		static unsigned int pingpongFBO[2];
+		static unsigned int pingpongColorbuffers[2];
 	};
 }
 

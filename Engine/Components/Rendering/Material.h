@@ -17,6 +17,7 @@ namespace Plaza {
 		Texture roughness = Texture("roughness");
 		Texture aoMap = Texture("aoMap");
 		float shininess = 3.0f;
+		float intensity = 1.0f;
 
 		void LoadTextures(std::string relativePath = "") {
 			diffuse.Load(relativePath);

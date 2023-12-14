@@ -23,7 +23,7 @@ layout(std430, binding = 1) buffer ClusterBuffer {
 layout (location = 3) uniform mat4 view;  
 layout (location = 4) uniform mat4 projection;
 layout (location = 5) uniform int lightCount;
-//int lightCount = 0;
+//int lightCount = 24;
 layout (location = 6) uniform bool first;
 //uniform mat4 view;
 
@@ -340,216 +340,51 @@ void main()
         
 
 
-    uint threadCount = TILE_SIZE * TILE_SIZE;
 //    int lightCount = 256;
 
     tileDepthStats[index] = vec2(minDepth, maxDepth);
     if (gl_LocalInvocationIndex == 0) {
-            clusters[clusterIndex].lightsCount = 0;
-    for(int i = 0; i < lightCount; i++)
-    {   
-        clusters[index].lightsIndex[i] = -1;    
-    }
-    barrier();
-	uint passCount = (lightCount + threadCount - 1) / threadCount;
-    if (gl_LocalInvocationIndex == 0){
-	for (uint i = 0; i < lightCount; i++) {
-		// Get the lightIndex to test for this thread / pass. If the index is >= light count, then this thread can stop testing lights
-		uint lightIndex = i; // threadCount + gl_LocalInvocationIndex;
-		if (lightIndex >= lightCount) {
-			break;
-		}
-
-		vec4 position = vec4(lights[lightIndex].position.xyz, 1.0f);
-
-		// We check if the light exists in our frustum
-		float distance = 0.0;
-		for (uint j = 0; j < 6; j++) {
-			distance = dot(position, frustumPlanes[j]) + (lights[lightIndex].radius); // lights[lightIndex].radius);
-
-			// If one of the tests fails, then there is no intersection
-			if (distance <= 0.0) {
-				break;
-			}
-		}
-
-		// If greater than zero, then it is a visible light
-		if (distance > 0.0) {
-			// Add index to the shared array of visible indices
-                        //int lightIndex = int(clusters[index].lightsCount);
-
-			uint offset = visibleLightCount; 
-			visibleLightIndices[offset] = int(lightIndex);
-            offset = atomicAdd(visibleLightCount, 1);
-            //atomicAdd(clusters[clusterIndex].lightsCount, 1);
-            //int index = int(clusters[clusterIndex].lightsCount) - 1;
-            //clusters[clusterIndex].lightsIndex[index] = i;
-		}
-	}
-    }
-	barrier();
-
-
-		uint offset = index * lightCount; // Determine bosition in global buffer
-		for (uint i = 0; i < visibleLightCount; i++) {
-            int lightIndex = int(clusters[index].lightsCount);
-            clusters[index].lightsIndex[lightIndex] = int(visibleLightIndices[i]);
-            clusters[index].lightsCount += 1;
-			//visibleLightIndicesBuffer.data[offset + i].index = visibleLightIndices[i];
-		}
-	}
-    ////barrier();
-   //// if (gl_LocalInvocationIndex == 0){
-    //for(int i = 0; i < clusterIndex; i++)
-    //{
-    //  //clusters[clusterIndex].lightsCount += 1;
-    //  //clusters[clusterIndex].lightsIndex[ clusters[clusterIndex].lightsCount - 1] = i;
-    //  //visibleLightIndicesBuffer.data[offset + i].index = visibleLightIndices[i];
-    //}
-    
-    //for(int i = 0; i < lightCount; i++)
-    //{
-    //    Light light = lights[i];
-    //    vec4 position = vec4(lights[i].position, 1.0f);
-    //    float radius = 15.0f;
-    //
-    //    float distance = 0.0;
-    //    for (uint j = 0; j < 6; j++) {
-	//		distance = dot(position, frustumPlanes[j]) + radius;
-    //
-	//		// If one of the tests fails, then there is no intersection
-	//		if (distance <= 0.0) {
-	//			break;
-	//		}
-	//	}
-    //    //if(SphereInsideFrustum(light, frustums[clusterIndex], tileDepthStats[clusterIndex].x, tileDepthStats[clusterIndex].y))
-    //    if(distance > 0.0)
-    //    {
-    //        atomicAdd(clusters[clusterIndex].lightsCount, 1);
-    //        int index = int(clusters[clusterIndex].lightsCount) - 1;
-    //        clusters[clusterIndex].lightsIndex[index] = i;
-    //    }
-    //}
-	//uint passCount = (lightCount + threadCount - 1) / threadCount;
-    
-    /*
-	for (uint i = 0; i < passCount; i++) {
-		// Get the lightIndex to test for this thread / pass. If the index is >= light count, then this thread can stop testing lights
-		uint lightIndex = i * threadCount + gl_LocalInvocationIndex;
-		if (lightIndex >= lightCount) {
-			break;
-		}
-
-		vec4 position = vec4(lights[lightIndex].position, 1.0f);
-		float radius = 1.0f;//lightBuffer.data[lightIndex].paddingAndRadius.w;
-
-		// We check if the light exists in our frustum
-		float distance = 0.0;
-		for (uint j = 0; j < 6; j++) {
-			distance = dot(position, frustumPlanes[j]) + radius;
-
-			// If one of the tests fails, then there is no intersection
-			if (distance <= 0.0) {
-				break;
-			}
-		}
-
-		// If greater than zero, then it is a visible light
-		if (distance > 0.0) {
-			// Add index to the shared array of visible indices
-            atomicAdd(clusters[clusterIndex].lightsCount, 1);
-            int index = int(clusters[clusterIndex].lightsCount) - 1;
-            clusters[clusterIndex].lightsIndex[lightIndex] = int(lightIndex);
-
-		}
-	}
-    
-	barrier();
-
-    /*
-     //------------------------ 
-    vec2 clusterCount = ceil(screenSize / clusterSize);
-    // Calculate the tile coordinates based on the global thread ID
-    int tileX = int(gl_GlobalInvocationID.x / tileSizeX);
-    int tileY = int(gl_GlobalInvocationID.y / tileSizeY);
-
-    // Calculate the minimum and maximum depth values for the tile
-    calculateTileDepthStats(tileX, tileY);
-    
-    // Synchronize threads if needed
-    barrier();
-
-        if (gl_GlobalInvocationID.x == 0 && gl_GlobalInvocationID.y == 0) {
-        float globalMinDepth = tileDepthStats[0].x;
-        float globalMaxDepth = tileDepthStats[0].y;
-
-        for (int i = 1; i < (clusterCount.x / tileSizeX) * (clusterCount.y / tileSizeY); ++i) {
-            globalMinDepth = min(globalMinDepth, tileDepthStats[i].x);
-            globalMaxDepth = max(globalMaxDepth, tileDepthStats[i].y);
+        clusters[clusterIndex].lightsCount = 0;
+        for(int i = 0; i < lightCount + 1; i++)
+        {   
+            clusters[index].lightsIndex[i] = -1;    
         }
-
-        // Now globalMinDepth and globalMaxDepth contain the overall minimum and maximum depths
-    }
-
-
-
-    
-    int totalClusterCount = int(ceil(clusterCount.x * clusterCount.y));
-    int x = int(gl_WorkGroupID.x);
-    int y = int(gl_WorkGroupID.y);
-    int clusterIndex = int(x * clusterCount.y + y);
-
-    vec2 minMax = calculateTileDepthStats(x, y);
-    float minDepthInt = (minMax.x);
-    float maxDepthInt = (minMax.y);
-    barrier();
-
-    int x1 = int(x * 1);
-    int y1 = int(y * 1);
-    vec4 screenSpace[4];
-    screenSpace[0] = vec4(vec2(x1, y1) * TILE_SIZE, -1.0f, 1.0f);
-    screenSpace[1] = vec4(vec2(x1 + 1, y1) * TILE_SIZE, -1.0f, 1.0f);
-    screenSpace[2] = vec4(vec2(x1, y1 + 1) * TILE_SIZE, -1.0f, 1.0f);
-    screenSpace[3] = vec4(vec2(x1 + 1, y1 + 1) * TILE_SIZE, -1.0f, 1.0f);
-
-    const vec2 invViewDimensions = 1.0f / screenSize;
-    vec3 viewSpace[4];
-    // Now convert the screen space points to view space
-    for ( int i = 0; i < 4; i++ )
-    {
-        viewSpace[i] = ScreenToView( screenSpace[i] ).xyz;
-    }
-
-    const vec3 eyePos = vec3(0.0f);
-    Frustum frustum = calculateFrustum(projection * view);
-    //frustum.planes[0] = ComputePlane(viewSpace[0], eyePos, viewSpace[2]);
-    //frustum.planes[1] = ComputePlane(viewSpace[3], eyePos, viewSpace[1]);
-    //frustum.planes[2] = ComputePlane(viewSpace[1], eyePos, viewSpace[0]);
-    //frustum.planes[3] = ComputePlane(viewSpace[2], eyePos, viewSpace[3]);
-
-    frustums[clusterIndex] = frustum;
-
-//    calculateFrustumPlanes(projection * view, clusterIndex);
-
-    clusters[clusterIndex].lightsCount = 0;
-
-    for(int i = 0; i < 1024; i++)
-    {
-         clusters[clusterIndex].lightsIndex[i] = -1;    
     }
     barrier();
-   
-   tileDepthStats[clusterIndex] = minMax;
-    
-    for(int i = 0; i < 1024; i++)
-    {
-        Light light = lights[i];
-        if(SphereInsideFrustum(light, frustums[clusterIndex], minDepthInt, maxDepthInt))
+	uint threadCount = TILE_SIZE * TILE_SIZE;
+    uint passCount = (lightCount + threadCount - 1) / threadCount;
+    if (gl_LocalInvocationIndex == 0) {
+        for (uint i = 0; i < lightCount; i++) 
         {
-            atomicAdd(clusters[clusterIndex].lightsCount, 1);
-            int index = int(clusters[clusterIndex].lightsCount) - 1;
-            clusters[clusterIndex].lightsIndex[index] = i;
+            // Get the lightIndex to test for this thread / pass. If the index is >= light count, then this thread can stop testing lights
+            uint lightIndex = i;
+            if (lightIndex >= lightCount) {
+            	break;
+            }
+            
+            vec4 position = vec4(lights[lightIndex].position.xyz, 1.0f);
+            float radius = lights[lightIndex].radius;
+            
+            // We check if the light exists in our frustum
+            float distance = 0.0;
+            for (uint j = 0; j < 6; j++) {
+            	distance = dot(position, frustumPlanes[j]) + radius; // lights[lightIndex].radius);
+            
+            	// If one of the tests fails, then there is no intersection
+            	if (distance <= 0.0) {
+            		break;
+            	}
+            }
+            
+            // If greater than zero, then it is a visible light
+            if (distance > 0.0) {
+            	// Add index to the shared array of visible indices
+                            //int lightIndex = int(clusters[index].lightsCount);
+            
+            	uint offset = atomicAdd(visibleLightCount, 1);
+            	clusters[index].lightsIndex[offset] = int(lightIndex);
+                
+            }
         }
     }
-    */
 }

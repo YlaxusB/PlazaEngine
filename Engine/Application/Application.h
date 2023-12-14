@@ -55,6 +55,7 @@ namespace Plaza {
 		unsigned int edgeDetectionFramebuffer, edgeDetectionColorBuffer, edgeDetectionDepthStencilRBO = 0;
 		unsigned int blurFramebuffer, blurColorBuffer, blurDepthStencilRBO = 0;
 		unsigned int selectedFramebuffer, selectedColorBuffer, selectedDepthStencilRBO = 0;
+		unsigned int hdrFramebuffer, hdrSceneColor, hdrBloomColor = 0;
 		unsigned int pick = 0;
 
 		FrameBuffer* distortionCorrectionFrameBuffer = nullptr;

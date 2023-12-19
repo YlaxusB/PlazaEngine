@@ -21,7 +21,7 @@ void main()
     adjustedColor = pow(adjustedColor, vec3(1.0 / gamma));
 
     float brightness = dot(adjustedColor, vec3(0.2126, 0.7152, 0.0722));
-    if(brightness > 1.0)
+    if(adjustedColor.x + adjustedColor.y + adjustedColor.z >= 3.0)
         brightTexture = vec4(adjustedColor, 1.0);
     else
         brightTexture = vec4(0.0, 0.0, 0.0, 1.0);

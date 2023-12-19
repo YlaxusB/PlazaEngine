@@ -5,6 +5,8 @@
 #include "Engine/Editor/Outline/Outline.h"
 #include "Engine/Core/Skybox.h"
 #include "Engine/Core/FrameBuffer.h"
+#include "Engine/Core/Renderer/Bloom.h"
+
 void renderFullscreenQuad() {
 	// skybox cube
 	glBindVertexArray(Plaza::Application->blurVAO);
@@ -51,6 +53,8 @@ namespace Plaza {
 			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 				std::cout << "Framebuffer not complete!" << std::endl;
 		}
+
+		Bloom::Init();
 	}
 	// Render all GameObjects
 	void Renderer::Render(Shader& shader) {
@@ -213,16 +217,16 @@ namespace Plaza {
 	}
 
 	void Renderer::RenderBloom() {
-		/* Blur only the bright fragments */
-		Renderer::bloomBlurFrameBuffer->Bind();
-		Renderer::BlurBuffer(Application->hdrBloomColor, 10);
+		///* Blur only the bright fragments */
 		//Renderer::bloomBlurFrameBuffer->Bind();
-		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		Renderer::CopyFrameBufferColor(Renderer::pingpongFBO[1], bloomBlurFrameBuffer->buffer);
-		/* Merge the bright fragments with the scene */
-		glBindFramebuffer(GL_FRAMEBUFFER, Renderer::bloomFrameBuffer->buffer);
-		Renderer::MergeColors(Renderer::bloomBlurFrameBuffer->colorBuffer, Application->hdrSceneColor);
-
+		//Renderer::BlurBuffer(Application->hdrBloomColor, 10);
+		////Renderer::bloomBlurFrameBuffer->Bind();
+		////glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//Renderer::CopyFrameBufferColor(Renderer::pingpongFBO[1], bloomBlurFrameBuffer->buffer);
+		///* Merge the bright fragments with the scene */
+		//glBindFramebuffer(GL_FRAMEBUFFER, Renderer::bloomFrameBuffer->buffer);
+		//Renderer::MergeColors(Renderer::bloomBlurFrameBuffer->colorBuffer, Application->hdrSceneColor);
+		Bloom::DrawBloom();
 
 	}
 

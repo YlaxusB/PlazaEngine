@@ -30,6 +30,7 @@
 #include "Engine/Core/Lighting/ClusteredForward.h"
 #include "Engine/Shaders/ComputeShader.h"
 #include "Engine/Components/Rendering/Light.h"
+#include "Engine/Core/Renderer/Bloom.h"
 
 char* appdataValue;
 size_t len;
@@ -172,6 +173,11 @@ void ApplicationClass::InitShaders() {
 
 	Lighting::mLightSorterComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\ClusteredForward\\lightSorterCompute.glsl").c_str());
 
+	Bloom::mBloomComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\bloom\\bloomCompute.glsl").c_str());
+	Bloom::mBloomBlendComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\bloom\\bloomBlendCompute.glsl").c_str());
+	Bloom::mBloomBrightSeparatorComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\bloom\\bloomBrightSeparator.glsl").c_str());
+
+	
 	Application->textRenderingShader = new Shader((shadersFolder + "\\Shaders\\textRendering\\textRenderingVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\textRendering\\textRenderingFragment.glsl").c_str());
 
 	Skybox::skyboxShader = new Shader((shadersFolder + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());

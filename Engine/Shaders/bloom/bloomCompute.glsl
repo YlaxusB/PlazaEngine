@@ -32,9 +32,9 @@ vec4 boxBlur(ivec2 TexCoords)
     vec2 tex_offset = 1.0 / gl_NumWorkGroups.xy; // gets size of single texel
     
     vec3 result = vec3(0.0f);
+    int halfKernelSize = !upscale ? KERNEL_SIZE / 2 : KERNEL_SIZE;
     if(horizontal)
     {
-         int halfKernelSize = KERNEL_SIZE / 2;
 
         for (int i = -halfKernelSize; i <= halfKernelSize; ++i) {
             ivec2 offset = ivec2(i, 0);
@@ -49,7 +49,6 @@ vec4 boxBlur(ivec2 TexCoords)
     }
     else
     {
-         int halfKernelSize = KERNEL_SIZE / 2;
 
         for (int i = -halfKernelSize; i <= halfKernelSize; ++i) {
             ivec2 offset = ivec2(0, i);

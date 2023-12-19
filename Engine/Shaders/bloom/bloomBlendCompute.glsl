@@ -11,7 +11,7 @@ void main() {
     if(color.x + color.y + color.z >= 3.0)
         color.xyz = vec3(1.0f);
     else
-     color += imageLoad(blurred, texelCoords);//(imageLoad(blurred, texelCoords) * 2);
+     color += imageLoad(blurred, texelCoords - ivec2(-15));//(imageLoad(blurred, texelCoords) * 2);
 
     imageStore(outImage, texelCoords, color);
 }

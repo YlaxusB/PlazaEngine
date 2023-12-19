@@ -348,6 +348,14 @@ namespace Plaza {
 			instantiatedEntity->AddComponent<AudioSource>(newAudioSource);
 		}
 
+		auto lightIt = Application->activeScene->lightComponents.find(entityToInstantiate->uuid);
+		if (lightIt != Application->activeScene->lightComponents.end()) {
+			PLAZA_PROFILE_SECTION("Light");
+			Light* newLight = new Light(lightIt->second);
+			newLight->uuid = instantiatedEntity->uuid;
+			instantiatedEntity->AddComponent<Light>(newLight);
+		}
+
 
 		/* Instantiate children */
 		for (unsigned int i = 0; i < entityToInstantiate->childrenUuid.size(); i++) {

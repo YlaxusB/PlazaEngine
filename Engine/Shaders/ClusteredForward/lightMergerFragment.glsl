@@ -228,12 +228,13 @@ void main()
 
     vec3 heatmap = HeatMap(clusterIndex, currentCluster.lightsCount).xyz;
     heatmap = heatmap == vec3(0.0f, 1.0f, 0.0f) ? vec3(0.0f, 0.0f, 0.5f) : heatmap;
+
+
     color = mix(Diffuse + lighting, heatmap, 0.8f);
 
 #else
     color = Diffuse + lighting;
 #endif
-
 
 
 

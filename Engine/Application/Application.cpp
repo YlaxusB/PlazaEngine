@@ -173,6 +173,8 @@ void ApplicationClass::InitShaders() {
 
 	Lighting::mLightSorterComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\ClusteredForward\\lightSorterCompute.glsl").c_str());
 
+	Bloom::mBloomDownScaleShader = new ComputeShader((shadersFolder + "\\Shaders\\bloom\\bloomDownScaleCompute.glsl").c_str());
+	Bloom::mBloomUpScaleShader = new ComputeShader((shadersFolder + "\\Shaders\\bloom\\bloomUpScaleCompute.glsl").c_str());
 	Bloom::mBloomComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\bloom\\bloomCompute.glsl").c_str());
 	Bloom::mBloomBlendComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\bloom\\bloomBlendCompute.glsl").c_str());
 	Bloom::mBloomBrightSeparatorComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\bloom\\bloomBrightSeparator.glsl").c_str());
@@ -422,6 +424,8 @@ void ApplicationClass::UpdateEngine() {
 	drawBuffer = Application->frameBuffer;
 #endif
 	glBindFramebuffer(GL_FRAMEBUFFER, drawBuffer);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, Renderer::bloomFrameBuffer->buffer);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawBuffer);
 	glBlitFramebuffer(

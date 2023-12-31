@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Bloom.h"
 #include "Engine/Core/Renderer.h"
+#include "Engine/Core/Renderer/ScreenSpaceReflections.h"
 
 namespace Plaza {
 	Texture2D::Texture2D() {};
@@ -143,7 +144,8 @@ namespace Plaza {
 
 		//Renderer::CopyFrameBufferColor(Application->hdrFramebuffer, Bloom::fbo);
 		glCopyImageSubData(
-			Application->hdrSceneColor, GL_TEXTURE_2D, 0, 0, 0, 0,
+			//Application->hdrSceneColor, GL_TEXTURE_2D, 0, 0, 0, 0,
+			ScreenSpaceReflections::mScreenSpaceReflectionsFbo->colorBuffer, GL_TEXTURE_2D, 0, 0, 0, 0,
 			mFinalTexturePair->texture1.id, GL_TEXTURE_2D, 0, 0, 0, 0,
 			Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 1
 		);
@@ -155,8 +157,8 @@ namespace Plaza {
 
 		/* Bind the textures */
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, Application->hdrSceneColor);
-		glBindImageTexture(0, Application->hdrSceneColor, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+		glBindTexture(GL_TEXTURE_2D, ScreenSpaceReflections::mScreenSpaceReflectionsFbo->colorBuffer);
+		glBindImageTexture(0, ScreenSpaceReflections::mScreenSpaceReflectionsFbo->colorBuffer, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, Renderer::bloomFrameBuffer->colorBuffer);
 		glBindImageTexture(1, Renderer::bloomFrameBuffer->colorBuffer, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
@@ -256,7 +258,7 @@ namespace Plaza {
 
 	void Bloom::BlendSceneWithBloom() {
 		Bloom::mBloomBlendComputeShader->use();
-		glBindImageTexture(0, Application->hdrSceneColor, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+		glBindImageTexture(0, ScreenSpaceReflections::mScreenSpaceReflectionsFbo->colorBuffer, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, Bloom::mFinalTexturePair->texture1.id);
 		glBindImageTexture(3, Bloom::mFinalTexturePair->texture1.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);

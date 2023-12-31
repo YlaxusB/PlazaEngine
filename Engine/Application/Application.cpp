@@ -31,6 +31,7 @@
 #include "Engine/Shaders/ComputeShader.h"
 #include "Engine/Components/Rendering/Light.h"
 #include "Engine/Core/Renderer/Bloom.h"
+#include "Engine/Core/Renderer/ScreenSpaceReflections.h"
 
 char* appdataValue;
 size_t len;
@@ -172,6 +173,15 @@ void ApplicationClass::InitShaders() {
 	Lighting::mLightMergerShader->setInt("gOthers", 3);
 
 	Lighting::mLightSorterComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\ClusteredForward\\lightSorterCompute.glsl").c_str());
+
+	ScreenSpaceReflections::mScreenSpaceReflectionsShader = new Shader((shadersFolder + "\\Shaders\\screenSpaceReflections\\screenSpaceReflectionsVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\screenSpaceReflections\\screenSpaceReflectionsFragment.glsl").c_str());
+	ScreenSpaceReflections::mScreenSpaceReflectionsShader->use();
+	ScreenSpaceReflections::mScreenSpaceReflectionsShader->setInt("gPosition", 0);
+	ScreenSpaceReflections::mScreenSpaceReflectionsShader->setInt("gNormal", 1);
+	ScreenSpaceReflections::mScreenSpaceReflectionsShader->setInt("gDiffuse", 2);
+	ScreenSpaceReflections::mScreenSpaceReflectionsShader->setInt("gOthers", 3);
+	ScreenSpaceReflections::mScreenSpaceReflectionsShader->setInt("gDepth", 4);
+	ScreenSpaceReflections::mScreenSpaceReflectionsShader->setInt("sceneColor", 5);
 
 	Bloom::mBloomDownScaleShader = new ComputeShader((shadersFolder + "\\Shaders\\bloom\\bloomDownScaleCompute.glsl").c_str());
 	Bloom::mBloomUpScaleShader = new ComputeShader((shadersFolder + "\\Shaders\\bloom\\bloomUpScaleCompute.glsl").c_str());
@@ -412,8 +422,13 @@ void ApplicationClass::UpdateEngine() {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	// Render HDR and Bloom
+	// Render HDR
 	Renderer::RenderHDR();
+
+	// Render Screen Space Reflections
+	ScreenSpaceReflections::Update();
+
+	// Render Bloom
 	Renderer::RenderBloom();
 
 	/* Copy contents of HDR/Bloom to app framebuffer or 0 (when its a game)*/

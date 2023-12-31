@@ -372,6 +372,7 @@ call .\setdllpath.bat</Command>
     <ClCompile Include="Engine\Core\Audio\AudioSourceLoader.cpp" />
     <ClCompile Include="Engine\Core\Lighting\ClusteredForward.cpp" />
     <ClCompile Include="Engine\Core\Renderer\Bloom.cpp" />
+    <ClCompile Include="Engine\Core\Renderer\ScreenSpaceReflections.cpp" />
     <ClCompile Include="Engine\Core\Scripting\FieldManager.cpp" />
     <ClCompile Include="Engine\Core\Engine.cpp" />
     <ClCompile Include="Engine\Core\Input\Cursor.cpp" />
@@ -713,6 +714,7 @@ call .\setdllpath.bat</Command>
     <ClInclude Include="Engine\Core\Debugging\Profiler.h" />
     <ClInclude Include="Engine\Core\Lighting\ClusteredForward.h" />
     <ClInclude Include="Engine\Core\Renderer\Bloom.h" />
+    <ClInclude Include="Engine\Core\Renderer\ScreenSpaceReflections.h" />
     <ClInclude Include="Engine\Core\RenderGroup.h" />
     <ClInclude Include="Engine\Core\Scene.h" />
     <ClInclude Include="Engine\Core\Scripting\FieldManager.h" />

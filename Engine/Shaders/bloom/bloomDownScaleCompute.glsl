@@ -110,6 +110,6 @@ void main()
     {
       c = quadratic_threshold(c, u_threshold.x, u_threshold.yzw);
     }
-
+    
 	imageStore(u_output_image, pixel_coords, max(c, 0.0001f));
 }

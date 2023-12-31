@@ -167,6 +167,8 @@ float LinearizeDepth(float depth) {
 	return (2.0 * near * far) / (far + near - z * (far - near));
 }
 
+uniform mat4 model;
+
 void main()
 {       
     vec3 color = texture(texture_diffuse, fs_in.TexCoords).rgb;
@@ -260,10 +262,28 @@ void main()
     /* Geometry */
     gPosition = vec4(fs_in.FragPos, 1.0f);
     gDiffuse = vec4(FinalColor, 1.0f);
-    gNormal = vec4(normalize(normal), 1.0f);
-    float dep = gl_FragCoord.z / gl_FragCoord.w;//LinearizeDepth(gl_FragCoord.z) / far;//
-    gDepth = vec4(dep, dep, dep, 1.0f);//gl_FragCoord.z / gl_FragCoord.w;
 
+    if(usingNormal)
+    {
+        vec3 T = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
+        vec3 B = cross(normal, T);
+        mat3 TBN = mat3(T, B, normal);
+        vec3 normalB = normalize(TBN * normal);
+        // Transform normal to world space
+        //normalB = normalize((view * model * vec4(normal, 0.0)).xyz);
+        vec3 normalWorld = normalize((view * model * vec4(normalB, 1.0f)).xyz);
+        gNormal = vec4(normalWorld, 1.0f);
+    }
+    else
+        gNormal = vec4(normalize(normal), 1.0f);
+
+
+
+
+
+    float dep = gl_FragCoord.z / gl_FragCoord.w;//LinearizeDepth(gl_FragCoord.z) / far;//
+    gDepth = vec4(dep, LinearizeDepth(gl_FragCoord.z / gl_FragCoord.w) / far, gl_FragCoord.z, 1.0f);//gl_FragCoord.z / gl_FragCoord.w;
+    gDepth.x = gDepth.y;
      //gPosition = vec4(1.0f, 0.2f, 0.2f, 1.0f);
     // Gamma correction
     vec4 FinalLight = vec4(FinalColor, 1.0);

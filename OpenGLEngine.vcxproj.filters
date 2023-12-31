@@ -447,6 +447,9 @@
     <ClCompile Include="Engine\Core\Renderer\Bloom.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Engine\Core\Renderer\ScreenSpaceReflections.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\Vendor\imgui\imconfig.h">
@@ -2229,6 +2232,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Core\Renderer\Bloom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Core\Renderer\ScreenSpaceReflections.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

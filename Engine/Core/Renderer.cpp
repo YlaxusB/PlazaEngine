@@ -6,6 +6,7 @@
 #include "Engine/Core/Skybox.h"
 #include "Engine/Core/FrameBuffer.h"
 #include "Engine/Core/Renderer/Bloom.h"
+#include "Engine/Core/Renderer/ScreenSpaceReflections.h"
 
 void renderFullscreenQuad() {
 	// skybox cube
@@ -54,12 +55,15 @@ namespace Plaza {
 				std::cout << "Framebuffer not complete!" << std::endl;
 		}
 
+		ScreenSpaceReflections::Init();
 		Bloom::Init();
 	}
 	// Render all GameObjects
 	void Renderer::Render(Shader& shader) {
 		PLAZA_PROFILE_SECTION("Render");
 		shader.use();
+
+
 
 		glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 		glm::mat4 view = Application->activeCamera->GetViewMatrix();
@@ -80,7 +84,6 @@ namespace Plaza {
 		{
 			shader.setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", Application->Shadows->shadowCascadeLevels[i]);
 		}
-
 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
@@ -106,7 +109,7 @@ namespace Plaza {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		for (auto [renderGroupUuid, renderGroup] : Application->activeScene->renderGroups) {
 			if (renderGroup->instanceModelMatrices.size() > 0) {
-				renderGroup->DrawInstanced(shader);
+				 renderGroup->DrawInstanced(shader);
 			}
 		}
 		//for (auto [key, mesh] : Application->activeScene->meshes) {

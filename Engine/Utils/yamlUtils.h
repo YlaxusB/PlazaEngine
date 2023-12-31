@@ -12,9 +12,9 @@ namespace YAML {
 			if (!node.IsSequence() || node.size() != 3)
 				return false;
 
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			rhs.z = node[2].as<float>();
+			rhs.x = node[0].as<double>();
+			rhs.y = node[1].as<double>();
+			rhs.z = node[2].as<double>();
 			return true;
 		}
 	};
@@ -24,10 +24,10 @@ namespace YAML {
 			if (!node.IsSequence() || node.size() != 4)
 				return false;
 
-			rhs.x = node[0].as<float>();
-			rhs.y = node[1].as<float>();
-			rhs.z = node[2].as<float>();
-			rhs.a = node[3].as<float>();
+			rhs.x = node[0].as<double>();
+			rhs.y = node[1].as<double>();
+			rhs.z = node[2].as<double>();
+			rhs.a = node[3].as<double>();
 			return true;
 		}
 	};

@@ -18,7 +18,7 @@ namespace Plaza {
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		mScreenSpaceReflectionsShader->use();
-		mScreenSpaceReflectionsShader->setVec3("viewPos", Application->activeCamera->Position);
+		mScreenSpaceReflectionsShader->setVec3("cameraPos", Application->activeCamera->Position);
 		mScreenSpaceReflectionsShader->setMat4("view", Application->activeCamera->GetViewMatrix());
 		mScreenSpaceReflectionsShader->setMat4("invView", glm::inverse(Application->activeCamera->GetViewMatrix()));
 		mScreenSpaceReflectionsShader->setMat4("invProjection", glm::inverse(Application->activeCamera->GetProjectionMatrix()));

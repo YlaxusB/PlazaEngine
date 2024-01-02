@@ -169,11 +169,13 @@ float LinearizeDepth(float depth) {
 
 uniform mat4 model;
 
+#define COLOR_MAX_MIN 65000
+
 void main()
 {       
     vec3 color = texture(texture_diffuse, fs_in.TexCoords).rgb;
     if(texture_diffuse_rgba != vec4(300, 300, 300, 300)){
-         color = texture_diffuse_rgba.rgb;
+         color = clamp(texture_diffuse_rgba.rgb, -COLOR_MAX_MIN, COLOR_MAX_MIN);
     }
     else{
         color = texture(texture_diffuse, fs_in.TexCoords).rgb;
@@ -246,7 +248,7 @@ void main()
     //shad += ambient;
     shad /= 1;
     float specularIntensity = 13.0f;
-    gOthers = vec4(SpecBRDF, 1.0f);
+    gOthers = vec4(SpecBRDF * specularIntensity, 1.0f);
     SpecBRDF = shadow == 0 ? SpecBRDF : vec3(0);
     vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color * (nDotL + amb / 2);//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
 
@@ -283,7 +285,7 @@ void main()
 
     float dep = gl_FragCoord.z / gl_FragCoord.w;//LinearizeDepth(gl_FragCoord.z) / far;//
     gDepth = vec4(dep, LinearizeDepth(gl_FragCoord.z / gl_FragCoord.w) / far, gl_FragCoord.z, 1.0f);//gl_FragCoord.z / gl_FragCoord.w;
-    gDepth.x = gDepth.y;
+    //gDepth.x = gDepth.y;
      //gPosition = vec4(1.0f, 0.2f, 0.2f, 1.0f);
     // Gamma correction
     vec4 FinalLight = vec4(FinalColor, 1.0);

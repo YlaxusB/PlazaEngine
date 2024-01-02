@@ -74,8 +74,6 @@ void main()
     vec2 MetallicEmmissive = vec2(1.0f);//texture2D(gOthers, TexCoords).rg;
     Metallic = MetallicEmmissive.r;
 
-    if(texture(gPosition, TexCoords).y > 1)
-        Metallic = 0;
     if(Metallic < 0.01)
     {
         outColor = texture(sceneColor, TexCoords);
@@ -87,7 +85,6 @@ void main()
         outColor = texture(sceneColor, TexCoords);
         return;
     }
-
  
     vec3 viewNormal = vec3(normalize(texture2D(gNormal, TexCoords) * invView));//vec3(texture2D(gNormal, TexCoords) * (invView));
     vec3 viewPos = vec3(view * texture(gPosition, TexCoords));

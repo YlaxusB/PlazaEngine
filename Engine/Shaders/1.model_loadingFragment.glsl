@@ -249,6 +249,7 @@ void main()
     shad /= 1;
     float specularIntensity = 13.0f;
     gOthers = vec4(SpecBRDF * specularIntensity, 1.0f);
+    gOthers.z = metallic;
     SpecBRDF = shadow == 0 ? SpecBRDF : vec3(0);
     vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color * (nDotL + amb / 2);//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
 
@@ -280,10 +281,10 @@ void main()
         gNormal = vec4(normalize(normal), 1.0f);
 
 
+    vec3 reflectDir = reflect(-lightDir, normal);
+    //gOthers.r = pow(max(dot(viewDir, reflectDir), 0.0), 8.0);
 
-
-
-    float dep = gl_FragCoord.z / gl_FragCoord.w;//LinearizeDepth(gl_FragCoord.z) / far;//
+    float dep = gl_FragCoord.z / gl_FragCoord.w / far;//LinearizeDepth(gl_FragCoord.z) / far;//
     gDepth = vec4(dep, LinearizeDepth(gl_FragCoord.z / gl_FragCoord.w) / far, gl_FragCoord.z, 1.0f);//gl_FragCoord.z / gl_FragCoord.w;
     //gDepth.x = gDepth.y;
      //gPosition = vec4(1.0f, 0.2f, 0.2f, 1.0f);

@@ -17,13 +17,13 @@ namespace Plaza {
 		mScreenSpaceReflectionsFbo->Bind();
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
-
 		mScreenSpaceReflectionsShader->use();
 		mScreenSpaceReflectionsShader->setVec3("cameraPos", Application->activeCamera->Position);
 		mScreenSpaceReflectionsShader->setMat4("view", Application->activeCamera->GetViewMatrix());
 		mScreenSpaceReflectionsShader->setMat4("invView", glm::inverse(Application->activeCamera->GetViewMatrix()));
 		mScreenSpaceReflectionsShader->setMat4("invProjection", glm::inverse(Application->activeCamera->GetProjectionMatrix()));
 		mScreenSpaceReflectionsShader->setMat4("projection", Application->activeCamera->GetProjectionMatrix());
+		//mScreenSpaceReflectionsShader->setMat4("cameraPosition", Application->activeCamera->getpo());
 
 		glBindTextureUnit(0, Application->gPosition);
 		glBindTextureUnit(1, Application->gNormal);
@@ -31,7 +31,6 @@ namespace Plaza {
 		glBindTextureUnit(3, Application->gOthers);
 		glBindTextureUnit(4, Application->gDepth);
 		glBindTextureUnit(5, Application->hdrSceneColor);
-
 		Renderer::RenderQuadOnScreen();
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);

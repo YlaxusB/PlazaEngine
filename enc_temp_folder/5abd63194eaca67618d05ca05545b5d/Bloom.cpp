@@ -142,7 +142,9 @@ namespace Plaza {
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		//Renderer::CopyFrameBufferColor(Application->hdrFramebuffer, Bloom::fbo);
 		glCopyImageSubData(
+			//Application->hdrSceneColor, GL_TEXTURE_2D, 0, 0, 0, 0,
 			ScreenSpaceReflections::mScreenSpaceReflectionsFbo->colorBuffer, GL_TEXTURE_2D, 0, 0, 0, 0,
 			mFinalTexturePair->texture1.id, GL_TEXTURE_2D, 0, 0, 0, 0,
 			Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 1
@@ -205,7 +207,11 @@ namespace Plaza {
 		/* Bloom: upscale */
 		mBloomUpScaleShader->use();
 		mBloomUpScaleShader->setFloat("u_bloom_intensity", m_bloom_intensity);
+		mBloomUpScaleShader->setFloat("u_dirt_intensity", m_bloom_dirt_intensity);
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, mFinalTexturePair->texture1.id);
 		glBindTextureUnit(0, mFinalTexturePair->texture1.id);
+		//m_bloom_dirt_texture->Bind(1);
 
 		for (uint8_t i = mFinalTexturePair->texture1.mMipSize - 1; i >= 1; --i)
 		{
@@ -222,6 +228,17 @@ namespace Plaza {
 
 			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
 		}
+
+		//mBloomComputeShader->setVec2("inputResolution", currentRes);
+		//mBloomComputeShader->setVec2("outputResolution", currentRes * glm::vec2(2));
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, Bloom::mBloomTextures.front().texture2.id);
+		//glBindImageTexture(0, Bloom::mBloomTextures.front().texture2.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, Bloom::mFinalTexturePair->texture2.id);
+		//glBindImageTexture(1, Bloom::mFinalTexturePair->texture2.id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+		//glDispatchCompute(currentRes.x / 8, currentRes.y / 8, 1);
+		//glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
 
 		Bloom::BlendSceneWithBloom();
 

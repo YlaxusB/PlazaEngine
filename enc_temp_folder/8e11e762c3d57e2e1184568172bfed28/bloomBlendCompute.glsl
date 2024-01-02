@@ -47,4 +47,15 @@ void main() {
          color = clamp(color, 0.0, 1.0);
     
     imageStore(outImage, texelCoords,  vec4(color, 1.0f));
+	//frag_color = vec4(color);
+    //vec4 color = (imageLoad(scene, texelCoords));
+    //vec4 blur = imageLoad(blurred, texelCoords);
+    ////if(color.x + color.y + color.z >= 3.0)
+    ////    color.xyz += vec3(1.0f);
+    ////else
+    ////color += blur;
+    //// color += clamp(blurred / vec4(8 / (blurred.x + blurred.y + blurred.z + blurred.w)), 0, 100);//(imageLoad(blurred, texelCoords) * 2);
+    // //color.w = 1.0f;
+    // vec3 final = color.xyz + blur.xyz;
+    //imageStore(outImage, texelCoords, imageLoad(blurred, texelCoords));
 }

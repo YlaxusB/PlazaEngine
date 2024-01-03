@@ -22,7 +22,7 @@ namespace Plaza {
 		glfwWindowHint(GLFW_SAMPLES, 4);
 
 		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-
+		vkEnumerateInstanceExtensionProperties();
 		// TODO: --------- MUST CHANGE THE WAY IT'S STARTING ON SECOND MONITOR --------- //
 
 		// Get monitors and create GLFW window on second monitor

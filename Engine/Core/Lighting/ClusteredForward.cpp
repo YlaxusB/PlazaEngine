@@ -176,6 +176,7 @@ namespace Plaza {
 	}
 
 	void Lighting::LightingPass(const std::vector<Cluster>& clusters, const std::vector<LightStruct>& lights) {
+		PLAZA_PROFILE_SECTION("Lighting Pass");
 		GLuint lightsBindingLocation2 = glGetUniformLocation(mLightSorterComputeShader->ID, "LightsBuffer");
 		GLuint clustersBindingLocation = glGetUniformLocation(mLightSorterComputeShader->ID, "ClusterBuffer");
 		GLuint clustersBindingLocation3 = glGetUniformLocation(mLightSorterComputeShader->ID, "SizesBuffer");

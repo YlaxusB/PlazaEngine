@@ -127,6 +127,7 @@ namespace Plaza {
 	}
 
 	void Bloom::DrawBloom() {
+		PLAZA_PROFILE_SECTION("Bloom");
 		glBindFramebuffer(GL_FRAMEBUFFER, Bloom::fbo);
 		glViewport(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

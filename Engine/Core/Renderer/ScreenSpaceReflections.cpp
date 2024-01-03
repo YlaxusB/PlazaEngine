@@ -14,6 +14,7 @@ namespace Plaza {
 	}
 
 	void ScreenSpaceReflections::Update() {
+		PLAZA_PROFILE_SECTION("Screen Space Reflections");
 		mScreenSpaceReflectionsFbo->Bind();
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);

@@ -204,7 +204,7 @@ namespace Plaza {
 	}
 
 	void Renderer::RenderHDR() {
-		PLAZA_PROFILE_SECTION("HDR/Bloom");
+		PLAZA_PROFILE_SECTION("HDR");
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->hdrFramebuffer);
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

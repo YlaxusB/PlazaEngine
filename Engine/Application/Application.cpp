@@ -19,7 +19,7 @@
 
 #include <cstdlib> // Include the appropriate header for _dupenv_s
 
-//#include "Engine/Vendor/Tracy/tracy/TracyC.h"
+//#include "ThirdParty/Tracy/tracy/TracyC.h"
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Core/Physics.h"
 #include "Engine/Components/Core/Camera.h"

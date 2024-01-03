@@ -1,15 +1,15 @@
 #pragma once
 
-#include "Engine/Vendor/GLFW/glfw3.h"
-#include "Engine/Vendor/glm/glm.hpp"
-#include "Engine/Vendor/glm/gtc/matrix_transform.hpp"
-#include "Engine/Vendor/glm/gtc/type_ptr.hpp"
+#include "ThirdParty/GLFW/glfw3.h"
+#include "ThirdParty/glm/glm.hpp"
+#include "ThirdParty/glm/gtc/matrix_transform.hpp"
+#include "ThirdParty/glm/gtc/type_ptr.hpp"
 
-#include "Engine/Vendor/stb/stb_image.h"
+#include "ThirdParty/stb/stb_image.h"
 
-#include "Engine/Vendor/imgui/imgui.h"
-#include "Engine/Vendor/imgui/imgui_impl_glfw.h"
-#include "Engine/Vendor/imgui/imgui_impl_opengl3.h"
+#include "ThirdParty/imgui/imgui.h"
+#include "ThirdParty/imgui/imgui_impl_glfw.h"
+#include "ThirdParty/imgui/imgui_impl_opengl3.h"
 
 #include "Engine/Application/Application.h"
 

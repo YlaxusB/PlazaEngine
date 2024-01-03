@@ -1,10 +1,10 @@
 #pragma once
-#include "Engine/Vendor/stb/stb_image.h"
+#include "ThirdParty/stb/stb_image.h"
 #include <iostream>
 #include <algorithm>
 #include <unordered_map>
 #include <fileSystem>
-#include "Engine/Vendor/filesystem/filesys.h"
+#include "ThirdParty/filesystem/filesys.h"
 
 #include "Engine/Shaders/Shader.h"
 namespace Plaza {

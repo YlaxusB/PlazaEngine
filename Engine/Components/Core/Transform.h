@@ -1,7 +1,7 @@
 #pragma once
-#include "Engine/Vendor/glm/glm.hpp"
-#include "Engine/Vendor/glm/gtc/matrix_transform.hpp"
-#include "Engine/Vendor/glm/gtc/type_ptr.hpp"
+#include "ThirdParty/glm/glm.hpp"
+#include "ThirdParty/glm/gtc/matrix_transform.hpp"
+#include "ThirdParty/glm/gtc/type_ptr.hpp"
 
 
 #include "Engine/Components/Core/Entity.h"

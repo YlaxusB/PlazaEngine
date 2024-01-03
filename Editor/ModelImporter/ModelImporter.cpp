@@ -6,9 +6,9 @@
 #include "Editor/GUI/FileExplorer/CreateFolder.h"
 #include "Engine/Application/Serializer/ModelSerializer.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
-#include "Engine/Vendor/assimp/Importer.hpp"
-#include "Engine/Vendor/assimp/scene.h"
-#include "Engine/Vendor/assimp/postprocess.h"
+#include "ThirdParty/assimp/Importer.hpp"
+#include "ThirdParty/assimp/scene.h"
+#include "ThirdParty/assimp/postprocess.h"
 #include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
 namespace Plaza::Editor {
 	void DeleteChildrene(Entity* entity) {

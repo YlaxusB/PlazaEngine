@@ -1,6 +1,9 @@
-[submodule "Engine/Vendor/yaml-cpp/yaml-cpp"]
-	path = Engine/Vendor/yaml-cpp/yaml-cpp
+[submodule "ThirdParty/yaml-cpp/yaml-cpp"]
+	path = ThirdParty/yaml-cpp/yaml-cpp
 	url = https://github.com/TheCherno/yaml-cpp.git
 [submodule "PhysX"]
 	path = PhysX
 	url = https://github.com/NVIDIA-Omniverse/PhysX
+[submodule "ThirdParty/Tracy"]
+	path = ThirdParty/Tracy
+	url = https://github.com/wolfpld/tracy.git

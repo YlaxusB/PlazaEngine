@@ -14,8 +14,8 @@
 #include <AL/alc.h>
 
 #define MINIMP3_IMPLEMENTATION
-#include "Engine/Vendor/minimp3/minimp3.h"
-#include "Engine/Vendor/minimp3/minimp3_ex.h"
+#include "ThirdParty/minimp3/minimp3.h"
+#include "ThirdParty/minimp3/minimp3_ex.h"
 
 
 namespace Plaza {

@@ -1,7 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Collider.h"
 #include "Engine/Core/Physics.h"
-#include "Engine/Vendor/physx/geometry/PxHeightFieldGeometry.h"
+#include "ThirdParty/physx/geometry/PxHeightFieldGeometry.h"
 
 Plaza::Vertex CombineVertices(const Plaza::Vertex& v1, const Plaza::Vertex& v2) {
 	// Calculate the new position by averaging the positions of v1 and v2

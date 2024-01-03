@@ -2,11 +2,11 @@
 #ifndef GLM_UTILS_H
 #define GLM_UTILS_H
 
-#include "Engine/Vendor/glm/glm.hpp"
-#include "Engine/Vendor/glm/gtc/matrix_transform.hpp"
-#include "Engine/Vendor/assimp/Importer.hpp"
-#include "Engine/Vendor/assimp/scene.h"
-#include "Engine/Vendor/assimp/postprocess.h"
+#include "ThirdParty/glm/glm.hpp"
+#include "ThirdParty/glm/gtc/matrix_transform.hpp"
+#include "ThirdParty/assimp/Importer.hpp"
+#include "ThirdParty/assimp/scene.h"
+#include "ThirdParty/assimp/postprocess.h"
 
 #include <string>
 #include <fstream>

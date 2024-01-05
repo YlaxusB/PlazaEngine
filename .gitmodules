@@ -10,3 +10,18 @@
 [submodule "ThirdParty/freetype"]
 	path = ThirdParty/freetype
 	url = https://github.com/freetype/freetype.git
+[submodule "ThirdParty/assimp"]
+	path = ThirdParty/assimp
+	url = https://github.com/assimp/assimp.git
+[submodule "ThirdParty/mono"]
+	path = ThirdParty/mono
+	url = https://github.com/mono/mono.git
+[submodule "ThirdParty/GLFW"]
+	path = ThirdParty/GLFW
+	url = https://github.com/glfw/glfw.git
+[submodule "ThirdParty/yaml"]
+	path = ThirdParty/yaml
+	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "ThirdParty/AL"]
+	path = ThirdParty/AL
+	url = https://github.com/kcat/openal-soft.git

@@ -29,6 +29,6 @@ namespace Plaza {
 	}
 
 	Model* ModelFileSerializer::DeSerialize(const std::string filePath) {
-		
+		return nullptr;
 	}
 }

@@ -1,10 +1,10 @@
 #pragma once
 #ifndef GAME_REL
-#include <Tracy.hpp>
+#include <Tracy/public/tracy/Tracy.hpp>
 //#include "ThirdParty/Tracy/tracy/Tracy.hpp"
 #define PLAZA_PROFILE ZoneScoped
 #define PLAZA_PROFILE_FRAME(x) FrameMark
-#define PLAZA_PROFILE_SECTION(x) static constexpr tracy::SourceLocationData __tracy_source_location385{ x, __FUNCTION__, "", (uint32_t)385, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location385, true)
+#define PLAZA_PROFILE_SECTION(x) ZoneScopedN(x)//static constexpr tracy::SourceLocationData __tracy_source_location385{ x, __FUNCTION__, "", (uint32_t)385, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location385, true)
 #else
 #define PLAZA_PROFILE 
 #define PLAZA_PROFILE_FRAME(x) 

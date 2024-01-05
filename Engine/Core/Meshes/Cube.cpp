@@ -19,10 +19,7 @@
 #include <random>
 #include <unordered_map>
 #include <fileSystem>
-#include <fileSystem/fileSystem.h>
-
-#include "Engine/Components/Core/Mesh.h"
-
+#include <fileSystem/filesys.h>
 
 #include "Engine/Components/Core/Entity.h"
 #include "Editor/GUI/Style/EditorStyle.h"

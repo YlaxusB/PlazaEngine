@@ -1,9 +1,6 @@
 [submodule "ThirdParty/yaml-cpp/yaml-cpp"]
 	path = ThirdParty/yaml-cpp/yaml-cpp
 	url = https://github.com/TheCherno/yaml-cpp.git
-[submodule "PhysX"]
-	path = PhysX
-	url = https://github.com/NVIDIA-Omniverse/PhysX
 [submodule "ThirdParty/Tracy"]
 	path = ThirdParty/Tracy
 	url = https://github.com/wolfpld/tracy.git
@@ -25,3 +22,6 @@
 [submodule "ThirdParty/AL"]
 	path = ThirdParty/AL
 	url = https://github.com/kcat/openal-soft.git
+[submodule "ThirdParty/PhysX"]
+	path = ThirdParty/PhysX
+	url = https://github.com/NVIDIA-Omniverse/PhysX.git

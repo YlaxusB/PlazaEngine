@@ -1,6 +1,6 @@
 #pragma once
 #ifndef GAME_REL
-#include <Tracy/public/tracy/Tracy.hpp>
+#include <ThirdParty/Tracy/public/tracy/Tracy.hpp>
 //#include "ThirdParty/Tracy/tracy/Tracy.hpp"
 #define PLAZA_PROFILE ZoneScoped
 #define PLAZA_PROFILE_FRAME(x) FrameMark

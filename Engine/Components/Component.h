@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine/Core/Time.h"
-#include "ThirdParty/GLFW/glfw3.h"
+#include "ThirdParty/GLFW/include/GLFW/glfw3.h"
 #include <string>
 #include <vector>
 #include "Engine/Core/UUID.h"

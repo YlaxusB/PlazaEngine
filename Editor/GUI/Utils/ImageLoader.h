@@ -1,6 +1,6 @@
 #pragma once
-#include <stb/stb_image.h>
-#include <glad/glad.h>
+#include <ThirdParty/stb/stb_image.h>
+#include <ThirdParty/glad/glad.h>
 namespace Plaza::Editor::Utils {
 	static unsigned int LoadImageToImGuiTexture(const char* path) {
 		int width, height, channels;

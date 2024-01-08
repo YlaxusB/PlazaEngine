@@ -1,7 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "TextRenderer.h"
 
-#include <freetype/ft2build.h>
+#include <ThirdParty/freetype/include/ft2build.h>
 #include FT_FREETYPE_H
 
 namespace Plaza::Drawing::UI {

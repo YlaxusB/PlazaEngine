@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "AudioSourceLoader.h"
-#include <AL/al.h>
+#include <ThirdParty/AL/include/AL/al.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,9 +9,9 @@
 #include <thread>
 #include <filesystem>
 
-#include "AL/al.h"
-#include "AL/alext.h"
-#include <AL/alc.h>
+#include <ThirdParty/AL/include/AL/al.h>
+#include <ThirdParty/AL/include/AL/alext.h>
+#include <ThirdParty/AL/include/AL/alc.h>
 
 #define MINIMP3_IMPLEMENTATION
 #include "ThirdParty/minimp3/minimp3.h"

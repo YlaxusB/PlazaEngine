@@ -1,3 +1,4 @@
+#pragma once
 // dear imgui, v1.89.8 WIP
 // (headers)
 

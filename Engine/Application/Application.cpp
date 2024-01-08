@@ -280,6 +280,7 @@ void ApplicationClass::UpdateProjectManagerGui() {
 }
 
 void ApplicationClass::Loop() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	while (!glfwWindowShouldClose(Application->Window->glfwWindow)) {
 		PLAZA_PROFILE_SECTION("Loop");
 		// Run the Engine (Update Time, Shadows, Inputs, Buffers, Rendering, etc.)

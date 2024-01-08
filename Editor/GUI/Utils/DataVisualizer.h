@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <glm/glm.hpp>
+#include <ThirdParty/glm/glm.hpp>
 namespace Plaza::Editor::Utils {
 
 	static float GetMinimumSpeed(float value, float divider, float min) {

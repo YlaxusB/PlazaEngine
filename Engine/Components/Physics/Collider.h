@@ -1,5 +1,6 @@
 #pragma once
-#include "ThirdParty/physx/PxPhysicsAPI.h"
+#include "ThirdParty/PhysX/physx/include/PxPhysicsAPI.h"
+//#include <PhysX/physx/include/PxPhysicsAPI.h>
 #include "Engine/Components/Core/Transform.h"
 namespace Plaza {
 	enum ColliderShapeEnum {

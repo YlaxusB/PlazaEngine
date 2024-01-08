@@ -55,10 +55,11 @@ namespace Plaza {
 
 					char buf[512];
 					strcpy_s(buf, name.c_str());
-					if (ImGui::InputTextEx("##FileNameInput", "File Name", buf, 512, ImVec2(50, 20), ImGuiInputTextFlags_EnterReturnsTrue, nullptr, nullptr, startSelected)) {
-						changingName = "";
-						//Utils::Filesystem::ChangeFileName(Editor::Gui::FileExplorer::currentDirectory + "\\" + name, Editor::Gui::FileExplorer::currentDirectory + "\\" + buf);
-					}
+					/* TODO:UNCOMMENT THIS */
+					//if (ImGui::InputTextEx("##FileNameInput", "File Name", buf, 512, ImVec2(50, 20), ImGuiInputTextFlags_EnterReturnsTrue, nullptr, nullptr, startSelected)) {
+					//	changingName = "";
+					//	//Utils::Filesystem::ChangeFileName(Editor::Gui::FileExplorer::currentDirectory + "\\" + name, Editor::Gui::FileExplorer::currentDirectory + "\\" + buf);
+					//}
 
 					if (!ImGui::IsItemActive() && !firstFocus) {
 						changingName = "";

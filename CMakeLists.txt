@@ -148,6 +148,8 @@ link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/bin/win.x86_64.vc143.mt/release/")
 #C:\Users\Giovane\Desktop\Workspace\Plaza\ThirdParty\PhysX\physx\bin\win.x86_64.vc143.mt\release
 
+set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug")
+
 set(PHYSX_LIBS 
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysX_64.lib"
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCooking_64.lib"
@@ -156,12 +158,47 @@ set(PHYSX_LIBS
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXFoundation_64.lib"
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PVDRuntime_64.lib"
 )
+
+set(OPENAL_DLL "${BUILD_DIR}/ThirdParty/AL/OpenAL32d.dll")
+set(ASSIMP_DLL "${BUILD_DIR}/ThirdParty/assimp/bin/assimp-vc143-mtd.dll")
+set(FREETYPE_DLL "${BUILD_DIR}/ThirdParty/freetype/freetyped.dll")
+set(GLFW_DLL "${BUILD_DIR}/ThirdParty/GLFW/src/glfw3d.dll")
+set(TRACY_DLL "${BUILD_DIR}/ThirdParty/Tracy/TracyClientd.dll")
+set(YAML_DLL "${BUILD_DIR}/ThirdParty/yaml/yaml-cppd.dll")
+
+set(PHYSX_DLL_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release")
+
+set(PHYSX_DLLS 
+"${PHYSX_DLL_FOLDER}/PhysX_64.dll"
+"${PHYSX_DLL_FOLDER}/PhysXCooking_64.dll"
+"${PHYSX_DLL_FOLDER}/PhysXCommon_64.dll"
+"${PHYSX_DLL_FOLDER}/PhysXFoundation_64.dll"
+"${PHYSX_DLL_FOLDER}/PhysXFoundation_64.dll"
+)
  
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
 target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp libgcmonosgen mono-2.0-sgen MonoPosixHelper "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib")
 
 # Set the path to the extracted PhysX SDK
 
+
+
+add_custom_target(CopyDLLs ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${OPENAL_DLL}
+        ${ASSIMP_DLL}
+        ${FREETYPE_DLL}
+        ${GLFW_DLL}
+        ${TRACY_DLL}
+        ${YAML_DLL}
+        ${PHYSX_DLLS}
+        ${CMAKE_BINARY_DIR}/
+    COMMENT "Copying DLLs to the build directory"
+)
+
+# Add a dependency to your executable
+add_dependencies(PlazaEngine CopyDLLs)
 
 # Add PhysX includes to your project
 #include_directories(${PHYSX_SDK_PATH}/include)

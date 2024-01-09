@@ -77,7 +77,7 @@ namespace Plaza {
 			ImGuiIO& io = ImGui::GetIO();
 			(void)io;
 			ImGui_ImplGlfw_InitForOpenGL(window, true);
-			io.IniFilename = "Engine/imgui.ini";
+			io.IniFilename = std::string(Application->enginePath + "\\imgui.ini").c_str();
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 			ImGui_ImplOpenGL3_Init("#version 410");
 			//C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf

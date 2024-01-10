@@ -70,7 +70,8 @@ namespace Plaza {
 				this->lastParentModelMatrix = parentModelMatrix;
 				this->lastLocalMatrix = this->localMatrix;
 			}
-		} else
+		}
+		else
 			this->modelMatrix = glm::mat4(1.0f) * this->localMatrix;
 	}
 
@@ -158,7 +159,8 @@ namespace Plaza {
 		PLAZA_PROFILE_SECTION("Transform: Update Self And Children Transform");
 		this->UpdateLocalMatrix();
 		this->UpdateWorldMatrix();
-		this->UpdatePhysics();
+		if (Application->runningScene)
+			this->UpdatePhysics();
 		for (uint64_t child : this->GetGameObject()->childrenUuid) {
 			Application->activeScene->transformComponents.at(child).UpdateSelfAndChildrenTransform();
 		}

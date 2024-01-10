@@ -1,1 +1,0 @@
-xcopy /Y /I ".\PhysX\physx\bin\win.x86_64.vc143.mt\debug\*.dll" "./x64/Debug"

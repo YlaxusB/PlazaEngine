@@ -113,6 +113,7 @@ namespace Plaza {
 		if (componentsEntry["MeshComponent"]) {
 			MeshRenderer* oldMeshRenderer = entity->GetComponent<MeshRenderer>();
 			MeshRenderer* newMeshRenderer = new MeshRenderer();
+			newMeshRenderer->mesh = new Mesh();
 			newMeshRenderer->instanced = true;
 			newMeshRenderer->aiMeshName = componentsEntry["MeshComponent"]["AiMeshName"].as<string>();
 			DeSerializeMaterial(componentsEntry["MeshComponent"]["MaterialComponent"], model, newMeshRenderer);

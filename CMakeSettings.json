@@ -20,6 +20,11 @@
           "name": "PX_GENERATE_STATIC_LIBRARIES",
           "value": "True",
           "type": "BOOL"
+        },
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "False",
+          "type": "BOOL"
         }
       ]
     },

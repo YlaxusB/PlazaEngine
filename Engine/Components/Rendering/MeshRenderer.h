@@ -43,9 +43,9 @@ namespace Plaza {
 		string aiMeshName;
 		//uint64_t uuid;
 		std::string meshName;
-		Mesh* mesh;
-		Material* material;
-		std::shared_ptr<RenderGroup> renderGroup;
+		Mesh* mesh = nullptr;
+		Material* material = nullptr;
+		std::shared_ptr<RenderGroup> renderGroup = nullptr;
 		GLuint heightMap;
 
 		Array2D<float> m_heightMap;
@@ -113,7 +113,7 @@ namespace Plaza {
 
 			m_heightMap.InitArray2D(m_terrainSize, m_terrainSize, (float*)p);
 		}
-		Transform* transform;
+		Transform* transform = nullptr;
 		bool instanced = false;
 		MeshRenderer(Mesh initialMesh, bool addToScene = false);
 		MeshRenderer(Plaza::Mesh initialMesh, Material material, bool addToScene = false);

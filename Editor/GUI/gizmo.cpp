@@ -51,7 +51,7 @@ namespace Plaza::Editor {
 
 		RigidBody* rigidBody = entity->GetComponent<RigidBody>();
 		Collider* collider = entity->GetComponent<Collider>();
-		if (rigidBody && rigidBody->mRigidActor) {
+		if (rigidBody && rigidBody->mRigidActor != nullptr) {
 			rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, true);
 			rigidBody->canUpdate = false;
 		}

@@ -24,10 +24,10 @@ namespace Plaza {
 		glm::vec3 lastScale = glm::vec3(1.0f);
 		Collider() {};
 		vector<ColliderShape*> mShapes;
-		physx::PxRigidActor* mRigidActor;
-		physx::PxRigidBody* mStaticPxRigidBody;
-		physx::PxRigidBody* pxRigidBody;
-		physx::PxMaterial* material;
+		physx::PxRigidActor* mRigidActor = nullptr;
+		physx::PxRigidBody* mStaticPxRigidBody = nullptr;
+		physx::PxRigidBody* pxRigidBody = nullptr;
+		physx::PxMaterial* material = nullptr;
 		bool mDynamic = false;
 		Collider(std::uint64_t uuid, RigidBody* rigidBody = nullptr);
 		~Collider() override;

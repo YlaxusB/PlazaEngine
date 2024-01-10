@@ -1,18 +1,26 @@
 cmake_minimum_required(VERSION 3.21)
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>")
 
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>")
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX-")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG /MDd")
 endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /O2")
+
+
 set(TARGET_BUILD_PLATFORM "windows")
 set(PLATFORM "Windows")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /D_DEBUG /MDd")
-
 
 project(PlazaEngine)
-set(CMAKE_CXX_STANDARD 23)
+#set(CMAKE_CXX_COMPILER g++)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.37.32822/bin/Hostx64/x64/cl.exe")
+#set(CMAKE_GENERATOR "Visual Studio 17 2022" CACHE OFF "" FORCE)
+
 
 set(PX_BUILDSNIPPETS OFF CACHE BOOL "Generate the snippets")
 set(PX_BUILDPUBLICSAMPLES OFF CACHE BOOL "Generate the samples projects")
@@ -48,7 +56,7 @@ add_subdirectory("ThirdParty/freetype/")
 add_subdirectory("ThirdParty/GLFW/")
 #add_subdirectory("ThirdParty/mono/")
 add_subdirectory("ThirdParty/Tracy/")
-add_subdirectory("ThirdParty/yaml/")
+add_subdirectory("ThirdParty/yaml-cpp/")
 include("ThirdParty/PhysX/physx/compiler/vc17win64/cmake_install.cmake")
 #add_subdirectory("ThirdParty/PhysX/physx/compiler/public/")
 #add_subdirectory("ThirdParty/PhysX/physx/bin/win.x86_64.vc143.mt/debug/")
@@ -89,12 +97,19 @@ set(IMGUI_SOURCES
 add_executable(PlazaEngine "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}")
 
 
+
 #target_include_directories(PlazaEngine PRIVATE "${PHYSX_ROOT_DIR}/include" PRIVATE "${PHYSX_ROOT_DIR}/source/physxextensions/src")
 #target_compile_definitions(PlazaEngine PRIVATE ${SNIPPET_COMPILE_DEFS})
 
 target_compile_options(PlazaEngine PRIVATE /WX-)
 
 target_precompile_headers(PlazaEngine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
+
+
+if(MSVC)
+  target_compile_options(PlazaEngine PUBLIC "/ZI")
+  target_link_options(PlazaEngine PUBLIC "/INCREMENTAL")
+endif()
 
 #Physx
 
@@ -139,7 +154,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/stb/")
 #include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Tracy/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/uuid_v4/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vswhere/")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/yaml/include")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/yaml/include/yaml-cpp/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/")
 
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/mono/")
@@ -175,30 +190,31 @@ set(PHYSX_DLLS
 "${PHYSX_DLL_FOLDER}/PhysXFoundation_64.dll"
 "${PHYSX_DLL_FOLDER}/PhysXFoundation_64.dll"
 )
- 
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp libgcmonosgen mono-2.0-sgen MonoPosixHelper "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib")
+target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib")
 
+#    add_custom_target(CopyDLLs ALL
+#        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/
+#        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#            ${OPENAL_DLL}
+#            ${ASSIMP_DLL}
+#            ${FREETYPE_DLL}
+#            ${GLFW_DLL}
+#            ${TRACY_DLL}
+#            ${YAML_DLL}
+#            ${PHYSX_DLLS}
+#            ${CMAKE_BINARY_DIR}/
+#        COMMENT "Copying DLLs to the build directory"
+#    )
+#add_dependencies(PlazaEngine CopyDLLs) 
 # Set the path to the extracted PhysX SDK
 
 
-
-add_custom_target(CopyDLLs ALL
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${OPENAL_DLL}
-        ${ASSIMP_DLL}
-        ${FREETYPE_DLL}
-        ${GLFW_DLL}
-        ${TRACY_DLL}
-        ${YAML_DLL}
-        ${PHYSX_DLLS}
-        ${CMAKE_BINARY_DIR}/
-    COMMENT "Copying DLLs to the build directory"
-)
+#if(MSVC)
+#endif()
 
 # Add a dependency to your executable
-add_dependencies(PlazaEngine CopyDLLs)
+#add_dependencies(PlazaEngine CopyDLLs)
 
 # Add PhysX includes to your project
 #include_directories(${PHYSX_SDK_PATH}/include)

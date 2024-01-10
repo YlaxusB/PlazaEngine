@@ -5,9 +5,6 @@
 namespace Plaza {
     class WindowClass {
     public:
-        WindowClass() {
-            glfwWindow = InitGLFWWindow();
-        }
         GLFWwindow* glfwWindow;
         GLFWwindow* InitGLFWWindow();
     };

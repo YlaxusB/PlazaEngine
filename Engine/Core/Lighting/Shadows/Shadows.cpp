@@ -1,7 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Shadows.h"
 
-#include "Engine/Core/Renderer.h"
+#include "Engine/Core/Renderer/Renderer.h"
 
 #include <iostream>
 #include <unordered_map>
@@ -73,7 +73,7 @@ namespace Plaza {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glCullFace(GL_FRONT);
 		ShadowsClass::RenderScene(*Application->shadowsDepthShader);
-		Renderer::RenderInstancesShadowMap(*Application->shadowsDepthShader);
+		Application->mRenderer->RenderShadowMap(*Application->shadowsDepthShader);
 		glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

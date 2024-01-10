@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ClusteredForward.h"
-#include "Engine/Core/Renderer.h"
+#include "Engine/Core/Renderer/Renderer.h"
 #include "Engine/Components/Rendering/Light.h"
 #include <vector>
 
@@ -198,7 +198,7 @@ namespace Plaza {
 
 
 			}
-			Renderer::RenderQuadOnScreen();
+			Application->mRenderer->RenderFullScreenQuad();
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 			mLightSorterComputeShader->use();
@@ -269,7 +269,7 @@ namespace Plaza {
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, Application->gOthers);
 
-		Renderer::RenderQuadOnScreen();
+		Application->mRenderer->RenderFullScreenQuad();
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glActiveTexture(GL_TEXTURE1);

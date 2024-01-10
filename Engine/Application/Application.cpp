@@ -10,7 +10,7 @@
 #include "Editor/GUI/Style/EditorStyle.h"
 #include "Engine/Core/Skybox.h"
 #include "Engine/Core/Time.h"
-#include "Engine/Core/Renderer.h"
+#include "Engine/Core/Renderer/Renderer.h"
 #include "Engine/Editor/Editor.h"
 #include "Engine/Application/Window.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
@@ -30,8 +30,9 @@
 #include "Engine/Core/Lighting/ClusteredForward.h"
 #include "Engine/Shaders/ComputeShader.h"
 #include "Engine/Components/Rendering/Light.h"
-#include "Engine/Core/Renderer/Bloom.h"
-#include "Engine/Core/Renderer/ScreenSpaceReflections.h"
+#include "Engine/Core/Renderer/OpenGL/Bloom.h"
+#include "Engine/Core/Renderer/OpenGL/ScreenSpaceReflections.h"
+
 
 char* appdataValue;
 size_t len;
@@ -52,6 +53,8 @@ using namespace Plaza;
 EditorStyle editorStyle;
 
 using namespace Plaza::Editor;
+
+#define DEFAULT_GRAPHICAL_API "Vulkan"
 
 Plaza::ApplicationClass::ApplicationClass() {
 	editorCamera = new Plaza::Camera(glm::vec3(0.0f, 0.0f, 5.0f));
@@ -139,9 +142,8 @@ void ApplicationClass::InitShaders() {
 
 	Application->outlineBlurShader = new Shader((shadersFolder + "\\Shaders\\blur\\blurVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\blur\\blurFragment.glsl").c_str());
 
-	Renderer::blurShader = new Shader((shadersFolder + "\\Shaders\\blur\\gaussianBlurVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\blur\\gaussianBlurFragment.glsl").c_str());
+	Application->mRenderer->InitShaders(shadersFolder);
 
-	Renderer::mergeShader = new Shader((shadersFolder + "\\Shaders\\merge\\mergeVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\merge\\mergeFragment.glsl").c_str());
 
 	Application->outlineBlurShader->use();
 
@@ -189,7 +191,7 @@ void ApplicationClass::InitShaders() {
 	Bloom::mBloomBlendComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\bloom\\bloomBlendCompute.glsl").c_str());
 	Bloom::mBloomBrightSeparatorComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\bloom\\bloomBrightSeparator.glsl").c_str());
 
-	
+
 	Application->textRenderingShader = new Shader((shadersFolder + "\\Shaders\\textRendering\\textRenderingVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\textRendering\\textRenderingFragment.glsl").c_str());
 
 	Skybox::skyboxShader = new Shader((shadersFolder + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
@@ -202,6 +204,7 @@ void ApplicationClass::InitShaders() {
 }
 
 void ApplicationClass::CreateApplication() {
+	/* Get paths */
 	std::filesystem::path currentPath(__FILE__);
 	//Application->projectPath = currentPath.parent_path().parent_path().parent_path().string();
 	Application->dllPath = currentPath.parent_path().parent_path().parent_path().string() + "\\dll";
@@ -211,20 +214,25 @@ void ApplicationClass::CreateApplication() {
 	free(appdataValue);
 
 
-	//gameObjects.reserve(5000);
-
-	// Initialize GLFW (Window)
 	Application->Window = new Plaza::WindowClass();
-	// Set the scene size to be the entire screen
+	Application->Window->glfwWindow = Application->Window->InitGLFWWindow();
+
+
+	if (Settings::mDefaultRendererAPI == RendererAPI::OpenGL) {
+		Application->mRenderer = new OpenGLRenderer();
+	}
+	else if (Settings::mDefaultRendererAPI == RendererAPI::Vulkan) {
+		Application->mRenderer = new VulkanRenderer();
+	}
+
 #ifdef GAME_REL	
-
-
-
+	// Set the scene size to be the entire screen
 	int width, height;
 	glfwGetWindowSize(Application->Window->glfwWindow, &width, &height);
 	Application->appSizes->sceneSize = glm::vec2(width, height);
 #else
-		/* Check if the engine app data folder doesnt exists, if not, then create */
+
+	/* Check if the engine app data folder doesnt exists, if not, then create */
 	if (!std::filesystem::is_directory(Application->enginePathAppData) && Application->runningEditor) {
 		std::filesystem::create_directory(Application->enginePathAppData);
 		if (!std::filesystem::exists(Application->enginePathAppData + "\\cache.yaml")) {
@@ -236,9 +244,10 @@ void ApplicationClass::CreateApplication() {
 	// Initialize OpenGL, Shaders and Skybox
 	InitShaders();
 
-	InitOpenGL();
+	if (Settings::mDefaultRendererAPI == RendererAPI::OpenGL)
+		InitOpenGL();
 
-	Renderer::Init();
+	Application->mRenderer->Init();
 
 	InitBlur();
 
@@ -364,6 +373,7 @@ void ApplicationClass::UpdateEngine() {
 
 
 
+	Application->mRenderer->AddInstancesToRender();
 	// Render to shadows depth map
 	Application->Shadows->GenerateDepthMap();
 	// Draw GameObjects
@@ -372,8 +382,7 @@ void ApplicationClass::UpdateEngine() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glPolygonMode(GL_FRONT_AND_BACK, RenderGroup::renderMode == GL_TRIANGLES ? GL_FILL : RenderGroup::renderMode);
-	Renderer::Render(*Application->shader);
-	Renderer::RenderInstances(*Application->shader);
+	Application->mRenderer->RenderInstances(*Application->shader);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	Lighting::LightingPass(Lighting::mClusters, Lighting::mLights);
@@ -388,7 +397,7 @@ void ApplicationClass::UpdateEngine() {
 	if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth && Application->focusedMenu != "Scene")
 	{
 		PLAZA_PROFILE_SECTION("Draw Outline");
-		Renderer::RenderOutline(*Application->outlineShader);
+		Application->mRenderer->RenderOutline();
 		combineBuffers();
 	}
 
@@ -424,48 +433,32 @@ void ApplicationClass::UpdateEngine() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// Render HDR
-	Renderer::RenderHDR();
+	Application->mRenderer->RenderHDR();
 
 	// Render Screen Space Reflections
 	ScreenSpaceReflections::Update();
 
 	// Render Bloom
-	Renderer::RenderBloom();
+	Application->mRenderer->RenderBloom();
 
 	/* Copy contents of HDR/Bloom to app framebuffer or 0 (when its a game)*/
-	GLint drawBuffer;
-#ifdef GAME_REL
-	drawBuffer = 0;
-#else
-	drawBuffer = Application->frameBuffer;
-#endif
-	glBindFramebuffer(GL_FRAMEBUFFER, drawBuffer);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, Renderer::bloomFrameBuffer->buffer);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawBuffer);
-	glBlitFramebuffer(
-		0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y,
-		0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y,
-		GL_COLOR_BUFFER_BIT,
-		GL_LINEAR
-	);
+	Application->mRenderer->CopyLastFramebufferToFinalDrawBuffer();
 
 
 	// Render In-Game UI
 	if (Application->focusedMenu == "Scene") {
-//#ifdef GAME_REL
-//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//#else
-//		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-//#endif // GAME_REL
+		//#ifdef GAME_REL
+		//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//#else
+		//		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+		//#endif // GAME_REL
 		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		/* Draw Texts */
 		for (auto& [key, value] : Application->activeScene->UITextRendererComponents) {
 			PLAZA_PROFILE_SECTION("Draw UI Components Text");
 			value.Render(*Application->textRenderingShader);
 		}
-}
+	}
 
 	// Update ImGui (only if running editor)
 #ifndef GAME_REL

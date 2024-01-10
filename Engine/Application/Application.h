@@ -17,6 +17,10 @@
 #include "Editor/Project.h"
 #include "Engine/Core/Engine.h"
 #include "Engine/Core/FrameBuffer.h"
+
+#include "Engine/Core/Renderer/Renderer.h"
+#include "Engine/Core/Renderer/OpenGL/Renderer.h"
+#include "Engine/Core/Renderer/Vulkan/Renderer.h"
 namespace Plaza {
 	class Camera;
 	class WindowClass;
@@ -24,6 +28,8 @@ namespace Plaza {
 	//class WindowClass;
 	class ApplicationClass {
 	public:
+		Renderer* mRenderer = nullptr;
+
 		Scene* editorScene = new Scene();
 		Scene* runtimeScene = new Scene();
 		Scene* activeScene = editorScene;

@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "DefaultModels.h"
-#include "Engine/Components/Rendering/Mesh.h"
+#include "Engine/Core/Renderer/OpenGL/Mesh.h"
 #include "Engine/Core/ModelLoader/ModelLoader.h"
 namespace Plaza::Editor {
 
@@ -102,7 +102,7 @@ namespace Plaza::Editor {
 			glm::vec2(0, 1),glm::vec2(1, 1)
 		};
 
-		Mesh* newMesh = new Mesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
+		OpenGLMesh* newMesh = new OpenGLMesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
 		newMesh->usingNormal = false;
 		newMesh->meshId = cubeUuid;
 		Application->editorScene->meshes.emplace(newMesh->meshId, shared_ptr<Mesh>(newMesh));
@@ -166,7 +166,7 @@ namespace Plaza::Editor {
 			}
 		}
 
-		shared_ptr<Mesh> newMesh = make_shared<Mesh>(vertices, normals, uvs, tangents, bitangents, indices);
+		shared_ptr<OpenGLMesh> newMesh = make_shared<OpenGLMesh>(vertices, normals, uvs, tangents, bitangents, indices);
 		newMesh->usingNormal = false;
 		newMesh->meshId = sphereUuid;
 		Application->editorScene->meshes.emplace(newMesh->meshId, shared_ptr<Mesh>(newMesh));
@@ -199,7 +199,7 @@ namespace Plaza::Editor {
 			glm::vec2(0, 1)
 		};
 
-		Mesh* newMesh = new Mesh(vertices, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
+		OpenGLMesh* newMesh = new OpenGLMesh(vertices, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
 		newMesh->usingNormal = false;
 		newMesh->meshId = planeUuid;
 		Application->editorScene->meshes.emplace(newMesh->meshId, shared_ptr<Mesh>(newMesh));

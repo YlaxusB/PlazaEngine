@@ -11,9 +11,9 @@ namespace Plaza::Editor {
 		Application->activeScene->entities.at(obj->uuid).changingName = true;
 		Gui::Hierarchy::Item::firstFocus = true;
 		obj->GetComponent<Transform>()->UpdateChildrenTransform();
-		MeshRenderer* meshRenderer = new MeshRenderer(*mesh, Scene::DefaultMaterial());
+		MeshRenderer* meshRenderer = new MeshRenderer(*(OpenGLMesh*)mesh, Scene::DefaultMaterial());
 		meshRenderer->instanced = true;
-		meshRenderer->mesh = new Mesh(*mesh);
+		meshRenderer->mesh = new OpenGLMesh(*(OpenGLMesh*)mesh);
 		meshRenderer->material = Scene::DefaultMaterial();
 		RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
 		meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);

@@ -6,6 +6,7 @@
 namespace Plaza {
 	class OpenGLRenderer : public Renderer {
 	public:
+		RendererAPI api = RendererAPI::OpenGL;
 		static Shader* mergeShader;
 		static Shader* blurShader;
 		static FrameBuffer* hdrFramebuffer;
@@ -24,6 +25,7 @@ namespace Plaza {
 		void RenderBloom() override;
 		void RenderScreenSpaceReflections() override;
 		void RenderFullScreenQuad() override;
+		void Destroy() override;
 		/// <summary>
 		/// Loops through the GameObjects list, if Entity haves a MeshRenderer then it draws it with its transformation
 		/// </summary>

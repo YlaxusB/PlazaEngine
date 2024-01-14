@@ -26,6 +26,8 @@
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Input/Cursor.h"
+
+////   #include "ThirdParty/imgui/imgui_impl_vulkan.h"
 //#include "Engine/Application/Application.h" //
 
 //
@@ -60,12 +62,18 @@ namespace Plaza {
 			io.DeltaTime = Time::deltaTime;
 			Gui::setupDockspace(Application->Window->glfwWindow, Application->textureColorbuffer, Application->activeCamera);
 			ImGui::Render();
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+			if (Application->mRenderer->api == RendererAPI::OpenGL)
+				ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+			//else if (Application->mRenderer->api == RendererAPI::Vulkan)
+			//	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), (VulkanRenderer)(Application->mRenderer)->);
 		}
 
 		void Gui::NewFrame() {
 			PLAZA_PROFILE_SECTION("ImGui New Frame");
-			ImGui_ImplOpenGL3_NewFrame();
+			if (Application->mRenderer->api == RendererAPI::OpenGL)
+				ImGui_ImplOpenGL3_NewFrame();
+			////   else if (Application->mRenderer->api == RendererAPI::Vulkan)
+			////   	ImGui_ImplVulkan_NewFrame();
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 		}

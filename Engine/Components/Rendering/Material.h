@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine/Components/Component.h"
-#include "Engine/Components/Rendering/Mesh.h"
+//#include "Engine/Components/Rendering/Mesh.h"
 #include "Engine/Components/Rendering/Texture.h"
 namespace Plaza {
 	struct Material : public Component {

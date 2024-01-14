@@ -23,6 +23,8 @@
 #include "ThirdParty/assimp/include/assimp/postprocess.h"
 #include "ThirdParty/Json/json.hpp" // Include the nlohmann/json library
 #include "Engine/Utils/yamlUtils.h"
+#define VK_USE_PLATFORM_WIN32_KHR
+#include "ThirdParty/vulkan/vulkan/vulkan.h"
 //#include "ThirdParty/physx/PxPhysicsAPI.h"
 //#include "ThirdParty/physx/PxConfig.h"
 //#include "ThirdParty/physx/PxPhysicsAPI.h"

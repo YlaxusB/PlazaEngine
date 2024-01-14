@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine/Components/Component.h"
-#include "Engine/Components/Rendering/Mesh.h"
+//#include "Engine/Components/Rendering/Mesh.h"
 #include "Engine/Core/RenderGroup.h"
 #include "Engine/Components/Core/Transform.h"
 using namespace std;
@@ -115,8 +115,8 @@ namespace Plaza {
 		}
 		Transform* transform = nullptr;
 		bool instanced = false;
-		MeshRenderer(Mesh initialMesh, bool addToScene = false);
-		MeshRenderer(Plaza::Mesh initialMesh, Material material, bool addToScene = false);
+		MeshRenderer(OpenGLMesh initialMesh, bool addToScene = false);
+		MeshRenderer(Plaza::OpenGLMesh initialMesh, Material material, bool addToScene = false);
 		MeshRenderer(const MeshRenderer& other) = default;
 		~MeshRenderer();
 		MeshRenderer() {

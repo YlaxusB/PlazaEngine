@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/Components/Rendering/Mesh.h"
+#include "Engine/Core/Renderer/OpenGL/Mesh.h"
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Shaders/Shader.h"
 namespace Plaza {
@@ -7,19 +7,19 @@ namespace Plaza {
 	public:
 		static GLenum renderMode;
 		uint64_t uuid;
-		Mesh* mesh;
+		OpenGLMesh* mesh;
 		Material* material;
 		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
 
 		RenderGroup(Mesh* mesh, Material* mat) {
 			this->uuid = Plaza::UUID::NewUUID();
-			this->mesh = mesh;
+			this->mesh = (OpenGLMesh*)mesh;
 			this->material = mat;
 		}
 
 		RenderGroup(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> mat) {
 			this->uuid = Plaza::UUID::NewUUID();
-			this->mesh = mesh.get();
+			this->mesh = (OpenGLMesh*)mesh.get();
 			this->material = mat.get();
 		}
 

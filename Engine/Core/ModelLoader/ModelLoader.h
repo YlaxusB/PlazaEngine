@@ -15,7 +15,7 @@ namespace Plaza {
 		static Entity* LoadModelToGame(string const& path, std::string modelName, aiScene const* scene, bool useTangent, std::string currentPath);
 		static void LoadModelMeshes(string filePath, unordered_map<uint64_t, shared_ptr<MeshRenderer>>& meshRenderers, Model* model, bool useTangent, std::map<std::string, uint64_t> meshesMap = std::map<std::string, uint64_t>());
 		static void ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, vector<Material>& materialsLoaded, string* directory, Entity* modelMainObject, unsigned int& index, bool useTangent, std::string currentPath, std::string modelName);
-		static Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node, bool useTangent);
+		static OpenGLMesh ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node, bool useTangent);
 
 		static vector<Texture> LoadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture>& textures_loaded, string* directory);
 		static unsigned int TextureFromFile(const char* path, const string& directory, bool gamma);

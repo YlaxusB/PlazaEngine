@@ -1,5 +1,4 @@
 #pragma once
-#include "Engine/Components/Rendering/Mesh.h"
 namespace Plaza {
 	class Prefab : public Component {
 	public:

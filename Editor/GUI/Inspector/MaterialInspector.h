@@ -55,9 +55,9 @@ namespace Plaza::Editor {
 					glm::vec4& specular = material.specular.rgba;
 					float shininess = material.shininess;
 
-					ImGui::Text("Mesh VAO: ");
-					ImGui::SameLine();
-					ImGui::Text(std::to_string(meshRenderer->mesh->VAO).c_str());
+					//  ImGui::Text("Mesh VAO: ");
+					//  ImGui::SameLine();
+					//  ImGui::Text(std::to_string(meshRenderer->mesh->VAO).c_str());
 
 					ImGui::Text("Render Group Mesh VAO: ");
 					ImGui::SameLine();

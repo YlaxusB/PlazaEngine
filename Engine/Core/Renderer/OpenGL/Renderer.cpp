@@ -7,6 +7,8 @@
 #include "Engine/Core/FrameBuffer.h"
 #include "Engine/Core/Renderer/OpenGL/Bloom.h"
 #include "Engine/Core/Renderer/OpenGL/ScreenSpaceReflections.h"
+#include "Engine/Core/PreCompiledHeaders.h"
+#include "Engine/Application/Callbacks/CallbacksHeader.h"
 
 void renderFullscreenQuad() {
 	// skybox cube
@@ -15,6 +17,7 @@ void renderFullscreenQuad() {
 	//glBindVertexArray(0);
 
 }
+
 int i = 0;
 namespace Plaza {
 	unsigned int OpenGLRenderer::pingpongFBO[2];
@@ -330,5 +333,9 @@ namespace Plaza {
 			GL_COLOR_BUFFER_BIT,
 			GL_LINEAR
 		);
+	}
+
+	void OpenGLRenderer::Destroy() {
+
 	}
 }

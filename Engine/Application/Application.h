@@ -37,6 +37,7 @@ namespace Plaza {
 		int drawCalls = 0;
 		bool runningEditor = true;
 
+		std::string exeDirectory;
 		std::string projectPath;
 		std::string dllPath;
 		std::string enginePath;
@@ -91,7 +92,8 @@ namespace Plaza {
 		Shader* textRenderingShader = nullptr;
 
 		bool runProjectManagerGui = true;
-		bool runEngine = false;
+		////   bool runEngine = false;
+		bool runEngine = true;
 
 		void CreateApplication();
 		static GLFWwindow* InitApplication();

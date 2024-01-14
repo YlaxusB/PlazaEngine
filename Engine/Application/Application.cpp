@@ -4,7 +4,6 @@
 
 #include "Engine/Application/PickingTexture.h"
 #include "Engine/Components/Core/Camera.h"
-#include "Engine/Components/Rendering/Mesh.h"
 #include "Engine/Components/Core/Entity.h"
 #include "Engine/Shaders/Shader.h"
 #include "Editor/GUI/Style/EditorStyle.h"
@@ -213,18 +212,17 @@ void ApplicationClass::CreateApplication() {
 	Application->enginePathAppData = std::string(appdataValue) + "\\PlazaEngine\\";
 	free(appdataValue);
 
-
-	Application->Window = new Plaza::WindowClass();
-	Application->Window->glfwWindow = Application->Window->InitGLFWWindow();
-
-
 	if (Settings::mDefaultRendererAPI == RendererAPI::OpenGL) {
 		Application->mRenderer = new OpenGLRenderer();
 	}
 	else if (Settings::mDefaultRendererAPI == RendererAPI::Vulkan) {
 		Application->mRenderer = new VulkanRenderer();
+		Application->mRenderer->api = RendererAPI::Vulkan;
 	}
 
+
+	Application->Window = new Plaza::WindowClass();
+	Application->Window->glfwWindow = Application->Window->InitGLFWWindow();
 #ifdef GAME_REL	
 	// Set the scene size to be the entire screen
 	int width, height;
@@ -240,18 +238,16 @@ void ApplicationClass::CreateApplication() {
 		}
 	}
 #endif 
-
-	// Initialize OpenGL, Shaders and Skybox
-	InitShaders();
-
-	if (Settings::mDefaultRendererAPI == RendererAPI::OpenGL)
-		InitOpenGL();
-
 	Application->mRenderer->Init();
 
-	InitBlur();
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// Initialize OpenGL, Shaders and Skybox
+	if (Settings::mDefaultRendererAPI == RendererAPI::OpenGL)
+	{
+		InitShaders();
+		InitOpenGL();
+		InitBlur();
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
 
 	//Application->InitSkybox();
 
@@ -259,28 +255,28 @@ void ApplicationClass::CreateApplication() {
 #ifdef GAME_REL
 #else
 	std::cout << "Gui Initialized \n";
-	Editor::Gui::Init(Application->Window->glfwWindow);
+	////   Editor::Gui::Init(Application->Window->glfwWindow);
 #endif // !GAME_REL
 
 
-
 	/* Initialize clustered forward rendering */
-	Lighting::InitializeClusters(12, 12, 12, Lighting::mClusters);
+	if (Settings::mDefaultRendererAPI == RendererAPI::OpenGL)
+	{
+		Lighting::InitializeClusters(12, 12, 12, Lighting::mClusters);
 
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-	std::uniform_real_distribution<float> dis2(-100.0f, 100.0f);
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+		std::uniform_real_distribution<float> dis2(-100.0f, 100.0f);
 
-	for (int i = 0; i < 2000; i++) {
-		glm::vec3 randomPos(dis2(gen), 0, dis2(gen));
-		glm::vec3 randomColor(dis(gen), dis(gen), dis(gen));
-		//Lighting::mLights.push_back(Lighting::LightStruct(randomPos, glm::vec3(randomColor), 1.0f, 1.0f, 1.0f));
+		for (int i = 0; i < 2000; i++) {
+			glm::vec3 randomPos(dis2(gen), 0, dis2(gen));
+			glm::vec3 randomColor(dis(gen), dis(gen), dis(gen));
+			//Lighting::mLights.push_back(Lighting::LightStruct(randomPos, glm::vec3(randomColor), 1.0f, 1.0f, 1.0f));
+		}
+		Lighting::AssignLightsToClusters(Lighting::mLights, Lighting::mClusters);
+		Lighting::CreateClusterBuffers(Lighting::mClusters);
 	}
-	Lighting::AssignLightsToClusters(Lighting::mLights, Lighting::mClusters);
-
-
-	Lighting::CreateClusterBuffers(Lighting::mClusters);
 }
 
 
@@ -289,7 +285,7 @@ void ApplicationClass::UpdateProjectManagerGui() {
 }
 
 void ApplicationClass::Loop() {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	////   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	while (!glfwWindowShouldClose(Application->Window->glfwWindow)) {
 		PLAZA_PROFILE_SECTION("Loop");
 		// Run the Engine (Update Time, Shadows, Inputs, Buffers, Rendering, etc.)
@@ -320,17 +316,22 @@ void ApplicationClass::UpdateEngine() {
 	float currentFrame = static_cast<float>(glfwGetTime());
 
 	// Update Buffers
-	if (Application->appSizes->sceneSize != Application->lastAppSizes->sceneSize || Application->appSizes->sceneStart != Application->lastAppSizes->sceneStart) {
-		PLAZA_PROFILE_SECTION("Update Buffers");
-		Application->updateBuffers(Application->textureColorbuffer, Application->rbo);
-		Application->pickingTexture->updateSize(Application->appSizes->sceneSize);
-		glBindTexture(GL_TEXTURE_2D, Application->pick);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
+	if (Application->mRenderer->api == RendererAPI::OpenGL)
+	{
+		if (Application->appSizes->sceneSize != Application->lastAppSizes->sceneSize || Application->appSizes->sceneStart != Application->lastAppSizes->sceneStart) {
+			PLAZA_PROFILE_SECTION("Update Buffers");
+			Application->updateBuffers(Application->textureColorbuffer, Application->rbo);
+			Application->pickingTexture->updateSize(Application->appSizes->sceneSize);
+			glBindTexture(GL_TEXTURE_2D, Application->pick);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, GL_RGB, GL_FLOAT, nullptr);
+		}
 	}
 	// Update Keyboard inputs
 	Callbacks::processInput(Application->Window->glfwWindow);
 	Input::Update();
-	glEnable(GL_BLEND);
+
+	if (Application->mRenderer->api == RendererAPI::OpenGL)
+		glEnable(GL_BLEND);
 
 	// Update Camera Position and Rotation
 	Application->activeCamera->Update();
@@ -354,116 +355,121 @@ void ApplicationClass::UpdateEngine() {
 	}
 
 	/* Update lights buffer */
-	Lighting::UpdateBuffers();
+	if (Application->mRenderer->api == RendererAPI::OpenGL)
+		Lighting::UpdateBuffers();
 
 	// Imgui New Frame (only if running editor)
 #ifdef GAME_REL
 #else
-	Gui::NewFrame();
+	////   Gui::NewFrame();
 #endif // GAME_REL == 0
 
 
-
-
-	// Clear buffers
-	glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-
-
-
-	Application->mRenderer->AddInstancesToRender();
-	// Render to shadows depth map
-	Application->Shadows->GenerateDepthMap();
-	// Draw GameObjects
-	glBindFramebuffer(GL_FRAMEBUFFER, Application->geometryFramebuffer);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-	glPolygonMode(GL_FRONT_AND_BACK, RenderGroup::renderMode == GL_TRIANGLES ? GL_FILL : RenderGroup::renderMode);
 	Application->mRenderer->RenderInstances(*Application->shader);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-	Lighting::LightingPass(Lighting::mClusters, Lighting::mLights);
-
-	// Update Skybox
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, Application->geometryFramebuffer);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, Application->frameBuffer);
-	glBlitFramebuffer(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-	Skybox::Update();
-
-	// Draw Outline
-	if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth && Application->focusedMenu != "Scene")
+	if (Application->mRenderer->api == RendererAPI::OpenGL)
 	{
-		PLAZA_PROFILE_SECTION("Draw Outline");
-		Application->mRenderer->RenderOutline();
-		combineBuffers();
-	}
-
-	// Show the debug for shadows depth buffer
-	if (Application->Shadows->showDepth) {
-		PLAZA_PROFILE_SECTION("Debug Depth Buffer");
+		// Clear buffers
 		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-		Application->debugDepthShader->use();
-		float near_plane = 0.1f, far_plane = 7.5f;
-		Application->debugDepthShader->setInt("layer", Application->Shadows->debugLayer);
-		Application->debugDepthShader->setFloat("near_plane", near_plane);
-		Application->debugDepthShader->setFloat("far_plane", far_plane);
-		Application->debugDepthShader->setInt("depthMap", 0);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+
+
+
+		Application->mRenderer->AddInstancesToRender();
+		// Render to shadows depth map
+		Application->Shadows->GenerateDepthMap();
+		// Draw GameObjects
+		glBindFramebuffer(GL_FRAMEBUFFER, Application->geometryFramebuffer);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		glPolygonMode(GL_FRONT_AND_BACK, RenderGroup::renderMode == GL_TRIANGLES ? GL_FILL : RenderGroup::renderMode);
+		Application->mRenderer->RenderInstances(*Application->shader);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+		Lighting::LightingPass(Lighting::mClusters, Lighting::mLights);
+
+		// Update Skybox
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, Application->geometryFramebuffer);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, Application->frameBuffer);
+		glBlitFramebuffer(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		Skybox::Update();
+
+		// Draw Outline
+		if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth && Application->focusedMenu != "Scene")
+		{
+			PLAZA_PROFILE_SECTION("Draw Outline");
+			Application->mRenderer->RenderOutline();
+			combineBuffers();
+		}
+
+		// Show the debug for shadows depth buffer
+		if (Application->Shadows->showDepth) {
+			PLAZA_PROFILE_SECTION("Debug Depth Buffer");
+			glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+			Application->debugDepthShader->use();
+			float near_plane = 0.1f, far_plane = 7.5f;
+			Application->debugDepthShader->setInt("layer", Application->Shadows->debugLayer);
+			Application->debugDepthShader->setFloat("near_plane", near_plane);
+			Application->debugDepthShader->setFloat("far_plane", far_plane);
+			Application->debugDepthShader->setInt("depthMap", 0);
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D_ARRAY, Application->Shadows->shadowsDepthMap);
+			glBindVertexArray(Application->blurVAO);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// Apply Distortion Correction
+		glBindFramebuffer(GL_FRAMEBUFFER, Application->distortionCorrectionFrameBuffer->buffer);
+		Application->distortionCorrectionShader->use();
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, Application->Shadows->shadowsDepthMap);
+		glBindTexture(GL_TEXTURE_2D, Application->textureColorbuffer);
+		Application->distortionCorrectionShader->setInt("sceneTexture", 0);
 		glBindVertexArray(Application->blurVAO);
+		int w = Application->appSizes->sceneSize.x;
+		int h = Application->appSizes->sceneSize.y;
+		glViewport(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-	}
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// Render HDR
+		Application->mRenderer->RenderHDR();
 
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	// Apply Distortion Correction
-	glBindFramebuffer(GL_FRAMEBUFFER, Application->distortionCorrectionFrameBuffer->buffer);
-	Application->distortionCorrectionShader->use();
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, Application->textureColorbuffer);
-	Application->distortionCorrectionShader->setInt("sceneTexture", 0);
-	glBindVertexArray(Application->blurVAO);
-	int w = Application->appSizes->sceneSize.x;
-	int h = Application->appSizes->sceneSize.y;
-	glViewport(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	// Render HDR
-	Application->mRenderer->RenderHDR();
+		// Render Screen Space Reflections
+		ScreenSpaceReflections::Update();
 
-	// Render Screen Space Reflections
-	ScreenSpaceReflections::Update();
+		// Render Bloom
+		Application->mRenderer->RenderBloom();
 
-	// Render Bloom
-	Application->mRenderer->RenderBloom();
-
-	/* Copy contents of HDR/Bloom to app framebuffer or 0 (when its a game)*/
-	Application->mRenderer->CopyLastFramebufferToFinalDrawBuffer();
+		/* Copy contents of HDR/Bloom to app framebuffer or 0 (when its a game)*/
+		Application->mRenderer->CopyLastFramebufferToFinalDrawBuffer();
 
 
-	// Render In-Game UI
-	if (Application->focusedMenu == "Scene") {
-		//#ifdef GAME_REL
-		//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//#else
-		//		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
-		//#endif // GAME_REL
-		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-		/* Draw Texts */
-		for (auto& [key, value] : Application->activeScene->UITextRendererComponents) {
-			PLAZA_PROFILE_SECTION("Draw UI Components Text");
-			value.Render(*Application->textRenderingShader);
+		// Render In-Game UI
+		if (Application->focusedMenu == "Scene") {
+			//#ifdef GAME_REL
+			//		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			//#else
+			//		glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+			//#endif // GAME_REL
+
+			glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+			/* Draw Texts */
+			for (auto& [key, value] : Application->activeScene->UITextRendererComponents) {
+				PLAZA_PROFILE_SECTION("Draw UI Components Text");
+				value.Render(*Application->textRenderingShader);
+			}
 		}
 	}
-
 	// Update ImGui (only if running editor)
 #ifndef GAME_REL
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	Gui::Update();
+	if (Application->mRenderer->api == RendererAPI::OpenGL)
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	////   Gui::Update();
 #endif
 	// Update last frame
 
@@ -478,7 +484,7 @@ void ApplicationClass::UpdateEngine() {
 
 void ApplicationClass::Terminate() {
 	for (const auto& meshRenderer : Application->activeScene->meshRenderers) {
-		meshRenderer->mesh->Terminate();
+		//  meshRenderer->mesh->Terminate();
 	}
 	//free(Application->editorScene);
 	//free(Application->runtimeScene);

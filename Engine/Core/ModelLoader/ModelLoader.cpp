@@ -167,7 +167,7 @@ namespace Plaza {
 		unsigned int index = 0;
 		for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 			aiMesh* aiMesh = scene->mMeshes[i];
-			Mesh* mesh = new Mesh(ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr, useTangent));
+			OpenGLMesh* mesh = new OpenGLMesh(ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr, useTangent));
 
 			for (Material& material : materialsLoaded) {
 				if (mesh->material.SameAs(material)) {
@@ -229,7 +229,7 @@ namespace Plaza {
 			// Get the assimp mesh of the current node
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			// Convert it to my own mesh
-			Mesh nodeMesh = ProcessMesh(mesh, scene, textures_loaded, directory, node, useTangent);
+			OpenGLMesh nodeMesh = ProcessMesh(mesh, scene, textures_loaded, directory, node, useTangent);
 
 			for (Material& material : materialsLoaded) {
 				if (nodeMesh.material.SameAs(material)) {
@@ -275,7 +275,7 @@ namespace Plaza {
 		}
 	}
 
-	Mesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node, bool useTangent)
+	OpenGLMesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node, bool useTangent)
 	{
 		// data to fill
 		//vector<Vertex> vertices;
@@ -382,7 +382,7 @@ namespace Plaza {
 		convertedMaterial.specular.rgba = glm::vec4(INFINITY);
 		convertedMaterial.normal.rgba = glm::vec4(INFINITY);
 		convertedMaterial.height.rgba = glm::vec4(INFINITY);
-		Mesh finalMesh = Mesh(vertices, normals, uvs, tangents, bitangents, indices, convertedMaterial);
+		OpenGLMesh finalMesh = OpenGLMesh(vertices, normals, uvs, tangents, bitangents, indices, convertedMaterial);
 		finalMesh.material = convertedMaterial;
 		finalMesh.usingNormal = usingNormal;
 		return finalMesh;

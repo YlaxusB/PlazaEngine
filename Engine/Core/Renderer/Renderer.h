@@ -7,6 +7,7 @@ namespace Plaza {
 	};
 	class Renderer {
 	public:
+		RendererAPI api;
 		virtual void Init() = 0;
 		virtual void InitShaders(std::string shadersFolder) = 0;
 		virtual void AddInstancesToRender() = 0;
@@ -17,6 +18,8 @@ namespace Plaza {
 		virtual void RenderFullScreenQuad() = 0;
 		virtual void RenderOutline() = 0;
 		virtual void RenderHDR() = 0;
+
+		virtual void Destroy() = 0;
 
 		virtual void CopyLastFramebufferToFinalDrawBuffer() = 0;
 	};

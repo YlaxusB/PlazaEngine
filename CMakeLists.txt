@@ -21,6 +21,11 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.37.32822/bin/Hostx64/x64/cl.exe")
 #set(CMAKE_GENERATOR "Visual Studio 17 2022" CACHE OFF "" FORCE)
 
+include(FindVulkan)
+if(NOT VULKAN_FOUND)
+    message(FATAL_ERROR "Vulkan SDK not installed.")
+endif()
+find_package(Vulkan REQUIRED)
 
 set(PX_BUILDSNIPPETS OFF CACHE BOOL "Generate the snippets")
 set(PX_BUILDPUBLICSAMPLES OFF CACHE BOOL "Generate the samples projects")
@@ -104,7 +109,6 @@ add_executable(PlazaEngine "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engin
 target_compile_options(PlazaEngine PRIVATE /WX-)
 
 target_precompile_headers(PlazaEngine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
-
 
 if(MSVC)
   target_compile_options(PlazaEngine PUBLIC "/ZI")
@@ -191,7 +195,7 @@ set(PHYSX_DLLS
 "${PHYSX_DLL_FOLDER}/PhysXFoundation_64.dll"
 )
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib")
+target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 #    add_custom_target(CopyDLLs ALL
 #        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/

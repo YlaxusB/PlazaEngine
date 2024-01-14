@@ -11,7 +11,7 @@
 ApplicationClass* Plaza::Application = new Plaza::ApplicationClass();
 
 using namespace Plaza;
- 
+
 
 #define TRACY_NO_INVARIANT_CHECK 1
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
@@ -27,7 +27,7 @@ using namespace Plaza;
 
 
 #include <windows.h>
-
+#include <codecvt>
 int main() {
 	// Buffer to hold the path to the .exe
 	wchar_t exePath3[MAX_PATH];
@@ -42,6 +42,9 @@ int main() {
 
 	// Append "\\Dlls" to the directory path
 	std::wstring dllFolderPath = exeDirectory3 + L"\\Dlls";
+
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	Application->exeDirectory = converter.to_bytes(exeDirectory3);
 #ifdef GAME_REL != 0
 	wchar_t buffer2[MAX_PATH];
 	GetModuleFileNameW(NULL, buffer2, MAX_PATH);
@@ -78,7 +81,7 @@ int main() {
 	std::cout << "Initializating Physics \n";
 	Physics::Init();
 	Application->activeScene->mainSceneEntity = new Entity("Scene");
-	Editor::DefaultModels::Init();
+	////   Editor::DefaultModels::Init();
 
 	//for (auto const& dir_entry : std::filesystem::directory_iterator{ sandbox })
 	//	std::cout << dir_entry.path() << '\n';
@@ -118,9 +121,10 @@ int main() {
 	if (filesystem::exists(Application->enginePathAppData + "cache.yaml"))
 		Editor::Cache::Load();
 #endif
-	Skybox::Init();
+	if (Application->mRenderer->api == RendererAPI::OpenGL)
+		Skybox::Init();
 
-	
+
 	std::cout << "Starting Loop \n";
 	Application->Loop();
 	std::cout << "Terminate \n";

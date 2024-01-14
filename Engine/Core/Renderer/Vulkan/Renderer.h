@@ -1,11 +1,22 @@
 #pragma once
+#include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Shaders/Shader.h"
 #include "Engine/Core/Renderer/Renderer.h"
 #include "Engine/Components/Core/Entity.h"
+#include "Engine/Core/Renderer/Vulkan/ShadersCompiler.h"
+
+#include "Mesh.h"
 
 namespace Plaza {
+	struct SwapChainSupportDetails {
+		VkSurfaceCapabilitiesKHR capabilities;
+		std::vector<VkSurfaceFormatKHR> formats;
+		std::vector<VkPresentModeKHR> presentModes;
+	};
+
 	class VulkanRenderer : public Renderer {
 	public:
+		RendererAPI api = RendererAPI::Vulkan;
 		void Init() override;
 		void InitShaders(std::string shadersFolder) override;
 		void AddInstancesToRender() override;
@@ -16,8 +27,72 @@ namespace Plaza {
 		void RenderFullScreenQuad() override;
 		void RenderOutline() override;
 		void RenderHDR() override;
+		void Destroy() override;
 		void CopyLastFramebufferToFinalDrawBuffer() override;
+
+		bool mFramebufferResized = false;
 	private:
+		const int MAX_FRAMES_IN_FLIGHT = 2;
+		uint32_t mCurrentFrame = 0;
+
+		bool mEnableValidationLayers = true;
+		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+		VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
+		SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
+		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+		bool isDeviceSuitable(VkPhysicalDevice device);
+		void InitVulkan();
+		void SetupDebugMessenger();
+		void PickPhysicalDevice();
+		void CreateLogicalDevice();
+		void InitSurface();
+		void InitSwapChain();
+		void CreateImageViews();
+		void InitCommands();
+		void InitSyncStructures();
+		void CreateRenderPass();
+		void CreateGraphicsPipeline();
+		void CreateFramebuffers();
+		void CreateCommandPool();
+		void CreateCommandBuffers();
+
+		void CleanupSwapChain();
+		void RecreateSwapChain();
+
+		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
+		VkInstance mVulkanInstance = VK_NULL_HANDLE;
+		VkDebugUtilsMessengerEXT mDebugMessenger = VK_NULL_HANDLE;
+		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
+		VkDevice mDevice = VK_NULL_HANDLE;
+		VkQueue mGraphicsQueue = VK_NULL_HANDLE;
+		VkQueue mPresentQueue = VK_NULL_HANDLE;
+		VkSurfaceKHR mSurface = VK_NULL_HANDLE;
+		VkSwapchainKHR mSwapChain;
+
+		VkPipeline mGraphicsPipeline;
+		VkRenderPass mRenderPass;
+		VkPipelineLayout mPipelineLayout;
+		VkCommandPool mCommandPool;
+		std::vector<VkCommandBuffer> mCommandBuffers;
+		std::vector<VkSemaphore> mImageAvailableSemaphores;
+		std::vector<VkSemaphore> mRenderFinishedSemaphores;
+		std::vector<VkFence> mInFlightFences;
+
+
+		VkFormat mSwapChainImageFormat;
+		VkExtent2D mSwapChainExtent;
+
+
+		std::vector<VkImage> mSwapChainImages;
+		std::vector<VkImageView> mSwapChainImageViews;
+		std::vector<VkFramebuffer> mSwapChainFramebuffers;
+
+		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
+			std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+
+			return VK_FALSE;
+		}
 
 	};
 	/*

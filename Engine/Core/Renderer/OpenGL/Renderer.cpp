@@ -338,4 +338,16 @@ namespace Plaza {
 	void OpenGLRenderer::Destroy() {
 
 	}
+
+	void OpenGLRenderer::InitGUI() {
+
+	}
+
+	void OpenGLRenderer::NewFrameGUI() {
+
+	}
+
+	void OpenGLRenderer::UpdateGUI() {
+
+	}
 }

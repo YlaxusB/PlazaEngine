@@ -75,12 +75,12 @@ namespace Plaza {
 			return nullptr;
 		}
 		//  Set callbacks
-		 glfwSetFramebufferSizeCallback(window, ApplicationClass::Callbacks::framebufferSizeCallback);
-		// glfwSetCursorPosCallback(window, ApplicationClass::Callbacks::mouseCallback);
-		// glfwSetScrollCallback(window, ApplicationClass::Callbacks::scrollCallback);
-		// glfwSetMouseButtonCallback(window, ApplicationClass::Callbacks::mouseButtonCallback);
-		// glfwSetDropCallback(window, ApplicationClass::Callbacks::dropCallback);
-		// glfwSetKeyCallback(window, ApplicationClass::Callbacks::keyCallback);
+		glfwSetFramebufferSizeCallback(window, ApplicationClass::Callbacks::framebufferSizeCallback);
+		glfwSetCursorPosCallback(window, ApplicationClass::Callbacks::mouseCallback);
+		glfwSetScrollCallback(window, ApplicationClass::Callbacks::scrollCallback);
+		glfwSetMouseButtonCallback(window, ApplicationClass::Callbacks::mouseButtonCallback);
+		glfwSetDropCallback(window, ApplicationClass::Callbacks::dropCallback);
+		glfwSetKeyCallback(window, ApplicationClass::Callbacks::keyCallback);
 
 
 #ifndef GAME_REL

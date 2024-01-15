@@ -192,7 +192,7 @@ namespace Plaza {
 				mesh->meshId = meshesMap.at(mesh->meshName);
 			}
 
-			Application->editorScene->meshes.emplace(mesh->meshId, make_shared<Mesh>(*mesh));
+			Application->editorScene->meshes.emplace(mesh->meshId, make_shared<OpenGLMesh>(*mesh));
 			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), Application->editorScene->meshes.at(mesh->meshId));
 			if (Application->runningScene)
 				Application->runtimeScene->meshes.emplace(mesh->meshId, Application->editorScene->meshes.at(mesh->meshId));

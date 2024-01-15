@@ -27,6 +27,8 @@
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Input/Cursor.h"
 
+#include <ThirdParty/imgui/imgui_impl_opengl3.h>
+
 ////   #include "ThirdParty/imgui/imgui_impl_vulkan.h"
 //#include "Engine/Application/Application.h" //
 
@@ -63,17 +65,24 @@ namespace Plaza {
 			Gui::setupDockspace(Application->Window->glfwWindow, Application->textureColorbuffer, Application->activeCamera);
 			ImGui::Render();
 			if (Application->mRenderer->api == RendererAPI::OpenGL)
+			{
 				ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-			//else if (Application->mRenderer->api == RendererAPI::Vulkan)
-			//	ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), (VulkanRenderer)(Application->mRenderer)->);
+			}
+			else if (Application->mRenderer->api == RendererAPI::Vulkan)
+				Application->mRenderer->UpdateGUI();
+			//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), (VulkanRenderer)(Application->mRenderer)->);
 		}
 
 		void Gui::NewFrame() {
 			PLAZA_PROFILE_SECTION("ImGui New Frame");
 			if (Application->mRenderer->api == RendererAPI::OpenGL)
+			{
 				ImGui_ImplOpenGL3_NewFrame();
-			////   else if (Application->mRenderer->api == RendererAPI::Vulkan)
-			////   	ImGui_ImplVulkan_NewFrame();
+			}
+			else if (Application->mRenderer->api == RendererAPI::Vulkan)
+			{
+				Application->mRenderer->NewFrameGUI();
+			}
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
 		}
@@ -84,14 +93,24 @@ namespace Plaza {
 			ImGui::StyleColorsDark();
 			ImGuiIO& io = ImGui::GetIO();
 			(void)io;
-			ImGui_ImplGlfw_InitForOpenGL(window, true);
+
 			const char* iniFilePath = new char[(Application->enginePath + "\\imgui.ini").size() + 1];
 			strcpy(const_cast<char*>(iniFilePath), (Application->enginePath + "\\imgui.ini").c_str());
 			ImGui::GetIO().IniFilename = iniFilePath;
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-			ImGui_ImplOpenGL3_Init("#version 460");
-			//C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
-			io.Fonts->AddFontFromFileTTF((Application->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
+			if (Application->mRenderer->api == RendererAPI::OpenGL)
+			{
+				ImGui_ImplGlfw_InitForOpenGL(window, true);
+				ImGui_ImplOpenGL3_Init("#version 460");
+			}
+			else if (Application->mRenderer->api == RendererAPI::Vulkan)
+			{
+				ImGui_ImplGlfw_InitForVulkan(window, true);
+				Application->mRenderer->InitGUI();
+			}
+			//ImGui_ImplGlfw_InitForVulkan(Application->Window->glfwWindow, true);
+		//C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
+		//    io.Fonts->AddFontFromFileTTF((Application->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
 			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
 
 #pragma region ImGui Style
@@ -107,12 +126,12 @@ namespace Plaza {
 #pragma endregion
 
 			ImGui::GetStyle().ScrollbarSize = 9.0f;
-			Icon::Init();
+			//    Icon::Init();
 
 			FpsCounter* fpsCounter = new FpsCounter();
 
 			// Load Icons
-			playPauseButtonImageId = Utils::LoadImageToImGuiTexture(std::string(Application->editorPath + "\\Images\\Other\\playPauseButton.png").c_str());
+			//    playPauseButtonImageId = Utils::LoadImageToImGuiTexture(std::string(Application->editorPath + "\\Images\\Other\\playPauseButton.png").c_str());
 		}
 
 		void Gui::Delete() {
@@ -171,12 +190,12 @@ namespace Plaza {
 
 
 			Overlay::beginTransformOverlay(*Application->activeCamera);
-			fpsCounter->Update();
+			//    fpsCounter->Update();
 			// Update the sizes after resizing
 
 			//Gui::UpdateSizes();
 			if (canUpdateContent) {
-				Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+				//    Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 				canUpdateContent = false;
 			}
 		}

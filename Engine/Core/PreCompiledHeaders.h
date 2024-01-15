@@ -16,7 +16,7 @@
 #include <ThirdParty/imgui/imgui_internal.h>
 #include <ThirdParty/imgui/imgui.h>
 #include <ThirdParty/imgui/imgui_impl_glfw.h>
-#include <ThirdParty/imgui/imgui_impl_opengl3.h>
+
 #include <ThirdParty/imgui/ImGuizmo.h>
 #include "ThirdParty/yaml-cpp/include/yaml-cpp/yaml.h"
 #include "ThirdParty/assimp/include/assimp/Importer.hpp"

@@ -33,8 +33,8 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 			yposGame = appSizes.sceneSize.y - (lastY - appSizes.sceneImageStart.y);
 			uint64_t clickUuid = -1;
 			if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && (!ImGuizmo::IsUsing() || (ImGuizmo::IsOver() && !ImGuizmo::IsUsing))) {
-				Application->pickingTexture->GenerateTexture();
-				clickUuid = Application->pickingTexture->readPixel(xposGame, yposGame);
+			//	Application->pickingTexture->GenerateTexture();
+			//    	clickUuid = Application->pickingTexture->readPixel(xposGame, yposGame);
 			}
 
 

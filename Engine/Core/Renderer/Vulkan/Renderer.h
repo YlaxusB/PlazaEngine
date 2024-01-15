@@ -7,6 +7,32 @@
 
 #include "Mesh.h"
 
+struct VertexV {
+	glm::vec2 pos;
+	glm::vec3 color;
+
+	static VkVertexInputBindingDescription getBindingDescription() {
+		VkVertexInputBindingDescription bindingDescription{};
+		bindingDescription.binding = 0;
+		bindingDescription.stride = sizeof(VertexV);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		return bindingDescription;
+	}
+
+	static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
+		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+		attributeDescriptions[0].binding = 0;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(VertexV, pos);
+		attributeDescriptions[1].binding = 0;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(VertexV, color);
+		return attributeDescriptions;
+	}
+};
+
 namespace Plaza {
 	struct SwapChainSupportDetails {
 		VkSurfaceCapabilitiesKHR capabilities;
@@ -29,6 +55,9 @@ namespace Plaza {
 		void RenderHDR() override;
 		void Destroy() override;
 		void CopyLastFramebufferToFinalDrawBuffer() override;
+		void InitGUI() override;
+		void NewFrameGUI() override;
+		void UpdateGUI() override;
 
 		bool mFramebufferResized = false;
 	private:
@@ -55,11 +84,21 @@ namespace Plaza {
 		void CreateFramebuffers();
 		void CreateCommandPool();
 		void CreateCommandBuffers();
+		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 		void CleanupSwapChain();
 		void RecreateSwapChain();
 
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+		void CreateVertexBuffer();
+		void CreateIndexBuffer();
+		void CreateUniformBuffers();
+		void CreateDescriptorPool();
+		void CreateDescriptorSets();
+		void UpdateUniformBuffer(uint32_t currentImage);
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+		void CreateDescriptorSetLayout();
 
 		VkInstance mVulkanInstance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT mDebugMessenger = VK_NULL_HANDLE;
@@ -83,6 +122,17 @@ namespace Plaza {
 		VkFormat mSwapChainImageFormat;
 		VkExtent2D mSwapChainExtent;
 
+		VkBuffer mVertexBuffer;
+		VkDeviceMemory mVertexBufferMemory;
+		VkBuffer mIndexBuffer;
+		VkDeviceMemory mIndexBufferMemory;
+		VkDescriptorSetLayout mDescriptorSetLayout;
+		std::vector<VkDescriptorSet> mDescriptorSets;
+
+		std::vector<VkBuffer> mUniformBuffers;
+		std::vector<VkDeviceMemory> mUniformBuffersMemory;
+		std::vector<void*> mUniformBuffersMapped;
+		VkDescriptorPool mDescriptorPool;
 
 		std::vector<VkImage> mSwapChainImages;
 		std::vector<VkImageView> mSwapChainImageViews;
@@ -94,6 +144,22 @@ namespace Plaza {
 			return VK_FALSE;
 		}
 
+		struct UniformBufferObject {
+			glm::mat4 projection;
+			glm::mat4 view;
+			glm::mat4 model;
+		};
+
+		const std::vector<VertexV> vertices = {
+			{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+			{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+			{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+			{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+		};
+
+		const std::vector<uint32_t> indices = {
+	0, 1, 2, 2, 3, 0
+		};
 	};
 	/*
 	class VulkanRenderer : public Renderer {

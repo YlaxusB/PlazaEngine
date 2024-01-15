@@ -9,6 +9,7 @@
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Editor/Settings/ProjectGenerator.h"
 #include "Editor/SessionCache/Cache.h"
+#include <ThirdParty/imgui/imgui_impl_opengl3.h>
 namespace Plaza {
 	namespace Editor {
 		void ProjectManagerGui::ProjectManagerContent::UpdateContent(ProjectManagerGui& projectManagerGui) {

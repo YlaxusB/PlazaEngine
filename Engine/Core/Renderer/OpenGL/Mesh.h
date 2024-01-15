@@ -114,7 +114,7 @@ namespace Plaza {
 			}
 		}
 
-		void Draw(Shader& shader) {
+		void Draw(Shader& shader) override {
 			// draw mesh
 			glBindVertexArray(VAO);
 			glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
@@ -173,7 +173,7 @@ namespace Plaza {
 			//glDeleteBuffers(1, &EBO);
 		}
 
-		void Restart() {
+		void Restart() override {
 			if (indices.size() > 0 && vertices.size() > 0) {
 				/*			glDeleteBuffers(1, &VBO);
 							glDeleteBuffers(1, &EBO);
@@ -233,7 +233,7 @@ namespace Plaza {
 
 	private:
 		unsigned int VBO, EBO;
-		void setupMesh() {
+		void setupMesh() override {
 			// create buffers/arrays
 			glGenVertexArrays(1, &VAO);
 			glGenBuffers(1, &VBO);

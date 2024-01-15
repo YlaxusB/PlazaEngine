@@ -75,6 +75,10 @@ namespace Plaza {
 		static void MergeColors(GLint texture1, GLint texture2);
 
 		static void CopyFrameBufferColor(GLint readBuffer, GLint drawBuffer);
+
+		void InitGUI() override;
+		void NewFrameGUI() override;
+		void UpdateGUI() override;
 	private:
 		static unsigned int pingpongFBO[2];
 		static unsigned int pingpongColorbuffers[2];

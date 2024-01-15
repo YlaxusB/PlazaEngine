@@ -255,7 +255,7 @@ void ApplicationClass::CreateApplication() {
 #ifdef GAME_REL
 #else
 	std::cout << "Gui Initialized \n";
-	////   Editor::Gui::Init(Application->Window->glfwWindow);
+	Editor::Gui::Init(Application->Window->glfwWindow);
 #endif // !GAME_REL
 
 
@@ -361,10 +361,11 @@ void ApplicationClass::UpdateEngine() {
 	// Imgui New Frame (only if running editor)
 #ifdef GAME_REL
 #else
-	////   Gui::NewFrame();
+	Gui::NewFrame();
 #endif // GAME_REL == 0
 
-
+	if (Application->mRenderer->api == RendererAPI::Vulkan)
+		Gui::Update();
 	Application->mRenderer->RenderInstances(*Application->shader);
 
 	if (Application->mRenderer->api == RendererAPI::OpenGL)
@@ -468,8 +469,10 @@ void ApplicationClass::UpdateEngine() {
 	// Update ImGui (only if running editor)
 #ifndef GAME_REL
 	if (Application->mRenderer->api == RendererAPI::OpenGL)
+	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	////   Gui::Update();
+		Gui::Update();
+	}
 #endif
 	// Update last frame
 

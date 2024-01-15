@@ -413,7 +413,7 @@ namespace Plaza {
 				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
 			}
 			else {
-				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<OpenGLMesh>(*newMesh));
 			}
 			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId).get();
 			vector<glm::vec3>& meshVertices = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->vertices;
@@ -517,7 +517,7 @@ namespace Plaza {
 				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
 			}
 			else {
-				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<OpenGLMesh>(*newMesh));
 			}
 			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId).get();
 			vector<glm::vec3>& meshNormals = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->normals;
@@ -591,8 +591,8 @@ namespace Plaza {
 		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
-			Mesh* oldMesh = meshRendererIt->second.mesh;
-			Mesh* newMesh;
+			OpenGLMesh* oldMesh = (OpenGLMesh*)meshRendererIt->second.mesh;
+			OpenGLMesh* newMesh;
 			//if (oldMesh.get())
 			//	newMesh = new Mesh(*oldMesh);
 			//else
@@ -721,7 +721,7 @@ namespace Plaza {
 	static void Collider_AddShapeMeshCall(uint64_t uuid, ColliderShapeEnum shape, glm::vec3* vertices, int verticesSize, unsigned int* indices, int indicesSize, glm::vec3* normals, int normalsSize, glm::vec2* uvs, int uvsSize) {
 		auto it = Application->activeScene->colliderComponents.find(uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
-			Mesh* newMesh = new OpenGLMesh();
+			OpenGLMesh* newMesh = new OpenGLMesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
 			newMesh->vertices.clear();

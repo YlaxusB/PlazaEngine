@@ -19,6 +19,10 @@ namespace Plaza {
 		virtual void RenderOutline() = 0;
 		virtual void RenderHDR() = 0;
 
+		virtual void InitGUI() = 0;
+		virtual void NewFrameGUI() = 0;
+		virtual void UpdateGUI() = 0;
+
 		virtual void Destroy() = 0;
 
 		virtual void CopyLastFramebufferToFinalDrawBuffer() = 0;

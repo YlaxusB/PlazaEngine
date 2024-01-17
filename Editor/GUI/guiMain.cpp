@@ -63,9 +63,9 @@ namespace Plaza {
 			ImGuiIO& io = ImGui::GetIO();
 			io.DeltaTime = Time::deltaTime;
 			Gui::setupDockspace(Application->Window->glfwWindow, Application->textureColorbuffer, Application->activeCamera);
-			ImGui::Render();
 			if (Application->mRenderer->api == RendererAPI::OpenGL)
 			{
+				ImGui::Render();
 				ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 			}
 			else if (Application->mRenderer->api == RendererAPI::Vulkan)
@@ -189,9 +189,9 @@ namespace Plaza {
 			ImGui::End();
 
 
-			Overlay::beginTransformOverlay(*Application->activeCamera);
-			//    fpsCounter->Update();
-			// Update the sizes after resizing
+			//   Overlay::beginTransformOverlay(*Application->activeCamera);
+			//       fpsCounter->Update();
+			 // Update the sizes after resizing
 
 			//Gui::UpdateSizes();
 			if (canUpdateContent) {
@@ -253,51 +253,53 @@ namespace Plaza {
 			else {
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
 			}
-
-			if (ImGui::ImageButton("PlayPauseButton", ImTextureID(playPauseButtonImageId), ImVec2(25, 25))) {
-				if (Application->runningScene)
-					Scene::Stop();
-				else
-					Scene::Play();
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Reload C# Script Assembly")) {
-				ScriptManager::ReloadScriptsAssembly();
-			}
-			ImGui::SameLine();
-			if (ImGui::Checkbox("Editor Camera", &sceneViewUsingEditorCamera)) {
-				if (sceneViewUsingEditorCamera)
-					Application->activeCamera = Application->editorCamera;
-				else {
-					if (Application->activeCamera->isEditorCamera && Application->activeScene->cameraComponents.size() > 0)
-						Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
+			if (isSceneOpen) {
+				if (ImGui::ImageButton("PlayPauseButton", ImTextureID(playPauseButtonImageId), ImVec2(25, 25))) {
+					if (Application->runningScene)
+						Scene::Stop();
+					else
+						Scene::Play();
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Reload C# Script Assembly")) {
+					ScriptManager::ReloadScriptsAssembly();
+				}
+				ImGui::SameLine();
+				if (ImGui::Checkbox("Editor Camera", &sceneViewUsingEditorCamera)) {
+					if (sceneViewUsingEditorCamera)
+						Application->activeCamera = Application->editorCamera;
+					else {
+						if (Application->activeCamera->isEditorCamera && Application->activeScene->cameraComponents.size() > 0)
+							Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
+					}
 				}
 			}
 			ImGui::PopStyleColor();
+			if (isSceneOpen) {
 
-			ImVec2 uv0(0, 1); // bottom-left corner
-			ImVec2 uv1(1, 0); // top-right corner
-			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
-			ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
-			//ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+				ImVec2 uv0(0, 1); // bottom-left corner
+				ImVec2 uv1(1, 0); // top-right corner
+				appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
+				ImGui::Image(ImTextureID(Application->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+				//ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 
-			//	appSizes.sceneStart = ImGui::glmVec2(ImGui::GetWindowPos());
-			if (ImGui::BeginDragDropTarget()) {
-				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(scenePayloadName.c_str())) {
-					if (payload->DataSize == sizeof(Editor::File)) {
-						File* file = *static_cast<File**>(payload->Data);
-						//if (file->extension == Standards::modelExtName) {
-						if (file->extension == Standards::modelExtName) {
-							//file->directory, file->name
+				//	appSizes.sceneStart = ImGui::glmVec2(ImGui::GetWindowPos());
+				if (ImGui::BeginDragDropTarget()) {
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(scenePayloadName.c_str())) {
+						if (payload->DataSize == sizeof(Editor::File)) {
+							File* file = *static_cast<File**>(payload->Data);
+							//if (file->extension == Standards::modelExtName) {
+							if (file->extension == Standards::modelExtName) {
+								//file->directory, file->name
 
-							ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID(file->directory), file->directory);
+								ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID(file->directory), file->directory);
+							}
+							delete(file);
 						}
-						delete(file);
 					}
+					ImGui::EndDragDropTarget();
 				}
-				ImGui::EndDragDropTarget();
 			}
-
 			ImGui::End();
 		}
 
@@ -366,7 +368,8 @@ namespace Plaza {
 			ImVec2 uv0(0, 1); // bottom-left corner
 			ImVec2 uv1(1, 0); // top-right corner
 			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
-			ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+
+			ImGui::Image(ImTextureID(Application->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 
 			// Show the gizmo if there's a selected entity
 			std::map<std::string, File*> files = Editor::selectedFiles;

@@ -8,8 +8,10 @@
 #include "Mesh.h"
 
 struct VertexV {
-	glm::vec2 pos;
+	glm::vec3 pos;
 	glm::vec3 color;
+	glm::vec2 texCoord;
+
 
 	static VkVertexInputBindingDescription getBindingDescription() {
 		VkVertexInputBindingDescription bindingDescription{};
@@ -19,16 +21,22 @@ struct VertexV {
 		return bindingDescription;
 	}
 
-	static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
-		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
+	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
+		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 		attributeDescriptions[0].binding = 0;
 		attributeDescriptions[0].location = 0;
-		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 		attributeDescriptions[0].offset = offsetof(VertexV, pos);
+
 		attributeDescriptions[1].binding = 0;
 		attributeDescriptions[1].location = 1;
 		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
 		attributeDescriptions[1].offset = offsetof(VertexV, color);
+
+		attributeDescriptions[2].binding = 0;
+		attributeDescriptions[2].location = 2;
+		attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[2].offset = offsetof(VertexV, texCoord);
 		return attributeDescriptions;
 	}
 };
@@ -58,9 +66,11 @@ namespace Plaza {
 		void InitGUI() override;
 		void NewFrameGUI() override;
 		void UpdateGUI() override;
+		ImTextureID GetFrameImage() override;
 
 		bool mFramebufferResized = false;
 	private:
+		uint32_t mCurrentImage;
 		const int MAX_FRAMES_IN_FLIGHT = 2;
 		uint32_t mCurrentFrame = 0;
 
@@ -68,7 +78,7 @@ namespace Plaza {
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 		VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
 		SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
-		VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+		VkExtent2D ChooseSwapExtent(VkSurfaceCapabilitiesKHR& capabilities);
 		bool isDeviceSuitable(VkPhysicalDevice device);
 		void InitVulkan();
 		void SetupDebugMessenger();
@@ -84,6 +94,7 @@ namespace Plaza {
 		void CreateFramebuffers();
 		void CreateCommandPool();
 		void CreateCommandBuffers();
+		void CreateImGuiTextureSampler();
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 		void CleanupSwapChain();
@@ -99,6 +110,26 @@ namespace Plaza {
 		void UpdateUniformBuffer(uint32_t currentImage);
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 		void CreateDescriptorSetLayout();
+
+		void CreateTextureImage();
+		void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+
+		VkCommandBuffer BeginSingleTimeCommands();
+		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+
+		void CreateTextureImageView();
+		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+		void CreateTextureSampler();
+		VkImage mTextureImage;
+		VkDeviceMemory mTextureImageMemory;
+		VkImageView mTextureImageView;
+
+		VkFramebuffer mFinalSceneFramebuffer;
+		VkImageView mFinalSceneImageView;
+		VkImage mFinalSceneImage;
+		VkDescriptorSet mFinalSceneDescriptorSet;
 
 		VkInstance mVulkanInstance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT mDebugMessenger = VK_NULL_HANDLE;
@@ -138,6 +169,24 @@ namespace Plaza {
 		std::vector<VkImageView> mSwapChainImageViews;
 		std::vector<VkFramebuffer> mSwapChainFramebuffers;
 
+		// ImGui variables
+		VkDescriptorPool mImguiDescriptorPool;
+		VkDescriptorSetLayout mImguiDescriptorSetLayout;
+		VkDescriptorSet mImguiDescriptorSet;
+		VkPipeline mImguiPipeline;
+		VkPipelineLayout mImguiPipelineLayout;
+		VkImage mImguiImage;
+
+		VkSampler mTextureSampler;
+
+		VkImage mDepthImage;
+		VkDeviceMemory mDepthImageMemory;
+		VkImageView mDepthImageView;
+		void CreateDepthResources();
+		VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+		VkFormat FindDepthFormat();
+		bool HasStencilComponent(VkFormat format);
+
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
 			std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
 
@@ -151,14 +200,20 @@ namespace Plaza {
 		};
 
 		const std::vector<VertexV> vertices = {
-			{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-			{{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-			{{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-			{{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+			{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+			{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+			{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+			{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+
+			{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+			{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+			{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+			{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
 		};
 
 		const std::vector<uint32_t> indices = {
-	0, 1, 2, 2, 3, 0
+			0, 1, 2, 2, 3, 0,
+			4, 5, 6, 6, 7, 4
 		};
 	};
 	/*

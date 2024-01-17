@@ -45,7 +45,7 @@ namespace Plaza {
 #else
 		// glfwWindowHint(GLFW_REFRESH_RATE, 5000);
 #endif
-		GLFWwindow* window = glfwCreateWindow(Application->appSizes->appSize.x / 2, Application->appSizes->appSize.y / 2, "Plaza Engine", nullptr, nullptr); // ------------------------------------------------------------------ Change this to 0
+		GLFWwindow* window = glfwCreateWindow(Application->appSizes->appSize.x, Application->appSizes->appSize.y, "Plaza Engine", nullptr, nullptr); // ------------------------------------------------------------------ Change this to 0
 		if (!window) {
 			// Handle window creation failure
 			// You can print an error message or log it
@@ -66,7 +66,6 @@ namespace Plaza {
 		// //glfwMaximizeWindow(window);
 		// glfwMaximizeWindow(window);
 		// glfwSetWindowPos(window, 0, 0);
-
 
 		if (window == NULL)
 		{

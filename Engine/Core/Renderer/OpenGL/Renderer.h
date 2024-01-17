@@ -79,6 +79,7 @@ namespace Plaza {
 		void InitGUI() override;
 		void NewFrameGUI() override;
 		void UpdateGUI() override;
+		ImTextureID GetFrameImage() override;
 	private:
 		static unsigned int pingpongFBO[2];
 		static unsigned int pingpongColorbuffers[2];

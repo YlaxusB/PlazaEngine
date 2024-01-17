@@ -22,6 +22,7 @@ namespace Plaza {
 		virtual void InitGUI() = 0;
 		virtual void NewFrameGUI() = 0;
 		virtual void UpdateGUI() = 0;
+		virtual ImTextureID GetFrameImage() = 0;
 
 		virtual void Destroy() = 0;
 

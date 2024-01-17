@@ -350,4 +350,8 @@ namespace Plaza {
 	void OpenGLRenderer::UpdateGUI() {
 
 	}
+
+	ImTextureID OpenGLRenderer::GetFrameImage() {
+		return (ImTextureID)Application->textureColorbuffer;
+	}
 }

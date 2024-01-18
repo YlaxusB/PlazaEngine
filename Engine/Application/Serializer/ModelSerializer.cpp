@@ -120,7 +120,8 @@ namespace Plaza {
 			newMeshRenderer->uuid = entity->uuid;
 			uint64_t materialUuid = componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>();
 			if (componentsEntry["MeshComponent"]["MaterialUuid"])
-				newMeshRenderer->material = Application->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>()).get();
+				/* TODO:FIX THE WAY TO GET MATERIALS, IT HAS BEEN TEMPORARILY DISABLED TO LOAD MODELS WITH VULKAN */
+				newMeshRenderer->material = Application->activeScene->materials.at(0).get();//    Application->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>()).get();
 			model->meshRenderers.emplace(entity->uuid, newMeshRenderer);
 		}
 		model->transforms.emplace(entity->uuid, newTransform);

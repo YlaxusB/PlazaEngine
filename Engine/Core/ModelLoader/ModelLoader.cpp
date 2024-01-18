@@ -5,6 +5,7 @@
 #include "Engine/Core/ModelLoader/Model.h"
 #include "Engine/Components/Core/Entity.h"
 #include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
+#include "Engine/Core/Renderer/Renderer.h"
 
 namespace Plaza {
 	Material DefaultMaterial() {
@@ -167,35 +168,35 @@ namespace Plaza {
 		unsigned int index = 0;
 		for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 			aiMesh* aiMesh = scene->mMeshes[i];
-			OpenGLMesh* mesh = new OpenGLMesh(ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr, useTangent));
+			Mesh mesh = ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr, useTangent);
 
 			for (Material& material : materialsLoaded) {
-				if (mesh->material.SameAs(material)) {
-					mesh->material = material;
+				if (mesh.material.SameAs(material)) {
+					mesh.material = material;
 				}
 				else
-					materialsLoaded.push_back(mesh->material);
+					materialsLoaded.push_back(mesh.material);
 			}
 
-			mesh->meshName = aiMesh->mName.C_Str() + to_string(index);
+			mesh.meshName = aiMesh->mName.C_Str() + to_string(index);
 
-			mesh->material.name = mesh->meshName + "material";
-			mesh->material.filePath = std::string(directory) + "\\" + mesh->material.name + Standards::materialExtName;
+			mesh.material.name = mesh.meshName + "material";
+			mesh.material.filePath = std::string(directory) + "\\" + mesh.material.name + Standards::materialExtName;
 
-			if (Application->activeScene->materials.find(mesh->material.uuid) == Application->activeScene->materials.end()) {
+			if (Application->activeScene->materials.find(mesh.material.uuid) == Application->activeScene->materials.end()) {
 				//Application->activeScene->materials.emplace(mesh->material.uuid, &mesh->material);
 				//Application->activeScene->AddMaterial(&mesh->material);
 				//MaterialFileSerializer::Serialize(mesh->material.filePath, &mesh->material);
 			}
-			mesh->modelUuid = model->uuid;
+			mesh.modelUuid = model->uuid;
 			if (meshesMap.size() > 0) {
-				mesh->meshId = meshesMap.at(mesh->meshName);
+				mesh.meshId = meshesMap.at(mesh.meshName);
 			}
 
-			Application->editorScene->meshes.emplace(mesh->meshId, make_shared<OpenGLMesh>(*mesh));
-			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), Application->editorScene->meshes.at(mesh->meshId));
+			Application->editorScene->meshes.emplace(mesh.meshId, make_shared<Mesh>(mesh));
+			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), Application->editorScene->meshes.at(mesh.meshId));
 			if (Application->runningScene)
-				Application->runtimeScene->meshes.emplace(mesh->meshId, Application->editorScene->meshes.at(mesh->meshId));
+				Application->runtimeScene->meshes.emplace(mesh.meshId, Application->editorScene->meshes.at(mesh.meshId));
 			index++;
 		}
 	}
@@ -229,7 +230,7 @@ namespace Plaza {
 			// Get the assimp mesh of the current node
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			// Convert it to my own mesh
-			OpenGLMesh nodeMesh = ProcessMesh(mesh, scene, textures_loaded, directory, node, useTangent);
+			Mesh nodeMesh = ProcessMesh(mesh, scene, textures_loaded, directory, node, useTangent);
 
 			for (Material& material : materialsLoaded) {
 				if (nodeMesh.material.SameAs(material)) {
@@ -275,7 +276,7 @@ namespace Plaza {
 		}
 	}
 
-	OpenGLMesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node, bool useTangent)
+	Mesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node, bool useTangent)
 	{
 		// data to fill
 		//vector<Vertex> vertices;
@@ -367,13 +368,13 @@ namespace Plaza {
 		Material convertedMaterial = DefaultMaterial();
 		convertedMaterial.uuid = Plaza::UUID::NewUUID();
 
-		convertedMaterial.diffuse = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse", textures_loaded, directory)[0];
-		convertedMaterial.specular = ModelLoader::LoadMaterialTextures(material, aiTextureType_SPECULAR, "specular", textures_loaded, directory)[0];
-		convertedMaterial.normal = ModelLoader::LoadMaterialTextures(material, aiTextureType_HEIGHT, "normal", textures_loaded, directory)[0];
-		convertedMaterial.height = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT, "height", textures_loaded, directory)[0];
-		convertedMaterial.metalness = ModelLoader::LoadMaterialTextures(material, aiTextureType_METALNESS, "metalness", textures_loaded, directory)[0];
-		convertedMaterial.roughness = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "roughness", textures_loaded, directory)[0];
-		convertedMaterial.aoMap = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "aoMap", textures_loaded, directory)[0];
+		//    convertedMaterial.diffuse = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse", textures_loaded, directory)[0];
+		//    convertedMaterial.specular = ModelLoader::LoadMaterialTextures(material, aiTextureType_SPECULAR, "specular", textures_loaded, directory)[0] ;
+		//    convertedMaterial.normal = ModelLoader::LoadMaterialTextures(material, aiTextureType_HEIGHT, "normal", textures_loaded, directory)[0];
+		//    convertedMaterial.height = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT, "height", textures_loaded, directory)[0];
+		//    convertedMaterial.metalness = ModelLoader::LoadMaterialTextures(material, aiTextureType_METALNESS, "metalness", textures_loaded, directory) [   0];
+		//    convertedMaterial.roughness = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "roughness", textures_loaded, // d   irectory)[0];
+		//    convertedMaterial.aoMap = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "aoMap", textures_loaded, directory)[0];
 
 
 		convertedMaterial.name = std::string(material->GetName().C_Str()) + "_" + std::string(material->GetName().C_Str()) + Standards::materialExtName;
@@ -382,9 +383,9 @@ namespace Plaza {
 		convertedMaterial.specular.rgba = glm::vec4(INFINITY);
 		convertedMaterial.normal.rgba = glm::vec4(INFINITY);
 		convertedMaterial.height.rgba = glm::vec4(INFINITY);
-		OpenGLMesh finalMesh = OpenGLMesh(vertices, normals, uvs, tangents, bitangents, indices, convertedMaterial);
-		finalMesh.material = convertedMaterial;
-		finalMesh.usingNormal = usingNormal;
-		return finalMesh;
+		//OpenGLMesh finalMesh = OpenGLMesh(vertices, normals, uvs, tangents, bitangents, indices, //convertedMaterial);
+		//finalMesh.material = convertedMaterial;
+		//finalMesh.usingNormal = usingNormal;
+		return Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, bitangents, indices, convertedMaterial, usingNormal);
 	}
 }

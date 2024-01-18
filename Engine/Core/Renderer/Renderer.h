@@ -1,6 +1,8 @@
 #pragma once
+#include "Engine/Core/PreCompiledHeaders.h"
+#include "Mesh.h"
+namespace Plaza { 
 
-namespace Plaza {
 	enum RendererAPI {
 		OpenGL,
 		Vulkan
@@ -18,6 +20,8 @@ namespace Plaza {
 		virtual void RenderFullScreenQuad() = 0;
 		virtual void RenderOutline() = 0;
 		virtual void RenderHDR() = 0;
+
+		virtual Mesh CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) = 0;
 
 		virtual void InitGUI() = 0;
 		virtual void NewFrameGUI() = 0;

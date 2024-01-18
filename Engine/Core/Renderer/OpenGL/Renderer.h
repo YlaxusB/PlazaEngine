@@ -3,6 +3,10 @@
 #include "Engine/Core/Renderer/Renderer.h"
 #include "Engine/Components/Core/Entity.h"
 
+#include "OpenGLMesh.h"
+#include "Engine/Core/Renderer/Mesh.h"
+#include "Engine/Core/FrameBuffer.h"
+
 namespace Plaza {
 	class OpenGLRenderer : public Renderer {
 	public:
@@ -80,6 +84,8 @@ namespace Plaza {
 		void NewFrameGUI() override;
 		void UpdateGUI() override;
 		ImTextureID GetFrameImage() override;
+
+		Mesh CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) override;
 	private:
 		static unsigned int pingpongFBO[2];
 		static unsigned int pingpongColorbuffers[2];

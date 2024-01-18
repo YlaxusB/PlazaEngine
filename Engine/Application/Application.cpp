@@ -33,6 +33,7 @@
 #include "Engine/Core/Renderer/OpenGL/ScreenSpaceReflections.h"
 
 
+
 char* appdataValue;
 size_t len;
 errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");

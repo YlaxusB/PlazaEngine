@@ -2,14 +2,14 @@
 #include "Engine/Components/Rendering/MeshRenderer.h"
 
 namespace Plaza {
-	MeshRenderer::MeshRenderer(Plaza::OpenGLMesh initialMesh, bool addToScene) {
+	MeshRenderer::MeshRenderer(Plaza::Mesh initialMesh, bool addToScene) {
 		this->uuid = Plaza::UUID::NewUUID();
 		this->mesh = &initialMesh;//std::make_unique<Mesh>(initialMesh);
 		if (addToScene)
 			Application->activeScene->meshRenderers.emplace_back(this);
 	}
 
-	MeshRenderer::MeshRenderer(Plaza::OpenGLMesh initialMesh, Material material, bool addToScene) {
+	MeshRenderer::MeshRenderer(Plaza::Mesh initialMesh, Material material, bool addToScene) {
 		this->uuid = Plaza::UUID::NewUUID();
 		this->mesh = &initialMesh;
 		this->material = &material;

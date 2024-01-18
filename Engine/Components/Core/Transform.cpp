@@ -63,7 +63,7 @@ namespace Plaza {
 	void Transform::UpdateWorldMatrix() {
 		PLAZA_PROFILE_SECTION("Transform: Update World Matrix");
 		uint64_t parentUuid = Application->activeScene->entities.find(this->uuid)->second.parentUuid;
-		if (parentUuid) {
+		if (parentUuid && Application->activeScene->transformComponents.find(parentUuid) != Application->activeScene->transformComponents.end()) {
 			glm::mat4 parentModelMatrix = Application->activeScene->transformComponents.find(parentUuid)->second.modelMatrix;
 			if (this->lastParentModelMatrix != parentModelMatrix || this->lastLocalMatrix != this->localMatrix) {
 				this->modelMatrix = parentModelMatrix * this->localMatrix;

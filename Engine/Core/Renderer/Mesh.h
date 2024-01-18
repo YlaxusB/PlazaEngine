@@ -1,8 +1,7 @@
 #pragma once
 #include "Engine/Core/PreCompiledHeaders.h"
-#include "Engine/Core/Renderer/Renderer.h"
-
 namespace Plaza {
+	enum RendererAPI;
 	enum MeshType {
 		Triangle = 0,
 		HeightField
@@ -21,6 +20,7 @@ namespace Plaza {
 
 		Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const glm::vec3& bitan)
 			: position(pos), normal(norm), texCoords(tex), tangent(tan), bitangent(bitan) {}
+		Vertex(){}
 	};
 
 	class Mesh {
@@ -49,14 +49,9 @@ namespace Plaza {
 		bool usingNormal;
 		glm::vec4 infVec = glm::vec4(INFINITY);
 
-		virtual void setupMesh() = 0;
-		virtual void Restart() = 0;
-		virtual void Draw(Shader& shader) = 0;
-
-
-
-
-
+		virtual void setupMesh() {};
+		virtual void Restart() {};
+		virtual void Draw(Shader& shader) {};
 
 		Material DefaultMaterial() {
 			Material material;

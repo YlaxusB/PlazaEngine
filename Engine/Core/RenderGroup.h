@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/Core/Renderer/OpenGL/Mesh.h"
+#include "Engine/Core/Renderer/OpenGL/OpenGLMesh.h"
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Shaders/Shader.h"
 namespace Plaza {

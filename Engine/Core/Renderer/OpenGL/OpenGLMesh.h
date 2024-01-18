@@ -6,6 +6,7 @@
 #include "Engine/Core/Time.h"
 
 #include "Engine/Core/Renderer/Mesh.h"
+#include "Renderer.h"
 
 using namespace std;
 using namespace Plaza;
@@ -51,6 +52,22 @@ namespace Plaza {
 			this->tangent = tangent;
 			this->bitangent = bitangent;
 			this->indices = indices;
+			this->uuid = Plaza::UUID::NewUUID();
+			if (this->meshId == 0)
+				this->meshId = Plaza::UUID::NewUUID();
+			setupMesh();
+		}
+
+		OpenGLMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) {
+			this->vertices = vertices;
+			this->indices = indices;
+			this->normals = normals;
+			this->uvs = uvs;
+			this->tangent = tangent;
+			this->bitangent = bitangent;
+			this->indices = indices;
+			this->material = material;
+			this->usingNormal = usingNormal;
 			this->uuid = Plaza::UUID::NewUUID();
 			if (this->meshId == 0)
 				this->meshId = Plaza::UUID::NewUUID();

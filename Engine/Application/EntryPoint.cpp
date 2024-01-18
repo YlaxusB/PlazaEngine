@@ -25,6 +25,8 @@ using namespace Plaza;
 
 
 
+#include "Engine/Core/ModelLoader/ModelLoader.h"
+#include "Engine/Application/Serializer/ModelSerializer.h"
 
 #include <windows.h>
 #include <codecvt>
@@ -124,6 +126,8 @@ int main() {
 	if (Application->mRenderer->api == RendererAPI::OpenGL)
 		Skybox::Init();
 
+	/*  -----   TEMPORARILY LOAD MODEL   -----  */
+	ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod"), "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod");
 
 	std::cout << "Starting Loop \n";
 	Application->Loop();

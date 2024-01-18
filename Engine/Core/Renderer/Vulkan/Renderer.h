@@ -6,7 +6,9 @@
 #include "Engine/Core/Renderer/Vulkan/ShadersCompiler.h"
 
 #include "Mesh.h"
+#include "Engine/Core/Renderer/Mesh.h"
 
+/*
 struct VertexV {
 	glm::vec3 pos;
 	glm::vec3 color;
@@ -40,6 +42,7 @@ struct VertexV {
 		return attributeDescriptions;
 	}
 };
+*/
 
 namespace Plaza {
 	struct SwapChainSupportDetails {
@@ -68,8 +71,13 @@ namespace Plaza {
 		void UpdateGUI() override;
 		ImTextureID GetFrameImage() override;
 
+		Mesh CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal);
+
 		bool mFramebufferResized = false;
 	private:
+		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";
+		const std::string TEXTURE_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.png";
+		
 		uint32_t mCurrentImage;
 		const int MAX_FRAMES_IN_FLIGHT = 2;
 		uint32_t mCurrentFrame = 0;
@@ -102,8 +110,8 @@ namespace Plaza {
 
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-		void CreateVertexBuffer();
-		void CreateIndexBuffer();
+		void CreateVertexBuffer(vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory);
+		void CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer, VkDeviceMemory& indicesMemoryBuffer);
 		void CreateUniformBuffers();
 		void CreateDescriptorPool();
 		void CreateDescriptorSets();
@@ -199,22 +207,49 @@ namespace Plaza {
 			glm::mat4 model;
 		};
 
-		const std::vector<VertexV> vertices = {
-			{{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-			{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-			{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-			{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+		std::vector<Vertex> vertices;
+		std::vector<uint32_t> indices;
+		void LoadModel();
 
-			{{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-			{{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-			{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-			{{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-		};
+		VkCommandBuffer* mActiveCommandBuffer;
+		static VkVertexInputBindingDescription VertexGetBindingDescription() {
+			VkVertexInputBindingDescription bindingDescription{};
+			bindingDescription.binding = 0;
+			bindingDescription.stride = sizeof(Vertex);
+			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			return bindingDescription;
+		}
 
-		const std::vector<uint32_t> indices = {
-			0, 1, 2, 2, 3, 0,
-			4, 5, 6, 6, 7, 4
-		};
+		static std::array<VkVertexInputAttributeDescription, 5> VertexGetAttributeDescriptions() {
+			std::array<VkVertexInputAttributeDescription, 5> attributeDescriptions{};
+			attributeDescriptions[0].binding = 0;
+			attributeDescriptions[0].location = 0;
+			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[0].offset = offsetof(Vertex, position);
+
+			attributeDescriptions[1].binding = 0;
+			attributeDescriptions[1].location = 1;
+			attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[1].offset = offsetof(Vertex, normal);
+
+			attributeDescriptions[2].binding = 0;
+			attributeDescriptions[2].location = 2;
+			attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+			attributeDescriptions[2].offset = offsetof(Vertex, texCoords);
+
+			attributeDescriptions[3].binding = 0;
+			attributeDescriptions[3].location = 3;
+			attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[3].offset = offsetof(Vertex, tangent);
+
+			attributeDescriptions[4].binding = 0;
+			attributeDescriptions[4].location = 4;
+			attributeDescriptions[4].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributeDescriptions[4].offset = offsetof(Vertex, bitangent);
+			return attributeDescriptions;
+		}
+
+		friend class VulkanMesh;
 	};
 	/*
 	class VulkanRenderer : public Renderer {

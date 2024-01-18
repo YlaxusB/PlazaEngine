@@ -22,6 +22,8 @@
 #include "ThirdParty/imgui/imgui.h"
 #include "ThirdParty/imgui/imgui_impl_vulkan.h"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include <tiny_obj_loader.h>
 
 namespace Plaza {
 #pragma region Vulkan Setup
@@ -689,8 +691,8 @@ namespace Plaza {
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
 
-		auto bindingDescription = VertexV::getBindingDescription();
-		auto attributeDescriptions = VertexV::getAttributeDescriptions();
+		auto bindingDescription = VertexGetBindingDescription();
+		auto attributeDescriptions = VertexGetAttributeDescriptions();
 
 		vertexInputInfo.vertexBindingDescriptionCount = 1;
 		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
@@ -796,6 +798,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = 0; // Optional
@@ -804,6 +807,7 @@ namespace Plaza {
 		if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
 			throw std::runtime_error("failed to begin recording command buffer!");
 		}
+		mActiveCommandBuffer = &commandBuffer;
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -850,6 +854,10 @@ namespace Plaza {
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[mCurrentFrame], 0, nullptr);
 
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+
+		for (auto [key, value] : Application->activeScene->meshRendererComponents) {
+			((VulkanMesh*)(value.mesh))->Drawe();
+		}
 
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -961,7 +969,7 @@ namespace Plaza {
 		EndSingleTimeCommands(commandBuffer);
 	}
 
-	void VulkanRenderer::CreateIndexBuffer() {
+	void VulkanRenderer::CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer, VkDeviceMemory& indicesMemoryBuffer) {
 		VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
 		VkBuffer stagingBuffer;
@@ -973,15 +981,15 @@ namespace Plaza {
 		memcpy(data, indices.data(), (size_t)bufferSize);
 		vkUnmapMemory(mDevice, stagingBufferMemory);
 
-		CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mIndexBuffer, mIndexBufferMemory);
+		CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indicesBuffer, indicesMemoryBuffer);
 
-		CopyBuffer(stagingBuffer, mIndexBuffer, bufferSize);
+		CopyBuffer(stagingBuffer, indicesBuffer, bufferSize);
 
 		vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
 		vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
 	}
 
-	void VulkanRenderer::CreateVertexBuffer() {
+	void VulkanRenderer::CreateVertexBuffer(vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory) {
 		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
 		VkBuffer stagingBuffer;
@@ -993,9 +1001,9 @@ namespace Plaza {
 		memcpy(data, vertices.data(), (size_t)bufferSize);
 		vkUnmapMemory(mDevice, stagingBufferMemory);
 
-		CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mVertexBuffer, mVertexBufferMemory);
+		CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
 
-		CopyBuffer(stagingBuffer, mVertexBuffer, bufferSize);
+		CopyBuffer(stagingBuffer, vertexBuffer, bufferSize);
 
 		vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
 		vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
@@ -1147,7 +1155,7 @@ namespace Plaza {
 
 	void VulkanRenderer::CreateTextureImage() {
 		int texWidth, texHeight, texChannels;
-		stbi_uc* pixels = stbi_load("C:\\Users\\Giovane\\Desktop\\Workspace\\statue-1275469_1920.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 		VkDeviceSize imageSize = texWidth * texHeight * 4;
 
 		if (!pixels) {
@@ -1377,6 +1385,37 @@ namespace Plaza {
 		mDepthImageView = CreateImageView(mDepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 	}
 
+	void VulkanRenderer::LoadModel() {
+		tinyobj::attrib_t attrib;
+		std::vector<tinyobj::shape_t> shapes;
+		std::vector<tinyobj::material_t> materials;
+		std::string warn, err;
+
+		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str())) {
+			throw std::runtime_error(warn + err);
+		}
+
+		for (const auto& shape : shapes) {
+			for (const auto& index : shape.mesh.indices) {
+				Vertex vertex{};
+
+				vertex.position = {
+	attrib.vertices[3 * index.vertex_index + 0],
+	attrib.vertices[3 * index.vertex_index + 1],
+	attrib.vertices[3 * index.vertex_index + 2]
+				};
+
+				vertex.texCoords = {
+					attrib.texcoords[2 * index.texcoord_index + 0],
+					1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+				};
+
+				vertices.push_back(vertex);
+				indices.push_back(indices.size());
+			}
+		}
+	}
+
 	void VulkanRenderer::Init()
 	{
 		VulkanShadersCompiler::mDefaultOutDirectory = Application->exeDirectory + "\\CompiledShaders\\";
@@ -1403,8 +1442,9 @@ namespace Plaza {
 		CreateTextureImage();
 		CreateTextureImageView();
 		CreateTextureSampler();
-		CreateVertexBuffer();
-		CreateIndexBuffer();
+		LoadModel();
+		CreateVertexBuffer(vertices, mVertexBuffer, mVertexBufferMemory);
+		CreateIndexBuffer(indices, mIndexBuffer, mIndexBufferMemory);
 		CreateUniformBuffers();
 		CreateDescriptorPool();
 		CreateDescriptorSets();
@@ -1655,5 +1695,9 @@ namespace Plaza {
 		}
 
 		vkBindImageMemory(mDevice, image, imageMemory, 0);
+	}
+
+	Mesh VulkanRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) {
+		return VulkanMesh(vertices, normals, uvs, tangent, bitangent, indices, material, usingNormal);
 	}
 }

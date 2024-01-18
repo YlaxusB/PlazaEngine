@@ -115,8 +115,8 @@ namespace Plaza {
 		}
 		Transform* transform = nullptr;
 		bool instanced = false;
-		MeshRenderer(Mesh initialMesh, bool addToScene = false);
-		MeshRenderer(Plaza::Mesh initialMesh, Material material, bool addToScene = false);
+		MeshRenderer(Mesh& initialMesh, bool addToScene = false);
+		MeshRenderer(Plaza::Mesh& initialMesh, Material material, bool addToScene = false);
 		MeshRenderer(const MeshRenderer& other) = default;
 		~MeshRenderer();
 		MeshRenderer() {

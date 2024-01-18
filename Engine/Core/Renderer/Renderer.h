@@ -21,7 +21,7 @@ namespace Plaza {
 		virtual void RenderOutline() = 0;
 		virtual void RenderHDR() = 0;
 
-		virtual Mesh CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) = 0;
+		virtual Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) = 0;
 
 		virtual void InitGUI() = 0;
 		virtual void NewFrameGUI() = 0;

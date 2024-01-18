@@ -64,6 +64,8 @@ namespace Plaza {
 		void setupMesh() override;
 
 		void Restart() override;
+
+		bool firstRune = true;
 	private:
 		VkBuffer mVertexBuffer;
 		VkDeviceMemory mVertexBufferMemory;
@@ -72,6 +74,7 @@ namespace Plaza {
 		friend class VulkanRenderer;
 
 		VulkanRenderer& GetVulkanRenderer();
+
 
 		//void CreateVertexBuffer(vector<Vertex>) {
 		//	VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();

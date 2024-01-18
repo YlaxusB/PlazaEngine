@@ -71,7 +71,7 @@ namespace Plaza {
 		void UpdateGUI() override;
 		ImTextureID GetFrameImage() override;
 
-		Mesh CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal);
+		Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal);
 
 		bool mFramebufferResized = false;
 	private:

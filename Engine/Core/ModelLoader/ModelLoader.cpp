@@ -127,7 +127,7 @@ namespace Plaza {
 	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName, bool useTangent) {
 		vector<Texture>* textures_loaded = new vector<Texture>;
 		vector<Material>* materialsLoaded = new vector<Material>;
-		vector<Mesh>* meshes = new vector<Mesh>;
+		vector<Mesh*>* meshes = new vector<Mesh*>();
 		string directory;
 		// read file via ASSIMP
 		Assimp::Importer importer;
@@ -168,7 +168,9 @@ namespace Plaza {
 		unsigned int index = 0;
 		for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 			aiMesh* aiMesh = scene->mMeshes[i];
-			Mesh mesh = ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr, useTangent);
+			Mesh& mesh = ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr, useTangent);
+
+			mesh.meshId = Plaza::UUID::NewUUID();
 
 			for (Material& material : materialsLoaded) {
 				if (mesh.material.SameAs(material)) {
@@ -192,9 +194,13 @@ namespace Plaza {
 			if (meshesMap.size() > 0) {
 				mesh.meshId = meshesMap.at(mesh.meshName);
 			}
-
-			Application->editorScene->meshes.emplace(mesh.meshId, make_shared<Mesh>(mesh));
-			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), Application->editorScene->meshes.at(mesh.meshId));
+			std::shared_ptr<Mesh> shar = std::make_shared<VulkanMesh>(dynamic_cast<VulkanMesh&>(mesh));
+			Application->editorScene->meshes.emplace(mesh.meshId, shar);
+			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), shar);
+			//((VulkanMesh&)(model->meshes.at(std::string(aiMesh->mName.C_Str() + to_string(index)))).get()).Drawe();
+			//shar->Draw(*Application->shader);
+			//Application->editorScene->meshes.at(mesh.meshId)->Draw(*Application->shader);
+			//((VulkanMesh&)(Application->editorScene->meshes.at(mesh.meshId))).Draw(*asd);
 			if (Application->runningScene)
 				Application->runtimeScene->meshes.emplace(mesh.meshId, Application->editorScene->meshes.at(mesh.meshId));
 			index++;
@@ -204,7 +210,7 @@ namespace Plaza {
 	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName, aiScene const* scene, bool useTangent, std::string currentPath) {
 		vector<Texture>* textures_loaded = new vector<Texture>;
 		vector<Material>* materialsLoaded = new vector<Material>;
-		vector<Mesh>* meshes = new vector<Mesh>;
+		vector<Mesh*>* meshes = new vector<Mesh*>;
 		string directory;
 		// retrieve the directory path of the filepath
 		directory = path.substr(0, path.find_last_of('/'));
@@ -223,14 +229,14 @@ namespace Plaza {
 	}
 
 	// processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
-	void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, vector<Material>& materialsLoaded, string* directory, Entity* modelMainObject, unsigned int& index, bool useTangent, std::string currentPath, std::string modelName)
+	void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh*>& meshes, vector<Texture>& textures_loaded, vector<Material>& materialsLoaded, string* directory, Entity* modelMainObject, unsigned int& index, bool useTangent, std::string currentPath, std::string modelName)
 	{
 		for (unsigned int i = 0; i < node->mNumMeshes; i++)
 		{
 			// Get the assimp mesh of the current node
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			// Convert it to my own mesh
-			Mesh nodeMesh = ProcessMesh(mesh, scene, textures_loaded, directory, node, useTangent);
+			Mesh& nodeMesh = ProcessMesh(mesh, scene, textures_loaded, directory, node, useTangent);
 
 			for (Material& material : materialsLoaded) {
 				if (nodeMesh.material.SameAs(material)) {
@@ -276,7 +282,7 @@ namespace Plaza {
 		}
 	}
 
-	Mesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node, bool useTangent)
+	Mesh& ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node, bool useTangent)
 	{
 		// data to fill
 		//vector<Vertex> vertices;

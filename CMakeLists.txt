@@ -196,6 +196,13 @@ set(PHYSX_DLLS
 "${PHYSX_DLL_FOLDER}/PhysXFoundation_64.dll"
 "${PHYSX_DLL_FOLDER}/PhysXFoundation_64.dll"
 )
+
+set_target_properties(assimp PROPERTIES
+                      MAP_IMPORTED_CONFIG_DEBUG Release
+                      MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+                      MAP_IMPORTED_CONFIG_MINSIZEREL Release
+                      )
+
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
 target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 

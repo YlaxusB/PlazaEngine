@@ -856,7 +856,8 @@ namespace Plaza {
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
 		for (auto [key, value] : Application->activeScene->meshRendererComponents) {
-			((VulkanMesh*)(value.mesh))->Drawe();
+			value.mesh->Draw(*Application->shader);
+			//((VulkanMesh*)(value.mesh))->Drawe();
 		}
 
 		vkCmdEndRenderPass(commandBuffer);
@@ -1061,9 +1062,9 @@ namespace Plaza {
 		UniformBufferObject ubo{};
 		ubo.projection = Application->activeCamera->GetProjectionMatrix();
 		ubo.view = Application->activeCamera->GetViewMatrix();
-		ubo.model = glm::rotate(glm::mat4(1.0f), 1.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+		ubo.model = glm::mat4(1.0f);
 
-		ubo.projection[1][1] *= -1;
+		//ubo.projection[1][1] *= -1;
 
 		memcpy(mUniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 	}
@@ -1319,7 +1320,7 @@ namespace Plaza {
 		return imageView;
 	}
 
-	void VulkanRenderer::CreateTextureImageView(){
+	void VulkanRenderer::CreateTextureImageView() {
 		mTextureImageView = CreateImageView(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 	}
 
@@ -1697,7 +1698,8 @@ namespace Plaza {
 		vkBindImageMemory(mDevice, image, imageMemory, 0);
 	}
 
-	Mesh VulkanRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) {
-		return VulkanMesh(vertices, normals, uvs, tangent, bitangent, indices, material, usingNormal);
+	Mesh& VulkanRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) {
+		VulkanMesh& vulkMesh = *new VulkanMesh(vertices, normals, uvs, tangent, bitangent, indices, material, usingNormal);
+		return vulkMesh;
 	}
 }

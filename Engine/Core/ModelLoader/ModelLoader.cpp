@@ -194,9 +194,9 @@ namespace Plaza {
 			if (meshesMap.size() > 0) {
 				mesh.meshId = meshesMap.at(mesh.meshName);
 			}
-			std::shared_ptr<Mesh> shar = std::make_shared<VulkanMesh>(dynamic_cast<VulkanMesh&>(mesh));
-			Application->editorScene->meshes.emplace(mesh.meshId, shar);
-			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), shar);
+			std::shared_ptr<Mesh> sharedMesh = std::make_shared<VulkanMesh>(dynamic_cast<VulkanMesh&>(mesh));
+			Application->editorScene->meshes.emplace(mesh.meshId, sharedMesh);
+			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), sharedMesh);
 			//((VulkanMesh&)(model->meshes.at(std::string(aiMesh->mName.C_Str() + to_string(index)))).get()).Drawe();
 			//shar->Draw(*Application->shader);
 			//Application->editorScene->meshes.at(mesh.meshId)->Draw(*Application->shader);

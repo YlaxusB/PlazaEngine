@@ -37,11 +37,19 @@ namespace Plaza {
 	}
 
 	void VulkanMesh::Draw(Shader& shader) {
-		VkBuffer vertexBuffers[] = { mVertexBuffer };
-		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(*((VulkanRenderer*)(Application->mRenderer))->mActiveCommandBuffer, 0, 1, { &mVertexBuffer }, offsets);
+		vkCmdBindVertexBuffers(*((VulkanRenderer*)(Application->mRenderer))->mActiveCommandBuffer, 0, 1, { &mVertexBuffer }, { 0 });
 		vkCmdBindIndexBuffer(*((VulkanRenderer*)(Application->mRenderer))->mActiveCommandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(*((VulkanRenderer*)(Application->mRenderer))->mActiveCommandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);;
+	}
+
+	void VulkanMesh::DrawInstances() {
+		VkDeviceSize offsets[] = { 0 };
+		VkCommandBuffer activeCommandBuffer = *GetVulkanRenderer().mActiveCommandBuffer;
+		vkCmdBindDescriptorSets(activeCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVulkanRenderer().mPipelineLayout, 0, 1, &GetVulkanRenderer().mDescriptorSets[GetVulkanRenderer().mCurrentFrame], 0, nullptr);
+		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 1, { &mVertexBuffer }, offsets);
+		vkCmdBindIndexBuffer(activeCommandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(indices.size()), instanceModelMatrices.size(), 0, 0, 0);
+		instanceModelMatrices.clear();
 	}
 
 	VulkanRenderer& VulkanMesh::GetVulkanRenderer() {

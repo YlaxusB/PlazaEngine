@@ -30,6 +30,10 @@ namespace Plaza {
 
 		virtual void Destroy() = 0;
 
+		virtual Texture& LoadTexture(std::string path) {
+			return *new Texture();
+		}
+
 		virtual void CopyLastFramebufferToFinalDrawBuffer() = 0;
 	};
 }

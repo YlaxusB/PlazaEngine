@@ -131,7 +131,7 @@ namespace Plaza {
 			FpsCounter* fpsCounter = new FpsCounter();
 
 			// Load Icons
-			//    playPauseButtonImageId = Utils::LoadImageToImGuiTexture(std::string(Application->editorPath + "\\Images\\Other\\playPauseButton.png").c_str());
+			playPauseButtonImageId = Utils::LoadImageToImGuiTexture(std::string(Application->editorPath + "\\Images\\Other\\playPauseButton.png").c_str());
 		}
 
 		void Gui::Delete() {

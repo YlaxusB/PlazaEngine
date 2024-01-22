@@ -1,21 +1,21 @@
 #pragma once
 #include "Engine/Components/Component.h"
 //#include "Engine/Components/Rendering/Mesh.h"
-#include "Engine/Components/Rendering/Texture.h"
+#include "Engine/Core/Renderer/Texture.h"
 namespace Plaza {
 	struct Material : public Component {
 	public:
 		std::string relativePath;
 		std::string filePath;
 		std::string name;
-		Texture diffuse = Texture("diffuse");
-		Texture albedo = Texture("albedo");
-		Texture normal = Texture("normal");
-		Texture specular = Texture("specular");
-		Texture height = Texture("height");
-		Texture metalness = Texture("metalness");
-		Texture roughness = Texture("roughness");
-		Texture aoMap = Texture("aoMap");
+		Texture& diffuse = *new Texture("diffuse");
+		Texture& albedo = *new Texture("albedo");
+		Texture& normal = *new Texture("normal");
+		Texture& specular = *new Texture("specular");
+		Texture& height = *new Texture("height");
+		Texture& metalness = *new Texture("metalness");
+		Texture& roughness = *new Texture("roughness");
+		Texture& aoMap = *new Texture("aoMap");
 		float shininess = 3.0f;
 		float intensity = 1.0f;
 
@@ -35,18 +35,31 @@ namespace Plaza {
 		~Material() = default;
 		// Copy constructor
 		/**/
-		Material(const Material& other) {
-			//diffuse = new Texture();
-			this->uuid = other.uuid;
-			filePath = other.filePath;
-			name = other.name;
-			shininess = other.shininess;
-			diffuse = other.diffuse;
-			albedo = other.albedo;
-			normal = other.normal;
-			specular = other.specular;
-			height = other.height;
+		Material& operator=(const Material& other) {
+			if (this != &other) { // self-assignment check
+				Component::operator=(other); // if Component is a base class, invoke its copy assignment operator
+
+				// Copy non-reference members
+				relativePath = other.relativePath;
+				filePath = other.filePath;
+				name = other.name;
+				shininess = other.shininess;
+				intensity = other.intensity;
+			}
+			return *this;
 		}
+		//Material(const Material& other) {
+		//	//diffuse = new Texture();
+		//	//this->uuid = other.uuid;
+		//	//filePath = other.filePath;
+		//	//name = other.name;
+		//	//shininess = other.shininess;
+		//	//diffuse = other.diffuse;
+		//	//albedo = other.albedo;
+		//	//normal = other.normal;
+		//	//specular = other.specular;
+		//	//height = other.height;
+		//}
 
 		bool SameAs(Material& other) {
 			return (

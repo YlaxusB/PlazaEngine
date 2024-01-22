@@ -43,7 +43,7 @@ struct VertexV {
 	}
 };
 */
-
+#include "VulkanTexture.h"
 namespace Plaza {
 	struct SwapChainSupportDetails {
 		VkSurfaceCapabilitiesKHR capabilities;
@@ -53,6 +53,7 @@ namespace Plaza {
 
 	class VulkanRenderer : public Renderer {
 	public:
+		static VulkanRenderer* GetRenderer();
 		RendererAPI api = RendererAPI::Vulkan;
 		void Init() override;
 		void InitShaders(std::string shadersFolder) override;
@@ -72,8 +73,10 @@ namespace Plaza {
 		ImTextureID GetFrameImage() override;
 
 		Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal);
+		Texture& LoadTexture(std::string path) override;
 
 		bool mFramebufferResized = false;
+		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	private:
 		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";
 		const std::string TEXTURE_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.png";
@@ -103,7 +106,6 @@ namespace Plaza {
 		void CreateCommandPool();
 		void CreateCommandBuffers();
 		void CreateImGuiTextureSampler();
-		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 		void CleanupSwapChain();
 		void RecreateSwapChain();
@@ -176,6 +178,8 @@ namespace Plaza {
 		std::vector<VkImage> mSwapChainImages;
 		std::vector<VkImageView> mSwapChainImageViews;
 		std::vector<VkFramebuffer> mSwapChainFramebuffers;
+
+		VkDescriptorSet mMainSceneDescriptorSet;
 
 		// ImGui variables
 		VkDescriptorPool mImguiDescriptorPool;
@@ -250,6 +254,7 @@ namespace Plaza {
 		}
 
 		friend class VulkanMesh;
+		friend class VulkanTexture;
 	};
 	/*
 	class VulkanRenderer : public Renderer {

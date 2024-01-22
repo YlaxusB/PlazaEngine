@@ -11,6 +11,9 @@ namespace Plaza {
 	class OpenGLRenderer : public Renderer {
 	public:
 		RendererAPI api = RendererAPI::OpenGL;
+
+		static OpenGLRenderer* GetRenderer();
+
 		static Shader* mergeShader;
 		static Shader* blurShader;
 		static FrameBuffer* hdrFramebuffer;
@@ -86,6 +89,7 @@ namespace Plaza {
 		ImTextureID GetFrameImage() override;
 
 		Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) override;
+		Texture& LoadTexture(std::string path) override;
 	private:
 		static unsigned int pingpongFBO[2];
 		static unsigned int pingpongColorbuffers[2];

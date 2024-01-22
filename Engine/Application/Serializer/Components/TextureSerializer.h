@@ -1,6 +1,6 @@
 #pragma once
 #include "ComponentSerializer.h"
-#include "Engine/Components/Rendering/Texture.h"
+#include "Engine/Core/Renderer/Texture.h"
 namespace Plaza {
 	class ComponentSerializer::TextureSerializer {
 	public:

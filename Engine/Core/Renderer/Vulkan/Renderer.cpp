@@ -31,6 +31,10 @@ namespace Plaza {
 	"VK_LAYER_KHRONOS_validation"
 	};
 
+	VulkanRenderer* VulkanRenderer::GetRenderer() {
+		return (VulkanRenderer*)(Application->mRenderer);
+	}
+
 	VkResult VulkanRenderer::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
 		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
 		if (func != nullptr) {
@@ -856,8 +860,13 @@ namespace Plaza {
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
 		for (auto [key, value] : Application->activeScene->meshRendererComponents) {
-			value.mesh->Draw(*Application->shader);
+			value.mesh->AddInstance(Application->activeScene->transformComponents.at(key).GetTransform());
+			//value.mesh->DrawInstances();
 			//((VulkanMesh*)(value.mesh))->Drawe();
+		}
+
+		for (auto [key, value] : Application->activeScene->meshes) {
+			value->DrawInstances();
 		}
 
 		vkCmdEndRenderPass(commandBuffer);
@@ -1112,7 +1121,7 @@ namespace Plaza {
 			imageInfo.sampler = mTextureSampler;
 
 			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
-
+			
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptorWrites[0].dstSet = mDescriptorSets[i];
 			descriptorWrites[0].dstBinding = 0;
@@ -1701,5 +1710,13 @@ namespace Plaza {
 	Mesh& VulkanRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) {
 		VulkanMesh& vulkMesh = *new VulkanMesh(vertices, normals, uvs, tangent, bitangent, indices, material, usingNormal);
 		return vulkMesh;
+	}
+
+	Texture& VulkanRenderer::LoadTexture(std::string path) {
+		VulkanTexture& texture = *new VulkanTexture();
+		texture.CreateTextureImage(mDevice, path);
+		texture.CreateTextureSampler();
+		texture.CreateImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+		return texture;
 	}
 }

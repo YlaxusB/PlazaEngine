@@ -81,7 +81,7 @@ namespace Plaza::Editor {
 
 					// return a mesh object created from the extracted mesh data
 					Material convertedMaterial = *new Material();
-					if (diffuseMaps.size() > 0 && diffuseMaps[0].id != 0)
+					if (diffuseMaps.size() > 0 && diffuseMaps[0].GetTextureID() != 0)
 						convertedMaterial.diffuse = diffuseMaps[0];
 
 					if (specularMaps.size() > 0)

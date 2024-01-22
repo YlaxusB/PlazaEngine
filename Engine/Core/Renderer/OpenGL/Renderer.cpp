@@ -9,6 +9,7 @@
 #include "Engine/Core/Renderer/OpenGL/ScreenSpaceReflections.h"
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
+#include "OpenGLTexture.h"
 
 void renderFullscreenQuad() {
 	// skybox cube
@@ -20,6 +21,10 @@ void renderFullscreenQuad() {
 
 int i = 0;
 namespace Plaza {
+	OpenGLRenderer* OpenGLRenderer::GetRenderer() {
+		return (OpenGLRenderer*)(Application->mRenderer);
+	}
+
 	unsigned int OpenGLRenderer::pingpongFBO[2];
 	unsigned int OpenGLRenderer::pingpongColorbuffers[2];
 	Shader* OpenGLRenderer::mergeShader = nullptr;
@@ -357,5 +362,56 @@ namespace Plaza {
 
 	Mesh& OpenGLRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) {
 		return *new OpenGLMesh(vertices, normals, uvs, tangent, bitangent, indices, material, usingNormal);
+	}
+
+	Texture& OpenGLRenderer::LoadTexture(std::string path) {
+		OpenGLTexture& texture = *new OpenGLTexture();
+		texture.path = path;
+		texture.rgba = glm::vec4(INFINITY);
+//    material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");
+//    material->diffuse.rgba = glm::vec4(INFINITY);
+//    material->diffuse.Load() = ModelLoader::TextureFromFile(material->diffuse.path);
+
+		int width, height, nrComponents;
+		if (std::filesystem::path{ path }.extension().string() == ".dds") {
+			//textureID = texture_loadDDS(filePath.c_str());
+		}
+		else {
+			unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrComponents, 4);
+			if (data)
+			{
+				glGenTextures(1, &texture.id);
+
+				GLenum format;
+				if (nrComponents == 1)
+					format = GL_RED;
+				else if (nrComponents == 2)
+					format = GL_RG;
+				else if (nrComponents == 3)
+					format = GL_RGB;
+				else if (nrComponents == 4)
+					format = GL_RGBA;
+				format = GL_SRGB8_ALPHA8;
+				glBindTexture(GL_TEXTURE_2D, texture.id);
+				glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+				GLenum error = glGetError();
+				if (error != GL_NO_ERROR) {
+					std::cerr << "OpenGL error after glTexImage2D: " << error << std::endl;
+				}
+				glGenerateMipmap(GL_TEXTURE_2D);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+				stbi_image_free(data);
+			}
+			else
+			{
+				std::cout << "Texture failed to load at path: " << path << std::endl;
+				stbi_image_free(data);
+			}
+		}
+		return texture;
 	}
 }

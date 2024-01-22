@@ -52,6 +52,12 @@ namespace Plaza {
 		virtual void setupMesh() {};
 		virtual void Restart() {};
 		virtual void Draw(Shader& shader) {};
+		virtual void DrawInstances() {};
+
+		void AddInstance(glm::mat4 model) {
+			//Time::addInstanceCalls += 1;
+			instanceModelMatrices.push_back(model);
+		}
 
 		Material DefaultMaterial() {
 			Material material;

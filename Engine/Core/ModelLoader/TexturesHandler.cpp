@@ -25,8 +25,7 @@ namespace Plaza {
 			}
 			if (!skip)
 			{   // Load a new texture
-				Texture texture;
-				texture.id = TextureFromFile(str.C_Str(), *directory, true);
+				Texture texture = Application->mRenderer->LoadTexture(str.C_Str());
 				texture.type = typeName;
 				texture.path = ".\\" + std::filesystem::path(str.C_Str()).filename().string();
 				textures.push_back(texture);

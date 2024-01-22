@@ -55,7 +55,7 @@ namespace Plaza {
 				else {
 					constexpr GLint textureDiffuseUnit = 0;
 					glActiveTexture(GL_TEXTURE0 + textureDiffuseUnit);
-					glBindTexture(GL_TEXTURE_2D, material->diffuse.id);
+					glBindTexture(GL_TEXTURE_2D, material->diffuse.GetTextureID());
 					shader.setVec4(textureDiffuseRGBAUniform, glm::vec4(300, 300, 300, 300));
 				}
 			}
@@ -68,7 +68,7 @@ namespace Plaza {
 				else {
 					constexpr GLint textureSpecularUnit = 1;
 					glActiveTexture(GL_TEXTURE0 + textureSpecularUnit);
-					glBindTexture(GL_TEXTURE_2D, material->specular.id);
+					glBindTexture(GL_TEXTURE_2D, material->specular.GetTextureID());
 					shader.setVec4(textureSpecularRGBAUniform, glm::vec4(300, 300, 300, 300));
 				}
 			}
@@ -76,25 +76,25 @@ namespace Plaza {
 			if (!material->normal.IsTextureEmpty()) {
 				constexpr GLint textureNormalUnit = 2;
 				glActiveTexture(GL_TEXTURE0 + textureNormalUnit);
-				glBindTexture(GL_TEXTURE_2D, material->normal.id);
+				glBindTexture(GL_TEXTURE_2D, material->normal.GetTextureID());
 			}
 
 			if (!material->height.IsTextureEmpty()) {
 				constexpr GLint textureHeightUnit = 3;
 				glActiveTexture(GL_TEXTURE0 + textureHeightUnit);
-				glBindTexture(GL_TEXTURE_2D, material->height.id);
+				glBindTexture(GL_TEXTURE_2D, material->height.GetTextureID());
 			}
 
 			if (!material->metalness.IsTextureEmpty()) {
 				constexpr GLint textureHeightUnit = 4;
 				glActiveTexture(GL_TEXTURE0 + textureHeightUnit);
-				glBindTexture(GL_TEXTURE_2D, material->metalness.id);
+				glBindTexture(GL_TEXTURE_2D, material->metalness.GetTextureID());
 			}
 
 			if (!material->roughness.IsTextureEmpty()) {
 				constexpr GLint textureHeightUnit = 5;
 				glActiveTexture(GL_TEXTURE0 + textureHeightUnit);
-				glBindTexture(GL_TEXTURE_2D, material->roughness.id);
+				glBindTexture(GL_TEXTURE_2D, material->roughness.GetTextureID());
 			}
 		}
 

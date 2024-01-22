@@ -59,7 +59,9 @@ namespace Plaza {
 		}
 
 		void Draw(Shader& shader) override;
+		void DrawInstances() override;
 		void Drawe();
+
 
 		void setupMesh() override;
 
@@ -71,6 +73,7 @@ namespace Plaza {
 		VkDeviceMemory mVertexBufferMemory;
 		VkBuffer mIndexBuffer;
 		VkDeviceMemory mIndexBufferMemory;
+		VkDescriptorSet mDescriptorSet;
 		friend class VulkanRenderer;
 
 		VulkanRenderer& GetVulkanRenderer();

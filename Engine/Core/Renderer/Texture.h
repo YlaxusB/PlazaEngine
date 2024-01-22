@@ -4,7 +4,6 @@
 namespace Plaza {
 	class Texture {
 	public:
-		int id = -1;
 		std::string type = "";
 		std::string path = "";
 		glm::vec4 rgba = glm::vec4(255.0f);
@@ -19,7 +18,7 @@ namespace Plaza {
 
 		Texture() = default;
 
-		void Load(std::string relativePath = "");
+		virtual void Load(std::string relativePath = "") {}
 
 		Texture(std::string type) {
 			this->type = type;
@@ -28,7 +27,6 @@ namespace Plaza {
 		// Assignment operator
 		Texture& operator=(const Texture& other) {
 			if (this != &other) {
-				id = other.id;
 				type = other.type;
 				path = other.path;
 				rgba = other.rgba;
@@ -39,6 +37,32 @@ namespace Plaza {
 		bool IsTextureEmpty() const {
 			return rgba == glm::vec4(255.0f) && path.empty();
 		}
+
+		virtual unsigned int GetTextureID() {
+			return 0;
+		}
+
 		~Texture() = default;
 	};
 }
+
+/*
+#include "Engine/Core/PreCompiledHeaders.h"
+#include "Texture.h"
+#include "Engine/Core/ModelLoader/ModelLoader.h"
+namespace Plaza {
+	void Texture::Load(std::string relativePath) {
+		if (!path.empty()) {
+			if (!relativePath.empty() && path.starts_with(".\\")) {
+				this->id = ModelLoader::TextureFromFile(relativePath + "\\" + path);
+			}
+			else if (!relativePath.empty()) {
+				this->id = ModelLoader::TextureFromFile(relativePath + "\\" + path);
+			}
+			else
+				this->id = ModelLoader::TextureFromFile(path);
+			this->rgba = glm::vec4(INFINITY);
+		}
+	}
+}
+*/

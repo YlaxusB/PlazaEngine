@@ -42,6 +42,10 @@ namespace Plaza {
 			return 0;
 		}
 
+		virtual ImTextureID GetImGuiTextureID() {
+			return 0;
+		}
+
 		~Texture() = default;
 	};
 }

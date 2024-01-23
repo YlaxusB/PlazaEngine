@@ -47,7 +47,7 @@ namespace Plaza {
 			static bool isFileExplorerOpen;
 			static bool canUpdateContent;
 
-			static unsigned int playPauseButtonImageId;
+			static ImTextureID playPauseButtonImageId;
 
 			static void UpdateSizes();
 		};

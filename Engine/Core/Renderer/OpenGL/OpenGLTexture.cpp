@@ -21,4 +21,8 @@ namespace Plaza {
 	unsigned int OpenGLTexture::GetTextureID() {
 		return this->id;
 	}
+
+	ImTextureID OpenGLTexture::GetImGuiTextureID() {
+		return (ImTextureID)this->id;
+	}
 } 

@@ -1,6 +1,36 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "VulkanTexture.h"
 
+/*
+		int texWidth, texHeight, texChannels;
+		stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+		if (!pixels) {
+			throw std::runtime_error("failed to load texture image!");
+		}
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+		CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+		void* data;
+		vkMapMemory(mDevice, stagingBufferMemory, 0, imageSize, 0, &data);
+		memcpy(data, pixels, static_cast<size_t>(imageSize));
+		vkUnmapMemory(mDevice, stagingBufferMemory);
+
+		stbi_image_free(pixels);
+
+		CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mTextureImage, mTextureImageMemory);
+
+		TransitionImageLayout(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		CopyBufferToImage(stagingBuffer, mTextureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+		TransitionImageLayout(mTextureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+		vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+		vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
+*/
+
 namespace Plaza {
 	void VulkanTexture::CreateTextureImage(VkDevice device, std::string path) {
 		int texWidth, texHeight, texChannels;
@@ -10,20 +40,21 @@ namespace Plaza {
 		if (!pixels) {
 			throw std::runtime_error("failed to load texture image!");
 		}
-		VulkanRenderer::GetRenderer()->CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+		VulkanRenderer::GetRenderer()->CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mStagingBuffer, mStagingBufferMemory);
 
 		void* data;
-		vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+		vkMapMemory(device, mStagingBufferMemory, 0, imageSize, 0, &data);
 		memcpy(data, pixels, static_cast<size_t>(imageSize));
-		vkUnmapMemory(device, stagingBufferMemory);
+		vkUnmapMemory(device, mStagingBufferMemory);
 
 		stbi_image_free(pixels);
 
+		//VulkanRenderer::GetRenderer()->CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mTextureImage, mTextureImageMemory);
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.extent.width = static_cast<uint32_t>(texWidth);
-		imageInfo.extent.height = static_cast<uint32_t>(texHeight);
+		imageInfo.extent.width = texWidth;
+		imageInfo.extent.height = texHeight;
 		imageInfo.extent.depth = 1;
 		imageInfo.mipLevels = 1;
 		imageInfo.arrayLayers = 1;
@@ -31,8 +62,9 @@ namespace Plaza {
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
 		if (vkCreateImage(device, &imageInfo, nullptr, &mImage) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create image!");
 		}
@@ -43,14 +75,53 @@ namespace Plaza {
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
-		VulkanRenderer* renderer = (VulkanRenderer*)(Application->mRenderer);
-		allocInfo.memoryTypeIndex = renderer->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		allocInfo.memoryTypeIndex = VulkanRenderer::GetRenderer()->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		if (vkAllocateMemory(device, &allocInfo, nullptr, &textureImageMemory) != VK_SUCCESS) {
+		if (vkAllocateMemory(device, &allocInfo, nullptr, &mImageMemory) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate image memory!");
 		}
 
-		vkBindImageMemory(device, mImage, textureImageMemory, 0);
+		vkBindImageMemory(device, mImage, mImageMemory, 0);
+		// VkImageCreateInfo imageInfo{};
+		// imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		// imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		// imageInfo.extent.width = static_cast<uint32_t>(texWidth);
+		// imageInfo.extent.height = static_cast<uint32_t>(texHeight);
+		// imageInfo.extent.depth = 1;
+		// imageInfo.mipLevels = 1;
+		// imageInfo.arrayLayers = 1;
+		// imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+		// imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		// imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		// imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		// imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		// imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		// if (vkCreateImage(device, &imageInfo, nullptr, &mImage) != VK_SUCCESS) {
+		// 	throw std::runtime_error("failed to create image!");
+		// }
+		// 
+		// VkMemoryRequirements memRequirements;
+		// vkGetImageMemoryRequirements(device, mImage, &memRequirements);
+		// 
+		// VkMemoryAllocateInfo allocInfo{};
+		// allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		// allocInfo.allocationSize = memRequirements.size;
+		// VulkanRenderer* renderer = (VulkanRenderer*)(Application->mRenderer);
+		// allocInfo.memoryTypeIndex = renderer->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		// 
+		// if (vkAllocateMemory(device, &allocInfo, nullptr, &mTextureImageMemory) != VK_SUCCESS) {
+		// 	throw std::runtime_error("failed to allocate image memory!");
+		// }
+		// 
+		// vkBindImageMemory(device, mImage, mTextureImageMemory, 0);
+
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+		vkDestroyBuffer(device, mStagingBuffer, nullptr);
+		vkFreeMemory(device, mStagingBufferMemory, nullptr);
+
 
 
 	}
@@ -61,6 +132,11 @@ namespace Plaza {
 
 	unsigned int VulkanTexture::GetTextureID() {
 		return (unsigned int)this->mDescriptorSet;
+	}
+
+	ImTextureID VulkanTexture::GetImGuiTextureID() {
+		ImTextureID id = (ImTextureID)this->mDescriptorSet;
+		return id;
 	}
 
 	VkImageView VulkanTexture::CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags) {
@@ -76,14 +152,13 @@ namespace Plaza {
 		viewInfo.subresourceRange.layerCount = 1;
 		viewInfo.subresourceRange.aspectMask = aspectFlags;
 
-		VkImageView imageView;
-		if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+		if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &mImageView) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture image view!");
 		}
 
 		InitDescriptorSetLayout();
 
-		return imageView;
+		return mImageView;
 	}
 
 	void VulkanTexture::InitDescriptorSet() {
@@ -109,7 +184,7 @@ namespace Plaza {
 		std::vector<VkDescriptorSetLayout> layouts = { mDescriptorSetLayout };
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = descriptorPool;
+		allocInfo.descriptorPool = VulkanRenderer::GetRenderer()->mImguiDescriptorPool;
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &mDescriptorSetLayout;
 
@@ -141,7 +216,7 @@ namespace Plaza {
 		descriptorWrite.dstSet = mDescriptorSet;
 		descriptorWrite.dstBinding = 0; // Assuming your texture is bound to binding 0 in the shader
 		descriptorWrite.dstArrayElement = 0;
-		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pImageInfo = &imageInfo;
 		descriptorWrite.pBufferInfo = &bufferInfo;
@@ -156,13 +231,13 @@ namespace Plaza {
 		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		uboLayoutBinding.descriptorCount = 1;
 		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
+		uboLayoutBinding.pImmutableSamplers = &mSampler; // Optional
 
 		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
 		samplerLayoutBinding.binding = 1;
 		samplerLayoutBinding.descriptorCount = 1;
 		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		samplerLayoutBinding.pImmutableSamplers = nullptr;
+		samplerLayoutBinding.pImmutableSamplers = &mSampler;
 		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
 

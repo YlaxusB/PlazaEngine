@@ -1615,7 +1615,6 @@ namespace Plaza {
 
 	void VulkanRenderer::InitGUI()
 	{
-		VkDescriptorPool mImGuiDescriptorPool;
 		VkDescriptorPoolSize pool_sizes[] =
 		{
 			{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
@@ -1637,13 +1636,13 @@ namespace Plaza {
 		pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
 		pool_info.pPoolSizes = pool_sizes;
 
-		if (vkCreateDescriptorPool(mDevice, &pool_info, nullptr, &mImGuiDescriptorPool) != VK_SUCCESS) {
+		if (vkCreateDescriptorPool(mDevice, &pool_info, nullptr, &mImguiDescriptorPool) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create descriptor pool!");
 		}
 
 		ImGui_ImplVulkan_InitInfo initInfo = { };
 		initInfo.Device = mDevice;
-		initInfo.DescriptorPool = mImGuiDescriptorPool;
+		initInfo.DescriptorPool = mImguiDescriptorPool;
 		initInfo.Instance = mVulkanInstance;
 		initInfo.PhysicalDevice = mPhysicalDevice;
 		initInfo.Queue = mGraphicsQueue;
@@ -1717,6 +1716,7 @@ namespace Plaza {
 		texture.CreateTextureImage(mDevice, path);
 		texture.CreateTextureSampler();
 		texture.CreateImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+		texture.mDescriptorSet = ImGui_ImplVulkan_AddTexture(texture.mSampler, texture.mImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		return texture;
 	}
 }

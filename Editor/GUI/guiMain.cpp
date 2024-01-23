@@ -57,7 +57,7 @@ namespace Plaza {
 		class Hierarchy;
 		string Gui::scenePayloadName = "scenePayloadName";
 
-		unsigned int Gui::playPauseButtonImageId;
+		ImTextureID Gui::playPauseButtonImageId;
 		void Gui::Update() {
 			PLAZA_PROFILE_SECTION("ImGui Update");
 			ImGuiIO& io = ImGui::GetIO();

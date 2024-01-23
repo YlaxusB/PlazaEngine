@@ -127,8 +127,8 @@ int main() {
 		Skybox::Init();
 
 	/*  -----   TEMPORARILY LOAD MODEL   -----  */
-	ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod"), "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod");
-	ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod"), "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod");
+	// ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod"), "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod");
+	// ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod"), "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod");
 
 	std::cout << "Starting Loop \n";
 	Application->Loop();

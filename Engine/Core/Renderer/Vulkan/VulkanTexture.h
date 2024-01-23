@@ -7,22 +7,22 @@ namespace Plaza {
         VkDescriptorSet mDescriptorSet;
         VkDescriptorSetLayout mDescriptorSetLayout;
         VkImage mImage;
+        VkDeviceMemory mImageMemory;
         VkImageView mImageView;
         VkSampler mSampler;
-        VkImage textureImage;
-        VkDeviceMemory textureImageMemory;
 
         void CreateTextureImageView();
         VkImageView CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags);
         void CreateTextureSampler();
 
-        VkBuffer stagingBuffer;
-        VkDeviceMemory stagingBufferMemory;
+        VkBuffer mStagingBuffer;
+        VkDeviceMemory mStagingBufferMemory;
 
         void CreateTextureImage(VkDevice device, std::string path);
 
         void Load(std::string path) override;
         unsigned int GetTextureID() override;
+        ImTextureID GetImGuiTextureID() override;
 
         void InitDescriptorSet();
         void InitDescriptorSetLayout();

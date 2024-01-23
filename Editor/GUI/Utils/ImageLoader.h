@@ -2,7 +2,7 @@
 #include <ThirdParty/stb/stb_image.h>
 #include <ThirdParty/glad/glad.h>
 namespace Plaza::Editor::Utils {
-	static unsigned int LoadImageToImGuiTexture(const char* path) {
+	static ImTextureID LoadImageToImGuiTexture(const char* path) {
 		if (Application->mRenderer->api == RendererAPI::OpenGL) {
 			int width, height, channels;
 			unsigned char* image_data = stbi_load(path, &width, &height, &channels, STBI_rgb_alpha);
@@ -22,10 +22,10 @@ namespace Plaza::Editor::Utils {
 
 			// Free the loaded image data
 			stbi_image_free(image_data);
-			return textureId;
+			return (ImTextureID)textureId;
 		}
 		else if (Application->mRenderer->api == RendererAPI::Vulkan) {
-			return Application->mRenderer->LoadTexture(path).GetTextureID();
+			return Application->mRenderer->LoadTexture(path).GetImGuiTextureID();
 		}
 	}
 }

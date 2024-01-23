@@ -7,5 +7,6 @@ namespace Plaza {
 		unsigned int id = -1;
 		void Load(std::string relativePath = "") override;
 		unsigned int GetTextureID() override;
+		ImTextureID GetImGuiTextureID() override;
 	};
 }

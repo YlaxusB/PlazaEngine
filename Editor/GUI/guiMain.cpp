@@ -126,7 +126,7 @@ namespace Plaza {
 #pragma endregion
 
 			ImGui::GetStyle().ScrollbarSize = 9.0f;
-			//    Icon::Init();
+			Icon::Init();
 
 			FpsCounter* fpsCounter = new FpsCounter();
 

@@ -2,6 +2,7 @@
 #include "Engine/Core/Standards.h"
 #include "Editor/GUI/Style/EditorStyle.h"
 #include "Editor/GUI/guiMain.h"
+//#include "Engine/Core/Renderer/Renderer.h"
 
 
 namespace Plaza {
@@ -17,7 +18,7 @@ namespace Plaza {
 			std::string name;
 			std::string directory;
 			std::string extension;
-			unsigned int textureId;
+			ImTextureID textureId;
 
 			File() = default;
 			File(const File&) = default;
@@ -27,16 +28,16 @@ namespace Plaza {
 
 		class IconTexture {
 		public:
-			unsigned int id;
+			ImTextureID id;
 			string extension; // The extension that will have this image
-			IconTexture(unsigned int newId, string newExtension) : id(newId), extension(newExtension) {};
+			IconTexture(ImTextureID newId, string newExtension) : id(newId), extension(newExtension) {};
 		};
 
 		class Icon {
 		public:
 			static std::map<std::string, IconTexture> textures;
 			static void Init() {
-				unsigned int imageTextureID = 0;
+				ImTextureID imageTextureID = 0;
 				std::filesystem::path currentPath(__FILE__);
 				std::string projectDirectory = currentPath.parent_path().parent_path().parent_path().string();
 				std::cout << projectDirectory << std::endl;
@@ -69,26 +70,7 @@ namespace Plaza {
 				textures.emplace(Standards::sceneExtName, IconTexture(imageTextureID, Standards::sceneExtName));
 			}
 
-			static void LoadImageToImGuiTexture(const char* path, unsigned int* out_textureID) {
-				int width, height, channels;
-				unsigned char* image_data = stbi_load(path, &width, &height, &channels, STBI_rgb_alpha);
-				if (!image_data) {
-					printf("Failed to load image: %s\n", path);
-					return;	
-				}
-
-				// Create an ImGui texture from the loaded image data
-				*out_textureID = 0; // Initialize to 0 to ensure it won't use an existing texture ID
-				glGenTextures(1, out_textureID);
-				glBindTexture(GL_TEXTURE_2D, *out_textureID);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
-				glBindTexture(GL_TEXTURE_2D, 0);
-
-				// Free the loaded image data
-				stbi_image_free(image_data);
-			}
+			static void LoadImageToImGuiTexture(const char* path, ImTextureID* outTextureID);
 		};
 	}
 }

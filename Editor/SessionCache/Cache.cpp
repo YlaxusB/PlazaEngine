@@ -3,7 +3,7 @@
 #include "Engine/Core/Standards.h"
 namespace Plaza::Editor {
 	void Cache::Load() {
-		////   DeSerialize(Application->enginePathAppData + "\\" + "cache.yaml");
+		DeSerialize(Application->enginePathAppData + "\\" + "cache.yaml");
 	}
 
 	void Cache::Serialize(const std::string filePath) {

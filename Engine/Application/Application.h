@@ -29,6 +29,7 @@ namespace Plaza {
 	class ApplicationClass {
 	public:
 		Renderer* mRenderer = nullptr;
+		RendererAPI mRendererAPI;
 
 		Scene* editorScene = new Scene();
 		Scene* runtimeScene = new Scene();

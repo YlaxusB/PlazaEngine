@@ -129,6 +129,8 @@ namespace Plaza {
 		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
+		VkCommandBuffer CreateCommandBuffer();
+
 		void CreateTextureImageView();
 		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 		void CreateTextureSampler();
@@ -216,16 +218,44 @@ namespace Plaza {
 		void LoadModel();
 
 		VkCommandBuffer* mActiveCommandBuffer;
-		static VkVertexInputBindingDescription VertexGetBindingDescription() {
-			VkVertexInputBindingDescription bindingDescription{};
-			bindingDescription.binding = 0;
-			bindingDescription.stride = sizeof(Vertex);
-			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-			return bindingDescription;
+		static std::array<VkVertexInputBindingDescription, 2> VertexGetBindingDescription() {
+			std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {};
+			bindingDescriptions[0].binding = 0;
+			bindingDescriptions[0].stride = sizeof(Vertex);
+			bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+			VkVertexInputBindingDescription instanceBindingDescription = {};
+			instanceBindingDescription.binding = 1;
+			instanceBindingDescription.stride = sizeof(glm::vec4) * 4;
+			instanceBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+
+			std::array<VkVertexInputAttributeDescription, 4> instanceAttributeDescriptions = {};
+			instanceAttributeDescriptions[0].binding = 1;
+			instanceAttributeDescriptions[0].location = 5;
+			instanceAttributeDescriptions[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			instanceAttributeDescriptions[0].offset = 0;
+
+			instanceAttributeDescriptions[1].binding = 1;
+			instanceAttributeDescriptions[1].location = 6;
+			instanceAttributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			instanceAttributeDescriptions[1].offset = sizeof(float) * 4;
+
+			instanceAttributeDescriptions[2].binding = 1;
+			instanceAttributeDescriptions[2].location = 7;
+			instanceAttributeDescriptions[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			instanceAttributeDescriptions[2].offset = sizeof(float) * 8;
+
+			instanceAttributeDescriptions[3].binding = 1;
+			instanceAttributeDescriptions[3].location = 8;
+			instanceAttributeDescriptions[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			instanceAttributeDescriptions[3].offset = sizeof(float) * 12;
+
+			bindingDescriptions[1] = instanceBindingDescription;
+			return bindingDescriptions;
 		}
 
-		static std::array<VkVertexInputAttributeDescription, 5> VertexGetAttributeDescriptions() {
-			std::array<VkVertexInputAttributeDescription, 5> attributeDescriptions{};
+		static std::array<VkVertexInputAttributeDescription, 9> VertexGetAttributeDescriptions() {
+			std::array<VkVertexInputAttributeDescription, 9> attributeDescriptions{};
 			attributeDescriptions[0].binding = 0;
 			attributeDescriptions[0].location = 0;
 			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
@@ -250,6 +280,26 @@ namespace Plaza {
 			attributeDescriptions[4].location = 4;
 			attributeDescriptions[4].format = VK_FORMAT_R32G32B32_SFLOAT;
 			attributeDescriptions[4].offset = offsetof(Vertex, bitangent);
+
+			attributeDescriptions[5].binding = 1;
+			attributeDescriptions[5].location = 5;
+			attributeDescriptions[5].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			attributeDescriptions[5].offset = 0;
+
+			attributeDescriptions[6].binding = 1;
+			attributeDescriptions[6].location = 6;
+			attributeDescriptions[6].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			attributeDescriptions[6].offset = sizeof(float) * 4;
+
+			attributeDescriptions[7].binding = 1;
+			attributeDescriptions[7].location = 7;
+			attributeDescriptions[7].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			attributeDescriptions[7].offset = sizeof(float) * 8;
+
+			attributeDescriptions[8].binding = 1;
+			attributeDescriptions[8].location = 8;
+			attributeDescriptions[8].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			attributeDescriptions[8].offset = sizeof(float) * 12;
 			return attributeDescriptions;
 		}
 

@@ -640,7 +640,7 @@ namespace Plaza {
 		rasterizer.depthBiasClamp = 0.0f; // Optional
 		rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
 		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
 
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -698,9 +698,9 @@ namespace Plaza {
 		auto bindingDescription = VertexGetBindingDescription();
 		auto attributeDescriptions = VertexGetAttributeDescriptions();
 
-		vertexInputInfo.vertexBindingDescriptionCount = 1;
+		vertexInputInfo.vertexBindingDescriptionCount = 2;
 		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-		vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+		vertexInputInfo.pVertexBindingDescriptions = bindingDescription.data();
 		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -801,6 +801,20 @@ namespace Plaza {
 
 	}
 
+	VkCommandBuffer VulkanRenderer::CreateCommandBuffer() {
+		VkCommandBuffer commandBuffer;
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = mCommandPool;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = 1;
+
+		if (vkAllocateCommandBuffers(mDevice, &allocInfo, &commandBuffer) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate command buffers!");
+		}
+		return commandBuffer;
+	}
+
 	void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
 
 		VkCommandBufferBeginInfo beginInfo{};
@@ -856,8 +870,8 @@ namespace Plaza {
 		vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[mCurrentFrame], 0, nullptr);
-
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+		//
+		//vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
 		for (auto [key, value] : Application->activeScene->meshRendererComponents) {
 			value.mesh->AddInstance(Application->activeScene->transformComponents.at(key).GetTransform());
@@ -877,7 +891,7 @@ namespace Plaza {
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
+//		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
 
 		viewport.width = static_cast<float>(mSwapChainExtent.width);
 		viewport.height = static_cast<float>(mSwapChainExtent.height);
@@ -885,7 +899,8 @@ namespace Plaza {
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		//vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[mCurrentFrame], 0, nullptr);
+		//vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mFinalSceneDescriptorSet, 0, nullptr);
+
 
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 
@@ -1428,6 +1443,8 @@ namespace Plaza {
 
 	void VulkanRenderer::Init()
 	{
+		Application->mRendererAPI = RendererAPI::Vulkan;
+
 		VulkanShadersCompiler::mDefaultOutDirectory = Application->exeDirectory + "\\CompiledShaders\\";
 		VulkanShadersCompiler::mGlslcExePath = "C:\\VulkanSDK\\1.3.268.0\\Bin\\glslc.exe";
 
@@ -1654,7 +1671,7 @@ namespace Plaza {
 
 		ImGui_ImplVulkan_SetMinImageCount(MAX_FRAMES_IN_FLIGHT);
 
-		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, mFinalSceneImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, mFinalSceneImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}
 
 	void VulkanRenderer::NewFrameGUI()

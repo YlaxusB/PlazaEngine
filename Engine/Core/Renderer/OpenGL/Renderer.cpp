@@ -33,6 +33,7 @@ namespace Plaza {
 	FrameBuffer* OpenGLRenderer::bloomBlurFrameBuffer = nullptr;
 	FrameBuffer* OpenGLRenderer::bloomFrameBuffer = nullptr;
 	void OpenGLRenderer::Init() {
+		Application->mRendererAPI = RendererAPI::OpenGL;
 		//hdrFramebuffer.
 		InitQuad();
 

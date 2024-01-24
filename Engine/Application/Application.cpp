@@ -492,7 +492,8 @@ void ApplicationClass::Terminate() {
 	}
 	//free(Application->editorScene);
 	//free(Application->runtimeScene);
-	Skybox::Terminate();
+	if (Application->mRenderer->api = RendererAPI::OpenGL)
+		Skybox::Terminate();
 #ifndef GAME_REL
 	Gui::Delete();
 #endif // !GAME_REL

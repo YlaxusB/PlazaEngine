@@ -136,9 +136,12 @@ namespace Plaza {
 
 		void Gui::Delete() {
 			// Clean up ImGui
-			ImGui_ImplOpenGL3_Shutdown();
-			ImGui_ImplGlfw_Shutdown();
-			ImGui::DestroyContext();
+			if (Application->mRendererAPI == RendererAPI::OpenGL)
+			{
+				ImGui_ImplOpenGL3_Shutdown();
+				ImGui_ImplGlfw_Shutdown();
+				ImGui::DestroyContext();
+			}
 		}
 
 		void Gui::changeSelectedGameObject(Entity* newSelectedGameObject) {

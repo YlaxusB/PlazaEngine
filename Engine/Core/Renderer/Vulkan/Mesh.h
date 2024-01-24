@@ -5,6 +5,13 @@
 namespace Plaza {
 	class VulkanMesh : public Mesh {
 	public:
+		struct InstanceBuffer {
+			VkBuffer buffer{ VK_NULL_HANDLE };
+			VkDeviceMemory memory{ VK_NULL_HANDLE };
+			size_t size = 0;
+			VkDescriptorBufferInfo descriptor{ VK_NULL_HANDLE };
+		} instanceBuffer;
+
 		RendererAPI api = RendererAPI::Vulkan;
 
 		~VulkanMesh();
@@ -74,8 +81,14 @@ namespace Plaza {
 		VkBuffer mIndexBuffer;
 		VkDeviceMemory mIndexBufferMemory;
 		VkDescriptorSet mDescriptorSet;
+
+		VkBuffer mInstanceBuffer;
+		VkDeviceMemory mInstanceBufferMemory;
+		VkBufferCreateInfo mBufferCreateInfo = {};
+
 		friend class VulkanRenderer;
 
+		void CreateInstanceBuffer();
 		VulkanRenderer& GetVulkanRenderer();
 
 

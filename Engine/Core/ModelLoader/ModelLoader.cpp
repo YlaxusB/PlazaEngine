@@ -10,8 +10,8 @@
 namespace Plaza {
 	Material DefaultMaterial() {
 		Material material;
-		material.diffuse.rgba = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
-		material.specular.rgba = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+		material.diffuse->rgba = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
+		material.specular->rgba = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
 		material.shininess = 3.0f;
 		return material;
 	}
@@ -125,7 +125,7 @@ namespace Plaza {
 	}
 
 	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName, bool useTangent) {
-		vector<Texture>* textures_loaded = new vector<Texture>;
+		vector<Texture*>* textures_loaded = new vector<Texture*>;
 		vector<Material>* materialsLoaded = new vector<Material>;
 		vector<Mesh*>* meshes = new vector<Mesh*>();
 		string directory;
@@ -155,7 +155,7 @@ namespace Plaza {
 	}
 
 	void ModelLoader::LoadModelMeshes(string filePath, unordered_map<uint64_t, shared_ptr<MeshRenderer>>& meshRenderers, Model* model, bool useTangent, std::map<std::string, uint64_t> meshesMap) {
-		vector<Texture>* texturesLoaded = new vector<Texture>;
+		vector<Texture*>* texturesLoaded = new vector<Texture*>;
 		vector<Material> materialsLoaded = vector<Material>();
 		vector<Mesh>* meshes = new vector<Mesh>;
 		string directory = filesystem::path{ filePath }.parent_path().string() + "\\textures";
@@ -169,6 +169,7 @@ namespace Plaza {
 		for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 			aiMesh* aiMesh = scene->mMeshes[i];
 			Mesh& mesh = ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr, useTangent);
+			mesh.material.diffuse->GetDescriptorSet();
 
 			mesh.meshId = Plaza::UUID::NewUUID();
 
@@ -208,7 +209,7 @@ namespace Plaza {
 	}
 
 	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName, aiScene const* scene, bool useTangent, std::string currentPath) {
-		vector<Texture>* textures_loaded = new vector<Texture>;
+		vector<Texture*>* textures_loaded = new vector<Texture*>;
 		vector<Material>* materialsLoaded = new vector<Material>;
 		vector<Mesh*>* meshes = new vector<Mesh*>;
 		string directory;
@@ -229,7 +230,7 @@ namespace Plaza {
 	}
 
 	// processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
-	void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh*>& meshes, vector<Texture>& textures_loaded, vector<Material>& materialsLoaded, string* directory, Entity* modelMainObject, unsigned int& index, bool useTangent, std::string currentPath, std::string modelName)
+	void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh*>& meshes, vector<Texture*>& textures_loaded, vector<Material>& materialsLoaded, string* directory, Entity* modelMainObject, unsigned int& index, bool useTangent, std::string currentPath, std::string modelName)
 	{
 		for (unsigned int i = 0; i < node->mNumMeshes; i++)
 		{
@@ -282,7 +283,7 @@ namespace Plaza {
 		}
 	}
 
-	Mesh& ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node, bool useTangent)
+	Mesh& ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture*>& textures_loaded, string* directory, aiNode* node, bool useTangent)
 	{
 		// data to fill
 		//vector<Vertex> vertices;
@@ -373,8 +374,9 @@ namespace Plaza {
 
 		Material convertedMaterial = DefaultMaterial();
 		convertedMaterial.uuid = Plaza::UUID::NewUUID();
+	//	convertedMaterial.diffuse = Application->mRenderer->LoadTexture();
 
-		//    convertedMaterial.diffuse = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse", textures_loaded, directory)[0];
+	    convertedMaterial.diffuse = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse", textures_loaded, directory)[0];
 		//    convertedMaterial.specular = ModelLoader::LoadMaterialTextures(material, aiTextureType_SPECULAR, "specular", textures_loaded, directory)[0] ;
 		//    convertedMaterial.normal = ModelLoader::LoadMaterialTextures(material, aiTextureType_HEIGHT, "normal", textures_loaded, directory)[0];
 		//    convertedMaterial.height = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT, "height", textures_loaded, directory)[0];
@@ -385,10 +387,10 @@ namespace Plaza {
 
 		convertedMaterial.name = std::string(material->GetName().C_Str()) + "_" + std::string(material->GetName().C_Str()) + Standards::materialExtName;
 		convertedMaterial.filePath = std::string(directory->c_str()) + "\\" + convertedMaterial.name;
-		convertedMaterial.diffuse.rgba = glm::vec4(INFINITY);
-		convertedMaterial.specular.rgba = glm::vec4(INFINITY);
-		convertedMaterial.normal.rgba = glm::vec4(INFINITY);
-		convertedMaterial.height.rgba = glm::vec4(INFINITY);
+		convertedMaterial.diffuse->rgba = glm::vec4(INFINITY);
+		convertedMaterial.specular->rgba = glm::vec4(INFINITY);
+		convertedMaterial.normal->rgba = glm::vec4(INFINITY);
+		convertedMaterial.height->rgba = glm::vec4(INFINITY);
 		//OpenGLMesh finalMesh = OpenGLMesh(vertices, normals, uvs, tangents, bitangents, indices, //convertedMaterial);
 		//finalMesh.material = convertedMaterial;
 		//finalMesh.usingNormal = usingNormal;

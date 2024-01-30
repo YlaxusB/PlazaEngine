@@ -124,8 +124,8 @@ namespace Plaza {
 
 		Material* defaultMaterial = new Material();
 		defaultMaterial->uuid = 0;
-		defaultMaterial->diffuse.rgba = glm::vec4(1.0f);
-		defaultMaterial->specular.rgba = glm::vec4(1.0f);
+		defaultMaterial->diffuse->rgba = glm::vec4(1.0f);
+		defaultMaterial->specular->rgba = glm::vec4(1.0f);
 		defaultMaterial->shininess = 3.0f;
 		defaultMaterial->name = "Default Material";
 		defaultMaterial->uuid = 0;

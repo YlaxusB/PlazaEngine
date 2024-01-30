@@ -92,42 +92,42 @@ namespace Plaza {
 				shader.setFloat(shininessUniform, material.shininess);
 			}
 
-			if (!material.diffuse.IsTextureEmpty()) {
-				const glm::vec4& diffuseRGBA = material.diffuse.rgba;
+			if (!material.diffuse->IsTextureEmpty()) {
+				const glm::vec4& diffuseRGBA = material.diffuse->rgba;
 				if (diffuseRGBA != infVec) {
 					shader.setVec4(textureDiffuseRGBAUniform, diffuseRGBA);
 				}
 				else {
 					constexpr GLint textureDiffuseUnit = 0;
 					glActiveTexture(GL_TEXTURE0 + textureDiffuseUnit);
-					glBindTexture(GL_TEXTURE_2D, material.diffuse.GetTextureID());
+					glBindTexture(GL_TEXTURE_2D, material.diffuse->GetTextureID());
 					shader.setVec4(textureDiffuseRGBAUniform, glm::vec4(300, 300, 300, 300));
 				}
 			}
 
-			if (!material.specular.IsTextureEmpty()) {
-				const glm::vec4& specularRGBA = material.specular.rgba;
+			if (!material.specular->IsTextureEmpty()) {
+				const glm::vec4& specularRGBA = material.specular->rgba;
 				if (specularRGBA != glm::vec4(INFINITY)) {
 					shader.setVec4(textureSpecularRGBAUniform, specularRGBA);
 				}
 				else {
 					constexpr GLint textureSpecularUnit = 1;
 					glActiveTexture(GL_TEXTURE0 + textureSpecularUnit);
-					glBindTexture(GL_TEXTURE_2D, material.specular.GetTextureID());
+					glBindTexture(GL_TEXTURE_2D, material.specular->GetTextureID());
 					shader.setVec4(textureSpecularRGBAUniform, glm::vec4(300, 300, 300, 300));
 				}
 			}
 
-			if (!material.normal.IsTextureEmpty()) {
+			if (!material.normal->IsTextureEmpty()) {
 				constexpr GLint textureNormalUnit = 2;
 				glActiveTexture(GL_TEXTURE0 + textureNormalUnit);
-				glBindTexture(GL_TEXTURE_2D, material.normal.GetTextureID());
+				glBindTexture(GL_TEXTURE_2D, material.normal->GetTextureID());
 			}
 
-			if (!material.height.IsTextureEmpty()) {
+			if (!material.height->IsTextureEmpty()) {
 				constexpr GLint textureHeightUnit = 3;
 				glActiveTexture(GL_TEXTURE0 + textureHeightUnit);
-				glBindTexture(GL_TEXTURE_2D, material.height.GetTextureID());
+				glBindTexture(GL_TEXTURE_2D, material.height->GetTextureID());
 			}
 		}
 

@@ -361,14 +361,14 @@ namespace Plaza {
 		return (ImTextureID)Application->textureColorbuffer;
 	}
 
-	Mesh& OpenGLRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) {
+	Mesh& OpenGLRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal) {
 		return *new OpenGLMesh(vertices, normals, uvs, tangent, bitangent, indices, material, usingNormal);
 	}
 
-	Texture& OpenGLRenderer::LoadTexture(std::string path) {
-		OpenGLTexture& texture = *new OpenGLTexture();
-		texture.path = path;
-		texture.rgba = glm::vec4(INFINITY);
+	Texture* OpenGLRenderer::LoadTexture(std::string path) {
+		OpenGLTexture* texture = new OpenGLTexture();
+		texture->path = path;
+		texture->rgba = glm::vec4(INFINITY);
 //    material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");
 //    material->diffuse.rgba = glm::vec4(INFINITY);
 //    material->diffuse.Load() = ModelLoader::TextureFromFile(material->diffuse.path);
@@ -381,7 +381,7 @@ namespace Plaza {
 			unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrComponents, 4);
 			if (data)
 			{
-				glGenTextures(1, &texture.id);
+				glGenTextures(1, &texture->id);
 
 				GLenum format;
 				if (nrComponents == 1)
@@ -393,7 +393,7 @@ namespace Plaza {
 				else if (nrComponents == 4)
 					format = GL_RGBA;
 				format = GL_SRGB8_ALPHA8;
-				glBindTexture(GL_TEXTURE_2D, texture.id);
+				glBindTexture(GL_TEXTURE_2D, texture->id);
 				glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 				GLenum error = glGetError();
 				if (error != GL_NO_ERROR) {

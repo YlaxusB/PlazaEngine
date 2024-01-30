@@ -61,7 +61,7 @@ namespace Plaza {
 		}
 
 		GLFWimage images[1];
-		images[0].pixels = stbi_load("C:\\Users\\Giovane\\Downloads\\PlazaEngineLogo.png", &images[0].width, &images[0].height, 0, 4); //rgba channels 
+		images[0].pixels = stbi_load(std::string(Application->editorPath + "\\Images\\Other\\PlazaEngineLogo.png").c_str(), &images[0].width, &images[0].height, 0, 4); //rgba channels 
 		glfwSetWindowIcon(window, 1, images);
 
 		glfwSetWindowUserPointer(window, this);

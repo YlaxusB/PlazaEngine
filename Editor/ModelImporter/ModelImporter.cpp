@@ -64,24 +64,24 @@ namespace Plaza::Editor {
 					string fileName = std::filesystem::path(str.C_Str()).filename().string();
 
 					string directory = filesystem::path{ modelPath }.parent_path().string() + "\\textures";
-					vector<Texture> textures_loaded = vector<Texture>();
+					vector<Texture*> textures_loaded = vector<Texture*>();
 					aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 					// 1. diffuse maps
-					vector<Texture> diffuseMaps = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", textures_loaded, &directory);
-					textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+					vector<Texture*> diffuseMaps = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", textures_loaded, &directory);
+					//  textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 					// 2. specular maps
-					vector<Texture> specularMaps = ModelLoader::LoadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular", textures_loaded, &directory);
-					textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+					vector<Texture*> specularMaps = ModelLoader::LoadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular", textures_loaded, &directory);
+					//  textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 					// 3. normal maps
-					std::vector<Texture> normalMaps = ModelLoader::LoadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal", textures_loaded, &directory);
-					textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+					std::vector<Texture*> normalMaps = ModelLoader::LoadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal", textures_loaded, &directory);
+					//  textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 					// 4. height maps
-					std::vector<Texture> heightMaps = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height", textures_loaded, &directory);
-					textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+					std::vector<Texture*> heightMaps = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height", textures_loaded, &directory);
+					//  textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
 					// return a mesh object created from the extracted mesh data
 					Material convertedMaterial = *new Material();
-					if (diffuseMaps.size() > 0 && diffuseMaps[0].GetTextureID() != 0)
+					if (diffuseMaps.size() > 0 && diffuseMaps[0]->GetTextureID() != 0)
 						convertedMaterial.diffuse = diffuseMaps[0];
 
 					if (specularMaps.size() > 0)
@@ -93,14 +93,14 @@ namespace Plaza::Editor {
 					if (heightMaps.size() > 0)
 						convertedMaterial.height = heightMaps[0];
 
-					if (!convertedMaterial.diffuse.path.empty())
-						convertedMaterial.diffuse.path = std::filesystem::path(convertedMaterial.diffuse.path).filename().string();
-					if (!convertedMaterial.specular.path.empty())
-						convertedMaterial.specular.path = std::filesystem::path(convertedMaterial.specular.path).filename().string();
-					if (!convertedMaterial.normal.path.empty())
-						convertedMaterial.normal.path = std::filesystem::path(convertedMaterial.normal.path).filename().string();
-					if (!convertedMaterial.height.path.empty())
-						convertedMaterial.height.path = std::filesystem::path(convertedMaterial.height.path).filename().string();
+					if (!convertedMaterial.diffuse->path.empty())
+						convertedMaterial.diffuse->path = std::filesystem::path(convertedMaterial.diffuse->path).filename().string();
+					if (!convertedMaterial.specular->path.empty())
+						convertedMaterial.specular->path = std::filesystem::path(convertedMaterial.specular->path).filename().string();
+					if (!convertedMaterial.normal->path.empty())
+						convertedMaterial.normal->path = std::filesystem::path(convertedMaterial.normal->path).filename().string();
+					if (!convertedMaterial.height->path.empty())
+						convertedMaterial.height->path = std::filesystem::path(convertedMaterial.height->path).filename().string();
 
 
 					convertedMaterial.name = filesystem::path{ modelPath }.stem().string() + material->GetName().C_Str() + "_" + std::to_string(i) + Standards::materialExtName;

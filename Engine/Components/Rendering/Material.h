@@ -8,25 +8,25 @@ namespace Plaza {
 		std::string relativePath;
 		std::string filePath;
 		std::string name;
-		Texture& diffuse = *new Texture("diffuse");
-		Texture& albedo = *new Texture("albedo");
-		Texture& normal = *new Texture("normal");
-		Texture& specular = *new Texture("specular");
-		Texture& height = *new Texture("height");
-		Texture& metalness = *new Texture("metalness");
-		Texture& roughness = *new Texture("roughness");
-		Texture& aoMap = *new Texture("aoMap");
+		Texture* diffuse = new Texture("diffuse");
+		Texture* albedo = new Texture("albedo");
+		Texture* normal = new Texture("normal");
+		Texture* specular = new Texture("specular");
+		Texture* height = new Texture("height");
+		Texture* metalness = new Texture("metalness");
+		Texture* roughness = new Texture("roughness");
+		Texture* aoMap = new Texture("aoMap");
 		float shininess = 3.0f;
 		float intensity = 1.0f;
 
 		void LoadTextures(std::string relativePath = "") {
-			diffuse.Load(relativePath);
-			albedo.Load(relativePath);
-			normal.Load(relativePath);
-			specular.Load(relativePath);
-			height.Load(relativePath);
-			metalness.Load(relativePath);
-			roughness.Load(relativePath);
+			diffuse->Load(relativePath);
+			albedo->Load(relativePath);
+			normal->Load(relativePath);
+			specular->Load(relativePath);
+			height->Load(relativePath);
+			metalness->Load(relativePath);
+			roughness->Load(relativePath);
 		}
 
 		Material() {
@@ -36,6 +36,16 @@ namespace Plaza {
 		// Copy constructor
 		/**/
 		Material& operator=(const Material& other) {
+			//	//diffuse = new Texture();
+			this->uuid = other.uuid;
+			filePath = other.filePath;
+			name = other.name;
+			shininess = other.shininess;
+			diffuse = other.diffuse;
+			albedo = other.albedo;
+			normal = other.normal;
+			specular = other.specular;
+			height = other.height;
 			if (this != &other) { // self-assignment check
 				Component::operator=(other); // if Component is a base class, invoke its copy assignment operator
 
@@ -63,10 +73,10 @@ namespace Plaza {
 
 		bool SameAs(Material& other) {
 			return (
-				this->diffuse.SameAs(other.diffuse) &&
-				this->specular.SameAs(other.specular) &&
-				this->normal.SameAs(other.normal) &&
-				this->height.SameAs(other.height) &&
+				this->diffuse->SameAs(*other.diffuse) &&
+				this->specular->SameAs(*other.specular) &&
+				this->normal->SameAs(*other.normal) &&
+				this->height->SameAs(*other.height) &&
 				this->shininess == other.shininess
 				);
 		}

@@ -19,6 +19,9 @@ namespace Plaza {
 		Texture() = default;
 
 		virtual void Load(std::string relativePath = "") {}
+		virtual VkDescriptorSet GetDescriptorSet() {
+			return VkDescriptorSet();
+		}
 
 		Texture(std::string type) {
 			this->type = type;

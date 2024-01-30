@@ -53,6 +53,12 @@ namespace Plaza {
 
 	class VulkanRenderer : public Renderer {
 	public:
+		struct PushConstants {
+			glm::vec3 color;
+			float intensity;
+			int diffuseIndex;
+		};
+
 		static VulkanRenderer* GetRenderer();
 		RendererAPI api = RendererAPI::Vulkan;
 		void Init() override;
@@ -72,8 +78,9 @@ namespace Plaza {
 		void UpdateGUI() override;
 		ImTextureID GetFrameImage() override;
 
-		Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal);
-		Texture& LoadTexture(std::string path) override;
+		Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal);
+		Texture* LoadTexture(std::string path) override;
+		Texture* LoadImGuiTexture(std::string path) override;
 
 		bool mFramebufferResized = false;
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);

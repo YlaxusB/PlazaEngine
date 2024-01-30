@@ -4,29 +4,35 @@
 #include <string>
 namespace Plaza {
 	class VulkanTexture : public Texture {
-        VkDescriptorSet mDescriptorSet;
-        VkDescriptorSetLayout mDescriptorSetLayout;
-        VkImage mImage;
-        VkDeviceMemory mImageMemory;
-        VkImageView mImageView;
-        VkSampler mSampler;
+	public:
+		VkDescriptorSet GetDescriptorSet() override;
+		VkDescriptorSet mDescriptorSet;
+		int mIndexHandle = -1;
+		static int mLastBindingIndex;
 
-        void CreateTextureImageView();
-        VkImageView CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags);
-        void CreateTextureSampler();
+	private:
+		VkDescriptorSetLayout mDescriptorSetLayout;
+		VkImage mImage;
+		VkDeviceMemory mImageMemory;
+		VkImageView mImageView;
+		VkSampler mSampler;
 
-        VkBuffer mStagingBuffer;
-        VkDeviceMemory mStagingBufferMemory;
+		void CreateTextureImageView();
+		VkImageView CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags);
+		void CreateTextureSampler();
 
-        void CreateTextureImage(VkDevice device, std::string path);
+		VkBuffer mStagingBuffer;
+		VkDeviceMemory mStagingBufferMemory;
 
-        void Load(std::string path) override;
-        unsigned int GetTextureID() override;
-        ImTextureID GetImGuiTextureID() override;
+		void CreateTextureImage(VkDevice device, std::string path);
 
-        void InitDescriptorSet();
-        void InitDescriptorSetLayout();
+		void Load(std::string path) override;
+		unsigned int GetTextureID() override;
+		ImTextureID GetImGuiTextureID() override;
 
-        friend VulkanRenderer;
+		void InitDescriptorSet();
+		void InitDescriptorSetLayout();
+
+		friend VulkanRenderer;
 	};
 }

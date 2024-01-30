@@ -68,8 +68,8 @@ namespace Plaza {
 
 	void DeSerializeTexture(Material& material, const auto& textureNode) {
 		if (textureNode) {
-			material.diffuse.path = textureNode["Path"].as<string>();
-			material.diffuse.rgba = textureNode["Rgba"].as<glm::vec4>();
+			material.diffuse->path = textureNode["Path"].as<string>();
+			material.diffuse->rgba = textureNode["Rgba"].as<glm::vec4>();
 			//glm::vec4& rgba = material.diffuse.rgba;
 			//rgba.x = textureNode["Rgba"][0].as<float>();
 			//rgba.y = textureNode["Rgba"][1].as<float>();

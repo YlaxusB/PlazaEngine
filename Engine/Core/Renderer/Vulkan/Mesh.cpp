@@ -1,6 +1,8 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Mesh.h"
+#include "VulkanTexture.h"
 namespace Plaza {
+	int VulkanMesh::i = 0;
 	void VulkanMesh::Drawe() {
 
 
@@ -56,14 +58,49 @@ namespace Plaza {
 
 		VkDeviceSize offsets[] = { 0 };
 		VkCommandBuffer activeCommandBuffer = *GetVulkanRenderer().mActiveCommandBuffer;
-		VkDescriptorSet descriptorSets[] = { GetVulkanRenderer().mDescriptorSets[GetVulkanRenderer().mCurrentFrame] };
-		vkCmdBindDescriptorSets(activeCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVulkanRenderer().mPipelineLayout, 0, 1, &GetVulkanRenderer().mDescriptorSets[GetVulkanRenderer().mCurrentFrame], 0, nullptr);
+
+		std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
+		descriptorSets.push_back(GetVulkanRenderer().mDescriptorSets[GetVulkanRenderer().mCurrentFrame]);
+		//VkDescriptorSet descriptorSets[] = { GetVulkanRenderer().mDescriptorSets[GetVulkanRenderer().mCurrentFrame]  };
+		int descriptorCount = 1;
+
+
+		VulkanRenderer::PushConstants pushData;
+		pushData.intensity = 2.0f;
+		pushData.diffuseIndex = -1;
+
+
+		if (!this->material.diffuse->IsTextureEmpty()) {
+			VulkanTexture* text = (VulkanTexture*)this->material.diffuse;
+			if (text->mIndexHandle < 0)
+				pushData.diffuseIndex = -1;
+			else
+				pushData.diffuseIndex = text->mIndexHandle;
+			//descriptorSets = { GetVulkanRenderer().mDescriptorSets[GetVulkanRenderer().mCurrentFrame], text->GetDescriptorSet() };
+			//if (descriptorSets[1] != nullptr)
+			//	descriptorCount++;
+		}
+		else {
+			// Generate a random glm::vec3 from 0 to 1
+			std::random_device rd;
+			std::mt19937 gen(rd());
+			std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+			pushData.color = glm::vec3(dis(gen), dis(gen), dis(gen));
+		}
+
+
+
+		vkCmdPushConstants(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VulkanRenderer::GetRenderer()->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
+
+		vkCmdBindDescriptorSets(activeCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, GetVulkanRenderer().mPipelineLayout, 0, descriptorCount, descriptorSets.data(), 0, nullptr);
 		vector<VkBuffer> verticesBuffer = { mVertexBuffer, mInstanceBuffer };
 		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 1, &mVertexBuffer, offsets);
 		vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mInstanceBuffer, offsets);
 		vkCmdBindIndexBuffer(activeCommandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(indices.size()), instanceModelMatrices.size(), 0, 0, 0);
 		instanceModelMatrices.clear();
+
+		VulkanMesh::i++;
 	}
 
 	VulkanRenderer& VulkanMesh::GetVulkanRenderer() {
@@ -83,10 +120,10 @@ namespace Plaza {
 	};
 
 	void VulkanMesh::CreateInstanceBuffer() {
-		for (int i = 0; i < 8; ++i) {
+		for (int i = 0; i < 32; ++i) {
 			this->instanceModelMatrices.push_back(glm::mat4(13.0f));
 		}
-		VkDeviceSize bufferSize = 8 * sizeof(glm::mat4);
+		VkDeviceSize bufferSize = 32 * sizeof(glm::mat4);
 
 		//VkBuffer stagingBuffer;
 		//VkDeviceMemory stagingBufferMemory;
@@ -102,6 +139,7 @@ namespace Plaza {
 		//
 		//vkDestroyBuffer(GetVulkanRenderer().mDevice, stagingBuffer, nullptr);
 		//vkFreeMemory(GetVulkanRenderer().mDevice, stagingBufferMemory, nullptr);
+		instanceModelMatrices.clear();
 	}
 
 	void VulkanMesh::setupMesh() {

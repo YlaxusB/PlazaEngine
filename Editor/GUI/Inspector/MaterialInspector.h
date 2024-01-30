@@ -51,8 +51,8 @@ namespace Plaza::Editor {
 
 				Material& material = *(entity->GetComponent<MeshRenderer>()->material);
 				if (meshRenderer->mesh && meshRenderer->renderGroup.get() && meshRenderer->material) {
-					glm::vec4& diffuse = material.diffuse.rgba;
-					glm::vec4& specular = material.specular.rgba;
+					glm::vec4& diffuse = material.diffuse->rgba;
+					glm::vec4& specular = material.specular->rgba;
 					float shininess = material.shininess;
 
 					//  ImGui::Text("Mesh VAO: ");
@@ -91,7 +91,7 @@ namespace Plaza::Editor {
 
 					ImGui::Text("Diffuse Path: ");
 					ImGui::SameLine();
-					ImGui::Text(material.diffuse.path.c_str());
+					ImGui::Text(material.diffuse->path.c_str());
 
 					material.shininess = shininess;
 

@@ -190,7 +190,7 @@ namespace Plaza {
 				stbi_image_free(image_data);
 			}
 			else if (Application->mRenderer->api = RendererAPI::Vulkan) {
-				*outTextureID = Application->mRenderer->LoadTexture(path).GetImGuiTextureID();
+				*outTextureID = Application->mRenderer->LoadImGuiTexture(path)->GetImGuiTextureID();
 			}
 		}
 	}

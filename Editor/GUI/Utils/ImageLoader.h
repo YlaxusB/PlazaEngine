@@ -25,7 +25,7 @@ namespace Plaza::Editor::Utils {
 			return (ImTextureID)textureId;
 		}
 		else if (Application->mRenderer->api == RendererAPI::Vulkan) {
-			return Application->mRenderer->LoadTexture(path).GetImGuiTextureID();
+			return Application->mRenderer->LoadImGuiTexture(path)->GetImGuiTextureID();
 		}
 	}
 }

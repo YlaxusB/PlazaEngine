@@ -1,6 +1,8 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "VulkanTexture.h"
 
+
+
 /*
 		int texWidth, texHeight, texChannels;
 		stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -32,6 +34,7 @@
 */
 
 namespace Plaza {
+	int VulkanTexture::mLastBindingIndex = 0;
 	void VulkanTexture::CreateTextureImage(VkDevice device, std::string path) {
 		int texWidth, texHeight, texChannels;
 		stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -156,10 +159,16 @@ namespace Plaza {
 			throw std::runtime_error("failed to create texture image view!");
 		}
 
-		InitDescriptorSetLayout();
-
 		return mImageView;
 	}
+
+	VkDescriptorSet VulkanTexture::GetDescriptorSet() {
+		return this->mDescriptorSet;
+	}
+
+#define ArraySize(a) \
+  ((sizeof(a) / sizeof(*(a))) / \
+  static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 
 	void VulkanTexture::InitDescriptorSet() {
 		VkDescriptorPool descriptorPool;
@@ -173,6 +182,16 @@ namespace Plaza {
 		poolInfo.poolSizeCount = 1;
 		poolInfo.pPoolSizes = &poolSize;
 		poolInfo.maxSets = 1;
+		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT;
+
+		static const uint32_t maxBindlessResources = 16536;
+		VkDescriptorPoolSize poolSizesBindless[] =
+		{
+			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, maxBindlessResources }
+		};
+		poolInfo.maxSets = maxBindlessResources * ArraySize(poolSizesBindless);
+		poolInfo.poolSizeCount = uint32_t(ArraySize(poolSizesBindless));
+		poolInfo.pPoolSizes = poolSizesBindless;
 
 		if (vkCreateDescriptorPool(VulkanRenderer::GetRenderer()->mDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
 		{
@@ -184,9 +203,15 @@ namespace Plaza {
 		std::vector<VkDescriptorSetLayout> layouts = { mDescriptorSetLayout };
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = VulkanRenderer::GetRenderer()->mImguiDescriptorPool;
+		allocInfo.descriptorPool = descriptorPool;
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &mDescriptorSetLayout;
+
+		VkDescriptorSetVariableDescriptorCountAllocateInfoEXT countInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
+		uint32_t maxBinding = 16536 - 1;
+		countInfo.descriptorSetCount = 1;
+		countInfo.pDescriptorCounts = &maxBinding;
+		//allocInfo.pNext = &countInfo;
 
 		if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, &mDescriptorSet) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate descriptor sets!");
@@ -203,26 +228,30 @@ namespace Plaza {
 
 		std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
+		VkDescriptorBufferInfo bufferInfo2{};
+		bufferInfo2.buffer = VulkanRenderer::GetRenderer()->mUniformBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame];
+		bufferInfo2.offset = 0;
+		bufferInfo2.range = sizeof(VulkanRenderer::UniformBufferObject);
+
 		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[0].dstSet = mDescriptorSet;
+		descriptorWrites[0].dstSet = VulkanRenderer::GetRenderer()->mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame];
 		descriptorWrites[0].dstBinding = 0;
 		descriptorWrites[0].dstArrayElement = 0;
 		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		descriptorWrites[0].descriptorCount = 1;
-		descriptorWrites[0].pBufferInfo = &bufferInfo;
+		descriptorWrites[0].pBufferInfo = &bufferInfo2 ;
 
-		VkWriteDescriptorSet descriptorWrite{};
-		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = mDescriptorSet;
-		descriptorWrite.dstBinding = 0; // Assuming your texture is bound to binding 0 in the shader
-		descriptorWrite.dstArrayElement = 0;
-		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pImageInfo = &imageInfo;
-		descriptorWrite.pBufferInfo = &bufferInfo;
+		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[1].dstSet = VulkanRenderer::GetRenderer()->mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame];
+		descriptorWrites[1].dstBinding = 10;
+		descriptorWrites[1].dstArrayElement = VulkanTexture::mLastBindingIndex;
+		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrites[1].descriptorCount = 1;
+		descriptorWrites[1].pImageInfo = &imageInfo;
+		this->mIndexHandle = mLastBindingIndex;
 
-
-		vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, 1, &descriptorWrite, 0, nullptr);
+		vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, 2, descriptorWrites.data(), 0, nullptr);
+		VulkanTexture::mLastBindingIndex++;
 	}
 
 	void VulkanTexture::InitDescriptorSetLayout() {
@@ -234,14 +263,14 @@ namespace Plaza {
 		uboLayoutBinding.pImmutableSamplers = &mSampler; // Optional
 
 		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-		samplerLayoutBinding.binding = 1;
-		samplerLayoutBinding.descriptorCount = 1;
-		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		samplerLayoutBinding.binding = 0;
+		samplerLayoutBinding.descriptorCount = 16536;
+		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 		samplerLayoutBinding.pImmutableSamplers = &mSampler;
-		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
 
 
-		std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+		std::array<VkDescriptorSetLayoutBinding, 1> bindings = { samplerLayoutBinding };
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());

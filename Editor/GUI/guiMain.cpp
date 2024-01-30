@@ -110,7 +110,7 @@ namespace Plaza {
 			}
 			//ImGui_ImplGlfw_InitForVulkan(Application->Window->glfwWindow, true);
 		//C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
-		//    io.Fonts->AddFontFromFileTTF((Application->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
+		    io.Fonts->AddFontFromFileTTF((Application->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
 			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
 
 #pragma region ImGui Style
@@ -180,7 +180,7 @@ namespace Plaza {
 			Gui::beginHierarchyView(gameFrameBuffer);
 
 
-			Gui::beginScene(gameFrameBuffer, *Application->activeCamera);
+			//Gui::beginScene(gameFrameBuffer, *Application->activeCamera);
 
 			Gui::beginEditor(gameFrameBuffer, *Application->activeCamera);
 

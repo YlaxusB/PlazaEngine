@@ -104,7 +104,7 @@ namespace Plaza {
 		void CreateLogicalDevice();
 		void InitSurface();
 		void InitSwapChain();
-		void CreateImageViews();
+		void CreateImageViews(VkImageLayout initialLayout);
 		void InitCommands();
 		void InitSyncStructures();
 		void CreateRenderPass();

@@ -410,7 +410,7 @@ namespace Plaza {
 		mSwapChainImageFormat = surfaceFormat.format;
 		mSwapChainExtent = extent;
 	}
-	void VulkanRenderer::CreateImageViews()
+	void VulkanRenderer::CreateImageViews(VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED)
 	{
 		mSwapChainImageViews.resize(mSwapChainImages.size());
 		for (size_t i = 0; i < mSwapChainImages.size(); i++) {
@@ -427,7 +427,7 @@ namespace Plaza {
 		imageCreateInfo.arrayLayers = 1;
 		imageCreateInfo.format = mSwapChainImageFormat;
 		imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageCreateInfo.initialLayout = initialLayout;
 		imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		//imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -889,10 +889,10 @@ namespace Plaza {
 		VkBuffer vertexBuffers[] = { mVertexBuffer };
 		VkDeviceSize offsets[] = { 0 };
 
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-		vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[mCurrentFrame], 0, nullptr);
+		//vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+		//vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		//
+		//vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[mCurrentFrame], 0, nullptr);
 		//
 		//vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
@@ -964,7 +964,7 @@ namespace Plaza {
 		CleanupSwapChain();
 
 		InitSwapChain();
-		CreateImageViews();
+		CreateImageViews(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		CreateDepthResources();
 		CreateFramebuffers();
 	}
@@ -1510,7 +1510,7 @@ namespace Plaza {
 		PickPhysicalDevice();
 		CreateLogicalDevice();
 		InitSwapChain();
-		CreateImageViews();
+		CreateImageViews(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 		CreateRenderPass();
 		CreateDescriptorSetLayout();
 		CreateGraphicsPipeline();
@@ -1542,6 +1542,7 @@ namespace Plaza {
 	}
 	void VulkanRenderer::RenderInstances(Shader& shader)
 	{
+		mCurrentFrame = 0;
 		vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
 
 
@@ -1607,7 +1608,7 @@ namespace Plaza {
 			throw std::runtime_error("failed to present swap chain image!");
 		}
 
-		mCurrentFrame = (mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+		mCurrentFrame = 0;//(mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 	void VulkanRenderer::RenderBloom()
 	{
@@ -1723,7 +1724,7 @@ namespace Plaza {
 
 		ImGui_ImplVulkan_SetMinImageCount(MAX_FRAMES_IN_FLIGHT);
 
-		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, mFinalSceneImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, mFinalSceneImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
 	}
 
 	void VulkanRenderer::NewFrameGUI()
@@ -1782,7 +1783,7 @@ namespace Plaza {
 
 	Texture* VulkanRenderer::LoadTexture(std::string path) {
 		VulkanTexture* texture = new VulkanTexture();
-		texture->CreateTextureImage(mDevice, path);
+		texture->CreateTextureImage(mDevice, path, VK_FORMAT_R8G8B8A8_SRGB);
 		texture->CreateTextureSampler();
 		texture->CreateImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 		texture->InitDescriptorSetLayout();
@@ -1790,7 +1791,7 @@ namespace Plaza {
 	}
 	Texture* VulkanRenderer::LoadImGuiTexture(std::string path) {
 		VulkanTexture* texture = new VulkanTexture();
-		texture->CreateTextureImage(mDevice, path);
+		texture->CreateTextureImage(mDevice, path, VK_FORMAT_R8G8B8A8_SRGB);
 		texture->CreateTextureSampler();
 		texture->CreateImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 		texture->mDescriptorSet = ImGui_ImplVulkan_AddTexture(texture->mSampler, texture->mImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

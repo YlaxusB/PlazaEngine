@@ -10,6 +10,7 @@ namespace Plaza {
 		int mIndexHandle = -1;
 		static int mLastBindingIndex;
 
+		uint16_t mMipLevels = 8;
 	private:
 		VkDescriptorSetLayout mDescriptorSetLayout;
 		VkImage mImage;
@@ -20,11 +21,12 @@ namespace Plaza {
 		void CreateTextureImageView();
 		VkImageView CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags);
 		void CreateTextureSampler();
+		void GenerateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkFormat format);
 
 		VkBuffer mStagingBuffer;
 		VkDeviceMemory mStagingBufferMemory;
 
-		void CreateTextureImage(VkDevice device, std::string path);
+		void CreateTextureImage(VkDevice device, std::string path, VkFormat format);
 
 		void Load(std::string path) override;
 		unsigned int GetTextureID() override;

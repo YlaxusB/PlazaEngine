@@ -7,6 +7,7 @@ namespace Plaza {
 		std::string type = "";
 		std::string path = "";
 		glm::vec4 rgba = glm::vec4(255.0f);
+		int mIndexHandle = -1;
 
 		bool SameAs(Texture& other) {
 			return (
@@ -38,7 +39,7 @@ namespace Plaza {
 		}
 
 		bool IsTextureEmpty() const {
-			return rgba == glm::vec4(255.0f) && path.empty();
+			return (rgba == glm::vec4(255.0f) && path.empty()) || (rgba == glm::vec4(255.0f) && mIndexHandle < 0);
 		}
 
 		virtual unsigned int GetTextureID() {

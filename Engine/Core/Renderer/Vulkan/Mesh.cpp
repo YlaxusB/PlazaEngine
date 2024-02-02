@@ -2,7 +2,6 @@
 #include "Mesh.h"
 #include "VulkanTexture.h"
 namespace Plaza {
-	int VulkanMesh::i = 0;
 	void VulkanMesh::Drawe() {
 
 
@@ -66,27 +65,16 @@ namespace Plaza {
 
 
 		VulkanRenderer::PushConstants pushData;
-		pushData.intensity = 2.0f;
-		pushData.diffuseIndex = -1;
-
-
-		if (!this->material.diffuse->IsTextureEmpty()) {
-			VulkanTexture* text = (VulkanTexture*)this->material.diffuse;
-			if (text->mIndexHandle < 0)
-				pushData.diffuseIndex = -1;
-			else
-				pushData.diffuseIndex = text->mIndexHandle;
-			//descriptorSets = { GetVulkanRenderer().mDescriptorSets[GetVulkanRenderer().mCurrentFrame], text->GetDescriptorSet() };
-			//if (descriptorSets[1] != nullptr)
-			//	descriptorCount++;
-		}
-		else {
-			// Generate a random glm::vec3 from 0 to 1
-			std::random_device rd;
-			std::mt19937 gen(rd());
-			std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-			pushData.color = glm::vec3(dis(gen), dis(gen), dis(gen));
-		}
+		//if (!this->material.diffuse->IsTextureEmpty()) {
+		//	VulkanTexture* texture = (VulkanTexture*)this->material.diffuse;
+		//	if (texture->mIndexHandle < 0)
+		//		pushData.diffuseIndex = -1;
+		//	else
+		//		pushData.diffuseIndex = texture->mIndexHandle;
+		//}
+		//else {
+		//	pushData.color = this->material.diffuse->rgba;
+		//}
 
 
 
@@ -99,8 +87,6 @@ namespace Plaza {
 		vkCmdBindIndexBuffer(activeCommandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(indices.size()), instanceModelMatrices.size(), 0, 0, 0);
 		instanceModelMatrices.clear();
-
-		VulkanMesh::i++;
 	}
 
 	VulkanRenderer& VulkanMesh::GetVulkanRenderer() {
@@ -125,20 +111,8 @@ namespace Plaza {
 		}
 		VkDeviceSize bufferSize = 32 * sizeof(glm::mat4);
 
-		//VkBuffer stagingBuffer;
-		//VkDeviceMemory stagingBufferMemory;
 		GetVulkanRenderer().CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mInstanceBuffer, mInstanceBufferMemory);
-		//void* data;
-		//vkMapMemory(GetVulkanRenderer().mDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-		//memcpy(data, this->instanceModelMatrices.data(), (size_t)bufferSize);
-		//vkUnmapMemory(GetVulkanRenderer().mDevice, stagingBufferMemory);
-		//
-		//GetVulkanRenderer().CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mInstanceBuffer, mInstanceBufferMemory);
-		//
-		//GetVulkanRenderer().CopyBuffer(stagingBuffer, mInstanceBuffer, bufferSize);
-		//
-		//vkDestroyBuffer(GetVulkanRenderer().mDevice, stagingBuffer, nullptr);
-		//vkFreeMemory(GetVulkanRenderer().mDevice, stagingBufferMemory, nullptr);
+
 		instanceModelMatrices.clear();
 	}
 

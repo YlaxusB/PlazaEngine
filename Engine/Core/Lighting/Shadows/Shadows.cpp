@@ -97,7 +97,7 @@ namespace Plaza {
 					}
 					else if(meshRenderer.renderGroup) {
 						shader.setMat4("model", modelMatrix);
-						meshRenderer.renderGroup->Draw(shader);
+						//[] meshRenderer.renderGroup->Draw(shader);
 					}
 
 				}

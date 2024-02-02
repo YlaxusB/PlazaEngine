@@ -30,6 +30,7 @@ namespace Plaza {
 				texture->path = ".\\" + std::filesystem::path(str.C_Str()).filename().string();
 				textures.push_back(texture);
 				texture->path = str.C_Str();
+				texture->rgba = glm::vec4(INFINITY);
 				textures_loaded.push_back(texture); // Add it to textures loaded to prevent other textures being loaded multiple times
 			}
 		}

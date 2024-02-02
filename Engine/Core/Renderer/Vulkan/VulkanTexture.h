@@ -7,7 +7,6 @@ namespace Plaza {
 	public:
 		VkDescriptorSet GetDescriptorSet() override;
 		VkDescriptorSet mDescriptorSet;
-		int mIndexHandle = -1;
 		static int mLastBindingIndex;
 
 		uint16_t mMipLevels = 8;

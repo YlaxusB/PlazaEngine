@@ -30,20 +30,6 @@ namespace Plaza {
 		};
 
 		OpenGLMesh(const OpenGLMesh&) = default;
-		OpenGLMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material) {
-			this->vertices = vertices;
-			this->indices = indices;
-			this->normals = normals;
-			this->uvs = uvs;
-			this->tangent = tangent;
-			this->bitangent = bitangent;
-			this->material = material;
-			this->uuid = Plaza::UUID::NewUUID();
-			if (this->meshId == 0)
-				this->meshId = Plaza::UUID::NewUUID();
-			setupMesh();
-		}
-
 		OpenGLMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices) {
 			this->vertices = vertices;
 			this->indices = indices;
@@ -51,14 +37,27 @@ namespace Plaza {
 			this->uvs = uvs;
 			this->tangent = tangent;
 			this->bitangent = bitangent;
-			this->indices = indices;
 			this->uuid = Plaza::UUID::NewUUID();
 			if (this->meshId == 0)
 				this->meshId = Plaza::UUID::NewUUID();
 			setupMesh();
 		}
 
-		OpenGLMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material, bool usingNormal) {
+		//OpenGLMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices) {
+		//	this->vertices = vertices;
+		//	this->indices = indices;
+		//	this->normals = normals;
+		//	this->uvs = uvs;
+		//	this->tangent = tangent;
+		//	this->bitangent = bitangent;
+		//	this->indices = indices;
+		//	this->uuid = Plaza::UUID::NewUUID();
+		//	if (this->meshId == 0)
+		//		this->meshId = Plaza::UUID::NewUUID();
+		//	setupMesh();
+		//}
+
+		OpenGLMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, bool usingNormal) {
 			this->vertices = vertices;
 			this->indices = indices;
 			this->normals = normals;
@@ -66,7 +65,6 @@ namespace Plaza {
 			this->tangent = tangent;
 			this->bitangent = bitangent;
 			this->indices = indices;
-			this->material = material;
 			this->usingNormal = usingNormal;
 			this->uuid = Plaza::UUID::NewUUID();
 			if (this->meshId == 0)
@@ -78,110 +76,9 @@ namespace Plaza {
 			uuid = Plaza::UUID::NewUUID();
 		}
 
-		void BindTextures(Shader& shader) {
-			constexpr const char* shininessUniform = "shininess";
-			constexpr const char* textureDiffuseRGBAUniform = "texture_diffuse_rgba";
-			constexpr const char* textureDiffuseUniform = "texture_diffuse";
-			constexpr const char* textureSpecularRGBAUniform = "texture_specular_rgba";
-			constexpr const char* textureSpecularUniform = "texture_specular";
-			constexpr const char* textureNormalUniform = "texture_normal";
-			constexpr const char* textureHeightUniform = "texture_height";
-
-			shader.setBool("usingNormal", usingNormal);
-			if (material.shininess != 64.0f) {
-				shader.setFloat(shininessUniform, material.shininess);
-			}
-
-			if (!material.diffuse->IsTextureEmpty()) {
-				const glm::vec4& diffuseRGBA = material.diffuse->rgba;
-				if (diffuseRGBA != infVec) {
-					shader.setVec4(textureDiffuseRGBAUniform, diffuseRGBA);
-				}
-				else {
-					constexpr GLint textureDiffuseUnit = 0;
-					glActiveTexture(GL_TEXTURE0 + textureDiffuseUnit);
-					glBindTexture(GL_TEXTURE_2D, material.diffuse->GetTextureID());
-					shader.setVec4(textureDiffuseRGBAUniform, glm::vec4(300, 300, 300, 300));
-				}
-			}
-
-			if (!material.specular->IsTextureEmpty()) {
-				const glm::vec4& specularRGBA = material.specular->rgba;
-				if (specularRGBA != glm::vec4(INFINITY)) {
-					shader.setVec4(textureSpecularRGBAUniform, specularRGBA);
-				}
-				else {
-					constexpr GLint textureSpecularUnit = 1;
-					glActiveTexture(GL_TEXTURE0 + textureSpecularUnit);
-					glBindTexture(GL_TEXTURE_2D, material.specular->GetTextureID());
-					shader.setVec4(textureSpecularRGBAUniform, glm::vec4(300, 300, 300, 300));
-				}
-			}
-
-			if (!material.normal->IsTextureEmpty()) {
-				constexpr GLint textureNormalUnit = 2;
-				glActiveTexture(GL_TEXTURE0 + textureNormalUnit);
-				glBindTexture(GL_TEXTURE_2D, material.normal->GetTextureID());
-			}
-
-			if (!material.height->IsTextureEmpty()) {
-				constexpr GLint textureHeightUnit = 3;
-				glActiveTexture(GL_TEXTURE0 + textureHeightUnit);
-				glBindTexture(GL_TEXTURE_2D, material.height->GetTextureID());
-			}
-		}
-
-		void Draw(Shader& shader) override {
-			// draw mesh
-			glBindVertexArray(VAO);
-			glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-			glBindVertexArray(0);
-
-			// always good practice to set everything back to defaults once configured.
-			glActiveTexture(GL_TEXTURE0);
-			Time::drawCalls += 1;
-
-		}
-
 		void AddInstance(Shader& shader, glm::mat4 model) {
 			//Time::addInstanceCalls += 1;
 			instanceModelMatrices.push_back(model);
-		}
-
-		void DrawInstancedToShadowMap(Shader& shader) {
-			if (instanceModelMatrices.size() > 0) {
-				// Setup instance buffer
-				glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
-				glBufferData(GL_ARRAY_BUFFER, instanceModelMatrices.size() * sizeof(glm::mat4), &instanceModelMatrices[0], GL_STATIC_DRAW);
-				// draw mesh
-				glBindVertexArray(VAO);
-				//glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-				glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, instanceModelMatrices.size());
-				glBindVertexArray(0);
-				// always good practice to set everything back to defaults once configured.
-				Time::drawCalls += 1;
-				glBindBuffer(GL_ARRAY_BUFFER, 0);
-			}
-		}
-
-		void DrawInstanced(Shader& shader, bool automaticallyBindTextures = true) {
-			if (instanceModelMatrices.size() > 0) {
-				if (automaticallyBindTextures)
-					BindTextures(shader);
-				// Setup instance buffer
-				glBindBuffer(GL_ARRAY_BUFFER, instanceBuffer);
-				glBufferData(GL_ARRAY_BUFFER, instanceModelMatrices.size() * sizeof(glm::mat4), &instanceModelMatrices[0], GL_STATIC_DRAW);
-				// draw mesh
-				glBindVertexArray(VAO);
-				//glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-				glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0, instanceModelMatrices.size());
-				glBindVertexArray(0);
-
-				Time::drawCalls += 1;
-				Time::addInstanceCalls += instanceModelMatrices.size();
-				instanceModelMatrices.clear();
-				//instanceModelMatrices.resize(0);
-			}
 		}
 
 		void Terminate() {
@@ -326,7 +223,7 @@ namespace Plaza {
 			// Generate Uniform Buffer
 			glGenBuffers(1, &this->uniformBuffer);
 			glBindBuffer(GL_UNIFORM_BUFFER, this->uniformBuffer);
-			glBufferData(GL_UNIFORM_BUFFER, sizeof(Material), &this->material, GL_STATIC_DRAW);
+			glBufferData(GL_UNIFORM_BUFFER, sizeof(Material), new Material(), GL_STATIC_DRAW);
 			glBindBuffer(GL_UNIFORM_BUFFER, 0);
 			for (glm::vec3 position : vertices) {
 				glm::vec3 absoluteVertex = glm::vec3(glm::abs(position.x), glm::abs(position.y), glm::abs(position.z));

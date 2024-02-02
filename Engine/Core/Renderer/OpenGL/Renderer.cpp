@@ -159,7 +159,7 @@ namespace Plaza {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		for (auto [renderGroupUuid, renderGroup] : Application->activeScene->renderGroups) {
 			if (renderGroup->instanceModelMatrices.size() > 0) {
-				renderGroup->DrawInstanced(shader);
+				//[] renderGroup->DrawInstanced(shader);
 			}
 		}
 		//for (auto [key, mesh] : Application->activeScene->meshes) {
@@ -174,7 +174,7 @@ namespace Plaza {
 		for (auto [renderGroupUuid, renderGroup] : Application->activeScene->renderGroups) {
 			if (renderGroup->instanceModelMatrices.size() > 0) {
 				//renderGroup->DrawInstanced(shader);
-				renderGroup->DrawInstancedToShadowMap(shader);
+				//[] renderGroup->DrawInstancedToShadowMap(shader);
 			}
 		}
 	}
@@ -362,7 +362,7 @@ namespace Plaza {
 	}
 
 	Mesh& OpenGLRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal) {
-		return *new OpenGLMesh(vertices, normals, uvs, tangent, bitangent, indices, material, usingNormal);
+		return *new OpenGLMesh(vertices, normals, uvs, tangent, bitangent, indices, usingNormal);
 	}
 
 	Texture* OpenGLRenderer::LoadTexture(std::string path) {
@@ -414,5 +414,9 @@ namespace Plaza {
 			}
 		}
 		return texture;
+	}
+
+	void OpenGLRenderer::DrawRenderGroupInstanced(RenderGroup* renderGroup) {
+
 	}
 }

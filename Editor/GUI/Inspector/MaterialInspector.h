@@ -35,11 +35,13 @@ namespace Plaza::Editor {
 						if (value.get()) {
 							if (value && value.get() && !value.get()->name.empty() && ImGui::Button(value->name.c_str())) {
 								entity->GetComponent<MeshRenderer>()->material = value.get(); //= std::shared_ptr<Material>();
-								if (!oldRenderGroup) {
-									entity->GetComponent<MeshRenderer>()->renderGroup = std::make_shared<RenderGroup>(entity->GetComponent<MeshRenderer>()->mesh, entity->GetComponent<MeshRenderer>()->material);
-									Application->activeScene->AddRenderGroup(entity->GetComponent<MeshRenderer>()->renderGroup);
-								}
-								entity->GetComponent<MeshRenderer>()->renderGroup->material = entity->GetComponent<MeshRenderer>()->material;
+								entity->GetComponent<MeshRenderer>()->renderGroup->mesh = entity->GetComponent<MeshRenderer>()->mesh;
+								entity->GetComponent<MeshRenderer>()->renderGroup->ChangeMaterial(value.get());
+								//if (!oldRenderGroup) {
+								//	entity->GetComponent<MeshRenderer>()->renderGroup = std::make_shared<RenderGroup>(entity->GetComponent<MeshRenderer>()->mesh, entity->GetComponent<MeshRenderer>()->material);
+								//	Application->activeScene->AddRenderGroup(entity->GetComponent<MeshRenderer>()->renderGroup);
+								//}
+								//entity->GetComponent<MeshRenderer>()->renderGroup->material = entity->GetComponent<MeshRenderer>()->material;
 							}
 						}
 					}
@@ -59,9 +61,9 @@ namespace Plaza::Editor {
 					//  ImGui::SameLine();
 					//  ImGui::Text(std::to_string(meshRenderer->mesh->VAO).c_str());
 
-					ImGui::Text("Render Group Mesh VAO: ");
-					ImGui::SameLine();
-					ImGui::Text(std::to_string(meshRenderer->renderGroup->mesh->VAO).c_str());
+					//ImGui::Text("Render Group Mesh VAO: ");
+					//ImGui::SameLine();
+					//ImGui::Text(std::to_string(meshRenderer->renderGroup->mesh->VAO).c_str());
 
 					ImGui::Text("Material Name: ");
 					ImGui::SameLine();

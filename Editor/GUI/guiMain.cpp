@@ -180,7 +180,7 @@ namespace Plaza {
 			Gui::beginHierarchyView(gameFrameBuffer);
 
 
-			//Gui::beginScene(gameFrameBuffer, *Application->activeCamera);
+			Gui::beginScene(gameFrameBuffer, *Application->activeCamera);
 
 			Gui::beginEditor(gameFrameBuffer, *Application->activeCamera);
 

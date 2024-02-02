@@ -71,8 +71,8 @@ namespace Plaza {
 
 		newScene->renderGroups = std::unordered_map<uint64_t, shared_ptr<RenderGroup>>();
 		newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash>();
-		newScene->rederGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>();
-		newScene->rederGroupsFindMapWithMaterialUuid = std::unordered_map<uint64_t, uint64_t>();
+		newScene->renderGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>();
+		newScene->renderGroupsFindMapWithMaterialUuid = std::unordered_map<uint64_t, uint64_t>();
 
 		for (auto& [key, value] : newScene->meshRendererComponents) {
 			if (value.material && value.mesh) {
@@ -148,10 +148,6 @@ namespace Plaza {
 		if (it != Application->editorScene->meshRenderers.end()) {
 			Application->editorScene->meshRenderers.erase(it);
 		}
-	}
-
-	void Scene::RemoveRenderGroup(uint64_t uuid) {
-		//this->ren
 	}
 
 	void Scene::Play() {

@@ -44,27 +44,18 @@ namespace Plaza {
 		vector<glm::vec3> tangent;
 		vector<glm::vec3> bitangent;
 
-		vector<Texture> textures;
-		Material material = DefaultMaterial();
+		//vector<Texture> textures;
+		//Material material = DefaultMaterial();
 		bool usingNormal;
 		glm::vec4 infVec = glm::vec4(INFINITY);
 
-		virtual void setupMesh() {};
+		virtual void setupMesh() {};\
 		virtual void Restart() {};
 		virtual void Draw(Shader& shader) {};
 		virtual void DrawInstances() {};
 
 		void AddInstance(glm::mat4 model) {
-			//Time::addInstanceCalls += 1;
 			instanceModelMatrices.push_back(model);
-		}
-
-		Material DefaultMaterial() {
-			Material material;
-			material.diffuse->rgba = glm::vec4(glm::pow(0.7f, 2.2f), glm::pow(0.7f, 2.2f), glm::pow(0.7f, 2.2f), glm::pow(0.7f, 2.2f));
-			material.specular->rgba = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
-			material.shininess = 2.0f;
-			return material;
 		}
 	};
 }

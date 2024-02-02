@@ -38,8 +38,8 @@ namespace Plaza {
 			material = Scene::DefaultMaterial();
 		meshRenderer->material = material;
 		if (meshRenderer->mesh && meshRenderer->material) {
-			meshRenderer->renderGroup = std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);
-			Application->activeScene->AddRenderGroup(meshRenderer->renderGroup);
+			meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(meshRenderer->mesh, meshRenderer->material);//std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);
+			//Application->activeScene->AddRenderGroup(meshRenderer->renderGroup);
 		}
 		return meshRenderer;
 	}

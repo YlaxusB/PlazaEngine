@@ -54,9 +54,9 @@ namespace Plaza {
 	class VulkanRenderer : public Renderer {
 	public:
 		struct PushConstants {
-			glm::vec3 color;
-			float intensity;
-			int diffuseIndex;
+			glm::vec3 color = glm::vec3(1.0f);
+			float intensity = 1.0f;
+			int diffuseIndex = -1;
 		};
 
 		static VulkanRenderer* GetRenderer();
@@ -79,6 +79,8 @@ namespace Plaza {
 		ImTextureID GetFrameImage() override;
 
 		Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal);
+		void DrawRenderGroupInstanced(RenderGroup* renderGroup);
+
 		Texture* LoadTexture(std::string path) override;
 		Texture* LoadImGuiTexture(std::string path) override;
 

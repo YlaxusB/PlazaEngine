@@ -80,7 +80,8 @@ namespace Plaza {
 
 	void DeSerializeMaterial(const auto& materialNode, Model* model, MeshRenderer* meshRenderer) {
 		if (meshRenderer->mesh != nullptr) {
-			Material* material = &meshRenderer->mesh->material;
+			meshRenderer->material = new Material();
+			Material* material = meshRenderer->material;
 			material->shininess = materialNode["Shininess"].as<float>();
 			const auto& textureDiffuseNode = materialNode["texture_diffuse"];
 			DeSerializeTexture(*material, textureDiffuseNode);
@@ -121,7 +122,7 @@ namespace Plaza {
 			uint64_t materialUuid = componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>();
 			if (componentsEntry["MeshComponent"]["MaterialUuid"])
 				/* TODO:FIX THE WAY TO GET MATERIALS, IT HAS BEEN TEMPORARILY DISABLED TO LOAD MODELS WITH VULKAN */
-				newMeshRenderer->material = Application->activeScene->materials.at(0).get();//    Application->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>()).get();
+				newMeshRenderer->material = Application->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>()).get();
 			model->meshRenderers.emplace(entity->uuid, newMeshRenderer);
 		}
 		model->transforms.emplace(entity->uuid, newTransform);

@@ -5,7 +5,6 @@
 namespace Plaza {
 	class VulkanMesh : public Mesh {
 	public:
-		static int i;
 		struct InstanceBuffer {
 			VkBuffer buffer{ VK_NULL_HANDLE };
 			VkDeviceMemory memory{ VK_NULL_HANDLE };
@@ -18,20 +17,6 @@ namespace Plaza {
 		~VulkanMesh();
 
 		VulkanMesh(const VulkanMesh&) = default;
-		VulkanMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material material) {
-			this->vertices = vertices;
-			this->indices = indices;
-			this->normals = normals;
-			this->uvs = uvs;
-			this->tangent = tangent;
-			this->bitangent = bitangent;
-			this->material = material;
-			this->uuid = Plaza::UUID::NewUUID();
-			if (this->meshId == 0)
-				this->meshId = Plaza::UUID::NewUUID();
-			setupMesh();
-		}
-
 		VulkanMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices) {
 			this->vertices = vertices;
 			this->indices = indices;
@@ -39,14 +24,27 @@ namespace Plaza {
 			this->uvs = uvs;
 			this->tangent = tangent;
 			this->bitangent = bitangent;
-			this->indices = indices;
 			this->uuid = Plaza::UUID::NewUUID();
 			if (this->meshId == 0)
 				this->meshId = Plaza::UUID::NewUUID();
-			setupMesh();
+			//setupMesh();
 		}
 
-		VulkanMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal) {
+		//VulkanMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices) {
+		//	this->vertices = vertices;
+		//	this->indices = indices;
+		//	this->normals = normals;
+		//	this->uvs = uvs;
+		//	this->tangent = tangent;
+		//	this->bitangent = bitangent;
+		//	this->indices = indices;
+		//	this->uuid = Plaza::UUID::NewUUID();
+		//	if (this->meshId == 0)
+		//		this->meshId = Plaza::UUID::NewUUID();
+		//	//setupMesh();
+		//}
+
+		VulkanMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, bool usingNormal) {
 			this->vertices = vertices;
 			this->indices = indices;
 			this->normals = normals;
@@ -54,12 +52,11 @@ namespace Plaza {
 			this->tangent = tangent;
 			this->bitangent = bitangent;
 			this->indices = indices;
-			this->material = *&material;
 			this->usingNormal = usingNormal;
 			this->uuid = Plaza::UUID::NewUUID();
 			if (this->meshId == 0)
 				this->meshId = Plaza::UUID::NewUUID();
-			setupMesh();
+			//setupMesh();
 		}
 
 		VulkanMesh() {
@@ -69,10 +66,7 @@ namespace Plaza {
 		void Draw(Shader& shader) override;
 		void DrawInstances() override;
 		void Drawe();
-
-
 		void setupMesh() override;
-
 		void Restart() override;
 
 		bool firstRune = true;

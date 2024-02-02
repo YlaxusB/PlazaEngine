@@ -896,14 +896,16 @@ namespace Plaza {
 		//
 		//vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
-		for (auto [key, value] : Application->activeScene->meshRendererComponents) {
-			value.mesh->AddInstance(Application->activeScene->transformComponents.at(key).GetTransform());
+		for (auto& [key, value] : Application->activeScene->meshRendererComponents) {
+			value.renderGroup.get()->instanceModelMatrices.push_back(Application->activeScene->transformComponents.at(key).GetTransform());
+			//value.mesh->AddInstance(Application->activeScene->transformComponents.at(key).GetTransform());
 			//value.mesh->DrawInstances();
 			//((VulkanMesh*)(value.mesh))->Drawe();
 		}
 
-		for (auto [key, value] : Application->activeScene->meshes) {
-			value->DrawInstances();
+		for (auto& [key, value] : Application->activeScene->renderGroups) {
+			this->DrawRenderGroupInstanced(value.get());
+			//value->DrawInstances();
 		}
 
 		vkCmdEndRenderPass(commandBuffer);
@@ -1158,7 +1160,7 @@ namespace Plaza {
 
 	void VulkanRenderer::CreateDescriptorSets() {
 		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, mDescriptorSetLayout);
-		VkDescriptorSetAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO  };
+		VkDescriptorSetAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 		allocInfo.descriptorPool = mDescriptorPool;
 		allocInfo.descriptorSetCount = layouts.size();
 		allocInfo.pSetLayouts = layouts.data();
@@ -1776,17 +1778,15 @@ namespace Plaza {
 		vkBindImageMemory(mDevice, image, imageMemory, 0);
 	}
 
-	Mesh& VulkanRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal) {
-		VulkanMesh& vulkMesh = *new VulkanMesh(vertices, normals, uvs, tangent, bitangent, indices, material, usingNormal);
-		return vulkMesh;
-	}
-
 	Texture* VulkanRenderer::LoadTexture(std::string path) {
 		VulkanTexture* texture = new VulkanTexture();
-		texture->CreateTextureImage(mDevice, path, VK_FORMAT_R8G8B8A8_SRGB);
-		texture->CreateTextureSampler();
-		texture->CreateImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
-		texture->InitDescriptorSetLayout();
+		if (std::filesystem::exists(path))
+		{
+			texture->CreateTextureImage(mDevice, path, VK_FORMAT_R8G8B8A8_SRGB);
+			texture->CreateTextureSampler();
+			texture->CreateImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+			texture->InitDescriptorSetLayout();
+		}
 		return texture;
 	}
 	Texture* VulkanRenderer::LoadImGuiTexture(std::string path) {
@@ -1796,5 +1796,78 @@ namespace Plaza {
 		texture->CreateImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 		texture->mDescriptorSet = ImGui_ImplVulkan_AddTexture(texture->mSampler, texture->mImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		return texture;
+	}
+
+	Mesh& VulkanRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal) {
+		VulkanMesh& vulkMesh = *new VulkanMesh(vertices, normals, uvs, tangent, bitangent, indices, usingNormal);
+
+		vector<Vertex> convertedVertices;
+		convertedVertices.reserve(vertices.size());
+
+		for (unsigned int i = 0; i < vertices.size(); i++) {
+			convertedVertices.push_back(Vertex{
+				vertices[i],
+				(normals.size() > i) ? normals[i] : glm::vec3(0.0f),
+				(uvs.size() > i) ? uvs[i] : glm::vec2(0.0f),
+				(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f),
+				(bitangent.size() > i) ? bitangent[i] : glm::vec3(0.0f)
+				});
+		}
+
+		this->CreateVertexBuffer(convertedVertices, vulkMesh.mVertexBuffer, vulkMesh.mVertexBufferMemory);
+		this->CreateIndexBuffer(indices, vulkMesh.mIndexBuffer, vulkMesh.mIndexBufferMemory);
+		// Create instance buffer
+		VkDeviceSize bufferSize = 32 * sizeof(glm::mat4);
+		this->CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vulkMesh.mInstanceBuffer, vulkMesh.mInstanceBufferMemory);
+		return vulkMesh;
+	}
+
+	void VulkanRenderer::DrawRenderGroupInstanced(RenderGroup* renderGroup) {
+		VulkanMesh* mesh = (VulkanMesh*)renderGroup->mesh;
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = sizeof(glm::mat4) * renderGroup->instanceModelMatrices.size();
+		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		void* data;
+		vkMapMemory(this->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
+		memcpy(data, renderGroup->instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
+		vkUnmapMemory(this->mDevice, mesh->mInstanceBufferMemory);
+
+		VkDeviceSize offsets[] = { 0 };
+		VkCommandBuffer activeCommandBuffer = *this->mActiveCommandBuffer;
+
+		std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
+		descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
+		//VkDescriptorSet descriptorSets[] = { GetVulkanRenderer().mDescriptorSets[GetVulkanRenderer().mCurrentFrame]  };
+		int descriptorCount = 1;
+
+		VulkanRenderer::PushConstants pushData;
+		if (renderGroup->material->diffuse->mIndexHandle < 0) {
+			pushData.color = renderGroup->material->diffuse->rgba;
+		}
+		else
+			pushData.diffuseIndex = renderGroup->material->diffuse->mIndexHandle;
+		//if (!renderGroup->material->diffuse->IsTextureEmpty()) {
+		//	if (texture->mIndexHandle < 0)
+		//	{
+		//		pushData.diffuseIndex = -1;
+		//		pushData.color = renderGroup->material->diffuse->rgba;
+		//	}
+		//	else
+		//		pushData.diffuseIndex = texture->mIndexHandle;
+		//}
+		//else {
+		//	pushData.color = renderGroup->material->diffuse->rgba;
+		//}
+		vkCmdPushConstants(*this->mActiveCommandBuffer, this->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
+
+		vkCmdBindDescriptorSets(activeCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorCount, descriptorSets.data(), 0, nullptr);
+		vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
+		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 1, &mesh->mVertexBuffer, offsets);
+		vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
+		vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->instanceModelMatrices.size(), 0, 0, 0);
+		renderGroup->instanceModelMatrices.clear();
 	}
 }

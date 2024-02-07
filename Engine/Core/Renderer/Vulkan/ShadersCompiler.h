@@ -4,6 +4,6 @@ namespace Plaza {
 	public:
 		static std::string mGlslcExePath;
 		static std::string mDefaultOutDirectory;
-		static void Compile(std::string shadersPath, std::string outDirectory = mDefaultOutDirectory);
+		static std::string Compile(std::string shadersPath, std::string outDirectory = mDefaultOutDirectory);
 	};
 }

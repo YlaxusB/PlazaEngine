@@ -839,6 +839,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+		this->mShadows->UpdateUniformBuffer();
 
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -852,12 +853,12 @@ namespace Plaza {
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = mRenderPass;
-		renderPassInfo.framebuffer = mFinalSceneFramebuffer;//mSwapChainFramebuffers[0];//mSwapChainFramebuffers[imageIndex];
+		renderPassInfo.renderPass = this->mShadows->mRenderPass;
+		renderPassInfo.framebuffer = this->mShadows->mFramebuffer;//mSwapChainFramebuffers[0];//mSwapChainFramebuffers[imageIndex];
 
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent.width = Application->appSizes->sceneSize.x;//mSwapChainExtent;
-		renderPassInfo.renderArea.extent.height = Application->appSizes->sceneSize.y;//mSwapChainExtent;
+		renderPassInfo.renderArea.extent.width = this->mShadows->mShadowResolution;
+		renderPassInfo.renderArea.extent.height = this->mShadows->mShadowResolution;
 		//renderPassInfo.renderArea.extent = mSwapChainExtent;
 
 		std::array<VkClearValue, 2> clearValues{};
@@ -869,40 +870,48 @@ namespace Plaza {
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipeline);
 
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
-		viewport.width = Application->appSizes->sceneSize.x;//static_cast<float>(mSwapChainExtent.width);
-		viewport.height = Application->appSizes->sceneSize.y;
+		viewport.width = this->mShadows->mShadowResolution;
+		viewport.height = this->mShadows->mShadowResolution;
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
 		VkRect2D scissor{};
 		scissor.offset = { 0, 0 };
-		scissor.extent.width = Application->appSizes->sceneSize.x;
-		scissor.extent.height = Application->appSizes->sceneSize.y;
+		scissor.extent.width = this->mShadows->mShadowResolution;
+		scissor.extent.height = this->mShadows->mShadowResolution;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		VkBuffer vertexBuffers[] = { mVertexBuffer };
-		VkDeviceSize offsets[] = { 0 };
-
-		//vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-		//vkCmdBindIndexBuffer(commandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-		//
-		//vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSets[mCurrentFrame], 0, nullptr);
-		//
-		//vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
 		for (auto& [key, value] : Application->activeScene->meshRendererComponents) {
 			value.renderGroup.get()->instanceModelMatrices.push_back(Application->activeScene->transformComponents.at(key).GetTransform());
-			//value.mesh->AddInstance(Application->activeScene->transformComponents.at(key).GetTransform());
-			//value.mesh->DrawInstances();
-			//((VulkanMesh*)(value.mesh))->Drawe();
 		}
 
+		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipeline);
+		for (auto& [key, value] : Application->activeScene->renderGroups) {
+			this->DrawRenderGroupShadowDepthMapInstanced(value.get());
+		}
+
+		vkCmdEndRenderPass(commandBuffer);
+		renderPassInfo.renderPass = mRenderPass;
+		renderPassInfo.framebuffer = mFinalSceneFramebuffer;
+		renderPassInfo.renderArea.extent.width = Application->appSizes->sceneSize.x;
+		renderPassInfo.renderArea.extent.height = Application->appSizes->sceneSize.y;
+
+		viewport.width = Application->appSizes->sceneSize.x;
+		viewport.height = Application->appSizes->sceneSize.y;
+		scissor.extent.width = Application->appSizes->sceneSize.x;
+		scissor.extent.height = Application->appSizes->sceneSize.y;
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
 		for (auto& [key, value] : Application->activeScene->renderGroups) {
 			this->DrawRenderGroupInstanced(value.get());
 			//value->DrawInstances();
@@ -934,7 +943,6 @@ namespace Plaza {
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
 		}
-
 	}
 
 	void VulkanRenderer::CleanupSwapChain() {
@@ -1064,7 +1072,7 @@ namespace Plaza {
 		uboLayoutBinding.binding = 0;
 		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		uboLayoutBinding.descriptorCount = 1;
-		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
 		uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
 
 		VkDescriptorBindingFlags bindlessFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | /*VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT |*/ VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
@@ -1083,8 +1091,15 @@ namespace Plaza {
 		samplerLayoutBinding.pImmutableSamplers = nullptr;
 		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
+		VkDescriptorSetLayoutBinding depthMapLayoutBinding{};
+		depthMapLayoutBinding.binding = 9;
+		depthMapLayoutBinding.descriptorCount = 9;
+		depthMapLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		depthMapLayoutBinding.pImmutableSamplers = nullptr;
+		depthMapLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-		std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, bindlessTexturesBinding };
+
+		std::array<VkDescriptorSetLayoutBinding, 3> bindings = { uboLayoutBinding, bindlessTexturesBinding, depthMapLayoutBinding };
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -1092,8 +1107,8 @@ namespace Plaza {
 		layoutInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT;
 
 		VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT, nullptr };
-		extendedInfo.bindingCount = 2;
-		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags };
+		extendedInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0 };
 		extendedInfo.pBindingFlags = bindingFlags;
 		layoutInfo.pNext = &extendedInfo;
 
@@ -1104,7 +1119,6 @@ namespace Plaza {
 
 	void VulkanRenderer::CreateUniformBuffers() {
 		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-
 		mUniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 		mUniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 		mUniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1118,32 +1132,120 @@ namespace Plaza {
 
 	}
 
+	using std::min;
+	glm::mat4 GetLightSpaceMatrix2(const float nearPlane, const float farPlane)
+	{
+		const auto proj = glm::perspective(
+			glm::radians(Application->activeCamera->Zoom), (float)Application->appSizes->sceneSize.x / (float)Application->appSizes->sceneSize.y, nearPlane,
+			farPlane);
+		const auto corners = Application->activeCamera->getFrustumCornersWorldSpace(proj, Application->activeCamera->GetViewMatrix());
+
+		glm::vec3 center = glm::vec3(0, 0, 0);
+		for (const auto& v : corners)
+		{
+			center += glm::vec3(v);
+		}
+		center /= corners.size();
+		const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::min());
+		glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
+		const auto lightView = glm::lookAt(center + glm::radians(lightDir), center, glm::vec3(0.0f, 1.0f, 0.0f));
+		float minX = std::numeric_limits<float>::max();
+		float maxX = std::numeric_limits<float>::lowest();
+		float minY = std::numeric_limits<float>::max();
+		float maxY = std::numeric_limits<float>::lowest();
+		float minZ = std::numeric_limits<float>::max();
+		float maxZ = std::numeric_limits<float>::lowest();
+		for (const auto& v : corners)
+		{
+			const auto trf = lightView * v;
+			minX = std::min(minX, trf.x);
+			maxX = std::max(maxX, trf.x);
+			minY = std::min(minY, trf.y);
+			maxY = std::max(maxY, trf.y);
+			minZ = std::min(minZ, trf.z);
+			maxZ = std::max(maxZ, trf.z);
+		}
+
+		// Tune this parameter according to the scene
+
+		constexpr float zMult = 22.0f;
+		if (minZ < 0)
+		{
+			minZ *= zMult;
+		}
+		else
+		{
+			minZ /= zMult;
+		}
+		if (maxZ < 0)
+		{
+			maxZ /= zMult;
+		}
+		else
+		{
+			maxZ *= zMult;
+		}
+		const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+
+		return lightProjection * lightView;
+	}
+	void GetLightSpaceMatrices2(std::vector<float>shadowCascadeLevels, VulkanRenderer::UniformBufferObject& ubo)
+	{
+		for (size_t i = 0; i < 16; ++i) {
+			if (i <= 8)
+			{
+				if (i == 0) {
+					ubo.lightSpaceMatrices[i] = GetLightSpaceMatrix2(Application->editorCamera->nearPlane - 1.0f, shadowCascadeLevels[i]);
+				}
+				else if (i < shadowCascadeLevels.size()) {
+					ubo.lightSpaceMatrices[i] = GetLightSpaceMatrix2(shadowCascadeLevels[i - 1] - 1.0f, shadowCascadeLevels[i]);
+				}
+			}
+			else
+				ubo.lightSpaceMatrices[i] = glm::mat4(1.0f);
+		}
+	}
+
 	void VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage) {
-		static auto startTime = std::chrono::high_resolution_clock::now();
-
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
 		UniformBufferObject ubo{};
 		ubo.projection = Application->activeCamera->GetProjectionMatrix();
 		ubo.view = Application->activeCamera->GetViewMatrix();
 		ubo.model = glm::mat4(1.0f);
 
-		//ubo.projection[1][1] *= -1;
+		ubo.cascadeCount = 9;
+		ubo.farPlane = 15000.0f;
+		ubo.nearPlane = 0.01f;
 
+		glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
+		glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
+		glm::vec3 lightPos;
+
+		ubo.lightDirection = glm::vec4(lightDir, 1.0f);
+		ubo.viewPos = glm::vec4(Application->activeCamera->Position, 1.0f);
+
+		//ubo.projection[1][1] *= -1;
+		for (int i = 0; i < 16; ++i) {
+			if (i <= 8)
+				ubo.cascadePlaneDistances[i] = glm::vec4(this->mShadows->shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
+			else
+				ubo.cascadePlaneDistances[i] = glm::vec4(this->mShadows->shadowCascadeLevels[8], 1.0f, 1.0f, 1.0f);
+		}
+		GetLightSpaceMatrices2(this->mShadows->shadowCascadeLevels, ubo);
 		memcpy(mUniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 	}
 
 	void VulkanRenderer::CreateDescriptorPool() {
 		static const uint32_t maxBindlessTextures = 16536;
 
-		std::array<VkDescriptorPoolSize, 3> poolSizes{};
+		std::array<VkDescriptorPoolSize, 4> poolSizes{};
 		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 		poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 		poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		poolSizes[2].descriptorCount = maxBindlessTextures;
+		poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		poolSizes[3].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -1177,6 +1279,14 @@ namespace Plaza {
 			throw std::runtime_error("failed to allocate descriptor sets!");
 		}
 
+		std::vector<VkDescriptorImageInfo> imageInfos = std::vector<VkDescriptorImageInfo>();
+		imageInfos.resize(1);
+		for (size_t i = 0; i < imageInfos.size(); ++i) {
+			imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			imageInfos[i].imageView = this->mShadows->mShadowDepthImageViews[i];
+			imageInfos[i].sampler = this->mTextureSampler; 
+		}
+
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			VkDescriptorBufferInfo bufferInfo{};
 			bufferInfo.buffer = mUniformBuffers[i];
@@ -1188,7 +1298,7 @@ namespace Plaza {
 			imageInfo.imageView = mTextureImageView;
 			imageInfo.sampler = mTextureSampler;
 
-			std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
+			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptorWrites[0].dstSet = mDescriptorSets[i];
@@ -1197,6 +1307,14 @@ namespace Plaza {
 			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 			descriptorWrites[0].descriptorCount = 1;
 			descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[1].dstSet = mDescriptorSets[i];
+			descriptorWrites[1].dstBinding = 9;
+			descriptorWrites[1].dstArrayElement = 0;
+			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[1].descriptorCount = imageInfos.size();
+			descriptorWrites[1].pImageInfo = imageInfos.data();
 
 			//descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			//descriptorWrites[1].dstSet = mDescriptorSets[i];
@@ -1294,7 +1412,7 @@ namespace Plaza {
 		vkFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
 	}
 
-	void VulkanRenderer::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+	void VulkanRenderer::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask, unsigned int layerCount) {
 		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
 		VkImageMemoryBarrier barrier{};
@@ -1304,11 +1422,11 @@ namespace Plaza {
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.image = image;
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.aspectMask = aspectMask;
 		barrier.subresourceRange.baseMipLevel = 0;
 		barrier.subresourceRange.levelCount = 1;
 		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
+		barrier.subresourceRange.layerCount = layerCount;
 
 		VkPipelineStageFlags sourceStage;
 		VkPipelineStageFlags destinationStage;
@@ -1327,6 +1445,35 @@ namespace Plaza {
 			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
+			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			barrier.dstAccessMask = 0;
+
+			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR) {
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
+
 		else {
 			throw std::invalid_argument("unsupported layout transition!");
 		}
@@ -1512,11 +1659,14 @@ namespace Plaza {
 		PickPhysicalDevice();
 		CreateLogicalDevice();
 		InitSwapChain();
-		CreateImageViews(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+		CreateCommandPool();
+		this->mShadows->Init();
+
+		CreateImageViews(VK_IMAGE_LAYOUT_UNDEFINED);
 		CreateRenderPass();
 		CreateDescriptorSetLayout();
 		CreateGraphicsPipeline();
-		CreateCommandPool();
 		CreateDepthResources();
 		CreateFramebuffers();
 		CreateTextureImage();
@@ -1531,6 +1681,7 @@ namespace Plaza {
 		CreateCommandBuffers();
 		InitSyncStructures();
 		CreateImGuiTextureSampler();
+
 	}
 
 	void VulkanRenderer::InitShaders(std::string shadersFolder)
@@ -1628,6 +1779,8 @@ namespace Plaza {
 	{
 	}
 	void VulkanRenderer::Destroy() {
+		this->mShadows->Terminate();
+		/* Clean Renderer */
 		CleanupSwapChain();
 
 		vkDestroySampler(mDevice, mTextureSampler, nullptr);
@@ -1727,6 +1880,7 @@ namespace Plaza {
 		ImGui_ImplVulkan_SetMinImageCount(MAX_FRAMES_IN_FLIGHT);
 
 		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, mFinalSceneImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
+		//this->TransitionImageLayout(this->mFinalSceneImage, mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}
 
 	void VulkanRenderer::NewFrameGUI()
@@ -1791,7 +1945,7 @@ namespace Plaza {
 	}
 	Texture* VulkanRenderer::LoadImGuiTexture(std::string path) {
 		VulkanTexture* texture = new VulkanTexture();
-		texture->CreateTextureImage(mDevice, path, VK_FORMAT_R8G8B8A8_SRGB);
+		texture->CreateTextureImage(mDevice, path, VK_FORMAT_R8G8B8A8_SRGB, false);
 		texture->CreateTextureSampler();
 		texture->CreateImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 		texture->mDescriptorSet = ImGui_ImplVulkan_AddTexture(texture->mSampler, texture->mImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
@@ -1822,6 +1976,42 @@ namespace Plaza {
 		return vulkMesh;
 	}
 
+	void VulkanRenderer::DrawRenderGroupShadowDepthMapInstanced(RenderGroup* renderGroup) {
+		VulkanMesh* mesh = (VulkanMesh*)renderGroup->mesh;
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = sizeof(glm::mat4) * renderGroup->instanceModelMatrices.size();
+		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		void* data;
+		vkMapMemory(this->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
+		memcpy(data, renderGroup->instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
+		vkUnmapMemory(this->mDevice, mesh->mInstanceBufferMemory);
+
+		VkDeviceSize offsets[] = { 0 };
+		VkCommandBuffer activeCommandBuffer = *this->mActiveCommandBuffer;
+
+		std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
+		descriptorSets.push_back(this->mShadows->mDescriptorSet);
+		//VkDescriptorSet descriptorSets[] = { GetVulkanRenderer().mDescriptorSets[GetVulkanRenderer().mCurrentFrame]  };
+		int descriptorCount = 1;
+
+		VulkanRenderer::PushConstants pushData;
+		if (renderGroup->material->diffuse->mIndexHandle < 0) {
+			pushData.color = renderGroup->material->diffuse->rgba;
+		}
+		else
+			pushData.diffuseIndex = renderGroup->material->diffuse->mIndexHandle;
+
+		//vkCmdPushConstants(*this->mActiveCommandBuffer, this->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
+
+		vkCmdBindDescriptorSets(activeCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, descriptorCount, descriptorSets.data(), 0, nullptr);
+		vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
+		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 1, &mesh->mVertexBuffer, offsets);
+		vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
+		vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->instanceModelMatrices.size(), 0, 0, 0);
+	}
 	void VulkanRenderer::DrawRenderGroupInstanced(RenderGroup* renderGroup) {
 		VulkanMesh* mesh = (VulkanMesh*)renderGroup->mesh;
 		VkBufferCreateInfo bufferInfo{};

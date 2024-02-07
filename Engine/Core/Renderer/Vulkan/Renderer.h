@@ -1,5 +1,4 @@
 #pragma once
-#include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Shaders/Shader.h"
 #include "Engine/Core/Renderer/Renderer.h"
 #include "Engine/Components/Core/Entity.h"
@@ -8,42 +7,8 @@
 #include "Mesh.h"
 #include "Engine/Core/Renderer/Mesh.h"
 
-/*
-struct VertexV {
-	glm::vec3 pos;
-	glm::vec3 color;
-	glm::vec2 texCoord;
-
-
-	static VkVertexInputBindingDescription getBindingDescription() {
-		VkVertexInputBindingDescription bindingDescription{};
-		bindingDescription.binding = 0;
-		bindingDescription.stride = sizeof(VertexV);
-		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		return bindingDescription;
-	}
-
-	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
-		attributeDescriptions[0].binding = 0;
-		attributeDescriptions[0].location = 0;
-		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[0].offset = offsetof(VertexV, pos);
-
-		attributeDescriptions[1].binding = 0;
-		attributeDescriptions[1].location = 1;
-		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[1].offset = offsetof(VertexV, color);
-
-		attributeDescriptions[2].binding = 0;
-		attributeDescriptions[2].location = 2;
-		attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-		attributeDescriptions[2].offset = offsetof(VertexV, texCoord);
-		return attributeDescriptions;
-	}
-};
-*/
 #include "VulkanTexture.h"
+#include "VulkanShadows.h"
 namespace Plaza {
 	struct SwapChainSupportDetails {
 		VkSurfaceCapabilitiesKHR capabilities;
@@ -54,13 +19,44 @@ namespace Plaza {
 	class VulkanRenderer : public Renderer {
 	public:
 		struct PushConstants {
-			glm::vec3 color = glm::vec3(1.0f);
+			glm::vec4 color = glm::vec4(1.0f);
 			float intensity = 1.0f;
 			int diffuseIndex = -1;
+			int normalIndex;
+		};
+		struct UniformBufferObject {
+			glm::mat4 projection = glm::mat4(1.0f); 
+			glm::mat4 view = glm::mat4(1.0f);       
+			glm::mat4 model = glm::mat4(1.0f);      
+			int cascadeCount = 0;                   
+			float farPlane = 0.0f;                  
+			float nearPlane = 0.0f;                 
+			alignas(16) glm::vec4 lightDirection = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);  
+			alignas(16) glm::vec4 viewPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);         
+			glm::mat4 lightSpaceMatrices[16] = { glm::mat4(2.0f) };
+			glm::vec4 cascadePlaneDistances[16] = { glm::vec4(1.0f) };
 		};
 
+		/*
+	mat4 projection;
+	mat4 view;
+	mat4 model;
+	int cascadeCount;
+	float farPlane;
+	float nearPlane;
+	float cascadePlaneDistances[32];
+	vec4 lightDirection;
+	vec4 viewPos;
+	mat4 lightSpaceMatrices[32];
+		*/
+
+
+		VkDevice mDevice = VK_NULL_HANDLE;
+		VkRenderPass mRenderPass;
 		static VulkanRenderer* GetRenderer();
 		RendererAPI api = RendererAPI::Vulkan;
+		VulkanShadows* mShadows = new VulkanShadows();
+
 		void Init() override;
 		void InitShaders(std::string shadersFolder) override;
 		void AddInstancesToRender() override;
@@ -77,15 +73,25 @@ namespace Plaza {
 		void NewFrameGUI() override;
 		void UpdateGUI() override;
 		ImTextureID GetFrameImage() override;
-
+		
 		Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal);
 		void DrawRenderGroupInstanced(RenderGroup* renderGroup);
+		void DrawRenderGroupShadowDepthMapInstanced(RenderGroup* renderGroup);
 
 		Texture* LoadTexture(std::string path) override;
 		Texture* LoadImGuiTexture(std::string path) override;
 
 		bool mFramebufferResized = false;
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+		VkFormat FindDepthFormat();
+
+		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, unsigned int layerCount = 1);
+
+		VkCommandBuffer BeginSingleTimeCommands();
+		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+		VkCommandBuffer* mActiveCommandBuffer;
 	private:
 		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";
 		const std::string TEXTURE_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.png";
@@ -120,7 +126,6 @@ namespace Plaza {
 		void RecreateSwapChain();
 
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 		void CreateVertexBuffer(vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory);
 		void CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer, VkDeviceMemory& indicesMemoryBuffer);
 		void CreateUniformBuffers();
@@ -132,11 +137,6 @@ namespace Plaza {
 
 		void CreateTextureImage();
 		void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-
-		VkCommandBuffer BeginSingleTimeCommands();
-		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
-		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
 		VkCommandBuffer CreateCommandBuffer();
 
@@ -155,14 +155,12 @@ namespace Plaza {
 		VkInstance mVulkanInstance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT mDebugMessenger = VK_NULL_HANDLE;
 		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
-		VkDevice mDevice = VK_NULL_HANDLE;
 		VkQueue mGraphicsQueue = VK_NULL_HANDLE;
 		VkQueue mPresentQueue = VK_NULL_HANDLE;
 		VkSurfaceKHR mSurface = VK_NULL_HANDLE;
 		VkSwapchainKHR mSwapChain;
 
 		VkPipeline mGraphicsPipeline;
-		VkRenderPass mRenderPass;
 		VkPipelineLayout mPipelineLayout;
 		VkCommandPool mCommandPool;
 		std::vector<VkCommandBuffer> mCommandBuffers;
@@ -207,7 +205,6 @@ namespace Plaza {
 		VkImageView mDepthImageView;
 		void CreateDepthResources();
 		VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-		VkFormat FindDepthFormat();
 		bool HasStencilComponent(VkFormat format);
 
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
@@ -216,17 +213,25 @@ namespace Plaza {
 			return VK_FALSE;
 		}
 
-		struct UniformBufferObject {
-			glm::mat4 projection;
-			glm::mat4 view;
-			glm::mat4 model;
-		};
+
+
+		/*
+		    mat4 projection;
+    mat4 view;
+    mat4 model;
+    int cascadeCount;
+    float cascadePlaneDistances[32];
+    mat4 lightSpaceMatrices[32];
+    float farPlane;
+    float nearPlane;
+    vec3 lightDirection;
+    vec3 viewPos;
+		*/
 
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 		void LoadModel();
 
-		VkCommandBuffer* mActiveCommandBuffer;
 		static std::array<VkVertexInputBindingDescription, 2> VertexGetBindingDescription() {
 			std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {};
 			bindingDescriptions[0].binding = 0;

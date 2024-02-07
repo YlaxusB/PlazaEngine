@@ -91,10 +91,12 @@ namespace Plaza {
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 	}
 
-	void VulkanTexture::CreateTextureImage(VkDevice device, std::string path, VkFormat format) {
+	void VulkanTexture::CreateTextureImage(VkDevice device, std::string path, VkFormat format, bool generateMipMaps) {
 		int texWidth, texHeight, texChannels;
 		stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 		this->mMipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
+		if (!generateMipMaps)
+			this->mMipLevels = 1;
 		VkDeviceSize imageSize = texWidth * texHeight * 4;
 
 		if (!pixels) {
@@ -147,12 +149,50 @@ namespace Plaza {
 		VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 		VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-		GenerateMipmaps(this->mImage, texWidth, texHeight, this->mMipLevels, format);
+		if (generateMipMaps)
+			GenerateMipmaps(this->mImage, texWidth, texHeight, this->mMipLevels, format);
 
 		vkDestroyBuffer(device, mStagingBuffer, nullptr);
 		vkFreeMemory(device, mStagingBufferMemory, nullptr);
 
 
+
+	}
+
+	void VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps) {
+		if (!generateMipMaps)
+			this->mMipLevels = 0;
+
+		VkImageCreateInfo imageInfo;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.extent.width = width;
+		imageInfo.extent.height = height;
+		imageInfo.extent.depth = 1;
+		imageInfo.mipLevels = this->mMipLevels;
+		imageInfo.arrayLayers = 1;
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.format = format;
+		imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		
+		if (vkCreateImage(device, &imageInfo, nullptr, &this->mImage) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create image!");
+		}
+
+		VkMemoryRequirements memRequirements;
+		vkGetImageMemoryRequirements(device, mImage, &memRequirements);
+
+		VkMemoryAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = VulkanRenderer::GetRenderer()->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		if (vkAllocateMemory(device, &allocInfo, nullptr, &mImageMemory) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate image memory!");
+		}
+
+		if (generateMipMaps)
+			GenerateMipmaps(this->mImage, width, height, this->mMipLevels, format);
 
 	}
 
@@ -169,17 +209,16 @@ namespace Plaza {
 		return id;
 	}
 
-	VkImageView VulkanTexture::CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags) {
+	VkImageView VulkanTexture::CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType, unsigned int layerCount) {
 		VkImageViewCreateInfo viewInfo{};
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		viewInfo.image = this->mImage;
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		viewInfo.viewType = viewType;
 		viewInfo.format = format;
-		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		viewInfo.subresourceRange.baseMipLevel = 0;
 		viewInfo.subresourceRange.levelCount = this->mMipLevels;
 		viewInfo.subresourceRange.baseArrayLayer = 0;
-		viewInfo.subresourceRange.layerCount = 1;
+		viewInfo.subresourceRange.layerCount = layerCount;
 		viewInfo.subresourceRange.aspectMask = aspectFlags;
 
 		if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &mImageView) != VK_SUCCESS) {
@@ -266,7 +305,7 @@ namespace Plaza {
 		descriptorWrites[0].dstArrayElement = 0;
 		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		descriptorWrites[0].descriptorCount = 1;
-		descriptorWrites[0].pBufferInfo = &bufferInfo2 ;
+		descriptorWrites[0].pBufferInfo = &bufferInfo2;
 
 		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrites[1].dstSet = VulkanRenderer::GetRenderer()->mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame];

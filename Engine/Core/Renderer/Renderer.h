@@ -2,6 +2,8 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Mesh.h"
 #include "Engine/Core/RenderGroup.h"
+#include "Shadows.h"
+
 namespace Plaza { 
 
 	enum RendererAPI {
@@ -11,6 +13,8 @@ namespace Plaza {
 	class Renderer {
 	public:
 		RendererAPI api;
+		Shadows* mShadows;
+
 		virtual void Init() = 0;
 		virtual void InitShaders(std::string shadersFolder) = 0;
 		virtual void AddInstancesToRender() = 0;

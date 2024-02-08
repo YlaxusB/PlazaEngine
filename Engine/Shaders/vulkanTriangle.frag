@@ -33,19 +33,6 @@ layout(std140, binding = 0) uniform UniformBufferObject {
     vec4[16] cascadePlaneDistances;
 } ubo;
 
-/*
-			glm::mat4 projection;
-			glm::mat4 view;
-			glm::mat4 model;
-			int cascadeCount;
-			float cascadePlaneDistances[32];
-			glm::mat4 lightSpaceMatrices[32];
-			float farPlane;
-			float nearPlane;
-			glm::vec4 lightDirection;
-			glm::vec4 viewPos;
-*/
-
 layout(location = 11) in vec4 FragPos;
 layout(location = 12) in vec4 Normal;
 layout(location = 13) in vec2 TexCoords;
@@ -55,7 +42,7 @@ layout(location = 16) in vec4 TangentFragPos;
 layout(location = 17) in vec4 worldPos;
 
 
-vec3 ShadowCalculation(vec3 fragPosWorldSpace)
+float ShadowCalculation(vec3 fragPosWorldSpace)
 {
     // select cascade layer
     vec4 fragPosViewSpace = ubo.view * vec4(fragPosWorldSpace, 1.0);
@@ -66,7 +53,7 @@ vec3 ShadowCalculation(vec3 fragPosWorldSpace)
         if (depthValue < ubo.cascadePlaneDistances[i].x)
         {
             layer = i;
-            break;
+            break;//i = ubo.cascadeCount;
         }
     }
     if (layer == -1)
@@ -78,7 +65,8 @@ vec3 ShadowCalculation(vec3 fragPosWorldSpace)
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     // transform to [0,1] range
-    //projCoords = projCoords * 0.5 + 0.5;
+    projCoords = projCoords * 0.5 + 0.5;
+    projCoords = vec3(projCoords.x, 1.0 - projCoords.y, projCoords.z);
 
     // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
@@ -107,29 +95,45 @@ vec3 ShadowCalculation(vec3 fragPosWorldSpace)
     {
         bias *= 1 / ((ubo.cascadePlaneDistances[layer].x) * biasModifier);
     }
-    //float distanceToCamera = distance(ubo.viewPos.xyz, projCoords.xyz);
-    //
-    //bias = 0.0001;
-    //float floatVal = 3 - (texture(shadowsDepthMap, vec3(projCoords.xyz)).r * 2.3);
-    //int pcfCount = 5;// + int(floatVal);
-    //float mapSize = 4096.0 * 4;
-    //float texelSize = (1.0 / mapSize * 2) * floatVal;
-    //float total = 0.0;
-    //float totalTexels = (pcfCount * 2.0 + 1.0) * (pcfCount * 2.0 + 1.0);
-    //// PCF
+    float distanceToCamera = distance(ubo.viewPos.xyz, projCoords.xyz);
+    
+    bias = 0.0001;
+    float floatVal = 3 - (texture(shadowsDepthMap, vec3(projCoords.xyz)).r * 2.3);
+    int pcfCount = 5;// + int(floatVal);
+    float mapSize = 4096.0 * 4;
+    float texelSize = (1.0 / mapSize * 2) * floatVal;
+    float total = 0.0;
+    float totalTexels = (pcfCount * 2.0 + 1.0) * (pcfCount * 2.0 + 1.0);
+    // PCF
     float shadow = 0.0;
-    ////vec2 texelSize = 1.0 / vec2(textureSize(shadowsDepthMap, 0));
-    //for(int x = -pcfCount; x <= pcfCount; ++x)
-    //{
-    //    for(int y = -pcfCount; y <= pcfCount; ++y)
-    //    {
-    //        float pcfDepth = texture(shadowsDepthMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
-    //        shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
-    //    }    
-    //}
-    //shadow /= totalTexels;
-    shadow = texture(shadowsDepthMap, vec3(projCoords.xy, layer)).r;
-    return texture(shadowsDepthMap, vec3(projCoords.xy, layer)).xyz;
+    //vec2 texelSize = 1.0 / vec2(textureSize(shadowsDepthMap, 0));
+    for(int x = -pcfCount; x <= pcfCount; ++x)
+    {
+        for(int y = -pcfCount; y <= pcfCount; ++y)
+        {
+            float pcfDepth = texture(shadowsDepthMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
+            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= totalTexels;
+
+    //if(layer == 0)
+    //    return vec3(1.0f, 0.0f, 0.0f);
+    //if(layer == 1)
+    //    return vec3(0.0f, 1.0f, 0.0f);
+    //if(layer == 1)
+    //    return vec3(0.0f, 0.0f, 1.0f);
+    //if(layer == 2)
+    //    return vec3(1.0f, 1.0f, 0.0f);
+    //if(layer == 3)
+    //    return vec3(0.0f, 1.0f, 1.0f);
+    //if(layer == 4)
+    //    return vec3(1.0f, 0.0f, 1.0f);
+    //if(layer > 4)
+    //    return vec3(0.5f, 0.5f, 0.5f);
+
+    //shadow = texture(shadowsDepthMap, vec3(projCoords.xy, layer)).r;
+    return shadow;
 }
 
 void main() {
@@ -141,5 +145,5 @@ void main() {
     {
         outColor = vec4(pushConstants.color.xyz, 1.0f);
     }
-    outColor = vec4(ShadowCalculation(FragPos.xyz), 1.0f);//*= vec4((vec3(1.0f) - ShadowCalculation(FragPos.xyz)).xyz, 1.0f);
+    outColor *= vec4((vec3(1.0f) - ShadowCalculation(FragPos.xyz)).xyz, 1.0f);
 }

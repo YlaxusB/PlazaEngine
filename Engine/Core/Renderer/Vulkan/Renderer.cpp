@@ -350,7 +350,7 @@ namespace Plaza {
 
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
 		for (const auto& availableFormat : availableFormats) {
-			if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+			if (availableFormat.format == VK_FORMAT_B8G8R8_UNORM  && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
 				return availableFormat;
 			}
 		}
@@ -430,7 +430,7 @@ namespace Plaza {
 		imageCreateInfo.initialLayout = initialLayout;
 		imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-		//imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
 		if (vkCreateImage(mDevice, &imageCreateInfo, nullptr, &mFinalSceneImage) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create image!");
 		}
@@ -502,7 +502,7 @@ namespace Plaza {
 	void VulkanRenderer::CreateRenderPass()
 	{
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = mSwapChainImageFormat;
+		colorAttachment.format = VK_FORMAT_R8G8B8A8_SNORM;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -865,12 +865,15 @@ namespace Plaza {
 		clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
 		clearValues[1].depthStencil = { 1.0f, 0 };
 
-		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-		renderPassInfo.pClearValues = clearValues.data();
+		VkClearValue clearDepth{};
+		clearDepth.depthStencil = { 1.0f, 0 };
 
-		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearDepth;
 
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipeline);
+
+
+
 
 		VkViewport viewport{};
 		viewport.x = 0.0f;
@@ -892,11 +895,24 @@ namespace Plaza {
 		}
 
 		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipeline);
-		for (auto& [key, value] : Application->activeScene->renderGroups) {
-			this->DrawRenderGroupShadowDepthMapInstanced(value.get());
+		for (unsigned int i = 0; i < 9; ++i) {
+			renderPassInfo.framebuffer = this->mShadows->mCascades[i].mFramebuffer;
+			vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipeline);
+
+			this->mShadows->UpdateAndPushConstants(commandBuffer, i);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[i].mDescriptorSet, 0, nullptr);
+
+			for (auto& [key, value] : Application->activeScene->renderGroups) {
+				this->DrawRenderGroupShadowDepthMapInstanced(value.get());
+			}
+
+			vkCmdEndRenderPass(commandBuffer);
 		}
 
-		vkCmdEndRenderPass(commandBuffer);
+		//vkCmdEndRenderPass(commandBuffer);
+		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+		renderPassInfo.pClearValues = clearValues.data();
 		renderPassInfo.renderPass = mRenderPass;
 		renderPassInfo.framebuffer = mFinalSceneFramebuffer;
 		renderPassInfo.renderArea.extent.width = Application->appSizes->sceneSize.x;
@@ -1280,11 +1296,11 @@ namespace Plaza {
 		}
 
 		std::vector<VkDescriptorImageInfo> imageInfos = std::vector<VkDescriptorImageInfo>();
-		imageInfos.resize(1);
+		imageInfos.resize(9);
 		for (size_t i = 0; i < imageInfos.size(); ++i) {
-			imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-			imageInfos[i].imageView = this->mShadows->mShadowDepthImageViews[i];
-			imageInfos[i].sampler = this->mTextureSampler; 
+			imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+			imageInfos[i].imageView = this->mShadows->mCascades[i].mImageView;
+			imageInfos[i].sampler = this->mShadows->mShadowsSampler;
 		}
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -1315,14 +1331,6 @@ namespace Plaza {
 			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			descriptorWrites[1].descriptorCount = imageInfos.size();
 			descriptorWrites[1].pImageInfo = imageInfos.data();
-
-			//descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			//descriptorWrites[1].dstSet = mDescriptorSets[i];
-			//descriptorWrites[1].dstBinding = 10;
-			//descriptorWrites[1].dstArrayElement = 0;
-			//descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			//descriptorWrites[1].descriptorCount = 1;
-			//descriptorWrites[1].pImageInfo = &imageInfo;
 
 			vkUpdateDescriptorSets(mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
@@ -1473,7 +1481,20 @@ namespace Plaza {
 			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL) {
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_GENERAL) {
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+		}
 		else {
 			throw std::invalid_argument("unsupported layout transition!");
 		}
@@ -2004,8 +2025,6 @@ namespace Plaza {
 			pushData.diffuseIndex = renderGroup->material->diffuse->mIndexHandle;
 
 		//vkCmdPushConstants(*this->mActiveCommandBuffer, this->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
-
-		vkCmdBindDescriptorSets(activeCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, descriptorCount, descriptorSets.data(), 0, nullptr);
 		vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
 		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 1, &mesh->mVertexBuffer, offsets);
 		vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);

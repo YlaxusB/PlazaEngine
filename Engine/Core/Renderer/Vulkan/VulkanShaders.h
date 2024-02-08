@@ -13,7 +13,7 @@ namespace Plaza {
 		VkDescriptorSet mDescriptorSet;
 		VkDescriptorSetLayout mDescriptorSetLayout;
 
-		void Init(VkDevice device, VkRenderPass renderPass, int width, int height, VkDescriptorSetLayout descriptorSetLayout);
+		void Init(VkDevice device, VkRenderPass renderPass, int width, int height, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkPushConstantRange> pushConstantRanges = std::vector<VkPushConstantRange>());
 		void Terminate();
 	};
 }

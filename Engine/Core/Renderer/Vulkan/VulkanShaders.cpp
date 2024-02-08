@@ -64,14 +64,14 @@ namespace Plaza {
 		return attributeDescriptions;
 	}
 
-	void VulkanShaders::Init(VkDevice device, VkRenderPass renderPass, int width, int height, VkDescriptorSetLayout descriptorSetLayout) {
+	void VulkanShaders::Init(VkDevice device, VkRenderPass renderPass, int width, int height, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkPushConstantRange> pushConstantRanges) {
 		auto vertShaderCode = readFile(mVertexShaderPath);
 		auto fragShaderCode = readFile(mFragmentShaderPath);
-		auto geomShaderCode = readFile(mGeometryShaderPath);
+		//auto geomShaderCode = readFile(mGeometryShaderPath);
 
 		VkShaderModule vertShaderModule = createShaderModule(vertShaderCode, device);
 		VkShaderModule fragShaderModule = createShaderModule(fragShaderCode, device);
-		VkShaderModule geomShaderModule = createShaderModule(geomShaderCode, device);
+		//VkShaderModule geomShaderModule = createShaderModule(geomShaderCode, device);
 
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages = std::vector<VkPipelineShaderStageCreateInfo>();
 
@@ -95,15 +95,15 @@ namespace Plaza {
 			shaderStages.push_back(fragShaderStageInfo);
 		}
 
-		if (!mGeometryShaderPath.empty())
-		{
-			VkPipelineShaderStageCreateInfo geomShaderStageInfo{};
-			geomShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-			geomShaderStageInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
-			geomShaderStageInfo.module = geomShaderModule;
-			geomShaderStageInfo.pName = "main";
-			shaderStages.push_back(geomShaderStageInfo);
-		}
+		//f (!mGeometryShaderPath.empty())
+		//
+		//	VkPipelineShaderStageCreateInfo geomShaderStageInfo{};
+		//	geomShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		//	geomShaderStageInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
+		//	geomShaderStageInfo.module = geomShaderModule;
+		//	geomShaderStageInfo.pName = "main";
+		//	shaderStages.push_back(geomShaderStageInfo);
+		//
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -152,15 +152,15 @@ namespace Plaza {
 
 		VkPipelineDepthStencilStateCreateInfo depthStencil{};
 		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencil.depthTestEnable = VK_TRUE;
-		depthStencil.depthWriteEnable = VK_TRUE;
-		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
-		depthStencil.depthBoundsTestEnable = VK_FALSE;
-		depthStencil.stencilTestEnable = VK_FALSE;
+		//depthStencil.depthTestEnable = VK_TRUE;
+		//depthStencil.depthWriteEnable = VK_TRUE;
+		//depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+		//depthStencil.depthBoundsTestEnable = VK_FALSE;
+		//depthStencil.stencilTestEnable = VK_FALSE;
 
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		colorBlendAttachment.blendEnable = VK_TRUE;
+		colorBlendAttachment.blendEnable = VK_FALSE;
 		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 		colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
@@ -170,14 +170,9 @@ namespace Plaza {
 
 		VkPipelineColorBlendStateCreateInfo colorBlending{};
 		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-		colorBlending.logicOpEnable = VK_FALSE;
-		colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optional
+		//colorBlending.logicOpEnable = VK_FALSE;
 		colorBlending.attachmentCount = 1;
 		colorBlending.pAttachments = &colorBlendAttachment;
-		colorBlending.blendConstants[0] = 0.0f; // Optional
-		colorBlending.blendConstants[1] = 0.0f; // Optional
-		colorBlending.blendConstants[2] = 0.0f; // Optional
-		colorBlending.blendConstants[3] = 0.0f; // Optional
 
 		std::vector<VkDynamicState> dynamicStates = {
 	VK_DYNAMIC_STATE_VIEWPORT,
@@ -193,6 +188,10 @@ namespace Plaza {
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 1;
 		pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+		if (pushConstantRanges.size() > 0) {
+			pipelineLayoutInfo.pushConstantRangeCount = pushConstantRanges.size();
+			pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
+		}
 
 
 		// Populate VkVertexInputBindingDescription (if needed)
@@ -245,6 +244,14 @@ namespace Plaza {
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
 
+		colorBlending.attachmentCount = 0;
+		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		depthStencil.depthTestEnable = VK_TRUE;
+		depthStencil.depthWriteEnable = VK_TRUE;
+		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+		depthStencil.back.compareOp = VK_COMPARE_OP_ALWAYS;
+
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipelineInfo.stageCount = shaderStages.size();
@@ -254,12 +261,13 @@ namespace Plaza {
 		pipelineInfo.pViewportState = &viewportState;
 		pipelineInfo.pRasterizationState = &rasterizer;
 		pipelineInfo.pMultisampleState = &multisampling;
+
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDynamicState = &dynamicState;
 		pipelineInfo.layout = this->mPipelineLayout;
 		pipelineInfo.renderPass = renderPass;
-		pipelineInfo.subpass = 0;
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+		pipelineInfo.basePipelineIndex = -1;
 		pipelineInfo.pDepthStencilState = &depthStencil;
 
 		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->mPipeline) != VK_SUCCESS) {
@@ -268,6 +276,6 @@ namespace Plaza {
 
 		vkDestroyShaderModule(device, fragShaderModule, nullptr);
 		vkDestroyShaderModule(device, vertShaderModule, nullptr);
-		vkDestroyShaderModule(device, geomShaderModule, nullptr);
+		//vkDestroyShaderModule(device, geomShaderModule, nullptr);
 	}
 }

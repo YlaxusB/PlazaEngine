@@ -10,6 +10,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /O2")
 
 
+
 set(TARGET_BUILD_PLATFORM "windows")
 set(PLATFORM "Windows")
 
@@ -54,6 +55,7 @@ set(ENABLE_BOOST_WORKAROUND ON)
 set(BUILD_STATIC_LIB ON)
 set(BUILD_ASSIMP_TOOLS  ON)
 set(ASSIMP_BUILD_STATIC_LIB ON)
+set(GLM_FORCE_DEPTH_ZERO_TO_ONE ON)
 
 add_subdirectory("ThirdParty/assimp/")
 add_subdirectory("ThirdParty/AL/")

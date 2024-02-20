@@ -9,13 +9,29 @@
 #include "Engine/Core/Lighting/ClusteredForward.h"
 using namespace Plaza;
 uint64_t lastUuid;
+
+static unsigned int cascadeIndexDebug = 2;
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (Application->focusedMenu == "Editor") {
+		VulkanRenderer* vulkanRenderer = (VulkanRenderer*)Application->mRenderer;
+		if (key == GLFW_KEY_H && action == GLFW_PRESS) {
+			vulkanRenderer->ChangeFinalDescriptorImageView(vulkanRenderer->mShadows->mCascades[cascadeIndexDebug].mImageView);
+		}
+		if (key == GLFW_KEY_J && action == GLFW_PRESS) {
+			vulkanRenderer->ChangeFinalDescriptorImageView(vulkanRenderer->mFinalSceneImageView);
+		}
+		if (key == GLFW_KEY_L && action == GLFW_PRESS) {
+			cascadeIndexDebug++;
+			if (cascadeIndexDebug > 8)
+				cascadeIndexDebug = 0;
+			vulkanRenderer->ChangeFinalDescriptorImageView(vulkanRenderer->mShadows->mCascades[cascadeIndexDebug].mImageView);
+		}
+
 		if (key == GLFW_KEY_N && action == GLFW_PRESS) {
 			Editor::selectedGameObject->GetComponent<MeshRenderer>()->LoadHeightMap("C:\\Users\\Giovane\\Desktop\\Workspace\\heightmap.save");
 		}
-		if (key == GLFW_KEY_G && action == GLFW_PRESS)
-			Application->activeScene->entities[Editor::selectedGameObject->uuid].RemoveComponent<RigidBody>();
+		//if (key == GLFW_KEY_G && action == GLFW_PRESS)
+		//	Application->activeScene->entities[Editor::selectedGameObject->uuid].RemoveComponent<RigidBody>();
 
 		if (key == GLFW_KEY_U && action == GLFW_PRESS)
 			Application->activeCamera->Position = Plaza::Editor::selectedGameObject->GetComponent<Transform>()->GetWorldPosition();
@@ -90,5 +106,7 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 
 	else if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN))
 		glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+
 
 }

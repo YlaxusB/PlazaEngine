@@ -1,5 +1,5 @@
-#version 450
-layout(std140, binding = 0) uniform UniformBufferObject {
+#version 460
+layout(binding = 0) uniform UniformBufferObject {
     mat4 projection;
     mat4 view;
     mat4 model;
@@ -32,14 +32,18 @@ layout(location = 15) out vec4 TangentViewPos;
 layout(location = 16) out vec4 TangentFragPos;
 layout(location = 17) out vec4 worldPos;
 
+out gl_PerVertex {
+	vec4 gl_Position;   
+};
+
 void main() {
     model = mat4(instanceMatrix[0], instanceMatrix[1], instanceMatrix[2], instanceMatrix[3]);
-    gl_Position = ubo.projection * ubo.view * model * vec4(inPosition, 1.0);
+    mat4 aInstanceMatrix = model;
     fragTexCoord = inTexCoord;
 
     mat4 finalInstanceMatrix = model;
     vec4 finalModel = finalInstanceMatrix * vec4(inPosition, 1.0);
-    FragPos.xyz = vec3(finalModel);
+    FragPos = vec4(vec3(model * vec4(inPosition, 1.0)), 1.0f);
     //vs_out.Normal = transpose(inverse(mat3(aInstanceMatrix))) * aNormal;
     TexCoords = inTexCoord;
 

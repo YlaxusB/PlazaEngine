@@ -64,7 +64,7 @@ namespace Plaza {
 		return attributeDescriptions;
 	}
 
-	void VulkanShaders::Init(VkDevice device, VkRenderPass renderPass, int width, int height, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkPushConstantRange> pushConstantRanges) {
+	void VulkanShaders::Init(VkDevice device, VkRenderPass renderPass, int width, int height, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo, std::vector<VkPushConstantRange> pushConstantRanges, bool useVertexInputInfo) {
 		auto vertShaderCode = readFile(mVertexShaderPath);
 		auto fragShaderCode = readFile(mFragmentShaderPath);
 		//auto geomShaderCode = readFile(mGeometryShaderPath);
@@ -107,6 +107,10 @@ namespace Plaza {
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		vertexInputInfo.vertexAttributeDescriptionCount = 0;
+		vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+		vertexInputInfo.vertexBindingDescriptionCount = 0;
+		vertexInputInfo.pVertexBindingDescriptions = nullptr;
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -142,8 +146,12 @@ namespace Plaza {
 		rasterizer.depthBiasConstantFactor = 0.0f; // Optional
 		rasterizer.depthBiasClamp = 0.0f; // Optional
 		rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
-		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+		rasterizer.cullMode = VK_CULL_MODE_NONE;
 		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+		if (!useVertexInputInfo)
+		{
+			rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		}
 
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -160,7 +168,7 @@ namespace Plaza {
 
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		colorBlendAttachment.blendEnable = VK_FALSE;
+		colorBlendAttachment.blendEnable = VK_TRUE;
 		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 		colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
@@ -170,7 +178,7 @@ namespace Plaza {
 
 		VkPipelineColorBlendStateCreateInfo colorBlending{};
 		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-		//colorBlending.logicOpEnable = VK_FALSE;
+		colorBlending.logicOpEnable = VK_FALSE;
 		colorBlending.attachmentCount = 1;
 		colorBlending.pAttachments = &colorBlendAttachment;
 
@@ -184,73 +192,76 @@ namespace Plaza {
 		dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
 		dynamicState.pDynamicStates = dynamicStates.data();
 
-		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 1;
-		pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
-		if (pushConstantRanges.size() > 0) {
-			pipelineLayoutInfo.pushConstantRangeCount = pushConstantRanges.size();
-			pipelineLayoutInfo.pPushConstantRanges = pushConstantRanges.data();
+		if (useVertexInputInfo)
+		{
+			// Populate VkVertexInputBindingDescription (if needed)
+			VkVertexInputBindingDescription bindingDescription = {};
+			bindingDescription.binding = 0; // Assuming the binding is 0
+			bindingDescription.stride = sizeof(glm::vec3); // Adjust the stride based on your vertex data structure
+			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // or VK_VERTEX_INPUT_RATE_INSTANCE if using instancing
+
+			std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {};
+			bindingDescriptions[0].binding = 0;
+			bindingDescriptions[0].stride = sizeof(Vertex);
+			bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+			VkVertexInputBindingDescription instanceBindingDescription = {};
+			instanceBindingDescription.binding = 1;
+			instanceBindingDescription.stride = sizeof(glm::vec4) * 4;
+			instanceBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+
+			std::array<VkVertexInputAttributeDescription, 4> instanceAttributeDescriptions = {};
+			instanceAttributeDescriptions[0].binding = 1;
+			instanceAttributeDescriptions[0].location = 5;
+			instanceAttributeDescriptions[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			instanceAttributeDescriptions[0].offset = 0;
+
+			instanceAttributeDescriptions[1].binding = 1;
+			instanceAttributeDescriptions[1].location = 6;
+			instanceAttributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			instanceAttributeDescriptions[1].offset = sizeof(float) * 4;
+
+			instanceAttributeDescriptions[2].binding = 1;
+			instanceAttributeDescriptions[2].location = 7;
+			instanceAttributeDescriptions[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			instanceAttributeDescriptions[2].offset = sizeof(float) * 8;
+
+			instanceAttributeDescriptions[3].binding = 1;
+			instanceAttributeDescriptions[3].location = 8;
+			instanceAttributeDescriptions[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			instanceAttributeDescriptions[3].offset = sizeof(float) * 12;
+			bindingDescriptions[1] = instanceBindingDescription;
+
+			auto attributeDescriptions = VertexGetAttributeDescriptions();
+
+			vertexInputInfo.vertexBindingDescriptionCount = bindingDescriptions.size();
+			vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
+			vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
+			vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 		}
-
-
-		// Populate VkVertexInputBindingDescription (if needed)
-		VkVertexInputBindingDescription bindingDescription = {};
-		bindingDescription.binding = 0; // Assuming the binding is 0
-		bindingDescription.stride = sizeof(glm::vec3); // Adjust the stride based on your vertex data structure
-		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // or VK_VERTEX_INPUT_RATE_INSTANCE if using instancing
-
-		std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {};
-		bindingDescriptions[0].binding = 0;
-		bindingDescriptions[0].stride = sizeof(Vertex);
-		bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-		VkVertexInputBindingDescription instanceBindingDescription = {};
-		instanceBindingDescription.binding = 1;
-		instanceBindingDescription.stride = sizeof(glm::vec4) * 4;
-		instanceBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
-
-		std::array<VkVertexInputAttributeDescription, 4> instanceAttributeDescriptions = {};
-		instanceAttributeDescriptions[0].binding = 1;
-		instanceAttributeDescriptions[0].location = 5;
-		instanceAttributeDescriptions[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-		instanceAttributeDescriptions[0].offset = 0;
-
-		instanceAttributeDescriptions[1].binding = 1;
-		instanceAttributeDescriptions[1].location = 6;
-		instanceAttributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-		instanceAttributeDescriptions[1].offset = sizeof(float) * 4;
-
-		instanceAttributeDescriptions[2].binding = 1;
-		instanceAttributeDescriptions[2].location = 7;
-		instanceAttributeDescriptions[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-		instanceAttributeDescriptions[2].offset = sizeof(float) * 8;
-
-		instanceAttributeDescriptions[3].binding = 1;
-		instanceAttributeDescriptions[3].location = 8;
-		instanceAttributeDescriptions[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-		instanceAttributeDescriptions[3].offset = sizeof(float) * 12;
-		bindingDescriptions[1] = instanceBindingDescription;
-
-		auto attributeDescriptions = VertexGetAttributeDescriptions();
-
-		vertexInputInfo.vertexBindingDescriptionCount = bindingDescriptions.size();
-		vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
-		vertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
-		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-
+		else
+		{
+			vertexInputInfo.vertexBindingDescriptionCount = 0;
+			vertexInputInfo.vertexAttributeDescriptionCount = 0;
+		}
 
 		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &mPipelineLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
 
-		colorBlending.attachmentCount = 0;
+		colorBlending.attachmentCount = useVertexInputInfo ? 1 : 1;
 		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		//depthStencil.depthTestEnable = VK_TRUE;
+		//depthStencil.depthWriteEnable = VK_TRUE;
+		//depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+		//depthStencil.back.compareOp = VK_COMPARE_OP_ALWAYS;
+
 		depthStencil.depthTestEnable = VK_TRUE;
 		depthStencil.depthWriteEnable = VK_TRUE;
-		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-		depthStencil.back.compareOp = VK_COMPARE_OP_ALWAYS;
+		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+		depthStencil.depthBoundsTestEnable = VK_FALSE;
+		depthStencil.stencilTestEnable = VK_FALSE;
 
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;

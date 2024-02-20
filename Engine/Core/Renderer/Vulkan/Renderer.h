@@ -22,20 +22,22 @@ namespace Plaza {
 			glm::vec4 color = glm::vec4(1.0f);
 			float intensity = 1.0f;
 			int diffuseIndex = -1;
-			int normalIndex;
+			int normalIndex = -1;
 		};
 		struct UniformBufferObject {
-			glm::mat4 projection = glm::mat4(1.0f); 
-			glm::mat4 view = glm::mat4(1.0f);       
-			glm::mat4 model = glm::mat4(1.0f);      
-			int cascadeCount = 0;                   
-			float farPlane = 0.0f;                  
-			float nearPlane = 0.0f;                 
-			alignas(16) glm::vec4 lightDirection = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);  
-			alignas(16) glm::vec4 viewPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);         
+			glm::mat4 projection = glm::mat4(1.0f);
+			glm::mat4 view = glm::mat4(1.0f);
+			glm::mat4 model = glm::mat4(1.0f);
+			int cascadeCount = 0;
+			float farPlane = 0.0f;
+			float nearPlane = 0.0f;
+			alignas(16) glm::vec4 lightDirection = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+			alignas(16) glm::vec4 viewPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 			glm::mat4 lightSpaceMatrices[16] = { glm::mat4(2.0f) };
 			glm::vec4 cascadePlaneDistances[16] = { glm::vec4(1.0f) };
 		};
+
+
 
 		/*
 	mat4 projection;
@@ -92,6 +94,9 @@ namespace Plaza {
 		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 		VkCommandBuffer* mActiveCommandBuffer;
+
+		void ChangeFinalDescriptorImageView(VkImageView newImageView);
+		VkImageView mFinalSceneImageView;
 	private:
 		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";
 		const std::string TEXTURE_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.png";
@@ -148,7 +153,6 @@ namespace Plaza {
 		VkImageView mTextureImageView;
 
 		VkFramebuffer mFinalSceneFramebuffer;
-		VkImageView mFinalSceneImageView;
 		VkImage mFinalSceneImage;
 		VkDescriptorSet mFinalSceneDescriptorSet;
 

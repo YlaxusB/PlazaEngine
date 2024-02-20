@@ -37,6 +37,23 @@ namespace Plaza {
 		if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &this->mDescriptorSetLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create descriptor set layout!");
 		}
+
+		// Debug Pass
+		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+		samplerLayoutBinding.binding = 1;
+		samplerLayoutBinding.descriptorCount = this->mCascades.size();
+		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		samplerLayoutBinding.pImmutableSamplers = nullptr;
+		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		bindings = { samplerLayoutBinding };
+		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+		layoutInfo.pBindings = bindings.data();
+		layoutInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT;
+		if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &this->mDebugDepthDescriptorLayout) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create descriptor set layout!");
+		}
+
 	}
 
 	void VulkanShadows::CreateDescriptorSet(VkDevice device) {
@@ -83,6 +100,31 @@ namespace Plaza {
 			writeDescriptorSets[0].pBufferInfo = &bufferInfo;
 			vkUpdateDescriptorSets(device, static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, NULL);
 		}
+
+		// Debug Pass
+		allocInfo.pSetLayouts = &mDebugDepthDescriptorLayout;
+		if (vkAllocateDescriptorSets(device, &allocInfo, &this->mDebugDepthDescriptorSet) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate descriptor sets!");
+		}
+		//vkAllocateDescriptorSets(device, &allocInfo, &this->mDebugDepthDescriptorSet);
+
+		std::vector<VkDescriptorImageInfo> imageInfos = std::vector<VkDescriptorImageInfo>();
+		imageInfos.resize(9);
+		for (size_t i = 0; i < imageInfos.size(); ++i) {
+			imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+			imageInfos[i].imageView = this->mCascades[i].mImageView;
+			imageInfos[i].sampler = this->mShadowsSampler;
+		}
+
+		std::array<VkWriteDescriptorSet, 1> writeDescriptorSets{};
+		writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		writeDescriptorSets[0].dstSet = this->mDebugDepthDescriptorSet;
+		writeDescriptorSets[0].dstBinding = 1;
+		writeDescriptorSets[0].dstArrayElement = 0;
+		writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		writeDescriptorSets[0].pImageInfo = imageInfos.data();
+		writeDescriptorSets[0].descriptorCount = imageInfos.size();
+		vkUpdateDescriptorSets(device, static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, NULL);
 	}
 
 	void VulkanShadows::InitializeBuffers(VulkanRenderer& renderer) {
@@ -167,7 +209,7 @@ namespace Plaza {
 			framebufferInfo.width = this->mShadowResolution;
 			framebufferInfo.height = this->mShadowResolution;
 			framebufferInfo.layers = 1;
-			if(vkCreateFramebuffer(renderer.mDevice, &framebufferInfo, nullptr, &this->mCascades[i].mFramebuffer) != VK_SUCCESS) {
+			if (vkCreateFramebuffer(renderer.mDevice, &framebufferInfo, nullptr, &this->mCascades[i].mFramebuffer) != VK_SUCCESS) {
 				throw std::runtime_error("Failed to create framebuffer!");
 			}
 		}
@@ -182,6 +224,67 @@ namespace Plaza {
 		framebufferInfo.layers = 1;
 
 		if (vkCreateFramebuffer(renderer.mDevice, &framebufferInfo, nullptr, &this->mFramebuffer) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create framebuffer!");
+		}
+
+		// Debug pass
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.extent.width = Application->appSizes->sceneSize.x;
+		imageInfo.extent.height = Application->appSizes->sceneSize.y;
+		imageInfo.extent.depth = 1;
+		imageInfo.mipLevels = 1;
+		imageInfo.arrayLayers = 1;
+		imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.usage = VK_IMAGE_ASPECT_COLOR_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+		if (vkCreateImage(renderer.mDevice, &imageInfo, nullptr, &this->mDebugDepthImage) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create depth image!");
+		}
+
+		// Allocate memory and bind image
+		VkMemoryRequirements memRequirements2;
+		vkGetImageMemoryRequirements(renderer.mDevice, this->mDebugDepthImage, &memRequirements2);
+
+
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements2.size;
+		allocInfo.memoryTypeIndex = renderer.FindMemoryType(memRequirements2.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		VkDeviceMemory shadowsDepthMapMemory2;
+		if (vkAllocateMemory(renderer.mDevice, &allocInfo, nullptr, &shadowsDepthMapMemory2) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to allocate depth image memory!");
+		}
+
+		vkBindImageMemory(renderer.mDevice, this->mDebugDepthImage, shadowsDepthMapMemory2, 0);
+
+		VkImageViewCreateInfo viewInfo{};
+		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		viewInfo.image = this->mDebugDepthImage;
+		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		viewInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+		viewInfo.subresourceRange.baseMipLevel = 0;
+		viewInfo.subresourceRange.levelCount = 1;
+		viewInfo.subresourceRange.baseArrayLayer = 0;
+		viewInfo.subresourceRange.layerCount = 1;
+		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+		if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &this->mDebugDepthImageView) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create texture image view!");
+		}
+
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = this->mDepthDebugRenderPass;
+		framebufferInfo.attachmentCount = 1;
+		framebufferInfo.pAttachments = &this->mDebugDepthImageView;
+		framebufferInfo.width = Application->appSizes->sceneSize.x;
+		framebufferInfo.height = Application->appSizes->sceneSize.y;
+		framebufferInfo.layers = 1;
+		//framebufferInfo.flags = VK_IMAGE_USAGE_SAMPLED_BIT;
+		if (vkCreateFramebuffer(renderer.mDevice, &framebufferInfo, nullptr, &this->mDepthDebugFramebuffer) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create framebuffer!");
 		}
 	}
@@ -206,6 +309,32 @@ namespace Plaza {
 
 		VkFormat depthFormat = mDepthFormat;
 
+		/*
+				VkAttachmentDescription colorAttachment{};
+		colorAttachment.format = VK_FORMAT_B8G8R8A8_UNORM;
+		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+		VkAttachmentReference colorAttachmentRef{};
+		colorAttachmentRef.attachment = 0;
+		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkAttachmentDescription depthAttachment{};
+		depthAttachment.format = FindDepthFormat();
+		depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		*/
+
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = VK_FORMAT_R8G8B8A8_SRGB;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -224,7 +353,7 @@ namespace Plaza {
 		depthAttachment.format = depthFormat;
 		depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -240,7 +369,7 @@ namespace Plaza {
 		//subpass.pColorAttachments = &colorAttachmentRef;
 		subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
-		std::array<VkSubpassDependency, 2> dependencies;
+		std::array<VkSubpassDependency, 1> dependencies;
 
 		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependencies[0].dstSubpass = 0;
@@ -249,14 +378,6 @@ namespace Plaza {
 		dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 		dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-		dependencies[1].srcSubpass = 0;
-		dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-		dependencies[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		dependencies[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-		dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 		std::array<VkAttachmentDescription, 1> attachments = { depthAttachment };
 		VkRenderPassCreateInfo renderPassInfo{};
@@ -271,31 +392,70 @@ namespace Plaza {
 		if (vkCreateRenderPass(renderer.mDevice, &renderPassInfo, nullptr, &this->mRenderPass) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create render pass!");
 		}
+
+		// Debug pass
+		std::array<VkSubpassDependency, 1> debugDependencies;
+		debugDependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+		debugDependencies[0].dstSubpass = 0;
+		debugDependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		debugDependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		debugDependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		debugDependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		debugDependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+		subpass.colorAttachmentCount = 1;
+		subpass.pColorAttachments = &colorAttachmentRef;
+		subpass.pDepthStencilAttachment = VK_NULL_HANDLE;
+		attachments = { colorAttachment };
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		renderPassInfo.pAttachments = attachments.data();
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = debugDependencies.size();
+		renderPassInfo.pDependencies = debugDependencies.data();
+
+
+		if (vkCreateRenderPass(renderer.mDevice, &renderPassInfo, nullptr, &this->mDepthDebugRenderPass) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create render pass!");
+		}
 	}
 
 	void VulkanShadows::Init() {
+		float mult = 1.0f;
+		shadowCascadeLevels = vector{ Application->activeCamera->farPlane / (9000.0f * mult), Application->activeCamera->farPlane / (3000.0f * mult), Application->activeCamera->farPlane / (1000.0f * mult), Application->activeCamera->farPlane / (500.0f * mult), Application->activeCamera->farPlane / (100.0f * mult), Application->activeCamera->farPlane / (35.0f * mult),Application->activeCamera->farPlane / (10.0f * mult), Application->activeCamera->farPlane / (2.0f * mult), Application->activeCamera->farPlane / (1.0f * mult) };
+
 		int bufferSize = sizeof(ShadowsUniformBuffer);
 		VulkanRenderer::GetRenderer()->CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffer, mUniformBufferMemory);
 		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mUniformBufferMemory, 0, bufferSize, 0, &mUniformBufferMapped);
 
 		this->InitializeRenderPass(*VulkanRenderer::GetRenderer());
-		this->InitializeBuffers(*VulkanRenderer::GetRenderer());
+		this->InitializeBuffers(*VulkanRenderer::GetRenderer()); 
+
 
 		this->CreateDescriptorPool(VulkanRenderer::GetRenderer()->mDevice);
 		this->CreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice);
 		this->CreateDescriptorSet(VulkanRenderer::GetRenderer()->mDevice);
 
 		mShadowsShader = new VulkanShaders(VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.vert"), VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.frag"), VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.geom"));
-		
+
 		VkPushConstantRange pushConstantRange{};
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_ALL;
 		pushConstantRange.offset = 0;
 		pushConstantRange.size = sizeof(VulkanShadows::PushConstants);
-		
-		mShadowsShader->Init(VulkanRenderer::GetRenderer()->mDevice, this->mRenderPass, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, this->mDescriptorSetLayout, std::vector<VkPushConstantRange> { pushConstantRange });
 
-		float mult = 1.0f;
-		shadowCascadeLevels = vector{ Application->activeCamera->farPlane / (9000.0f * mult), Application->activeCamera->farPlane / (3000.0f * mult), Application->activeCamera->farPlane / (1000.0f * mult), Application->activeCamera->farPlane / (500.0f * mult), Application->activeCamera->farPlane / (100.0f * mult), Application->activeCamera->farPlane / (35.0f * mult),Application->activeCamera->farPlane / (10.0f * mult), Application->activeCamera->farPlane / (2.0f * mult), Application->activeCamera->farPlane / (1.0f * mult) };
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutInfo.setLayoutCount = 1;
+		pipelineLayoutInfo.pSetLayouts = &this->mDescriptorSetLayout;
+		pipelineLayoutInfo.pushConstantRangeCount = 1;
+		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+		mShadowsShader->Init(VulkanRenderer::GetRenderer()->mDevice, this->mRenderPass, this->mShadowResolution, this->mShadowResolution, this->mDescriptorSetLayout, pipelineLayoutInfo, std::vector<VkPushConstantRange> { pushConstantRange });
+
+		// Debug
+		mDepthDebugShaders = new VulkanShaders(VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthDebugShaders.vert"), VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthDebugShaders.frag"), VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.geom"));
+		pipelineLayoutInfo.pSetLayouts = &this->mDebugDepthDescriptorLayout;
+		mDepthDebugShaders->Init(VulkanRenderer::GetRenderer()->mDevice, this->mDepthDebugRenderPass, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, this->mDebugDepthDescriptorLayout, pipelineLayoutInfo, std::vector<VkPushConstantRange> { pushConstantRange }, false);
 	}
 
 	void VulkanShadows::RenderToShadowMap() {
@@ -307,7 +467,7 @@ namespace Plaza {
 	}
 
 	using std::min;
-	glm::mat4 GetLightSpaceMatrix(const float nearPlane, const float farPlane)
+	glm::mat4 VulkanShadows::GetLightSpaceMatrix(const float nearPlane, const float farPlane)
 	{
 		const auto proj = glm::perspective(
 			glm::radians(Application->activeCamera->Zoom), (float)Application->appSizes->sceneSize.x / (float)Application->appSizes->sceneSize.y, nearPlane,
@@ -320,9 +480,20 @@ namespace Plaza {
 			center += glm::vec3(v);
 		}
 		center /= corners.size();
+
+		float radius = 0.0f;
+		for (uint32_t i = 0; i < 8; i++) {
+			float distance = glm::length(corners[i] - glm::vec4(center, 1.0f));
+			radius = glm::max(radius, distance);
+		}
+		radius = std::ceil(radius * 16.0f) / 16.0f;
+
+		glm::vec3 maxExtents = glm::vec3(radius);
+		glm::vec3 minExtents = -maxExtents;
+
 		const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::min());
-		glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
-		const auto lightView = glm::lookAt(center + glm::radians(lightDir), center, glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::vec3 lightDir = glm::normalize(-glm::vec3(20.0f, 50, 20.0f));
+		const auto lightView = glm::lookAt(center - lightDir * minExtents.z, center, glm::vec3(0.0f, 1.0f, 0.0f));
 		float minX = std::numeric_limits<float>::max();
 		float maxX = std::numeric_limits<float>::lowest();
 		float minY = std::numeric_limits<float>::max();
@@ -359,27 +530,36 @@ namespace Plaza {
 		{
 			maxZ *= zMult;
 		}
-		const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
-
+		const glm::mat4 lightProjection = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.01f, maxExtents.z - minExtents.z);
+		//const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+		
 		return lightProjection * lightView;
 	}
-	void GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels, VulkanShadows::ShadowsUniformBuffer& ubo)
+	std::vector<glm::mat4> VulkanShadows::GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels, VulkanShadows::ShadowsUniformBuffer& ubo)
 	{
-		for (size_t i = 0; i < shadowCascadeLevels.size() + 1; ++i) {
-			if (i == 0) {
-				ubo.lightSpaceMatrices[i] = GetLightSpaceMatrix(Application->editorCamera->nearPlane - 1.0f, shadowCascadeLevels[i]);
+		std::vector<glm::mat4> ret;
+		for (size_t i = 0; i < shadowCascadeLevels.size() + 1; ++i)
+		{
+			if (i == 0)
+			{
+				ret.push_back(GetLightSpaceMatrix(Application->editorCamera->nearPlane - 1.0f, shadowCascadeLevels[i]));
 			}
-			else if (i < shadowCascadeLevels.size()) {
-				ubo.lightSpaceMatrices[i] = GetLightSpaceMatrix(shadowCascadeLevels[i - 1] - 1.0f, shadowCascadeLevels[i]);
+			else if (i < shadowCascadeLevels.size())
+			{
+				ret.push_back(GetLightSpaceMatrix(shadowCascadeLevels[i - 1] - 1.0f, shadowCascadeLevels[i]));
 			}
 		}
+		return ret;
 	}
 
 	void VulkanShadows::UpdateUniformBuffer() {
-		ShadowsUniformBuffer ubo{};
-		GetLightSpaceMatrices(this->shadowCascadeLevels, ubo);
+		//memcpy(&this->mUbo, GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo).data(), sizeof(this->mUbo));//this->mUbo.lightSpaceMatrices = GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo).data();
+		std::vector<glm::mat4> mats = GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo);
+		for (int i = 0; i < 9; ++i) {
+			this->mUbo.lightSpaceMatrices[i] = mats[i];
+		}
 
-		memcpy(mUniformBufferMapped, &ubo, sizeof(ubo));
+		memcpy(mUniformBufferMapped, &this->mUbo, sizeof(this->mUbo));
 	}
 
 	void VulkanShadows::UpdateAndPushConstants(VkCommandBuffer commandBuffer, unsigned int cascadeIndex) {

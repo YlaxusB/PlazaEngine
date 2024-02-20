@@ -1,4 +1,4 @@
-#version 450
+#version 460
 #extension GL_EXT_nonuniform_qualifier : enable
 
 layout(binding = 1) uniform sampler2D texSampler;
@@ -20,7 +20,7 @@ layout(location = 0) out vec4 outColor;
 
 
 
-layout(std140, binding = 0) uniform UniformBufferObject {
+layout(binding = 0) uniform UniformBufferObject {
     mat4 projection;
     mat4 view;
     mat4 model;
@@ -29,8 +29,8 @@ layout(std140, binding = 0) uniform UniformBufferObject {
     float nearPlane;
     vec4 lightDirection;
     vec4 viewPos;
-    mat4[16] lightSpaceMatrices;
-    vec4[16] cascadePlaneDistances;
+    mat4 lightSpaceMatrices[16];
+    vec4 cascadePlaneDistances[16];
 } ubo;
 
 layout(location = 11) in vec4 FragPos;
@@ -41,8 +41,29 @@ layout(location = 15) in vec4 TangentViewPos;
 layout(location = 16) in vec4 TangentFragPos;
 layout(location = 17) in vec4 worldPos;
 
+const mat4 biasMat = mat4( 
+	0.5, 0.0, 0.0, 0.0,
+	0.0, 0.5, 0.0, 0.0,
+	0.0, 0.0, 1.0, 0.0,
+	0.5, 0.5, 0.0, 1.0 
+);
 
-float ShadowCalculation(vec3 fragPosWorldSpace)
+float textureProj(vec4 shadowCoord, vec2 offset, uint cascadeIndex)
+{
+	float shadow = 1.0;
+	float bias = 0.005;
+
+	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 ) {
+		float dist = texture(shadowsDepthMap, vec3(shadowCoord.st + offset, cascadeIndex)).r;
+		if (shadowCoord.w > 0 && dist < shadowCoord.z - bias) {
+			shadow = 0.0f;
+		}
+	}
+	return shadow;
+
+}
+
+vec3 ShadowCalculation(vec3 fragPosWorldSpace)
 {
     // select cascade layer
     vec4 fragPosViewSpace = ubo.view * vec4(fragPosWorldSpace, 1.0);
@@ -58,34 +79,44 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
     }
     if (layer == -1)
     {
-        layer = ubo.cascadeCount;
+        layer = ubo.cascadeCount - 1;
     }
+    vec4 shadowCoord = ubo.lightSpaceMatrices[layer] * vec4(fragPosWorldSpace, 1.0);
+      //shadowCoord = shadowCoord / shadowCoord.w;
+  //shadowCoord in [-1,1]x[-1,1],map to [0,1]x[0,1] first.
+    shadowCoord.xy = shadowCoord.xy / 2 + 0.5;
 
-    vec4 fragPosLightSpace = ubo.lightSpaceMatrices[layer] * vec4(fragPosWorldSpace, 1.0);
+    //return textureProj(shadowCoord / shadowCoord.w, vec2(0.0), layer);
+
+    vec4 fragPosLightSpace = biasMat * ubo.lightSpaceMatrices[layer] * vec4(fragPosWorldSpace.xyz, 1.0f);
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // transform to [0,1] range
-    projCoords = projCoords * 0.5 + 0.5;
-    projCoords = vec3(projCoords.x, 1.0 - projCoords.y, projCoords.z);
+    //projCoords.y = 1.0 - projCoords.y;
 
-    // get depth of current fragment from light's perspective
+    // transform to [0,1] range
+    //projCoords = projCoords * 0.5 + 0.5;
+    //projCoords.y = 1 - projCoords.y;
+    //projCoords.y = 1 - projCoords.y;
+    //projCoords = vec3(projCoords.x, 1.0 - projCoords.y, projCoords.z);
     float currentDepth = projCoords.z;
+    //return projCoords;
+    // get depth of current fragment from light's perspective
 
     // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
     if (currentDepth > 1.0)
     {
-        //return 0.0;
+        return vec3(0.0f, 1.0f, 1.0f);
     }
     // calculate bias (based on depth map resolution and slope)
-    vec3 normal;
+    vec3 normale;
     bool usingNormal = false;
     if(usingNormal){
-        normal = texture(textures[pushConstants.normalIndex], TexCoords).rgb;
-        normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space
+        normale = texture(textures[pushConstants.normalIndex], TexCoords).rgb;
+        normale = normalize(normale * 2.0 - 1.0);  // this normal is in tangent space
     } else {
-        normal = normalize(Normal.xyz);
+        normale = normalize(Normal.xyz);
     }
-    float bias = max(0.0005 * (1.0 - dot(normal, ubo.lightDirection.xyz)), 0.00005);
+    float bias = max(0.0005 * (1.0 - dot(normale, ubo.lightDirection.xyz)), 0.00005);
     const float biasModifier = 0.5f;
     if (layer == ubo.cascadeCount)
     {
@@ -115,8 +146,11 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
             shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
         }    
     }
-    shadow /= totalTexels;
-
+    //shadow = texture(shadowsDepthMap, vec3(projCoords.xy, layer)).r;///= totalTexels;
+    float pcfDepth = texture(shadowsDepthMap, vec3(projCoords.xy, layer)).r;
+    shadow /= totalTexels; //texture(shadowsDepthMap, vec3(projCoords.xy, layer)).r;//= (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
+    return vec3(shadow);
+    //return vec3(texture(shadowsDepthMap, vec3(projCoords.xy, layer)).r);//vec3(shadow);
     //if(layer == 0)
     //    return vec3(1.0f, 0.0f, 0.0f);
     //if(layer == 1)
@@ -133,17 +167,48 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
     //    return vec3(0.5f, 0.5f, 0.5f);
 
     //shadow = texture(shadowsDepthMap, vec3(projCoords.xy, layer)).r;
-    return shadow;
+   // return shadow;
+
+    float depth = texture(shadowsDepthMap, vec3(shadowCoord.xy, layer)).r;
+
+  float biase = 0.0005;
+  //return shadowCoord.z > depth + biase ? vec3(1.0f) : vec3(0.0f);
+
+   //return vec3(shadow);
 }
 
 void main() {
     if(pushConstants.diffuseIndex > -1)
-    {
+    { 
         outColor = texture(textures[pushConstants.diffuseIndex], fragTexCoord);;
     }
     else
     {
         outColor = vec4(pushConstants.color.xyz, 1.0f);
     }
-    outColor *= vec4((vec3(1.0f) - ShadowCalculation(FragPos.xyz)).xyz, 1.0f);
+
+        vec4 fragPosViewSpace = ubo.view * vec4(FragPos.xyz, 1.0);
+    float depthValue = abs(fragPosViewSpace.z);
+    int layer = -1;
+    for (int i = 0; i < ubo.cascadeCount; ++i)
+    {
+        if (depthValue < ubo.cascadePlaneDistances[i].x / 15000)
+        {
+            layer = i;
+            break;//i = ubo.cascadeCount;
+        }
+    }
+    if (layer == -1)
+    {
+        layer = ubo.cascadeCount - 1;
+    }
+
+    int ind = 4;
+    vec4 shadowCoord = (biasMat * ubo.lightSpaceMatrices[ind]) * vec4(FragPos.xyz, 1.0);	
+
+    //outColor = vec4(vec3(textureProj(shadowCoord / shadowCoord.w, vec2(0.0), ind)), 1.0f);
+    outColor *= vec4((vec3(1.0f) - ShadowCalculation(FragPos.xyz) + 0.1f).xyz, 1.0f);
+    //outColor = vec4(vec3(textureProj(shadowCoord, vec2(0.0), ind)), 1.0f);
+    //outColor = vec4(FragPos.xyz / vec3(10.0f), 1.0f);
+    //outColor = vec4(vec3(ShadowCalculation(FragPos.xyz)), 1.0f);
 }

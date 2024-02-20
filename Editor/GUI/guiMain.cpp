@@ -280,8 +280,8 @@ namespace Plaza {
 			ImGui::PopStyleColor();
 			if (isSceneOpen) {
 
-				ImVec2 uv0(0, 1); // bottom-left corner
-				ImVec2 uv1(1, 0); // top-right corner
+				ImVec2 uv0(0, 0); // bottom-left corner
+				ImVec2 uv1(1, 1); // top-right corner
 				appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 				ImGui::Image(ImTextureID(Application->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 				//ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
@@ -368,8 +368,8 @@ namespace Plaza {
 			}
 			ImGui::PopStyleColor();
 
-			ImVec2 uv0(0, 1); // bottom-left corner
-			ImVec2 uv1(1, 0); // top-right corner
+			ImVec2 uv0(0, 0); // bottom-left corner
+			ImVec2 uv1(1, 1); // top-right corner
 			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 
 			ImGui::Image(ImTextureID(Application->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);

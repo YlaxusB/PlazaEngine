@@ -350,7 +350,7 @@ namespace Plaza {
 
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
 		for (const auto& availableFormat : availableFormats) {
-			if (availableFormat.format == VK_FORMAT_B8G8R8_UNORM  && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+			if (availableFormat.format == VK_FORMAT_B8G8R8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
 				return availableFormat;
 			}
 		}
@@ -502,7 +502,7 @@ namespace Plaza {
 	void VulkanRenderer::CreateRenderPass()
 	{
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = VK_FORMAT_R8G8B8A8_SNORM;
+		colorAttachment.format = VK_FORMAT_B8G8R8A8_UNORM;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -655,7 +655,7 @@ namespace Plaza {
 		rasterizer.depthBiasClamp = 0.0f; // Optional
 		rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
 		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -871,15 +871,12 @@ namespace Plaza {
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearDepth;
 
-
-
-
-
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
 		viewport.width = this->mShadows->mShadowResolution;
-		viewport.height = this->mShadows->mShadowResolution;
+		viewport.height = -static_cast<float>(this->mShadows->mShadowResolution);
+		viewport.y = this->mShadows->mShadowResolution;
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
@@ -919,7 +916,8 @@ namespace Plaza {
 		renderPassInfo.renderArea.extent.height = Application->appSizes->sceneSize.y;
 
 		viewport.width = Application->appSizes->sceneSize.x;
-		viewport.height = Application->appSizes->sceneSize.y;
+		viewport.height = -Application->appSizes->sceneSize.y;
+		viewport.y = Application->appSizes->sceneSize.y;
 		scissor.extent.width = Application->appSizes->sceneSize.x;
 		scissor.extent.height = Application->appSizes->sceneSize.y;
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -930,12 +928,25 @@ namespace Plaza {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
 		for (auto& [key, value] : Application->activeScene->renderGroups) {
 			this->DrawRenderGroupInstanced(value.get());
-			//value->DrawInstances();
 		}
 
 		vkCmdEndRenderPass(commandBuffer);
 
+		renderPassInfo.renderPass = this->mShadows->mDepthDebugRenderPass;
+		renderPassInfo.framebuffer = this->mShadows->mDepthDebugFramebuffer;
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mDepthDebugShaders->mPipelineLayout, 0, 1, &this->mShadows->mDebugDepthDescriptorSet, 0, NULL);
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mDepthDebugShaders->mPipeline);
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+		this->mShadows->pushConstants.cascadeIndex = 1;
+		vkCmdPushConstants(commandBuffer, this->mShadows->mDepthDebugShaders->mPipelineLayout, VK_SHADER_STAGE_ALL, 0, sizeof(VulkanShadows::PushConstants), &this->mShadows->pushConstants);
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
+		vkCmdEndRenderPass(commandBuffer);
+
+		renderPassInfo.renderPass = mRenderPass;
 		renderPassInfo.framebuffer = mSwapChainFramebuffers[imageIndex];
 		renderPassInfo.renderArea.extent = mSwapChainExtent;
 
@@ -1148,80 +1159,6 @@ namespace Plaza {
 
 	}
 
-	using std::min;
-	glm::mat4 GetLightSpaceMatrix2(const float nearPlane, const float farPlane)
-	{
-		const auto proj = glm::perspective(
-			glm::radians(Application->activeCamera->Zoom), (float)Application->appSizes->sceneSize.x / (float)Application->appSizes->sceneSize.y, nearPlane,
-			farPlane);
-		const auto corners = Application->activeCamera->getFrustumCornersWorldSpace(proj, Application->activeCamera->GetViewMatrix());
-
-		glm::vec3 center = glm::vec3(0, 0, 0);
-		for (const auto& v : corners)
-		{
-			center += glm::vec3(v);
-		}
-		center /= corners.size();
-		const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::min());
-		glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
-		const auto lightView = glm::lookAt(center + glm::radians(lightDir), center, glm::vec3(0.0f, 1.0f, 0.0f));
-		float minX = std::numeric_limits<float>::max();
-		float maxX = std::numeric_limits<float>::lowest();
-		float minY = std::numeric_limits<float>::max();
-		float maxY = std::numeric_limits<float>::lowest();
-		float minZ = std::numeric_limits<float>::max();
-		float maxZ = std::numeric_limits<float>::lowest();
-		for (const auto& v : corners)
-		{
-			const auto trf = lightView * v;
-			minX = std::min(minX, trf.x);
-			maxX = std::max(maxX, trf.x);
-			minY = std::min(minY, trf.y);
-			maxY = std::max(maxY, trf.y);
-			minZ = std::min(minZ, trf.z);
-			maxZ = std::max(maxZ, trf.z);
-		}
-
-		// Tune this parameter according to the scene
-
-		constexpr float zMult = 22.0f;
-		if (minZ < 0)
-		{
-			minZ *= zMult;
-		}
-		else
-		{
-			minZ /= zMult;
-		}
-		if (maxZ < 0)
-		{
-			maxZ /= zMult;
-		}
-		else
-		{
-			maxZ *= zMult;
-		}
-		const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
-
-		return lightProjection * lightView;
-	}
-	void GetLightSpaceMatrices2(std::vector<float>shadowCascadeLevels, VulkanRenderer::UniformBufferObject& ubo)
-	{
-		for (size_t i = 0; i < 16; ++i) {
-			if (i <= 8)
-			{
-				if (i == 0) {
-					ubo.lightSpaceMatrices[i] = GetLightSpaceMatrix2(Application->editorCamera->nearPlane - 1.0f, shadowCascadeLevels[i]);
-				}
-				else if (i < shadowCascadeLevels.size()) {
-					ubo.lightSpaceMatrices[i] = GetLightSpaceMatrix2(shadowCascadeLevels[i - 1] - 1.0f, shadowCascadeLevels[i]);
-				}
-			}
-			else
-				ubo.lightSpaceMatrices[i] = glm::mat4(1.0f);
-		}
-	}
-
 	void VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage) {
 		UniformBufferObject ubo{};
 		ubo.projection = Application->activeCamera->GetProjectionMatrix();
@@ -1246,7 +1183,13 @@ namespace Plaza {
 			else
 				ubo.cascadePlaneDistances[i] = glm::vec4(this->mShadows->shadowCascadeLevels[8], 1.0f, 1.0f, 1.0f);
 		}
-		GetLightSpaceMatrices2(this->mShadows->shadowCascadeLevels, ubo);
+
+		for (int i = 0; i < this->mShadows->mCascades.size(); ++i) {
+			ubo.lightSpaceMatrices[i] = this->mShadows->mUbo.lightSpaceMatrices[i];
+		}
+
+		//memcpy(&ubo.lightSpaceMatrices, &this->mShadows->mUbo, sizeof(glm::mat4) * 9);
+
 		memcpy(mUniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 	}
 
@@ -1702,7 +1645,6 @@ namespace Plaza {
 		CreateCommandBuffers();
 		InitSyncStructures();
 		CreateImGuiTextureSampler();
-
 	}
 
 	void VulkanRenderer::InitShaders(std::string shadersFolder)
@@ -1900,8 +1842,10 @@ namespace Plaza {
 
 		ImGui_ImplVulkan_SetMinImageCount(MAX_FRAMES_IN_FLIGHT);
 
-		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, mFinalSceneImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
+		//mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mShadows->mCascades[2].mImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
+		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mFinalSceneImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
 		//this->TransitionImageLayout(this->mFinalSceneImage, mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+		//this->mShadows->mDebugDepthDescriptorSet = ImGui_ImplVulkan_AddTexture(this->mTextureSampler, this->mShadows->mDebugDepthImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}
 
 	void VulkanRenderer::NewFrameGUI()
@@ -1915,6 +1859,7 @@ namespace Plaza {
 	}
 
 	ImTextureID VulkanRenderer::GetFrameImage() {
+		//return (ImTextureID)this->mShadows->mDebugDepthDescriptorSet;
 		return (ImTextureID)mFinalSceneDescriptorSet;
 	}
 
@@ -2078,5 +2023,9 @@ namespace Plaza {
 		vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->instanceModelMatrices.size(), 0, 0, 0);
 		renderGroup->instanceModelMatrices.clear();
+	}
+
+	void VulkanRenderer::ChangeFinalDescriptorImageView(VkImageView newImageView) {
+		this->mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(this->mTextureSampler, newImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
 	}
 }

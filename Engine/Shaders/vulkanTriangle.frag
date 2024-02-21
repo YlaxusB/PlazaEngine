@@ -81,6 +81,7 @@ vec3 ShadowCalculation(vec3 fragPosWorldSpace)
     {
         layer = ubo.cascadeCount - 1;
     }
+
     vec4 shadowCoord = ubo.lightSpaceMatrices[layer] * vec4(fragPosWorldSpace, 1.0);
       //shadowCoord = shadowCoord / shadowCoord.w;
   //shadowCoord in [-1,1]x[-1,1],map to [0,1]x[0,1] first.
@@ -88,7 +89,7 @@ vec3 ShadowCalculation(vec3 fragPosWorldSpace)
 
     //return textureProj(shadowCoord / shadowCoord.w, vec2(0.0), layer);
 
-    vec4 fragPosLightSpace = biasMat * ubo.lightSpaceMatrices[layer] * vec4(fragPosWorldSpace.xyz, 1.0f);
+    vec4 fragPosLightSpace = (biasMat * ubo.lightSpaceMatrices[layer]) * vec4(fragPosWorldSpace.xyz, 1.0f);
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     //projCoords.y = 1.0 - projCoords.y;

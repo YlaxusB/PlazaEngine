@@ -338,10 +338,10 @@ namespace Plaza {
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = VK_FORMAT_R8G8B8A8_SRGB;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
@@ -353,9 +353,9 @@ namespace Plaza {
 		depthAttachment.format = depthFormat;
 		depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+		depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
@@ -492,7 +492,7 @@ namespace Plaza {
 		glm::vec3 minExtents = -maxExtents;
 
 		const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::min());
-		glm::vec3 lightDir = glm::normalize(-glm::vec3(20.0f, 50, 20.0f));
+		glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
 		const auto lightView = glm::lookAt(center - lightDir * minExtents.z, center, glm::vec3(0.0f, 1.0f, 0.0f));
 		float minX = std::numeric_limits<float>::max();
 		float maxX = std::numeric_limits<float>::lowest();

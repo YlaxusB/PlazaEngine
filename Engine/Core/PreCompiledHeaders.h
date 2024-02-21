@@ -4,6 +4,9 @@
 #endif
 #include <Windows.h>
 #include <ThirdParty/glad/glad.h>
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_RIGHT_HANDED
 #include <ThirdParty/glm/glm.hpp>
 #include <ThirdParty/glm/gtc/matrix_transform.hpp>
 #include <ThirdParty/glm/gtc/type_ptr.hpp>

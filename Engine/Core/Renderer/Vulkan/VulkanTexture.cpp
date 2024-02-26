@@ -149,6 +149,7 @@ namespace Plaza {
 		VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 		VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
+		//TODO: FIX VALIDATION ERROR WHEN GENERATING MIP MAP
 		if (generateMipMaps)
 			GenerateMipmaps(this->mImage, texWidth, texHeight, this->mMipLevels, format);
 

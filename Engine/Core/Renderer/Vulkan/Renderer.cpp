@@ -1908,7 +1908,7 @@ namespace Plaza {
 		VulkanTexture* texture = new VulkanTexture();
 		if (std::filesystem::exists(path))
 		{
-			texture->CreateTextureImage(mDevice, path, VK_FORMAT_R8G8B8A8_SRGB);
+			texture->CreateTextureImage(mDevice, path, VK_FORMAT_R8G8B8A8_SRGB, true);
 			texture->CreateTextureSampler();
 			texture->CreateImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 			texture->InitDescriptorSetLayout();

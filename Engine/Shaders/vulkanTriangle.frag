@@ -172,8 +172,8 @@ void main() {
     vec3 ambient = 1.32 * (lightColor / 1);
     // diffuse
 
-    float metallic = 0.5f;//pow(texture(texture_metalness, fs_in.TexCoords) / 1, vec4(1/ 2.2)).r * 1;
-    float roughness = 0.5f;//pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(1/ 2.2)).r * 1;
+    float metallic = 1.0f;//pow(texture(texture_metalness, fs_in.TexCoords) / 1, vec4(1/ 2.2)).r * 1;
+    float roughness = 1.0f;//pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(1/ 2.2)).r * 1;
     //metallic = texture(texture_metalness, fs_in.TexCoords).r / 255;//pow(texture(texture_metalness, fs_in.TexCoords), vec4(2.2)).r;
     //roughness = texture(texture_metalness, fs_in.TexCoords).r / 255;//pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(2.2)).r;
     //metallic *= 2;

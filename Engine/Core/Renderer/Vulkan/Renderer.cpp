@@ -838,6 +838,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+		PLAZA_PROFILE_SECTION("Record Command Buffer");
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT; // Optional
@@ -874,7 +875,7 @@ namespace Plaza {
 		viewport.width = this->mShadows->mShadowResolution;
 		viewport.height = -static_cast<float>(this->mShadows->mShadowResolution);
 		viewport.y = this->mShadows->mShadowResolution;
-		viewport.minDepth =  0.0f;
+		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
@@ -884,24 +885,58 @@ namespace Plaza {
 		scissor.extent.height = this->mShadows->mShadowResolution;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		for (auto& [key, value] : Application->activeScene->meshRendererComponents) {
-			value.renderGroup.get()->instanceModelMatrices.push_back(Application->activeScene->transformComponents.at(key).GetTransform());
+		{
+			PLAZA_PROFILE_SECTION("Group Instances");
+			for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
+				auto transformIt = Application->activeScene->transformComponents.find(key);
+				if (transformIt != Application->activeScene->transformComponents.end()) {
+					const Transform& transform = transformIt->second;
+					value.renderGroup->AddInstance(*Application->shader, transform.modelMatrix);
+				}
+				//value.renderGroup.get()->instanceModelMatrices.push_back(Application->activeScene->transformComponents.at(key).GetTransform());
+			}
+
+			/*
+					shader.use();
+		for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
+			const MeshRenderer& meshRenderer = value;
+			auto transformIt = Application->activeScene->transformComponents.find(key);
+			if (transformIt != Application->activeScene->transformComponents.end()) {
+				const Transform& transform = transformIt->second;
+				if (Application->activeCamera->IsInsideViewFrustum(transform.worldPosition)) {
+					//Application->activeScene->entities[transform->uuid].GetComponent<Transform>()->UpdateObjectTransform(&Application->activeScene->entities[meshRendererPair.first]);
+					glm::mat4 modelMatrix = transform.modelMatrix;
+					if (meshRenderer.instanced&& meshRenderer.renderGroup && meshRenderer.renderGroup->mesh) {
+						meshRenderer.renderGroup->AddInstance(shader, modelMatrix);
+					}
+					else if(meshRenderer.renderGroup) {
+						shader.setMat4("model", modelMatrix);
+						//[] meshRenderer.renderGroup->Draw(shader);
+					}
+
+				}
+			}
+		}
+			*/
 		}
 
 		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipeline);
-		for (unsigned int i = 0; i < 9; ++i) {
-			renderPassInfo.framebuffer = this->mShadows->mCascades[i].mFramebuffer;
-			vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipeline);
+		{
+			PLAZA_PROFILE_SECTION("Render Shadows Depth");
+			for (unsigned int i = 0; i < 9; ++i) {
+				renderPassInfo.framebuffer = this->mShadows->mCascades[i].mFramebuffer;
+				vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipeline);
 
-			this->mShadows->UpdateAndPushConstants(commandBuffer, i);
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[i].mDescriptorSet, 0, nullptr);
+				this->mShadows->UpdateAndPushConstants(commandBuffer, i);
+				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[i].mDescriptorSet, 0, nullptr);
 
-			for (auto& [key, value] : Application->activeScene->renderGroups) {
-				this->DrawRenderGroupShadowDepthMapInstanced(value.get());
+				for (auto& [key, value] : Application->activeScene->renderGroups) {
+					this->DrawRenderGroupShadowDepthMapInstanced(value.get());
+				}
+
+				vkCmdEndRenderPass(commandBuffer);
 			}
-
-			vkCmdEndRenderPass(commandBuffer);
 		}
 
 		//vkCmdEndRenderPass(commandBuffer);
@@ -923,8 +958,11 @@ namespace Plaza {
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
-		for (auto& [key, value] : Application->activeScene->renderGroups) {
-			this->DrawRenderGroupInstanced(value.get());
+		{
+			PLAZA_PROFILE_SECTION("Draw Instances");
+			for (auto& [key, value] : Application->activeScene->renderGroups) {
+				this->DrawRenderGroupInstanced(value.get());
+			}
 		}
 
 		vkCmdEndRenderPass(commandBuffer);
@@ -959,8 +997,10 @@ namespace Plaza {
 
 		//vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mFinalSceneDescriptorSet, 0, nullptr);
 
-
-		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+		{
+			PLAZA_PROFILE_SECTION("Render ImGui");
+			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+		}
 
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -1664,12 +1704,21 @@ namespace Plaza {
 	}
 	void VulkanRenderer::RenderInstances(Shader& shader)
 	{
+		PLAZA_PROFILE_SECTION("Render Instances");
 		mCurrentFrame = 0;
-		vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+
+		{
+			PLAZA_PROFILE_SECTION("Wait Fences");
+			vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+		}
 
 
 		uint32_t imageIndex;
-		VkResult result = vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame], VK_NULL_HANDLE, &imageIndex);
+		VkResult result;
+		{
+			PLAZA_PROFILE_SECTION("Get Next Image");
+			result = vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame], VK_NULL_HANDLE, &imageIndex);
+		}
 
 		mCurrentImage = imageIndex;
 
@@ -1680,15 +1729,24 @@ namespace Plaza {
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}
-		this->mShadows->UpdateUniformBuffer();
-		UpdateUniformBuffer(mCurrentFrame);
 
+		{
+			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
+			this->mShadows->UpdateUniformBuffer();
+			UpdateUniformBuffer(mCurrentFrame);
+		}
 
-		ImGui::Render();
+		{
+			PLAZA_PROFILE_SECTION("ImGui::Render");
+			ImGui::Render();
+		}
 
-		vkResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]);
-		vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0);
-		RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
+		{
+			PLAZA_PROFILE_SECTION("Reset Fences/CommandBuffer and Record command buffer");
+			vkResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]);
+			vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0);
+			RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
+		}
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1705,8 +1763,11 @@ namespace Plaza {
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		if (vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]) != VK_SUCCESS) {
-			throw std::runtime_error("failed to submit draw command buffer!");
+		{
+			PLAZA_PROFILE_SECTION("Queue");
+			if (vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]) != VK_SUCCESS) {
+				throw std::runtime_error("failed to submit draw command buffer!");
+			}
 		}
 
 		VkPresentInfoKHR presentInfo{};
@@ -1720,7 +1781,10 @@ namespace Plaza {
 		presentInfo.pSwapchains = swapChains;
 		presentInfo.pImageIndices = &imageIndex;
 
-		result = vkQueuePresentKHR(mPresentQueue, &presentInfo);
+		{
+			PLAZA_PROFILE_SECTION("QueuePresent");
+			result = vkQueuePresentKHR(mPresentQueue, &presentInfo);
+		}
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || mFramebufferResized) {
 			mFramebufferResized = false;
@@ -1848,7 +1912,7 @@ namespace Plaza {
 
 		ImGui_ImplVulkan_SetMinImageCount(mMaxFramesInFlight);
 
-//		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mShadows->mCascades[2].mImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
+		//		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mShadows->mCascades[2].mImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
 		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mFinalSceneImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
 		//this->TransitionImageLayout(this->mFinalSceneImage, mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 		//this->mShadows->mDebugDepthDescriptorSet = ImGui_ImplVulkan_AddTexture(this->mTextureSampler, this->mShadows->mDebugDepthImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);

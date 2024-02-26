@@ -30,6 +30,7 @@ namespace Plaza {
 	public:
 		Renderer* mRenderer = nullptr;
 		RendererAPI mRendererAPI;
+		bool showCascadeLevels = false;
 
 		Scene* editorScene = new Scene();
 		Scene* runtimeScene = new Scene();

@@ -1,4 +1,4 @@
-#version 460
+#version 460 core
 layout(binding = 0) uniform UniformBufferObject {
     mat4 projection;
     mat4 view;
@@ -10,6 +10,7 @@ layout(binding = 0) uniform UniformBufferObject {
     vec4 viewPos;
     mat4[16] lightSpaceMatrices;
     vec4[16] cascadePlaneDistances;
+    bool showCascadeLevels;
 } ubo;
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
@@ -22,7 +23,7 @@ layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
 layout(location = 2) out mat4 model;
 
-layout(binding = 10) uniform sampler2D textures[];
+layout(binding = 20) uniform sampler2D textures[];
 
 layout(location = 11) out vec4 FragPos;
 layout(location = 12) out vec4 Normal;
@@ -43,7 +44,7 @@ void main() {
 
     mat4 finalInstanceMatrix = model;
     vec4 finalModel = finalInstanceMatrix * vec4(inPosition, 1.0);
-    FragPos = vec4(vec3(model * vec4(inPosition, 1.0)), 1.0f);
+    FragPos = vec4(model * vec4(inPosition, 1.0));
     //vs_out.Normal = transpose(inverse(mat3(aInstanceMatrix))) * aNormal;
     TexCoords = inTexCoord;
 

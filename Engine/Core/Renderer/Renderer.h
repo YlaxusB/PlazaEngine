@@ -14,6 +14,7 @@ namespace Plaza {
 	public:
 		RendererAPI api;
 		Shadows* mShadows;
+		const unsigned int mMaxFramesInFlight = 2;
 
 		virtual void Init() = 0;
 		virtual void InitShaders(std::string shadersFolder) = 0;

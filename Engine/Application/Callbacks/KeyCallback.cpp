@@ -26,6 +26,8 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 				cascadeIndexDebug = 0;
 			vulkanRenderer->ChangeFinalDescriptorImageView(vulkanRenderer->mShadows->mCascades[cascadeIndexDebug].mImageView);
 		}
+		if (key == GLFW_KEY_G && action == GLFW_PRESS)
+			Application->showCascadeLevels = !Application->showCascadeLevels;
 
 		if (key == GLFW_KEY_N && action == GLFW_PRESS) {
 			Editor::selectedGameObject->GetComponent<MeshRenderer>()->LoadHeightMap("C:\\Users\\Giovane\\Desktop\\Workspace\\heightmap.save");

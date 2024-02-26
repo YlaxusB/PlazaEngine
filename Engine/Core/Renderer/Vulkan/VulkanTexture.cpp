@@ -292,31 +292,33 @@ namespace Plaza {
 		imageInfo.imageView = mImageView;
 		imageInfo.sampler = mSampler;
 
-		std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
+		for (size_t i = 0; i < Application->mRenderer->mMaxFramesInFlight; i++) {
+			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
-		VkDescriptorBufferInfo bufferInfo2{};
-		bufferInfo2.buffer = VulkanRenderer::GetRenderer()->mUniformBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame];
-		bufferInfo2.offset = 0;
-		bufferInfo2.range = sizeof(VulkanRenderer::UniformBufferObject);
+			VkDescriptorBufferInfo bufferInfo2{};
+			bufferInfo2.buffer = VulkanRenderer::GetRenderer()->mUniformBuffers[i];
+			bufferInfo2.offset = 0;
+			bufferInfo2.range = sizeof(VulkanRenderer::UniformBufferObject);
 
-		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[0].dstSet = VulkanRenderer::GetRenderer()->mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame];
-		descriptorWrites[0].dstBinding = 0;
-		descriptorWrites[0].dstArrayElement = 0;
-		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrites[0].descriptorCount = 1;
-		descriptorWrites[0].pBufferInfo = &bufferInfo2;
+			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[0].dstSet = VulkanRenderer::GetRenderer()->mDescriptorSets[i];
+			descriptorWrites[0].dstBinding = 0;
+			descriptorWrites[0].dstArrayElement = 0;
+			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			descriptorWrites[0].descriptorCount = 1;
+			descriptorWrites[0].pBufferInfo = &bufferInfo2;
 
-		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[1].dstSet = VulkanRenderer::GetRenderer()->mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame];
-		descriptorWrites[1].dstBinding = 10;
-		descriptorWrites[1].dstArrayElement = VulkanTexture::mLastBindingIndex;
-		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrites[1].descriptorCount = 1;
-		descriptorWrites[1].pImageInfo = &imageInfo;
-		this->mIndexHandle = mLastBindingIndex;
+			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[1].dstSet = VulkanRenderer::GetRenderer()->mDescriptorSets[i];
+			descriptorWrites[1].dstBinding = 20;
+			descriptorWrites[1].dstArrayElement = VulkanTexture::mLastBindingIndex;
+			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[1].descriptorCount = 1;
+			descriptorWrites[1].pImageInfo = &imageInfo;
+			this->mIndexHandle = mLastBindingIndex;
 
-		vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, 2, descriptorWrites.data(), 0, nullptr);
+			vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, 2, descriptorWrites.data(), 0, nullptr);
+		}
 		VulkanTexture::mLastBindingIndex++;
 	}
 

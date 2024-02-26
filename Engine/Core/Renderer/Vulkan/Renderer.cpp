@@ -66,7 +66,8 @@ namespace Plaza {
 
 	const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-	VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME
+	VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+	VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME
 	};
 
 	struct QueueFamilyIndices {
@@ -127,9 +128,7 @@ namespace Plaza {
 		VkApplicationInfo appInfo{};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pApplicationName = "Plaza Engine";
-		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-		appInfo.pEngineName = "No Engine";
-		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+		appInfo.pEngineName = "Plaza Engine";
 		appInfo.apiVersion = VK_API_VERSION_1_0;
 
 		VkInstanceCreateInfo createInfo{};
@@ -478,9 +477,9 @@ namespace Plaza {
 	}
 	void VulkanRenderer::InitSyncStructures()
 	{
-		mImageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-		mRenderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-		mInFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+		mImageAvailableSemaphores.resize(mMaxFramesInFlight);
+		mRenderFinishedSemaphores.resize(mMaxFramesInFlight);
+		mInFlightFences.resize(mMaxFramesInFlight);
 
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -489,7 +488,7 @@ namespace Plaza {
 		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		for (size_t i = 0; i < mMaxFramesInFlight; i++) {
 			if (vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &mImageAvailableSemaphores[i]) != VK_SUCCESS ||
 				vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &mRenderFinishedSemaphores[i]) != VK_SUCCESS ||
 				vkCreateFence(mDevice, &fenceInfo, nullptr, &mInFlightFences[i]) != VK_SUCCESS) {
@@ -810,7 +809,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::CreateCommandBuffers() {
-		mCommandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+		mCommandBuffers.resize(mMaxFramesInFlight);
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -839,8 +838,6 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
-		this->mShadows->UpdateUniformBuffer();
-
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT; // Optional
@@ -877,7 +874,7 @@ namespace Plaza {
 		viewport.width = this->mShadows->mShadowResolution;
 		viewport.height = -static_cast<float>(this->mShadows->mShadowResolution);
 		viewport.y = this->mShadows->mShadowResolution;
-		viewport.minDepth = 0.0f;
+		viewport.minDepth =  0.0f;
 		viewport.maxDepth = 1.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
@@ -1107,7 +1104,7 @@ namespace Plaza {
 		VkDescriptorSetLayoutBinding bindlessTexturesBinding;
 		bindlessTexturesBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		bindlessTexturesBinding.descriptorCount = maxBindlessResources;
-		bindlessTexturesBinding.binding = 10;
+		bindlessTexturesBinding.binding = 20;
 		bindlessTexturesBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 		bindlessTexturesBinding.pImmutableSamplers = nullptr;
 
@@ -1120,7 +1117,7 @@ namespace Plaza {
 
 		VkDescriptorSetLayoutBinding depthMapLayoutBinding{};
 		depthMapLayoutBinding.binding = 9;
-		depthMapLayoutBinding.descriptorCount = 9;
+		depthMapLayoutBinding.descriptorCount = 1;
 		depthMapLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		depthMapLayoutBinding.pImmutableSamplers = nullptr;
 		depthMapLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -1146,11 +1143,11 @@ namespace Plaza {
 
 	void VulkanRenderer::CreateUniformBuffers() {
 		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-		mUniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-		mUniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
-		mUniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+		mUniformBuffers.resize(mMaxFramesInFlight);
+		mUniformBuffersMemory.resize(mMaxFramesInFlight);
+		mUniformBuffersMapped.resize(mMaxFramesInFlight);
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		for (size_t i = 0; i < mMaxFramesInFlight; i++) {
 			CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffers[i], mUniformBuffersMemory[i]);
 
 			vkMapMemory(mDevice, mUniformBuffersMemory[i], 0, bufferSize, 0, &mUniformBuffersMapped[i]);
@@ -1190,27 +1187,31 @@ namespace Plaza {
 
 		//memcpy(&ubo.lightSpaceMatrices, &this->mShadows->mUbo, sizeof(glm::mat4) * 9);
 
+		ubo.showCascadeLevels = Application->showCascadeLevels;
+
 		memcpy(mUniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 	}
 
 	void VulkanRenderer::CreateDescriptorPool() {
 		static const uint32_t maxBindlessTextures = 16536;
 
-		std::array<VkDescriptorPoolSize, 4> poolSizes{};
+		std::array<VkDescriptorPoolSize, 5> poolSizes{};
 		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+		poolSizes[0].descriptorCount = static_cast<uint32_t>(mMaxFramesInFlight);
 		poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+		poolSizes[1].descriptorCount = static_cast<uint32_t>(mMaxFramesInFlight);
 		poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		poolSizes[2].descriptorCount = maxBindlessTextures;
 		poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		poolSizes[3].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+		poolSizes[3].descriptorCount = static_cast<uint32_t>(9);
+		poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		poolSizes[4].descriptorCount = static_cast<uint32_t>(mMaxFramesInFlight);
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 		poolInfo.pPoolSizes = poolSizes.data();
-		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+		poolInfo.maxSets = static_cast<uint32_t>(mMaxFramesInFlight);
 		poolInfo.maxSets = maxBindlessTextures * sizeof(poolSizes);
 		poolInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
 
@@ -1220,7 +1221,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::CreateDescriptorSets() {
-		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, mDescriptorSetLayout);
+		std::vector<VkDescriptorSetLayout> layouts(mMaxFramesInFlight, mDescriptorSetLayout);
 		VkDescriptorSetAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 		allocInfo.descriptorPool = mDescriptorPool;
 		allocInfo.descriptorSetCount = layouts.size();
@@ -1228,12 +1229,12 @@ namespace Plaza {
 
 		VkDescriptorSetVariableDescriptorCountAllocateInfoEXT countInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
 		static const uint32_t maxBindlessResources = 16536;
-		std::vector<uint32_t> maxBinding(MAX_FRAMES_IN_FLIGHT, maxBindlessResources - 1);
+		std::vector<uint32_t> maxBinding(mMaxFramesInFlight, maxBindlessResources - 1);
 		countInfo.descriptorSetCount = 2;
 		countInfo.pDescriptorCounts = maxBinding.data();
 		allocInfo.pNext = &countInfo;
 
-		mDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+		mDescriptorSets.resize(mMaxFramesInFlight);
 		if (vkAllocateDescriptorSets(mDevice, &allocInfo, mDescriptorSets.data()) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate descriptor sets!");
 		}
@@ -1246,7 +1247,7 @@ namespace Plaza {
 			imageInfos[i].sampler = this->mShadows->mShadowsSampler;
 		}
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		for (size_t i = 0; i < mMaxFramesInFlight; i++) {
 			VkDescriptorBufferInfo bufferInfo{};
 			bufferInfo.buffer = mUniformBuffers[i];
 			bufferInfo.offset = 0;
@@ -1267,13 +1268,18 @@ namespace Plaza {
 			descriptorWrites[0].descriptorCount = 1;
 			descriptorWrites[0].pBufferInfo = &bufferInfo;
 
+			VkDescriptorImageInfo imageInfo2{};
+			imageInfo2.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+			imageInfo2.imageView = this->mShadows->mShadowDepthImageViews[0];
+			imageInfo2.sampler = this->mShadows->mShadowsSampler;
+
 			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptorWrites[1].dstSet = mDescriptorSets[i];
 			descriptorWrites[1].dstBinding = 9;
 			descriptorWrites[1].dstArrayElement = 0;
 			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			descriptorWrites[1].descriptorCount = imageInfos.size();
-			descriptorWrites[1].pImageInfo = imageInfos.data();
+			descriptorWrites[1].descriptorCount = 1;
+			descriptorWrites[1].pImageInfo = &imageInfo2;
 
 			vkUpdateDescriptorSets(mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
@@ -1674,8 +1680,8 @@ namespace Plaza {
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}
+		this->mShadows->UpdateUniformBuffer();
 		UpdateUniformBuffer(mCurrentFrame);
-
 
 
 		ImGui::Render();
@@ -1724,7 +1730,7 @@ namespace Plaza {
 			throw std::runtime_error("failed to present swap chain image!");
 		}
 
-		mCurrentFrame = 0;//(mCurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+		mCurrentFrame = 0;//(mCurrentFrame + 1) % mMaxFramesInFlight;
 	}
 	void VulkanRenderer::RenderBloom()
 	{
@@ -1758,7 +1764,7 @@ namespace Plaza {
 		vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
 		vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
 
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		for (size_t i = 0; i < mMaxFramesInFlight; i++) {
 			vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
 			vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
 			vkDestroyFence(mDevice, mInFlightFences[i], nullptr);
@@ -1834,15 +1840,15 @@ namespace Plaza {
 		initInfo.Instance = mVulkanInstance;
 		initInfo.PhysicalDevice = mPhysicalDevice;
 		initInfo.Queue = mGraphicsQueue;
-		initInfo.MinImageCount = MAX_FRAMES_IN_FLIGHT;
-		initInfo.ImageCount = MAX_FRAMES_IN_FLIGHT;
+		initInfo.MinImageCount = mMaxFramesInFlight;
+		initInfo.ImageCount = mMaxFramesInFlight;
 		initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 		initInfo.CheckVkResultFn = check_vk_result;
 		ImGui_ImplVulkan_Init(&initInfo, mRenderPass);
 
-		ImGui_ImplVulkan_SetMinImageCount(MAX_FRAMES_IN_FLIGHT);
+		ImGui_ImplVulkan_SetMinImageCount(mMaxFramesInFlight);
 
-		//mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mShadows->mCascades[2].mImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
+//		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mShadows->mCascades[2].mImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
 		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mFinalSceneImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
 		//this->TransitionImageLayout(this->mFinalSceneImage, mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 		//this->mShadows->mDebugDepthDescriptorSet = ImGui_ImplVulkan_AddTexture(this->mTextureSampler, this->mShadows->mDebugDepthImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
@@ -2027,5 +2033,6 @@ namespace Plaza {
 
 	void VulkanRenderer::ChangeFinalDescriptorImageView(VkImageView newImageView) {
 		this->mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(this->mTextureSampler, newImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
+		UpdateUniformBuffer(mCurrentFrame);
 	}
 }

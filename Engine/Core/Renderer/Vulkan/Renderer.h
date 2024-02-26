@@ -79,7 +79,7 @@ namespace Plaza {
 		
 		Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal);
 		void DrawRenderGroupInstanced(RenderGroup* renderGroup);
-		void DrawRenderGroupShadowDepthMapInstanced(RenderGroup* renderGroup);
+		void DrawRenderGroupShadowDepthMapInstanced(RenderGroup* renderGroup, unsigned int cascade);
 
 		Texture* LoadTexture(std::string path) override;
 		Texture* LoadImGuiTexture(std::string path) override;

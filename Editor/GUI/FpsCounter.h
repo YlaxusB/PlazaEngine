@@ -23,15 +23,6 @@ namespace Plaza::Editor {
 				ImGui::Text(("Scene Start Y:" + std::to_string(Application->appSizes->sceneStart.y)).c_str());
 				ImGui::Text(("Draw Calls:" + std::to_string(Time::drawCalls)).c_str());
 				ImGui::Text(("Add Instance Calls:" + std::to_string(Time::addInstanceCalls)).c_str());
-				ImGui::Text(("Debug Layer: " + std::to_string(Application->Shadows->debugLayer)).c_str());
-				unsigned int i = 0;
-				for (float value : Application->Shadows->shadowCascadeLevels) {
-					ImGui::Text(("Cascade level" + std::to_string(i) + ": " + std::to_string(value)).c_str());
-					i++;
-				}
-
-
-
 
 				ImGui::End();
 			}

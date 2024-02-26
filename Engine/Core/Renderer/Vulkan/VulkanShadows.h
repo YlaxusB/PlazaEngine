@@ -4,6 +4,7 @@
 namespace Plaza {
 	class VulkanShadows : Shadows {
 	public:
+		unsigned int mCascadeCount = 9;
 		glm::vec3 mLightDirection = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
 
 		struct PushConstants {

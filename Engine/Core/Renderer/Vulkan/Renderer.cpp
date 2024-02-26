@@ -892,32 +892,21 @@ namespace Plaza {
 				if (transformIt != Application->activeScene->transformComponents.end()) {
 					const Transform& transform = transformIt->second;
 					value.renderGroup->AddInstance(*Application->shader, transform.modelMatrix);
+
+					for (unsigned int i = 0; i < this->mShadows->mCascadeCount; ++i) {
+
+						const glm::mat4 orthoProjectionMatrix = this->mShadows->mUbo.lightSpaceMatrices[i];
+						const glm::vec4 maxClip = transform.modelMatrix * orthoProjectionMatrix * glm::vec4(glm::vec3(transform.modelMatrix * value.renderGroup.get()->mesh->mBoundingBox.maxVector), 1.0f);
+						const glm::vec4 minClip = transform.modelMatrix * orthoProjectionMatrix * glm::vec4(glm::vec3(transform.modelMatrix * value.renderGroup.get()->mesh->mBoundingBox.minVector), 1.0f);
+						const bool isInsideCascade = glm::all(glm::greaterThanEqual(minClip, glm::vec4(-1.0f))) || glm::all(glm::lessThanEqual(maxClip, glm::vec4(1.0f)));
+
+						if (isInsideCascade) {
+							value.renderGroup->AddCascadeInstance(transform.modelMatrix, i);
+						}
+					}
 				}
 				//value.renderGroup.get()->instanceModelMatrices.push_back(Application->activeScene->transformComponents.at(key).GetTransform());
 			}
-
-			/*
-					shader.use();
-		for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
-			const MeshRenderer& meshRenderer = value;
-			auto transformIt = Application->activeScene->transformComponents.find(key);
-			if (transformIt != Application->activeScene->transformComponents.end()) {
-				const Transform& transform = transformIt->second;
-				if (Application->activeCamera->IsInsideViewFrustum(transform.worldPosition)) {
-					//Application->activeScene->entities[transform->uuid].GetComponent<Transform>()->UpdateObjectTransform(&Application->activeScene->entities[meshRendererPair.first]);
-					glm::mat4 modelMatrix = transform.modelMatrix;
-					if (meshRenderer.instanced&& meshRenderer.renderGroup && meshRenderer.renderGroup->mesh) {
-						meshRenderer.renderGroup->AddInstance(shader, modelMatrix);
-					}
-					else if(meshRenderer.renderGroup) {
-						shader.setMat4("model", modelMatrix);
-						//[] meshRenderer.renderGroup->Draw(shader);
-					}
-
-				}
-			}
-		}
-			*/
 		}
 
 		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipeline);
@@ -931,8 +920,8 @@ namespace Plaza {
 				this->mShadows->UpdateAndPushConstants(commandBuffer, i);
 				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[i].mDescriptorSet, 0, nullptr);
 
-				for (auto& [key, value] : Application->activeScene->renderGroups) {
-					this->DrawRenderGroupShadowDepthMapInstanced(value.get());
+				for (const auto& [key, value] : Application->activeScene->renderGroups) {
+					this->DrawRenderGroupShadowDepthMapInstanced(value.get(), i);
 				}
 
 				vkCmdEndRenderPass(commandBuffer);
@@ -960,8 +949,9 @@ namespace Plaza {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
 		{
 			PLAZA_PROFILE_SECTION("Draw Instances");
-			for (auto& [key, value] : Application->activeScene->renderGroups) {
+			for (const auto& [key, value] : Application->activeScene->renderGroups) {
 				this->DrawRenderGroupInstanced(value.get());
+				value->mCascadeInstances.clear();
 			}
 		}
 
@@ -1995,6 +1985,8 @@ namespace Plaza {
 		convertedVertices.reserve(vertices.size());
 
 		for (unsigned int i = 0; i < vertices.size(); i++) {
+			vulkMesh.CalculateVertexInBoundingBox(vertices[i]);
+
 			convertedVertices.push_back(Vertex{
 				vertices[i],
 				(normals.size() > i) ? normals[i] : glm::vec3(0.0f),
@@ -2012,16 +2004,18 @@ namespace Plaza {
 		return vulkMesh;
 	}
 
-	void VulkanRenderer::DrawRenderGroupShadowDepthMapInstanced(RenderGroup* renderGroup) {
+	void VulkanRenderer::DrawRenderGroupShadowDepthMapInstanced(RenderGroup* renderGroup, unsigned int cascadeIndex) {
+		if (cascadeIndex >= renderGroup->mCascadeInstances.size() || renderGroup->mCascadeInstances[cascadeIndex].size() <= 0)
+			return;
 		VulkanMesh* mesh = (VulkanMesh*)renderGroup->mesh;
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = sizeof(glm::mat4) * renderGroup->instanceModelMatrices.size();
+		bufferInfo.size = sizeof(glm::mat4) * renderGroup->mCascadeInstances[cascadeIndex].size();
 		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		void* data;
 		vkMapMemory(this->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
-		memcpy(data, renderGroup->instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
+		memcpy(data, renderGroup->mCascadeInstances[cascadeIndex].data(), static_cast<size_t>(bufferInfo.size));
 		vkUnmapMemory(this->mDevice, mesh->mInstanceBufferMemory);
 
 		VkDeviceSize offsets[] = { 0 };
@@ -2044,21 +2038,26 @@ namespace Plaza {
 		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 1, &mesh->mVertexBuffer, offsets);
 		vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
 		vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->instanceModelMatrices.size(), 0, 0, 0);
+		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->mCascadeInstances[cascadeIndex].size(), 0, 0, 0);
 	}
 	void VulkanRenderer::DrawRenderGroupInstanced(RenderGroup* renderGroup) {
-		VulkanMesh* mesh = (VulkanMesh*)renderGroup->mesh;
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = sizeof(glm::mat4) * renderGroup->instanceModelMatrices.size();
-		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		void* data;
-		vkMapMemory(this->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
-		memcpy(data, renderGroup->instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
-		vkUnmapMemory(this->mDevice, mesh->mInstanceBufferMemory);
+		PLAZA_PROFILE_SECTION("DrawRenderGroupInstanced");
+		VulkanMesh* mesh;
+		{
+			PLAZA_PROFILE_SECTION("Copy Data");
+			mesh = (VulkanMesh*)renderGroup->mesh;
+			VkBufferCreateInfo bufferInfo{};
+			bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+			bufferInfo.size = sizeof(glm::mat4) * renderGroup->instanceModelMatrices.size();
+			bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+			bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+			void* data;
+			vkMapMemory(this->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
+			memcpy(data, renderGroup->instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
+			vkUnmapMemory(this->mDevice, mesh->mInstanceBufferMemory);
+		}
 
-		VkDeviceSize offsets[] = { 0 };
+		VkDeviceSize offsets[] = { 0, 0 };
 		VkCommandBuffer activeCommandBuffer = *this->mActiveCommandBuffer;
 
 		std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
@@ -2072,26 +2071,27 @@ namespace Plaza {
 		}
 		else
 			pushData.diffuseIndex = renderGroup->material->diffuse->mIndexHandle;
-		//if (!renderGroup->material->diffuse->IsTextureEmpty()) {
-		//	if (texture->mIndexHandle < 0)
-		//	{
-		//		pushData.diffuseIndex = -1;
-		//		pushData.color = renderGroup->material->diffuse->rgba;
-		//	}
-		//	else
-		//		pushData.diffuseIndex = texture->mIndexHandle;
-		//}
-		//else {
-		//	pushData.color = renderGroup->material->diffuse->rgba;
-		//}
-		vkCmdPushConstants(*this->mActiveCommandBuffer, this->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
 
-		vkCmdBindDescriptorSets(activeCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorCount, descriptorSets.data(), 0, nullptr);
-		vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
-		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 1, &mesh->mVertexBuffer, offsets);
-		vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
-		vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->instanceModelMatrices.size(), 0, 0, 0);
+		{
+			PLAZA_PROFILE_SECTION("PushConstants and Descriptor sets");
+			vkCmdPushConstants(*this->mActiveCommandBuffer, this->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
+
+			vkCmdBindDescriptorSets(activeCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorCount, descriptorSets.data(), 0, nullptr);
+		}
+
+		{
+			PLAZA_PROFILE_SECTION("Bind Buffers");
+			vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
+			std::array<VkBuffer, 2> buffers = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
+			vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, buffers.data(), offsets);
+			//vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
+			vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		}
+
+		{
+			PLAZA_PROFILE_SECTION("Draw Indexed");
+			vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->instanceModelMatrices.size(), 0, 0, 0);
+		}
 		renderGroup->instanceModelMatrices.clear();
 	}
 

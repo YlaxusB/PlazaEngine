@@ -11,6 +11,7 @@ namespace Plaza {
 		Mesh* mesh = nullptr;
 		Material* material = nullptr;
 		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
+		vector<vector<glm::mat4>> mCascadeInstances = vector<vector<glm::mat4>>();
 
 		RenderGroup(Mesh* mesh, Material* mat) {
 			this->uuid = Plaza::UUID::NewUUID();
@@ -26,6 +27,13 @@ namespace Plaza {
 
 		void AddInstance(Shader& shader, glm::mat4 model) {
 			instanceModelMatrices.push_back(model);
+		}
+
+		void AddCascadeInstance(glm::mat4 model, unsigned int cascadeIndex) {
+			if (cascadeIndex >= mCascadeInstances.size()) {
+				mCascadeInstances.resize(cascadeIndex + 1);
+			}
+			mCascadeInstances[cascadeIndex].push_back(model);
 		}
 
 		void ChangeMaterial(Material* newMaterial);

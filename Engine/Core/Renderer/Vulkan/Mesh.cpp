@@ -121,6 +121,8 @@ namespace Plaza {
 		convertedVertices.reserve(vertices.size());
 
 		for (unsigned int i = 0; i < vertices.size(); i++) {
+			CalculateVertexInBoundingBox(vertices[i]);
+
 			convertedVertices.push_back(Vertex{
 				vertices[i],
 				(normals.size() > i) ? normals[i] : glm::vec3(0.0f),
@@ -136,6 +138,6 @@ namespace Plaza {
 	}
 
 	void VulkanMesh::Restart() {
-
+		
 	}
 }

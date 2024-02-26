@@ -23,9 +23,15 @@ namespace Plaza {
 		Vertex(){}
 	};
 
+	struct BoundingBox {
+		glm::vec4 maxVector = glm::vec4(0.01f, 0.01f, 0.01f, 1.0f);
+		glm::vec4 minVector = glm::vec4(-0.01f, -0.01f, -0.01f, 1.0f);
+	};
+
 	class Mesh {
 	public:
 		RendererAPI api;
+		BoundingBox mBoundingBox{};
 
 		MeshType meshType = MeshType::Triangle;
 		bool temporaryMesh = false;
@@ -56,6 +62,34 @@ namespace Plaza {
 
 		void AddInstance(glm::mat4 model) {
 			instanceModelMatrices.push_back(model);
+		}
+
+		void CalculateBoundingBox() {
+			for (glm::vec3 vertex : this->vertices) {
+				CalculateVertexInBoundingBox(vertex);
+			}
+		}
+
+		void CalculateVertexInBoundingBox(glm::vec3 vertex) {
+			if (vertex.x > mBoundingBox.maxVector.x) {
+				mBoundingBox.maxVector.x = vertex.x;
+			}
+			if (vertex.y > mBoundingBox.maxVector.y) {
+				mBoundingBox.maxVector.y = vertex.y;
+			}
+			if (vertex.z > mBoundingBox.maxVector.z) {
+				mBoundingBox.maxVector.z = vertex.z;
+			}
+
+			if (vertex.x < mBoundingBox.minVector.x) {
+				mBoundingBox.minVector.x = vertex.x;
+			}
+			if (vertex.y < mBoundingBox.minVector.y) {
+				mBoundingBox.minVector.y = vertex.y;
+			}
+			if (vertex.z < mBoundingBox.minVector.z) {
+				mBoundingBox.minVector.z = vertex.z;
+			}
 		}
 	};
 }

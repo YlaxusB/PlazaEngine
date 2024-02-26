@@ -193,7 +193,7 @@ namespace Plaza {
 
 
 			//   Overlay::beginTransformOverlay(*Application->activeCamera);
-			//       fpsCounter->Update();
+			       fpsCounter->Update();
 			 // Update the sizes after resizing
 
 			//Gui::UpdateSizes();

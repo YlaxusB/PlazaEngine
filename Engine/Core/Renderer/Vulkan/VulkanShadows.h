@@ -14,7 +14,7 @@ namespace Plaza {
 		VulkanShadows::PushConstants pushConstants{};
 
 		struct Cascade {
-			VkDescriptorSet mDescriptorSet;
+			std::vector<VkDescriptorSet> mDescriptorSets = std::vector<VkDescriptorSet>();
 			VkImageView mImageView;
 			VkFramebuffer mFramebuffer;
 		};
@@ -49,9 +49,9 @@ namespace Plaza {
 
 		unsigned int shadowBufferCount = 5;
 		VulkanShaders* mShadowsShader = nullptr;;
-		VkBuffer mUniformBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory mUniformBufferMemory = VK_NULL_HANDLE;
-		void* mUniformBufferMapped = VK_NULL_HANDLE;
+		std::vector<VkBuffer> mUniformBuffers = std::vector<VkBuffer>();
+		std::vector<VkDeviceMemory> mUniformBuffersMemory = std::vector<VkDeviceMemory>();
+		std::vector<void*> mUniformBuffersMapped = std::vector<void*>();
 
 		VkRenderPass mRenderPass = VK_NULL_HANDLE;
 		VkSampler mShadowsSampler = VK_NULL_HANDLE;
@@ -59,13 +59,13 @@ namespace Plaza {
 		std::vector<VkImageView> mShadowDepthImageViews = std::vector<VkImageView>();
 		VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
 
-		VkDescriptorSet mDescriptorSet = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSet> mDescriptorSets = std::vector<VkDescriptorSet>();
 		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
 		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
 		void Init() override;
 		void RenderToShadowMap() override;
 		void Terminate() override;
-		void UpdateUniformBuffer();
+		void UpdateUniformBuffer(unsigned int frameIndex);
 
 		void InitializeBuffers(VulkanRenderer& renderer);
 		void InitializeRenderPass(VulkanRenderer& renderer);

@@ -28,7 +28,7 @@ namespace Plaza::Editor {
 			meshRenderer->renderGroup = std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);
 			Application->activeScene->AddRenderGroup(meshRenderer->renderGroup);
 		}
-				
+
 				*/
 				for (auto [key, value] : Application->activeScene->materials) {
 					try {
@@ -103,7 +103,15 @@ namespace Plaza::Editor {
 					ImGui::Checkbox("Cast Shadows", &entity->GetComponent<MeshRenderer>()->castShadows);
 					ImGui::DragFloat("Intensity", &entity->GetComponent<MeshRenderer>()->material->intensity);
 
+					ImGui::Text("Max Vector: ");
+					ImGui::Text("X: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.maxVector.x).c_str());
+					ImGui::Text("Y: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.maxVector.y).c_str());
+					ImGui::Text("Z: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.maxVector.z).c_str());
 
+					ImGui::Text("Min Vector: ");
+					ImGui::Text("X: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.minVector.x).c_str());
+					ImGui::Text("Y: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.minVector.y).c_str());
+					ImGui::Text("Z: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.minVector.z).c_str());
 
 					if (ImGui::Button("New Material")) {
 						uint64_t renderGroupUuid = Plaza::UUID::NewUUID();

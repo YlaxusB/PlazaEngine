@@ -63,43 +63,47 @@ namespace Plaza {
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &mDescriptorSetLayout;
 
-		if (vkAllocateDescriptorSets(device, &allocInfo, &this->mDescriptorSet) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate descriptor sets!");
-		}
+		mDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
+		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+			if (vkAllocateDescriptorSets(device, &allocInfo, &this->mDescriptorSets[i]) != VK_SUCCESS) {
+				throw std::runtime_error("failed to allocate descriptor sets!");
+			}
 
-		VkDescriptorBufferInfo bufferInfo{};
-		bufferInfo.buffer = mUniformBuffer;
-		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(ShadowsUniformBuffer);
+			VkDescriptorBufferInfo bufferInfo{};
+			bufferInfo.buffer = mUniformBuffers[i];
+			bufferInfo.offset = 0;
+			bufferInfo.range = sizeof(ShadowsUniformBuffer);
 
-		std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
+			std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
 
-		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrites[0].dstSet = this->mDescriptorSet;
-		descriptorWrites[0].dstBinding = 0;
-		descriptorWrites[0].dstArrayElement = 0;
-		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrites[0].descriptorCount = 1;
-		descriptorWrites[0].pBufferInfo = &bufferInfo;
+			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[0].dstSet = this->mDescriptorSets[i];
+			descriptorWrites[0].dstBinding = 0;
+			descriptorWrites[0].dstArrayElement = 0;
+			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			descriptorWrites[0].descriptorCount = 1;
+			descriptorWrites[0].pBufferInfo = &bufferInfo;
 
-		vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+			vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 
-		for (uint32_t i = 0; i < mCascades.size(); i++) {
-			vkAllocateDescriptorSets(device, &allocInfo, &this->mCascades[i].mDescriptorSet);
-			VkDescriptorImageInfo cascadeImageInfo{};
-			cascadeImageInfo.sampler = this->mShadowsSampler;
-			cascadeImageInfo.imageView = this->mShadowDepthImageViews[0];
-			cascadeImageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+			for (uint32_t j = 0; j < mCascades.size(); ++j) {
+				this->mCascades[j].mDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
+				vkAllocateDescriptorSets(device, &allocInfo, &this->mCascades[j].mDescriptorSets[i]);
+				VkDescriptorImageInfo cascadeImageInfo{};
+				cascadeImageInfo.sampler = this->mShadowsSampler;
+				cascadeImageInfo.imageView = this->mShadowDepthImageViews[0];
+				cascadeImageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
-			std::array<VkWriteDescriptorSet, 1> writeDescriptorSets{};
-			writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			writeDescriptorSets[0].dstSet = this->mCascades[i].mDescriptorSet;
-			writeDescriptorSets[0].dstBinding = 0;
-			writeDescriptorSets[0].dstArrayElement = 0;
-			writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			writeDescriptorSets[0].descriptorCount = 1;
-			writeDescriptorSets[0].pBufferInfo = &bufferInfo;
-			vkUpdateDescriptorSets(device, static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, NULL);
+				std::array<VkWriteDescriptorSet, 1> writeDescriptorSets{};
+				writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				writeDescriptorSets[0].dstSet = this->mCascades[j].mDescriptorSets[i];
+				writeDescriptorSets[0].dstBinding = 0;
+				writeDescriptorSets[0].dstArrayElement = 0;
+				writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				writeDescriptorSets[0].descriptorCount = 1;
+				writeDescriptorSets[0].pBufferInfo = &bufferInfo;
+				vkUpdateDescriptorSets(device, static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, NULL);
+			}
 		}
 
 		// Debug Pass
@@ -374,7 +378,7 @@ namespace Plaza {
 		//subpass.pColorAttachments = &colorAttachmentRef;
 		subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
-		std::array<VkSubpassDependency, 1> dependencies;
+		std::array<VkSubpassDependency, 2> dependencies;
 
 		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependencies[0].dstSubpass = 0;
@@ -383,6 +387,14 @@ namespace Plaza {
 		dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 		dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+		dependencies[1].srcSubpass = 0;
+		dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		dependencies[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 		std::array<VkAttachmentDescription, 1> attachments = { depthAttachment };
 		VkRenderPassCreateInfo renderPassInfo{};
@@ -431,11 +443,17 @@ namespace Plaza {
 		shadowCascadeLevels = vector{ Application->activeCamera->farPlane / (9000.0f * mult), Application->activeCamera->farPlane / (3000.0f * mult), Application->activeCamera->farPlane / (1000.0f * mult), Application->activeCamera->farPlane / (500.0f * mult), Application->activeCamera->farPlane / (100.0f * mult), Application->activeCamera->farPlane / (35.0f * mult),Application->activeCamera->farPlane / (10.0f * mult), Application->activeCamera->farPlane / (2.0f * mult), Application->activeCamera->farPlane / (1.0f * mult) };
 
 		int bufferSize = sizeof(ShadowsUniformBuffer);
-		VulkanRenderer::GetRenderer()->CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffer, mUniformBufferMemory);
-		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mUniformBufferMemory, 0, bufferSize, 0, &mUniformBufferMapped);
+
+		mUniformBuffers.resize(Application->mRenderer->mMaxFramesInFlight);
+		mUniformBuffersMemory.resize(Application->mRenderer->mMaxFramesInFlight);
+		mUniformBuffersMapped.resize(Application->mRenderer->mMaxFramesInFlight);
+		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+			VulkanRenderer::GetRenderer()->CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffers[i], mUniformBuffersMemory[i]);
+			vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mUniformBuffersMemory[i], 0, bufferSize, 0, &mUniformBuffersMapped[i]);
+		}
 
 		this->InitializeRenderPass(*VulkanRenderer::GetRenderer());
-		this->InitializeBuffers(*VulkanRenderer::GetRenderer()); 
+		this->InitializeBuffers(*VulkanRenderer::GetRenderer());
 
 
 		this->CreateDescriptorPool(VulkanRenderer::GetRenderer()->mDevice);
@@ -464,7 +482,8 @@ namespace Plaza {
 	}
 
 	void VulkanShadows::RenderToShadowMap() {
-		UpdateUniformBuffer();
+		UpdateUniformBuffer(0);
+		UpdateUniformBuffer(1);
 	}
 
 	void VulkanShadows::Terminate() {
@@ -485,16 +504,6 @@ namespace Plaza {
 			center += glm::vec3(v);
 		}
 		center /= corners.size();
-
-		float radius = 0.0f;
-		for (uint32_t i = 0; i < 8; i++) {
-			float distance = glm::length(corners[i] - glm::vec4(center, 1.0f));
-			radius = glm::max(radius, distance);
-		}
-		radius = std::ceil(radius * 8.0f) / 8.0f;
-
-		glm::vec3 maxExtents = glm::vec3(radius);
-		glm::vec3 minExtents = -maxExtents;
 
 		const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::min());
 		glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
@@ -558,14 +567,14 @@ namespace Plaza {
 		return ret;
 	}
 
-	void VulkanShadows::UpdateUniformBuffer() {
+	void VulkanShadows::UpdateUniformBuffer(unsigned int frameIndex) {
 		//memcpy(&this->mUbo, GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo).data(), sizeof(this->mUbo));//this->mUbo.lightSpaceMatrices = GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo).data();
 		std::vector<glm::mat4> mats = GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo);
 		for (int i = 0; i < 9; ++i) {
 			this->mUbo.lightSpaceMatrices[i] = mats[i];
 		}
 
-		memcpy(mUniformBufferMapped, &this->mUbo, sizeof(this->mUbo));
+		memcpy(mUniformBuffersMapped[frameIndex], &this->mUbo, sizeof(this->mUbo));
 	}
 
 	void VulkanShadows::UpdateAndPushConstants(VkCommandBuffer commandBuffer, unsigned int cascadeIndex) {

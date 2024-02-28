@@ -837,6 +837,157 @@ namespace Plaza {
 		return commandBuffer;
 	}
 
+	bool isModelInsideOrthographicProjection(const std::vector<glm::vec4>& modelVertices, const glm::mat4& orthoProjectionMatrix) {
+		for (const glm::vec4& vertex : modelVertices) {
+			// Transform the vertex to clip space using the orthographic projection matrix
+			glm::vec4 clipSpacePos = orthoProjectionMatrix * vertex;
+
+			// Check if the transformed vertex is within the [-1, 1] range in all dimensions
+			if (clipSpacePos.x < -1.0f || clipSpacePos.x > 1.0f ||
+				clipSpacePos.y < -1.0f || clipSpacePos.y > 1.0f ||
+				clipSpacePos.z < -1.0f || clipSpacePos.z > 1.0f) {
+				return false; // The model is partially or completely outside the orthographic projection
+			}
+		}
+
+		return true; // All vertices are inside the orthographic projection
+	}
+
+	bool isModelInsideFrustum(const glm::mat4& viewProjectionMatrix, const glm::vec4& minExtents, const glm::vec4& maxExtents, const glm::mat4& modelMatrix) {
+		// Transform model extents
+		glm::vec4 transformedMin = modelMatrix * minExtents;
+		glm::vec4 transformedMax = modelMatrix * maxExtents;
+
+		// Check against each frustum plane
+		for (int i = 0; i < 6; ++i) {
+			glm::vec4 frustumPlane = viewProjectionMatrix[i];
+
+			// Check if both extents are on the positive side of the plane
+			if (glm::dot(transformedMin, frustumPlane) > 0 && glm::dot(transformedMax, frustumPlane) > 0) {
+				// The model is potentially inside the frustum
+				continue;
+			}
+			else {
+				// The model is outside the frustum
+				return false;
+			}
+		}
+
+		// If the model is on the positive side of all planes, it's inside the frustum
+		return true;
+	}
+
+	bool isModelOutsideOrthographicProjection(glm::vec4 max, glm::vec4 min) {
+		bool isMaxOutside =
+			(max.x < -1.0f || max.x > 1.0f ||
+				max.y < -1.0f || max.y > 1.0f ||
+				max.z < -1.0f || max.z > 1.0f);
+
+		bool isMinOutside =
+			(min.x < -1.0f || min.x > 1.0f ||
+				min.y < -1.0f || min.y > 1.0f ||
+				min.z < -1.0f || min.z > 1.0f);
+		return isMaxOutside && isMinOutside;
+	}
+
+	struct Plane
+	{
+		glm::vec3 normal = { 0.f, 1.f, 0.f }; // unit vector
+		float     distance = 0.f;        // Distance with origin
+
+		Plane() = default;
+
+		Plane(const glm::vec3& p1, const glm::vec3& norm)
+			: normal(glm::normalize(norm)),
+			distance(glm::dot(normal, p1))
+		{}
+
+		float getSignedDistanceToPlane(const glm::vec3& point) const
+		{
+			return glm::dot(normal, point) - distance;
+		}
+
+		Plane(const glm::vec3& norm, float dist)
+			: normal(norm),
+			distance(dist)
+		{}
+	};
+	bool isOnOrForwardPlane(const Plane& plane, glm::vec3 extents, glm::vec3 center)
+	{
+		// Compute the projection interval radius of b onto L(t) = b.c + t * p.n
+		const float r = extents.x * std::abs(plane.normal.x) +
+			extents.y * std::abs(plane.normal.y) + extents.z * std::abs(plane.normal.z);
+
+		return -r <= plane.getSignedDistanceToPlane(center);
+	}
+
+	struct Frustum
+	{
+		Plane topFace;
+		Plane bottomFace;
+
+		Plane rightFace;
+		Plane leftFace;
+
+		Plane farFace;
+		Plane nearFace;
+	};
+
+	Frustum createFrustumFromCamera(const Camera& cam, float aspect, float fovY, float zNear, float zFar)
+	{
+		Frustum     frustum{};
+		const float halfVSide = zFar * tanf(fovY * .5f);
+		const float halfHSide = halfVSide * aspect;
+		const glm::vec3 frontMultFar = zFar * cam.Front;
+
+		frustum.nearFace = { cam.Position + zNear * cam.Front, cam.Front };
+		frustum.farFace = { cam.Position + frontMultFar, -cam.Front };
+		frustum.rightFace = { cam.Position, glm::cross(frontMultFar - cam.Right * halfHSide, cam.Up) };
+		frustum.leftFace = { cam.Position, glm::cross(cam.Up, frontMultFar + cam.Right * halfHSide) };
+		frustum.topFace = { cam.Position, glm::cross(cam.Right, frontMultFar - cam.Up * halfVSide) };
+		frustum.bottomFace = { cam.Position, glm::cross(frontMultFar + cam.Up * halfVSide, cam.Right) };
+		return frustum;
+	}
+
+	bool isOnFrustum(const Transform& transform, BoundingBox boundingBox)
+	{
+		glm::vec3 center = (boundingBox.maxVector + boundingBox.minVector) * 0.5f;
+		glm::vec3 extents = { boundingBox.maxVector.x - center.x, boundingBox.maxVector.y - center.y, boundingBox.maxVector.z - center.z };
+		//Get global scale thanks to our transform
+		const glm::vec3 globalCenter{ transform.modelMatrix * glm::vec4(center, 1.f) };
+
+		// Scaled orientation
+		glm::mat4 matrix = transform.modelMatrix;
+		const glm::vec3 right = transform.modelMatrix[0] * extents.x;
+		const glm::vec3 up = transform.modelMatrix[1] * extents.y;
+		const glm::vec3 forward = -transform.modelMatrix[2] * extents.z;
+
+		const float newIi = std::abs(glm::dot(glm::vec3{ 1.f, 0.f, 0.f }, right)) +
+			std::abs(glm::dot(glm::vec3{ 1.f, 0.f, 0.f }, up)) +
+			std::abs(glm::dot(glm::vec3{ 1.f, 0.f, 0.f }, forward));
+
+		const float newIj = std::abs(glm::dot(glm::vec3{ 0.f, 1.f, 0.f }, right)) +
+			std::abs(glm::dot(glm::vec3{ 0.f, 1.f, 0.f }, up)) +
+			std::abs(glm::dot(glm::vec3{ 0.f, 1.f, 0.f }, forward));
+
+		const float newIk = std::abs(glm::dot(glm::vec3{ 0.f, 0.f, 1.f }, right)) +
+			std::abs(glm::dot(glm::vec3{ 0.f, 0.f, 1.f }, up)) +
+			std::abs(glm::dot(glm::vec3{ 0.f, 0.f, 1.f }, forward));
+
+		//We not need to divise scale because it's based on the half extention of the AABB
+
+		//Frustum camFrustum(Application->activeCamera->GetProjectionMatrix() * Application->activeCamera->GetViewMatrix());
+		Frustum camFrustum = createFrustumFromCamera(*Application->activeCamera, Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y, glm::radians(Application->activeCamera->Zoom), Application->activeCamera->nearPlane, Application->activeCamera->farPlane);
+
+		return
+			(isOnOrForwardPlane(camFrustum.leftFace, extents, glm::vec3(newIi, newIj, newIk)) &&
+				isOnOrForwardPlane(camFrustum.rightFace, extents, glm::vec3(newIi, newIj, newIk)) &&
+				isOnOrForwardPlane(camFrustum.topFace, extents, glm::vec3(newIi, newIj, newIk)) &&
+				isOnOrForwardPlane(camFrustum.bottomFace, extents, glm::vec3(newIi, newIj, newIk)) &&
+				isOnOrForwardPlane(camFrustum.nearFace, extents, glm::vec3(newIi, newIj, newIk)) &&
+				isOnOrForwardPlane(camFrustum.farFace, extents, glm::vec3(newIi, newIj, newIk)));
+	};
+
 	void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
 		PLAZA_PROFILE_SECTION("Record Command Buffer");
 		VkCommandBufferBeginInfo beginInfo{};
@@ -891,18 +1042,37 @@ namespace Plaza {
 				auto transformIt = Application->activeScene->transformComponents.find(key);
 				if (transformIt != Application->activeScene->transformComponents.end()) {
 					const Transform& transform = transformIt->second;
-					value.renderGroup->AddInstance(*Application->shader, transform.modelMatrix);
+					//const glm::mat4 projectionMatrix = Application->activeCamera->GetProjectionMatrix() * Application->activeCamera->GetViewMatrix();
+					//if (isModelInsideFrustum(projectionMatrix, value.renderGroup.get()->mesh->mBoundingBox.minVector, value.renderGroup.get()->mesh->mBoundingBox.maxVector, transform.modelMatrix))
+				//	if (isOnFrustum(transform, value.renderGroup->mesh->mBoundingBox))
+						value.renderGroup->AddInstance(*Application->shader, transform.modelMatrix);
 
+					bool continueLoop = true;
 					for (unsigned int i = 0; i < this->mShadows->mCascadeCount; ++i) {
+						value.renderGroup->AddCascadeInstance(transform.modelMatrix, i);
 
-						const glm::mat4 orthoProjectionMatrix = this->mShadows->mUbo.lightSpaceMatrices[i];
-						const glm::vec4 maxClip = transform.modelMatrix * orthoProjectionMatrix * glm::vec4(glm::vec3(transform.modelMatrix * value.renderGroup.get()->mesh->mBoundingBox.maxVector), 1.0f);
-						const glm::vec4 minClip = transform.modelMatrix * orthoProjectionMatrix * glm::vec4(glm::vec3(transform.modelMatrix * value.renderGroup.get()->mesh->mBoundingBox.minVector), 1.0f);
-						const bool isInsideCascade = glm::all(glm::greaterThanEqual(minClip, glm::vec4(-1.0f))) || glm::all(glm::lessThanEqual(maxClip, glm::vec4(1.0f)));
-
-						if (isInsideCascade) {
-							value.renderGroup->AddCascadeInstance(transform.modelMatrix, i);
-						}
+						//const glm::vec4 maxClip = orthoProjectionMatrix * glm::vec4(glm::vec3(transform.modelMatrix * value.renderGroup.get()->mesh->mBoundingBox.maxVector), 1.0f);
+						//const glm::vec4 minClip = orthoProjectionMatrix * glm::vec4(glm::vec3(transform.modelMatrix * value.renderGroup.get()->mesh->mBoundingBox.minVector), 1.0f);
+						//const bool isPartiallyInsideCascade = !(glm::any(glm::lessThan(minClip, glm::vec4(-1.0f))) || glm::any(glm::greaterThan(maxClip, glm::vec4(1.0f))));
+						//
+						//glm::vec4 transformedMin = transform.modelMatrix * value.renderGroup.get()->mesh->mBoundingBox.maxVector;
+						//glm::vec4 transformedMax = transform.modelMatrix * value.renderGroup.get()->mesh->mBoundingBox.minVector;
+						//glm::vec4 projectedMin = orthoProjectionMatrix * transformedMin;
+						//glm::vec4 projectedMax = orthoProjectionMatrix * transformedMax;
+						//bool partiallyInside = !(projectedMax.x < -1 || projectedMin.x > 1 ||
+						//	projectedMax.y < -1 || projectedMin.y > 1 ||
+						//	projectedMax.z < -1 || projectedMin.z > 1);
+						//
+						//if (partiallyInside) {
+						//	const bool isFullyInsideCascade = glm::all(glm::greaterThanEqual(minClip, glm::vec4(-1.0f))) || glm::all(glm::lessThanEqual(maxClip, glm::vec4(1.0f)));
+						//	value.renderGroup->AddCascadeInstance(transform.modelMatrix, i);
+						//
+						//	bool fullyInside = (projectedMin.x > -1 && projectedMax.x < 1 &&
+						//		projectedMin.y > -1 && projectedMax.y < 1 &&
+						//		projectedMin.z > -1 && projectedMax.z < 1);
+						//	if (fullyInside)
+						//		break;
+						//}
 					}
 				}
 				//value.renderGroup.get()->instanceModelMatrices.push_back(Application->activeScene->transformComponents.at(key).GetTransform());
@@ -918,7 +1088,7 @@ namespace Plaza {
 				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipeline);
 
 				this->mShadows->UpdateAndPushConstants(commandBuffer, i);
-				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[i].mDescriptorSet, 0, nullptr);
+				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[i].mDescriptorSets[mCurrentFrame], 0, nullptr);
 
 				for (const auto& [key, value] : Application->activeScene->renderGroups) {
 					this->DrawRenderGroupShadowDepthMapInstanced(value.get(), i);
@@ -949,8 +1119,14 @@ namespace Plaza {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
 		{
 			PLAZA_PROFILE_SECTION("Draw Instances");
+			std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
+			descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 			for (const auto& [key, value] : Application->activeScene->renderGroups) {
-				this->DrawRenderGroupInstanced(value.get());
+				if (value->instanceModelMatrices.size() > 0)
+				{
+					this->DrawRenderGroupInstanced(value.get());
+				}
 				value->mCascadeInstances.clear();
 			}
 		}
@@ -1695,11 +1871,15 @@ namespace Plaza {
 	void VulkanRenderer::RenderInstances(Shader& shader)
 	{
 		PLAZA_PROFILE_SECTION("Render Instances");
-		mCurrentFrame = 0;
+		//mCurrentFrame = 0;
 
 		{
 			PLAZA_PROFILE_SECTION("Wait Fences");
 			vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+			{
+				PLAZA_PROFILE_SECTION("VkDeviceWaitIdle");
+				//vkDeviceWaitIdle(mDevice);
+			}
 		}
 
 
@@ -1722,7 +1902,7 @@ namespace Plaza {
 
 		{
 			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
-			this->mShadows->UpdateUniformBuffer();
+			this->mShadows->UpdateUniformBuffer(mCurrentFrame);
 			UpdateUniformBuffer(mCurrentFrame);
 		}
 
@@ -1742,7 +1922,7 @@ namespace Plaza {
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
 		VkSemaphore waitSemaphores[] = { mImageAvailableSemaphores[mCurrentFrame] };
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT };
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
@@ -1784,7 +1964,7 @@ namespace Plaza {
 			throw std::runtime_error("failed to present swap chain image!");
 		}
 
-		mCurrentFrame = 0;//(mCurrentFrame + 1) % mMaxFramesInFlight;
+		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
 	}
 	void VulkanRenderer::RenderBloom()
 	{
@@ -2018,25 +2198,12 @@ namespace Plaza {
 		memcpy(data, renderGroup->mCascadeInstances[cascadeIndex].data(), static_cast<size_t>(bufferInfo.size));
 		vkUnmapMemory(this->mDevice, mesh->mInstanceBufferMemory);
 
-		VkDeviceSize offsets[] = { 0 };
+		VkDeviceSize offsets[] = { 0, 0 };
 		VkCommandBuffer activeCommandBuffer = *this->mActiveCommandBuffer;
-
-		std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
-		descriptorSets.push_back(this->mShadows->mDescriptorSet);
-		//VkDescriptorSet descriptorSets[] = { GetVulkanRenderer().mDescriptorSets[GetVulkanRenderer().mCurrentFrame]  };
-		int descriptorCount = 1;
-
-		VulkanRenderer::PushConstants pushData;
-		if (renderGroup->material->diffuse->mIndexHandle < 0) {
-			pushData.color = renderGroup->material->diffuse->rgba;
-		}
-		else
-			pushData.diffuseIndex = renderGroup->material->diffuse->mIndexHandle;
 
 		//vkCmdPushConstants(*this->mActiveCommandBuffer, this->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
 		vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
-		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 1, &mesh->mVertexBuffer, offsets);
-		vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
+		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, verticesBuffer.data(), offsets);
 		vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->mCascadeInstances[cascadeIndex].size(), 0, 0, 0);
 	}
@@ -2060,11 +2227,6 @@ namespace Plaza {
 		VkDeviceSize offsets[] = { 0, 0 };
 		VkCommandBuffer activeCommandBuffer = *this->mActiveCommandBuffer;
 
-		std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
-		descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
-		//VkDescriptorSet descriptorSets[] = { GetVulkanRenderer().mDescriptorSets[GetVulkanRenderer().mCurrentFrame]  };
-		int descriptorCount = 1;
-
 		VulkanRenderer::PushConstants pushData;
 		if (renderGroup->material->diffuse->mIndexHandle < 0) {
 			pushData.color = renderGroup->material->diffuse->rgba;
@@ -2075,8 +2237,6 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("PushConstants and Descriptor sets");
 			vkCmdPushConstants(*this->mActiveCommandBuffer, this->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
-
-			vkCmdBindDescriptorSets(activeCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorCount, descriptorSets.data(), 0, nullptr);
 		}
 
 		{

@@ -367,6 +367,9 @@ void ApplicationClass::UpdateEngine() {
 
 	if (Application->mRenderer->api == RendererAPI::Vulkan)
 		Gui::Update();
+
+	Time::drawCalls = 0;
+	Time::addInstanceCalls = 0;
 	Application->mRenderer->RenderInstances(*Application->shader);
 
 	if (Application->mRenderer->api == RendererAPI::OpenGL)
@@ -478,8 +481,7 @@ void ApplicationClass::UpdateEngine() {
 	// Update last frame
 
 	Time::lastFrame = currentFrame;
-	Time::drawCalls = 0;
-	Time::addInstanceCalls = 0;
+	//Time::addInstanceCalls = 0;
 	// Update lastSizes
 	Application->lastAppSizes = Application->appSizes;
 	//FrameMark;

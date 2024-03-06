@@ -11,14 +11,32 @@ const float ZOOM = 60.0f;
 #include "Engine/Components/Core/Transform.h"
 
 namespace Plaza {
+	struct Plane
+	{
+		glm::vec3 normal = { 0.f, 1.f, 0.f }; // unit vector
+		float     distance = 0.f;        // Distance with origin
+
+		Plane() = default;
+
+		Plane(const glm::vec3& p1, const glm::vec3& norm)
+			: normal(glm::normalize(norm)),
+			distance(glm::dot(normal, p1))
+		{}
+
+		float getSignedDistanceToPlane(const glm::vec3& point) const
+		{
+			return glm::dot(normal, point) - distance;
+		}
+	};
 	struct ViewFrustum {
-		glm::mat4 viewProjectionMatrix;
-		glm::vec4 leftPlane;
-		glm::vec4 rightPlane;
-		glm::vec4 bottomPlane;
-		glm::vec4 topPlane;
-		glm::vec4 nearPlaneFrustum;
-		glm::vec4 farPlaneFrustum;
+		Plane topFace;
+		Plane bottomFace;
+
+		Plane rightFace;
+		Plane leftFace;
+
+		Plane farFace;
+		Plane nearFace;
 	};
 	class Camera : public Component {
 	public:

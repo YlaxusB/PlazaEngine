@@ -18,6 +18,11 @@ namespace Plaza {
 
 	class VulkanRenderer : public Renderer {
 	public:
+		VkSemaphore semaphore;
+
+
+
+
 		struct PushConstants {
 			glm::vec4 color = glm::vec4(1.0f);
 			float intensity = 1.0f;

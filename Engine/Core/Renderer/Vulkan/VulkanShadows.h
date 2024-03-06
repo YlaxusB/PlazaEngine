@@ -22,7 +22,7 @@ namespace Plaza {
 		struct ShadowsUniformBuffer {
 			glm::mat4 lightSpaceMatrices[32];
 		};
-		ShadowsUniformBuffer mUbo;
+		std::vector<ShadowsUniformBuffer> mUbo = std::vector<ShadowsUniformBuffer>();
 
 		struct ShadowDepthBuffer {
 			VulkanTexture texture;
@@ -57,7 +57,7 @@ namespace Plaza {
 		VkSampler mShadowsSampler = VK_NULL_HANDLE;
 		VkImage mShadowDepthImage = VK_NULL_HANDLE;
 		std::vector<VkImageView> mShadowDepthImageViews = std::vector<VkImageView>();
-		VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
+		std::vector<VkFramebuffer> mFramebuffers = std::vector<VkFramebuffer>();
 
 		std::vector<VkDescriptorSet> mDescriptorSets = std::vector<VkDescriptorSet>();
 		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
@@ -73,8 +73,8 @@ namespace Plaza {
 		void CreateDescriptorSetLayout(VkDevice device);
 		void CreateDescriptorSet(VkDevice device);
 		void UpdateAndPushConstants(VkCommandBuffer commandBuffer, unsigned int cascadeIndex);
+		std::vector<glm::mat4> GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels, VulkanShadows::ShadowsUniformBuffer& ubo);
 	private:
 		glm::mat4 GetLightSpaceMatrix(const float nearPlane, const float farPlane);
-		std::vector<glm::mat4> GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels, VulkanShadows::ShadowsUniformBuffer& ubo);
 	};
 }

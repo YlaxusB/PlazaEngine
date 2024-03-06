@@ -24,8 +24,8 @@ namespace Plaza {
 	};
 
 	struct BoundingBox {
-		glm::vec4 maxVector = glm::vec4(0.01f, 0.01f, 0.01f, 1.0f);
-		glm::vec4 minVector = glm::vec4(-0.01f, -0.01f, -0.01f, 1.0f);
+		glm::vec4 maxVector = glm::vec4(glm::vec3(std::numeric_limits<float>::min()), 1.0f);
+		glm::vec4 minVector = glm::vec4(glm::vec3(std::numeric_limits<float>::max()), 1.0f);
 	};
 
 	class Mesh {
@@ -71,25 +71,13 @@ namespace Plaza {
 		}
 
 		void CalculateVertexInBoundingBox(glm::vec3 vertex) {
-			if (vertex.x > mBoundingBox.maxVector.x) {
-				mBoundingBox.maxVector.x = vertex.x;
-			}
-			if (vertex.y > mBoundingBox.maxVector.y) {
-				mBoundingBox.maxVector.y = vertex.y;
-			}
-			if (vertex.z > mBoundingBox.maxVector.z) {
-				mBoundingBox.maxVector.z = vertex.z;
-			}
+			mBoundingBox.minVector.x = std::min(mBoundingBox.minVector.x, vertex.x);
+			mBoundingBox.minVector.y = std::min(mBoundingBox.minVector.y, vertex.y);
+			mBoundingBox.minVector.z = std::min(mBoundingBox.minVector.z, vertex.z);
 
-			if (vertex.x < mBoundingBox.minVector.x) {
-				mBoundingBox.minVector.x = vertex.x;
-			}
-			if (vertex.y < mBoundingBox.minVector.y) {
-				mBoundingBox.minVector.y = vertex.y;
-			}
-			if (vertex.z < mBoundingBox.minVector.z) {
-				mBoundingBox.minVector.z = vertex.z;
-			}
+			mBoundingBox.maxVector.x = std::max(mBoundingBox.maxVector.x, vertex.x);
+			mBoundingBox.maxVector.y = std::max(mBoundingBox.maxVector.y, vertex.y);
+			mBoundingBox.maxVector.z = std::max(mBoundingBox.maxVector.z, vertex.z);
 		}
 	};
 }

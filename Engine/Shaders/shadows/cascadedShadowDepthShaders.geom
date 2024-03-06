@@ -1,4 +1,5 @@
-#version 450
+#version 460
+#extension GL_EXT_multiview : enable
 
 layout(triangles, invocations = 10) in;
 layout(triangle_strip, max_vertices = 3) out;

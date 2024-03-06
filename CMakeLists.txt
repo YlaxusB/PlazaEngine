@@ -162,6 +162,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/tinyobjloader/")
 #include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Tracy/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/uuid_v4/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vswhere/")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vulkan/vulkan/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/yaml/include/yaml-cpp/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/")
 

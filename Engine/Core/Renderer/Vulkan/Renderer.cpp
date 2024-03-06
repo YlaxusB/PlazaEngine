@@ -120,6 +120,7 @@ namespace Plaza {
 		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
 		std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+		extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
 		//if (enableValidationLayers) {
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -133,7 +134,7 @@ namespace Plaza {
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pApplicationName = "Plaza Engine";
 		appInfo.pEngineName = "Plaza Engine";
-		appInfo.apiVersion = VK_API_VERSION_1_0;
+		appInfo.apiVersion = VK_API_VERSION_1_2;
 
 		VkInstanceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -243,14 +244,24 @@ namespace Plaza {
 		VkPhysicalDeviceFeatures2 physicalFeatures2 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
 		physicalFeatures2.features.samplerAnisotropy = VK_TRUE;
 		physicalFeatures2.features.multiViewport = VK_TRUE;
+
+		VkPhysicalDeviceVulkan11Features vulkan11features{};
+		vulkan11features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+		vulkan11features.multiview = VK_TRUE;
+		vulkan11features.pNext = physicalFeatures2.pNext;
+		physicalFeatures2.pNext = &vulkan11features;
+		VkPhysicalDeviceMultiviewFeaturesKHR multiviewFeatures = {};
+		multiviewFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR;
+		multiviewFeatures.multiview = VK_TRUE;
+		multiviewFeatures.pNext = physicalFeatures2.pNext; // Chain it with the previous structure
+		physicalFeatures2.pNext = &multiviewFeatures;
+
 		vkGetPhysicalDeviceFeatures2(mPhysicalDevice, &physicalFeatures2);
 
 		/* Check Bindless textures */
 		VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT, nullptr };
 		VkPhysicalDeviceFeatures2 deviceFeatures2{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, &indexingFeatures };
 
-		VkPhysicalDeviceVulkan11Features vulkan11Features{};
-		vulkan11Features.multiview = VK_TRUE;
 		vkGetPhysicalDeviceFeatures2(mPhysicalDevice, &deviceFeatures2);
 		bool bindlessTexturesSupported = indexingFeatures.descriptorBindingPartiallyBound && indexingFeatures.runtimeDescriptorArray;
 
@@ -258,6 +269,10 @@ namespace Plaza {
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
+
+
+
+		//createInfo.pNext = &vulkan11Features;
 		//createInfo.pEnabledFeatures = &deviceFeatures;
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
 		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
@@ -1686,8 +1701,6 @@ namespace Plaza {
 		PickPhysicalDevice();
 		CreateLogicalDevice();
 		InitSwapChain();
-
-
 
 		CreateCommandPool();
 		this->mShadows->Init();

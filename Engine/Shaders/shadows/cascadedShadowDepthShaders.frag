@@ -1,4 +1,5 @@
 #version 460 
+#extension GL_EXT_multiview : enable
 layout (location = 0) in vec2 inUV;
 
 layout(push_constant) uniform PushConstants {

@@ -417,10 +417,13 @@ namespace Plaza {
 		renderPassInfo.dependencyCount = dependencies.size();
 		renderPassInfo.pDependencies = dependencies.data();
 
-		std::vector<uint32_t> viewMask(this->mCascadeCount, 0);
+		std::vector<uint32_t> viewMasks(this->mCascadeCount, 0);
 		for (int i = 0; i < this->mCascadeCount; ++i) {
-			viewMask[i] = static_cast<uint32_t>(std::bitset<8>(this->mCascadeCount - i+1).to_ullong());
+			viewMasks[i] = 0;
 		}
+		uint32_t viewMask = 0;
+		viewMask |= 1u << 9;
+		viewMask -= 1;
 		/*
 			Bit mask that specifies correlation between views
 			An implementation may use this for optimizations (concurrent render)
@@ -429,9 +432,12 @@ namespace Plaza {
 
 		VkRenderPassMultiviewCreateInfo renderPassMultiviewCI{};
 		renderPassMultiviewCI.sType = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO;
-		renderPassMultiviewCI.subpassCount = this->mCascadeCount;
-		renderPassMultiviewCI.pViewMasks = viewMask.data();
+		renderPassMultiviewCI.subpassCount = 1;
+		renderPassMultiviewCI.pViewMasks = &viewMask;
 		renderPassMultiviewCI.correlationMaskCount = 0;
+		//renderPassMultiviewCI.dependencyCount = this->mCascadeCount - 1;
+		std::vector<int32_t> viewOffsets(this->mCascadeCount, 0);
+		renderPassMultiviewCI.pViewOffsets = nullptr;
 		//renderPassMultiviewCI.pCorrelationMasks = &correlationMask;
 
 		renderPassInfo.pNext = &renderPassMultiviewCI;

@@ -252,7 +252,6 @@ namespace Plaza {
 		physicalFeatures2.pNext = &vulkan11features;
 		VkPhysicalDeviceMultiviewFeaturesKHR multiviewFeatures = {};
 		multiviewFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR;
-		multiviewFeatures.multiview = VK_TRUE;
 		multiviewFeatures.pNext = physicalFeatures2.pNext; // Chain it with the previous structure
 		physicalFeatures2.pNext = &multiviewFeatures;
 
@@ -934,31 +933,9 @@ namespace Plaza {
 			}
 		}
 
-
-
-		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipeline);
-		VkRenderPassMultiviewCreateInfo multiViewInfo = {};
-		multiViewInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_MULTIVIEW_CREATE_INFO;
-		uint32_t subpassCount = 9; // Adjust according to your actual subpass count
-
-		// Allocate memory for the view masks array
-		uint32_t* viewMasks = (uint32_t*)malloc(sizeof(uint32_t) * subpassCount);
-
-		// Set the view masks (assuming all bits are enabled for all subpasses)
-		for (uint32_t i = 0; i < subpassCount; ++i) {
-			viewMasks[i] = 0xFFFFFFFF; // All bits enabled
-		}
-
-		multiViewInfo.subpassCount = subpassCount;
-		multiViewInfo.pViewMasks = viewMasks;
-		multiViewInfo.dependencyCount = 0;
-		multiViewInfo.pViewOffsets = nullptr; // Use the default view offsets
-		multiViewInfo.correlationMaskCount = 0;
-		multiViewInfo.pCorrelationMasks = nullptr; // Use the default correlation masks
-		//renderPassInfo.pNext = &multiViewInfo;
-		renderPassInfo.renderPass = this->mShadows->mRenderPass;
 		{
 			PLAZA_PROFILE_SECTION("Render Shadows Depth");
+			renderPassInfo.renderPass = this->mShadows->mRenderPass;
 			renderPassInfo.framebuffer = this->mShadows->mFramebuffers[mCurrentFrame];
 			vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipeline);

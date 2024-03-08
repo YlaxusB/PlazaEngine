@@ -387,32 +387,49 @@ namespace Plaza {
 		subpass.pColorAttachments = nullptr;
 		subpass.pDepthStencilAttachment = &depthAttachmentRef;
 		std::vector<VkSubpassDescription>subpasses = std::vector<VkSubpassDescription>();
-		for (int i = 0; i < this->mCascadeCount; ++i) {
+		for (int i = 0; i < 1; ++i) {
 			subpasses.push_back(subpass);
 		}
 
-		std::vector<VkSubpassDependency> dependencies;
+		std::vector<VkSubpassDependency> dependencies = std::vector<VkSubpassDependency>();
+		dependencies.resize(2);
+		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[0].dstSubpass = 0;
+		dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+		
+		dependencies[1].srcSubpass = 0;
+		dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 		// Add dependencies for each pair of consecutive subpasses
-		for (int i = 0; i < this->mCascadeCount - 1; ++i) {
-			VkSubpassDependency dependency{};
-			dependency.srcSubpass = i;
-			dependency.dstSubpass = i + 1;
-			dependency.srcStageMask = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
-			dependency.dstStageMask = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
-			dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-			dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-			dependencies.push_back(dependency);
-		}
+		//for (int i = 0; i < 4 - 1; ++i) {
+		//	VkSubpassDependency dependency{};
+		//	dependency.srcSubpass = i;
+		//	dependency.dstSubpass = i + 1;
+		//	dependency.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		//	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		//	dependency.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		//	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		//	dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		//
+		//	dependencies.push_back(dependency);
+		//}
 
 		std::array<VkAttachmentDescription, 1> attachments = { depthAttachment };
 		VkRenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		renderPassInfo.pAttachments = attachments.data();
-		renderPassInfo.subpassCount = this->mCascadeCount;
+		renderPassInfo.subpassCount = subpasses.size();
 		renderPassInfo.pSubpasses = subpasses.data();
 		renderPassInfo.dependencyCount = dependencies.size();
 		renderPassInfo.pDependencies = dependencies.data();
@@ -422,7 +439,7 @@ namespace Plaza {
 			viewMasks[i] = 0;
 		}
 		uint32_t viewMask = 0;
-		viewMask |= 1u << 9;
+		viewMask |= 1u << this->mCascadeCount;
 		viewMask -= 1;
 		/*
 			Bit mask that specifies correlation between views
@@ -435,10 +452,10 @@ namespace Plaza {
 		renderPassMultiviewCI.subpassCount = 1;
 		renderPassMultiviewCI.pViewMasks = &viewMask;
 		renderPassMultiviewCI.correlationMaskCount = 0;
-		//renderPassMultiviewCI.dependencyCount = this->mCascadeCount - 1;
-		std::vector<int32_t> viewOffsets(this->mCascadeCount, 0);
-		renderPassMultiviewCI.pViewOffsets = nullptr;
-		//renderPassMultiviewCI.pCorrelationMasks = &correlationMask;
+		std::vector<int32_t> viewOffsets(dependencies.size(), 0);
+		renderPassMultiviewCI.pViewOffsets = viewOffsets.data();
+		//renderPassMultiviewCI.dependencyCount = dependencies.size();
+		//renderPassMultiviewCI.dep = 2;
 
 		renderPassInfo.pNext = &renderPassMultiviewCI;
 		if (vkCreateRenderPass(renderer.mDevice, &renderPassInfo, nullptr, &this->mRenderPass) != VK_SUCCESS) {

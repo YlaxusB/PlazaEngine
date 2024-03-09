@@ -63,7 +63,7 @@ namespace Plaza {
 		VkRenderPass mRenderPass;
 		static VulkanRenderer* GetRenderer();
 		RendererAPI api = RendererAPI::Vulkan;
-		VulkanShadows* mShadows = new VulkanShadows();
+		VulkanShadows* mShadows; //= new VulkanShadows();
 
 		void Init() override;
 		void InitShaders(std::string shadersFolder) override;
@@ -81,6 +81,8 @@ namespace Plaza {
 		void NewFrameGUI() override;
 		void UpdateGUI() override;
 		ImTextureID GetFrameImage() override;
+
+		VulkanShadows* GetShadows() override;
 		
 		Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal);
 		void DrawRenderGroupInstanced(RenderGroup* renderGroup);
@@ -98,7 +100,7 @@ namespace Plaza {
 
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
-		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel = 0);
 		VkCommandBuffer* mActiveCommandBuffer;
 
 		void ChangeFinalDescriptorImageView(VkImageView newImageView);

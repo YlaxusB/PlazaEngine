@@ -2,10 +2,9 @@
 #include "Engine/Core/Renderer/Shadows.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanShaders.h"
 namespace Plaza {
-	class VulkanShadows : Shadows {
+	class VulkanShadows : public Shadows {
 	public:
 		unsigned int mCascadeCount = 9;
-		glm::vec3 mLightDirection = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
 
 		struct PushConstants {
 			glm::vec4 position;
@@ -31,7 +30,6 @@ namespace Plaza {
 
 		VkFormat mDepthFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;
 
-		unsigned int mShadowResolution = 4096;
 		std::vector<ShadowDepthBuffer> shadowsBuffers = std::vector<ShadowDepthBuffer>();
 		std::vector<float> shadowCascadeLevels;
 
@@ -73,8 +71,9 @@ namespace Plaza {
 		void CreateDescriptorSetLayout(VkDevice device);
 		void CreateDescriptorSet(VkDevice device);
 		void UpdateAndPushConstants(VkCommandBuffer commandBuffer, unsigned int cascadeIndex);
-		std::vector<glm::mat4> GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels, VulkanShadows::ShadowsUniformBuffer& ubo);
-	private:
+
+
 		glm::mat4 GetLightSpaceMatrix(const float nearPlane, const float farPlane);
+		std::vector<glm::mat4> GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels, VulkanShadows::ShadowsUniformBuffer& ubo);
 	};
 }

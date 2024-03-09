@@ -41,7 +41,8 @@ namespace Plaza::Editor {
 		if (Editor::selectedGameObject) {
 			ImGui::SetCursorPosY(50);
 			ImGui::Indent(10);
-			if (Editor::selectedGameObject->uuid == Application->activeScene->mainSceneEntity->uuid) {
+			bool selectedEntityIsSceneEntity = Editor::selectedGameObject->uuid == Application->activeScene->mainSceneEntity->uuid;
+			if (selectedEntityIsSceneEntity) {
 				SceneInspector::SceneInspector(Application->activeScene);
 			}
 			else {

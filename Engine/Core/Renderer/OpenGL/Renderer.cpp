@@ -21,6 +21,9 @@ void renderFullscreenQuad() {
 
 int i = 0;
 namespace Plaza {
+	Shadows* OpenGLRenderer::GetShadows() {
+		return this->mShadows;
+	}
 	OpenGLRenderer* OpenGLRenderer::GetRenderer() {
 		return (OpenGLRenderer*)(Application->mRenderer);
 	}

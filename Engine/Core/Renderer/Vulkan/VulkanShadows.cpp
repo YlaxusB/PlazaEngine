@@ -559,8 +559,7 @@ namespace Plaza {
 		center /= corners.size();
 
 		const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::min());
-		glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
-		auto lightView = glm::lookAt(center + glm::radians(lightDir), center, glm::vec3(0.0f, 1.0f, 0.0f));
+		auto lightView = glm::lookAt(center + this->mLightDirection, center, glm::vec3(0.0f, 1.0f, 0.0f));
 		float minX = std::numeric_limits<float>::max();
 		float maxX = std::numeric_limits<float>::lowest();
 		float minY = std::numeric_limits<float>::max();

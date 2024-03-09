@@ -29,6 +29,11 @@
 #include <ThirdParty/glm/gtc/matrix_transform.hpp>
 
 namespace Plaza {
+	VulkanShadows* VulkanRenderer::GetShadows() {
+		return this->mShadows;
+	}
+
+
 #pragma region Vulkan Setup
 	const std::vector<const char*> validationLayers = {
 	"VK_LAYER_KHRONOS_validation"
@@ -1493,6 +1498,13 @@ namespace Plaza {
 			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 			destinationStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
 		else {
 			throw std::invalid_argument("unsupported layout transition!");
 		}
@@ -1509,7 +1521,7 @@ namespace Plaza {
 		EndSingleTimeCommands(commandBuffer);
 	}
 
-	void VulkanRenderer::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+	void VulkanRenderer::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel) {
 		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
 
@@ -1519,7 +1531,7 @@ namespace Plaza {
 		region.bufferImageHeight = 0;
 
 		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		region.imageSubresource.mipLevel = 0;
+		region.imageSubresource.mipLevel = mipLevel;
 		region.imageSubresource.baseArrayLayer = 0;
 		region.imageSubresource.layerCount = 1;
 
@@ -1663,6 +1675,7 @@ namespace Plaza {
 	void VulkanRenderer::Init()
 	{
 		Application->mRendererAPI = RendererAPI::Vulkan;
+		this->mShadows = new VulkanShadows();
 
 		VulkanShadersCompiler::mDefaultOutDirectory = Application->exeDirectory + "\\CompiledShaders\\";
 		VulkanShadersCompiler::mGlslcExePath = "C:\\VulkanSDK\\1.3.268.0\\Bin\\glslc.exe";

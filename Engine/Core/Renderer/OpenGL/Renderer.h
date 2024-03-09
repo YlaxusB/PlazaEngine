@@ -33,6 +33,8 @@ namespace Plaza {
 		void RenderScreenSpaceReflections() override;
 		void RenderFullScreenQuad() override;
 		void Destroy() override;
+
+		Shadows* GetShadows() override;
 		/// <summary>
 		/// Loops through the GameObjects list, if Entity haves a MeshRenderer then it draws it with its transformation
 		/// </summary>

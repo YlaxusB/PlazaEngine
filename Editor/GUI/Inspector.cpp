@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Inspector.h"
 
+#include "Editor/GUI/Inspector/MeshRendererInspector.h"
 #include "Editor/GUI/Inspector/RigidBodyInspector.h"
 #include "Editor/GUI/Inspector/SceneInspector.h"
 #include "Editor/GUI/Inspector/ColliderInspector.h"
@@ -96,7 +97,8 @@ namespace Plaza::Editor {
 			Editor::Gui::TransformInspector inspector{ Editor::selectedGameObject };
 		}
 		else if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {
-			Plaza::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
+			Plaza::Editor::MeshRendererInspector::MeshRendererInspector(Editor::selectedGameObject);
+			//Plaza::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
 		}
 		else if (Camera* camera = dynamic_cast<Camera*>(component)) {
 			Plaza::Editor::CameraInspector::CameraInspector(camera);

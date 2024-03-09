@@ -311,6 +311,7 @@ void ApplicationClass::Loop() {
 }
 
 void ApplicationClass::UpdateEngine() {
+	Plaza::Editor::selectedFiles;
 	PLAZA_PROFILE_SECTION("Update Engine");
 	// Update time
 	Time::Update();

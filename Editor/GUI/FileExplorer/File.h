@@ -23,7 +23,7 @@ namespace Plaza {
 			File() = default;
 			File(const File&) = default;
 			~File() = default;
-			void Update();
+			//void Update();
 		};
 
 		class IconTexture {

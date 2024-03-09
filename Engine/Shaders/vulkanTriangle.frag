@@ -236,7 +236,7 @@ void main() {
     float specularIntensity = 13.0f;
     //  gOthers = vec4(SpecBRDF * specularIntensity, 1.0f);
     //  gOthers.z = metallic;
-    SpecBRDF = shadow == 0 ? SpecBRDF : vec3(0);
+   SpecBRDF = all(equal(shad, vec3(0))) ? SpecBRDF : vec3(0);
     vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color.xyz * (nDotL + amb / 2);//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
 
     //FinalColor += vec3(0.13f / 255);
@@ -278,7 +278,8 @@ void main() {
     vec4 FinalLight = vec4(FinalColor, 1.0);
 
     // calculate shadow
-    FragColor = vec4(FinalLight.xyz, 1.0f);
+   FragColor = vec4(FinalLight.xyz, 1.0f);
+   //FragColor = vec4(vec3(1.0f - shadow), 1.0f);
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)

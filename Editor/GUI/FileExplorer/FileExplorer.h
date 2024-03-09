@@ -9,6 +9,7 @@ namespace Plaza {
 			static std::string currentDirectory;
 			static void Init();
 			static void UpdateGui();
+			static void DrawFile(File* file);
 			/// <summary>
 			/// Read the project directory to get the present files
 			/// </summary>

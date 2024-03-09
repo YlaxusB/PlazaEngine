@@ -425,6 +425,9 @@ namespace Plaza {
 			appSizes.hierarchySize.x = ImGui::GetWindowSize().x;
 			HierarchyPopup::Update();
 
+			if (Editor::selectedGameObject)
+				Editor::selectedFiles.clear();
+
 			// Create the main collapser
 			ImGui::SetCursorPosX(0);
 
@@ -457,7 +460,7 @@ namespace Plaza {
 			ImGui::Begin("Inspector", &Gui::isInspectorOpen, sceneWindowFlags);
 			if (ImGui::IsWindowFocused())
 				Application->focusedMenu = "Inspector";
-			if (ImGui::IsWindowHovered())
+			if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
 				Application->hoveredMenu = "Inspector";
 
 

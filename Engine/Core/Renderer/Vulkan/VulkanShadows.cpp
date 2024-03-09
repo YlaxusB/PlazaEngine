@@ -317,8 +317,8 @@ namespace Plaza {
 		samplerInfo.addressModeV = samplerInfo.addressModeU;
 		samplerInfo.addressModeW = samplerInfo.addressModeU;
 		samplerInfo.mipLodBias = 0.0f;
-		samplerInfo.anisotropyEnable = VK_TRUE;
-		samplerInfo.maxAnisotropy = 16.0f;
+		//samplerInfo.anisotropyEnable = VK_TRUE;
+		samplerInfo.maxAnisotropy = 1.0f;
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = 1.0f;
 		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;

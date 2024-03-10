@@ -111,7 +111,6 @@ namespace Plaza {
 		
 		uint32_t mCurrentImage;
 		const int MAX_FRAMES_IN_FLIGHT = 2;
-		uint32_t mCurrentFrame = 0;
 
 		bool mEnableValidationLayers = true;
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);

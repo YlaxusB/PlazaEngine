@@ -3,6 +3,7 @@
 #include "Mesh.h"
 #include "Engine/Core/RenderGroup.h"
 #include "Shadows.h"
+#include "Skybox.h"
 
 namespace Plaza { 
 
@@ -12,8 +13,11 @@ namespace Plaza {
 	};
 	class Renderer {
 	public:
+		uint32_t mCurrentFrame = 0;
+
 		RendererAPI api;
 		Shadows* mShadows;
+		Skybox* mSkybox;
 		const unsigned int mMaxFramesInFlight = 2;
 
 		virtual void Init() = 0;

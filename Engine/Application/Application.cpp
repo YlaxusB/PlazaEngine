@@ -194,9 +194,9 @@ void ApplicationClass::InitShaders() {
 
 	Application->textRenderingShader = new Shader((shadersFolder + "\\Shaders\\textRendering\\textRenderingVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\textRendering\\textRenderingFragment.glsl").c_str());
 
-	Skybox::skyboxShader = new Shader((shadersFolder + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
-	Skybox::skyboxShader->use();
-	Skybox::skyboxShader->setInt("skybox", 0);
+	OpenGLSkybox::skyboxShader = new Shader((shadersFolder + "\\Shaders\\skybox\\skyboxVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\skybox\\skyboxFragment.glsl").c_str());
+	OpenGLSkybox::skyboxShader->use();
+	OpenGLSkybox::skyboxShader->setInt("skybox", 0);
 
 	Application->distortionCorrectionFrameBuffer = new FrameBuffer(GL_FRAMEBUFFER);
 	Application->distortionCorrectionFrameBuffer->InitColorAttachment(GL_TEXTURE_2D, GL_RGBA32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, GL_RGBA, GL_FLOAT, GL_LINEAR);
@@ -401,7 +401,7 @@ void ApplicationClass::UpdateEngine() {
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, Application->geometryFramebuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, Application->frameBuffer);
 		glBlitFramebuffer(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-		Skybox::Update();
+		OpenGLSkybox::Update();
 
 		// Draw Outline
 		if (Editor::selectedGameObject != nullptr && !Application->Shadows->showDepth && Application->focusedMenu != "Scene")
@@ -496,7 +496,7 @@ void ApplicationClass::Terminate() {
 	//free(Application->editorScene);
 	//free(Application->runtimeScene);
 	if (Application->mRenderer->api = RendererAPI::OpenGL)
-		Skybox::Terminate();
+		OpenGLSkybox::Terminate();
 #ifndef GAME_REL
 	Gui::Delete();
 #endif // !GAME_REL

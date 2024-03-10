@@ -1,6 +1,7 @@
 //#include "Engine/Core/PreCompiledHeaders.h"
 #include "Renderer.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
+#include "Engine/Core/Renderer/Vulkan/VulkanSkybox.h"
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
@@ -956,7 +957,7 @@ namespace Plaza {
 
 		}
 
-
+		this->mSkybox->DrawSkybox();
 
 		//vkCmdEndRenderPass(commandBuffer);
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
@@ -1676,6 +1677,7 @@ namespace Plaza {
 	{
 		Application->mRendererAPI = RendererAPI::Vulkan;
 		this->mShadows = new VulkanShadows();
+		this->mSkybox = new VulkanSkybox();
 
 		VulkanShadersCompiler::mDefaultOutDirectory = Application->exeDirectory + "\\CompiledShaders\\";
 		VulkanShadersCompiler::mGlslcExePath = "C:\\VulkanSDK\\1.3.268.0\\Bin\\glslc.exe";
@@ -1714,7 +1716,7 @@ namespace Plaza {
 		InitSyncStructures();
 		CreateImGuiTextureSampler();
 
-
+		this->mSkybox->Init();
 
 		VkSemaphoreCreateInfo semaphoreInfo = {};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -1847,6 +1849,7 @@ namespace Plaza {
 	{
 	}
 	void VulkanRenderer::Destroy() {
+		this->mSkybox->Termiante();
 		this->mShadows->Terminate();
 		/* Clean Renderer */
 		CleanupSwapChain();

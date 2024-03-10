@@ -8,7 +8,7 @@
 
 #include "Engine/Shaders/Shader.h"
 namespace Plaza {
-	class Skybox {
+	class OpenGLSkybox {
 	public:
 		static Shader* skyboxShader;
 		static unsigned int vao, vbo, cubemapTexture;
@@ -163,7 +163,7 @@ namespace Plaza {
 		}
 	};
 }
-inline Shader* Plaza::Skybox::skyboxShader = nullptr;
-inline unsigned int Plaza::Skybox::vao = 0;
-inline unsigned int Plaza::Skybox::vbo = 0;
-inline unsigned int Plaza::Skybox::cubemapTexture = 0;
+inline Shader* Plaza::OpenGLSkybox::skyboxShader = nullptr;
+inline unsigned int Plaza::OpenGLSkybox::vao = 0;
+inline unsigned int Plaza::OpenGLSkybox::vbo = 0;
+inline unsigned int Plaza::OpenGLSkybox::cubemapTexture = 0;

@@ -124,7 +124,7 @@ int main() {
 		Editor::Cache::Load();
 #endif
 	if (Application->mRenderer->api == RendererAPI::OpenGL)
-		Skybox::Init();
+		OpenGLSkybox::Init();
 
 	/*  -----   TEMPORARILY LOAD MODEL   -----  */
 	// ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod"), "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod");

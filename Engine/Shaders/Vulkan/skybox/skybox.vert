@@ -1,4 +1,5 @@
 #version 460 core
+#extension GL_ARB_separate_shader_objects : enable
 layout(location = 0) out vec3 fragTexCoord;
 
 layout(push_constant) uniform PushConstants{
@@ -16,7 +17,7 @@ void main()
         vec3(-1.0, -1.0, -1.0),
         vec3(1.0, -1.0, -1.0)
     );
-    vec4 worldPosition = ubo.view * vec4(vertices[gl_VertexIndex], 1.0);
+    vec4 worldPosition = pushConstants.view * vec4(vertices[gl_VertexIndex], 1.0);
     fragTexCoord = worldPosition.xyz;
-    gl_Position = ubo.projection * worldPosition;
+    gl_Position = pushConstants.projection * worldPosition;
 }

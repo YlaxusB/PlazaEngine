@@ -956,7 +956,6 @@ namespace Plaza {
 			vkCmdEndRenderPass(commandBuffer);
 
 		}
-
 		this->mSkybox->DrawSkybox();
 
 		//vkCmdEndRenderPass(commandBuffer);

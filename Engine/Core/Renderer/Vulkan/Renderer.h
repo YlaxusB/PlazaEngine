@@ -105,6 +105,7 @@ namespace Plaza {
 
 		void ChangeFinalDescriptorImageView(VkImageView newImageView);
 		VkImageView mFinalSceneImageView;
+		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 	private:
 		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";
 		const std::string TEXTURE_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.png";
@@ -165,7 +166,6 @@ namespace Plaza {
 
 		VkInstance mVulkanInstance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT mDebugMessenger = VK_NULL_HANDLE;
-		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 		VkQueue mGraphicsQueue = VK_NULL_HANDLE;
 		VkQueue mPresentQueue = VK_NULL_HANDLE;
 		VkSurfaceKHR mSurface = VK_NULL_HANDLE;

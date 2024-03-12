@@ -9,12 +9,13 @@ namespace Plaza {
 			glm::mat4 projection;
 			glm::mat4 view;
 		} pushData;
-
+		std::vector<std::string> mSkyboxPaths = std::vector<std::string>(6);
+		VkFormat mSkyboxFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
 
 		VulkanPostEffects* mSkyboxPostEffect = nullptr;
-		VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
+		std::vector<VkFramebuffer> mFramebuffers = std::vector<VkFramebuffer>();
 		std::vector<VkDescriptorSet> mDescriptorSets = std::vector<VkDescriptorSet>();
-		std::vector<VkDescriptorSetLayout> mDescriptorSetLayouts = std::vector<VkDescriptorSetLayout>();
+		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
 		VkPipelineLayoutCreateInfo mPipelineLayoutInfo{};
 		VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
 		void Init() override;
@@ -22,6 +23,18 @@ namespace Plaza {
 		void Termiante() override;
 
 	private:
+		VkBuffer mStagingBuffer;
+		VkDeviceMemory mStagingBufferMemory;
+
+		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
+		VkSampler mSkyboxSampler = VK_NULL_HANDLE;
+		VkImage mSkyboxImage = VK_NULL_HANDLE;
+		std::vector<VkImageView> mSkyboxImageViews = std::vector<VkImageView>();
+		void InitializeImageSampler();
+		void InitializeImageView();
+		void InitializeDescriptorPool();
+		void InitializeDescriptorSets();
+		void InitializeRenderPass();
 		void UpdateAndPushConstants(VkCommandBuffer commandBuffer);
 	};
 }

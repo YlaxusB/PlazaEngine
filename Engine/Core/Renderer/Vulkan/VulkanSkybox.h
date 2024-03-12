@@ -9,8 +9,9 @@ namespace Plaza {
 			glm::mat4 projection;
 			glm::mat4 view;
 		} pushData;
+		VulkanMesh* mSkyboxMesh = nullptr;
 		std::vector<std::string> mSkyboxPaths = std::vector<std::string>(6);
-		VkFormat mSkyboxFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+		VkFormat mSkyboxFormat = VK_FORMAT_R8G8B8A8_SNORM;
 
 		VulkanPostEffects* mSkyboxPostEffect = nullptr;
 		std::vector<VkFramebuffer> mFramebuffers = std::vector<VkFramebuffer>();
@@ -20,7 +21,7 @@ namespace Plaza {
 		VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
 		void Init() override;
 		void DrawSkybox() override;
-		void Termiante() override;
+		void Terminate() override;
 
 	private:
 		VkBuffer mStagingBuffer;

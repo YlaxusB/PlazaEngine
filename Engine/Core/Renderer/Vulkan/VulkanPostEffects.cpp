@@ -4,7 +4,7 @@
 namespace Plaza {
 	void VulkanPostEffects::InitializeShaders(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) {
 		this->mShaders = new VulkanShaders(vertexPath, fragmentPath, geometryPath);
-		this->mShaders->Init(device, this->mRenderPass, size.x, size.y, descriptorSetLayout, pipelineLayoutInfo, std::vector<VkPushConstantRange>(), false);
+		this->mShaders->Init(device, this->mRenderPass, size.x, size.y, descriptorSetLayout, pipelineLayoutInfo, std::vector<VkPushConstantRange>(), true);
 	}
 
 	void VulkanPostEffects::Init(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) {

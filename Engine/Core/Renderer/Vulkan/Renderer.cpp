@@ -914,6 +914,7 @@ namespace Plaza {
 		viewport.y = this->mShadows->mShadowResolution;
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
+
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
 		VkRect2D scissor{};
@@ -956,7 +957,7 @@ namespace Plaza {
 			vkCmdEndRenderPass(commandBuffer);
 
 		}
-		this->mSkybox->DrawSkybox();
+
 
 		//vkCmdEndRenderPass(commandBuffer);
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
@@ -971,7 +972,9 @@ namespace Plaza {
 		viewport.y = Application->appSizes->sceneSize.y;
 		scissor.extent.width = Application->appSizes->sceneSize.x;
 		scissor.extent.height = Application->appSizes->sceneSize.y;
+
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		this->mSkybox->DrawSkybox();
 
 
 		// Render the scene with textures and sampling the shadow map
@@ -996,6 +999,7 @@ namespace Plaza {
 		}
 
 		vkCmdEndRenderPass(commandBuffer);
+
 
 		renderPassInfo.renderPass = mRenderPass;
 		renderPassInfo.framebuffer = mSwapChainFramebuffers[imageIndex];
@@ -1521,7 +1525,7 @@ namespace Plaza {
 		EndSingleTimeCommands(commandBuffer);
 	}
 
-	void VulkanRenderer::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel) {
+	void VulkanRenderer::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel, unsigned int arrayLayerCount) {
 		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
 
@@ -1533,7 +1537,7 @@ namespace Plaza {
 		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		region.imageSubresource.mipLevel = mipLevel;
 		region.imageSubresource.baseArrayLayer = 0;
-		region.imageSubresource.layerCount = 1;
+		region.imageSubresource.layerCount = arrayLayerCount;
 
 		region.imageOffset = { 0, 0, 0 };
 		region.imageExtent = {
@@ -1848,7 +1852,7 @@ namespace Plaza {
 	{
 	}
 	void VulkanRenderer::Destroy() {
-		this->mSkybox->Termiante();
+		this->mSkybox->Terminate();
 		this->mShadows->Terminate();
 		/* Clean Renderer */
 		CleanupSwapChain();

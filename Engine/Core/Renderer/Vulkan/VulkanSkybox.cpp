@@ -1,6 +1,7 @@
 #include <Engine/Core/PreCompiledHeaders.h>
 #include "VulkanSkybox.h"
 #include "VulkanPostEffects.h"
+#include "Editor/DefaultAssets/Models/DefaultModels.h"
 
 namespace Plaza {
 	void VulkanSkybox::InitializeImageSampler() {
@@ -24,24 +25,6 @@ namespace Plaza {
 	}
 
 	void VulkanSkybox::InitializeImageView() {
-		for (unsigned int i = 0; i < 6; ++i) {
-			int texWidth, texHeight, texChannels;
-			stbi_uc* pixels = stbi_load(mSkyboxPaths[i].c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-			VkDeviceSize imageSize = texWidth * texHeight * 4;
-
-			if (!pixels) {
-				throw std::runtime_error("failed to load texture image!");
-			}
-			VulkanRenderer::GetRenderer()->CreateBuffer(imageSize * 6, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mStagingBuffer, mStagingBufferMemory);
-
-			void* data;
-			vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mStagingBufferMemory, 0, imageSize, 0, &data);
-			memcpy(data, pixels, static_cast<size_t>(imageSize));
-			vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, mStagingBufferMemory);
-
-			stbi_image_free(pixels);
-		}
-
 		VkImageCreateInfo imageInfo = {};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -68,19 +51,56 @@ namespace Plaza {
 
 		VkMemoryAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.allocationSize = memRequirements.size * 6;
 		allocInfo.memoryTypeIndex = VulkanRenderer::GetRenderer()->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		VkDeviceMemory shadowsDepthMapMemory;
-		if (vkAllocateMemory(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, nullptr, &shadowsDepthMapMemory) != VK_SUCCESS) {
+		VkDeviceMemory mSkyboxMemory;
+		if (vkAllocateMemory(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, nullptr, &mSkyboxMemory) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to allocate depth image memory!");
 		}
 
-		vkBindImageMemory(VulkanRenderer::GetRenderer()->mDevice, this->mSkyboxImage, shadowsDepthMapMemory, 0);
+		vkBindImageMemory(VulkanRenderer::GetRenderer()->mDevice, this->mSkyboxImage, mSkyboxMemory, 0);
 
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mSkyboxImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, this->mSkyboxImage, static_cast<uint32_t>(mResolution.x), static_cast<uint32_t>(mResolution.y));
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mSkyboxImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+		std::vector<stbi_uc*> allPixels = std::vector<stbi_uc*>();
+		for (unsigned int i = 0; i < 6; ++i) {
+			int texWidth, texHeight, texChannels;
+			stbi_uc* pixels = stbi_load(mSkyboxPaths[i].c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+			VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+			if (!pixels) {
+				throw std::runtime_error("failed to load texture image!");
+			}
+			allPixels.push_back(pixels);
+			//stbi_image_free(pixels);
+		}
+
+		uint32_t imageSize = 2048 * 2048 * 4;
+
+		VulkanRenderer::GetRenderer()->CreateBuffer(imageSize * 6, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mStagingBuffer, mStagingBufferMemory);
+
+		for (unsigned int i = 0; i < 6; ++i) {
+
+			void* data;
+			vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mStagingBufferMemory, i * (imageSize), imageSize, 0, &data);
+			//int texWidth, texHeight, texChannels;
+			//stbi_uc* pixel = stbi_load(mSkyboxPaths[i].c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+			//if (!pixel) {
+			//	throw std::runtime_error("failed to load texture image!");
+			//}
+			memcpy(data, allPixels[i], static_cast<size_t>(imageSize));
+			vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, mStagingBufferMemory);
+
+
+		}
+
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mSkyboxImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6);
+		VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, this->mSkyboxImage, static_cast<uint32_t>(mResolution.x), static_cast<uint32_t>(mResolution.y), 0, 6);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mSkyboxImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6);
+
+		for (unsigned int i = 0; i < 6; ++i) {
+			stbi_image_free(allPixels[i]);
+		}
 
 		vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, mStagingBuffer, nullptr);
 		vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, mStagingBufferMemory, nullptr);
@@ -129,7 +149,7 @@ namespace Plaza {
 		VkDescriptorSetLayoutBinding uboLayoutBinding{};
 		uboLayoutBinding.binding = 0;
 		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		uboLayoutBinding.descriptorCount = 6;
+		uboLayoutBinding.descriptorCount = 1;
 		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 		uboLayoutBinding.pImmutableSamplers = nullptr;
 
@@ -189,10 +209,25 @@ namespace Plaza {
 		colorAttachmentRef.attachment = 0;
 		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+		VkAttachmentDescription depthAttachment{};
+		depthAttachment.format = VulkanRenderer::GetRenderer()->FindDepthFormat();
+		depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		VkAttachmentReference depthAttachmentRef{};
+		depthAttachmentRef.attachment = 1;
+		depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
 		VkSubpassDescription subpass{};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
+		subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
 		VkSubpassDependency dependency{};
 		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -205,7 +240,7 @@ namespace Plaza {
 		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-		std::array<VkAttachmentDescription, 1> attachments = { colorAttachment };
+		std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
 		VkRenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -264,27 +299,41 @@ namespace Plaza {
 		this->mPipelineLayoutInfo.pushConstantRangeCount = 1;
 		this->mPipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
+		this->mSkyboxPostEffect->mRenderPass = VulkanRenderer::GetRenderer()->mRenderPass;
+		this->mSkyboxPostEffect->mShaders = new VulkanShaders(vertexPath, fragmentPath, "");
 
-		this->mSkyboxPostEffect->Init(vertexPath, fragmentPath, "", VulkanRenderer::GetRenderer()->mDevice, Application->appSizes->sceneSize, this->mDescriptorSetLayout, this->mPipelineLayoutInfo);
+		VkPipelineDepthStencilStateCreateInfo depthStencil{};
+		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		depthStencil.depthTestEnable = VK_TRUE;
+		depthStencil.depthWriteEnable = VK_FALSE;
+		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+		depthStencil.depthBoundsTestEnable = VK_FALSE;
+		depthStencil.stencilTestEnable = VK_FALSE;
+		this->mSkyboxPostEffect->mShaders->InitializeFull(VulkanRenderer::GetRenderer()->mDevice, this->mPipelineLayoutInfo, true, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, {}, {}, {}, {}, {}, {}, {}, {}, VulkanRenderer::GetRenderer()->mRenderPass, depthStencil);
 	}
 
 	void VulkanSkybox::DrawSkybox() {
+		if (!mSkyboxMesh)
+			mSkyboxMesh = (VulkanMesh*)Editor::DefaultModels::Cube();
 		this->mCommandBuffer = *VulkanRenderer::GetRenderer()->mActiveCommandBuffer;
 		PLAZA_PROFILE_SECTION("Draw Skybox");
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = this->mSkyboxPostEffect->mRenderPass;
-		renderPassInfo.framebuffer = this->mFramebuffers[Application->mRenderer->mCurrentFrame];//mSwapChainFramebuffers[0];//mSwapChainFramebuffers[imageIndex];
+		//renderPassInfo.renderPass = this->mSkyboxPostEffect->mRenderPass;
+		//renderPassInfo.framebuffer = this->mFramebuffers[Application->mRenderer->mCurrentFrame];//mSwapChainFramebuffers[0];//mSwapChainFramebuffers[imageIndex];
+		renderPassInfo.renderPass = VulkanRenderer::GetRenderer()->mRenderPass;
+		renderPassInfo.framebuffer = VulkanRenderer::GetRenderer()->mFinalSceneFramebuffer;
 
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent.width = this->mResolution.x;
-		renderPassInfo.renderArea.extent.height = this->mResolution.y;
+		renderPassInfo.renderArea.extent = VulkanRenderer::GetRenderer()->mSwapChainExtent;
+
+
 
 
 		std::array<VkClearValue, 2> clearValues{};
-		clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
-		clearValues[1].depthStencil = { 1.0f, 0 };
+		clearValues[0].color = { {0.0f, 0.0f, 0.0f, 0.0f} };
+		clearValues[1].depthStencil = { 0.0f, 0 };
 
 		renderPassInfo.clearValueCount = 2;
 		renderPassInfo.pClearValues = clearValues.data();
@@ -292,20 +341,28 @@ namespace Plaza {
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
-		viewport.width = this->mResolution.x;
-		viewport.height = -static_cast<float>(this->mResolution.y);
-		viewport.y = this->mResolution.y;
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
+		viewport.width = static_cast<float>(VulkanRenderer::GetRenderer()->mSwapChainExtent.width);
+		viewport.height = static_cast<float>(VulkanRenderer::GetRenderer()->mSwapChainExtent.height);
+		//viewport.y = this->mResolution.y;
+
+		renderPassInfo.renderArea.extent.width = Application->appSizes->sceneSize.x;
+		renderPassInfo.renderArea.extent.height = Application->appSizes->sceneSize.y;
+
+		viewport.width = Application->appSizes->sceneSize.x;
+		viewport.height = -Application->appSizes->sceneSize.y;
+		viewport.y = Application->appSizes->sceneSize.y;
 		vkCmdSetViewport(this->mCommandBuffer, 0, 1, &viewport);
 
 		VkRect2D scissor{};
 		scissor.offset = { 0, 0 };
-		scissor.extent.width = this->mResolution.x;
-		scissor.extent.height = this->mResolution.y;
+		scissor.extent = VulkanRenderer::GetRenderer()->mSwapChainExtent;
+		scissor.extent.width = Application->appSizes->sceneSize.x;
+		scissor.extent.height = Application->appSizes->sceneSize.y;
 		vkCmdSetScissor(this->mCommandBuffer, 0, 1, &scissor);
 
-		vkCmdBeginRenderPass(this->mCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		//vkCmdBeginRenderPass(this->mCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(this->mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mSkyboxPostEffect->mShaders->mPipeline);
 
 		//this->UpdateAndPushConstants(mCommandBuffer);
@@ -316,16 +373,82 @@ namespace Plaza {
 		pushData.projection = Application->activeCamera->GetProjectionMatrix();
 		pushData.view = Application->activeCamera->GetViewMatrix();
 		vkCmdPushConstants(this->mCommandBuffer, this->mSkyboxPostEffect->mShaders->mPipelineLayout, VK_SHADER_STAGE_ALL, 0, sizeof(VulkanSkybox::PushConstants), &pushData);
-		vkCmdDraw(this->mCommandBuffer, 36, 1, 0, 0);
+		//vkCmdDraw(this->mCommandBuffer, 36, 1, 0, 0);
 
-		vkCmdEndRenderPass(mCommandBuffer);
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = sizeof(glm::mat4) * 1;
+		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		std::vector<glm::mat4> instanceModelMatrices = { glm::mat4(1.0f) };
+		void* data;
+		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mSkyboxMesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
+		memcpy(data, instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
+		vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, mSkyboxMesh->mInstanceBufferMemory);
+
+		//PLAZA_PROFILE_SECTION("Bind Buffers");
+		vector<VkBuffer> verticesBuffer = { mSkyboxMesh->mVertexBuffer, mSkyboxMesh->mInstanceBuffer };
+		std::array<VkBuffer, 2> buffers = { mSkyboxMesh->mVertexBuffer, mSkyboxMesh->mInstanceBuffer };
+		vkCmdBindVertexBuffers(mCommandBuffer, 0, 2, buffers.data(), offsets);
+		//vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
+		vkCmdBindIndexBuffer(mCommandBuffer, mSkyboxMesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		//PLAZA_PROFILE_SECTION("Draw Indexed");
+		vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(mSkyboxMesh->indices.size()), instanceModelMatrices.size(), 0, 0, 0);
+
+		//PLAZA_PROFILE_SECTION("DrawRenderGroupInstanced");
+		//VulkanMesh* mesh;
+		//{
+		//	PLAZA_PROFILE_SECTION("Copy Data");
+		//	mesh = (VulkanMesh*)renderGroup->mesh;
+		//	VkBufferCreateInfo bufferInfo{};
+		//	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		//	bufferInfo.size = sizeof(glm::mat4) * renderGroup->instanceModelMatrices.size();
+		//	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		//	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		//	void* data;
+		//	vkMapMemory(this->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
+		//	memcpy(data, renderGroup->instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
+		//	vkUnmapMemory(this->mDevice, mesh->mInstanceBufferMemory);
+		//}
+		//
+		//VkDeviceSize offsets[] = { 0, 0 };
+		//VkCommandBuffer activeCommandBuffer = *this->mActiveCommandBuffer;
+		//
+		//VulkanRenderer::PushConstants pushData;
+		//if (renderGroup->material->diffuse->mIndexHandle < 0) {
+		//	pushData.color = renderGroup->material->diffuse->rgba;
+		//}
+		//else
+		//	pushData.diffuseIndex = renderGroup->material->diffuse->mIndexHandle;
+		//
+		//{
+		//	PLAZA_PROFILE_SECTION("PushConstants and Descriptor sets");
+		//	vkCmdPushConstants(*this->mActiveCommandBuffer, this->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
+		//}
+		//
+		//{
+		//	PLAZA_PROFILE_SECTION("Bind Buffers");
+		//	vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
+		//	std::array<VkBuffer, 2> buffers = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
+		//	vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, buffers.data(), offsets);
+		//	//vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
+		//	vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		//}
+		//
+		//{
+		//	PLAZA_PROFILE_SECTION("Draw Indexed");
+		//	vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->instanceModelMatrices.size(), 0, 0, 0);
+		//}
+		//renderGroup->instanceModelMatrices.clear();
+
+		//vkCmdEndRenderPass(mCommandBuffer);
 	}
 
 	void VulkanSkybox::UpdateAndPushConstants(VkCommandBuffer commandBuffer) {
 
 	}
 
-	void VulkanSkybox::Termiante() {
+	void VulkanSkybox::Terminate() {
 
 	}
 

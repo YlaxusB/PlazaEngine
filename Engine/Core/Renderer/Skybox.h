@@ -9,6 +9,6 @@ namespace Plaza {
 		PostEffects* mSkyboxPostEffect;
 		virtual void Init() = 0;
 		virtual void DrawSkybox() = 0;
-		virtual void Termiante() = 0;
+		virtual void Terminate() = 0;
 	};
 }

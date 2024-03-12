@@ -100,12 +100,14 @@ namespace Plaza {
 
 		VkCommandBuffer BeginSingleTimeCommands();
 		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
-		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel = 0);
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel = 0, unsigned int arrayLayerCount = 1);
 		VkCommandBuffer* mActiveCommandBuffer;
 
 		void ChangeFinalDescriptorImageView(VkImageView newImageView);
 		VkImageView mFinalSceneImageView;
 		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
+		VkFramebuffer mFinalSceneFramebuffer;
+		VkExtent2D mSwapChainExtent;
 	private:
 		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";
 		const std::string TEXTURE_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.png";
@@ -160,7 +162,7 @@ namespace Plaza {
 		VkDeviceMemory mTextureImageMemory;
 		VkImageView mTextureImageView;
 
-		VkFramebuffer mFinalSceneFramebuffer;
+
 		VkImage mFinalSceneImage;
 		VkDescriptorSet mFinalSceneDescriptorSet;
 
@@ -181,7 +183,6 @@ namespace Plaza {
 
 
 		VkFormat mSwapChainImageFormat;
-		VkExtent2D mSwapChainExtent;
 
 		VkBuffer mVertexBuffer;
 		VkDeviceMemory mVertexBufferMemory;

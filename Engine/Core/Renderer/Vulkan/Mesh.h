@@ -70,15 +70,15 @@ namespace Plaza {
 		void Restart() override;
 
 		bool firstRune = true;
-	private:
+		VkDeviceMemory mInstanceBufferMemory;
 		VkBuffer mVertexBuffer;
-		VkDeviceMemory mVertexBufferMemory;
 		VkBuffer mIndexBuffer;
+		VkBuffer mInstanceBuffer;
+	private:
+		VkDeviceMemory mVertexBufferMemory;
 		VkDeviceMemory mIndexBufferMemory;
 		VkDescriptorSet mDescriptorSet;
 
-		VkBuffer mInstanceBuffer;
-		VkDeviceMemory mInstanceBufferMemory;
 		VkBufferCreateInfo mBufferCreateInfo = {};
 
 		friend class VulkanRenderer;

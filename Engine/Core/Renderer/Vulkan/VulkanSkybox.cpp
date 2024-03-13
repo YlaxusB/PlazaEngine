@@ -71,6 +71,7 @@ namespace Plaza {
 			if (!pixels) {
 				throw std::runtime_error("failed to load texture image!");
 			}
+
 			allPixels.push_back(pixels);
 			//stbi_image_free(pixels);
 		}
@@ -98,9 +99,6 @@ namespace Plaza {
 		VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, this->mSkyboxImage, static_cast<uint32_t>(mResolution.x), static_cast<uint32_t>(mResolution.y), 0, 6);
 		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mSkyboxImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6);
 
-		for (unsigned int i = 0; i < 6; ++i) {
-			stbi_image_free(allPixels[i]);
-		}
 
 		vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, mStagingBuffer, nullptr);
 		vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, mStagingBufferMemory, nullptr);
@@ -126,6 +124,9 @@ namespace Plaza {
 			if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &this->mSkyboxImageViews[i]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create texture image view!");
 			}
+		}
+		for (unsigned int i = 0; i < 6; ++i) {
+			stbi_image_free(allPixels[i]);
 		}
 	}
 
@@ -256,12 +257,12 @@ namespace Plaza {
 	}
 
 	void VulkanSkybox::Init() {
-		this->mSkyboxPaths[0] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\back.jpg";
-		this->mSkyboxPaths[1] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\front.jpg";
+		this->mSkyboxPaths[0] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\right.jpg";
+		this->mSkyboxPaths[1] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\left.jpg";
 		this->mSkyboxPaths[2] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\top.jpg";
-		this->mSkyboxPaths[3] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\right.jpg";
-		this->mSkyboxPaths[4] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\left.jpg";
-		this->mSkyboxPaths[5] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\bottom.jpg";
+		this->mSkyboxPaths[3] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\bottom.jpg";
+		this->mSkyboxPaths[4] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\front.jpg";
+		this->mSkyboxPaths[5] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\back.jpg";
 
 		this->mResolution = glm::vec2(2048);//Application->appSizes->sceneSize;
 		this->mSkyboxPostEffect = new VulkanPostEffects();

@@ -1719,6 +1719,9 @@ namespace Plaza {
 		InitSyncStructures();
 		CreateImGuiTextureSampler();
 
+		VkFormatProperties vkFormatProperties;
+		vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, VK_FORMAT_R8G8B8_UNORM, &vkFormatProperties);
+
 		this->mSkybox->Init();
 
 		VkSemaphoreCreateInfo semaphoreInfo = {};

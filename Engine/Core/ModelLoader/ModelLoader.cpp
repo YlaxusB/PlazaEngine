@@ -49,12 +49,18 @@ namespace Plaza {
 					MeshRenderer* newMeshRenderer = new MeshRenderer();
 					newMeshRenderer->instanced = true;
 					newMeshRenderer->uuid = newGameObject->uuid;
-					newMeshRenderer->mesh = model->meshes.at(meshRenderer->aiMeshName).get();
+					if (model->meshes.find(meshRenderer->aiMeshName) != model->meshes.end())
+						newMeshRenderer->mesh = model->meshes.at(meshRenderer->aiMeshName).get();
 					newMeshRenderer->material = meshRenderer->material;
-					newMeshRenderer->material = model->materials.at(meshRenderer->aiMeshName).get();//Application->activeScene->materials.at(meshRenderer->material->uuid).get();
+					if (model->materials.find(meshRenderer->aiMeshName) != model->materials.end())
+						newMeshRenderer->material = model->materials.at(meshRenderer->aiMeshName).get();//Application->activeScene->materials.at(meshRenderer->material->uuid).get();
 					//newMeshRenderer->material = MaterialFileSerializer::DeSerialize(newMeshRenderer->material->filePath);
 					//newMeshRenderer->material->LoadTextures(std::filesystem::path{ newMeshRenderer->material->filePath }.parent_path().string());
-					newMeshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newMeshRenderer->mesh, newMeshRenderer->material);//make_shared<RenderGroup>(newMeshRenderer->mesh, newMeshRenderer->material);
+
+					if (model->meshes.find(meshRenderer->aiMeshName) != model->meshes.end() && model->materials.find(meshRenderer->aiMeshName) != model->materials.end())
+						newMeshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newMeshRenderer->mesh, newMeshRenderer->material);//make_shared<RenderGroup>(newMeshRenderer->mesh, newMeshRenderer->material);
+					else
+						newMeshRenderer->renderGroup = Application->activeScene->renderGroups[0];
 					//newMeshRenderer->material = Application->activeScene->materials.at(entity->GetComponent<MeshRenderer>()->material->uuid);
 
 					if (Application->activeScene->materials.find(it->second->uuid) == Application->activeScene->materials.end()) {
@@ -70,9 +76,13 @@ namespace Plaza {
 					newGameObject->AddComponent<MeshRenderer>(newMeshRenderer, true);
 					//newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
 					Collider* collider = new Collider(newGameObject->uuid);
-					collider->CreateShape(ColliderShapeEnum::MESH, transform, newMeshRenderer->mesh);
-					//collider->AddMeshShape(new Mesh(*newMeshRenderer->mesh));
-					newGameObject->AddComponent<Collider>(collider);
+					if (newGameObject->HasComponent<MeshRenderer>())
+						if (newGameObject->GetComponent<MeshRenderer>()->mesh)
+						{
+							collider->CreateShape(ColliderShapeEnum::MESH, transform, newMeshRenderer->mesh);
+							//collider->AddMeshShape(new Mesh(*newMeshRenderer->mesh));
+							newGameObject->AddComponent<Collider>(collider);
+						}
 				}
 				modelInstanceGameObjects.emplace(entity->uuid, newGameObject);
 				/*
@@ -244,7 +254,7 @@ namespace Plaza {
 
 			for (Material& material : materialsLoaded) {
 				if (processedMaterial->SameAs(material)) {
-					processedMaterial = &material;
+					*processedMaterial = material;
 				}
 			}
 			materialsLoaded.push_back(*processedMaterial);
@@ -377,9 +387,9 @@ namespace Plaza {
 
 		Material convertedMaterial = DefaultMaterial();
 		convertedMaterial.uuid = Plaza::UUID::NewUUID();
-	//	convertedMaterial.diffuse = Application->mRenderer->LoadTexture();
+		//	convertedMaterial.diffuse = Application->mRenderer->LoadTexture();
 
-	    convertedMaterial.diffuse = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse", textures_loaded, directory)[0];
+		convertedMaterial.diffuse = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse", textures_loaded, directory)[0];
 		//    convertedMaterial.specular = ModelLoader::LoadMaterialTextures(material, aiTextureType_SPECULAR, "specular", textures_loaded, directory)[0] ;
 		//    convertedMaterial.normal = ModelLoader::LoadMaterialTextures(material, aiTextureType_HEIGHT, "normal", textures_loaded, directory)[0];
 		//    convertedMaterial.height = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT, "height", textures_loaded, directory)[0];
@@ -397,7 +407,7 @@ namespace Plaza {
 		//OpenGLMesh finalMesh = OpenGLMesh(vertices, normals, uvs, tangents, bitangents, indices, //convertedMaterial);
 		//finalMesh.material = convertedMaterial;
 		//finalMesh.usingNormal = usingNormal;
-		*outMaterial = convertedMaterial;
+		*outMaterial = *new Material(convertedMaterial);
 		return Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, bitangents, indices, convertedMaterial, usingNormal);
 	}
 }

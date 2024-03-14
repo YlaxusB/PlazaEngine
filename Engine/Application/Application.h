@@ -21,6 +21,7 @@
 #include "Engine/Core/Renderer/Renderer.h"
 #include "Engine/Core/Renderer/OpenGL/Renderer.h"
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
+#include "Engine/Core/AssetsManager/AssetsManager.h"
 namespace Plaza {
 	class Camera;
 	class WindowClass;
@@ -28,6 +29,7 @@ namespace Plaza {
 	//class WindowClass;
 	class ApplicationClass {
 	public:
+		AssetsManager* mAssetsManager;
 		Renderer* mRenderer = nullptr;
 		RendererAPI mRendererAPI;
 		bool showCascadeLevels = false;

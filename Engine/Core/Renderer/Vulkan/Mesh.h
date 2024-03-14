@@ -70,14 +70,14 @@ namespace Plaza {
 		void Restart() override;
 
 		bool firstRune = true;
-		VkDeviceMemory mInstanceBufferMemory;
-		VkBuffer mVertexBuffer;
-		VkBuffer mIndexBuffer;
-		VkBuffer mInstanceBuffer;
+		VkDeviceMemory mInstanceBufferMemory = VK_NULL_HANDLE;
+		VkBuffer mVertexBuffer = VK_NULL_HANDLE;
+		VkBuffer mIndexBuffer = VK_NULL_HANDLE;
+		VkBuffer mInstanceBuffer = VK_NULL_HANDLE;
+		VkDeviceMemory mVertexBufferMemory = VK_NULL_HANDLE;
+		VkDeviceMemory mIndexBufferMemory = VK_NULL_HANDLE;
+		VkDescriptorSet mDescriptorSet = VK_NULL_HANDLE;
 	private:
-		VkDeviceMemory mVertexBufferMemory;
-		VkDeviceMemory mIndexBufferMemory;
-		VkDescriptorSet mDescriptorSet;
 
 		VkBufferCreateInfo mBufferCreateInfo = {};
 

@@ -2136,4 +2136,13 @@ namespace Plaza {
 		this->mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(this->mTextureSampler, newImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
 		UpdateUniformBuffer(mCurrentFrame);
 	}
+
+	Mesh* VulkanRenderer::RestartMesh(Mesh* mesh) {
+		uint64_t oldUuid = mesh->uuid;
+		Mesh* newMesh = &this->CreateNewMesh(mesh->vertices, mesh->normals, mesh->uvs, mesh->tangent, mesh->bitangent, mesh->indices, *new Material(), false);
+		newMesh = newMesh;
+		newMesh->uuid = oldUuid;
+		delete(mesh);
+		return newMesh;
+	}
 }

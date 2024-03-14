@@ -122,5 +122,8 @@ namespace Plaza {
 		MeshRenderer() {
 			uuid = Plaza::UUID::NewUUID();
 		}
+
+		void ChangeMaterial(Material* newMaterial);
+		void ChangeMesh(Mesh* newMesh);
 	};
 }

@@ -60,6 +60,10 @@ namespace Plaza {
 		virtual void Draw(Shader& shader) {};
 		virtual void DrawInstances() {};
 
+		Mesh() {
+			this->uuid = Plaza::UUID::NewUUID();
+		}
+
 		void AddInstance(glm::mat4 model) {
 			instanceModelMatrices.push_back(model);
 		}

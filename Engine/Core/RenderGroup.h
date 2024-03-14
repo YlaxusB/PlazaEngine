@@ -18,7 +18,7 @@ namespace Plaza {
 			this->mesh = mesh;
 			this->material = mat;
 		}
-
+		
 		RenderGroup(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> mat) {
 			this->uuid = Plaza::UUID::NewUUID();
 			this->mesh = mesh.get();

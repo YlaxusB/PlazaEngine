@@ -422,4 +422,8 @@ namespace Plaza {
 	void OpenGLRenderer::DrawRenderGroupInstanced(RenderGroup* renderGroup) {
 
 	}
+
+	Mesh* OpenGLRenderer::RestartMesh(Mesh* mesh) {
+		return nullptr;
+	}
 }

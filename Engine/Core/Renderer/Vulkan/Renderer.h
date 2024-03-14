@@ -85,6 +85,7 @@ namespace Plaza {
 		VulkanShadows* GetShadows() override;
 		
 		Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal);
+		Mesh* RestartMesh(Mesh* mesh);
 		void DrawRenderGroupInstanced(RenderGroup* renderGroup);
 		void DrawRenderGroupShadowDepthMapInstanced(RenderGroup* renderGroup, unsigned int cascade);
 

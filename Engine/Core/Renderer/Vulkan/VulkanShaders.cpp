@@ -335,7 +335,7 @@ namespace Plaza {
 
 		mRasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		mRasterizer.lineWidth = 1.0f;
-		mRasterizer.cullMode = VK_CULL_MODE_FRONT_BIT;
+		mRasterizer.cullMode = VK_CULL_MODE_NONE;//VK_CULL_MODE_FRONT_BIT;
 		mRasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		if (!useVertexInputInfo)
 		{

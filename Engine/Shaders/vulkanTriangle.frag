@@ -172,8 +172,8 @@ void main() {
     vec3 ambient = 1.32 * (lightColor / 1);
     // diffuse
 
-    float metallic = 0.0f;//pow(texture(texture_metalness, fs_in.TexCoords) / 1, vec4(1/ 2.2)).r * 1;
-    float roughness = 1.0f;//pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(1/ 2.2)).r * 1;
+    float metallic = 0.5f;//pow(texture(texture_metalness, fs_in.TexCoords) / 1, vec4(1/ 2.2)).r * 1;
+    float roughness = 0.5f;//pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(1/ 2.2)).r * 1;
     //metallic = texture(texture_metalness, fs_in.TexCoords).r / 255;//pow(texture(texture_metalness, fs_in.TexCoords), vec4(2.2)).r;
     //roughness = texture(texture_metalness, fs_in.TexCoords).r / 255;//pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(2.2)).r;
     //metallic *= 2;
@@ -229,15 +229,17 @@ void main() {
 
     vec3 DiffuseBRDF = kD * fLambert / PI;
 
-    float shadow = ShadowCalculation(FragPos.xyz);
-    vec3 amb = vec3(0.16f);
-    vec3 shad = (amb + (1 - shadow) * 2);
+    float shadow = (1 - ShadowCalculation(FragPos.xyz)) * 2;
+    vec3 amb = vec3(0.32f);
 
     float specularIntensity = 13.0f;
+
+
     //  gOthers = vec4(SpecBRDF * specularIntensity, 1.0f);
     //  gOthers.z = metallic;
-   SpecBRDF = all(equal(shad, vec3(0))) ? SpecBRDF : vec3(0);
-    vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color.xyz * (nDotL + amb / 2);//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
+   //SpecBRDF = all(equal(shad, vec3(0))) ? SpecBRDF : vec3(0);
+    //vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color.xyz * (nDotL + amb / 2);//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
+    vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * max(nDotL, 0.0) * (amb + shadow);
 
     //FinalColor += vec3(0.13f / 255);
     //FinalColor *= vec3(1);

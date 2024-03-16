@@ -72,7 +72,7 @@ namespace Plaza {
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-#ifdef GAME_REL
+#ifdef GAME_MODE
 			std::string faceDirectory = Application->projectPath + "\\DefaultAssets\\Skybox\\";
 #else
 			std::string faceDirectory = Application->enginePath + "\\DefaultAssets\\Skybox\\";

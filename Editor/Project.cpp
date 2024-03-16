@@ -37,7 +37,7 @@ namespace Plaza::Editor {
 			std::cout << "Mid \n";
 			//this->currentContent = new NewProjectContent();
 
-#ifndef GAME_REL
+#ifdef EDITOR_MODE
 			Gui::FileExplorer::currentDirectory = Application->activeProject->directory;
 			Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 #endif // !GAME_REL

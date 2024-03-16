@@ -96,7 +96,7 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && Application->focusedMenu == "Scene") {
-#ifdef GAME_REL
+#ifdef GAME_MODE
 		glfwSetWindowShouldClose(Application->Window->glfwWindow, true);
 #else
 		ImGui::SetWindowFocus("Editor");

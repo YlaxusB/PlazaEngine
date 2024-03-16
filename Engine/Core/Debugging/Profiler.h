@@ -1,5 +1,5 @@
 #pragma once
-#ifndef GAME_REL
+#ifdef EDITOR_MODE
 #include <ThirdParty/Tracy/public/tracy/Tracy.hpp>
 //#include "ThirdParty/Tracy/tracy/Tracy.hpp"
 #define PLAZA_PROFILE ZoneScoped

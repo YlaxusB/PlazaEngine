@@ -46,7 +46,7 @@ namespace Plaza {
 		else {
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		}
-#ifdef GAME_REL
+#ifdef GAME_MODE
 		// glfwWindowHint(GLFW_REFRESH_RATE, 60);
 #else
 		// glfwWindowHint(GLFW_REFRESH_RATE, 5000);
@@ -90,7 +90,7 @@ namespace Plaza {
 		glfwSetKeyCallback(window, ApplicationClass::Callbacks::keyCallback);
 
 
-#ifndef GAME_REL
+#ifdef EDITOR_MODE
 		// glfwSwapInterval(0);
 #endif
 		if (Application->mRenderer->api == RendererAPI::OpenGL)

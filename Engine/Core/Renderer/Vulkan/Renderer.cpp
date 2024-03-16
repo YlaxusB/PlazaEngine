@@ -963,7 +963,11 @@ namespace Plaza {
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
 		renderPassInfo.renderPass = mRenderPass;
+#ifdef GAME_MODE
+		renderPassInfo.framebuffer = mSwapChainFramebuffers[imageIndex];
+#else
 		renderPassInfo.framebuffer = mFinalSceneFramebuffer;
+#endif
 		renderPassInfo.renderArea.extent.width = Application->appSizes->sceneSize.x;
 		renderPassInfo.renderArea.extent.height = Application->appSizes->sceneSize.y;
 
@@ -1001,6 +1005,7 @@ namespace Plaza {
 		vkCmdEndRenderPass(commandBuffer);
 
 
+#ifdef EDITOR_MODE
 		renderPassInfo.renderPass = mRenderPass;
 		renderPassInfo.framebuffer = mSwapChainFramebuffers[imageIndex];
 		renderPassInfo.renderArea.extent = mSwapChainExtent;
@@ -1023,6 +1028,7 @@ namespace Plaza {
 		}
 
 		vkCmdEndRenderPass(commandBuffer);
+#endif
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
@@ -1775,10 +1781,12 @@ namespace Plaza {
 			UpdateUniformBuffer(mCurrentFrame);
 		}
 
+#ifdef EDITOR_MODE
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
 		}
+#endif
 
 
 

@@ -47,7 +47,7 @@ int main() {
 
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
 	Application->exeDirectory = converter.to_bytes(exeDirectory3);
-#ifdef GAME_REL != 0
+#ifdef GAME_MODE
 	wchar_t buffer2[MAX_PATH];
 	GetModuleFileNameW(NULL, buffer2, MAX_PATH);
 
@@ -73,9 +73,9 @@ int main() {
 	Application->CreateApplication();
 
 	/* Load Editor settings */
-#ifndef GAME_REL
+#ifdef EDITOR_MODE
 	Editor::EditorSettingsSerializer::DeSerialize();
-#endif // GAME_REL
+#endif
 
 	/* Initialize Audio */
 	Audio::Init();
@@ -90,7 +90,7 @@ int main() {
 
 
 	std::cout << "Loading Project \n";
-#ifdef GAME_REL != 0
+#ifdef GAME_MODE
 	wchar_t buffer[MAX_PATH];
 	GetModuleFileNameW(NULL, buffer, MAX_PATH);
 

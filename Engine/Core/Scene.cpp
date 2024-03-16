@@ -198,7 +198,7 @@ namespace Plaza {
 		for (auto& [key, collider] : Application->activeScene->colliderComponents) {
 			collider.UpdateShapeScale(Application->activeScene->transformComponents.at(collider.uuid).GetWorldScale());;
 		}
-#ifndef GAME_REL
+#ifdef EDITOR_MODE
 		ImGui::SetWindowFocus("Scene");
 #endif
 		int width, height;

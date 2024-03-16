@@ -224,7 +224,7 @@ void ApplicationClass::CreateApplication() {
 
 	Application->Window = new Plaza::WindowClass();
 	Application->Window->glfwWindow = Application->Window->InitGLFWWindow();
-#ifdef GAME_REL	
+#ifdef GAME_MODE
 	// Set the scene size to be the entire screen
 	int width, height;
 	glfwGetWindowSize(Application->Window->glfwWindow, &width, &height);
@@ -253,11 +253,10 @@ void ApplicationClass::CreateApplication() {
 	//Application->InitSkybox();
 
 	//Initialize ImGui
-#ifdef GAME_REL
-#else
+#ifdef EDITOR_MODE
 	std::cout << "Gui Initialized \n";
 	Editor::Gui::Init(Application->Window->glfwWindow);
-#endif // !GAME_REL
+#endif
 
 
 	/* Initialize clustered forward rendering */
@@ -361,13 +360,13 @@ void ApplicationClass::UpdateEngine() {
 		Lighting::UpdateBuffers();
 
 	// Imgui New Frame (only if running editor)
-#ifdef GAME_REL
+#ifdef GAME_MODE
 #else
 	Gui::NewFrame();
-#endif // GAME_REL == 0
-
 	if (Application->mRenderer->api == RendererAPI::Vulkan)
 		Gui::Update();
+#endif // GAME_REL == 0
+
 
 	Time::drawCalls = 0;
 	Time::addInstanceCalls = 0;
@@ -472,7 +471,7 @@ void ApplicationClass::UpdateEngine() {
 		}
 	}
 	// Update ImGui (only if running editor)
-#ifndef GAME_REL
+#ifdef EDITOR_MODE
 	if (Application->mRenderer->api == RendererAPI::OpenGL)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -497,7 +496,7 @@ void ApplicationClass::Terminate() {
 	//free(Application->runtimeScene);
 	if (Application->mRenderer->api = RendererAPI::OpenGL)
 		OpenGLSkybox::Terminate();
-#ifndef GAME_REL
+#ifdef EDITOR_MODE
 	Gui::Delete();
 #endif // !GAME_REL
 	glfwTerminate();

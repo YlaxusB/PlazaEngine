@@ -326,7 +326,7 @@ namespace Plaza {
 
 	void OpenGLRenderer::CopyLastFramebufferToFinalDrawBuffer() {
 		GLint drawBuffer;
-#ifdef GAME_REL
+#ifdef GAME_MODE
 		drawBuffer = 0;
 #else
 		drawBuffer = Application->frameBuffer;

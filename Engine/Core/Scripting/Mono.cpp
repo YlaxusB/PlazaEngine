@@ -231,7 +231,7 @@ namespace Plaza {
 		mono_domain_set(mAppDomain, true);
 
 		// Load the PlazaScriptCore.dll assembly
-#ifdef GAME_REL
+#ifdef GAME_MODE
 		Application->dllPath = Application->projectPath + "\\dll";
 #endif // GAME_REL
 
@@ -260,7 +260,7 @@ namespace Plaza {
 		mEntityObject = InstantiateClass("Plaza", "Entity", LoadCSharpAssembly(Application->dllPath + "\\PlazaScriptCore.dll"), mAppDomain);
 		mEntityClass = mono_object_get_class(mEntityObject);
 
-#ifdef GAME_REL
+#ifdef GAME_MODE
 		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str());
 #else
 		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll").c_str());
@@ -279,7 +279,7 @@ namespace Plaza {
 
 	// Execute OnStart on all scripts
 	void Mono::OnStartAll(bool callOnStart) {
-#ifdef GAME_REL
+#ifdef GAME_MODE
 		Editor::ScriptManager::ReloadScriptsAssembly();
 #else
 		/* Make a copy of the scripts dll, so it does not break when it updates */

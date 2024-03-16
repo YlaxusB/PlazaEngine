@@ -25,6 +25,11 @@
           "name": "BUILD_SHARED_LIBS",
           "value": "False",
           "type": "BOOL"
+        },
+        {
+          "name": "USE_EDITOR",
+          "value": "True",
+          "type": "BOOL"
         }
       ]
     },
@@ -45,6 +50,15 @@
           "type": "BOOL"
         }
       ]
+    },
+    {
+      "name": "GameRelease",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ]
     }
   ]
 }

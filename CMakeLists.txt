@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.21)
 
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>")
+#set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:MultiThreaded>$<$<CONFIG:GameRelease>:MultiThreaded>")
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX-")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG /MDd")
@@ -10,6 +11,10 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /O2")
 
 
+# Set default build type to Release if not specified
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
 
 set(TARGET_BUILD_PLATFORM "windows")
 set(PLATFORM "Windows")
@@ -101,21 +106,43 @@ set(IMGUI_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/imgui_impl_vulkan.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/imgui_tables.cpp"
 )
+#set(CMAKE_CXX_FLAGS_EDITOR "${CMAKE_CXX_FLAGS} -DEDITOR_MODE")
+#set(CMAKE_CXX_FLAGS_GAME "${CMAKE_CXX_FLAGS} -DGAME_MODE")
 
 add_executable(PlazaEngine "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}")
 
+add_executable(PlazaShippingGame "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}")
+#set_target_properties(PlazaShippingGame PROPERTIES WIN32_EXECUTABLE TRUE)
+
+#get_target_property(EXE_NAME PlazaEngine TYPE)
+#message("NAME")
+#message(EXE_NAME)
+#if(EXE_NAME STREQUAL "PlazaEngine.exe")
+    target_compile_definitions(PlazaEngine PRIVATE EDITOR_MODE)
+#else()
+    target_compile_definitions(PlazaShippingGame PRIVATE GAME_MODE)
+#endif()
+
+
+#add_compile_definitions(PlazaEngine PUBLIC ${CMAKE_CXX_FLAGS_EDITOR})
+#add_compile_definitions(PlazaShippingGame PUBLIC ${CMAKE_CXX_FLAGS_GAME})
 
 
 #target_include_directories(PlazaEngine PRIVATE "${PHYSX_ROOT_DIR}/include" PRIVATE "${PHYSX_ROOT_DIR}/source/physxextensions/src")
 #target_compile_definitions(PlazaEngine PRIVATE ${SNIPPET_COMPILE_DEFS})
 
 target_compile_options(PlazaEngine PRIVATE /WX-)
+target_compile_options(PlazaShippingGame PRIVATE /WX-)
 
 target_precompile_headers(PlazaEngine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
+target_precompile_headers(PlazaShippingGame PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
 
 if(MSVC)
   target_compile_options(PlazaEngine PUBLIC "/ZI")
   target_link_options(PlazaEngine PUBLIC "/INCREMENTAL")
+
+    target_compile_options(PlazaShippingGame PUBLIC "/ZI")
+  target_link_options(PlazaShippingGame PUBLIC "/INCREMENTAL")
 endif()
 
 #Physx
@@ -208,6 +235,9 @@ set_target_properties(assimp PROPERTIES
 
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
 target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
+
+target_include_directories(PlazaShippingGame PUBLIC "ThirdParty/imgui/")
+target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 #    add_custom_target(CopyDLLs ALL
 #        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/

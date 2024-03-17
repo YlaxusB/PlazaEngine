@@ -1997,7 +1997,7 @@ namespace Plaza {
 
 	void VulkanRenderer::UpdateGUI()
 	{
-		//    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), mCommandBuffers[mCurrentFrame]);
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), mCommandBuffers[mCurrentFrame]);
 	}
 
 	ImTextureID VulkanRenderer::GetFrameImage() {
@@ -2172,5 +2172,139 @@ namespace Plaza {
 		newMesh->uuid = oldUuid;
 		delete(mesh);
 		return newMesh;
+	}
+
+	void VulkanRenderer::UpdateProjectManager() {
+		PLAZA_PROFILE_SECTION("Render Instances");
+
+
+
+		//mCurrentFrame = 0;
+
+		{
+			PLAZA_PROFILE_SECTION("Wait Fences");
+			vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+		}
+
+
+		uint32_t imageIndex;
+		VkResult result;
+		{
+			PLAZA_PROFILE_SECTION("Get Next Image");
+			result = vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame], VK_NULL_HANDLE, &imageIndex);
+		}
+
+		mCurrentImage = imageIndex;
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+			RecreateSwapChain();
+			return;
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+			throw std::runtime_error("failed to acquire swap chain image!");
+		}
+
+		{
+			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
+			this->mShadows->UpdateUniformBuffer(mCurrentFrame);
+			UpdateUniformBuffer(mCurrentFrame);
+		}
+
+#ifdef EDITOR_MODE
+		{
+			PLAZA_PROFILE_SECTION("ImGui::Render");
+			ImGui::Render();
+		}
+#endif
+
+
+
+		{
+			PLAZA_PROFILE_SECTION("Reset Fences/CommandBuffer and Record command buffer");
+			vkResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]);
+			vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0);
+
+
+
+			VkCommandBuffer commandBuffer = mCommandBuffers[mCurrentFrame];
+			VkCommandBufferBeginInfo beginInfo{};
+			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+			beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT; // Optional
+			beginInfo.pInheritanceInfo = nullptr; // Optional
+
+			if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+				throw std::runtime_error("failed to begin recording command buffer!");
+			}
+			mActiveCommandBuffer = &commandBuffer;
+
+			VkRenderPassBeginInfo renderPassInfo{};
+			renderPassInfo.renderPass = mRenderPass;
+			renderPassInfo.framebuffer = mSwapChainFramebuffers[imageIndex];
+			renderPassInfo.renderArea.extent = mSwapChainExtent;
+
+			vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+			//		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
+			VkViewport viewport{};
+			viewport.width = static_cast<float>(mSwapChainExtent.width);
+			viewport.height = static_cast<float>(mSwapChainExtent.height);
+			VkRect2D scissor{};
+			scissor.extent = mSwapChainExtent;
+			vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+			vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+
+			if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+				throw std::runtime_error("failed to record command buffer!");
+			}
+		}
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		VkSemaphore waitSemaphores[] = { mImageAvailableSemaphores[mCurrentFrame] };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT };
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pWaitDstStageMask = waitStages;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
+
+		VkSemaphore signalSemaphores[] = { mRenderFinishedSemaphores[mCurrentFrame] };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		{
+			PLAZA_PROFILE_SECTION("Queue");
+			if (vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]) != VK_SUCCESS) {
+				throw std::runtime_error("failed to submit draw command buffer!");
+			}
+		}
+
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = signalSemaphores;
+
+		VkSwapchainKHR swapChains[] = { mSwapChain };
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = swapChains;
+		presentInfo.pImageIndices = &imageIndex;
+
+		{
+			PLAZA_PROFILE_SECTION("QueuePresent");
+			result = vkQueuePresentKHR(mPresentQueue, &presentInfo);
+		}
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || mFramebufferResized) {
+			mFramebufferResized = false;
+			RecreateSwapChain();
+		}
+		else if (result != VK_SUCCESS) {
+			throw std::runtime_error("failed to present swap chain image!");
+		}
+
+		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
 	}
 }

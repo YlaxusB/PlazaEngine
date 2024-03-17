@@ -66,6 +66,7 @@ namespace Plaza {
 		VulkanShadows* mShadows; //= new VulkanShadows();
 
 		void Init() override;
+		void UpdateProjectManager() override;
 		void InitShaders(std::string shadersFolder) override;
 		void AddInstancesToRender() override;
 		void RenderShadowMap(Shader& shader) override;

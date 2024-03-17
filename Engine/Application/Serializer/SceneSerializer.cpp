@@ -85,10 +85,11 @@ namespace Plaza {
 		out << YAML::Key << "Name" << YAML::Value << sceneEntity->name;
 	}
 
-	void Serializer::Serialize(const std::string filePath)
+	void Serializer::Serialize(const Asset* asset)
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap;
+		out << YAML::Key << "AssetUuid" << YAML::Value << asset->mAssetUuid;
 		out << YAML::Key << "Scene" << YAML::Value << YAML::BeginMap;
 		SerializeScene(out, Application->activeScene->mainSceneEntity);
 		out << YAML::EndMap;
@@ -115,7 +116,7 @@ namespace Plaza {
 
 
 		out << YAML::EndMap;
-		std::ofstream fout(filePath);
+		std::ofstream fout(asset->mPath.string());
 		fout << out.c_str();
 	}
 

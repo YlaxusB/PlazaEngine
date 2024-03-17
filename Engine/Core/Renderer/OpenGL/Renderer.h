@@ -23,6 +23,7 @@ namespace Plaza {
 		/// Init the HDR framebuffer and others
 		/// </summary>
 		void Init() override;
+		void UpdateProjectManager() override;
 
 		void InitShaders(std::string shadersFolder) override;
 

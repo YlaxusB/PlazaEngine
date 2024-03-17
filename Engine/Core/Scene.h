@@ -76,6 +76,7 @@ namespace Plaza {
 	};
 	class Scene {
 	public:
+		uint64_t mAssetUuid = 0;
 		std::string filePath = "mainScene.plzscn";
 		GameObjectList gameObjects;
 		std::unordered_map<std::variant<uint64_t, std::string>, Entity*> gameObjectsMap;

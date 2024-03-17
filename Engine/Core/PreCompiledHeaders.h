@@ -55,3 +55,4 @@
 #include "Engine/Core/ComponentMapStructure.h"
 #include "Engine/Core/Debugging/Profiler.h"
 #include "Editor/Settings/EditorSettings.h"
+#include "Engine/Core/AssetsManager/AssetsManager.h"

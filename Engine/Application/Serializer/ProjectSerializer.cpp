@@ -47,6 +47,7 @@ namespace Plaza {
 			Application->editorScene = new Scene();
 			Application->activeScene = Application->editorScene;
 			Application->activeScene->mainSceneEntity = new Entity("Scene");
+			Application->activeScene->mainSceneEntity->parentUuid = 0;
 			Editor::DefaultModels::Init();
 		}
 	}

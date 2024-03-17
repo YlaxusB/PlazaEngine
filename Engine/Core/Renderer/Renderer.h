@@ -21,6 +21,7 @@ namespace Plaza {
 		const unsigned int mMaxFramesInFlight = 2;
 
 		virtual void Init() = 0;
+		virtual void UpdateProjectManager() = 0;
 		virtual void InitShaders(std::string shadersFolder) = 0;
 		virtual void AddInstancesToRender() = 0;
 		virtual void RenderShadowMap(Shader& shader) = 0;

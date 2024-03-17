@@ -119,6 +119,7 @@ namespace Plaza {
 	}
 
 	Scene::Scene() {
+		this->mAssetUuid = Plaza::UUID::NewUUID();
 		this->RegisterMaps();
 
 

@@ -68,8 +68,8 @@ namespace Plaza {
 				ImGui::Render();
 				ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 			}
-			else if (Application->mRenderer->api == RendererAPI::Vulkan)
-				Application->mRenderer->UpdateGUI();
+			//else if (Application->mRenderer->api == RendererAPI::Vulkan)
+			//	Application->mRenderer->UpdateGUI();
 			//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), (VulkanRenderer)(Application->mRenderer)->);
 		}
 

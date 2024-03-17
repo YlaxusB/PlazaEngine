@@ -267,7 +267,7 @@ namespace Plaza {
 #endif
 		if (!Mono::mScriptAssembly) {
 			// Handle assembly loading error
-			std::cout << "Failed to load assembly on path: " << (Application->projectPath + "\\Binaries\\" + Application->activeProject->name + ".dll").c_str() << "\n";
+			std::cout << "Failed to load assembly on path: " << (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str() << "\n";
 		}
 		else
 			Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);

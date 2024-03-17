@@ -71,6 +71,8 @@ namespace Plaza {
 		Bloom::Init();
 	}
 
+	void OpenGLRenderer::UpdateProjectManager() {}
+
 	void OpenGLRenderer::InitShaders(std::string shadersFolder) {
 		this->blurShader = new Shader((shadersFolder + "\\Shaders\\blur\\gaussianBlurVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\blur\\gaussianBlurFragment.glsl").c_str());
 

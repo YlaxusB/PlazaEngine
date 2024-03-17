@@ -42,11 +42,12 @@ namespace Plaza {
 		out << YAML::EndMap;
 	}
 
-	void ModelSerializer::SerializeModel(Entity* mainObject, string filePath, string modelFilePath) {
+	void ModelSerializer::SerializeModel(Entity* mainObject, const Asset* asset, string modelFilePath) {
 
 		uint64_t modelUuid = Plaza::UUID::NewUUID();
 		YAML::Emitter out;
 		out << YAML::BeginMap;
+		out << YAML::Key << "AssetUuid" << YAML::Value << asset->mAssetUuid;
 		out << YAML::Key << "Model" << YAML::Value << mainObject->name;
 		out << YAML::Key << "ModelFilePath" << YAML::Value << modelFilePath;
 		out << YAML::Key << "ModelUuid" << YAML::Value << modelUuid;
@@ -61,7 +62,7 @@ namespace Plaza {
 		}
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
-		std::ofstream fout(filePath);
+		std::ofstream fout(asset->mPath.string());
 		fout << out.c_str();
 
 	}

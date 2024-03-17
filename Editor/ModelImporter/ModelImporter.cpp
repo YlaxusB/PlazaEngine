@@ -122,7 +122,8 @@ namespace Plaza::Editor {
 		SerializeEntityAndChildsMaterials(mainObject);
 		serializedMaterials.clear();
 
-		ModelSerializer::SerializeModel(mainObject, modelPathInEngine + "\\" + filesystem::path(modelPath).stem().string() + Standards::modelExtName, sourcesFolderPath + "\\" + modelName + extension);
+		std::string serializePath = modelPathInEngine + "\\" + filesystem::path(modelPath).stem().string() + Standards::modelExtName;
+		ModelSerializer::SerializeModel(mainObject, AssetsManager::NewAsset(AssetType::MODEL, serializePath), sourcesFolderPath + "\\" + modelName + extension);
 		Editor::selectedGameObject = nullptr;
 		Gui::changeSelectedGameObject(nullptr);
 		//mainObject->Delete();

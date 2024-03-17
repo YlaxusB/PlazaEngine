@@ -11,6 +11,7 @@ namespace Plaza::Editor {
 				Application->activeScene->materials.at(materialUuid)->name = newPath;
 				Application->activeScene->materialsNames.emplace(newPath, materialUuid);
 				Application->activeScene->materialsNames.erase(oldPath);
+				AssetsManager::ChangeAssetPath(Application->activeScene->materials.at(materialUuid)->mAssetUuid, newPath);
 			}
 		}
 		/* C# Script */

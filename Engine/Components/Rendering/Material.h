@@ -5,6 +5,7 @@
 namespace Plaza {
 	struct Material : public Component {
 	public:
+		uint64_t mAssetUuid = 0;
 		std::string relativePath;
 		std::string filePath;
 		std::string name;

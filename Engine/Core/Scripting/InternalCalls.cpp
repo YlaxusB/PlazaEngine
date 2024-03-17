@@ -377,8 +377,8 @@ namespace Plaza {
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end() && Application->activeScene->materials.find(materialUuid) != Application->activeScene->materials.end()) {
 			//meshRendererIt->second.ChangeMaterial(Application->activeScene->materials.find(materialUuid)->second.get());
 			meshRendererIt->second.material = Application->activeScene->materials.find(materialUuid)->second.get();
-			if (!meshRendererIt->second.renderGroup.get()) {
-				meshRendererIt->second.renderGroup = std::shared_ptr<RenderGroup>(new RenderGroup(meshRendererIt->second.mesh, meshRendererIt->second.material));
+			if (!meshRendererIt->second.renderGroup) {
+				meshRendererIt->second.renderGroup = new RenderGroup(meshRendererIt->second.mesh, meshRendererIt->second.material);
 				Application->activeScene->AddRenderGroup(meshRendererIt->second.renderGroup);
 			}
 
@@ -637,12 +637,12 @@ namespace Plaza {
 
 				Application->activeScene->meshRendererComponents.find(uuid)->second.mesh = Application->mRenderer->RestartMesh(Application->activeScene->meshRendererComponents.find(uuid)->second.mesh);
 
-				if (oldMeshUuid == meshRendererIt->second.mesh->uuid && Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup.get()) {
+				if (oldMeshUuid == meshRendererIt->second.mesh->uuid && Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup) {
 					Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 				}
 				else {
 					RenderGroup* newRenderGroup = new RenderGroup(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh, Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->material);
-					Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
+					Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
 				}
 				});
 

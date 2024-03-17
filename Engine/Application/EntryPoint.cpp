@@ -68,6 +68,8 @@ int main() {
 
 #endif
 
+	AssetsManager::Init();
+
 	// Start
 	std::cout << "Creating Application \n";
 	Application->CreateApplication();

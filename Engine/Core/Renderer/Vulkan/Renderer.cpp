@@ -956,7 +956,7 @@ namespace Plaza {
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[0].mDescriptorSets[mCurrentFrame], 0, nullptr);
 
 			for (const auto& [key, value] : Application->activeScene->renderGroups) {
-				this->DrawRenderGroupShadowDepthMapInstanced(value.get(), 0);
+				this->DrawRenderGroupShadowDepthMapInstanced(value, 0);
 			}
 
 			vkCmdEndRenderPass(commandBuffer);
@@ -1001,7 +1001,7 @@ namespace Plaza {
 			for (const auto& [key, value] : Application->activeScene->renderGroups) {
 				if (value->instanceModelMatrices.size() > 0)
 				{
-					this->DrawRenderGroupInstanced(value.get());
+					this->DrawRenderGroupInstanced(value);
 				}
 				value->mCascadeInstances.clear();
 			}
@@ -1238,7 +1238,7 @@ namespace Plaza {
 		ubo.farPlane = 15000.0f;
 		ubo.nearPlane = 0.01f;
 
-		glm::vec3 lightDir = glm::normalize(glm::vec3(20.0f, 50, 20.0f));
+		glm::vec3 lightDir = this->mShadows->mLightDirection;//glm::normalize(glm::vec3(20.0f, 50, 20.0f));
 		glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
 		glm::vec3 lightPos;
 
@@ -2096,15 +2096,15 @@ namespace Plaza {
 		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		void* data;
-		vkMapMemory(this->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
+		vkMapMemory(this->mDevice, renderGroup->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
 		memcpy(data, renderGroup->mCascadeInstances[cascadeIndex].data(), static_cast<size_t>(bufferInfo.size));
-		vkUnmapMemory(this->mDevice, mesh->mInstanceBufferMemory);
+		vkUnmapMemory(this->mDevice, renderGroup->mInstanceBufferMemory);
 
 		VkDeviceSize offsets[] = { 0, 0 };
 		VkCommandBuffer activeCommandBuffer = *this->mActiveCommandBuffer;
 
 		//vkCmdPushConstants(*this->mActiveCommandBuffer, this->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
-		vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
+		vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, renderGroup->mInstanceBuffer };
 		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, verticesBuffer.data(), offsets);
 		vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->mCascadeInstances[cascadeIndex].size(), 0, 0, 0);
@@ -2124,9 +2124,9 @@ namespace Plaza {
 			bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 			bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			void* data;
-			vkMapMemory(this->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
+			vkMapMemory(this->mDevice, renderGroup->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
 			memcpy(data, renderGroup->instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
-			vkUnmapMemory(this->mDevice, mesh->mInstanceBufferMemory);
+			vkUnmapMemory(this->mDevice, renderGroup->mInstanceBufferMemory);
 		}
 
 		VkDeviceSize offsets[] = { 0, 0 };
@@ -2146,8 +2146,8 @@ namespace Plaza {
 
 		{
 			PLAZA_PROFILE_SECTION("Bind Buffers");
-			vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
-			std::array<VkBuffer, 2> buffers = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
+			vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, renderGroup->mInstanceBuffer };
+			std::array<VkBuffer, 2> buffers = { mesh->mVertexBuffer, renderGroup->mInstanceBuffer };
 			vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, buffers.data(), offsets);
 			//vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
 			vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);

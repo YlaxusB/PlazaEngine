@@ -5,6 +5,7 @@
 
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/GUI/FileExplorer/File.h"
+#include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
 namespace Plaza::Editor {
 	void Popup::FileExplorerPopup::UpdateContent() {
 		if (ImGui::BeginMenu("Create"))
@@ -35,13 +36,16 @@ namespace Plaza::Editor {
 			if (ImGui::BeginMenu("Rendering"))
 			{
 				if (ImGui::MenuItem("Material")) {
-					Editor::File::changingName = Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed." + Standards::materialExtName);
+					Editor::File::changingName = Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed" + Standards::materialExtName);
 					Editor::File::changingName = std::filesystem::path{ Editor::File::changingName }.filename().string();
 					Editor::File::firstFocus = true;
 					Material material = Material();
 					material.uuid = Plaza::UUID::NewUUID();
 					//Application->activeScene->materials.emplace(material.uuid, std::make_shared<Material>(material));
 					Application->activeScene->AddMaterial(&material);
+					std::string path = Gui::FileExplorer::currentDirectory + "\\" + Editor::File::changingName;
+					material.mAssetUuid = AssetsManager::NewAsset(AssetType::MATERIAL,path)->mAssetUuid;
+					MaterialFileSerializer::Serialize(path, &material);
 				}
 				ImGui::EndMenu();
 			}

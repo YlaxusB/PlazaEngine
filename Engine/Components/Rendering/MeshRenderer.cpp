@@ -43,10 +43,9 @@ namespace Plaza {
 
 	void MeshRenderer::ChangeMaterial(Material* newMaterial) {
 		uint64_t oldUuid = newMaterial->uuid;
-		if (!this->renderGroup.get()) {
-			this->renderGroup = std::shared_ptr<RenderGroup>(new RenderGroup(this->mesh, this->material));
-			Application->activeScene->AddRenderGroup(this->renderGroup);
-		}
+		this->material = newMaterial;
+		this->renderGroup = Application->activeScene->AddRenderGroup(new RenderGroup(this->mesh, this->material));
+		//this->renderGroup->ChangeMaterial(newMaterial);
 	}
 	void MeshRenderer::ChangeMesh(Mesh* newMesh) {
 

@@ -14,7 +14,7 @@ namespace Plaza::Editor {
 				MeshRenderer* meshRenderer = entity->GetComponent<MeshRenderer>();
 
 				MeshRenderer* meshR = entity->GetComponent<MeshRenderer>();
-				RenderGroup* oldRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup.get();
+				RenderGroup* oldRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup;
 
 				for (auto [key, value] : Application->activeScene->materials) {
 					if (value.get()->name.empty())
@@ -26,10 +26,10 @@ namespace Plaza::Editor {
 						entity->GetComponent<MeshRenderer>()->renderGroup->ChangeMaterial(value.get());
 					}
 				}
-				RenderGroup* newRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup.get();
+				RenderGroup* newRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup;
 
 				Material& material = *(entity->GetComponent<MeshRenderer>()->material);
-				if (meshRenderer->mesh && meshRenderer->renderGroup.get() && meshRenderer->material) {
+				if (meshRenderer->mesh && meshRenderer->renderGroup && meshRenderer->material) {
 					glm::vec4& diffuse = material.diffuse->rgba;
 					glm::vec4& specular = material.specular->rgba;
 					float shininess = material.shininess;

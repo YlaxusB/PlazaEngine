@@ -45,7 +45,7 @@ namespace Plaza {
 		std::string meshName;
 		Mesh* mesh = nullptr;
 		Material* material = nullptr;
-		std::shared_ptr<RenderGroup> renderGroup = nullptr;
+		RenderGroup* renderGroup = nullptr;
 		GLuint heightMap;
 
 		Array2D<float> m_heightMap;

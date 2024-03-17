@@ -32,16 +32,15 @@ namespace Plaza {
 				File::currentPos = ImVec2(-1.0f, 1.0f);
 
 				ImGui::BeginGroup();
-
 				// Create all the icons
 				unsigned int index = 0;
 				for (File& file : files) {
 					if (file.name != "")
 						FileExplorer::DrawFile(&file);
-						//file.Update();
+					//file.Update();
 					if (index == 0) {
 						// Back Button Click
-						if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0) && filesystem::path{currentDirectory}.parent_path().string().starts_with(Application->activeProject->directory)) {
+						if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0) && filesystem::path{ currentDirectory }.parent_path().string().starts_with(Application->activeProject->directory)) {
 							Editor::Gui::FileExplorer::currentDirectory = filesystem::path{ currentDirectory }.parent_path().string();
 							Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 						}
@@ -50,18 +49,22 @@ namespace Plaza {
 				}
 
 				Popup::FileExplorerPopup::Update();
-				
+
 				ImGui::EndGroup();
 			}
 
 			ImGui::End();
 			ImGui::PopStyleColor();
+
+			files.clear();
+			files = updatedFiles;
 		}
 
 		/* Read all files in a directory and push them to the files vector */
 		std::vector<File> Gui::FileExplorer::files = std::vector<File>();
+		std::vector<File> Gui::FileExplorer::updatedFiles = std::vector<File>();
 		void Gui::FileExplorer::UpdateContent(std::string folderPath) {
-			files.clear();
+			updatedFiles.clear();
 			namespace fs = std::filesystem;
 
 			// Back Button
@@ -72,7 +75,7 @@ namespace Plaza {
 			backFile.extension = ".back";
 			backFile.name = ".back";
 			backFile.textureId = Icon::textures.at("").id;
-			files.push_back(backFile);
+			updatedFiles.push_back(backFile);
 
 			// Loop through all files found and create an icon on the file explorer
 			for (const auto& entry : fs::directory_iterator(folderPath)) {
@@ -87,7 +90,7 @@ namespace Plaza {
 					newFile.name = filename;
 					newFile.extension = extension;
 					newFile.textureId = Icon::textures.at("").id;
-					files.push_back(newFile);
+					updatedFiles.push_back(newFile);
 				}
 				else if (entry.path().extension() != ".dll") {
 					File newFile = File();
@@ -101,7 +104,7 @@ namespace Plaza {
 					else {
 						newFile.textureId = Icon::textures.at(".notFound").id;
 					}
-					files.push_back(newFile);
+					updatedFiles.push_back(newFile);
 				}
 			}
 		}
@@ -182,6 +185,7 @@ namespace Plaza {
 
 			// Open, or add the file to the selected files map when user clicked on a file
 			if (ImGui::IsItemClicked()) {
+				Editor::selectedGameObject = nullptr;
 				// Clicked on a folder and is not holding ctrl
 				if (ImGui::IsMouseDoubleClicked(0)) {
 					// Handle double click on folders

@@ -104,14 +104,14 @@ namespace Plaza {
 		std::unordered_map<uint64_t, shared_ptr<Material>> materials;
 		std::unordered_map<std::string, uint64_t> materialsNames;
 
-		std::unordered_map<uint64_t, shared_ptr<RenderGroup>> renderGroups;
+		std::unordered_map<uint64_t, RenderGroup*> renderGroups;
 		std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash> renderGroupsFindMap;
 		std::unordered_map<uint64_t, uint64_t> renderGroupsFindMapWithMeshUuid;
 		std::unordered_map<uint64_t, uint64_t> renderGroupsFindMapWithMaterialUuid;
 
 		std::unordered_map<std::string, std::unordered_set<uint64_t>> entitiesNames;
 
-		shared_ptr<RenderGroup>  AddRenderGroup(Mesh* newMesh, Material* newMaterial) {
+		RenderGroup* AddRenderGroup(Mesh* newMesh, Material* newMaterial) {
 			bool foundNewRenderGroup = this->renderGroupsFindMap.find(std::pair<uint64_t, uint64_t>(newMesh->uuid, newMaterial->uuid)) != this->renderGroupsFindMap.end();
 			if (foundNewRenderGroup) {
 				uint64_t uuid = this->renderGroupsFindMap.at(std::pair<uint64_t, uint64_t>(newMesh->uuid, newMaterial->uuid));
@@ -124,16 +124,19 @@ namespace Plaza {
 				this->renderGroupsFindMapWithMeshUuid.emplace(newRenderGroup->mesh->uuid, newRenderGroup->uuid);
 				this->renderGroupsFindMapWithMaterialUuid.emplace(newRenderGroup->material->uuid, newRenderGroup->uuid);
 				this->renderGroupsFindMap.emplace(std::make_pair(newRenderGroup->mesh->uuid, newRenderGroup->material->uuid), newRenderGroup->uuid);
-				return shared_ptr<RenderGroup>(newRenderGroup);
+				return newRenderGroup;
 			}
 		}
 
-		shared_ptr<RenderGroup> AddRenderGroup(shared_ptr<RenderGroup> renderGroup) {
+		RenderGroup* AddRenderGroup(RenderGroup* renderGroup) {
 			return AddRenderGroup(renderGroup->mesh, renderGroup->material);
 		}
 
-		shared_ptr<RenderGroup>  AddRenderGroup(RenderGroup* renderGroup) {
-			return AddRenderGroup(renderGroup->mesh, renderGroup->material);
+		RenderGroup* GetRenderGroupWithUuids(uint64_t meshUuid, uint64_t materialUuid) {
+			const auto& renderGroupIt = renderGroupsFindMap.find(std::make_pair(meshUuid, materialUuid));
+			if (renderGroupIt != this->renderGroupsFindMap.end())
+				return renderGroups.at(renderGroupIt->second);
+			return nullptr;
 		}
 
 		template <typename MapType>
@@ -146,7 +149,7 @@ namespace Plaza {
 		void RemoveRenderGroup(uint64_t uuid) {
 			if (this->renderGroups.find(uuid) != this->renderGroups.end())
 			{
-				RenderGroup* renderGroup = this->renderGroups.at(uuid).get();
+				RenderGroup* renderGroup = this->renderGroups.at(uuid);
 				EraseFoundMap(this->renderGroups, renderGroup->uuid);
 				if (renderGroup->mesh)
 					EraseFoundMap(this->renderGroupsFindMapWithMeshUuid, renderGroup->mesh->uuid);

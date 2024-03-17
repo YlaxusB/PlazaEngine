@@ -62,8 +62,19 @@ namespace Plaza::Editor {
 		std::cout << "Mono \n";
 		Mono::Init();
 
-		std::map<std::string, Script> scripts = std::map<std::string, Script>();
+		/* Iterate over all files and subfolders of the project folder to load assets */
+		for (const auto& entry : filesystem::recursive_directory_iterator(Application->activeProject->directory)) {
+			const std::string extension = entry.path().extension().string();
+			if (entry.is_regular_file() && extension != "")
+			{
+				if (AssetsManager::mAssetTypeByExtension.find(extension) != AssetsManager::mAssetTypeByExtension.end()) {
+					AssetsManager::LoadFileAsAsset(entry.path());
+				}
+			}
+		}
+
 		/* Iterate over all files and subfolders of the project folder*/
+		std::map<std::string, Script> scripts = std::map<std::string, Script>();
 		for (const auto& entry : filesystem::recursive_directory_iterator(Application->activeProject->directory)) {
 			if (entry.is_regular_file() && entry.path().extension() == ".cs") {
 				scripts.emplace(entry.path().string(), Script());

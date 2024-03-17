@@ -51,8 +51,10 @@ namespace Plaza {
 						//free(Application->editorScene);
 						//free(Application->runtimeScene);
 						Application->editorScene = new Scene();
-						Application->editorScene->mainSceneEntity = new Entity("Scene");
 						Application->activeScene = Application->editorScene;
+						Application->editorScene->mainSceneEntity = new Entity("Scene");
+						Application->editorScene->entities.at(Application->editorScene->mainSceneEntity->uuid).parentUuid = Application->editorScene->mainSceneEntity->uuid;
+						Application->editorScene->mainSceneEntity->parentUuid = Application->editorScene->mainSceneEntity->uuid;
 						Serializer::Serialize(AssetsManager::NewAsset(AssetType::SCENE, newPath));
 						if (newPath.starts_with(Application->projectPath))
 							Application->editorScene->filePath = newPath.substr(Application->projectPath.length() + 1, newPath.length() - Application->projectPath.length());

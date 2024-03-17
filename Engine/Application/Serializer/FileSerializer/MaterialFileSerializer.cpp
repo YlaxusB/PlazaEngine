@@ -5,10 +5,11 @@ namespace Plaza {
 	void MaterialFileSerializer::Serialize(const std::string filePath, Material* material) {
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-		if(!material->name.empty())
-		out << YAML::Key << "Material" << YAML::Value << material->name;
+		out << YAML::Key << "AssetUuid" << YAML::Value << material->mAssetUuid;
+		if (!material->name.empty())
+			out << YAML::Key << "Material" << YAML::Value << material->name;
 		else
-			out << YAML::Key << "Material" << YAML::Value << std::filesystem::path{filePath}.stem().string();
+			out << YAML::Key << "Material" << YAML::Value << std::filesystem::path{ filePath }.stem().string();
 		out << YAML::Key << "Uuid" << YAML::Value << material->uuid;
 		ComponentSerializer::TextureSerializer::Serialize(out, *material->diffuse);
 		ComponentSerializer::TextureSerializer::Serialize(out, *material->specular);

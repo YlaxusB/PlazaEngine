@@ -135,11 +135,11 @@ namespace Plaza {
 		/* Scene */
 		if (!deserializingProject)
 			Application->editorScene = new Scene();
+		Application->editorScene->mAssetUuid = data["AssetUuid"].as<uint64_t>();
 		Application->activeScene = Application->editorScene;
 		Editor::DefaultModels::Init();
-		Entity* oldScene = Application->activeScene->mainSceneEntity;
 		Entity* newScene = new Entity(data["Scene"]["Name"].as<std::string>(), nullptr, true, data["Scene"]["Uuid"].as<uint64_t>());
-		free(Application->activeScene->mainSceneEntity);
+		//free(Application->activeScene->mainSceneEntity);
 		Application->activeScene->mainSceneEntity = newScene;
 		if (filePath.starts_with(Application->projectPath))
 			Application->activeScene->filePath = filePath.substr(Application->projectPath.length() + 1, filePath.length() - Application->projectPath.length());
@@ -245,6 +245,7 @@ namespace Plaza {
 			for (auto entity : gameObjectsDeserialized) {
 				uint64_t entityUuid = entity["Entity"].as<uint64_t>();
 				uint64_t parentUuid = entity["ParentID"].as<uint64_t>();
+				Entity* ent = &Application->activeScene->entities.at(entityUuid);
 				if (parentUuid && parentUuid != entityUuid && Application->activeScene->entities.find(parentUuid) != Application->activeScene->entities.end())
 					Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), Application->activeScene->entities.at(entity["ParentID"].as<uint64_t>()));
 				else

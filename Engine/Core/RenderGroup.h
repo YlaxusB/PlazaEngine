@@ -13,16 +13,22 @@ namespace Plaza {
 		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
 		vector<vector<glm::mat4>> mCascadeInstances = vector<vector<glm::mat4>>();
 
+		VkBuffer mInstanceBuffer = VK_NULL_HANDLE;
+		VkDeviceMemory mInstanceBufferMemory = VK_NULL_HANDLE;
+		void InitializeInstanceBuffer();
+
 		RenderGroup(Mesh* mesh, Material* mat) {
 			this->uuid = Plaza::UUID::NewUUID();
 			this->mesh = mesh;
 			this->material = mat;
+			InitializeInstanceBuffer();
 		}
 		
 		RenderGroup(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> mat) {
 			this->uuid = Plaza::UUID::NewUUID();
 			this->mesh = mesh.get();
 			this->material = mat.get();
+			InitializeInstanceBuffer();
 		}
 
 		void AddInstance(Shader& shader, glm::mat4 model) {

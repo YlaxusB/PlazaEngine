@@ -6,8 +6,9 @@ namespace Plaza {
     std::string VulkanShadersCompiler::mDefaultOutDirectory = "";
     std::string VulkanShadersCompiler::Compile(std::string shadersPath, std::string outDirectory) {
         std::string shadersName = std::filesystem::path{ shadersPath }.filename().string();
-        std::string command = "\" " "\"" + mGlslcExePath + "\" \"" + shadersPath + "\" -o \"" + outDirectory + shadersName + ".spv\"" " \"";
 
+#ifdef EDITOR_MODE
+        std::string command = "\" " "\"" + mGlslcExePath + "\" \"" + shadersPath + "\" -o \"" + outDirectory + shadersName + ".spv\"" " \"";
         int result = system(command.c_str());
         if (result == 0) {
             std::cout << "Shader compilation successful." << std::endl;
@@ -15,6 +16,7 @@ namespace Plaza {
         else {
             std::cerr << "Shader compilation failed." << std::endl;
         }
+#endif
         return outDirectory + shadersName + ".spv";
     }
 

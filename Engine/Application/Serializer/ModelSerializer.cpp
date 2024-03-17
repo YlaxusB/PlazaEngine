@@ -143,6 +143,11 @@ namespace Plaza {
 			model->scale = data["ModelScale"].as<float>();
 			model->useTangent = data["UseTangent"].as<bool>();
 			model->modelObjectPath = data["ModelFilePath"].as<string>();
+			if (model->modelObjectPath.starts_with("."))
+			{
+				std::string objPath = model->modelObjectPath.substr(2);
+				model->modelObjectPath = std::filesystem::path{ filePath }.parent_path().string() + "\\" + objPath;
+			}
 			model->modelPlazaPath = filePath;
 			// DeSerialize the model's main object
 			DeSerializeGameObject(data["MainObject"][0], model);

@@ -112,6 +112,17 @@ set(IMGUI_SOURCES
 add_executable(PlazaEngine "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}")
 
 add_executable(PlazaShippingGame "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}")
+
+#    if (WIN32)
+#        # /ENTRY:mainCRTStartup keeps the same "main" function instead of requiring "WinMain"
+#        set(SUBSYSTEM_LINKER_OPTIONS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
+#    else()
+#        set(SUBSYSTEM_LINKER_OPTIONS "-mwindows")
+#    endif()
+#    
+#    target_link_options(TargetName PRIVATE ${SUBSYSTEM_LINKER_OPTIONS})
+
+
 #set_target_properties(PlazaShippingGame PROPERTIES WIN32_EXECUTABLE TRUE)
 
 #get_target_property(EXE_NAME PlazaEngine TYPE)

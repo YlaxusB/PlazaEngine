@@ -257,12 +257,18 @@ namespace Plaza {
 	}
 
 	void VulkanSkybox::Init() {
-		this->mSkyboxPaths[0] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\right.jpg";
-		this->mSkyboxPaths[1] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\left.jpg";
-		this->mSkyboxPaths[2] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\top.jpg";
-		this->mSkyboxPaths[3] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\bottom.jpg";
-		this->mSkyboxPaths[4] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\front.jpg";
-		this->mSkyboxPaths[5] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\back.jpg";
+		std::string shadersPath;
+#ifdef EDITOR_MODE
+		shadersPath = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\";
+#else
+		shadersPath = Application->projectPath + "\\";
+#endif
+		this->mSkyboxPaths[0] = shadersPath + "right.jpg";
+		this->mSkyboxPaths[1] = shadersPath + "left.jpg";
+		this->mSkyboxPaths[2] = shadersPath + "top.jpg";
+		this->mSkyboxPaths[3] = shadersPath + "bottom.jpg";
+		this->mSkyboxPaths[4] = shadersPath + "front.jpg";
+		this->mSkyboxPaths[5] = shadersPath + "back.jpg";
 
 		this->mResolution = glm::vec2(2048);//Application->appSizes->sceneSize;
 		this->mSkyboxPostEffect = new VulkanPostEffects();

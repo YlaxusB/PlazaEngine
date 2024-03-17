@@ -136,6 +136,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::InitVulkan() {
+		std::cout << "appInfo \n";
 		VkApplicationInfo appInfo{};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pApplicationName = "Plaza Engine";
@@ -145,10 +146,14 @@ namespace Plaza {
 		VkInstanceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		createInfo.pApplicationInfo = &appInfo;
-
+		std::cout << "getRequiredExtensions \n";
 		auto extensions = getRequiredExtensions();
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 		createInfo.ppEnabledExtensionNames = extensions.data();
+
+#ifdef GAME_MODE
+		mEnableValidationLayers = false;
+#endif
 
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 		if (mEnableValidationLayers) {
@@ -163,7 +168,7 @@ namespace Plaza {
 
 			createInfo.pNext = nullptr;
 		}
-
+		std::cout << "vkCreateInstance \n";
 		if (vkCreateInstance(&createInfo, nullptr, &mVulkanInstance) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create instance!");
 		}
@@ -1695,29 +1700,44 @@ namespace Plaza {
 		VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\vulkanTriangle.frag");
 
 		std::string shadersFolder = VulkanShadersCompiler::mDefaultOutDirectory;
-
+		std::cout << "Initializing vulkan \n";
 		InitVulkan();
+		std::cout << "SetupDebugMessenger \n";
 		SetupDebugMessenger();
+		std::cout << "InitSurface \n";
 		InitSurface();
+		std::cout << "PickPhysicalDevice \n";
 		PickPhysicalDevice();
+		std::cout << "CreateLogicalDevice \n";
 		CreateLogicalDevice();
+		std::cout << "InitSwapChain \n";
 		InitSwapChain();
-
+		std::cout << "CreateCommandPool \n";
 		CreateCommandPool();
+		std::cout << "Initializing Shadows \n";
 		this->mShadows->Init();
-
+		std::cout << "Initializing image views \n";
 		CreateImageViews(VK_IMAGE_LAYOUT_UNDEFINED);
+		std::cout << "CreateRenderPass \n";
 		CreateRenderPass();
+		std::cout << "CreateDescriptorSetLayout \n";
 		CreateDescriptorSetLayout();
+		std::cout << "CreateGraphicsPipeline \n";
 		CreateGraphicsPipeline();
+		std::cout << "CreateDepthResources \n";
 		CreateDepthResources();
+		std::cout << "CreateFramebuffers \n";
 		CreateFramebuffers();
-		CreateTextureImage();
-		CreateTextureImageView();
+		std::cout << "CreateTextureImage \n";
+	//	CreateTextureImage();
+		std::cout << "CreateTextureImageView \n";
+		//CreateTextureImageView();
+		std::cout << "CreateTextureSampler \n";
 		CreateTextureSampler();
-		LoadModel();
-		CreateVertexBuffer(vertices, mVertexBuffer, mVertexBufferMemory);
-		CreateIndexBuffer(indices, mIndexBuffer, mIndexBufferMemory);
+		std::cout << "Create CreateUniformBuffers \n";
+		//LoadModel();
+		//CreateVertexBuffer(vertices, mVertexBuffer, mVertexBufferMemory);
+		//CreateIndexBuffer(indices, mIndexBuffer, mIndexBufferMemory);
 		CreateUniformBuffers();
 		CreateDescriptorPool();
 		CreateDescriptorSets();
@@ -1727,7 +1747,7 @@ namespace Plaza {
 
 		VkFormatProperties vkFormatProperties;
 		vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, VK_FORMAT_R8G8B8_UNORM, &vkFormatProperties);
-
+		std::cout << "Initializing Skybox \n";
 		this->mSkybox->Init();
 
 		VkSemaphoreCreateInfo semaphoreInfo = {};

@@ -1,9 +1,50 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "RenderGroup.h"
 
+
 namespace Plaza {
 	void RenderGroup::InitializeInstanceBuffer() {
-		VulkanRenderer::GetRenderer()->CreateBuffer(2 * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mInstanceBuffer, mInstanceBufferMemory);
+		this->mInstanceBuffers.resize(Application->mRenderer->mMaxFramesInFlight);
+		this->mInstanceBufferMemories.resize(Application->mRenderer->mMaxFramesInFlight);
+		for (int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+			VulkanRenderer::GetRenderer()->CreateBuffer(mBufferSize * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mInstanceBuffers[i], mInstanceBufferMemories[i]);
+		}
+	}
+
+	void RenderGroup::ResizeInstanceBuffer(uint64_t newSize) {
+		for (int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+
+
+			//vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, this->mInstanceBufferMemories[i], nullptr);
+			uint64_t size = newSize == 0 ? this->mCount * 2 : this->mCount + newSize;
+			this->mBufferSize = size;
+			VulkanRenderer::GetRenderer()->CreateBuffer(size * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, this->mInstanceBuffers[i], this->mInstanceBufferMemories[i]);
+		}
+
+
+		//Application->mThreadsManager->mFrameRendererAfterFenceThread->AddToQueue([newSize, this]() {
+		//
+		//	unsigned int currentFrame = Application->mRenderer->mCurrentFrame;
+		//	vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, this->mInstanceBuffers[currentFrame], nullptr);
+		//	vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, this->mInstanceBufferMemories[currentFrame], nullptr);
+		//
+		//	uint64_t size = newSize == 0 ? this->mCount * 2 : this->mCount + newSize;
+		//	this->mBufferSize = size;
+		//	VulkanRenderer::GetRenderer()->CreateBuffer(size * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM, this->mInstanceBuffers[currentFrame], this->mInstanceBufferMemories[currentFrame]);
+		//
+		//	Application->mThreadsManager->mFrameRendererBeforeFenceThread->AddToQueue([newSize, this]() {
+		//
+		//		unsigned int currentFrame = Application->mRenderer->mCurrentFrame;
+		//		vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, this->mInstanceBuffers[currentFrame], nullptr);
+		//		vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, this->mInstanceBufferMemories[currentFrame], nullptr);
+		//
+		//		uint64_t size = newSize == 0 ? this->mCount * 2 : this->mCount + newSize;
+		//		this->mBufferSize = size;
+		//		VulkanRenderer::GetRenderer()->CreateBuffer(size * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, this->mInstanceBuffers[currentFrame], this->mInstanceBufferMemories[currentFrame]);
+		//
+		//
+		//		});
+		//	});
 	}
 
 	void RenderGroup::ChangeMaterial(Material* newMaterial) {

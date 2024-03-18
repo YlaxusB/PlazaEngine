@@ -56,3 +56,4 @@
 #include "Engine/Core/Debugging/Profiler.h"
 #include "Editor/Settings/EditorSettings.h"
 #include "Engine/Core/AssetsManager/AssetsManager.h"
+#include "Engine/Threads/ThreadManager.h"

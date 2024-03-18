@@ -7,12 +7,18 @@
 #include "Engine/Core/Skybox.h"
 #include "Editor/GUI/guiMain.h"
 #include "Engine/Core/Lighting/ClusteredForward.h"
+#include "Editor/DefaultAssets/DefaultAssets.h"
+#include "Editor/DefaultAssets/Models/DefaultModels.h"
 using namespace Plaza;
 uint64_t lastUuid;
 
 static unsigned int cascadeIndexDebug = 2;
+
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (Application->focusedMenu == "Editor") {
+
+
+
 		VulkanRenderer* vulkanRenderer = (VulkanRenderer*)Application->mRenderer;
 		if (key == GLFW_KEY_H && action == GLFW_PRESS) {
 			vulkanRenderer->ChangeFinalDescriptorImageView(vulkanRenderer->mShadows->mCascades[cascadeIndexDebug].mImageView);

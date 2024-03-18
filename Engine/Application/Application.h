@@ -22,6 +22,8 @@
 #include "Engine/Core/Renderer/OpenGL/Renderer.h"
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
 #include "Engine/Core/AssetsManager/AssetsManager.h"
+#include "Engine/Threads/ThreadManager.h"
+
 namespace Plaza {
 	class Camera;
 	class WindowClass;
@@ -32,6 +34,7 @@ namespace Plaza {
 		AssetsManager* mAssetsManager;
 		Renderer* mRenderer = nullptr;
 		RendererAPI mRendererAPI;
+		ThreadsManager* mThreadsManager = new ThreadsManager();
 		bool showCascadeLevels = false;
 
 		Scene* editorScene = new Scene();

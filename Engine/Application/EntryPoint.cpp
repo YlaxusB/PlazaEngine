@@ -30,6 +30,7 @@ using namespace Plaza;
 
 #include <windows.h>
 #include <codecvt>
+
 int main() {
 	// Buffer to hold the path to the .exe
 	wchar_t exePath3[MAX_PATH];
@@ -73,6 +74,8 @@ int main() {
 	// Start
 	std::cout << "Creating Application \n";
 	Application->CreateApplication();
+
+	Application->mThreadsManager->Init();
 
 	/* Load Editor settings */
 #ifdef EDITOR_MODE

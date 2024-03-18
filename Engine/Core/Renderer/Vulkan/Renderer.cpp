@@ -890,6 +890,8 @@ namespace Plaza {
 			throw std::runtime_error("failed to begin recording command buffer!");
 		}
 		mActiveCommandBuffer = &commandBuffer;
+		
+
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -1774,7 +1776,9 @@ namespace Plaza {
 
 		{
 			PLAZA_PROFILE_SECTION("Wait Fences");
+			Application->mThreadsManager->mFrameRendererBeforeFenceThread->Update();
 			vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+			Application->mThreadsManager->mFrameRendererAfterFenceThread->Update();
 		}
 
 
@@ -2096,15 +2100,15 @@ namespace Plaza {
 		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		void* data;
-		vkMapMemory(this->mDevice, renderGroup->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
+		vkMapMemory(this->mDevice, renderGroup->mInstanceBufferMemories[mCurrentFrame], 0, bufferInfo.size, 0, &data);
 		memcpy(data, renderGroup->mCascadeInstances[cascadeIndex].data(), static_cast<size_t>(bufferInfo.size));
-		vkUnmapMemory(this->mDevice, renderGroup->mInstanceBufferMemory);
+		vkUnmapMemory(this->mDevice, renderGroup->mInstanceBufferMemories[mCurrentFrame]);
 
 		VkDeviceSize offsets[] = { 0, 0 };
 		VkCommandBuffer activeCommandBuffer = *this->mActiveCommandBuffer;
 
 		//vkCmdPushConstants(*this->mActiveCommandBuffer, this->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
-		vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, renderGroup->mInstanceBuffer };
+		vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, renderGroup->mInstanceBuffers[mCurrentFrame]};
 		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, verticesBuffer.data(), offsets);
 		vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->mCascadeInstances[cascadeIndex].size(), 0, 0, 0);
@@ -2124,9 +2128,9 @@ namespace Plaza {
 			bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 			bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			void* data;
-			vkMapMemory(this->mDevice, renderGroup->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
+			vkMapMemory(this->mDevice, renderGroup->mInstanceBufferMemories[mCurrentFrame], 0, bufferInfo.size, 0, &data);
 			memcpy(data, renderGroup->instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
-			vkUnmapMemory(this->mDevice, renderGroup->mInstanceBufferMemory);
+			vkUnmapMemory(this->mDevice, renderGroup->mInstanceBufferMemories[mCurrentFrame]);
 		}
 
 		VkDeviceSize offsets[] = { 0, 0 };
@@ -2146,8 +2150,8 @@ namespace Plaza {
 
 		{
 			PLAZA_PROFILE_SECTION("Bind Buffers");
-			vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, renderGroup->mInstanceBuffer };
-			std::array<VkBuffer, 2> buffers = { mesh->mVertexBuffer, renderGroup->mInstanceBuffer };
+			vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, renderGroup->mInstanceBuffers[mCurrentFrame] };
+			std::array<VkBuffer, 2> buffers = { mesh->mVertexBuffer, renderGroup->mInstanceBuffers[mCurrentFrame] };
 			vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, buffers.data(), offsets);
 			//vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
 			vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);

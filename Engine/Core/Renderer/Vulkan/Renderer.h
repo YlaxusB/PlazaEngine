@@ -110,6 +110,8 @@ namespace Plaza {
 		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 		VkFramebuffer mFinalSceneFramebuffer;
 		VkExtent2D mSwapChainExtent;
+		VkQueue mGraphicsQueue = VK_NULL_HANDLE;
+		std::vector<VkFence> mInFlightFences;
 	private:
 		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";
 		const std::string TEXTURE_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.png";
@@ -170,7 +172,6 @@ namespace Plaza {
 
 		VkInstance mVulkanInstance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT mDebugMessenger = VK_NULL_HANDLE;
-		VkQueue mGraphicsQueue = VK_NULL_HANDLE;
 		VkQueue mPresentQueue = VK_NULL_HANDLE;
 		VkSurfaceKHR mSurface = VK_NULL_HANDLE;
 		VkSwapchainKHR mSwapChain;
@@ -181,7 +182,6 @@ namespace Plaza {
 		std::vector<VkCommandBuffer> mCommandBuffers;
 		std::vector<VkSemaphore> mImageAvailableSemaphores;
 		std::vector<VkSemaphore> mRenderFinishedSemaphores;
-		std::vector<VkFence> mInFlightFences;
 
 
 		VkFormat mSwapChainImageFormat;

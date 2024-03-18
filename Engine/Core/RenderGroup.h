@@ -13,9 +13,13 @@ namespace Plaza {
 		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
 		vector<vector<glm::mat4>> mCascadeInstances = vector<vector<glm::mat4>>();
 
-		VkBuffer mInstanceBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory mInstanceBufferMemory = VK_NULL_HANDLE;
+		uint64_t mBufferSize = 8;
+		uint64_t mCount = 0;
+
+		std::vector<VkBuffer> mInstanceBuffers = std::vector<VkBuffer>();
+		std::vector<VkDeviceMemory> mInstanceBufferMemories = std::vector<VkDeviceMemory>();
 		void InitializeInstanceBuffer();
+		void ResizeInstanceBuffer(uint64_t newSize = 0);
 
 		RenderGroup(Mesh* mesh, Material* mat) {
 			this->uuid = Plaza::UUID::NewUUID();

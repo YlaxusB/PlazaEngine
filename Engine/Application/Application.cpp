@@ -331,6 +331,8 @@ void ApplicationClass::UpdateEngine() {
 	Callbacks::processInput(Application->Window->glfwWindow);
 	Input::Update();
 
+	Application->mThreadsManager->UpdateFrameStartThread();
+
 	if (Application->mRenderer->api == RendererAPI::OpenGL)
 		glEnable(GL_BLEND);
 
@@ -478,6 +480,8 @@ void ApplicationClass::UpdateEngine() {
 		Gui::Update();
 	}
 #endif
+
+	Application->mThreadsManager->UpdateFrameEndThread();
 	// Update last frame
 
 	Time::lastFrame = currentFrame;

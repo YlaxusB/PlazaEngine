@@ -25,3 +25,6 @@
 [submodule "ThirdParty/OpenFBX"]
 	path = ThirdParty/OpenFBX
 	url = https://github.com/nem0/OpenFBX.git
+[submodule "ThirdParty/yaml-cpp"]
+	path = ThirdParty/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git

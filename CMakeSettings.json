@@ -30,6 +30,11 @@
           "name": "USE_EDITOR",
           "value": "True",
           "type": "BOOL"
+        },
+        {
+          "name": "ASSIMP_WARNINGS_AS_ERRORS",
+          "value": "False",
+          "type": "BOOL"
         }
       ]
     },

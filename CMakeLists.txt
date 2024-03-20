@@ -203,6 +203,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vswhere/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vulkan/vulkan/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/yaml/include/yaml-cpp/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/OpenFBX/src/")
 
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/mono/")
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/")

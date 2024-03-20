@@ -1,5 +1,6 @@
 #pragma once
 
+
 namespace Plaza {
 	enum AssetExtension {
 		OBJ,
@@ -19,7 +20,7 @@ namespace Plaza {
 		static void ImportAsset(std::string path);
 		static void ImportModel(AssetImported asset);
 		static Entity* ImportOBJ(AssetImported asset, std::filesystem::path outPath);
-		static void ImportFBX(AssetImported asset);
+		static Entity* ImportFBX(AssetImported asset, std::filesystem::path outPath);
 		static void ImportTexture(AssetImported asset);
 	private:
 		static inline const std::unordered_map<std::string, AssetExtension> mExtensionMapping = {

@@ -25,3 +25,6 @@
 [submodule "ThirdParty/PhysX"]
 	path = ThirdParty/PhysX
 	url = https://github.com/NVIDIA-Omniverse/PhysX.git
+[submodule "ThirdParty/OpenFBX"]
+	path = ThirdParty/OpenFBX
+	url = https://github.com/nem0/OpenFBX.git

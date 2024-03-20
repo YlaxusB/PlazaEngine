@@ -17,36 +17,33 @@ namespace Plaza {
 		std::string outDirectory = Editor::Gui::FileExplorer::currentDirectory;
 		std::string outPath = outDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(std::filesystem::path{ path }.filename().string());
 
+		Entity* mainEntity;
 		switch (asset.mExtension) {
 		case AssetExtension::OBJ:
-			Entity* mainEntity = AssetsImporter::ImportOBJ(asset, std::filesystem::path{});
-			AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{outPath});
+			mainEntity = AssetsImporter::ImportOBJ(asset, std::filesystem::path{});
+			AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath });
 			Application->activeScene->RemoveEntity(mainEntity->uuid);
 			//Application->activeScene->GetEntity(mainEntity->uuid)->~Entity();
 			AssetsLoader::LoadPrefab(outPath);
 			break;
-		//case AssetExtension::FBX:
-	//		AssetsImporter::ImportFBX(asset);
-	//		break;
-		//case AssetExtension::PNG:
-	//		AssetsImporter::ImportTexture(asset);
-	//		break;
-		//case AssetExtension::JPEG:
-	//		AssetsImporter::ImportTexture(asset);
-	//		break;
-		//case AssetExtension::JPG:
-	//		AssetsImporter::ImportTexture(asset);
-	//		break;
+		case AssetExtension::FBX:
+			mainEntity = AssetsImporter::ImportFBX(asset, std::filesystem::path{});
+			break;
+		case AssetExtension::PNG:
+			AssetsImporter::ImportTexture(asset);
+			break;
+		case AssetExtension::JPEG:
+			AssetsImporter::ImportTexture(asset);
+			break;
+		case AssetExtension::JPG:
+			AssetsImporter::ImportTexture(asset);
+			break;
 		}
 
-		
+
 	}
 
 	void AssetsImporter::ImportModel(AssetImported asset) {
-
-	}
-
-	void AssetsImporter::ImportFBX(AssetImported asset) {
 
 	}
 

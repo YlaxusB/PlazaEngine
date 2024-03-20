@@ -711,12 +711,12 @@ namespace Plaza {
 #pragma endregion RigidBody
 
 #pragma region Collider
-	static void Collider_AddShape(uint64_t uuid, ColliderShapeEnum shape) {
+	static void Collider_AddShape(uint64_t uuid, ColliderShape::ColliderShapeEnum shape) {
 		auto it = Application->activeScene->colliderComponents.find(uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
 			Editor::Filewatcher::AddToMainThread([it, uuid, shape]() {
 
-				if ((shape == ColliderShapeEnum::CONVEX_MESH || shape == ColliderShapeEnum::MESH) && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
+				if ((shape == ColliderShape::ColliderShapeEnum::CONVEX_MESH || shape == ColliderShape::ColliderShapeEnum::MESH) && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
 					it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), Application->activeScene->meshRendererComponents.at(uuid).mesh);
 				}
 				else
@@ -726,7 +726,7 @@ namespace Plaza {
 		}
 	}
 
-	static void Collider_AddShapeMeshCall(uint64_t uuid, ColliderShapeEnum shape, glm::vec3* vertices, int verticesSize, unsigned int* indices, int indicesSize, glm::vec3* normals, int normalsSize, glm::vec2* uvs, int uvsSize) {
+	static void Collider_AddShapeMeshCall(uint64_t uuid, ColliderShape::ColliderShapeEnum shape, glm::vec3* vertices, int verticesSize, unsigned int* indices, int indicesSize, glm::vec3* normals, int normalsSize, glm::vec2* uvs, int uvsSize) {
 		auto it = Application->activeScene->colliderComponents.find(uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
 			OpenGLMesh* newMesh = new OpenGLMesh();
@@ -755,11 +755,11 @@ namespace Plaza {
 				});
 		}
 	}
-	static void Collider_AddShapeHeightFieldCall(uint64_t uuid, ColliderShapeEnum shape, MonoArray* floatArray, int size) {
+	static void Collider_AddShapeHeightFieldCall(uint64_t uuid, ColliderShape::ColliderShapeEnum shape, MonoArray* floatArray, int size) {
 		auto it = Application->activeScene->colliderComponents.find(uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
 			float min = 0;
-			if (shape == ColliderShapeEnum::HEIGHT_FIELD && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
+			if (shape == ColliderShape::ColliderShapeEnum::HEIGHT_FIELD && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
 				float** data = new float* [size];
 				for (int i = 0; i < size; ++i) {
 					data[i] = new float[size];

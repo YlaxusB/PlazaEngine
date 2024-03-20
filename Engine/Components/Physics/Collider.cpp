@@ -155,7 +155,7 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(physx::PxConvexMeshGeometry(convexMesh),
 			*Physics::defaultMaterial);
 
-		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::CONVEX_MESH, mesh->meshId));
+		this->mShapes.push_back(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::CONVEX_MESH, mesh->meshId));
 		delete mesh;
 	}
 
@@ -216,7 +216,7 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(physx::PxTriangleMeshGeometry(triangleMesh),
 			*Physics::defaultMaterial);
 		auto end4 = std::chrono::high_resolution_clock::now();
-		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::MESH, mesh->meshId));
+		this->mShapes.push_back(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::MESH, mesh->meshId));
 		auto end0 = std::chrono::high_resolution_clock::now();
 
 		std::cout << "Time taken by function 1: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " milliseconds" << std::endl;
@@ -304,7 +304,7 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(hfGeom,
 			*Physics::defaultMaterial, false);
 		shape->setLocalPose(localPose);
-		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::HEIGHT_FIELD));
+		this->mShapes.push_back(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::HEIGHT_FIELD));
 		auto end0 = std::chrono::high_resolution_clock::now();
 		delete[] hfSamples;
 
@@ -312,31 +312,31 @@ namespace Plaza {
 		//delete mesh;
 	}
 
-	void Collider::CreateShape(ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh) {
-		if (shapeEnum == ColliderShapeEnum::BOX) {
+	void Collider::CreateShape(ColliderShape::ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh) {
+		if (shapeEnum == ColliderShape::ColliderShapeEnum::BOX) {
 			physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
-			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShapeEnum::BOX, 0));
+			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::BOX, 0));
 		}
-		else if (shapeEnum == ColliderShapeEnum::SPHERE) {
+		else if (shapeEnum == ColliderShape::ColliderShapeEnum::SPHERE) {
 			physx::PxSphereGeometry geometry(1.0f);
-			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShapeEnum::SPHERE, 0));
+			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::SPHERE, 0));
 		}
-		else if (shapeEnum == ColliderShapeEnum::PLANE) {
+		else if (shapeEnum == ColliderShape::ColliderShapeEnum::PLANE) {
 			physx::PxBoxGeometry geometry(transform->scale.x / 2.1, 0.001f, transform->scale.z / 2.1);
-			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShapeEnum::PLANE, 0));
+			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::PLANE, 0));
 		}
-		else if (shapeEnum == ColliderShapeEnum::CAPSULE) {
+		else if (shapeEnum == ColliderShape::ColliderShapeEnum::CAPSULE) {
 			/* TODO: Implement capsule shape*/
 			std::cout << "Capsule not yet implemented" << std::endl;
 		}
-		else if (shapeEnum == ColliderShapeEnum::CYLINDER) {
+		else if (shapeEnum == ColliderShape::ColliderShapeEnum::CYLINDER) {
 			/* TODO: Implement cylinder shape*/
 			std::cout << "Cylinder not yet implemented" << std::endl;
 		}
-		else if (shapeEnum == ColliderShapeEnum::MESH) {
+		else if (shapeEnum == ColliderShape::ColliderShapeEnum::MESH) {
 			this->AddMeshShape(mesh);
 		}
-		else if (shapeEnum == ColliderShapeEnum::CONVEX_MESH) {
+		else if (shapeEnum == ColliderShape::ColliderShapeEnum::CONVEX_MESH) {
 			this->AddConvexMeshShape(mesh);
 		}
 	}
@@ -360,19 +360,19 @@ namespace Plaza {
 				physx::PxMaterial* material;
 				this->mShapes[i]->mPxShape->getMaterials(&material, 1);
 				// Scale the geometry parameters by the given factor
-				if (this->mShapes[i]->mEnum == ColliderShapeEnum::BOX) {
+				if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::BOX) {
 					physx::PxBoxGeometry boxGeom = geometry.box();
 					boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
 					shape->release();
 					newShape = Physics::m_physics->createShape(boxGeom, *material);
 				}
-				else if (this->mShapes[i]->mEnum == ColliderShapeEnum::PLANE) {
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::PLANE) {
 					physx::PxBoxGeometry planeGeom = geometry.box();
 					planeGeom.halfExtents = physx::PxVec3(scale.x / 2, 0.001f, scale.z / 2);
 					shape->release();
 					newShape = Physics::m_physics->createShape(planeGeom, *material);
 				}
-				else if (this->mShapes[i]->mEnum == ColliderShapeEnum::SPHERE) {
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::SPHERE) {
 					physx::PxSphereGeometry sphereGeometry = geometry.sphere();
 					//boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
 					sphereGeometry.radius = (scale.x + scale.y + scale.z) / 3;
@@ -382,7 +382,7 @@ namespace Plaza {
 					//sphereGeom.radius *= 3;
 					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
 				}
-				else if (this->mShapes[i]->mEnum == ColliderShapeEnum::MESH) {
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::MESH) {
 					physx::PxTriangleMeshGeometry meshGeometry = geometry.triangleMesh();
 					meshGeometry.scale = physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z));
 					shape->release();
@@ -391,7 +391,7 @@ namespace Plaza {
 					//sphereGeom.radius *= 3;
 					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
 				}
-				else if (this->mShapes[i]->mEnum == ColliderShapeEnum::HEIGHT_FIELD) {
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::HEIGHT_FIELD) {
 					physx::PxHeightFieldGeometry heightGeometry = geometry.heightField();
 					heightGeometry.heightScale = 1.0f;
 					shape->release();

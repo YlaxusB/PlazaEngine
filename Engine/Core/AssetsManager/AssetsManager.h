@@ -9,7 +9,8 @@ namespace Plaza {
 		SCENE,
 		SCRIPT,
 		DLL,
-		UNKNOWN
+		MESH,
+		UNKNOWN,
 	};
 	struct Asset {
 		uint64_t mAssetUuid = 0;

@@ -79,7 +79,7 @@ namespace Plaza {
 					if (newGameObject->HasComponent<MeshRenderer>())
 						if (newGameObject->GetComponent<MeshRenderer>()->mesh)
 						{
-							collider->CreateShape(ColliderShapeEnum::MESH, transform, newMeshRenderer->mesh);
+							collider->CreateShape(ColliderShape::ColliderShapeEnum::MESH, transform, newMeshRenderer->mesh);
 							//collider->AddMeshShape(new Mesh(*newMeshRenderer->mesh));
 							newGameObject->AddComponent<Collider>(collider);
 						}

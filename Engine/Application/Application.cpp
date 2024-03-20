@@ -372,6 +372,8 @@ void ApplicationClass::UpdateEngine() {
 
 	Time::drawCalls = 0;
 	Time::addInstanceCalls = 0;
+	Time::mUniqueTriangles = 0;
+	Time::mTotalTriangles = 0;
 	Application->mRenderer->RenderInstances(*Application->shader);
 
 	if (Application->mRenderer->api == RendererAPI::OpenGL)

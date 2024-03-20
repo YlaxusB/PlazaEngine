@@ -8,14 +8,16 @@ namespace Plaza {
 	class Time
 	{
 	public:
-		static int drawCalls;
-		static int addInstanceCalls;
-		static int frameCount;
-		static float previousTime;
-		static float deltaTime;
-		static float lastFrame;
-		static float fps;
-		static float msPerFrame;
+		static inline uint64_t mUniqueTriangles = 0;
+		static inline uint64_t mTotalTriangles = 0;
+		static inline int drawCalls = 0;
+		static inline int addInstanceCalls = 0;
+		static inline int frameCount = 0;
+		static inline float previousTime = 0;
+		static inline float deltaTime = 0;
+		static inline float lastFrame = 0;
+		static inline float fps = 0;
+		static inline float msPerFrame = 0;
 		static void Update();
 	};
 
@@ -49,13 +51,3 @@ namespace Plaza {
 		}
 	};
 }
-
-
-inline int Plaza::Time::drawCalls = 0;
-inline int Plaza::Time::addInstanceCalls = 0;
-inline int Plaza::Time::frameCount = 0;
-inline float Plaza::Time::previousTime = 0;
-inline float Plaza::Time::deltaTime = 0;
-inline float Plaza::Time::lastFrame = 0;
-inline float Plaza::Time::fps = 0;
-inline float Plaza::Time::msPerFrame = 0;

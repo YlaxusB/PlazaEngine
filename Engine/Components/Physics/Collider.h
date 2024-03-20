@@ -3,17 +3,19 @@
 //#include <PhysX/physx/include/PxPhysicsAPI.h>
 #include "Engine/Components/Core/Transform.h"
 namespace Plaza {
-	enum ColliderShapeEnum {
-		BOX,
-		SPHERE,
-		CAPSULE,
-		PLANE,
-		CYLINDER,
-		MESH,
-		CONVEX_MESH,
-		HEIGHT_FIELD
-	};
+
 	struct ColliderShape {
+		enum ColliderShapeEnum {
+			BOX,
+			SPHERE,
+			CAPSULE,
+			PLANE,
+			CYLINDER,
+			MESH,
+			CONVEX_MESH,
+			HEIGHT_FIELD
+		};
+
 		ColliderShape(physx::PxShape* shape, ColliderShapeEnum newEnum = ColliderShapeEnum::BOX, uint64_t meshUuid = 0) : mPxShape(shape), mEnum(newEnum), mMeshUuid(meshUuid){}
 		physx::PxShape* mPxShape;
 		ColliderShapeEnum mEnum;
@@ -39,7 +41,7 @@ namespace Plaza {
 		void RemoveCollider();
 		void Update();
 
-		void CreateShape(ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh = nullptr);
+		void CreateShape(ColliderShape::ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh = nullptr);
 		void AddShape(ColliderShape* shape);
 		void AddConvexMeshShape(Mesh* mesh);
 		void AddMeshShape(Mesh* mesh);

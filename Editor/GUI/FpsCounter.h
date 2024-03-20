@@ -23,6 +23,8 @@ namespace Plaza::Editor {
 				ImGui::Text(("Scene Start Y:" + std::to_string(Application->appSizes->sceneStart.y)).c_str());
 				ImGui::Text(("Draw Calls:" + std::to_string(Time::drawCalls)).c_str());
 				ImGui::Text(("Add Instance Calls:" + std::to_string(Time::addInstanceCalls)).c_str());
+				ImGui::Text(("Unique Triangles: " + std::to_string(Time::mUniqueTriangles)).c_str());
+				ImGui::Text(("Total Triangles: " + std::to_string(Time::mTotalTriangles)).c_str());
 
 				ImGui::End();
 			}

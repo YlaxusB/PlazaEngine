@@ -5,6 +5,8 @@
 #include "Editor/ModelImporter/ModelImporter.h"
 #include "Editor/Gui/FileExplorer/FileExplorer.h"
 #include "Editor/GUI/guiMain.h"
+#include "Engine/Core/AssetsManager/Importer/AssetsImporter.h"
+#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 using Plaza::Editor::Gui;
 void Plaza::ApplicationClass::Callbacks::dropCallback(GLFWwindow* window, int count, const char** paths) {
 	for (unsigned int i = 0; i < count; i++) {
@@ -15,9 +17,15 @@ void Plaza::ApplicationClass::Callbacks::dropCallback(GLFWwindow* window, int co
 				return str == fileExtension;
 			});
 		//if (foundMatch) {
-			std::string fileName = filesystem::path{ paths[i] }.stem().string();
-			//ModelLoader::LoadModelToGame(paths[i], fileName);
-			Editor::ModelImporter::ImportModel(Gui::FileExplorer::currentDirectory, fileName, fileExtension, paths[i]);
+		std::string fileName = filesystem::path{ paths[i] }.stem().string();
+		//ModelLoader::LoadModelToGame(paths[i], fileName);
+		//Editor::ModelImporter::ImportModel(Gui::FileExplorer::currentDirectory, fileName, fileExtension, paths[i]);
+		if (std::filesystem::path{ paths[i] }.extension().string() == ".modDebug") {
+			AssetsLoader::LoadPrefab(paths[i]);
+		}
+		else
+			AssetsImporter::ImportAsset(paths[i]);
+
 		//}
 	}
 }

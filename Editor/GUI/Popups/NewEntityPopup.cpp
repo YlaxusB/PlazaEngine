@@ -41,7 +41,7 @@ namespace Plaza::Editor {
 				Entity* obj = NewEntity("Cube", parent, DefaultModels::Cube(), true, true);
 				Transform* transform = obj->GetComponent<Transform>();
 				Collider* collider = new Collider(obj->uuid);
-				collider->CreateShape(ColliderShapeEnum::BOX, transform);
+				collider->CreateShape(ColliderShape::ColliderShapeEnum::BOX, transform);
 				obj->AddComponent<Collider>(collider);
 			}
 
@@ -50,7 +50,7 @@ namespace Plaza::Editor {
 				Entity* obj = NewEntity("Sphere", parent, DefaultModels::Sphere(), true, true);
 				Transform* transform = obj->GetComponent<Transform>();
 				Collider* collider = new Collider(obj->uuid);
-				collider->CreateShape(ColliderShapeEnum::SPHERE, transform);
+				collider->CreateShape(ColliderShape::ColliderShapeEnum::SPHERE, transform);
 				obj->AddComponent<Collider>(collider);
 			}
 
@@ -61,7 +61,7 @@ namespace Plaza::Editor {
 				transform->scale = glm::vec3(10.0f, 0.05f, 10.0f);
 				transform->UpdateChildrenTransform();
 				Collider* collider = new Collider(obj->uuid);
-				collider->CreateShape(ColliderShapeEnum::PLANE, transform);
+				collider->CreateShape(ColliderShape::ColliderShapeEnum::PLANE, transform);
 				obj->AddComponent<Collider>(collider);
 			}
 

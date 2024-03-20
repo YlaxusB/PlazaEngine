@@ -2161,6 +2161,9 @@ namespace Plaza {
 			PLAZA_PROFILE_SECTION("Draw Indexed");
 			vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->instanceModelMatrices.size(), 0, 0, 0);
 		}
+		uint64_t meshTriangles = renderGroup->mesh->indices.size() / 3;
+		Time::mUniqueTriangles += meshTriangles;
+		Time::mTotalTriangles += meshTriangles * renderGroup->instanceModelMatrices.size();
 		renderGroup->instanceModelMatrices.clear();
 	}
 

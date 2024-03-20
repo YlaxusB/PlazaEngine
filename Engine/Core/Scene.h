@@ -175,6 +175,7 @@ namespace Plaza {
 		static void Pause(); // Just pauses the game
 		~Scene() = default;
 
+		void RemoveEntity(uint64_t uuid);
 		Entity* GetEntity(uint64_t uuid);
 		Entity* GetEntityByName(std::string name);
 		template<typename T>

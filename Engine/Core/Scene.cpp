@@ -277,6 +277,45 @@ namespace Plaza {
 
 	}
 
+	void Scene::RemoveEntity(uint64_t uuid) {
+		Entity* entity = this->GetEntity(uuid);
+		std::vector<uint64_t> children = entity->childrenUuid;
+		for (uint64_t child : children) {
+			if (Application->activeScene->entities.find(child) != Application->activeScene->entities.end())
+				Application->activeScene->RemoveEntity(child);
+				//Application->activeScene->entities.at(child).~Entity();
+		}
+		if (entity->HasComponent<Transform>())
+			entity->RemoveComponent<Transform>();
+		if (entity->HasComponent<MeshRenderer>())
+			entity->RemoveComponent<MeshRenderer>();
+		if (entity->HasComponent<Collider>())
+			entity->RemoveComponent<Collider>();
+		if (entity->HasComponent<RigidBody>())
+			entity->RemoveComponent<RigidBody>();
+		if (entity->HasComponent<Camera>())
+			entity->RemoveComponent<Camera>();
+		if (entity->HasComponent<CsScriptComponent>())
+			entity->RemoveComponent<CsScriptComponent>();
+		if (entity->HasComponent<Plaza::Drawing::UI::TextRenderer>())
+			entity->RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
+		if (entity->HasComponent<AudioSource>())
+			entity->RemoveComponent<AudioSource>();
+		if (entity->HasComponent<AudioListener>())
+			entity->RemoveComponent<AudioListener>();
+		if (entity->HasComponent<Light>())
+			entity->RemoveComponent<Light>();
+
+		if (Editor::selectedGameObject && Editor::selectedGameObject->uuid == entity->uuid)
+			Editor::selectedGameObject = nullptr;
+
+		entity->GetParent().childrenUuid.erase(std::remove(entity->GetParent().childrenUuid.begin(), entity->GetParent().childrenUuid.end(), entity->uuid), entity->GetParent().childrenUuid.end());
+		if (Application->activeScene->entitiesNames.find(entity->name) != Application->activeScene->entitiesNames.end())
+			Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(entity->name));
+
+		Application->activeScene->entities.extract(entity->uuid);
+	}
+
 	Entity* Scene::GetEntity(uint64_t uuid) {
 		auto it = Application->activeScene->entities.find(uuid);
 		if (it != Application->activeScene->entities.end())

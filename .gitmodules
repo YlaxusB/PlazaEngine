@@ -10,9 +10,6 @@
 [submodule "ThirdParty/assimp"]
 	path = ThirdParty/assimp
 	url = https://github.com/assimp/assimp.git
-[submodule "ThirdParty/mono"]
-	path = ThirdParty/mono
-	url = https://github.com/mono/mono.git
 [submodule "ThirdParty/GLFW"]
 	path = ThirdParty/GLFW
 	url = https://github.com/glfw/glfw.git

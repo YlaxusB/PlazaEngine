@@ -4,6 +4,9 @@
 /out/
 /PlazaScriptCore/obj
 /PlazaScriptCore/bin
+/lib/assimp-vc143-mtd.lib
+lib/assimp-vc143-mtd.lib
+/lib/assimp-vc143-mt.lib
 
 # Ignore generated assets or logs
 /assets/

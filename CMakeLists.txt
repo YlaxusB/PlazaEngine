@@ -253,7 +253,7 @@ target_include_directories(PlazaEngine PUBLIC "lib/")
 target_include_directories(PlazaShippingGame PUBLIC "lib/")
 
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper 
+target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper OpenFBX
     PhysXExtensions_static_64
     PhysX_64
     PhysXCommon_64
@@ -261,7 +261,7 @@ target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-
 "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 target_include_directories(PlazaShippingGame PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper 
+target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper OpenFBX
     PhysXExtensions_static_64
     PhysX_64
     PhysXCommon_64

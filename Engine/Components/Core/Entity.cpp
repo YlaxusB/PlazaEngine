@@ -30,8 +30,8 @@ namespace Plaza {
 		// Set the new parent
 		if (parent != nullptr && addToScene) {
 			this->parentUuid = parent->uuid;
-			//Application->activeScene->entities[parentUuid].childrenUuid.push_back(this->uuid);
-			parent->childrenUuid.push_back(this->uuid);
+			Application->activeScene->entities[parentUuid].childrenUuid.push_back(this->uuid);
+			//parent->childrenUuid.push_back(this->uuid);
 		}
 		// Add to the gameobjects list
 		if (addToScene) {

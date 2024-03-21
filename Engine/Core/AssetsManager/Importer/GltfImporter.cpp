@@ -22,7 +22,7 @@ struct Vec3Hash {
 
 namespace Plaza {
 
-	Entity* AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath) {
+	Entity* AssetsImporter::ImportGLTF(AssetImported asset, std::filesystem::path outPath) {
 		FILE* fileOpen = fopen(asset.mPath.c_str(), "rb");
 
 		if (!fileOpen) return nullptr;
@@ -52,9 +52,9 @@ namespace Plaza {
 		ofbx::IScene* loadedScene = ofbx::load((ofbx::u8*)content, fileSize, (ofbx::u16)flags);
 		delete[] content;
 		fclose(fileOpen);
-
-		uint64_t verticesCount = 0;
-
+		FILE* fp = fopen(asset.mPath.c_str(), "wb");
+		if (!fp) return nullptr;
+		int indicesOffset = 0;
 		int meshCount = loadedScene->getMeshCount();
 
 		// output unindexed geometry
@@ -67,16 +67,15 @@ namespace Plaza {
 			{
 				entity = new Entity(mesh.name, Application->activeScene->mainSceneEntity);
 				mainEntity = entity;
-			}
-			else
-				entity = new Entity(mesh.name, mainEntity, true);
+			}else
+				entity = new Entity(mesh.name, mainEntity);
 
 			meshIndexEntityMap.emplace(mesh.id, entity->uuid);
 			ofbx::Object* parent = mesh.getParent();
 			if (parent) {
 				auto parentIt = meshIndexEntityMap.find(parent->id);
 				if (parentIt != meshIndexEntityMap.end()) {
-					//entity->ChangeParent(Application->activeScene->GetEntity(entity->GetParent().uuid), Application->activeScene->GetEntity(parentIt->second));
+					entity->ChangeParent(Application->activeScene->GetEntity(entity->GetParent().uuid), Application->activeScene->GetEntity(parentIt->second));
 				}
 			}
 
@@ -86,62 +85,50 @@ namespace Plaza {
 			const ofbx::Vec3Attributes normals = geom.getNormals();
 			const ofbx::Vec2Attributes uvs = geom.getUVs();
 
+
 			Mesh* finalMesh = new Mesh();
-			//finalMesh->vertices.resize(positions.count);
-			//for (unsigned int i = 0; i < positions.count; ++i) {
-			//	ofbx::Vec3 vector = positions.get(i);
-			//	finalMesh->vertices.push_back(glm::vec3(vector.x, vector.y, vector.z));
-			//}
-			//finalMesh->normals.resize(normals.count);
-			//for (unsigned int i = 0; i < normals.count; ++i) {
-			//		ofbx::Vec3 vector = normals.get(i);
-			//		finalMesh->normals.push_back(glm::vec3(vector.x, vector.y, vector.z));
-			//	}
-			//finalMesh->uvs.resize(uvs.count);
-			//for (unsigned int i = 0; i < uvs.count; ++i) {
-			//	ofbx::Vec2 vector = uvs.get(i);
-			//	finalMesh->uvs.push_back(glm::vec2(vector.x, vector.y));
-			//}
+			finalMesh->vertices.resize(positions.count);
+			for (unsigned int i = 0; i < positions.count; ++i) {
+				ofbx::Vec3 vector = positions.get(i);
+				finalMesh->vertices.push_back(glm::vec3(vector.x, vector.y, vector.z));
+			}
+			finalMesh->normals.resize(normals.count);
+			for (unsigned int i = 0; i < normals.count; ++i) {
+				ofbx::Vec3 vector = normals.get(i);
+				finalMesh->normals.push_back(glm::vec3(vector.x, vector.y, vector.z));
+			}
+			finalMesh->uvs.resize(uvs.count);
+			for (unsigned int i = 0; i < uvs.count; ++i) {
+				ofbx::Vec2 vector = uvs.get(i);
+				finalMesh->uvs.push_back(glm::vec2(vector.x, vector.y));
+			}
 
 			/* Indices */
 					// Each mesh may have several partitions (materials)
-			std::unordered_map<glm::vec3, uint32_t> uniqueVertices = std::unordered_map<glm::vec3, uint32_t>();
-			std::vector<int> tri_indices = std::vector<int>();
-			int indicesOffset = 0;
 			for (int partitionIdx = 0; partitionIdx < geom.getPartitionCount(); ++partitionIdx) {
-				if (partitionIdx > 0)
-					std::cout << partitionIdx << "\n";
 				const ofbx::GeometryPartition& partition = geom.getPartition(partitionIdx);
-				tri_indices.resize(tri_indices.size() + partition.max_polygon_triangles * 3);
-				//triangleIndices.resize(partition.max_polygon_triangles * 3);
 
-				for (int polygon_idx = 0; polygon_idx < partition.triangles_count; ++polygon_idx) {
-					const ofbx::GeometryPartition::Polygon& polygon = partition.polygons[polygon_idx];
+				// Iterate over each polygon in the partition
+				for (int polygonIdx = 0; polygonIdx < partition.polygon_count; ++polygonIdx) {
+					const ofbx::GeometryPartition::Polygon& polygon = partition.polygons[polygonIdx];
+
+					// Iterate over each vertex in the polygon
 					for (int i = polygon.from_vertex; i < polygon.from_vertex + polygon.vertex_count; ++i) {
-						ofbx::Vec3 v = positions.get(i);
-						glm::vec3 vertex = glm::vec3(v.x, v.y, v.z);
-						bool isVertexUnique = uniqueVertices.count(vertex) == 0;
-						if (isVertexUnique) {
-							uniqueVertices[vertex] = static_cast<uint32_t>(finalMesh->vertices.size());
-							finalMesh->vertices.push_back(glm::vec3(v.x, v.y, v.z));
-							ofbx::Vec3 n = normals.get(i);
-							finalMesh->normals.push_back(glm::vec3(n.x, n.y, n.z));
-							ofbx::Vec2 u = uvs.get(i);
-							finalMesh->uvs.push_back(glm::vec2(u.x, u.y));
-						}
-						finalMesh->indices.push_back(uniqueVertices[vertex]);
-						//finalMesh->indices.push_back(1 + i + indicesOffset);
+						// Add the vertex index to the indices vector
+						finalMesh->indices.push_back(i + indicesOffset);
 					}
 				}
-				indicesOffset += positions.count;
+
+				// Update the indices offset for the next partition
+				indicesOffset += geom.getPositions().count;
 			}
 
 			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, Application->activeScene->DefaultMaterial());
 			entity->AddComponent<MeshRenderer>(meshRenderer);
-			verticesCount += finalMesh->vertices.size();
 		}
+		fclose(fp);
 
-		return Application->activeScene->GetEntity(mainEntity->uuid);
+		return mainEntity;
 		//Assimp::Importer importer;
 		//const aiScene* scene = importer.ReadFile(asset.mPath,
 		//	aiProcess_JoinIdenticalVertices 

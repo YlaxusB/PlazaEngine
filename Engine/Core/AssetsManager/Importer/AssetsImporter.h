@@ -8,6 +8,7 @@ namespace Plaza {
 	enum AssetExtension {
 		OBJ,
 		FBX,
+		GLTF,
 		PNG,
 		JPG,
 		JPEG
@@ -24,17 +25,16 @@ namespace Plaza {
 		static void ImportModel(AssetImported asset);
 		static Entity* ImportOBJ(AssetImported asset, std::filesystem::path outPath);
 		static Entity* ImportFBX(AssetImported asset, std::filesystem::path outPath);
+		static Entity* ImportGLTF(AssetImported asset, std::filesystem::path outPath);
 		static void ImportTexture(AssetImported asset);
 	private:
 		static inline const std::unordered_map<std::string, AssetExtension> mExtensionMapping = {
 			{".obj", OBJ},
 			{".fbx", FBX},
+			{".gltf", GLTF},
 			{".png", PNG},
 			{".jpg", JPG},
 			{".jpeg", JPEG}
 		};
-
-		static Entity* ProcessNode(aiNode* node, const aiScene* scene, Entity* parent);
-		static Mesh* ProcessMesh(aiMesh* aiMesh, const aiScene* scene, Material* material);
 	};
 }

@@ -21,7 +21,7 @@ namespace Plaza {
 		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, asset.mPath.c_str())) {
 			throw std::runtime_error(warn + err);
 		}
-		Entity* mainEntity = nullptr; //= new Entity();
+		Entity* mainEntity = nullptr; //= new Entity()
 
 		const std::vector<float>& positions = attrib.vertices;
 		for (const auto& shape : shapes) {
@@ -64,8 +64,8 @@ namespace Plaza {
 					}
 					if (attrib.texcoords.size() > 0) {
 						uvs.push_back(glm::vec2(
-							attrib.texcoords[2 * index.texcoord_index + 0],
-							attrib.texcoords[2 * index.texcoord_index + 1]
+							attrib.texcoords[2 * max(index.texcoord_index, 0) + 0],
+							attrib.texcoords[2 * max(index.texcoord_index, 0) + 1]
 						));
 					}
 				}

@@ -21,7 +21,7 @@ namespace Plaza {
 		switch (asset.mExtension) {
 		case AssetExtension::OBJ:
 			mainEntity = AssetsImporter::ImportOBJ(asset, std::filesystem::path{});
-			AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath });
+		AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath });
 			Application->activeScene->RemoveEntity(mainEntity->uuid);
 			//Application->activeScene->GetEntity(mainEntity->uuid)->~Entity();
 			AssetsLoader::LoadPrefab(outPath);
@@ -30,6 +30,7 @@ namespace Plaza {
 			mainEntity = AssetsImporter::ImportFBX(asset, std::filesystem::path{});
 			AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath });
 			Application->activeScene->RemoveEntity(mainEntity->uuid);
+			AssetsLoader::LoadPrefab(outPath);
 			break;
 		case AssetExtension::PNG:
 			AssetsImporter::ImportTexture(asset);

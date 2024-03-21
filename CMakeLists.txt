@@ -69,6 +69,7 @@ add_subdirectory("ThirdParty/GLFW/")
 #add_subdirectory("ThirdParty/mono/")
 add_subdirectory("ThirdParty/Tracy/")
 add_subdirectory("ThirdParty/yaml-cpp/")
+add_subdirectory("ThirdParty/OpenFBX/")
 include("ThirdParty/PhysX/physx/compiler/vc17win64/cmake_install.cmake")
 #add_subdirectory("ThirdParty/PhysX/physx/compiler/public/")
 #add_subdirectory("ThirdParty/PhysX/physx/bin/win.x86_64.vc143.mt/debug/")
@@ -91,6 +92,7 @@ file(GLOB_RECURSE MY_SOURCES2 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Eng
 file(GLOB_RECURSE MY_SOURCES3 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/*.h")
 file(GLOB_RECURSE MY_SOURCES4 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/*.cpp")
 file(GLOB_RECURSE MY_SOURCES5 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/*.hpp")
+file(GLOB_RECURSE C_ENGINE_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.c")
 
 #file(GLOB_RECURSE IMGUI_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/*.cpp")
 #file(GLOB_RECURSE IMGUI_SOURCES2 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/*.h")
@@ -191,9 +193,9 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Json/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/minimp3/")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/include/")
 #include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/include/")
-#include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/source/physx/include/")
+
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/premake/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/stb/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/tinyobjloader/")
@@ -203,7 +205,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vswhere/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vulkan/vulkan/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/yaml/include/yaml-cpp/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/OpenFBX/src/")
+#include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/OpenFBX/src/")
 
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/mono/")
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/")
@@ -244,12 +246,27 @@ set_target_properties(assimp PROPERTIES
                       MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
                       MAP_IMPORTED_CONFIG_MINSIZEREL Release
                       )
+link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/")
+link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Physx/physx/bin/win.x86_64.vc143.mt/debug/")
+
+target_include_directories(PlazaEngine PUBLIC "lib/")
+target_include_directories(PlazaShippingGame PUBLIC "lib/")
 
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
+target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper 
+    PhysXExtensions_static_64
+    PhysX_64
+    PhysXCommon_64
+    PhysXFoundation_64
+"${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 target_include_directories(PlazaShippingGame PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
+target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper 
+    PhysXExtensions_static_64
+    PhysX_64
+    PhysXCommon_64
+    PhysXFoundation_64
+"${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 #    add_custom_target(CopyDLLs ALL
 #        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/

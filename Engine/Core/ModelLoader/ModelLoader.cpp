@@ -279,7 +279,7 @@ namespace Plaza {
 				parentObject = Application->activeScene->gameObjects.front().get();
 			}
 			Entity* childObject = new Entity(childName, parentObject);
-			MeshRenderer* childMeshRenderer = new MeshRenderer(nodeMesh);
+			MeshRenderer* childMeshRenderer = new MeshRenderer(&nodeMesh);
 			childMeshRenderer->instanced = true;
 			childMeshRenderer->aiMeshName = string(mesh->mName.C_Str()) + to_string(index);
 			processedMaterial->name = childMeshRenderer->aiMeshName + processedMaterial->name;

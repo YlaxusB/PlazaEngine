@@ -1,5 +1,8 @@
 #pragma once
-
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <assimp/vector3.h>
 
 namespace Plaza {
 	enum AssetExtension {
@@ -16,7 +19,7 @@ namespace Plaza {
 
 	class AssetsImporter {
 	public:
-		static inline glm::vec3 mModelImporterScale = glm::vec3(0.01f);
+		static inline glm::vec3 mModelImporterScale = glm::vec3(1.0f);
 		static void ImportAsset(std::string path);
 		static void ImportModel(AssetImported asset);
 		static Entity* ImportOBJ(AssetImported asset, std::filesystem::path outPath);
@@ -30,5 +33,8 @@ namespace Plaza {
 			{".jpg", JPG},
 			{".jpeg", JPEG}
 		};
+
+		static Entity* ProcessNode(aiNode* node, const aiScene* scene, Entity* parent);
+		static Mesh* ProcessMesh(aiMesh* aiMesh, const aiScene* scene, Material* material);
 	};
 }

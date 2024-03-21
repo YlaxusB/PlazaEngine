@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/Core/Script.h"
-#include "ThirdParty/mono/mono/mini/jit.h"
-#include "ThirdParty/mono/mono/metadata/assembly.h"
+#include "ThirdParty/mono/include/mono/jit/jit.h"
+#include "ThirdParty/mono/include/mono/metadata/assembly.h"
 #include "Engine/Core/Scripting/Script.h"
 namespace Plaza {
 	namespace Editor {

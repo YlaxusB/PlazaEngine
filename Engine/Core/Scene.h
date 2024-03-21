@@ -111,13 +111,13 @@ namespace Plaza {
 
 		std::unordered_map<std::string, std::unordered_set<uint64_t>> entitiesNames;
 
-		RenderGroup* AddRenderGroup(Mesh* newMesh, Material* newMaterial) {
+		RenderGroup* AddRenderGroup(Mesh* newMesh, Material* newMaterial, bool resizeBuffer = true) {
 			bool foundNewRenderGroup = this->renderGroupsFindMap.find(std::pair<uint64_t, uint64_t>(newMesh->uuid, newMaterial->uuid)) != this->renderGroupsFindMap.end();
 			if (foundNewRenderGroup) {
 				uint64_t uuid = this->renderGroupsFindMap.at(std::pair<uint64_t, uint64_t>(newMesh->uuid, newMaterial->uuid));
 				RenderGroup* renderGroup = this->renderGroups.at(uuid);
 				renderGroup->mCount++;
-				if (renderGroup->mBufferSize < renderGroup->mCount)
+				if (resizeBuffer && renderGroup->mBufferSize < renderGroup->mCount)
 					renderGroup->ResizeInstanceBuffer(0);
 				return renderGroup;
 			}

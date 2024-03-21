@@ -28,7 +28,7 @@ Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true
 	//Application->activeScene->entities.at(obj->uuid).changingName = true;
 	//Gui::Hierarchy::Item::firstFocus = true;
 	obj->GetComponent<Transform>()->UpdateChildrenTransform();
-	MeshRenderer* meshRenderer = new MeshRenderer(*mesh, Scene::DefaultMaterial());
+	MeshRenderer* meshRenderer = new MeshRenderer(mesh, Scene::DefaultMaterial());
 	meshRenderer->instanced = true;
 	//meshRenderer->mesh = new Mesh(*mesh);
 	meshRenderer->material = Scene::DefaultMaterial();

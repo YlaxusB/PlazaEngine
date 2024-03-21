@@ -1,10 +1,16 @@
 #include "Engine/Core/PreCompiledHeaders.h"
-#include <ThirdParty/OpenFBX/src/libdeflate.h>
-#include <ThirdParty/OpenFBX/src/ofbx.h>
 #include "AssetsImporter.h"
 #include "ThirdParty/tinyobjloader/tiny_obj_loader.h"
 #include "ThirdParty/glm/gtx/hash.hpp"
 #include "Engine/Core/Renderer/Mesh.h"
+#include "ThirdParty/OpenFBX/src/ofbx.h"
+
+
+#include <d3d11.h>
+#include <tchar.h>
+#include <stdio.h>
+#include <inttypes.h>
+#include <vector>
 
 struct Vec3Hash {
 	std::size_t operator()(const glm::vec3& v) const {
@@ -15,21 +21,108 @@ struct Vec3Hash {
 
 
 namespace Plaza {
+	Mesh* AssetsImporter::ProcessMesh(aiMesh* aiMesh, const aiScene* scene, Material* material) {
+		Mesh* mesh = new Mesh();
+
+		mesh->vertices.resize(aiMesh->mNumVertices);
+		mesh->indices.resize(aiMesh->mNumFaces);
+
+		for (unsigned int i = 0; i < aiMesh->mNumVertices; i++)
+		{
+			glm::vec3 vertex;
+			glm::vec3 normal;
+			glm::vec3 tangent;
+			glm::vec3 bitangent;
+			glm::vec2 uv;
+
+			// positions
+			vertex.x = aiMesh->mVertices[i].x * mModelImporterScale.x;
+			vertex.y = aiMesh->mVertices[i].y * mModelImporterScale.y;
+			vertex.z = aiMesh->mVertices[i].z * mModelImporterScale.z;
+			mesh->vertices.push_back(vertex);
+			// normals
+			if (aiMesh->HasNormals())
+			{
+				normal.x = aiMesh->mNormals[i].x * mModelImporterScale.x;
+				normal.y = aiMesh->mNormals[i].y * mModelImporterScale.y;
+				normal.z = aiMesh->mNormals[i].z * mModelImporterScale.z;
+				mesh->normals.push_back(normal);
+			}
+
+			// texture coordinates
+			if (aiMesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
+			{
+				uv.x = aiMesh->mTextureCoords[0][i].x;
+				uv.y = aiMesh->mTextureCoords[0][i].y;
+				mesh->uvs.push_back(uv);
+			}
+			else
+				uv = glm::vec2(0.0f, 0.0f);
+
+			bool useTangent = false;
+			if (aiMesh->HasTangentsAndBitangents() && useTangent) {
+				//usingNormal = true;
+				// tangent
+				tangent.x = aiMesh->mTangents[i].x * mModelImporterScale.x;
+				tangent.y = aiMesh->mTangents[i].y * mModelImporterScale.y;
+				tangent.z = aiMesh->mTangents[i].z * mModelImporterScale.z;
+				mesh->tangent.push_back(tangent);
+				// bitangent
+				bitangent.x = aiMesh->mBitangents[i].x * mModelImporterScale.x;
+				bitangent.y = aiMesh->mBitangents[i].y * mModelImporterScale.y;
+				bitangent.z = aiMesh->mBitangents[i].z * mModelImporterScale.z;
+				mesh->bitangent.push_back(bitangent);
+			}
+
+		}
+		// now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
+		for (unsigned int i = 0; i < aiMesh->mNumFaces; i++)
+		{
+			aiFace face = aiMesh->mFaces[i];
+			// retrieve all indices of the face and store them in the indices vector
+			for (unsigned int j = 0; j < face.mNumIndices; j++)
+				mesh->indices.push_back(face.mIndices[j]);
+		}
+
+		return mesh;
+	}
+
+	Entity* AssetsImporter::ProcessNode(aiNode* node, const aiScene* scene, Entity* parent) {
+		Entity* entity = new Entity(node->mName.C_Str(), Application->activeScene->GetEntity(parent->uuid));
+		for (unsigned int i = 0; i < node->mNumMeshes; ++i) {
+			aiMesh* aiMesh = scene->mMeshes[i];
+			Material* material = new Material();
+			Mesh* processedMesh = AssetsImporter::ProcessMesh(aiMesh, scene, material);
+
+			MeshRenderer* meshRenderer = new MeshRenderer(processedMesh, Application->activeScene->DefaultMaterial());
+			meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(processedMesh, Application->activeScene->DefaultMaterial(), false);
+			entity->AddComponent<MeshRenderer>(meshRenderer);
+
+
+		}
+
+		for (unsigned int i = 0; i < node->mNumChildren; i++)
+		{
+			Entity* child = AssetsImporter::ProcessNode(node->mChildren[i], scene, entity);
+			child->ChangeParent(&child->GetParent(), Application->activeScene->GetEntity(entity->uuid));
+		}
+
+		return entity;
+	}
+
+
+
 	Entity* AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath) {
-		tinyobj::attrib_t attrib;
-		std::vector<tinyobj::shape_t> shapes;
-		std::vector<tinyobj::material_t> materials;
-		std::string warn, err;
-
 		static char s_TimeString[256];
-		FILE* fileOpen = fopen(outPath.string().c_str(), "rb");
-		if (!fileOpen) return nullptr;
+		FILE* fp = fopen(asset.mPath.c_str(), "rb");
 
-		fseek(fileOpen, 0, SEEK_END);
-		long fileSize = ftell(fileOpen);
-		fseek(fileOpen, 0, SEEK_SET);
-		auto* content = new ofbx::u8[fileSize];
-		fread(content, 1, fileSize, fileOpen);
+		if (!fp) return nullptr;
+
+		fseek(fp, 0, SEEK_END);
+		long file_size = ftell(fp);
+		fseek(fp, 0, SEEK_SET);
+		auto* content = new ofbx::u8[file_size];
+		fread(content, 1, file_size, fp);
 
 		ofbx::LoadFlags flags =
 			//		ofbx::LoadFlags::IGNORE_MODELS |
@@ -47,71 +140,18 @@ namespace Plaza {
 			//		ofbx::LoadFlags::IGNORE_MESHES |
 			ofbx::LoadFlags::IGNORE_ANIMATIONS;
 
-		ofbx::IScene* loadedScene = ofbx::load((ofbx::u8*)content, fileSize, (ofbx::u16)flags);
-		delete[] content;
-		fclose(fileOpen);
-
-		FILE* fp = fopen(outPath.string().c_str(), "wb");
-		if (!fp) return nullptr;
-		int indicesOffset = 0;
-		int meshCount = loadedScene->getMeshCount();
-
-		for (int meshIndex = 0; meshIndex < meshCount; ++meshIndex) {
-			const ofbx::Mesh& mesh = *loadedScene->getMesh(meshIndex);
-			const ofbx::GeometryData& geom = mesh.getGeometryData();
-			const ofbx::Vec3Attributes positions = geom.getPositions();
-			const ofbx::Vec3Attributes normals = geom.getNormals();
-			const ofbx::Vec2Attributes uvs = geom.getUVs();
-			
-			// each ofbx::Mesh can have several materials == partitions
-			for (int partitionIndex = 0; partitionIndex < geom.getPartitionCount(); ++partitionIndex) {
-				fprintf(fp, "o obj%d_%d\ng grp%d\n", meshIndex, partitionIndex, meshIndex);
-				const ofbx::GeometryPartition& partition = geom.getPartition(partitionIndex);
-
-				// partitions most likely have several polygons, they are not triangles necessarily, use ofbx::triangulate if you want triangles
-				for (int polygonIndex = 0; polygonIndex < partition.polygon_count; ++polygonIndex) {
-					const ofbx::GeometryPartition::Polygon& polygon = partition.polygons[polygonIndex];
-
-					for (int i = polygon.from_vertex; i < polygon.from_vertex + polygon.vertex_count; ++i) {
-						ofbx::Vec3 v = positions.get(i);
-						fprintf(fp, "v %f %f %f\n", v.x, v.y, v.z);
-					}
-
-					bool has_normals = normals.values != nullptr;
-					if (has_normals) {
-						// normals.indices might be different than positions.indices
-						// but normals.get(i) is normal for positions.get(i)
-						for (int i = polygon.from_vertex; i < polygon.from_vertex + polygon.vertex_count; ++i) {
-							ofbx::Vec3 n = normals.get(i);
-							fprintf(fp, "vn %f %f %f\n", n.x, n.y, n.z);
-						}
-					}
-
-					bool has_uvs = uvs.values != nullptr;
-					if (has_uvs) {
-						for (int i = polygon.from_vertex; i < polygon.from_vertex + polygon.vertex_count; ++i) {
-							ofbx::Vec2 uv = uvs.get(i);
-							fprintf(fp, "vt %f %f\n", uv.x, uv.y);
-						}
-					}
-				}
-
-				for (int polygonIndex = 0; polygonIndex < partition.polygon_count; ++polygonIndex) {
-					const ofbx::GeometryPartition::Polygon& polygon = partition.polygons[polygonIndex];
-					fputs("f ", fp);
-					for (int i = polygon.from_vertex; i < polygon.from_vertex + polygon.vertex_count; ++i) {
-						fprintf(fp, "%d ", 1 + i + indicesOffset);
-					}
-					fputs("\n", fp);
-				}
-
-				indicesOffset += positions.count;
-			}
-		}
-
-		fclose(fp);
+		ofbx::IScene* g_scene = ofbx::load((ofbx::u8*)content, file_size, (ofbx::u16)flags);
 		return nullptr;
-
+		//Assimp::Importer importer;
+		//const aiScene* scene = importer.ReadFile(asset.mPath,
+		//	aiProcess_JoinIdenticalVertices 
+		//);
+		//if (nullptr == scene) {
+		//	cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
+		//	return nullptr;
+		//}
+		//
+		//return Application->activeScene->GetEntity(AssetsImporter::ProcessNode(scene->mRootNode, scene, Application->activeScene->GetEntity(Application->activeScene->mainSceneEntity->uuid))->uuid);
 
 
 		//if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, asset.mPath.c_str())) {

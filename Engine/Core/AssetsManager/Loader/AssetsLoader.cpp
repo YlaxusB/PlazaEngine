@@ -124,15 +124,18 @@ namespace Plaza {
 
 	void LoadDeserializedEntity(const SerializableEntity& deserializedEntity) {
 		Entity* newEntity = new Entity(deserializedEntity.name, Application->activeScene->mainSceneEntity, true, deserializedEntity.entityUuid);
-		SerializableMeshRenderer deserializedMeshRenderer = std::any_cast<SerializableMeshRenderer>(deserializedEntity.components.find(SerializableComponentType::MESH_RENDERER)->second);
-		SerializableMesh* deserializedMesh = &deserializedMeshRenderer.serializedMesh;
-		Mesh& mesh = Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), deserializedMesh->indices, *Scene::DefaultMaterial(), false);
-		MeshRenderer* meshRenderer = new MeshRenderer(mesh, Scene::DefaultMaterial());
-		meshRenderer->instanced = true;
-		meshRenderer->material = Scene::DefaultMaterial();
-		RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
-		meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
-		newEntity->AddComponent<MeshRenderer>(meshRenderer);
+		if (deserializedEntity.components.find(SerializableComponentType::MESH_RENDERER) != deserializedEntity.components.end())
+		{
+			SerializableMeshRenderer deserializedMeshRenderer = std::any_cast<SerializableMeshRenderer>(deserializedEntity.components.find(SerializableComponentType::MESH_RENDERER)->second);
+			SerializableMesh* deserializedMesh = &deserializedMeshRenderer.serializedMesh;
+			Mesh& mesh = Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), deserializedMesh->indices, *Scene::DefaultMaterial(), false);
+			MeshRenderer* meshRenderer = new MeshRenderer(&mesh, Scene::DefaultMaterial());
+			meshRenderer->instanced = true;
+			meshRenderer->material = Scene::DefaultMaterial();
+			RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
+			meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
+			newEntity->AddComponent<MeshRenderer>(meshRenderer);
+		}
 		/*
 				Entity* obj = new Entity(name, parent, addToScene);
 		obj->changingName = true;

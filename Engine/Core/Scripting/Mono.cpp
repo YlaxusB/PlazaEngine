@@ -1,9 +1,9 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Mono.h"
 #include <functional>
-#include "ThirdParty/mono/mono/metadata/object.h"
-#include "ThirdParty/mono/mono/metadata/threads.h"
-#include "ThirdParty/mono/mono/metadata/mono-debug.h"
+#include "ThirdParty/mono/include/mono/metadata/object.h"
+#include "ThirdParty/mono/include/mono/metadata/threads.h"
+#include "ThirdParty/mono/include/mono/metadata/mono-debug.h"
 #include "Editor/ScriptManager/ScriptManager.h"
 
 char* ConvertConstCharToChar(const char* constCharString) {

@@ -73,7 +73,7 @@ namespace Plaza {
 			}
 
 			Mesh& mesh = Application->mRenderer->CreateNewMesh(vertices, normals, uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), indices, *Scene::DefaultMaterial(), false);// new Mesh();
-			MeshRenderer* meshRenderer = new MeshRenderer(mesh, Scene::DefaultMaterial());
+			MeshRenderer* meshRenderer = new MeshRenderer(&mesh, Scene::DefaultMaterial());
 			newEntity->AddComponent<MeshRenderer>(meshRenderer);
 		}
 		//AssetsSerializer::SerializePrefab(mainEntity, asset.mPath);

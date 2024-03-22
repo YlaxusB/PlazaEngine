@@ -12,6 +12,7 @@
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
 #include "Engine/Core/ModelLoader/ModelLoader.h"
+#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 
 namespace Plaza::Editor {
 	void Project::Load(const std::string filePath) {
@@ -67,8 +68,11 @@ namespace Plaza::Editor {
 			const std::string extension = entry.path().extension().string();
 			if (entry.is_regular_file() && extension != "")
 			{
-				if (AssetsManager::mAssetTypeByExtension.find(extension) != AssetsManager::mAssetTypeByExtension.end()) {
-					AssetsManager::LoadFileAsAsset(entry.path());
+				if (extension == Standards::metadataExtName) {
+					AssetsManager::LoadMetadataAsAsset(entry.path());
+				}
+				else if (AssetsLoader::mSupportedLoadFormats.find(extension) != AssetsLoader::mSupportedLoadFormats.end()) {
+					AssetsManager::LoadBinaryFileAsAsset(entry.path());
 				}
 			}
 		}

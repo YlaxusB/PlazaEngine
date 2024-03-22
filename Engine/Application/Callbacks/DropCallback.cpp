@@ -18,14 +18,18 @@ void Plaza::ApplicationClass::Callbacks::dropCallback(GLFWwindow* window, int co
 			});
 		//if (foundMatch) {
 		std::string fileName = filesystem::path{ paths[i] }.stem().string();
+
+		std::string path = paths[i];
+		if (fileExtension == Standards::metadataExtName)
+			path = Metadata::DeSerializeMetadata(paths[i]).mPath.string();
+
+		if (AssetsLoader::mSupportedLoadFormats.find(fileExtension) != AssetsLoader::mSupportedLoadFormats.end())
+			AssetsLoader::LoadAsset(AssetsManager::GetAsset(std::filesystem::path{ path }));
+		else
+			AssetsImporter::ImportAsset(path);
+
 		//ModelLoader::LoadModelToGame(paths[i], fileName);
 		//Editor::ModelImporter::ImportModel(Gui::FileExplorer::currentDirectory, fileName, fileExtension, paths[i]);
-		if (std::filesystem::path{ paths[i] }.extension().string() == ".modDebug") {
-			AssetsLoader::LoadPrefab(paths[i]);
-		}
-		else
-			AssetsImporter::ImportAsset(paths[i]);
-
-		//}
+			//}
 	}
 }

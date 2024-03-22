@@ -230,7 +230,7 @@ void main() {
     vec3 DiffuseBRDF = kD * fLambert / PI;
 
     float shadow = (1 - ShadowCalculation(FragPos.xyz)) * 2;
-    vec3 amb = vec3(0.32f);
+    vec3 amb = vec3(0.72f);
 
     float specularIntensity = 13.0f;
 
@@ -239,7 +239,7 @@ void main() {
     //  gOthers.z = metallic;
    //SpecBRDF = all(equal(shad, vec3(0))) ? SpecBRDF : vec3(0);
     //vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color.xyz * (nDotL + amb / 2);//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
-    vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * max(nDotL, 0.0) * (amb + shadow);
+    vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * max(nDotL, 0.11f) * (amb + shadow);
 
     //FinalColor += vec3(0.13f / 255);
     //FinalColor *= vec3(1);

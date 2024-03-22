@@ -88,35 +88,6 @@ namespace Plaza {
 				}
 			}
 		}
-		/*
-						if (componentType == typeid(SerializableTransform*).name())
-				{
-					SerializableTransform* transform = std::any_cast<SerializableTransform*>(component.second);
-					file.write(reinterpret_cast<const char*>(&transform->uuid), sizeof(transform->uuid));
-					file.write(reinterpret_cast<const char*>(&transform->type), sizeof(transform->type));
-					file.write(reinterpret_cast<const char*>(&transform->position), sizeof(transform->position));
-					file.write(reinterpret_cast<const char*>(&transform->rotation), sizeof(transform->rotation));
-					file.write(reinterpret_cast<const char*>(&transform->scale), sizeof(transform->scale));
-				}
-				else if (componentType == typeid(SerializableMeshRenderer*).name())
-				{
-					SerializableMeshRenderer* meshRenderer = std::any_cast<SerializableMeshRenderer*>(component.second);
-					file.write(reinterpret_cast<const char*>(&meshRenderer->uuid), sizeof(meshRenderer->uuid));
-					file.write(reinterpret_cast<const char*>(&meshRenderer->type), sizeof(meshRenderer->type));
-					for (unsigned int i = 0; i < meshRenderer->serializedMesh.vertices.size(); ++i) {
-						file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.vertices[i]), sizeof(glm::vec3));
-					}
-					for (unsigned int i = 0; i < meshRenderer->serializedMesh.normals.size(); ++i) {
-						file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.normals[i]), sizeof(glm::vec3));
-					}
-					for (unsigned int i = 0; i < meshRenderer->serializedMesh.uvs.size(); ++i) {
-						file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.uvs[i]), sizeof(glm::vec2));
-					}
-					for (unsigned int i = 0; i < meshRenderer->serializedMesh.indices.size(); ++i) {
-						file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.indices[i]), sizeof(unsigned int));
-					}
-				}
-		*/
 
 		file.close();
 		return prefab;

@@ -37,6 +37,7 @@ namespace Plaza {
 			static void beginEditor(int gameFrameBuffer, Camera& camera);
 			static void beginHierarchyView(int gameFrameBuffer);
 			static void beginInspector(int gameFrameBuffer, Camera camera);
+			static void beginAssetsViewer(int gameFrameBuffer, Camera camera);
 
 			static string scenePayloadName;
 

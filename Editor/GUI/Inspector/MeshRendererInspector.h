@@ -24,10 +24,16 @@ namespace Plaza::Editor {
 				ImGui::Text(meshRenderer->renderGroup->material->name.c_str());
 
 				for (auto [key, value] : Application->activeScene->materials) {
-					if (value.get()->name.empty())
-						continue;
+					Asset* asset = AssetsManager::GetAsset(value->uuid);
 
-					if (ImGui::Button(value->name.c_str())) {
+					if (asset->mPath.empty() && value->uuid != 0)
+						continue;
+					std::string name = asset->mPath.stem().string();
+					if (value->uuid == 0)
+						name = value->name;
+
+
+					if (ImGui::Button(asset->mPath.stem().string().c_str())) {
 						entity->GetComponent<MeshRenderer>()->ChangeMaterial(value.get());
 						//entity->GetComponent<MeshRenderer>()->material = value.get();
 						//entity->GetComponent<MeshRenderer>()->renderGroup->mesh = entity->GetComponent<MeshRenderer>()->mesh;

@@ -14,7 +14,7 @@ namespace Plaza {
 	};
 	struct Asset {
 		uint64_t mAssetUuid = 0;
-		AssetType mAssetType = AssetType::NONE;
+		std::string mAssetExtension = "";
 		std::filesystem::path mPath;
 	};
 
@@ -56,15 +56,15 @@ namespace Plaza {
 		static Asset* NewAsset(uint64_t uuid, AssetType assetType, std::string path) {
 			Asset* newAsset = new Asset();
 			newAsset->mAssetUuid = uuid;
-			newAsset->mAssetType = assetType;
 			newAsset->mPath = std::filesystem::path{ path };
+			newAsset->mAssetExtension = newAsset->mPath.extension().string();
 			AssetsManager::AddAsset(newAsset);
 			return newAsset;
 		}
 		static Asset* NewAsset(AssetType assetType, std::filesystem::path path) {
 			Asset* newAsset = new Asset();
 			newAsset->mAssetUuid = Plaza::UUID::NewUUID();
-			newAsset->mAssetType = assetType;
+			newAsset->mAssetExtension = path.extension().string();
 			newAsset->mPath = path;
 			AssetsManager::AddAsset(newAsset);
 			return newAsset;
@@ -76,7 +76,6 @@ namespace Plaza {
 		static Asset* NewAsset() {
 			Asset* newAsset = new Asset();
 			newAsset->mAssetUuid = Plaza::UUID::NewUUID();
-			newAsset->mAssetType = AssetType::NONE;
 			AssetsManager::AddAsset(newAsset);
 			return newAsset;
 		}
@@ -97,7 +96,7 @@ namespace Plaza {
 
 		static void AddAsset(Asset* asset) {
 			AssetsManager::mAssets.emplace(asset->mAssetUuid, asset);
-			AssetsManager::mTypeMap.find(asset->mAssetType)->second.emplace(asset->mAssetUuid);
+			AssetsManager::mTypeMap.find(mAssetTypeByExtension.at(asset->mAssetExtension))->second.emplace(asset->mAssetUuid);
 			AssetsManager::mAssetsUuidByPath.emplace(asset->mPath, asset->mAssetUuid);
 		}
 		static void AddModel(Model* model) {
@@ -116,6 +115,38 @@ namespace Plaza {
 			}
 
 			return AssetsManager::NewAsset(data["AssetUuid"].as<uint64_t>(), AssetsManager::mAssetTypeByExtension.at(path.extension().string()), path.string());
+		}
+
+		static Asset* LoadMetadataAsAsset(std::filesystem::path path) {
+			std::ifstream binaryFile(path, std::ios::binary);
+			if (!binaryFile.is_open()) {
+				std::cerr << "Error opening file for writing!" << std::endl;
+				return nullptr;
+			}
+
+			uint64_t uuid = 0;
+			binaryFile.read(reinterpret_cast<char*>(&uuid), sizeof(uint64_t));
+			std::string contentPath = Plaza::Utils::ReadBinaryString(binaryFile);
+			std::string extension = Plaza::Utils::ReadBinaryString(binaryFile);
+
+			binaryFile.close();
+
+			return AssetsManager::NewAsset(uuid, AssetsManager::mAssetTypeByExtension.at(extension), contentPath);
+		}
+
+		static Asset* LoadBinaryFileAsAsset(std::filesystem::path path) {
+			std::ifstream binaryFile(path, std::ios::binary);
+			if (!binaryFile.is_open()) {
+				std::cerr << "Error opening file for writing!" << std::endl;
+				return nullptr;
+			}
+
+			uint64_t uuid = 0;
+			binaryFile.read(reinterpret_cast<char*>(&uuid), sizeof(uint64_t));
+
+			binaryFile.close();
+
+			return AssetsManager::NewAsset(uuid, AssetsManager::mAssetTypeByExtension.at(path.extension().string()), path.string());
 		}
 
 		static uint64_t CheckAssetPath(YAML::Node& data) {

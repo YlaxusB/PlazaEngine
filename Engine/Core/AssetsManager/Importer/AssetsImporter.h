@@ -14,7 +14,7 @@ namespace Plaza {
 		JPEG
 	};
 	struct AssetImported {
-		AssetExtension mExtension;
+		std::string mExtension;
 		std::string mPath;
 	};
 

@@ -28,6 +28,7 @@
 #include "Engine/Core/Input/Cursor.h"
 
 #include <ThirdParty/imgui/imgui_impl_opengl3.h>
+#include "Engine/Core/AssetsManager/AssetsManager.h"
 
 ////   #include "ThirdParty/imgui/imgui_impl_vulkan.h"
 //#include "Engine/Application/Application.h" //
@@ -110,7 +111,7 @@ namespace Plaza {
 			}
 			//ImGui_ImplGlfw_InitForVulkan(Application->Window->glfwWindow, true);
 		//C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
-		    io.Fonts->AddFontFromFileTTF((Application->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
+			io.Fonts->AddFontFromFileTTF((Application->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
 			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
 
 #pragma region ImGui Style
@@ -184,6 +185,8 @@ namespace Plaza {
 
 			Gui::beginEditor(gameFrameBuffer, *Application->activeCamera);
 
+			Gui::beginAssetsViewer(gameFrameBuffer, *Application->activeCamera);
+
 			Gui::beginInspector(gameFrameBuffer, *camera);
 
 			//ImGui::ShowDemoWindow();
@@ -193,10 +196,10 @@ namespace Plaza {
 
 
 			//   Overlay::beginTransformOverlay(*Application->activeCamera);
-			       fpsCounter->Update();
-			 // Update the sizes after resizing
+			fpsCounter->Update();
+			// Update the sizes after resizing
 
-			//Gui::UpdateSizes();
+		   //Gui::UpdateSizes();
 			if (canUpdateContent) {
 				//    Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 				canUpdateContent = false;
@@ -487,6 +490,60 @@ namespace Plaza {
 			curInspectorSize = ImGui::glmVec2(ImGui::GetWindowSize());
 			ImGui::End();
 			ImGui::PopStyleVar();
+		}
+
+		void Gui::beginAssetsViewer(int gameFrameBuffer, Camera camera) {
+			PLAZA_PROFILE_SECTION("Begin Assets Viewer");
+			ApplicationSizes& appSizes = *Application->appSizes;
+			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			Entity* selectedGameObject = Editor::selectedGameObject;
+
+			// Set the window to be the content size + header size
+			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove;
+
+			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
+			windowFlags |= ImGuiWindowFlags_NoScrollbar;
+
+			ImGui::SetNextWindowSize(ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y));
+
+			ImGuiStyle& style = ImGui::GetStyle();
+
+			// Adjust padding and margin sizes
+			style.WindowPadding = ImVec2(0.0f, 0.0f);  // Change window padding
+			if (ImGui::Begin("Assets Viewer", &Gui::isSceneOpen, windowFlags)) {
+
+			};
+			if (ImGui::IsWindowFocused())
+			{
+				if (Application->focusedMenu != "AssetsViewer") {
+					glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				}
+				Application->focusedMenu = "AssetsViewer";
+			}
+			if (ImGui::IsWindowHovered())
+				Application->hoveredMenu = "AssetsViewer";
+
+			for (auto& [key, value] : AssetsManager::mAssets) {
+				if (ImGui::TreeNodeEx(value->mPath.filename().string().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+
+
+					ImGui::Text("Uuid: ");
+					ImGui::SameLine();
+					ImGui::Text(std::to_string(value->mAssetUuid).c_str());
+
+					ImGui::Text("Path: ");
+					ImGui::SameLine();
+					ImGui::Text(value->mPath.string().c_str());
+
+					ImGui::Text("Extension: ");
+					ImGui::SameLine();
+					ImGui::Text(value->mAssetExtension.c_str());
+
+					ImGui::TreePop();
+				}
+			}
+
+			ImGui::End();
 		}
 
 

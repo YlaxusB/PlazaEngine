@@ -15,6 +15,10 @@ layout(push_constant) uniform PushConstants {
     float intensity;
     int diffuseIndex;
     int normalIndex;
+    int roughnessIndex;
+	int metalnessIndex;
+    float roughnessFloat;
+    float metalnessFloat;
 } pushConstants;
 
 layout(location = 0) out vec4 FragColor;
@@ -156,11 +160,11 @@ void main() {
     vec4 color;
     if(pushConstants.diffuseIndex > -1)
     { 
-        color = texture(textures[pushConstants.diffuseIndex], fragTexCoord);;
+        color = texture(textures[pushConstants.diffuseIndex], fragTexCoord) * pushConstants.intensity;
     }
     else
     {
-        color = vec4(pushConstants.color.xyz, 1.0f);
+        color = vec4(pushConstants.color.xyz, 1.0f) * pushConstants.intensity;
     }
 
     //color *= vec4((vec3(1.0f) - ShadowCalculation(FragPos.xyz) + 0.25f).xyz, 1.0f);
@@ -172,8 +176,19 @@ void main() {
     vec3 ambient = 1.32 * (lightColor / 1);
     // diffuse
 
-    float metallic = 0.0f;//pow(texture(texture_metalness, fs_in.TexCoords) / 1, vec4(1/ 2.2)).r * 1;
-    float roughness = 0.5f;//pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(1/ 2.2)).r * 1;
+    float metallic = pushConstants.metalnessFloat;
+    float roughness = pushConstants.roughnessFloat;
+
+    if(pushConstants.metalnessIndex > -1)
+    {
+        metallic =  texture(textures[pushConstants.metalnessIndex], fragTexCoord).r;//pow(texture(textures[pushConstants.metalnessIndex], fragTexCoord) / 1, vec4(1/ 2.2)).r * 1;
+    }
+
+    if(pushConstants.roughnessIndex > -1)
+    {
+        roughness = texture(textures[pushConstants.roughnessIndex], fragTexCoord).r;// pow(texture(textures[pushConstants.roughnessIndex], fragTexCoord) / 1, vec4(1/ 2.2)).r * 1;
+    }
+
     //metallic = texture(texture_metalness, fs_in.TexCoords).r / 255;//pow(texture(texture_metalness, fs_in.TexCoords), vec4(2.2)).r;
     //roughness = texture(texture_metalness, fs_in.TexCoords).r / 255;//pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(2.2)).r;
     //metallic *= 2;
@@ -187,7 +202,7 @@ void main() {
 
     bool usingNormal = false;
     if(usingNormal){
-        normal = texture(textures[pushConstants.normalIndex], TexCoords).rgb;
+        normal = texture(textures[pushConstants.normalIndex], fragTexCoord).rgb;
         normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space
         //lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
         diff = max(dot(ubo.lightDirection.xyz, normal), 0.0);

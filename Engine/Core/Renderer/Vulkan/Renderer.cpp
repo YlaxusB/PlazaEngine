@@ -890,7 +890,7 @@ namespace Plaza {
 			throw std::runtime_error("failed to begin recording command buffer!");
 		}
 		mActiveCommandBuffer = &commandBuffer;
-		
+
 
 
 		VkRenderPassBeginInfo renderPassInfo{};
@@ -1731,7 +1731,7 @@ namespace Plaza {
 		std::cout << "CreateFramebuffers \n";
 		CreateFramebuffers();
 		std::cout << "CreateTextureImage \n";
-	//	CreateTextureImage();
+		//	CreateTextureImage();
 		std::cout << "CreateTextureImageView \n";
 		//CreateTextureImageView();
 		std::cout << "CreateTextureSampler \n";
@@ -2108,7 +2108,7 @@ namespace Plaza {
 		VkCommandBuffer activeCommandBuffer = *this->mActiveCommandBuffer;
 
 		//vkCmdPushConstants(*this->mActiveCommandBuffer, this->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
-		vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, renderGroup->mInstanceBuffers[mCurrentFrame]};
+		vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, renderGroup->mInstanceBuffers[mCurrentFrame] };
 		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, verticesBuffer.data(), offsets);
 		vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->mCascadeInstances[cascadeIndex].size(), 0, 0, 0);
@@ -2137,11 +2137,13 @@ namespace Plaza {
 		VkCommandBuffer activeCommandBuffer = *this->mActiveCommandBuffer;
 
 		VulkanRenderer::PushConstants pushData;
-		if (renderGroup->material->diffuse->mIndexHandle < 0) {
-			pushData.color = renderGroup->material->diffuse->rgba;
-		}
-		else
-			pushData.diffuseIndex = renderGroup->material->diffuse->mIndexHandle;
+		pushData.color = renderGroup->material->diffuse->rgba;
+		pushData.diffuseIndex = renderGroup->material->diffuse->mIndexHandle;
+		pushData.normalIndex = renderGroup->material->normal->mIndexHandle;
+		pushData.metalnessIndex = renderGroup->material->metalness->mIndexHandle;
+		pushData.roughnessIndex = renderGroup->material->roughness->mIndexHandle;
+		pushData.metalnessFloat = renderGroup->material->metalnessFloat;
+		pushData.roughnessFloat = renderGroup->material->roughnessFloat;
 
 		{
 			PLAZA_PROFILE_SECTION("PushConstants and Descriptor sets");

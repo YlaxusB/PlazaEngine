@@ -1,10 +1,8 @@
 #include "AssetsSerializer.h"
-#include "ComponentsSerializer/ComponentsSerializer.h"
+#include "ComponentsConverter/ComponentsConverter.h"
+#include "Engine/Core/AssetsManager/Serializer/ComponentsSerializer/ComponentsSerializer.h"
 
 namespace Plaza {
-	SerializableMeshRenderer* ConvertMeshRenderer(MeshRenderer* meshRenderer) {
-		return ComponentsSerializer::SerializeMeshRenderer(meshRenderer);
-	}
 
 	SerializableTransform* ConvertTransform(Transform* transform) {
 		SerializableTransform* serializableTransform = new SerializableTransform();
@@ -27,7 +25,7 @@ namespace Plaza {
 			componentCount++;
 		}
 		if (entity->HasComponent<MeshRenderer>()) {
-			serializableEntity.components.emplace(SerializableComponentType::MESH_RENDERER, ConvertMeshRenderer(entity->GetComponent<MeshRenderer>()));
+			serializableEntity.components.emplace(SerializableComponentType::MESH_RENDERER, ComponentsConverter::ConvertMeshRenderer(entity->GetComponent<MeshRenderer>()));
 			componentCount++;
 		}
 
@@ -106,25 +104,7 @@ namespace Plaza {
 				else if (componentType == typeid(SerializableMeshRenderer*).name())
 				{
 					SerializableMeshRenderer* meshRenderer = std::any_cast<SerializableMeshRenderer*>(component.second);
-					file.write(reinterpret_cast<const char*>(&meshRenderer->uuid), sizeof(meshRenderer->uuid));
-					file.write(reinterpret_cast<const char*>(&meshRenderer->type), sizeof(meshRenderer->type));
-
-					file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.verticesCount), sizeof(uint64_t));
-					for (unsigned int i = 0; i < meshRenderer->serializedMesh.vertices.size(); ++i) {
-						file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.vertices[i]), sizeof(glm::vec3));
-					}
-					file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.normalsCount), sizeof(uint64_t));
-					for (unsigned int i = 0; i < meshRenderer->serializedMesh.normals.size(); ++i) {
-						file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.normals[i]), sizeof(glm::vec3));
-					}
-					file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.uvsCount), sizeof(uint64_t));
-					for (unsigned int i = 0; i < meshRenderer->serializedMesh.uvs.size(); ++i) {
-						file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.uvs[i]), sizeof(glm::vec2));
-					}
-					file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.indicesCount), sizeof(uint64_t));
-					for (unsigned int i = 0; i < meshRenderer->serializedMesh.indices.size(); ++i) {
-						file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.indices[i]), sizeof(unsigned int));
-					}
+					ComponentsSerializer::SerializeMeshRenderer(meshRenderer, file);
 				}
 
 			}

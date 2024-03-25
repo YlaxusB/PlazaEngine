@@ -3,6 +3,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/vector3.h>
+#include "ThirdParty/OpenFBX/src/ofbx.h"
 
 namespace Plaza {
 	enum AssetExtension {
@@ -36,5 +37,7 @@ namespace Plaza {
 			{".jpg", JPG},
 			{".jpeg", JPEG}
 		};
+
+		static Material* FbxModelMaterialLoader(const ofbx::Material* ofbxMaterial, const std::string materialFolderPath);
 	};
 }

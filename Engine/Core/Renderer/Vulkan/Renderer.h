@@ -28,6 +28,10 @@ namespace Plaza {
 			float intensity = 1.0f;
 			int diffuseIndex = -1;
 			int normalIndex = -1;
+			int roughnessIndex = -1;
+			int metalnessIndex = -1;
+			float roughnessFloat = 0.5f;
+			float metalnessFloat = 0.5f;
 		};
 		struct UniformBufferObject {
 			glm::mat4 projection = glm::mat4(1.0f);

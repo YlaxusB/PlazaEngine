@@ -33,13 +33,15 @@ namespace Plaza {
 		}
 		static void LoadPrefab(std::string path);
 		static void LoadScript(Asset* asset) {};
-		static void LoadTexture(Asset* asset) {};
-		static void LoadMaterial(Asset* asset) {
-			Material* material = new Material();
-			material->uuid = asset->mAssetUuid;
-			material->name = asset->mPath.filename().string();
-			Application->activeScene->AddMaterial(material);
-		};
+		static Texture* LoadTexture(Asset* asset) {
+			if (AssetsManager::mTextures.find(asset->mAssetUuid) != AssetsManager::mTextures.end())
+				return AssetsManager::mTextures.at(asset->mAssetUuid);
+
+			Texture* texture = Application->mRenderer->LoadTexture(asset->mPath.string());
+			AssetsManager::mTextures.emplace(asset->mAssetUuid, texture);
+			return texture;
+		}
+		static Material* LoadMaterial(Asset* asset);
 		static void LoadModel(Asset* asset) {};
 	};
 }

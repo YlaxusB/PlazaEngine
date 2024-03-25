@@ -1,8 +1,8 @@
 #include "Engine/Core/PreCompiledHeaders.h"
-#include "ComponentsSerializer.h"
+#include "ComponentsConverter.h"
 
 namespace Plaza {
-	SerializableMesh ComponentsSerializer::SerializeMesh(Mesh* mesh) {
+	SerializableMesh ComponentsConverter::ConvertMesh(Mesh* mesh) {
 		SerializableMesh  serializedMesh{};
 		serializedMesh.assetUuid = Plaza::UUID::NewUUID();
 		serializedMesh.assetType = AssetType::MESH;

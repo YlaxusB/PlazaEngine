@@ -17,6 +17,19 @@ namespace Plaza {
 		glm::vec3 scale;
 	};
 
+	struct SerializableMaterial {
+		uint64_t assetUuid;
+		glm::vec3 diffuseColor;
+		uint64_t diffuseUuid;
+		uint64_t normalUuid;
+		float roughnessFloat;
+		uint64_t roughnessUuid;
+		float metalnessFloat;
+		uint64_t metalnessUuid;
+		float intensity;
+		float shininess;
+	};
+
 	struct SerializableMesh {
 		uint64_t assetUuid;
 		AssetType assetType;
@@ -32,6 +45,7 @@ namespace Plaza {
 	};
 
 	struct SerializableMeshRenderer : public SerializableComponents {
+		uint64_t materialUuid;
 		SerializableMesh serializedMesh{};
 	};
 
@@ -69,6 +83,7 @@ namespace Plaza {
 			
 		}
 
+		static void SerializeMaterial(Material* material, std::filesystem::path outPath);
 		static void SerializePrefab(Entity* mainEntity, std::filesystem::path outPath);
 		static void SerializeMesh(Mesh* mesh, std::filesystem::path outPath);
 	};

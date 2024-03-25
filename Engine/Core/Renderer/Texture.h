@@ -4,6 +4,7 @@
 namespace Plaza {
 	class Texture {
 	public:
+		uint64_t mAssetUuid;
 		std::string type = "";
 		std::string path = "";
 		glm::vec4 rgba = glm::vec4(255.0f);

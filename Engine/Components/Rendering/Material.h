@@ -20,6 +20,9 @@ namespace Plaza {
 		float shininess = 3.0f;
 		float intensity = 1.0f;
 
+		float metalnessFloat = 0.5f;
+		float roughnessFloat = 0.5f;
+
 		void LoadTextures(std::string relativePath = "") {
 			diffuse->Load(relativePath);
 			albedo->Load(relativePath);
@@ -42,6 +45,8 @@ namespace Plaza {
 			filePath = other.filePath;
 			name = other.name;
 			shininess = other.shininess;
+			metalnessFloat = other.metalnessFloat;
+			roughnessFloat = other.roughnessFloat;
 			diffuse = other.diffuse;
 			albedo = other.albedo;
 			normal = other.normal;

@@ -86,14 +86,14 @@ namespace Plaza::Editor {
 				scripts.emplace(entry.path().string(), Script());
 			}
 
-			if (entry.is_regular_file() && entry.path().extension() == Standards::materialExtName) {
-				std::shared_ptr<Material> deserializedMaterial = std::shared_ptr<Material>(MaterialFileSerializer::DeSerialize(entry.path().string()));
-				if (deserializedMaterial->uuid) {
-					deserializedMaterial->LoadTextures(entry.path().parent_path().string());
-					Application->activeScene->AddMaterial(deserializedMaterial);
-					//Application->activeScene->materials.emplace(deserializedMaterial->uuid, deserializedMaterial);
-				}
-			}
+			//if (entry.is_regular_file() && entry.path().extension() == Standards::materialExtName) {
+			//	std::shared_ptr<Material> deserializedMaterial = std::shared_ptr<Material>(MaterialFileSerializer::DeSerialize(entry.path().string()));
+			//	if (deserializedMaterial->uuid) {
+			//		deserializedMaterial->LoadTextures(entry.path().parent_path().string());
+			//		Application->activeScene->AddMaterial(deserializedMaterial);
+			//		//Application->activeScene->materials.emplace(deserializedMaterial->uuid, deserializedMaterial);
+			//	}
+			//}
 		}
 
 		std::cout << "Deserializing \n";

@@ -35,6 +35,7 @@ namespace Plaza {
 		static inline AssetsListStructure mAssets = AssetsListStructure();
 		static inline std::map<std::filesystem::path, uint64_t> mAssetsUuidByPath = std::map<std::filesystem::path, uint64_t>();
 		static inline std::map<std::string, AssetType> mAssetTypeByExtension = std::map<std::string, AssetType>();
+		static inline std::unordered_map<uint64_t, Texture*> mTextures = std::unordered_map<uint64_t, Texture*>();
 		static inline std::unordered_map<AssetType, std::unordered_set<uint64_t>> mTypeMap = std::unordered_map<AssetType, std::unordered_set<uint64_t>>();
 
 		static inline AssetsModelListStructure mMemoryModels = AssetsModelListStructure();

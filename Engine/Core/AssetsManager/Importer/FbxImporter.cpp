@@ -3,7 +3,11 @@
 #include "ThirdParty/tinyobjloader/tiny_obj_loader.h"
 #include "ThirdParty/glm/gtx/hash.hpp"
 #include "Engine/Core/Renderer/Mesh.h"
-#include "ThirdParty/OpenFBX/src/ofbx.h"
+#include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
+#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
+#include "Editor/GUI/FileExplorer/FileExplorer.h"
+#include "Editor/GUI/Utils/Filesystem.h"
+
 
 
 #include <d3d11.h>
@@ -20,6 +24,35 @@ struct Vec3Hash {
 
 
 namespace Plaza {
+
+	static std::string toStringView(ofbx::DataView data) {
+		return std::string(
+			(const char*)data.begin,
+			(const char*)data.end
+		);
+	}
+	Material* AssetsImporter::FbxModelMaterialLoader(const ofbx::Material* ofbxMaterial, const std::string materialFolderPath) {
+		Material* material = new Material();
+		material->name = ofbxMaterial->name;
+
+		const ofbx::Texture* ofbxDiffuse = ofbxMaterial->getTexture(ofbx::Texture::DIFFUSE);
+		if (ofbxDiffuse)
+			material->diffuse = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxDiffuse->getFileName()) }.filename().string()));
+
+		const ofbx::Texture* ofbxNormal = ofbxMaterial->getTexture(ofbx::Texture::NORMAL);
+		if (ofbxNormal)
+			material->normal = Application->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxNormal->getFileName()) }.filename().string())->mPath.string());
+
+		const ofbx::Texture* ofbxSpecular = ofbxMaterial->getTexture(ofbx::Texture::SPECULAR);
+		if (ofbxSpecular)
+			material->roughness = Application->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxSpecular->getFileName()) }.filename().string())->mPath.string());
+
+		const ofbx::Texture* ofbxReflection = ofbxMaterial->getTexture(ofbx::Texture::REFLECTION);
+		if (ofbxReflection)
+			material->diffuse = Application->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxReflection->getFileName()) }.filename().string())->mPath.string());
+
+		return material;
+	}
 
 	Entity* AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath) {
 		FILE* fileOpen = fopen(asset.mPath.c_str(), "rb");
@@ -61,6 +94,10 @@ namespace Plaza {
 		std::unordered_map<ofbx::u64, uint64_t> meshIndexEntityMap = std::unordered_map<ofbx::u64, uint64_t>();
 		for (int meshIndex = 0; meshIndex < meshCount; ++meshIndex) {
 			const ofbx::Mesh& mesh = *loadedScene->getMesh(meshIndex);
+			const ofbx::Material* ofbxMaterial = mesh.getMaterial(0);
+			Material* material = AssetsImporter::FbxModelMaterialLoader(ofbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string());
+			AssetsSerializer::SerializeMaterial(material, Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName);
+
 			Entity* entity;
 			if (!mainEntity)
 			{
@@ -118,6 +155,7 @@ namespace Plaza {
 			}
 
 			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, Application->activeScene->DefaultMaterial());
+			meshRenderer->material = material;
 			entity->AddComponent<MeshRenderer>(meshRenderer);
 			verticesCount += finalMesh->vertices.size();
 		}

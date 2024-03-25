@@ -39,6 +39,10 @@ namespace Plaza::Editor {
 				material->height = Application->mRenderer->LoadTexture(FileDialog::OpenFileDialog(".jpeg"));
 			}
 
+			ImGui::DragFloat("Roughness: ", &material->roughnessFloat, 0.0f, 1.0f);
+			ImGui::DragFloat("Metalness: ", &material->metalnessFloat, 0.0f, 1.0f);
+			ImGui::DragFloat("Diffuse Intensity: ", &material->intensity, 0.0f, 100.0f);
+
 			//if (Application->activeScene->materials.find(material->uuid) != Application->activeScene->materials.end()) {
 			//	Application->activeScene->materials.at(material->uuid) = std::make_shared<Material>(*new Material(*material));
 			//}

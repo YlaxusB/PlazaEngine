@@ -33,7 +33,7 @@ namespace Plaza {
 		try {
 			if (data) {
 				material->name = data["Material"].as<std::string>();
-				material->uuid = data["Uuid"].as<uint64_t>();
+				material->uuid = data["AssetUuid"].as<uint64_t>();
 				if (data["diffuse"]) {
 					material->diffuse = ComponentSerializer::TextureSerializer::DeSerialize(data["diffuse"]);
 				}

@@ -12,16 +12,16 @@ namespace Plaza::Editor {
 		static File* lastFile;
 		MaterialFileInspector(File* file) {
 			if (!material || file != lastFile) {
-				material = MaterialFileSerializer::DeSerialize(file->directory);
-				if (material->uuid && Application->activeScene->materials.find(material->uuid) != Application->activeScene->materials.end())
-					material = Application->activeScene->materials.at(material->uuid).get();
+				material = Application->activeScene->materials.at(AssetsManager::GetAsset(file->directory)->mAssetUuid).get();//MaterialFileSerializer::DeSerialize(file->directory);
+				//if (material->uuid && Application->activeScene->materials.find(material->uuid) != Application->activeScene->materials.end())
+				//	material = Application->activeScene->materials.at(material->uuid).get();
 			}
 			ImGui::Text(file->directory.c_str());
 
 			ImGui::ColorPicker4("Diffuse", &material->diffuse->rgba.x);
 			ImGui::ColorPicker4("Specular", &material->specular->rgba.x);
 			if (ImGui::Button("Difusse Texture")) {
-				material->diffuse = Application->mRenderer->LoadTexture(FileDialog::OpenFileDialog(".jpeg"));
+				material->diffuse = Application->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"))->mPath.string());
 				//    material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");
 				//    material->diffuse.rgba = glm::vec4(INFINITY);
 				//    material->diffuse.Load() = ModelLoader::TextureFromFile(material->diffuse.path);

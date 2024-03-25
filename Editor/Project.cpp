@@ -72,7 +72,9 @@ namespace Plaza::Editor {
 					AssetsManager::LoadMetadataAsAsset(entry.path());
 				}
 				else if (AssetsLoader::mSupportedLoadFormats.find(extension) != AssetsLoader::mSupportedLoadFormats.end()) {
-					AssetsManager::LoadBinaryFileAsAsset(entry.path());
+					Asset* asset = AssetsManager::LoadBinaryFileAsAsset(entry.path());
+					if (extension == ".plzmat")
+						AssetsLoader::LoadAsset(asset);
 				}
 			}
 		}

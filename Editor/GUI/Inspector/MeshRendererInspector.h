@@ -25,8 +25,7 @@ namespace Plaza::Editor {
 
 				for (auto [key, value] : Application->activeScene->materials) {
 					Asset* asset = AssetsManager::GetAsset(value->uuid);
-
-					if (asset->mPath.empty() && value->uuid != 0)
+					if (!asset || (asset->mPath.empty() && value->uuid != 0))
 						continue;
 					std::string name = asset->mPath.stem().string();
 					if (value->uuid == 0)

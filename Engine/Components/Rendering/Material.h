@@ -35,6 +35,7 @@ namespace Plaza {
 
 		Material() {
 			this->uuid = Plaza::UUID::NewUUID();
+			this->mAssetUuid = this->uuid;
 		}
 		~Material() = default;
 		// Copy constructor

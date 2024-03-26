@@ -10,7 +10,9 @@ namespace Plaza {
 			return nullptr;
 		}
 
-		file.read(reinterpret_cast<char*>(&material->mAssetUuid), sizeof(material->mAssetUuid));
+		file.read(reinterpret_cast<char*>(&material->mAssetUuid), sizeof(uint64_t));
+		material->uuid = material->mAssetUuid;
+		asset->mAssetUuid = material->mAssetUuid;
 		material->name = Plaza::Utils::ReadBinaryString(file);
 		file.read(reinterpret_cast<char*>(&material->diffuse->rgba), sizeof(material->diffuse->rgba));
 		file.read(reinterpret_cast<char*>(&material->diffuse->mAssetUuid), sizeof(material->diffuse->mAssetUuid));
@@ -22,8 +24,13 @@ namespace Plaza {
 		file.read(reinterpret_cast<char*>(&material->intensity), sizeof(material->intensity));
 		file.read(reinterpret_cast<char*>(&material->shininess), sizeof(material->shininess));
 
+
 		file.close();
 
+		//material->diffuse->mIndexHandle = AssetsManager::GetTexture(material->diffuse->mAssetUuid)->mIndexHandle;
+		//material->normal->mIndexHandle = AssetsManager::GetTexture(material->normal->mAssetUuid)->mIndexHandle;
+		//material->roughness->mIndexHandle = AssetsManager::GetTexture(material->roughness->mAssetUuid)->mIndexHandle;
+		//material->metalness->mIndexHandle = AssetsManager::GetTexture(material->metalness->mAssetUuid)->mIndexHandle;
 		/*
 		file.write(reinterpret_cast<const char*>(&material->mAssetUuid), sizeof(material->mAssetUuid));
 		Plaza::Utils::SaveStringAsBinary(file, material->name);

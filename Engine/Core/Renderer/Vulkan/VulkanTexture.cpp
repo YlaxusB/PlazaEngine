@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "VulkanTexture.h"
+#include "ThirdParty/dds_image/dds.hpp"
 
 namespace Plaza {
 	int VulkanTexture::mLastBindingIndex = 0;
@@ -92,24 +93,49 @@ namespace Plaza {
 	}
 
 	void VulkanTexture::CreateTextureImage(VkDevice device, std::string path, VkFormat format, bool generateMipMaps) {
+		if (std::filesystem::path{ path }.filename() == "WickerBasket_Specular.dds") {
+			std::cout << "jajajaja \n";
+		}
+		bool isDDS = std::filesystem::path{ path }.extension() == ".dds";
+		dds::Image image;
+
 		int texWidth, texHeight, texChannels;
-		stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		stbi_uc* pixels = nullptr;
+		if (!isDDS)
+		{
+			pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+		}
+		else {
+			dds::ReadResult res = dds::readFile(path, &image);
+			texWidth = image.width;
+			texHeight = image.height;
+			VkImageViewCreateInfo asd = dds::getVulkanImageViewCreateInfo(&image);
+			VkImageCreateInfo asd2 = dds::getVulkanImageCreateInfo(&image);
+			texChannels = 4;
+		}
+
 		this->mMipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 		if (!generateMipMaps)
 			this->mMipLevels = 1;
 		VkDeviceSize imageSize = texWidth * texHeight * 4;
+		if (isDDS)
+			imageSize = image.mipmaps[0].size();
 
-		if (!pixels) {
+		if (!isDDS && !pixels) {
 			throw std::runtime_error("failed to load texture image!");
 		}
 		VulkanRenderer::GetRenderer()->CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mStagingBuffer, mStagingBufferMemory);
 
 		void* data;
 		vkMapMemory(device, mStagingBufferMemory, 0, imageSize, 0, &data);
-		memcpy(data, pixels, static_cast<size_t>(imageSize));
+		if (!isDDS)
+			memcpy(data, pixels, static_cast<size_t>(imageSize));
+		else
+			memcpy(data, image.mipmaps[0].data(), static_cast<size_t>(imageSize));
 		vkUnmapMemory(device, mStagingBufferMemory);
 
 		stbi_image_free(pixels);
+
 
 		//VulkanRenderer::GetRenderer()->CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mTextureImage, mTextureImageMemory);
 		VkImageCreateInfo imageInfo{};
@@ -175,7 +201,7 @@ namespace Plaza {
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.format = format;
 		imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-		
+
 		if (vkCreateImage(device, &imageInfo, nullptr, &this->mImage) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create image!");
 		}
@@ -251,7 +277,7 @@ namespace Plaza {
 		poolInfo.maxSets = 1;
 		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT;
 
-		static const uint32_t maxBindlessResources = 16536;
+		static const uint32_t maxBindlessResources = 16536 * 4;
 		VkDescriptorPoolSize poolSizesBindless[] =
 		{
 			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, maxBindlessResources }

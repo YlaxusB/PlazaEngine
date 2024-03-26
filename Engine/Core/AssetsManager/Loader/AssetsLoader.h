@@ -10,6 +10,14 @@ namespace Plaza {
 			Standards::materialExtName
 		};
 
+		static inline const std::unordered_set<std::string> mSupportedTextureLoadFormats = {
+			".png",
+			".jpg",
+			".jpeg",
+			".dds",
+			".hdr"
+		};
+
 		static void LoadAsset(Asset* asset) {
 
 			if (asset->mAssetExtension == Standards::metadataExtName)
@@ -38,6 +46,7 @@ namespace Plaza {
 				return AssetsManager::mTextures.at(asset->mAssetUuid);
 
 			Texture* texture = Application->mRenderer->LoadTexture(asset->mPath.string());
+			texture->mAssetUuid = asset->mAssetUuid;
 			AssetsManager::mTextures.emplace(asset->mAssetUuid, texture);
 			return texture;
 		}

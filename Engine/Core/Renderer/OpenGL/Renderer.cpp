@@ -370,8 +370,9 @@ namespace Plaza {
 		return *new OpenGLMesh(vertices, normals, uvs, tangent, bitangent, indices, usingNormal);
 	}
 
-	Texture* OpenGLRenderer::LoadTexture(std::string path) {
+	Texture* OpenGLRenderer::LoadTexture(std::string path, uint64_t uuid) {
 		OpenGLTexture* texture = new OpenGLTexture();
+		texture->mAssetUuid = uuid;
 		texture->path = path;
 		texture->rgba = glm::vec4(INFINITY);
 //    material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");

@@ -8,7 +8,7 @@ namespace Plaza {
 			return;
 		}
 		 
-		file.write(reinterpret_cast<const char*>(&material->mAssetUuid), sizeof(material->mAssetUuid));
+		file.write(reinterpret_cast<const char*>(&material->mAssetUuid), sizeof(uint64_t));
 		Plaza::Utils::SaveStringAsBinary(file, material->name);
 		file.write(reinterpret_cast<const char*>(&material->diffuse->rgba), sizeof(material->diffuse->rgba));
 		file.write(reinterpret_cast<const char*>(&material->diffuse->mAssetUuid), sizeof(material->diffuse->mAssetUuid));

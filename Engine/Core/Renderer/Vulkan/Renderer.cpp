@@ -1264,7 +1264,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::CreateDescriptorPool() {
-		static const uint32_t maxBindlessTextures = 16536;
+		static const uint32_t maxBindlessTextures = 16536 * 4;
 
 		std::array<VkDescriptorPoolSize, 5> poolSizes{};
 		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1950,17 +1950,17 @@ namespace Plaza {
 	{
 		VkDescriptorPoolSize pool_sizes[] =
 		{
-			{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
-			{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
-			{VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
-			{VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
-			{VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
-			{VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
-			{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
-			{VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
-			{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
-			{VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
-			{VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}
+			{VK_DESCRIPTOR_TYPE_SAMPLER, 100000},
+			{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100000},
+			{VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 100000},
+			{VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 100000},
+			{VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 100000},
+			{VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 100000},
+			{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100000},
+			{VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 100000},
+			{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 100000},
+			{VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 100000},
+			{VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 100000}
 		};
 
 		VkDescriptorPoolCreateInfo pool_info = {};
@@ -2044,8 +2044,11 @@ namespace Plaza {
 		vkBindImageMemory(mDevice, image, imageMemory, 0);
 	}
 
-	Texture* VulkanRenderer::LoadTexture(std::string path) {
+	Texture* VulkanRenderer::LoadTexture(std::string path, uint64_t uuid) {
 		VulkanTexture* texture = new VulkanTexture();
+		if (uuid != 0)
+			texture->mAssetUuid = uuid;
+		texture->path = path;
 		if (std::filesystem::exists(path))
 		{
 			texture->CreateTextureImage(mDevice, path, VK_FORMAT_R8G8B8A8_SRGB, true);
@@ -2223,7 +2226,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-		}
+	}
 #endif
 
 
@@ -2315,5 +2318,5 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-	}
+}
 }

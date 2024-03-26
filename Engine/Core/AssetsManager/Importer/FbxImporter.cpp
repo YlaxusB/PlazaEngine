@@ -31,26 +31,57 @@ namespace Plaza {
 			(const char*)data.end
 		);
 	}
-	Material* AssetsImporter::FbxModelMaterialLoader(const ofbx::Material* ofbxMaterial, const std::string materialFolderPath) {
+	Material* AssetsImporter::FbxModelMaterialLoader(const ofbx::Material* ofbxMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures) {
 		Material* material = new Material();
 		material->name = ofbxMaterial->name;
 
 		const ofbx::Texture* ofbxDiffuse = ofbxMaterial->getTexture(ofbx::Texture::DIFFUSE);
-		if (ofbxDiffuse)
-			material->diffuse = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxDiffuse->getFileName()) }.filename().string()));
+		if (ofbxDiffuse) {
+			const std::string diffusePath = materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxDiffuse->getFileName()) }.filename().string();
+			if (ofbxDiffuse && loadedTextures.find(diffusePath) == loadedTextures.end())
+			{
+				material->diffuse = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(diffusePath, Plaza::UUID::NewUUID()));
+				loadedTextures.emplace(diffusePath, material->diffuse->mAssetUuid);
+			}
+			else
+				material->diffuse = AssetsManager::mTextures.at(loadedTextures.at(diffusePath));
+		}
 
 		const ofbx::Texture* ofbxNormal = ofbxMaterial->getTexture(ofbx::Texture::NORMAL);
-		if (ofbxNormal)
-			material->normal = Application->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxNormal->getFileName()) }.filename().string())->mPath.string());
+		if (ofbxNormal) {
+			const std::string normalPath = materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxNormal->getFileName()) }.filename().string();
+			if (loadedTextures.find(normalPath) == loadedTextures.end())
+			{
+				material->normal = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(normalPath, Plaza::UUID::NewUUID()));
+				loadedTextures.emplace(normalPath, material->normal->mAssetUuid);
+			}
+			else
+				material->normal = AssetsManager::mTextures.at(loadedTextures.at(normalPath));
+		}
 
 		const ofbx::Texture* ofbxSpecular = ofbxMaterial->getTexture(ofbx::Texture::SPECULAR);
-		if (ofbxSpecular)
-			material->roughness = Application->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxSpecular->getFileName()) }.filename().string())->mPath.string());
+		if (ofbxSpecular) {
+			const std::string specularPath = materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxSpecular->getFileName()) }.filename().string();
+			if (ofbxSpecular && loadedTextures.find(specularPath) == loadedTextures.end())
+			{
+				material->roughness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(specularPath, Plaza::UUID::NewUUID()));
+				loadedTextures.emplace(specularPath, material->roughness->mAssetUuid);
+			}
+			else
+				material->roughness = AssetsManager::mTextures.at(loadedTextures.at(specularPath));
+		}
 
 		const ofbx::Texture* ofbxReflection = ofbxMaterial->getTexture(ofbx::Texture::REFLECTION);
-		if (ofbxReflection)
-			material->diffuse = Application->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxReflection->getFileName()) }.filename().string())->mPath.string());
-
+		if (ofbxReflection) {
+			const std::string reflectionPath = materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxReflection->getFileName()) }.filename().string();
+			if (ofbxReflection && loadedTextures.find(reflectionPath) == loadedTextures.end())
+			{
+				material->metalness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(reflectionPath, Plaza::UUID::NewUUID()));
+				loadedTextures.emplace(reflectionPath, material->metalness->mAssetUuid);
+			}
+			else
+				material->metalness = AssetsManager::mTextures.at(loadedTextures.at(reflectionPath));
+		}
 		return material;
 	}
 
@@ -92,11 +123,30 @@ namespace Plaza {
 		// output unindexed geometry
 		Entity* mainEntity = nullptr;
 		std::unordered_map<ofbx::u64, uint64_t> meshIndexEntityMap = std::unordered_map<ofbx::u64, uint64_t>();
+		std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
+
+
 		for (int meshIndex = 0; meshIndex < meshCount; ++meshIndex) {
 			const ofbx::Mesh& mesh = *loadedScene->getMesh(meshIndex);
 			const ofbx::Material* ofbxMaterial = mesh.getMaterial(0);
-			Material* material = AssetsImporter::FbxModelMaterialLoader(ofbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string());
-			AssetsSerializer::SerializeMaterial(material, Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName);
+			Material* material;
+			if (AssetsImporter::count < 20) {
+
+				material = AssetsImporter::FbxModelMaterialLoader(ofbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+
+				bool materialWithSameNameExists = std::filesystem::exists(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name });
+				if (materialWithSameNameExists) {
+					bool materialsAreTheSame = material->SameAs(*AssetsLoader::LoadMaterial(AssetsManager::GetAsset(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name }.string())));
+					if (!materialsAreTheSame)
+						AssetsSerializer::SerializeMaterial(material, Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName);
+				}
+				else
+					AssetsSerializer::SerializeMaterial(material, Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName);
+			}
+			else
+				material = Application->activeScene->DefaultMaterial();
+			AssetsImporter::count++;
+
 
 			Entity* entity;
 			if (!mainEntity)
@@ -126,26 +176,30 @@ namespace Plaza {
 
 			/* TODO: FIX UNIQUE VERTICES, SO THEY ALSO DIFFER FROM NORMAL AND UV */
 			std::unordered_map<glm::vec3, uint32_t> uniqueVertices = std::unordered_map<glm::vec3, uint32_t>();
-			std::vector<int> tri_indices = std::vector<int>();
+			//int* tri_indices = new int();
 			int indicesOffset = 0;
 			for (int partitionIdx = 0; partitionIdx < geom.getPartitionCount(); ++partitionIdx) {
 				if (partitionIdx > 0)
 					std::cout << partitionIdx << "\n";
 				const ofbx::GeometryPartition& partition = geom.getPartition(partitionIdx);
-				tri_indices.resize(tri_indices.size() + partition.max_polygon_triangles * 3);
+				std::vector<int> tri_indices(partition.max_polygon_triangles * 3);
 
-				for (int polygon_idx = 0; polygon_idx < partition.triangles_count; ++polygon_idx) {
+
+				for (int polygon_idx = 0; polygon_idx < partition.polygon_count; ++polygon_idx) {
 					const ofbx::GeometryPartition::Polygon& polygon = partition.polygons[polygon_idx];
-					for (int i = polygon.from_vertex; i < polygon.from_vertex + polygon.vertex_count; ++i) {
-						ofbx::Vec3 v = positions.get(i);
+					uint64_t triangleCount = ofbx::triangulate(geom, polygon, tri_indices.data());
+
+					for (int i = 0; i < triangleCount; ++i) {
+						//for (int i = polygon.from_vertex; i < polygon.from_vertex + polygon.vertex_count; ++i) {
+						ofbx::Vec3 v = positions.get(tri_indices[i]);
 						glm::vec3 vertex = glm::vec3(v.x, v.y, v.z);
 						bool isVertexUnique = uniqueVertices.count(vertex) == 0;
 						if (isVertexUnique) {
 							uniqueVertices[vertex] = static_cast<uint32_t>(finalMesh->vertices.size());
 							finalMesh->vertices.push_back(glm::vec3(v.x, v.y, v.z));
-							ofbx::Vec3 n = normals.get(i);
+							ofbx::Vec3 n = normals.get(tri_indices[i]);
 							finalMesh->normals.push_back(glm::vec3(n.x, n.y, n.z));
-							ofbx::Vec2 u = uvs.get(i);
+							ofbx::Vec2 u = uvs.get(tri_indices[i]);
 							finalMesh->uvs.push_back(glm::vec2(u.x, u.y));
 						}
 						finalMesh->indices.push_back(uniqueVertices[vertex]);

@@ -29,6 +29,7 @@
 
 #include <ThirdParty/imgui/imgui_impl_opengl3.h>
 #include "Engine/Core/AssetsManager/AssetsManager.h"
+#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 
 ////   #include "ThirdParty/imgui/imgui_impl_vulkan.h"
 //#include "Engine/Application/Application.h" //
@@ -195,7 +196,7 @@ namespace Plaza {
 			ImGui::End();
 
 
-			//   Overlay::beginTransformOverlay(*Application->activeCamera);
+			Overlay::beginTransformOverlay(*Application->activeCamera);
 			fpsCounter->Update();
 			// Update the sizes after resizing
 
@@ -397,7 +398,8 @@ namespace Plaza {
 						if (file->extension == Standards::modelExtName) {
 							//file->directory, file->name
 
-							ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID(file->directory), file->directory);
+							AssetsLoader::LoadAsset(AssetsManager::GetAsset(file->directory));
+							//ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID(file->directory), file->directory);
 						}
 						delete(file);
 					}

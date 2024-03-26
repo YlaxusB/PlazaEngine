@@ -23,9 +23,13 @@ namespace Plaza::Editor {
 				ImGui::SameLine();
 				ImGui::Text(meshRenderer->renderGroup->material->name.c_str());
 
+				ImGui::Text("Diffuse Handle: ");
+				ImGui::SameLine();
+				ImGui::Text(std::to_string(meshRenderer->renderGroup->material->diffuse->mIndexHandle).c_str());
+
 				for (auto [key, value] : Application->activeScene->materials) {
 					Asset* asset = AssetsManager::GetAsset(value->uuid);
-					if (!asset || (asset->mPath.empty() && value->uuid != 0))
+					if (!asset || value->uuid == 0)
 						continue;
 					std::string name = asset->mPath.stem().string();
 					if (value->uuid == 0)

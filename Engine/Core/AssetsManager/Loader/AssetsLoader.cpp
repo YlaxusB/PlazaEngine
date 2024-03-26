@@ -62,6 +62,8 @@ namespace Plaza {
 					file.read(reinterpret_cast<char*>(&deserializedMeshRenderer.uuid), sizeof(deserializedMeshRenderer.uuid));
 					file.read(reinterpret_cast<char*>(&deserializedMeshRenderer.type), sizeof(deserializedMeshRenderer.type));
 
+					file.read(reinterpret_cast<char*>(&deserializedMeshRenderer.materialUuid), sizeof(deserializedMeshRenderer.materialUuid));
+
 					/* Read vertices, normals, uvs, indices */
 					file.read(reinterpret_cast<char*>(&deserializedMeshRenderer.serializedMesh.verticesCount), sizeof(uint64_t));
 					deserializedMeshRenderer.serializedMesh.vertices.resize(deserializedMeshRenderer.serializedMesh.verticesCount);
@@ -100,9 +102,9 @@ namespace Plaza {
 			SerializableMeshRenderer deserializedMeshRenderer = std::any_cast<SerializableMeshRenderer>(deserializedEntity.components.find(SerializableComponentType::MESH_RENDERER)->second);
 			SerializableMesh* deserializedMesh = &deserializedMeshRenderer.serializedMesh;
 			Mesh& mesh = Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), deserializedMesh->indices, *Scene::DefaultMaterial(), false);
-			MeshRenderer* meshRenderer = new MeshRenderer(&mesh, Scene::DefaultMaterial());
+			MeshRenderer* meshRenderer = new MeshRenderer(&mesh, Application->activeScene->GetMaterial(deserializedMeshRenderer.materialUuid));
 			meshRenderer->instanced = true;
-			meshRenderer->material = Scene::DefaultMaterial();
+			meshRenderer->material = Application->activeScene->GetMaterial(deserializedMeshRenderer.materialUuid);
 			RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
 			meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
 			newEntity->AddComponent<MeshRenderer>(meshRenderer);

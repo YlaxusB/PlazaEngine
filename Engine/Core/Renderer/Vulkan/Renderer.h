@@ -94,7 +94,7 @@ namespace Plaza {
 		void DrawRenderGroupInstanced(RenderGroup* renderGroup);
 		void DrawRenderGroupShadowDepthMapInstanced(RenderGroup* renderGroup, unsigned int cascade);
 
-		Texture* LoadTexture(std::string path) override;
+		Texture* LoadTexture(std::string path, uint64_t uuid = 0) override;
 		Texture* LoadImGuiTexture(std::string path) override;
 
 		bool mFramebufferResized = false;

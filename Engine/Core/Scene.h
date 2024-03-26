@@ -225,5 +225,13 @@ namespace Plaza {
 			this->materials.emplace(material->uuid, material);
 			this->materialsNames.emplace(material->name, material->uuid);
 		}
+
+		Material* GetMaterial(uint64_t uuid) {
+			auto it = this->materials.find(uuid);
+			if (it != this->materials.end()) {
+				return it->second.get();
+			}
+			return this->DefaultMaterial();
+		}
 	};
 }

@@ -69,14 +69,28 @@ namespace Plaza::Editor {
 			if (entry.is_regular_file() && extension != "")
 			{
 				if (extension == Standards::metadataExtName) {
-					AssetsManager::LoadMetadataAsAsset(entry.path());
+					Asset* asset = AssetsManager::LoadMetadataAsAsset(entry.path());
+					if (AssetsLoader::mSupportedTextureLoadFormats.find(asset->mAssetExtension) != AssetsLoader::mSupportedTextureLoadFormats.end()) {
+						AssetsManager::mTextures.emplace(asset->mAssetUuid, Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid));
+					}
 				}
 				else if (AssetsLoader::mSupportedLoadFormats.find(extension) != AssetsLoader::mSupportedLoadFormats.end()) {
 					Asset* asset = AssetsManager::LoadBinaryFileAsAsset(entry.path());
 					if (extension == ".plzmat")
+					{
 						AssetsLoader::LoadAsset(asset);
+						AssetsManager::AddAsset(asset);
+					}
 				}
 			}
+		}
+
+		for (auto& [key, value] : Application->activeScene->materials) {
+			//Application->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"))->mPath.string())
+			value->diffuse->mIndexHandle = AssetsManager::GetTexture(value->diffuse->mAssetUuid)->mIndexHandle;
+			value->normal->mIndexHandle = AssetsManager::GetTexture(value->normal->mAssetUuid)->mIndexHandle;
+			value->roughness->mIndexHandle = AssetsManager::GetTexture(value->roughness->mAssetUuid)->mIndexHandle;
+			value->metalness->mIndexHandle = AssetsManager::GetTexture(value->metalness->mAssetUuid)->mIndexHandle;
 		}
 
 		/* Iterate over all files and subfolders of the project folder*/

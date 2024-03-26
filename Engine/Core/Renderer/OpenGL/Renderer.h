@@ -94,7 +94,7 @@ namespace Plaza {
 		Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal) override;
 		Mesh* RestartMesh(Mesh* mesh) override;
 		void DrawRenderGroupInstanced(RenderGroup* renderGroup) override;
-		Texture* LoadTexture(std::string path) override;
+		Texture* LoadTexture(std::string path, uint64_t uuid = 0) override;
 	private:
 		static unsigned int pingpongFBO[2];
 		static unsigned int pingpongColorbuffers[2];

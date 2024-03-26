@@ -11,7 +11,7 @@ namespace Plaza {
 		};
 
 		static void CreateMetadataFile(Asset* asset) {
-			Metadata::SerializeMetadata(Plaza::UUID::NewUUID(), asset->mPath.string(), asset->mAssetExtension);
+			Metadata::SerializeMetadata(asset->mAssetUuid, asset->mPath.string(), asset->mAssetExtension);
 		}
 
 		static void SerializeMetadata(uint64_t uuid, std::string assetPath, std::string extension) {

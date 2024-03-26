@@ -54,6 +54,7 @@ namespace Plaza {
 				AssetsManager::mAssetTypeByExtension.emplace(".png", AssetType::TEXTURE);
 				AssetsManager::mAssetTypeByExtension.emplace(".jpg", AssetType::TEXTURE);
 				AssetsManager::mAssetTypeByExtension.emplace(".jpeg", AssetType::TEXTURE);
+				AssetsManager::mAssetTypeByExtension.emplace(".dds", AssetType::TEXTURE);
 				AssetsManager::mAssetTypeByExtension.emplace(Standards::sceneExtName, AssetType::SCENE);
 				AssetsManager::mAssetTypeByExtension.emplace("", AssetType::NONE);
 		}
@@ -106,6 +107,13 @@ namespace Plaza {
 		}
 		static void AddModel(Model* model) {
 			AssetsManager::mMemoryModels.push_back(model);
+		}
+
+		static Texture* GetTexture(uint64_t uuid) {
+			const auto& it = mTextures.find(uuid);
+			if (it != mTextures.end())
+				return mTextures.at(uuid);
+			return new Texture();
 		}
 
 		static Asset* LoadFileAsAsset(std::filesystem::path path) {
@@ -186,6 +194,6 @@ namespace Plaza {
 			AssetsManager::mAssetsUuidByPath.emplace(std::filesystem::path{ newPath }, assetUuid);
 		}
 
-		static Asset* GetAssetOrImport(std::string path);
+		static Asset* GetAssetOrImport(std::string path, uint64_t uuid = 0);
 	};
 }

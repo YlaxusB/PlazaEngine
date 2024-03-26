@@ -7,7 +7,7 @@
 #include "Engine/Core/AssetsManager/Metadata/Metadata.h"
 
 namespace Plaza {
-	std::string AssetsImporter::ImportAsset(std::string path) {
+	std::string AssetsImporter::ImportAsset(std::string path, uint64_t uuid) {
 		std::filesystem::path filePath = std::filesystem::path{ path };
 		if (!std::filesystem::exists(filePath))
 			return "";
@@ -16,7 +16,6 @@ namespace Plaza {
 
 		if (AssetsImporter::mExtensionMapping.find(extension) == AssetsImporter::mExtensionMapping.end())
 			return "";
-
 
 		AssetImported asset = AssetImported({ extension, path });
 
@@ -38,13 +37,16 @@ namespace Plaza {
 			AssetsLoader::LoadPrefab(outPath);
 			break;
 		case AssetExtension::PNG:
-			return AssetsImporter::ImportTexture(asset);
+			return AssetsImporter::ImportTexture(asset, uuid);
 			break;
 		case AssetExtension::JPEG:
-			return AssetsImporter::ImportTexture(asset);
+			return AssetsImporter::ImportTexture(asset, uuid);
 			break;
 		case AssetExtension::JPG:
-			return AssetsImporter::ImportTexture(asset);
+			return AssetsImporter::ImportTexture(asset, uuid);
+			break;
+		case AssetExtension::DDS:
+			return AssetsImporter::ImportTexture(asset, uuid);
 			break;
 		}
 
@@ -55,13 +57,13 @@ namespace Plaza {
 
 	}
 
-	std::string AssetsImporter::ImportTexture(AssetImported importedAsset) {
+	std::string AssetsImporter::ImportTexture(AssetImported importedAsset, uint64_t uuid) {
 		std::string outPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + std::filesystem::path{importedAsset.mPath}.filename().string();
 		outPath = Editor::Utils::Filesystem::GetUnrepeatedPath(outPath);
 
 		std::filesystem::copy(importedAsset.mPath, outPath);
 
-		Asset asset{ Plaza::UUID::NewUUID(), importedAsset.mExtension, outPath };
+		Asset asset{ uuid <= 0 ? Plaza::UUID::NewUUID() : uuid, importedAsset.mExtension, outPath };
 		Metadata::CreateMetadataFile(&asset);
 		AssetsManager::AddAsset(new Asset(asset));
 

@@ -45,7 +45,7 @@ namespace Plaza {
 
 		virtual void Destroy() = 0;
 
-		virtual Texture* LoadTexture(std::string path) {
+		virtual Texture* LoadTexture(std::string path, uint64_t uuid = 0) {
 			return new Texture();
 		}
 		virtual Texture* LoadImGuiTexture(std::string path) {

@@ -107,7 +107,7 @@ namespace Plaza {
 
 	void VulkanMesh::CreateInstanceBuffer() {
 		for (int i = 0; i < 32; ++i) {
-			this->instanceModelMatrices.push_back(glm::mat4(13.0f));
+			this->instanceModelMatrices.push_back(glm::mat4(1.0f));
 		}
 		VkDeviceSize bufferSize = 32 * sizeof(glm::mat4);
 

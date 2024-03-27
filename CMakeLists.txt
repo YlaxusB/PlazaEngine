@@ -64,6 +64,7 @@ set(GLM_FORCE_DEPTH_ZERO_TO_ONE ON)
 
 add_subdirectory("ThirdParty/assimp/")
 add_subdirectory("ThirdParty/AL/")
+add_subdirectory("ThirdParty/DirectXTex/")
 add_subdirectory("ThirdParty/freetype/")
 add_subdirectory("ThirdParty/GLFW/")
 #add_subdirectory("ThirdParty/mono/")
@@ -183,6 +184,7 @@ include_directories("./")
 #include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/AL/include/AL")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/assimp/include/")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/DirectXTex/DirectXTex/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/filesystem/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/FileWathcer/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/freetype/include/")
@@ -253,7 +255,7 @@ target_include_directories(PlazaEngine PUBLIC "lib/")
 target_include_directories(PlazaShippingGame PUBLIC "lib/")
 
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper OpenFBX
+target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper DirectXTex OpenFBX
     PhysXExtensions_static_64
     PhysX_64
     PhysXCommon_64
@@ -261,7 +263,7 @@ target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-
 "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 target_include_directories(PlazaShippingGame PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper OpenFBX
+target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper DirectXTex OpenFBX
     PhysXExtensions_static_64
     PhysX_64
     PhysXCommon_64

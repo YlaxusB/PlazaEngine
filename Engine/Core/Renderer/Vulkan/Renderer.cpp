@@ -2051,16 +2051,18 @@ namespace Plaza {
 		texture->path = path;
 		if (std::filesystem::exists(path))
 		{
-			texture->CreateTextureImage(mDevice, path, VK_FORMAT_R8G8B8A8_SRGB, true);
+			VkFormat form = VK_FORMAT_R8G8B8A8_SRGB;
+			texture->CreateTextureImage(mDevice, path, form, true);
 			texture->CreateTextureSampler();
-			texture->CreateImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+			texture->CreateImageView(form, VK_IMAGE_ASPECT_COLOR_BIT);
 			texture->InitDescriptorSetLayout();
 		}
 		return texture;
 	}
 	Texture* VulkanRenderer::LoadImGuiTexture(std::string path) {
 		VulkanTexture* texture = new VulkanTexture();
-		texture->CreateTextureImage(mDevice, path, VK_FORMAT_R8G8B8A8_SRGB, false);
+		VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
+		texture->CreateTextureImage(mDevice, path, format, false);
 		texture->CreateTextureSampler();
 		texture->CreateImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
 		texture->mDescriptorSet = ImGui_ImplVulkan_AddTexture(texture->mSampler, texture->mImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

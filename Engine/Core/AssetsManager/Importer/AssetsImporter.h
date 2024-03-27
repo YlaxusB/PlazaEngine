@@ -22,8 +22,6 @@ namespace Plaza {
 
 	class AssetsImporter {
 	public:
-		static inline int count = 0;
-
 		static inline glm::vec3 mModelImporterScale = glm::vec3(1.0f);
 		static std::string ImportAsset(std::string path, uint64_t uuid = 0);
 		static void ImportModel(AssetImported asset);

@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "VulkanTexture.h"
 #include "ThirdParty/dds_image/dds.hpp"
+#include "ThirdParty/DirectXTex/DirectXTex/DirectXTex.h"
 
 namespace Plaza {
 	int VulkanTexture::mLastBindingIndex = 0;
@@ -92,18 +93,22 @@ namespace Plaza {
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 	}
 
-	void VulkanTexture::CreateTextureImage(VkDevice device, std::string path, VkFormat format, bool generateMipMaps) {
-		if (std::filesystem::path{ path }.filename() == "WickerBasket_Specular.dds") {
-			std::cout << "jajajaja \n";
-		}
+	void VulkanTexture::CreateTextureImage(VkDevice device, std::string path, VkFormat& format, bool generateMipMaps) {
+		generateMipMaps = false;
 		bool isDDS = std::filesystem::path{ path }.extension() == ".dds";
 		dds::Image image;
 
 		int texWidth, texHeight, texChannels;
 		stbi_uc* pixels = nullptr;
+		uint32_t pix = 0;
+		VkFormat imageFormat = format;
+		DirectX::TexMetadata metadata;
+		DirectX::ScratchImage scratchImage;
+		VkDeviceSize imageSize;
 		if (!isDDS)
 		{
 			pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+			imageSize = texWidth * texHeight * 4;
 		}
 		else {
 			dds::ReadResult res = dds::readFile(path, &image);
@@ -111,15 +116,32 @@ namespace Plaza {
 			texHeight = image.height;
 			VkImageViewCreateInfo asd = dds::getVulkanImageViewCreateInfo(&image);
 			VkImageCreateInfo asd2 = dds::getVulkanImageCreateInfo(&image);
+			pix = dds::getBitsPerPixel(image.format);
+			pix = dds::getBlockSize(image.format);
+			imageFormat = dds::getVulkanFormat(image.format, false);
+			format = imageFormat;
 			texChannels = 4;
+
+			// Convert std::string to std::wstring
+			std::wstring widestr = std::wstring(path.begin(), path.end());
+			const wchar_t* widecstr = widestr.c_str();
+			DirectX::LoadFromDDSFile(widecstr, DirectX::DDS_FLAGS_FORCE_RGB, &metadata, scratchImage);
+
+			texWidth = metadata.width;
+			texHeight = metadata.height;
+			texChannels = 4;
+
+			// Access image data
+			
+			const DirectX::Image* image2 = scratchImage.GetImage(0, 0, 0);
+			pixels = static_cast<stbi_uc*>(image2->pixels);
+
+			imageSize = image2->slicePitch;
 		}
 
 		this->mMipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 		if (!generateMipMaps)
 			this->mMipLevels = 1;
-		VkDeviceSize imageSize = texWidth * texHeight * 4;
-		if (isDDS)
-			imageSize = image.mipmaps[0].size();
 
 		if (!isDDS && !pixels) {
 			throw std::runtime_error("failed to load texture image!");
@@ -131,10 +153,11 @@ namespace Plaza {
 		if (!isDDS)
 			memcpy(data, pixels, static_cast<size_t>(imageSize));
 		else
-			memcpy(data, image.mipmaps[0].data(), static_cast<size_t>(imageSize));
+			memcpy(data, pixels, static_cast<size_t>(imageSize));
 		vkUnmapMemory(device, mStagingBufferMemory);
 
-		stbi_image_free(pixels);
+		if (!isDDS)
+			stbi_image_free(pixels);
 
 
 		//VulkanRenderer::GetRenderer()->CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mTextureImage, mTextureImageMemory);
@@ -146,12 +169,13 @@ namespace Plaza {
 		imageInfo.extent.depth = 1;
 		imageInfo.mipLevels = this->mMipLevels;
 		imageInfo.arrayLayers = 1;
-		imageInfo.format = format;
+		imageInfo.format = imageFormat;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageInfo.flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
 
 		if (vkCreateImage(device, &imageInfo, nullptr, &mImage) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create image!");
@@ -171,9 +195,9 @@ namespace Plaza {
 
 		vkBindImageMemory(device, mImage, mImageMemory, 0);
 
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 		VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 
 		vkDestroyBuffer(device, mStagingBuffer, nullptr);
@@ -182,7 +206,7 @@ namespace Plaza {
 
 		//TODO: FIX VALIDATION ERROR WHEN GENERATING MIP MAP
 		if (generateMipMaps)
-			GenerateMipmaps(this->mImage, texWidth, texHeight, this->mMipLevels, format);
+			GenerateMipmaps(this->mImage, texWidth, texHeight, this->mMipLevels, imageFormat);
 
 	}
 

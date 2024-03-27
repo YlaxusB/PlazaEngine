@@ -130,23 +130,20 @@ namespace Plaza {
 			const ofbx::Mesh& mesh = *loadedScene->getMesh(meshIndex);
 			const ofbx::Material* ofbxMaterial = mesh.getMaterial(0);
 			Material* material;
-			if (AssetsImporter::count < 20) {
 
-				material = AssetsImporter::FbxModelMaterialLoader(ofbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+			material = AssetsImporter::FbxModelMaterialLoader(ofbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
 
-				bool materialWithSameNameExists = std::filesystem::exists(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name });
-				if (materialWithSameNameExists) {
-					bool materialsAreTheSame = material->SameAs(*AssetsLoader::LoadMaterial(AssetsManager::GetAsset(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name }.string())));
-					if (!materialsAreTheSame)
-						AssetsSerializer::SerializeMaterial(material, Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName);
-				}
-				else
+			bool materialWithSameNameExists = std::filesystem::exists(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name });
+			if (materialWithSameNameExists) {
+				bool materialsAreTheSame = material->SameAs(*AssetsLoader::LoadMaterial(AssetsManager::GetAsset(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name }.string())));
+				if (!materialsAreTheSame)
 					AssetsSerializer::SerializeMaterial(material, Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName);
 			}
 			else
-				material = Application->activeScene->DefaultMaterial();
-			AssetsImporter::count++;
+				AssetsSerializer::SerializeMaterial(material, Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName);
 
+			if (material->uuid != Application->activeScene->DefaultMaterial()->uuid && Application->activeScene->GetMaterial(material->uuid)->uuid == Application->activeScene->DefaultMaterial()->uuid)
+				Application->activeScene->AddMaterial(material);
 
 			Entity* entity;
 			if (!mainEntity)

@@ -31,3 +31,6 @@
 [submodule "ThirdParty/libdeflate"]
 	path = ThirdParty/libdeflate
 	url = https://github.com/ebiggers/libdeflate.git
+[submodule "ThirdParty/DirectXTex"]
+	path = ThirdParty/DirectXTex
+	url = https://github.com/microsoft/DirectXTex.git

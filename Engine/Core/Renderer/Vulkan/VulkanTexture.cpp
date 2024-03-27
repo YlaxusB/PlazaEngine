@@ -94,7 +94,6 @@ namespace Plaza {
 	}
 
 	void VulkanTexture::CreateTextureImage(VkDevice device, std::string path, VkFormat& format, bool generateMipMaps) {
-		generateMipMaps = false;
 		bool isDDS = std::filesystem::path{ path }.extension() == ".dds";
 		dds::Image image;
 

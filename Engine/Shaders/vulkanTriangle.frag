@@ -256,6 +256,9 @@ void main() {
     //vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color.xyz * (nDotL + amb / 2);//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
     vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * max(nDotL, 0.11f) * (amb + shadow);
 
+    //vec3 fog = vec3(0.7f, 0.7f, 0.0f) * pow(distance(FragPos, ubo.viewPos) / 15000.0f, 0.5f);
+    //FinalColor *= vec3(1.0f) - fog;
+
     //FinalColor += vec3(0.13f / 255);
     //FinalColor *= vec3(1);
     //FinalColor -= shadow;

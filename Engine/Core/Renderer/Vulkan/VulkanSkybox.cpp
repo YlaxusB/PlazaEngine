@@ -293,7 +293,7 @@ namespace Plaza {
 			if (vkCreateFramebuffer(VulkanRenderer::GetRenderer()->mDevice, &framebufferInfo, nullptr, &this->mFramebuffers[i]) != VK_SUCCESS) {
 				throw std::runtime_error("Failed to create framebuffer!");
 			}
-		}
+		} 
 
 		VkPushConstantRange pushConstantRange{};
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_ALL;

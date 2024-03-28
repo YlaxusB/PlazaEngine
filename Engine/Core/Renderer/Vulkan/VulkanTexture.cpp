@@ -93,7 +93,26 @@ namespace Plaza {
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 	}
 
+	void FlipYCoordinates(stbi_uc* imageData, int width, int height, int channels) {
+		int rowSize = width * channels;
+		stbi_uc* tempRow = new stbi_uc[rowSize];
+
+		for (int i = 0; i < height / 2; ++i) {
+			stbi_uc* topRow = imageData + i * rowSize;
+			stbi_uc* bottomRow = imageData + (height - i - 1) * rowSize;
+			// Swap pixel data row by row
+			for (int j = 0; j < rowSize; ++j) {
+				stbi_uc temp = topRow[j];
+				topRow[j] = bottomRow[j];
+				bottomRow[j] = temp;
+			}
+		}
+
+		delete[] tempRow;
+	}
+
 	void VulkanTexture::CreateTextureImage(VkDevice device, std::string path, VkFormat& format, bool generateMipMaps) {
+		generateMipMaps = false;
 		bool isDDS = std::filesystem::path{ path }.extension() == ".dds";
 		dds::Image image;
 
@@ -131,9 +150,10 @@ namespace Plaza {
 			texChannels = 4;
 
 			// Access image data
-			
+
 			const DirectX::Image* image2 = scratchImage.GetImage(0, 0, 0);
 			pixels = static_cast<stbi_uc*>(image2->pixels);
+			//FlipYCoordinates(pixels, texWidth, texHeight, 3);
 
 			imageSize = image2->slicePitch;
 		}
@@ -149,14 +169,13 @@ namespace Plaza {
 
 		void* data;
 		vkMapMemory(device, mStagingBufferMemory, 0, imageSize, 0, &data);
-		if (!isDDS)
-			memcpy(data, pixels, static_cast<size_t>(imageSize));
-		else
-			memcpy(data, pixels, static_cast<size_t>(imageSize));
+		memcpy(data, pixels, static_cast<size_t>(imageSize));
 		vkUnmapMemory(device, mStagingBufferMemory);
 
 		if (!isDDS)
 			stbi_image_free(pixels);
+		else
+			scratchImage.Release();
 
 
 		//VulkanRenderer::GetRenderer()->CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mTextureImage, mTextureImageMemory);

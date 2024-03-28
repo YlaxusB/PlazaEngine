@@ -9,6 +9,7 @@
 
 #include "VulkanTexture.h"
 #include "VulkanShadows.h"
+#include "VulkanPicking.h"
 namespace Plaza {
 	struct SwapChainSupportDetails {
 		VkSurfaceCapabilitiesKHR capabilities;

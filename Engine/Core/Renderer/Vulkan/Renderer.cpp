@@ -994,23 +994,24 @@ namespace Plaza {
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
-		{
-			PLAZA_PROFILE_SECTION("Draw Instances");
-			std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
-			descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
-			for (const auto& [key, value] : Application->activeScene->renderGroups) {
-				if (value->instanceModelMatrices.size() > 0)
-				{
-					this->DrawRenderGroupInstanced(value);
-				}
-				value->mCascadeInstances.clear();
-			}
-		}
+		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
+		//{
+		//	PLAZA_PROFILE_SECTION("Draw Instances");
+		//	std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
+		//	descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
+		//	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
+		//	for (const auto& [key, value] : Application->activeScene->renderGroups) {
+		//		if (value->instanceModelMatrices.size() > 0)
+		//		{
+		//			this->DrawRenderGroupInstanced(value);
+		//		}
+		//		value->mCascadeInstances.clear();
+		//	}
+		//}
+		//
+		//vkCmdEndRenderPass(commandBuffer);
 
-		vkCmdEndRenderPass(commandBuffer);
-
+		this->mPicking->DrawSelectedObjectsUuid();
 
 #ifdef EDITOR_MODE
 		renderPassInfo.renderPass = mRenderPass;
@@ -1036,6 +1037,7 @@ namespace Plaza {
 
 		vkCmdEndRenderPass(commandBuffer);
 #endif
+
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
@@ -1694,6 +1696,7 @@ namespace Plaza {
 		Application->mRendererAPI = RendererAPI::Vulkan;
 		this->mShadows = new VulkanShadows();
 		this->mSkybox = new VulkanSkybox();
+		this->mPicking = new VulkanPicking();
 
 		VulkanShadersCompiler::mDefaultOutDirectory = Application->exeDirectory + "\\CompiledShaders\\";
 		VulkanShadersCompiler::mGlslcExePath = "C:\\VulkanSDK\\1.3.268.0\\Bin\\glslc.exe";
@@ -1751,6 +1754,7 @@ namespace Plaza {
 		vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, VK_FORMAT_R8G8B8_UNORM, &vkFormatProperties);
 		std::cout << "Initializing Skybox \n";
 		this->mSkybox->Init();
+		this->mPicking->Init();
 
 		VkSemaphoreCreateInfo semaphoreInfo = {};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;

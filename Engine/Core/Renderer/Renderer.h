@@ -4,6 +4,7 @@
 #include "Engine/Core/RenderGroup.h"
 #include "Shadows.h"
 #include "Skybox.h"
+#include "Picking.h"
 
 namespace Plaza { 
 
@@ -18,6 +19,7 @@ namespace Plaza {
 		RendererAPI api;
 		Shadows* mShadows;
 		Skybox* mSkybox;
+		Picking* mPicking;
 		const unsigned int mMaxFramesInFlight = 2;
 
 		virtual void Init() = 0;

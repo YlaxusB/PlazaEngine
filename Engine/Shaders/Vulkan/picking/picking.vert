@@ -10,6 +10,7 @@ layout(location = 0) out vec3 fragTexCoord;
 layout(push_constant) uniform PushConstants{
     mat4 projection;
     mat4 view;
+	mat4 model;
 	uint uuid1;
 	uint uuid2;
 } pushConstants;
@@ -17,9 +18,8 @@ layout(push_constant) uniform PushConstants{
 
 void main()
 {
-	mat4 model = mat4(instanceMatrix[0], instanceMatrix[1], instanceMatrix[2], instanceMatrix[3]);
-	vec4 finalModel = model * vec4(inPosition.xyz, 1.0);
+	vec4 finalModel = pushConstants.model * vec4(inPosition.xyz, 1.0);
 
 	mat4 viewMat = mat4(mat3(pushConstants.view));
-	gl_Position = pushConstants.projection * viewMat * finalModel;
+	gl_Position = pushConstants.projection * pushConstants.view * finalModel;
 }

@@ -11,10 +11,13 @@ float hash(uint x_low, uint x_high) {
 layout(push_constant) uniform PushConstants{
     mat4 projection;
     mat4 view;
+    mat4 model;
 	uint uuid1;
 	uint uuid2;
 } pushConstants;
 
 void main() {
-    fragColor = vec4(hash(pushConstants.uuid1, pushConstants.uuid2), 1.0f, 1.0f, 1.0f);
+    fragColor = vec4(pushConstants.uuid1, pushConstants.uuid2, 1.0f, 1.0f);
+    //fragColor = vec4(hash(pushConstants.uuid1, pushConstants.uuid2), 1.0f, 1.0f, 1.0f);
+    //fragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }

@@ -494,6 +494,51 @@ namespace Plaza {
 			ImGui::PopStyleVar();
 		}
 
+		void Gui::beginImageViewer(int gameFrameBuffer, Camera camera) {
+			PLAZA_PROFILE_SECTION("Begin Image Viewer");
+			ApplicationSizes& appSizes = *Application->appSizes;
+			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			Entity* selectedGameObject = Editor::selectedGameObject;
+
+			ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.inspectorSize), ImGuiCond_Always);
+
+			ImGuiWindowFlags sceneWindowFlags = ImGuiWindowFlags_NoFocusOnAppearing | ImGuiConfigFlags_DockingEnable;
+			ImGuiWindowFlags  inspectorWindowFlags = ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoFocusOnAppearing;
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f)); // Remove the padding of the window
+			//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
+			ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.inspectorSize));
+			ImGui::Begin("Inspector", &Gui::isInspectorOpen, sceneWindowFlags);
+			if (ImGui::IsWindowFocused())
+				Application->focusedMenu = "Inspector";
+			if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
+				Application->hoveredMenu = "Inspector";
+
+
+			//// Handle size changes
+			//const ImVec2& CurSize = ImGui::GetWindowSize();
+			//if (!ImGui::Compare(CurSize, ImGui::imVec2(lastAppSizes.inspectorSize))) {
+			//	//appSizes.inspectorSize = ImGui::glmVec2(CurSize);
+			//	lastAppSizes.inspectorSize = appSizes.inspectorSize;
+			//	ImGui::SetWindowSize(ImGui::imVec2(appSizes.inspectorSize), ImGuiCond_Always);
+			//	//ImGui::SetWindowPos(ImVec2(appSizes.appSize.x - appSizes.inspectorSize.x, 0));
+			//}
+
+			if (Editor::selectedFiles.size() > 0) {
+				Editor::Inspector::FileInspector::CreateInspector();
+			}
+			else if (selectedGameObject) {
+				if (selectedGameObject->parentUuid)
+					Inspector::ComponentInspector::UpdateComponents();
+				Editor::Inspector::ComponentInspector::CreateInspector();
+				ImGui::Text(std::to_string(selectedGameObject->uuid).c_str());
+			}
+
+
+			curInspectorSize = ImGui::glmVec2(ImGui::GetWindowSize());
+			ImGui::End();
+			ImGui::PopStyleVar();
+		}
+
 		void Gui::beginAssetsViewer(int gameFrameBuffer, Camera camera) {
 			PLAZA_PROFILE_SECTION("Begin Assets Viewer");
 			ApplicationSizes& appSizes = *Application->appSizes;

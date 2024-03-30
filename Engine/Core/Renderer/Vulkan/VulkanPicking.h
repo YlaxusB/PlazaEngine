@@ -8,6 +8,7 @@ namespace Plaza {
 		struct PushConstants {
 			glm::mat4 projection;
 			glm::mat4 view;
+			glm::mat4 model;
 			unsigned int uuid1;
 			unsigned int uuid2;
 		} pushData;
@@ -29,16 +30,20 @@ namespace Plaza {
 		uint64_t DrawAndRead(glm::vec2 position) override;
 		void Terminate() override;
 
+		VkImageView mPickingTextureImageView = VK_NULL_HANDLE;
 	private:
-		VkBuffer mStagingBuffer;
-		VkDeviceMemory mStagingBufferMemory;
+		VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
+		VkBuffer mStagingBuffer = VK_NULL_HANDLE;
+		VkDeviceMemory mStagingBufferMemory = VK_NULL_HANDLE;
+
+		VkImage mPickingTextureImage = VK_NULL_HANDLE;
 
 		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
 		VkSampler mSkyboxSampler = VK_NULL_HANDLE;
-		VkImage mSkyboxImage = VK_NULL_HANDLE;
-		std::vector<VkImageView> mSkyboxImageViews = std::vector<VkImageView>();
+
 		void InitializePicking();
 		void InitializeOutline();
+		void InitializeFramebuffer();
 		void InitializeImageSampler();
 		void InitializeImageView();
 		void InitializeDescriptorPool();

@@ -1011,6 +1011,7 @@ namespace Plaza {
 		//
 		//vkCmdEndRenderPass(commandBuffer);
 
+		vkCmdEndRenderPass(commandBuffer);
 		this->mPicking->DrawSelectedObjectsUuid();
 
 #ifdef EDITOR_MODE
@@ -1993,7 +1994,8 @@ namespace Plaza {
 		ImGui_ImplVulkan_SetMinImageCount(mMaxFramesInFlight);
 
 		//		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mShadows->mCascades[2].mImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
-		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mFinalSceneImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
+		//mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mFinalSceneImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
+		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, ((VulkanPicking*)(this->mPicking))->mPickingTextureImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
 		//this->TransitionImageLayout(this->mFinalSceneImage, mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 		//this->mShadows->mDebugDepthDescriptorSet = ImGui_ImplVulkan_AddTexture(this->mTextureSampler, this->mShadows->mDebugDepthImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}

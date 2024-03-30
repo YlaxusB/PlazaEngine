@@ -12,8 +12,17 @@ namespace Plaza {
 		OpenGL,
 		Vulkan
 	};
+
+	struct TrackedImage {
+		ImTextureID mTextureID = 0;
+		std::chrono::system_clock::time_point mCreationDate = std::chrono::system_clock::now();
+		std::string name;
+	};
+
 	class Renderer {
 	public:
+		std::vector<TrackedImage> mTrackedImages = std::vector<TrackedImage>();
+
 		uint32_t mCurrentFrame = 0;
 
 		RendererAPI api;

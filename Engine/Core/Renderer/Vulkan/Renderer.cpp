@@ -2234,7 +2234,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-	}
+		}
 #endif
 
 
@@ -2326,5 +2326,16 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-}
+	}
+
+	void VulkanRenderer::AddTrackerToImage(
+		VkImageView imageView,
+		std::string name,
+		VkSampler textureSampler,
+		VkImageLayout layout
+		) {
+
+		VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(textureSampler == VK_NULL_HANDLE ? this->mTextureSampler : textureSampler, imageView, layout);
+		this->mTrackedImages.push_back(TrackedImage{ImTextureID(imguiDescriptorSet), std::chrono::system_clock::now(), name});
+	}
 }

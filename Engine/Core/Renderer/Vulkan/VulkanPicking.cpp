@@ -26,6 +26,8 @@ namespace Plaza {
 
 		this->InitializeImageView();
 		this->InitializeFramebuffer();
+
+		VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mPickingTextureImageView, "Picking Texture");
 	}
 
 	void VulkanPicking::InitializeImageView() {

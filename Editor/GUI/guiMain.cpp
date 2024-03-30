@@ -494,8 +494,8 @@ namespace Plaza {
 			ImGui::PopStyleVar();
 		}
 
-		void Gui::beginImageViewer(int gameFrameBuffer, Camera camera) {
-			PLAZA_PROFILE_SECTION("Begin Image Viewer");
+		void Gui::beginImageInspector(int gameFrameBuffer, Camera camera) {
+			PLAZA_PROFILE_SECTION("Begin Image Inspector");
 			ApplicationSizes& appSizes = *Application->appSizes;
 			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
@@ -507,31 +507,32 @@ namespace Plaza {
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f)); // Remove the padding of the window
 			//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
 			ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.inspectorSize));
-			ImGui::Begin("Inspector", &Gui::isInspectorOpen, sceneWindowFlags);
+			ImGui::Begin("Image Inspector", &Gui::isInspectorOpen, sceneWindowFlags);
 			if (ImGui::IsWindowFocused())
-				Application->focusedMenu = "Inspector";
+				Application->focusedMenu = "ImageInspector";
 			if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
-				Application->hoveredMenu = "Inspector";
+				Application->hoveredMenu = "ImageInspector";
 
 
-			//// Handle size changes
-			//const ImVec2& CurSize = ImGui::GetWindowSize();
-			//if (!ImGui::Compare(CurSize, ImGui::imVec2(lastAppSizes.inspectorSize))) {
-			//	//appSizes.inspectorSize = ImGui::glmVec2(CurSize);
-			//	lastAppSizes.inspectorSize = appSizes.inspectorSize;
-			//	ImGui::SetWindowSize(ImGui::imVec2(appSizes.inspectorSize), ImGuiCond_Always);
-			//	//ImGui::SetWindowPos(ImVec2(appSizes.appSize.x - appSizes.inspectorSize.x, 0));
-			//}
+			ImVec2 uv0(0, 0); // bottom-left corner
+			ImVec2 uv1(1, 1); // top-right corner
+			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 
-			if (Editor::selectedFiles.size() > 0) {
-				Editor::Inspector::FileInspector::CreateInspector();
+			ImGui::Checkbox("Show All Images", &mImageInspectorShowAllImages);
+			for (unsigned int i = 0; i < Application->mRenderer->mTrackedImages.size(); ++i) {
+				if (Gui::mImageInspectorShowAllImages) {
+					ImGui::Image(Application->mRenderer->mTrackedImages[i].mTextureID, ImGui::imVec2(appSizes.inspectorSize), uv0, uv1);
+				}
+				else
+				{
+					if (ImGui::Button(Application->mRenderer->mTrackedImages[i].name.c_str())) {
+						Gui::mSelectedImageInspector = Application->mRenderer->mTrackedImages[i].mTextureID;
+					}
+				}
 			}
-			else if (selectedGameObject) {
-				if (selectedGameObject->parentUuid)
-					Inspector::ComponentInspector::UpdateComponents();
-				Editor::Inspector::ComponentInspector::CreateInspector();
-				ImGui::Text(std::to_string(selectedGameObject->uuid).c_str());
-			}
+
+			if (!Gui::mImageInspectorShowAllImages)
+				ImGui::Image(mSelectedImageInspector, ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 
 
 			curInspectorSize = ImGui::glmVec2(ImGui::GetWindowSize());

@@ -88,8 +88,15 @@ namespace Plaza {
 		void UpdateGUI() override;
 		ImTextureID GetFrameImage() override;
 
+		void AddTrackerToImage(
+			VkImageView imageView,
+			std::string name = "",
+			VkSampler textureSampler = VK_NULL_HANDLE,
+			VkImageLayout layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+		);
+
 		VulkanShadows* GetShadows() override;
-		
+
 		Mesh& CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal);
 		Mesh* RestartMesh(Mesh* mesh);
 		void DrawRenderGroupInstanced(RenderGroup* renderGroup);
@@ -120,7 +127,7 @@ namespace Plaza {
 	private:
 		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";
 		const std::string TEXTURE_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.png";
-		
+
 		uint32_t mCurrentImage;
 		const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -235,16 +242,16 @@ namespace Plaza {
 
 
 		/*
-		    mat4 projection;
-    mat4 view;
-    mat4 model;
-    int cascadeCount;
-    float cascadePlaneDistances[32];
-    mat4 lightSpaceMatrices[32];
-    float farPlane;
-    float nearPlane;
-    vec3 lightDirection;
-    vec3 viewPos;
+			mat4 projection;
+	mat4 view;
+	mat4 model;
+	int cascadeCount;
+	float cascadePlaneDistances[32];
+	mat4 lightSpaceMatrices[32];
+	float farPlane;
+	float nearPlane;
+	vec3 lightDirection;
+	vec3 viewPos;
 		*/
 
 		std::vector<Vertex> vertices;

@@ -37,8 +37,11 @@ namespace Plaza {
 			static void beginEditor(int gameFrameBuffer, Camera& camera);
 			static void beginHierarchyView(int gameFrameBuffer);
 			static void beginInspector(int gameFrameBuffer, Camera camera);
-			static void beginImageViewer(int gameFrameBuffer, Camera camera);
+			static void beginImageInspector(int gameFrameBuffer, Camera camera);
 			static void beginAssetsViewer(int gameFrameBuffer, Camera camera);
+
+			static inline bool mImageInspectorShowAllImages = false;
+			static inline ImTextureID mSelectedImageInspector = 0;
 
 			static string scenePayloadName;
 

@@ -2,6 +2,10 @@
 #include "ThirdParty/tinyobjloader/tiny_obj_loader.h"
 #include "ThirdParty/glm/gtx/hash.hpp"
 #include "Engine/Core/Renderer/Mesh.h"
+#include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
+#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
+#include "Editor/GUI/FileExplorer/FileExplorer.h"
+#include "Editor/GUI/Utils/Filesystem.h"
 
 struct Vec3Hash {
 	std::size_t operator()(const glm::vec3& v) const {
@@ -11,17 +15,72 @@ struct Vec3Hash {
 
 
 namespace Plaza {
+
+	Material* AssetsImporter::ObjModelMaterialLoader(const tinyobj::material_t* tinyobjMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures) {
+		Material* material = new Material();
+		material->name = tinyobjMaterial->name;
+
+		const std::string diffusePath = materialFolderPath + "\\" + tinyobjMaterial->diffuse_texname;
+		if (!tinyobjMaterial->diffuse_texname.empty() && loadedTextures.find(diffusePath) == loadedTextures.end())
+		{
+			material->diffuse = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(diffusePath, Plaza::UUID::NewUUID()));
+			loadedTextures.emplace(diffusePath, material->diffuse->mAssetUuid);
+		}
+		else if (!tinyobjMaterial->diffuse_texname.empty())
+			material->diffuse = AssetsManager::mTextures.at(loadedTextures.at(diffusePath));
+
+		const std::string normalPath = materialFolderPath + "\\" + tinyobjMaterial->normal_texname;
+		if (!tinyobjMaterial->normal_texname.empty() && loadedTextures.find(normalPath) == loadedTextures.end())
+		{
+			material->normal = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(normalPath, Plaza::UUID::NewUUID()));
+			loadedTextures.emplace(normalPath, material->normal->mAssetUuid);
+		}
+		else if (!tinyobjMaterial->normal_texname.empty())
+			material->normal = AssetsManager::mTextures.at(loadedTextures.at(normalPath));
+
+		const std::string roughnessPath = materialFolderPath + "\\" + tinyobjMaterial->roughness_texname;
+		if (!tinyobjMaterial->roughness_texname.empty() && loadedTextures.find(roughnessPath) == loadedTextures.end())
+		{
+			material->roughness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(roughnessPath, Plaza::UUID::NewUUID()));
+			loadedTextures.emplace(roughnessPath, material->roughness->mAssetUuid);
+		}
+		else if (!tinyobjMaterial->roughness_texname.empty())
+			material->roughness = AssetsManager::mTextures.at(loadedTextures.at(roughnessPath));
+
+		const std::string metalnessPath = materialFolderPath + "\\" + tinyobjMaterial->metallic_texname;
+		if (!tinyobjMaterial->metallic_texname.empty() && loadedTextures.find(metalnessPath) == loadedTextures.end())
+		{
+			material->metalness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(metalnessPath, Plaza::UUID::NewUUID()));
+			loadedTextures.emplace(metalnessPath, material->metalness->mAssetUuid);
+		}
+		else if (!tinyobjMaterial->metallic_texname.empty())
+			material->metalness = AssetsManager::mTextures.at(loadedTextures.at(metalnessPath));
+
+
+		material->shininess = tinyobjMaterial->shininess;
+		material->diffuse->rgba.x = tinyobjMaterial->diffuse[0];
+		material->diffuse->rgba.y = tinyobjMaterial->diffuse[1];
+		material->diffuse->rgba.z = tinyobjMaterial->diffuse[2];
+
+		return material;
+	}
+
 	Entity* AssetsImporter::ImportOBJ(AssetImported asset, std::filesystem::path outPath) {
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string warn, err;
 
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, asset.mPath.c_str())) {
+		const std::string parentPath = std::filesystem::path{ asset.mPath }.parent_path().string();
+
+		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, asset.mPath.c_str(), parentPath.c_str())) {
 			throw std::runtime_error(warn + err);
 		}
 		Entity* mainEntity = nullptr;
+		std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
+		std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
 
+		unsigned int index = 0;
 		const std::vector<float>& positions = attrib.vertices;
 		for (const auto& shape : shapes) {
 			Entity* newEntity;
@@ -71,10 +130,31 @@ namespace Plaza {
 				indices.push_back(uniqueVertices[vertex]);
 			}
 			if (vertices.size() > 0) {
-				Mesh& mesh = Application->mRenderer->CreateNewMesh(vertices, normals, uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), indices, *Scene::DefaultMaterial(), false);// new Mesh();
-				MeshRenderer* meshRenderer = new MeshRenderer(&mesh, Scene::DefaultMaterial());
+				Material* material = Application->activeScene->DefaultMaterial();
+				if (shape.mesh.material_ids.size() > 0 && materials.size() >= shape.mesh.material_ids[0]) {
+					tinyobj::material_t tinyobjMaterial = materials.at(shape.mesh.material_ids[0]);
+					std::string diffusePath = parentPath + "\\" + tinyobjMaterial.diffuse_texname;
+
+					material = AssetsImporter::ObjModelMaterialLoader(&tinyobjMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+
+					std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName;
+
+					if (loadedMaterials.find(materialOutPath) == loadedMaterials.end()) {
+						loadedMaterials.emplace(materialOutPath, material->uuid);
+						AssetsSerializer::SerializeMaterial(material, materialOutPath);
+						Application->activeScene->AddMaterial(material);
+					}
+					else
+						material = Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second);
+				}
+
+
+				Mesh& mesh = Application->mRenderer->CreateNewMesh(vertices, normals, uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), indices, *material, false);// new Mesh();
+				MeshRenderer* meshRenderer = new MeshRenderer(&mesh, material);
+				meshRenderer->material = material;
 				newEntity->AddComponent<MeshRenderer>(meshRenderer);
 			}
+			index++;
 		}
 		return Application->activeScene->GetEntity(mainEntity->uuid);
 	}

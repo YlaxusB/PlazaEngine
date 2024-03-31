@@ -55,6 +55,7 @@ namespace Plaza {
 				AssetsManager::mAssetTypeByExtension.emplace(".jpg", AssetType::TEXTURE);
 				AssetsManager::mAssetTypeByExtension.emplace(".jpeg", AssetType::TEXTURE);
 				AssetsManager::mAssetTypeByExtension.emplace(".dds", AssetType::TEXTURE);
+				AssetsManager::mAssetTypeByExtension.emplace(".tga", AssetType::TEXTURE);
 				AssetsManager::mAssetTypeByExtension.emplace(Standards::sceneExtName, AssetType::SCENE);
 				AssetsManager::mAssetTypeByExtension.emplace("", AssetType::NONE);
 		}

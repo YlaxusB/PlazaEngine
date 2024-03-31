@@ -15,7 +15,8 @@ namespace Plaza {
 			".jpg",
 			".jpeg",
 			".dds",
-			".hdr"
+			".hdr",
+			".tga"
 		};
 
 		static void LoadAsset(Asset* asset) {

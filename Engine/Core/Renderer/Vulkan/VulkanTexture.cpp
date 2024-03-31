@@ -112,7 +112,6 @@ namespace Plaza {
 	}
 
 	void VulkanTexture::CreateTextureImage(VkDevice device, std::string path, VkFormat& format, bool generateMipMaps) {
-		generateMipMaps = false;
 		bool isDDS = std::filesystem::path{ path }.extension() == ".dds";
 		dds::Image image;
 
@@ -434,7 +433,7 @@ namespace Plaza {
 		VkPhysicalDeviceProperties properties{};
 		vkGetPhysicalDeviceProperties(VulkanRenderer::GetRenderer()->mPhysicalDevice, &properties);
 		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-		//samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 		samplerInfo.unnormalizedCoordinates = VK_FALSE;
 		samplerInfo.compareEnable = VK_FALSE;
 		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;

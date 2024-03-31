@@ -48,6 +48,9 @@ namespace Plaza {
 		case AssetExtension::DDS:
 			return AssetsImporter::ImportTexture(asset, uuid);
 			break;
+		case AssetExtension::TGA:
+			return AssetsImporter::ImportTexture(asset, uuid);
+			break;
 		}
 
 		return outPath;

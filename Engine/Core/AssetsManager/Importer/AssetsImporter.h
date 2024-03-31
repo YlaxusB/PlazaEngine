@@ -4,6 +4,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/vector3.h>
 #include "ThirdParty/OpenFBX/src/ofbx.h"
+#include "ThirdParty/tinyobjloader/tiny_obj_loader.h"
 
 namespace Plaza {
 	enum AssetExtension {
@@ -13,7 +14,8 @@ namespace Plaza {
 		PNG,
 		JPG,
 		JPEG,
-		DDS
+		DDS,
+		TGA
 	};
 	struct AssetImported {
 		std::string mExtension;
@@ -37,9 +39,11 @@ namespace Plaza {
 			{".png", PNG},
 			{".jpg", JPG},
 			{".jpeg", JPEG},
-			{".dds", DDS}
+			{".dds", DDS},
+			{".tga", TGA}
 		};
 
 		static Material* FbxModelMaterialLoader(const ofbx::Material* ofbxMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures);
+		static Material* ObjModelMaterialLoader(const tinyobj::material_t* tinyobjMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures);
 	};
 }

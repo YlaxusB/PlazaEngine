@@ -299,6 +299,9 @@ void main() {
 
     // calculate shadow
    FragColor = vec4(FinalLight.xyz, 1.0f);
+
+   //FragColor = vec4(fragTexCoord.x / 10.0f, 0.0f, 0.0f, 1.0f);
+
    //FragColor = vec4(vec3(1.0f - shadow), 1.0f);
 }
 

@@ -35,12 +35,9 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 
 			if (Editor::selectedGameObject && Editor::selectedGameObject->GetComponent<Transform>() != nullptr && Editor::selectedGameObject->parentUuid != 0)
 				ImGuizmoHelper::IsDrawing = true;
-			else
-				ImGuizmoHelper::IsDrawing = false;
 
-			bool pressingLeftClick = button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS;
-			bool drawingButMouseNotOverGizmo = !ImGuizmo::IsOver() && ImGuizmoHelper::IsDrawing;
-			if (pressingLeftClick && (!ImGuizmoHelper::IsDrawing || drawingButMouseNotOverGizmo)) {
+			bool usin = ImGuizmo::IsOver();
+			if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && (!ImGuizmoHelper::IsDrawing || (!ImGuizmo::IsOver() && ImGuizmoHelper::IsDrawing))) {
 				//	Application->pickingTexture->GenerateTexture();
 				//    	clickUuid = Application->pickingTexture->readPixel(xposGame, yposGame);
 				clickUuid = Application->mRenderer->mPicking->DrawAndRead(glm::vec2(xposGame, yposGame));

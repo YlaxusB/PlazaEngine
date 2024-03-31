@@ -994,25 +994,22 @@ namespace Plaza {
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
-		//{
-		//	PLAZA_PROFILE_SECTION("Draw Instances");
-		//	std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
-		//	descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
-		//	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
-		//	for (const auto& [key, value] : Application->activeScene->renderGroups) {
-		//		if (value->instanceModelMatrices.size() > 0)
-		//		{
-		//			this->DrawRenderGroupInstanced(value);
-		//		}
-		//		value->mCascadeInstances.clear();
-		//	}
-		//}
-		//
-		//vkCmdEndRenderPass(commandBuffer);
-
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
+		{
+			PLAZA_PROFILE_SECTION("Draw Instances");
+			std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
+			descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
+			for (const auto& [key, value] : Application->activeScene->renderGroups) {
+				if (value->instanceModelMatrices.size() > 0)
+				{
+					this->DrawRenderGroupInstanced(value);
+				}
+				value->mCascadeInstances.clear();
+			}
+		}
+		
 		vkCmdEndRenderPass(commandBuffer);
-		this->mPicking->DrawSelectedObjectsUuid();
 
 #ifdef EDITOR_MODE
 		renderPassInfo.renderPass = mRenderPass;
@@ -1751,6 +1748,10 @@ namespace Plaza {
 		InitSyncStructures();
 		CreateImGuiTextureSampler();
 
+#ifdef EDITOR_MODE
+		Editor::Gui::Init(Application->Window->glfwWindow);
+#endif
+
 		VkFormatProperties vkFormatProperties;
 		vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, VK_FORMAT_R8G8B8_UNORM, &vkFormatProperties);
 		std::cout << "Initializing Skybox \n";
@@ -1994,8 +1995,8 @@ namespace Plaza {
 		ImGui_ImplVulkan_SetMinImageCount(mMaxFramesInFlight);
 
 		//		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mShadows->mCascades[2].mImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
-		//mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mFinalSceneImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
-		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, ((VulkanPicking*)(this->mPicking))->mPickingTextureImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
+		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, this->mFinalSceneImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
+		//mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler, ((VulkanPicking*)(this->mPicking))->mPickingTextureImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
 		//this->TransitionImageLayout(this->mFinalSceneImage, mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 		//this->mShadows->mDebugDepthDescriptorSet = ImGui_ImplVulkan_AddTexture(this->mTextureSampler, this->mShadows->mDebugDepthImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}

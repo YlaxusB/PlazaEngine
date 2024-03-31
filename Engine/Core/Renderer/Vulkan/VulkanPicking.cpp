@@ -39,7 +39,7 @@ namespace Plaza {
 		imageCreateInfo.extent.depth = 1;
 		imageCreateInfo.mipLevels = 1;
 		imageCreateInfo.arrayLayers = 1;
-		imageCreateInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+		imageCreateInfo.format = VK_FORMAT_R32G32B32A32_UINT;
 		imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -69,7 +69,7 @@ namespace Plaza {
 		createInfo.image = this->mPickingTextureImage;
 
 		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		createInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+		createInfo.format = VK_FORMAT_R32G32B32A32_UINT;
 
 		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -120,7 +120,7 @@ namespace Plaza {
 
 	void VulkanPicking::InitializeRenderPass() {
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+		colorAttachment.format = VK_FORMAT_R32G32B32A32_UINT;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -245,8 +245,8 @@ namespace Plaza {
 	void VulkanPicking::DrawSelectedObjectsUuid() {
 		PLAZA_PROFILE_SECTION("DrawSelectedObjectsUuid");
 
-		VkCommandBuffer& commandBuffer = *VulkanRenderer::GetRenderer()->mActiveCommandBuffer;
-		//VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
+		//VkCommandBuffer& commandBuffer = *VulkanRenderer::GetRenderer()->mActiveCommandBuffer;
+		VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -259,27 +259,100 @@ namespace Plaza {
 		renderPassInfo.framebuffer = this->mFramebuffer;//VulkanRenderer::GetRenderer()->mFinalSceneFramebuffer;
 		renderPassInfo.renderArea.extent.width = this->mResolution.x;
 		renderPassInfo.renderArea.extent.height = this->mResolution.y;
+
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = this->mResolution.x;
+		viewport.height = -this->mResolution.y;
+		viewport.y = this->mResolution.y;
+
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mRenderPickingTexturePostEffects->mShaders->mPipeline);
+
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
 		for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
 			this->DrawMeshToPickingTexture(value, commandBuffer);
 		}
 
 		vkCmdEndRenderPass(commandBuffer);
-		//VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
+		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 	}
 
 	void VulkanPicking::DrawOutline() {
 
 	}
 
+	std::pair<uint32_t, uint32_t> reverseHash(float normalizedValue) {
+		// Denormalize the value to get the original hash value
+		uint32_t hash_value = static_cast<uint32_t>(normalizedValue * 0xFFFFFF);
+
+		// Reverse the hash function: Undo the prime number multiplication and XOR
+		uint32_t combined = hash_value / 2654435761u;
+		uint32_t x_low = combined & 0xFFFFFFFF;
+		uint32_t x_high = combined ^ x_low;
+
+		return std::make_pair(x_low, x_high);
+	}
+
 	uint64_t VulkanPicking::ReadPickingTexture(glm::vec2 pos) {
-		return 0;
+		// Create a staging buffer
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+		VulkanRenderer::GetRenderer()->CreateBuffer(this->mResolution.x * this->mResolution.y * (sizeof(uint32_t) * 4), VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+		// Copy image to staging buffer
+		VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
+		VkImageSubresourceLayers subResource = {};
+		subResource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subResource.mipLevel = 0;
+		subResource.baseArrayLayer = 0;
+		subResource.layerCount = 1;
+
+		VkBufferImageCopy region = {};
+		region.bufferOffset = 0;
+		region.bufferRowLength = 0;
+		region.bufferImageHeight = 0;
+		region.imageSubresource = subResource;
+		region.imageOffset = { 0, 0, 0 };
+		region.imageExtent = { (unsigned int)this->mResolution.x, (unsigned int)this->mResolution.y, 1 };
+
+		vkCmdCopyImageToBuffer(commandBuffer, this->mPickingTextureImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, stagingBuffer, 1, &region);
+		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
+
+		// Map staging buffer memory
+		void* data;
+		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, stagingBufferMemory, 0, this->mResolution.x * this->mResolution.y * (sizeof(uint32_t) * 4), 0, &data);
+
+		// Read pixel data
+		// Assuming RGBA8 format
+		uint32_t* pixelData = static_cast<uint32_t*>(data);
+		int desiredPixelX = pos.x;
+		int desiredPixelY = this->mResolution.y - pos.y;
+		int byteOffset = (desiredPixelY * this->mResolution.x + desiredPixelX) * 4; // RGBA8 format, 4 bytes per pixel
+		uint32_t red = pixelData[byteOffset];
+		uint32_t green = pixelData[byteOffset + 1];
+		uint32_t blue = pixelData[byteOffset + 2];
+		uint32_t alpha = pixelData[byteOffset + 3];
+
+		// Unmap staging buffer memory
+		vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, stagingBufferMemory);
+
+		// Clean up
+		vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, stagingBuffer, nullptr);
+		vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, stagingBufferMemory, nullptr);
+
+		std::pair<uint32_t, uint32_t> pair = reverseHash(unsigned int (red));
+		uint32_t uuid1 = red;
+		uint32_t uuid2 = green;
+
+		return ((uint64_t)uuid1 << 32) | uuid2;
 	}
 
 	uint64_t VulkanPicking::DrawAndRead(glm::vec2 pos) {
-		return 0;
+		DrawSelectedObjectsUuid();
+		return this->ReadPickingTexture(pos);
 	}
 
 	void VulkanPicking::UpdateAndPushConstants(VkCommandBuffer commandBuffer) {

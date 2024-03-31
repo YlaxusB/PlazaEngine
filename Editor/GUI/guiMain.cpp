@@ -190,6 +190,8 @@ namespace Plaza {
 
 			Gui::beginInspector(gameFrameBuffer, *camera);
 
+			Gui::beginImageInspector(gameFrameBuffer, *camera);
+
 			//ImGui::ShowDemoWindow();
 
 			FileExplorer::UpdateGui();
@@ -376,7 +378,7 @@ namespace Plaza {
 			ImVec2 uv1(1, 1); // top-right corner
 			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 
-			ImGui::Image(ImTextureID(Application->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+			ImGui::Image(mShowSelectedImageInEditorView ? Gui::mSelectedImageInspector : ImTextureID(Application->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 
 			// Show the gizmo if there's a selected entity
 			std::map<std::string, File*> files = Editor::selectedFiles;
@@ -514,14 +516,21 @@ namespace Plaza {
 				Application->hoveredMenu = "ImageInspector";
 
 
-			ImVec2 uv0(0, 0); // bottom-left corner
-			ImVec2 uv1(1, 1); // top-right corner
+			ImVec2 uv0(0, mFlipY ? 0 : 1); // bottom-left corner
+			ImVec2 uv1(1, mFlipY ? 1 : 0); // top-right corner
 			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 
+			Gui::imageSize = ImVec2(200 * (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), 200); 
 			ImGui::Checkbox("Show All Images", &mImageInspectorShowAllImages);
+			ImGui::Checkbox("Show image in editor view", &mShowSelectedImageInEditorView);
+			ImGui::Checkbox("Flip Y", &mFlipY);
+
+			if (!Gui::mImageInspectorShowAllImages)
+				ImGui::Image(mSelectedImageInspector, Gui::imageSize, uv0, uv1);
+
 			for (unsigned int i = 0; i < Application->mRenderer->mTrackedImages.size(); ++i) {
 				if (Gui::mImageInspectorShowAllImages) {
-					ImGui::Image(Application->mRenderer->mTrackedImages[i].mTextureID, ImGui::imVec2(appSizes.inspectorSize), uv0, uv1);
+					ImGui::Image(Application->mRenderer->mTrackedImages[i].mTextureID, Gui::imageSize, uv0, uv1);
 				}
 				else
 				{
@@ -530,10 +539,6 @@ namespace Plaza {
 					}
 				}
 			}
-
-			if (!Gui::mImageInspectorShowAllImages)
-				ImGui::Image(mSelectedImageInspector, ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
-
 
 			curInspectorSize = ImGui::glmVec2(ImGui::GetWindowSize());
 			ImGui::End();

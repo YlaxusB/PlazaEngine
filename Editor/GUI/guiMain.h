@@ -41,7 +41,10 @@ namespace Plaza {
 			static void beginAssetsViewer(int gameFrameBuffer, Camera camera);
 
 			static inline bool mImageInspectorShowAllImages = false;
+			static inline bool mShowSelectedImageInEditorView = false;
+			static inline bool mFlipY = true;
 			static inline ImTextureID mSelectedImageInspector = 0;
+			static inline ImVec2 imageSize = ImVec2(200, 200);
 
 			static string scenePayloadName;
 

@@ -248,15 +248,18 @@ void ApplicationClass::CreateApplication() {
 		InitOpenGL();
 		InitBlur();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+#ifdef EDITOR_MODE
+
+		std::cout << "Gui Initialized \n";
+		Editor::Gui::Init(Application->Window->glfwWindow);
+#endif
 	}
 
 	//Application->InitSkybox();
 
 	//Initialize ImGui
-#ifdef EDITOR_MODE
-	std::cout << "Gui Initialized \n";
-	Editor::Gui::Init(Application->Window->glfwWindow);
-#endif
+
 
 
 	/* Initialize clustered forward rendering */

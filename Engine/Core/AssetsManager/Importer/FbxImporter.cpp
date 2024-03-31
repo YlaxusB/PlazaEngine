@@ -124,6 +124,7 @@ namespace Plaza {
 		Entity* mainEntity = nullptr;
 		std::unordered_map<ofbx::u64, uint64_t> meshIndexEntityMap = std::unordered_map<ofbx::u64, uint64_t>();
 		std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
+		std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
 
 
 		for (int meshIndex = 0; meshIndex < meshCount; ++meshIndex) {
@@ -133,17 +134,15 @@ namespace Plaza {
 
 			material = AssetsImporter::FbxModelMaterialLoader(ofbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
 
-			bool materialWithSameNameExists = std::filesystem::exists(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name });
-			if (materialWithSameNameExists) {
-				bool materialsAreTheSame = material->SameAs(*AssetsLoader::LoadMaterial(AssetsManager::GetAsset(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name }.string())));
-				if (!materialsAreTheSame)
-					AssetsSerializer::SerializeMaterial(material, Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName);
+			std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName;
+
+			if (loadedMaterials.find(materialOutPath) == loadedMaterials.end()) {
+				loadedMaterials.emplace(materialOutPath, material->uuid);
+				AssetsSerializer::SerializeMaterial(material, materialOutPath);
+				Application->activeScene->AddMaterial(material);
 			}
 			else
-				AssetsSerializer::SerializeMaterial(material, Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName);
-
-			if (material->uuid != Application->activeScene->DefaultMaterial()->uuid && Application->activeScene->GetMaterial(material->uuid)->uuid == Application->activeScene->DefaultMaterial()->uuid)
-				Application->activeScene->AddMaterial(material);
+				material = Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second);
 
 			Entity* entity;
 			if (!mainEntity)
@@ -206,7 +205,7 @@ namespace Plaza {
 			}
 
 			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, Application->activeScene->DefaultMaterial());
-			meshRenderer->material = material;
+			meshRenderer->material = material;//AssetsLoader::LoadMaterial(AssetsManager::GetAsset(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name + Standards::materialExtName}.string()));
 			entity->AddComponent<MeshRenderer>(meshRenderer);
 			verticesCount += finalMesh->vertices.size();
 		}

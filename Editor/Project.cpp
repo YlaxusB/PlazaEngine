@@ -63,6 +63,7 @@ namespace Plaza::Editor {
 		std::cout << "Mono \n";
 		Mono::Init();
 
+		std::map<std::string, Script> scripts = std::map<std::string, Script>();
 		/* Iterate over all files and subfolders of the project folder to load assets */
 		for (const auto& entry : filesystem::recursive_directory_iterator(Application->activeProject->directory)) {
 			const std::string extension = entry.path().extension().string();
@@ -79,35 +80,24 @@ namespace Plaza::Editor {
 					if (extension == ".plzmat")
 					{
 						AssetsLoader::LoadAsset(asset);
-						AssetsManager::AddAsset(asset);
+						//AssetsManager::AddAsset(asset);
 					}
+				}
+
+				if (entry.is_regular_file() && entry.path().extension() == ".cs") {
+					scripts.emplace(entry.path().string(), Script());
 				}
 			}
 		}
 
 		for (auto& [key, value] : Application->activeScene->materials) {
 			//Application->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"))->mPath.string())
-			value->diffuse->mIndexHandle = AssetsManager::GetTexture(value->diffuse->mAssetUuid)->mIndexHandle;
-			value->normal->mIndexHandle = AssetsManager::GetTexture(value->normal->mAssetUuid)->mIndexHandle;
-			value->roughness->mIndexHandle = AssetsManager::GetTexture(value->roughness->mAssetUuid)->mIndexHandle;
-			value->metalness->mIndexHandle = AssetsManager::GetTexture(value->metalness->mAssetUuid)->mIndexHandle;
-		}
-
-		/* Iterate over all files and subfolders of the project folder*/
-		std::map<std::string, Script> scripts = std::map<std::string, Script>();
-		for (const auto& entry : filesystem::recursive_directory_iterator(Application->activeProject->directory)) {
-			if (entry.is_regular_file() && entry.path().extension() == ".cs") {
-				scripts.emplace(entry.path().string(), Script());
-			}
-
-			//if (entry.is_regular_file() && entry.path().extension() == Standards::materialExtName) {
-			//	std::shared_ptr<Material> deserializedMaterial = std::shared_ptr<Material>(MaterialFileSerializer::DeSerialize(entry.path().string()));
-			//	if (deserializedMaterial->uuid) {
-			//		deserializedMaterial->LoadTextures(entry.path().parent_path().string());
-			//		Application->activeScene->AddMaterial(deserializedMaterial);
-			//		//Application->activeScene->materials.emplace(deserializedMaterial->uuid, deserializedMaterial);
-			//	}
-			//}
+			if (key == 0)
+				continue;
+			value->diffuse = AssetsManager::GetTexture(value->diffuse->mAssetUuid);
+			value->normal = AssetsManager::GetTexture(value->normal->mAssetUuid);
+			value->roughness = AssetsManager::GetTexture(value->roughness->mAssetUuid);
+			value->metalness = AssetsManager::GetTexture(value->metalness->mAssetUuid);
 		}
 
 		std::cout << "Deserializing \n";

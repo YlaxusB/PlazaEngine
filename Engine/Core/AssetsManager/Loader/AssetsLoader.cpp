@@ -62,7 +62,7 @@ namespace Plaza {
 					file.read(reinterpret_cast<char*>(&deserializedMeshRenderer.uuid), sizeof(deserializedMeshRenderer.uuid));
 					file.read(reinterpret_cast<char*>(&deserializedMeshRenderer.type), sizeof(deserializedMeshRenderer.type));
 
-					file.read(reinterpret_cast<char*>(&deserializedMeshRenderer.materialUuid), sizeof(deserializedMeshRenderer.materialUuid));
+					file.read(reinterpret_cast<char*>(&deserializedMeshRenderer.materialUuid), sizeof(uint64_t));
 
 					/* Read vertices, normals, uvs, indices */
 					file.read(reinterpret_cast<char*>(&deserializedMeshRenderer.serializedMesh.verticesCount), sizeof(uint64_t));

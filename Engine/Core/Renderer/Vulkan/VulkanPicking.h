@@ -31,12 +31,14 @@ namespace Plaza {
 		void Terminate() override;
 
 		VkImageView mPickingTextureImageView = VK_NULL_HANDLE;
+		VkImageView mDepthImageView = VK_NULL_HANDLE;
 	private:
 		VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
 		VkBuffer mStagingBuffer = VK_NULL_HANDLE;
 		VkDeviceMemory mStagingBufferMemory = VK_NULL_HANDLE;
 
 		VkImage mPickingTextureImage = VK_NULL_HANDLE;
+		VkImage mDepthTextureImage = VK_NULL_HANDLE;
 
 		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
 		VkSampler mSkyboxSampler = VK_NULL_HANDLE;
@@ -45,7 +47,7 @@ namespace Plaza {
 		void InitializeOutline();
 		void InitializeFramebuffer();
 		void InitializeImageSampler();
-		void InitializeImageView();
+		void InitializeImageView(VkImageView& imageView, VkImage& image, VkFormat format);
 		void InitializeDescriptorPool();
 		void InitializeDescriptorSets();
 		void InitializeRenderPass();

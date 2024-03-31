@@ -1,5 +1,5 @@
 #version 450
-layout(location = 0) out ivec4 fragColor;
+layout(location = 0) out uvec4 fragColor;
 
 float hash(uint x_low, uint x_high) {
     uint combined = x_low ^ x_high; // XOR the two uint32_t values
@@ -17,7 +17,7 @@ layout(push_constant) uniform PushConstants{
 } pushConstants;
 
 void main() {
-    fragColor = ivec4(pushConstants.uuid1, pushConstants.uuid2, 1.0f, 1.0f);
+    fragColor = uvec4(pushConstants.uuid1, pushConstants.uuid2, 1.0f, 1.0f);
     //fragColor = vec4(hash(pushConstants.uuid1, pushConstants.uuid2), 1.0f, 1.0f, 1.0f);
     //fragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }

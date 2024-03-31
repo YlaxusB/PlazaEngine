@@ -112,7 +112,8 @@ namespace Plaza::Editor {
 			transform.relativePosition = localPoint / parentScale;//localPoint;
 
 			// --- Scale
-			transform.scale = scale;
+			if (activeOperation == ImGuizmo::SCALE)
+				transform.scale = scale / transform.GetWorldScale();//parentTransform.GetWorldScale();// = updatedScale;
 			transform.UpdateSelfAndChildrenTransform();
 
 

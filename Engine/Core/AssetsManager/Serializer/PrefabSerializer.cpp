@@ -28,6 +28,10 @@ namespace Plaza {
 			serializableEntity.components.emplace(SerializableComponentType::MESH_RENDERER, ComponentsConverter::ConvertMeshRenderer(entity->GetComponent<MeshRenderer>()));
 			componentCount++;
 		}
+		if (entity->HasComponent<Collider>()) {
+			serializableEntity.components.emplace(SerializableComponentType::COLLIDER, ComponentsConverter::ConvertCollider(entity->GetComponent<Collider>()));
+			componentCount++;
+		}
 
 		serializableEntity.componentsCount = componentCount;
 		entityCount++;
@@ -105,6 +109,11 @@ namespace Plaza {
 				{
 					SerializableMeshRenderer* meshRenderer = std::any_cast<SerializableMeshRenderer*>(component.second);
 					ComponentsSerializer::SerializeMeshRenderer(meshRenderer, file);
+				}
+				else if (componentType == typeid(SerializableCollider*).name())
+				{
+					SerializableCollider* collider = std::any_cast<SerializableCollider*>(component.second);
+					ComponentsSerializer::SerializeCollider(collider, file);
 				}
 
 			}

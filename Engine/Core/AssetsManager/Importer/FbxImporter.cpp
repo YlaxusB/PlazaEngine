@@ -207,6 +207,11 @@ namespace Plaza {
 			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, Application->activeScene->DefaultMaterial());
 			meshRenderer->material = material;//AssetsLoader::LoadMaterial(AssetsManager::GetAsset(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name + Standards::materialExtName}.string()));
 			entity->AddComponent<MeshRenderer>(meshRenderer);
+
+			Collider* collider = new Collider();
+			ColliderShape* shape = new ColliderShape(nullptr, Plaza::ColliderShape::MESH, finalMesh->uuid);
+			collider->AddShape(shape);
+			entity->AddComponent<Collider>(collider);
 			verticesCount += finalMesh->vertices.size();
 		}
 

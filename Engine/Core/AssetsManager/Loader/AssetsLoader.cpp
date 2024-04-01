@@ -88,6 +88,22 @@ namespace Plaza {
 
 					entity.components.emplace(type, deserializedMeshRenderer);
 				}
+				else if (type == SerializableComponentType::COLLIDER)
+				{
+					SerializableCollider deserializedCollider{};
+					file.read(reinterpret_cast<char*>(&deserializedCollider.uuid), sizeof(deserializedCollider.uuid));
+					file.read(reinterpret_cast<char*>(&deserializedCollider.type), sizeof(deserializedCollider.type));
+
+					file.read(reinterpret_cast<char*>(&deserializedCollider.shapesCount), sizeof(deserializedCollider.shapesCount));
+					deserializedCollider.shapes.resize(deserializedCollider.shapesCount);
+					for (unsigned int i = 0; i < deserializedCollider.shapesCount; ++i) {
+						file.read(reinterpret_cast<char*>(&deserializedCollider.shapes[i].shape), sizeof(deserializedCollider.shapes[i].shape));
+						file.read(reinterpret_cast<char*>(&deserializedCollider.shapes[i].meshUuid), sizeof(deserializedCollider.shapes[i].meshUuid));
+						file.read(reinterpret_cast<char*>(&deserializedCollider.shapes[i].scale), sizeof(deserializedCollider.shapes[i].scale));
+					}
+
+					entity.components.emplace(type, deserializedCollider);
+				}
 			}
 		}
 
@@ -97,6 +113,7 @@ namespace Plaza {
 
 	void LoadDeserializedEntity(const SerializableEntity& deserializedEntity) {
 		Entity* newEntity = new Entity(deserializedEntity.name, Application->activeScene->mainSceneEntity, true, deserializedEntity.entityUuid);
+		Mesh* mes;
 		if (deserializedEntity.components.find(SerializableComponentType::MESH_RENDERER) != deserializedEntity.components.end())
 		{
 			SerializableMeshRenderer deserializedMeshRenderer = std::any_cast<SerializableMeshRenderer>(deserializedEntity.components.find(SerializableComponentType::MESH_RENDERER)->second);
@@ -108,6 +125,25 @@ namespace Plaza {
 			RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
 			meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
 			newEntity->AddComponent<MeshRenderer>(meshRenderer);
+			mes = meshRenderer->mesh;
+		}
+		if (deserializedEntity.components.find(SerializableComponentType::COLLIDER) != deserializedEntity.components.end())
+		{
+			SerializableCollider deserializedCollider = std::any_cast<SerializableCollider>(deserializedEntity.components.find(SerializableComponentType::COLLIDER)->second);
+
+			Collider* collider = new Collider(deserializedCollider.uuid);
+			for (unsigned int i = 0; i < deserializedCollider.shapesCount; ++i) {
+				//collider->AddShape(new ColliderShape(collider->create, deserializedCollider.shapes[i].shape, deserializedCollider.shapes[i].meshUuid));
+				collider->CreateShape(deserializedCollider.shapes[i].shape, newEntity->GetComponent<Transform>(), mes);
+			}
+			newEntity->AddComponent<Collider>(collider);
+			//Mesh& mesh = Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), deserializedMesh->indices, *Scene::DefaultMaterial(), false);
+			//MeshRenderer* meshRenderer = new MeshRenderer(&mesh, Application->activeScene->GetMaterial(deserializedMeshRenderer.materialUuid));
+			//meshRenderer->instanced = true;
+			//meshRenderer->material = Application->activeScene->GetMaterial(deserializedMeshRenderer.materialUuid);
+			//RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
+			//meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
+			//newEntity->AddComponent<MeshRenderer>(meshRenderer);
 		}
 		/*
 				Entity* obj = new Entity(name, parent, addToScene);

@@ -7,5 +7,6 @@ namespace Plaza {
 		static SerializableMeshRenderer* ConvertMeshRenderer(MeshRenderer* meshRenderer);
 		static SerializableMaterial ConvertMaterial(Material* material);
 		static SerializableMesh ConvertMesh(Mesh* mesh);
+		static SerializableCollider* ConvertCollider(Collider* collider);
 	};
 }

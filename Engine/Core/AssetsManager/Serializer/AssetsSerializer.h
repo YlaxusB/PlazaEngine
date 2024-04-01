@@ -4,7 +4,8 @@
 namespace Plaza {
 	enum SerializableComponentType {
 		TRANSFORM,
-		MESH_RENDERER
+		MESH_RENDERER,
+		COLLIDER
 	};
 	struct SerializableComponents {
 		uint64_t uuid;
@@ -47,6 +48,18 @@ namespace Plaza {
 	struct SerializableMeshRenderer : public SerializableComponents {
 		uint64_t materialUuid;
 		SerializableMesh serializedMesh{};
+	};
+
+	struct SerializableColliderShape {
+		Plaza::ColliderShape::ColliderShapeEnum shape;
+		uint64_t meshUuid;
+		glm::vec3 scale;
+	};
+
+	struct SerializableCollider : public SerializableComponents {
+		uint64_t colliderUuid;
+		uint32_t shapesCount;
+		std::vector<SerializableColliderShape> shapes;
 	};
 
 	struct SerializableEntity {

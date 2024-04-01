@@ -31,5 +31,17 @@ namespace Plaza {
 				file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.indices[i]), sizeof(unsigned int));
 			}
 		}
+
+		static void SerializeCollider(SerializableCollider* collider, std::ofstream& file) {
+			file.write(reinterpret_cast<const char*>(&collider->uuid), sizeof(collider->uuid));
+			file.write(reinterpret_cast<const char*>(&collider->type), sizeof(collider->type));
+
+			file.write(reinterpret_cast<const char*>(&collider->shapesCount), sizeof(collider->shapesCount));
+			for (unsigned int i = 0; i < collider->shapesCount; ++i) {
+				file.write(reinterpret_cast<const char*>(&collider->shapes[i].shape), sizeof(collider->shapes[i].shape));
+				file.write(reinterpret_cast<const char*>(&collider->shapes[i].meshUuid), sizeof(collider->shapes[i].meshUuid));
+				file.write(reinterpret_cast<const char*>(&collider->shapes[i].scale), sizeof(collider->shapes[i].scale));
+			}
+		}
 	};
 }

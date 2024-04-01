@@ -76,6 +76,8 @@ namespace Plaza {
 	};
 	class Scene {
 	public:
+		bool mIsDeleting = false;
+
 		uint64_t mAssetUuid = 0;
 		std::string filePath = "mainScene.plzscn";
 		GameObjectList gameObjects;
@@ -173,7 +175,9 @@ namespace Plaza {
 		static void Play(); // Starts the game
 		static void Stop(); // Finishes the game
 		static void Pause(); // Just pauses the game
-		~Scene() = default;
+		~Scene() {
+			mIsDeleting = true;
+		};
 
 		void RemoveEntity(uint64_t uuid);
 		Entity* GetEntity(uint64_t uuid);

@@ -153,6 +153,11 @@ namespace Plaza {
 				MeshRenderer* meshRenderer = new MeshRenderer(&mesh, material);
 				meshRenderer->material = material;
 				newEntity->AddComponent<MeshRenderer>(meshRenderer);
+
+				Collider* collider = new Collider();
+				ColliderShape* shape = new ColliderShape(nullptr, Plaza::ColliderShape::MESH, mesh.uuid);
+				collider->AddShape(shape);
+				newEntity->AddComponent<Collider>(collider);
 			}
 			index++;
 		}

@@ -36,9 +36,11 @@ namespace Plaza {
 	}
 
 	MeshRenderer::~MeshRenderer() {
-		if (this->renderGroup)
-			Application->activeScene->RemoveRenderGroup(this->renderGroup->uuid);
-		Application->activeScene->RemoveMeshRenderer(this->uuid);
+		if (!Application->activeScene->mIsDeleting) {
+			if (this->renderGroup)
+				Application->activeScene->RemoveRenderGroup(this->renderGroup->uuid);
+			Application->activeScene->RemoveMeshRenderer(this->uuid);
+		}
 		//this->renderGroup.~shared_ptr();
 	}
 

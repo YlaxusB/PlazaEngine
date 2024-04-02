@@ -14,8 +14,21 @@ namespace Plaza {
 	}
 
 	void CharacterController::Init() {
-		if (!Physics::m_controllerManager)
-			Physics::m_controllerManager = PxCreateControllerManager(*Physics::m_scene);
+		mDescription.radius = 1.0f;
+		mDescription.density = 1.0f;
+		mDescription.height = 2.0f;
+		mDescription.maxJumpHeight = 1.0f;
+		mDescription.slopeLimit = 1.0f;
+		mDescription.material = Physics::defaultMaterial;
 		mCharacterController = Physics::m_controllerManager->createController(mDescription);
+
+	}
+
+	void CharacterController::Update() {
+		this->GetGameObject()->GetComponent<Transform>()->SetRelativePosition(glm::vec3((float)this->mCharacterController->getPosition().x, (float)this->mCharacterController->getPosition().y, (float)this->mCharacterController->getPosition().z));
+	}
+
+	void CharacterController::Move(glm::vec3 position) {
+		mCharacterController->move(physx::PxVec3(position.x, position.y, position.z), 5.0f, 1.0f, nullptr);
 	}
 }

@@ -6,6 +6,8 @@ namespace Plaza {
 	public:
 		CharacterController(uint64_t uuid = 0);
 		void Init();
+		void Update();
+		void Move(glm::vec3 position);
 		physx::PxController* mCharacterController;
 		physx::PxCapsuleControllerDesc mDescription = physx::PxCapsuleControllerDesc();
 	};

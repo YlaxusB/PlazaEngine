@@ -217,8 +217,6 @@ namespace Plaza {
 		}
 		Physics::InitPhysics();
 		Physics::InitScene();
-
-		//Physics::m_controllerManager = PxCreateControllerManager(*Physics::m_scene);
 	}
 
 	void Physics::InitPhysics() {
@@ -237,14 +235,20 @@ namespace Plaza {
 		m_scene = m_physics->createScene(Physics::GetSceneDesc());
 		//m_scene->setSimulationEventCallback(&collisionCallback);
 		Physics::defaultMaterial = Physics::m_physics->createMaterial(0.0f, 1.0f, 0.5f);
+
+		Physics::m_controllerManager = PxCreateControllerManager(*Physics::m_scene);
 		std::cout << "Physics Initialized" << std::endl;
 	}
 
 	void Physics::Update() {
 		PLAZA_PROFILE_SECTION("Update");
+		for (auto& [key, value] : Application->runtimeScene->characterControllerComponents) {
+			value.Update();
+		}
 		for (auto& [key, value] : Application->runtimeScene->rigidBodyComponents) {
 			value.Update();
 		}
+
 		//for (auto& [key, value] : Application->runtimeScene->colliderComponents) {
 		//	if (Application->runtimeScene->rigidBodyComponents.find(key) == Application->runtimeScene->rigidBodyComponents.end()) {
 		//		value.Update();

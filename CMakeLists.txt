@@ -213,6 +213,9 @@ link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/mono/")
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/")
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/bin/win.x86_64.vc143.mt/release/")
+
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/compiler/public")
+
 #C:\Users\Giovane\Desktop\Workspace\Plaza\ThirdParty\PhysX\physx\bin\win.x86_64.vc143.mt\release
 
 set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug")
@@ -221,7 +224,7 @@ set(PHYSX_LIBS
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysX_64.lib"
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCooking_64.lib"
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCommon_64.lib"
-"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXExtensions_static_64.lib"
+#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXExtensions_static_64.lib"
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXFoundation_64.lib"
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PVDRuntime_64.lib"
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCharacterKinematic_static_64.lib"
@@ -255,23 +258,27 @@ link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Physx/physx/bin/win.x86
 target_include_directories(PlazaEngine PUBLIC "lib/")
 target_include_directories(PlazaShippingGame PUBLIC "lib/")
 
+if(MSVC)
+    add_compile_definitions(_ITERATOR_DEBUG_LEVEL=2)  # Disable iterator debugging
+endif()
+
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
 target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper DirectXTex OpenFBX
-    PhysXExtensions_static_64
     PhysX_64
     PhysXCommon_64
     PhysXFoundation_64
     PhysXCharacterKinematic_static_64
+    PhysXExtensions_static_64
 
 "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 target_include_directories(PlazaShippingGame PUBLIC "ThirdParty/imgui/")
 target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper DirectXTex OpenFBX
-    PhysXExtensions_static_64
     PhysX_64
     PhysXCommon_64
     PhysXFoundation_64
     PhysXCharacterKinematic_static_64
+    PhysXExtensions_static_64
 "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 #    add_custom_target(CopyDLLs ALL

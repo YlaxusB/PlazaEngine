@@ -20,7 +20,7 @@ namespace Plaza {
 		float shininess = 3.0f;
 		float intensity = 1.0f;
 
-		float metalnessFloat = 0.5f;
+		float metalnessFloat = 0.0f;
 		float roughnessFloat = 0.5f;
 
 		void LoadTextures(std::string relativePath = "") {

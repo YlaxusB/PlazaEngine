@@ -13,6 +13,7 @@
 #include "Editor/GUI/Inspector/FileInspector/MaterialInspector.h"
 #include "Editor/GUI/Inspector/FileInspector/TextEditor.h"
 #include "Editor/GUI/Inspector/LightInspector.h"
+#include "Editor/GUI/Inspector/CharacterControllerInspector.h"
 
 namespace Plaza::Editor {
 	/* File Inspector*/
@@ -90,6 +91,8 @@ namespace Plaza::Editor {
 			components.push_back(&activeScene->audioListenerComponents.at(uuid));
 		if (activeScene->lightComponents.contains(uuid))
 			components.push_back(&activeScene->lightComponents.at(uuid));
+		if (activeScene->characterControllerComponents.contains(uuid))
+			components.push_back(&activeScene->characterControllerComponents.at(uuid));
 	}
 
 	void Inspector::ComponentInspector::CreateRespectiveInspector(Component* component) {
@@ -120,6 +123,9 @@ namespace Plaza::Editor {
 		}
 		else if (Light* light = dynamic_cast<Light*>(component)) {
 			Plaza::Editor::LightInspector::LightInspector(light);
+		}
+		else if (CharacterController* characterController = dynamic_cast<CharacterController*>(component)) {
+			Plaza::Editor::CharacterControllerInspector::CharacterControllerInspector(characterController);
 		}
 	}
 }

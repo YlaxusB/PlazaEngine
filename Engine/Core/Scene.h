@@ -20,6 +20,7 @@
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Components/Rendering/Light.h"
 #include "Engine/Components/Physics/RigidBody.h"
+#include "Engine/Components/Physics/CharacterController.h"
 #include "Engine/Components/Physics/Collider.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
@@ -98,6 +99,7 @@ namespace Plaza {
 		ComponentMultiMap<uint64_t, AudioSource> audioSourceComponents;
 		ComponentMultiMap<uint64_t, AudioListener> audioListenerComponents;
 		ComponentMultiMap<uint64_t, Light> lightComponents;
+		ComponentMultiMap<uint64_t, CharacterController> characterControllerComponents;
 
 		std::unordered_map<std::string, void*> componentsMap;
 
@@ -208,6 +210,7 @@ namespace Plaza {
 			componentsMap["class Plaza::AudioSource"] = &audioSourceComponents;
 			componentsMap["class Plaza::AudioListener"] = &audioListenerComponents;
 			componentsMap["class Plaza::Light"] = &lightComponents;
+			componentsMap["class Plaza::CharacterController"] = &characterControllerComponents;
 			//componentsMap.emplace("Camera", &cameraComponents);
 			//componentsMap.emplace("MeshRenderer", &meshRendererComponents);
 			//componentsMap.emplace("RigidBody", &rigidBodyComponents);

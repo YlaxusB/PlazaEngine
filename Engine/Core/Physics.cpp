@@ -1,6 +1,10 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Physics.h"
 #include <ThirdParty/PhysX/physx/include/cooking/Pxc.h>
+#include <ThirdParty/PhysX/physx/include/characterkinematic/PxController.h>
+#include <ThirdParty/PhysX/physx/include/characterkinematic/PxControllerManager.h>
+#include <ThirdParty/PhysX/physx/include/characterkinematic/PxControllerBehavior.h>
+#include <ThirdParty/PhysX/physx/include/characterkinematic/PxBoxController.h>
 using namespace physx;
 namespace Plaza {
 	class CollisionCallback : public physx::PxSimulationEventCallback {
@@ -105,6 +109,7 @@ namespace Plaza {
 	physx::PxScene* Physics::m_scene = NULL;
 	physx::PxMaterial* Physics::m_material = NULL;
 	physx::PxPvd* Physics::m_pvd = NULL;
+	physx::PxControllerManager* Physics::m_controllerManager = NULL;
 
 	physx::PxMaterial* Physics::defaultMaterial = nullptr;
 
@@ -212,6 +217,8 @@ namespace Plaza {
 		}
 		Physics::InitPhysics();
 		Physics::InitScene();
+
+		//Physics::m_controllerManager = PxCreateControllerManager(*Physics::m_scene);
 	}
 
 	void Physics::InitPhysics() {

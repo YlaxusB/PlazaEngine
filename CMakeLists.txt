@@ -224,6 +224,7 @@ set(PHYSX_LIBS
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXExtensions_static_64.lib"
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXFoundation_64.lib"
 "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PVDRuntime_64.lib"
+"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCharacterKinematic_static_64.lib"
 )
 
 set(OPENAL_DLL "${BUILD_DIR}/ThirdParty/AL/OpenAL32d.dll")
@@ -240,7 +241,7 @@ set(PHYSX_DLLS
 "${PHYSX_DLL_FOLDER}/PhysXCooking_64.dll"
 "${PHYSX_DLL_FOLDER}/PhysXCommon_64.dll"
 "${PHYSX_DLL_FOLDER}/PhysXFoundation_64.dll"
-"${PHYSX_DLL_FOLDER}/PhysXFoundation_64.dll"
+"${PHYSX_DLL_FOLDER}/PhysXCharacterKinematic_static_64.dll"
 )
 
 set_target_properties(assimp PROPERTIES
@@ -260,6 +261,8 @@ target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-
     PhysX_64
     PhysXCommon_64
     PhysXFoundation_64
+    PhysXCharacterKinematic_static_64
+
 "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 target_include_directories(PlazaShippingGame PUBLIC "ThirdParty/imgui/")
@@ -268,6 +271,7 @@ target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient
     PhysX_64
     PhysXCommon_64
     PhysXFoundation_64
+    PhysXCharacterKinematic_static_64
 "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 #    add_custom_target(CopyDLLs ALL

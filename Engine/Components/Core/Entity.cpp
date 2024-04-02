@@ -163,54 +163,53 @@ namespace Plaza {
 	}
 
 	void Entity::Delete() {
-		if (Application->runningScene) {
-			std::vector<uint64_t> children = this->childrenUuid;
-			for (uint64_t child : children) {
-				if (Application->activeScene->entities.find(child) != Application->activeScene->entities.end())
-					Application->activeScene->entities.at(child).Delete();
-			}
-			if (this->HasComponent<Transform>())
-				this->RemoveComponent<Transform>();
-			if (this->HasComponent<MeshRenderer>())
-				this->RemoveComponent<MeshRenderer>();
-			if (this->HasComponent<Collider>()) {
-				//this->GetComponent<Collider>()->RemoveActor();
-				this->RemoveComponent<Collider>();
-			}
-			if (this->HasComponent<RigidBody>())
-				this->RemoveComponent<RigidBody>();
-			if (this->HasComponent<Camera>())
-				this->RemoveComponent<Camera>();
-			if (this->HasComponent<CsScriptComponent>()) {
-				this->RemoveComponent<CsScriptComponent>();
-				Application->activeScene->csScriptComponents.erase(this->uuid);
-			}
-			if (this->HasComponent<Plaza::Drawing::UI::TextRenderer>())
-				this->RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
-			if (this->HasComponent<AudioSource>())
-				this->RemoveComponent<AudioSource>();
-			if (this->HasComponent<AudioListener>())
-				this->RemoveComponent<AudioListener>();
-			if (this->HasComponent<Light>())
-				this->RemoveComponent<Light>();
-
-			/*
-						MeshRenderer* meshRendererToInstantiate = entityToInstantiate->GetComponent<MeshRenderer>();
-			MeshRenderer* newMeshRenderer = new MeshRenderer();
-			newMeshRenderer->uuid = instantiatedEntity->uuid;
-			newMeshRenderer->instanced = true;
-			newMeshRenderer->mesh = shared_ptr<Mesh>(meshRendererToInstantiate->mesh);
-			instantiatedEntity->AddComponent<MeshRenderer>(newMeshRenderer);
-			*/
-
-			if (Editor::selectedGameObject && Editor::selectedGameObject->uuid == this->uuid)
-				Editor::selectedGameObject = nullptr;
-
-			this->GetParent().childrenUuid.erase(std::remove(this->GetParent().childrenUuid.begin(), this->GetParent().childrenUuid.end(), this->uuid), this->GetParent().childrenUuid.end());
-			if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
-				Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
-			Application->activeScene->entities.erase(Application->activeScene->entities.find(this->uuid));
+		std::vector<uint64_t> children = this->childrenUuid;
+		for (uint64_t child : children) {
+			if (Application->activeScene->entities.find(child) != Application->activeScene->entities.end())
+				Application->activeScene->entities.at(child).Delete();
 		}
+		if (this->HasComponent<Transform>())
+			this->RemoveComponent<Transform>();
+		if (this->HasComponent<MeshRenderer>())
+			this->RemoveComponent<MeshRenderer>();
+		if (this->HasComponent<Collider>()) {
+			//this->GetComponent<Collider>()->RemoveActor();
+			this->RemoveComponent<Collider>();
+		}
+		if (this->HasComponent<RigidBody>())
+			this->RemoveComponent<RigidBody>();
+		if (this->HasComponent<Camera>())
+			this->RemoveComponent<Camera>();
+		if (this->HasComponent<CsScriptComponent>()) {
+			this->RemoveComponent<CsScriptComponent>();
+			Application->activeScene->csScriptComponents.erase(this->uuid);
+		}
+		if (this->HasComponent<Plaza::Drawing::UI::TextRenderer>())
+			this->RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
+		if (this->HasComponent<AudioSource>())
+			this->RemoveComponent<AudioSource>();
+		if (this->HasComponent<AudioListener>())
+			this->RemoveComponent<AudioListener>();
+		if (this->HasComponent<Light>())
+			this->RemoveComponent<Light>();
+
+		/*
+					MeshRenderer* meshRendererToInstantiate = entityToInstantiate->GetComponent<MeshRenderer>();
+		MeshRenderer* newMeshRenderer = new MeshRenderer();
+		newMeshRenderer->uuid = instantiatedEntity->uuid;
+		newMeshRenderer->instanced = true;
+		newMeshRenderer->mesh = shared_ptr<Mesh>(meshRendererToInstantiate->mesh);
+		instantiatedEntity->AddComponent<MeshRenderer>(newMeshRenderer);
+		*/
+
+		if (Editor::selectedGameObject && Editor::selectedGameObject->uuid == this->uuid)
+			Editor::selectedGameObject = nullptr;
+
+		this->GetParent().childrenUuid.erase(std::remove(this->GetParent().childrenUuid.begin(), this->GetParent().childrenUuid.end(), this->uuid), this->GetParent().childrenUuid.end());
+		if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
+			Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
+		Application->activeScene->entities.erase(Application->activeScene->entities.find(this->uuid));
+
 		//this->~Entity();
 	}
 
@@ -359,6 +358,14 @@ namespace Plaza {
 			Light* newLight = new Light(lightIt->second);
 			newLight->uuid = instantiatedEntity->uuid;
 			instantiatedEntity->AddComponent<Light>(newLight);
+		}
+
+		auto characterControllerIt = Application->activeScene->characterControllerComponents.find(entityToInstantiate->uuid);
+		if (characterControllerIt != Application->activeScene->characterControllerComponents.end()) {
+			PLAZA_PROFILE_SECTION("Light");
+			CharacterController* newCharacterController = new CharacterController(characterControllerIt->second);
+			newCharacterController->uuid = instantiatedEntity->uuid;
+			instantiatedEntity->AddComponent<CharacterController>(newCharacterController);
 		}
 
 

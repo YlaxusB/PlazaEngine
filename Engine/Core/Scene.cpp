@@ -63,6 +63,7 @@ namespace Plaza {
 		newScene->audioSourceComponents = ComponentMultiMap<uint64_t, AudioSource>(copyScene->audioSourceComponents);
 		newScene->audioListenerComponents = ComponentMultiMap<uint64_t, AudioListener>(copyScene->audioListenerComponents);
 		newScene->lightComponents = ComponentMultiMap<uint64_t, Light>(copyScene->lightComponents);
+		newScene->characterControllerComponents = ComponentMultiMap<uint64_t, CharacterController>(copyScene->characterControllerComponents);
 		newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
 
 		//newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
@@ -214,7 +215,9 @@ namespace Plaza {
 			value.Init();
 		}
 
-
+		for (auto& [key, value] : Application->activeScene->characterControllerComponents) {
+			value.Init();
+		}
 
 		if (scriptDllExists) {
 			Mono::OnStartAll(false);

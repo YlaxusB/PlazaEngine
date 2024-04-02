@@ -62,6 +62,7 @@ namespace Plaza {
 
 		Mesh() {
 			this->uuid = Plaza::UUID::NewUUID();
+			this->meshId = this->uuid;
 		}
 
 		void AddInstance(glm::mat4 model) {

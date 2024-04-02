@@ -16,6 +16,7 @@ namespace Plaza {
 		uint64_t parentUuid;
 		uint64_t prefabUuid;
 		uint64_t equivalentPrefabUuid;
+		uint64_t equivalentPrefabParentUuid;
 		bool isPrefab = false;
 		std::vector<uint64_t> childrenUuid;
 		std::string name;

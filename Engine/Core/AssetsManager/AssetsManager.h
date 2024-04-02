@@ -1,18 +1,8 @@
 #pragma once
+#include "Engine/Core/AssetsManager/AssetsType.h"
+#include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 
 namespace Plaza {
-
-	enum AssetType {
-		NONE,
-		MODEL,
-		MATERIAL,
-		TEXTURE,
-		SCENE,
-		SCRIPT,
-		DLL,
-		MESH,
-		UNKNOWN,
-	};
 	struct Asset {
 		uint64_t mAssetUuid = 0;
 		std::string mAssetExtension = "";
@@ -28,14 +18,21 @@ namespace Plaza {
 
 	};
 
-
+	struct LoadedModel {
+		uint64_t uuid;
+		SerializablePrefab mSerializablePrefab;
+	};
 
 	class AssetsManager {
 	public:
 		static inline AssetsListStructure mAssets = AssetsListStructure();
 		static inline std::map<std::filesystem::path, uint64_t> mAssetsUuidByPath = std::map<std::filesystem::path, uint64_t>();
 		static inline std::map<std::string, AssetType> mAssetTypeByExtension = std::map<std::string, AssetType>();
+
 		static inline std::unordered_map<uint64_t, Texture*> mTextures = std::unordered_map<uint64_t, Texture*>();
+		static inline std::unordered_map<uint64_t, LoadedModel*> mLoadedModels = std::unordered_map<uint64_t, LoadedModel*>();
+		static inline std::unordered_map<uint64_t, Mesh*> mLoadedMeshes = std::unordered_map<uint64_t, Mesh*>();
+
 		static inline std::unordered_map<AssetType, std::unordered_set<uint64_t>> mTypeMap = std::unordered_map<AssetType, std::unordered_set<uint64_t>>();
 
 		static inline AssetsModelListStructure mMemoryModels = AssetsModelListStructure();
@@ -115,6 +112,21 @@ namespace Plaza {
 			if (it != mTextures.end())
 				return mTextures.at(uuid);
 			return new Texture();
+		}
+
+		static void AddMesh(Mesh* mesh) {
+			AssetsManager::mLoadedMeshes.emplace(mesh->meshId, mesh);
+		}
+
+		static Mesh* GetMesh(uint64_t uuid) {
+			const auto& it = mLoadedMeshes.find(uuid);
+			if (it != mLoadedMeshes.end())
+				return mLoadedMeshes.at(uuid);
+			return new Mesh();
+		}
+
+		static bool HasMesh(uint64_t uuid) {
+			return  mLoadedMeshes.find(uuid) != mLoadedMeshes.end();
 		}
 
 		static Asset* LoadFileAsAsset(std::filesystem::path path) {

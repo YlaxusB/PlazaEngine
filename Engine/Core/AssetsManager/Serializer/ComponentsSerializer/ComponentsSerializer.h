@@ -14,6 +14,8 @@ namespace Plaza {
 			file.write(reinterpret_cast<const char*>(&meshRenderer->materialUuid), sizeof(uint64_t));
 
 			/* Mesh */
+			file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.assetUuid), sizeof(uint64_t));
+
 			file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.verticesCount), sizeof(uint64_t));
 			for (unsigned int i = 0; i < meshRenderer->serializedMesh.vertices.size(); ++i) {
 				file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.vertices[i]), sizeof(glm::vec3));

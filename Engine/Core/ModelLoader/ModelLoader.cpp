@@ -210,15 +210,16 @@ namespace Plaza {
 			}
 			std::shared_ptr<Mesh> sharedMesh = std::make_shared<VulkanMesh>(dynamic_cast<VulkanMesh&>(mesh));
 			std::shared_ptr<Material> sharedMaterial = std::make_shared<Material>(dynamic_cast<Material&>(*processedMaterial));
-			Application->editorScene->meshes.emplace(mesh.meshId, sharedMesh);
+			sharedMesh->uuid = sharedMesh->meshId;
+			AssetsManager::AddMesh(sharedMesh.get());
 			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), sharedMesh);
 			model->materials.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), sharedMaterial);
 			//((VulkanMesh&)(model->meshes.at(std::string(aiMesh->mName.C_Str() + to_string(index)))).get()).Drawe();
 			//shar->Draw(*Application->shader);
 			//Application->editorScene->meshes.at(mesh.meshId)->Draw(*Application->shader);
 			//((VulkanMesh&)(Application->editorScene->meshes.at(mesh.meshId))).Draw(*asd);
-			if (Application->runningScene)
-				Application->runtimeScene->meshes.emplace(mesh.meshId, Application->editorScene->meshes.at(mesh.meshId));
+				//if (Application->runningScene)
+				//	Application->runtimeScene->meshes.emplace(mesh.meshId, Application->editorScene->meshes.at(mesh.meshId));
 			index++;
 		}
 	}

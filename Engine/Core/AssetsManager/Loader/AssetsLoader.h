@@ -24,7 +24,7 @@ namespace Plaza {
 			if (asset->mAssetExtension == Standards::metadataExtName)
 				AssetsLoader::LoadMetadata(asset);
 			else if (asset->mAssetExtension == Standards::modelExtName)
-				AssetsLoader::LoadPrefab(asset->mPath.string());
+				AssetsLoader::LoadPrefab(asset);
 			else if (asset->mAssetExtension == Standards::materialExtName)
 				AssetsLoader::LoadMaterial(asset);
 		}
@@ -40,7 +40,9 @@ namespace Plaza {
 				break;
 			}
 		}
-		static void LoadPrefab(std::string path);
+		static void LoadPrefab(Asset* asset);
+		static void LoadPrefabToMemory(Asset* asset);
+		static void LoadPrefabToScene(LoadedModel* model, bool loadToScene);
 		static void LoadScript(Asset* asset) {};
 		static Texture* LoadTexture(Asset* asset) {
 			if (AssetsManager::mTextures.find(asset->mAssetUuid) != AssetsManager::mTextures.end())

@@ -361,6 +361,8 @@ namespace Plaza {
 	}
 
 	uint64_t VulkanPicking::ReadPickingTexture(glm::vec2 pos) {
+		if (pos.x > this->mResolution.x || pos.x < 0 || pos.y > this->mResolution.y || pos.y < 0)
+			return 0;
 		// Create a staging buffer
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;

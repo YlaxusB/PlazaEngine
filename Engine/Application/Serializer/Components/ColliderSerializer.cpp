@@ -26,9 +26,9 @@ namespace Plaza {
 		Collider* collider = new Collider(data["Uuid"].as<uint64_t>(), nullptr);
 		Transform* transform = &Application->activeScene->transformComponents.at(collider->uuid);
 		for (auto shapeDeserialized : data["Shapes"]) {
-			if (Application->activeScene->meshes.find(shapeDeserialized["MeshUuid"].as<uint64_t>()) != Application->activeScene->meshes.end() || shapeDeserialized["Shape"].as<int>() != ColliderShape::ColliderShapeEnum::MESH) {
+			if (AssetsManager::HasMesh(shapeDeserialized["MeshUuid"].as<uint64_t>()) || shapeDeserialized["Shape"].as<int>() != ColliderShape::ColliderShapeEnum::MESH) {
 				if (shapeDeserialized["MeshUuid"].as<uint64_t>())
-					collider->CreateShape(ColliderShape::ColliderShapeEnum(shapeDeserialized["Shape"].as<int>()), transform, Application->activeScene->meshes.at(shapeDeserialized["MeshUuid"].as<uint64_t>()).get());
+					collider->CreateShape(ColliderShape::ColliderShapeEnum(shapeDeserialized["Shape"].as<int>()), transform, AssetsManager::GetMesh(shapeDeserialized["MeshUuid"].as<uint64_t>()));
 				else
 					collider->CreateShape(ColliderShape::ColliderShapeEnum(shapeDeserialized["Shape"].as<int>()), transform, 0);
 			}

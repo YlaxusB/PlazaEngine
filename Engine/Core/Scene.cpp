@@ -65,7 +65,7 @@ namespace Plaza {
 		newScene->lightComponents = ComponentMultiMap<uint64_t, Light>(copyScene->lightComponents);
 		newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
 
-		newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
+		//newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
 		newScene->materials = std::unordered_map<uint64_t, std::shared_ptr<Material>>(copyScene->materials);
 		newScene->materialsNames = std::unordered_map<std::string, uint64_t>(copyScene->materialsNames);
 

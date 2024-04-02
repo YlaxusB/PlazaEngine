@@ -82,6 +82,9 @@ namespace Plaza::Editor {
 						AssetsLoader::LoadAsset(asset);
 						//AssetsManager::AddAsset(asset);
 					}
+					else if (extension == ".plzmod") {
+						AssetsLoader::LoadPrefabToMemory(asset);
+					}
 				}
 
 				if (entry.is_regular_file() && entry.path().extension() == ".cs") {

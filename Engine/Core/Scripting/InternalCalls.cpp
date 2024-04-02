@@ -14,6 +14,7 @@
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Scripting/FieldManager.h"
 #include "Engine/Core/Physics.h"
+#include "Engine/Core/AssetsManager/AssetsManager.h"
 
 namespace Plaza {
 
@@ -411,12 +412,13 @@ namespace Plaza {
 			newMesh->temporaryMesh = true;
 			if (oldMesh && oldMesh->temporaryMesh) {
 				newMesh->meshId = oldMesh->meshId;
-				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
+				*AssetsManager::GetMesh(newMesh->meshId) = *newMesh;
 			}
 			else {
-				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+				AssetsManager::AddMesh(newMesh);
+				//Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId).get();
+			Application->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);
 			vector<glm::vec3>& meshVertices = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->vertices;
 			meshVertices.clear();
 
@@ -465,12 +467,12 @@ namespace Plaza {
 			newMesh->temporaryMesh = true;
 			if (oldMesh->temporaryMesh) {
 				newMesh->meshId = oldMesh->meshId;
-				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
+				*AssetsManager::GetMesh(newMesh->meshId) = *newMesh;
 			}
 			else {
-				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+				AssetsManager::AddMesh(newMesh);
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId).get();
+			Application->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);
 			vector<unsigned int>& meshIndices = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->indices;
 			meshIndices.clear();
 
@@ -517,12 +519,12 @@ namespace Plaza {
 			newMesh->temporaryMesh = true;
 			if (oldMesh->temporaryMesh) {
 				newMesh->meshId = oldMesh->meshId;
-				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
+				*AssetsManager::GetMesh(newMesh->meshId) = *newMesh;
 			}
 			else {
-				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<OpenGLMesh>(*newMesh));
+				AssetsManager::AddMesh(newMesh);
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId).get();
+			Application->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);
 			vector<glm::vec3>& meshNormals = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->normals;
 			meshNormals.clear();
 
@@ -568,12 +570,12 @@ namespace Plaza {
 			newMesh->temporaryMesh = true;
 			if (oldMesh->temporaryMesh) {
 				newMesh->meshId = oldMesh->meshId;
-				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
+				*AssetsManager::GetMesh(newMesh->meshId) = *newMesh;
 			}
 			else {
-				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<OpenGLMesh>(*newMesh));
+				AssetsManager::AddMesh(newMesh);
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId).get();
+			Application->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);//Application->activeScene->meshes.at(newMesh->meshId).get();
 			vector<glm::vec2>& meshUvs = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->uvs;
 			meshUvs.clear();
 
@@ -607,10 +609,10 @@ namespace Plaza {
 			newMesh->temporaryMesh = true;
 			if (oldMesh && oldMesh->temporaryMesh) {
 				newMesh->meshId = oldMesh->meshId;
-				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
+				*AssetsManager::GetMesh(newMesh->meshId) = *newMesh;
 			}
 			else {
-				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+				AssetsManager::AddMesh(newMesh);
 			}
 			newMesh->vertices.clear();
 			newMesh->vertices.reserve(verticesSize);
@@ -632,7 +634,7 @@ namespace Plaza {
 			//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
 
 			Editor::Filewatcher::AddToMainThread([uuid, oldMeshUuid, meshRendererIt, newMesh]() {
-				Application->activeScene->meshRendererComponents.find(uuid)->second.mesh = Application->activeScene->meshes.find(newMesh->meshId)->second.get();
+				Application->activeScene->meshRendererComponents.find(uuid)->second.mesh = AssetsManager::GetMesh(newMesh->meshId);
 				meshRendererIt->second.mesh = newMesh;
 
 				Application->activeScene->meshRendererComponents.find(uuid)->second.mesh = Application->mRenderer->RestartMesh(Application->activeScene->meshRendererComponents.find(uuid)->second.mesh);

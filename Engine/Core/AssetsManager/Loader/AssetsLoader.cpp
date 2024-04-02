@@ -65,6 +65,8 @@ namespace Plaza {
 					file.read(reinterpret_cast<char*>(&deserializedMeshRenderer.materialUuid), sizeof(uint64_t));
 
 					/* Read vertices, normals, uvs, indices */
+					file.read(reinterpret_cast<char*>(&deserializedMeshRenderer.serializedMesh.assetUuid), sizeof(uint64_t));
+
 					file.read(reinterpret_cast<char*>(&deserializedMeshRenderer.serializedMesh.verticesCount), sizeof(uint64_t));
 					deserializedMeshRenderer.serializedMesh.vertices.resize(deserializedMeshRenderer.serializedMesh.verticesCount);
 					for (unsigned int i = 0; i < deserializedMeshRenderer.serializedMesh.verticesCount; ++i) {
@@ -111,21 +113,23 @@ namespace Plaza {
 		return prefab;
 	}
 
-	void LoadDeserializedEntity(const SerializableEntity& deserializedEntity) {
-		Entity* newEntity = new Entity(deserializedEntity.name, Application->activeScene->mainSceneEntity, true, deserializedEntity.entityUuid);
-		Mesh* mes;
+	void LoadDeserializedEntity(const SerializableEntity& deserializedEntity, std::unordered_map<uint64_t, uint64_t>& equivalentUuids, bool loadToScene) {
+		Entity* newEntity = new Entity(deserializedEntity.name, Application->activeScene->mainSceneEntity, loadToScene);
+		newEntity->equivalentPrefabUuid = deserializedEntity.entityUuid;
+		equivalentUuids.emplace(deserializedEntity.entityUuid, newEntity->uuid);
+
+		Mesh* mesh = nullptr;
 		if (deserializedEntity.components.find(SerializableComponentType::MESH_RENDERER) != deserializedEntity.components.end())
 		{
 			SerializableMeshRenderer deserializedMeshRenderer = std::any_cast<SerializableMeshRenderer>(deserializedEntity.components.find(SerializableComponentType::MESH_RENDERER)->second);
 			SerializableMesh* deserializedMesh = &deserializedMeshRenderer.serializedMesh;
-			Mesh& mesh = Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), deserializedMesh->indices, *Scene::DefaultMaterial(), false);
-			MeshRenderer* meshRenderer = new MeshRenderer(&mesh, Application->activeScene->GetMaterial(deserializedMeshRenderer.materialUuid));
+			mesh = AssetsManager::GetMesh(deserializedMesh->assetUuid);//Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), deserializedMesh->indices, *Scene::DefaultMaterial(), false);
+			MeshRenderer* meshRenderer = new MeshRenderer(mesh, Application->activeScene->GetMaterial(deserializedMeshRenderer.materialUuid));
 			meshRenderer->instanced = true;
 			meshRenderer->material = Application->activeScene->GetMaterial(deserializedMeshRenderer.materialUuid);
 			RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
 			meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
 			newEntity->AddComponent<MeshRenderer>(meshRenderer);
-			mes = meshRenderer->mesh;
 		}
 		if (deserializedEntity.components.find(SerializableComponentType::COLLIDER) != deserializedEntity.components.end())
 		{
@@ -134,7 +138,7 @@ namespace Plaza {
 			Collider* collider = new Collider(deserializedCollider.uuid);
 			for (unsigned int i = 0; i < deserializedCollider.shapesCount; ++i) {
 				//collider->AddShape(new ColliderShape(collider->create, deserializedCollider.shapes[i].shape, deserializedCollider.shapes[i].meshUuid));
-				collider->CreateShape(deserializedCollider.shapes[i].shape, newEntity->GetComponent<Transform>(), mes);
+				collider->CreateShape(deserializedCollider.shapes[i].shape, newEntity->GetComponent<Transform>(), mesh);
 			}
 			newEntity->AddComponent<Collider>(collider);
 			//Mesh& mesh = Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), deserializedMesh->indices, *Scene::DefaultMaterial(), false);
@@ -146,7 +150,7 @@ namespace Plaza {
 			//newEntity->AddComponent<MeshRenderer>(meshRenderer);
 		}
 		/*
-				Entity* obj = new Entity(name, parent, addToScene);
+		Entity* obj = new Entity(name, parent, addToScene);
 		obj->changingName = true;
 		Application->activeScene->entities.at(obj->uuid).changingName = true;
 		Gui::Hierarchy::Item::firstFocus = true;
@@ -163,18 +167,53 @@ namespace Plaza {
 		*/
 	}
 
-	void AssetsLoader::LoadPrefab(std::string path) {
-		SerializablePrefab deserializedPrefab = DeserializePrefab(path);
+	void AssetsLoader::LoadPrefabToMemory(Asset* asset) {
+		SerializablePrefab deserializedPrefab = DeserializePrefab(asset->mPath.string());
 
 		for (const SerializableEntity& deserializedEntity : deserializedPrefab.entities) {
-			LoadDeserializedEntity(deserializedEntity);
+			if (deserializedEntity.components.find(SerializableComponentType::MESH_RENDERER) != deserializedEntity.components.end()) {
+				SerializableMeshRenderer deserializedMeshRenderer = std::any_cast<SerializableMeshRenderer>(deserializedEntity.components.find(SerializableComponentType::MESH_RENDERER)->second);
+
+				SerializableMesh* deserializedMesh = &deserializedMeshRenderer.serializedMesh;
+				Mesh* mesh = &Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), deserializedMesh->indices, *Scene::DefaultMaterial(), false);
+				mesh->uuid = deserializedMesh->assetUuid;
+				mesh->meshId = deserializedMesh->assetUuid;
+
+				AssetsManager::AddMesh(mesh);
+				//AssetsManager::mLoadedMeshes.emplace(mesh->meshId, mesh);
+			}
+		}
+		AssetsManager::mLoadedModels.emplace(deserializedPrefab.assetUuid, new LoadedModel{ deserializedPrefab.assetUuid, deserializedPrefab });
+	}
+
+	void AssetsLoader::LoadPrefabToScene(LoadedModel* model, bool loadToScene) {
+		std::unordered_map<uint64_t, uint64_t> equivalentUuids = std::unordered_map<uint64_t, uint64_t>(); // Left is the prefab uuid, and right is the entity uuid
+		for (const SerializableEntity& deserializedEntity : model->mSerializablePrefab.entities) {
+			LoadDeserializedEntity(deserializedEntity, equivalentUuids, loadToScene);
 		}
 
-		for (const SerializableEntity& deserializedEntity : deserializedPrefab.entities) {
+		for (const SerializableEntity& deserializedEntity : model->mSerializablePrefab.entities) {
+			Entity* equivalentEntity = Application->activeScene->GetEntity(equivalentUuids.find(deserializedEntity.entityUuid)->second);
+			Entity* equivalentEntityParent = Application->activeScene->GetEntity(equivalentEntity->equivalentPrefabParentUuid);
 			if (deserializedEntity.parentUuid != 0) {
-				Entity* equivalentEntity = Application->activeScene->GetEntity(deserializedEntity.parentUuid);
-				Application->activeScene->GetEntity(deserializedEntity.entityUuid)->ChangeParent(Application->activeScene->GetEntity(Application->activeScene->GetEntity(deserializedEntity.entityUuid)->parentUuid), Application->activeScene->GetEntity(deserializedEntity.parentUuid));
+				//Entity* equivalentEntity = Application->activeScene->GetEntity(deserializedEntity.parentUuid);
+				Entity* oldParent = Application->activeScene->GetEntity(equivalentEntity->parentUuid);
+				if (equivalentUuids.find(deserializedEntity.parentUuid) != equivalentUuids.end()) {
+					Entity* newParent = Application->activeScene->GetEntity(equivalentUuids.at(deserializedEntity.parentUuid));
+					Application->activeScene->GetEntity(equivalentEntity->uuid)->ChangeParent(oldParent, newParent);
+				}
 			}
+		}
+	}
+
+	void AssetsLoader::LoadPrefab(Asset* asset) {
+		if (AssetsManager::mLoadedModels.find(asset->mAssetUuid) != AssetsManager::mLoadedModels.end()) {
+			LoadPrefabToScene(AssetsManager::mLoadedModels.at(asset->mAssetUuid), true);
+		}
+		else {
+			LoadPrefabToMemory(asset);
+			if (AssetsManager::mLoadedModels.find(asset->mAssetUuid) != AssetsManager::mLoadedModels.end())
+				LoadPrefabToScene(AssetsManager::mLoadedModels.at(asset->mAssetUuid), true);
 		}
 	}
 }

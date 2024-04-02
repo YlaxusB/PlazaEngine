@@ -934,11 +934,11 @@ namespace Plaza {
 			PLAZA_PROFILE_SECTION("Group Instances");
 			for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
 				auto transformIt = Application->activeScene->transformComponents.find(key);
-				if (transformIt != Application->activeScene->transformComponents.end()) {
+				if (transformIt != Application->activeScene->transformComponents.end() && value.renderGroup) {
 					const Transform& transform = transformIt->second;
 
 					value.renderGroup->AddInstance(*Application->shader, transform.modelMatrix);
-					Time::drawCalls++;
+					Time::addInstanceCalls++;
 
 					bool continueLoop = true;
 
@@ -2126,7 +2126,6 @@ namespace Plaza {
 		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->mCascadeInstances[cascadeIndex].size(), 0, 0, 0);
 		renderGroup->mCascadeInstances[cascadeIndex].clear();
 
-		Time::addInstanceCalls++;
 	}
 	void VulkanRenderer::DrawRenderGroupInstanced(RenderGroup* renderGroup) {
 		PLAZA_PROFILE_SECTION("DrawRenderGroupInstanced");
@@ -2178,6 +2177,7 @@ namespace Plaza {
 		uint64_t meshTriangles = renderGroup->mesh->indices.size() / 3;
 		Time::mUniqueTriangles += meshTriangles;
 		Time::mTotalTriangles += meshTriangles * renderGroup->instanceModelMatrices.size();
+		Time::drawCalls++;
 		renderGroup->instanceModelMatrices.clear();
 	}
 

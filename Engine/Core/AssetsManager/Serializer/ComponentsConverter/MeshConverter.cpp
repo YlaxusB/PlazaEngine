@@ -4,7 +4,7 @@
 namespace Plaza {
 	SerializableMesh ComponentsConverter::ConvertMesh(Mesh* mesh) {
 		SerializableMesh  serializedMesh{};
-		serializedMesh.assetUuid = Plaza::UUID::NewUUID();
+		serializedMesh.assetUuid = mesh->meshId; //Plaza::UUID::NewUUID();
 		serializedMesh.assetType = AssetType::MESH;
 		serializedMesh.verticesCount = mesh->vertices.size();
 		serializedMesh.vertices = mesh->vertices;

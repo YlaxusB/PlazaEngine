@@ -3,6 +3,7 @@
 
 #include "Engine/Core/AssetsManager/Importer/AssetsImporter.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
+
 namespace Plaza {
 	Asset* AssetsManager::GetAssetOrImport(std::string path, uint64_t uuid) {
 		Asset* asset = AssetsManager::GetAsset(path);

@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Engine/Core/AssetsManager/AssetsType.h"
 
 namespace Plaza {
 	enum SerializableComponentType {

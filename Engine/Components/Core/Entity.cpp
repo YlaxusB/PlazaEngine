@@ -218,10 +218,12 @@ namespace Plaza {
 	template MeshRenderer* Entity::AddComp<MeshRenderer>();
 	template RigidBody* Entity::AddComp<RigidBody>();
 	template Collider* Entity::AddComp<Collider>();
+	template CharacterController* Entity::AddComp<CharacterController>();
 	template CsScriptComponent* Entity::AddComp<CsScriptComponent>();
 	template Plaza::Drawing::UI::TextRenderer* Entity::AddComp<Plaza::Drawing::UI::TextRenderer>();
 	template AudioSource* Entity::AddComp<AudioSource>();
 	template AudioListener* Entity::AddComp<AudioListener>();
+	template Light* Entity::AddComp<Light>();
 	template<typename T>
 	T* Entity::AddComp() {
 		return new T();

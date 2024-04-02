@@ -779,6 +779,14 @@ namespace Plaza {
 
 #pragma endregion Collider
 
+#pragma region Character Controller
+	static void CharacterController_MoveCall(uint64_t uuid, glm::vec3 position, float minimumDistance, float elapsedTime) {
+		if (Application->activeScene->HasComponent<CharacterController>(uuid)) {
+			Application->activeScene->GetComponent<CharacterController>(uuid)->Move(position, minimumDistance, elapsedTime);
+		}
+	}
+#pragma endregion Character Controller
+
 #pragma region TextRenderer
 	static string TextRenderer_GetText(uint64_t uuid) {
 		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
@@ -925,6 +933,8 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShape", Collider_AddShape);
 		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShapeMeshCall", Collider_AddShapeMeshCall);
 		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShapeHeightFieldCall", Collider_AddShapeHeightFieldCall);
+
+		mono_add_internal_call("Plaza.InternalCalls::CharacterController_MoveCall", CharacterController_MoveCall);
 
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_GetText", TextRenderer_GetText);
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetText", TextRenderer_SetText);

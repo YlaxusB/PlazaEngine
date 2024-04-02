@@ -492,6 +492,11 @@ namespace Plaza
 
         #endregion Collider
 
+        #region CharacterController
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void CharacterController_MoveCall(UInt64 uuid, Vector3 position, float minimumDistance, float elapsedTime);
+        #endregion CharacterController
+
         #region TextRenderer
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static string TextRenderer_GetText(UInt64 uuid);

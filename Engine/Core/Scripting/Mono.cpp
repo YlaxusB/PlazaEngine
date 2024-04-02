@@ -5,6 +5,8 @@
 #include "ThirdParty/mono/include/mono/metadata/threads.h"
 #include "ThirdParty/mono/include/mono/metadata/mono-debug.h"
 #include "Editor/ScriptManager/ScriptManager.h"
+#include "Engine/Components/Physics/CharacterController.h"
+#include "Engine/Components/Rendering/Light.h"
 
 char* ConvertConstCharToChar(const char* constCharString) {
 	// Calculate the length of the input string
@@ -323,10 +325,12 @@ namespace Plaza {
 		RegisterComponent<Camera>();
 		RegisterComponent<Collider>();
 		RegisterComponent<RigidBody>();
+		RegisterComponent<CharacterController>();
 		RegisterComponent<CsScriptComponent>();
 		RegisterComponent<Plaza::Drawing::UI::TextRenderer>();
 		RegisterComponent<AudioSource>();
 		RegisterComponent<AudioListener>();
+		RegisterComponent<Light>();
 	}
 
 	void Mono::ReloadAppDomain() {

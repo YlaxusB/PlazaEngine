@@ -8,7 +8,7 @@ namespace Plaza {
 		uint64_t mAssetUuid = 0;
 		std::string relativePath;
 		std::string filePath;
-		std::string name;
+		std::string name = "";
 		Texture* diffuse = new Texture("diffuse");
 		Texture* albedo = new Texture("albedo");
 		Texture* normal = new Texture("normal");

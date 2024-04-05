@@ -263,7 +263,9 @@ namespace Plaza {
 		VkPipelineColorBlendStateCreateInfo colorBlending,
 		VkPipelineDynamicStateCreateInfo dynamicState,
 		VkRenderPass renderPass,
-		VkPipelineDepthStencilStateCreateInfo depthStencil
+		VkPipelineDepthStencilStateCreateInfo depthStencil,
+		std::vector<VkVertexInputBindingDescription> vertexInputBindings,
+		std::vector<VkVertexInputAttributeDescription> vertexInputAttributes
 	) {
 		auto vertShaderCode = readFile(mVertexShaderPath);
 		auto fragShaderCode = readFile(mFragmentShaderPath);
@@ -343,7 +345,7 @@ namespace Plaza {
 		}
 
 		mMultisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-		mMultisampling.sampleShadingEnable = VK_FALSE;
+
 		mMultisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
 
@@ -372,7 +374,7 @@ namespace Plaza {
 		mDynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
 		mDynamicState.pDynamicStates = dynamicStates.data();
 
-		if (useVertexInputInfo)
+		if (useVertexInputInfo && vertexInputBindings.size() == 0)
 		{
 			// Populate VkVertexInputBindingDescription (if needed)
 			VkVertexInputBindingDescription bindingDescription = {};
@@ -419,10 +421,16 @@ namespace Plaza {
 			mVertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
 			mVertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 		}
-		else
+		else if(!useVertexInputInfo && vertexInputBindings.size() == 0)
 		{
 			mVertexInputInfo.vertexBindingDescriptionCount = 0;
 			mVertexInputInfo.vertexAttributeDescriptionCount = 0;
+		}
+		else if (useVertexInputInfo) {
+			mVertexInputInfo.vertexBindingDescriptionCount = vertexInputBindings.size();
+			mVertexInputInfo.pVertexBindingDescriptions = vertexInputBindings.data();
+			mVertexInputInfo.vertexAttributeDescriptionCount = vertexInputAttributes.size();
+			mVertexInputInfo.pVertexAttributeDescriptions = vertexInputAttributes.data();
 		}
 
 

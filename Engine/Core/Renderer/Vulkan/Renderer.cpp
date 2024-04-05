@@ -2,6 +2,7 @@
 #include "Renderer.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanSkybox.h"
+#include "Engine/Core/Renderer/Vulkan/VulkanGuiRenderer.h"
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
@@ -1008,7 +1009,15 @@ namespace Plaza {
 				value->mCascadeInstances.clear();
 			}
 		}
-		
+
+		//vkCmdEndRenderPass(commandBuffer);
+
+		/* Render texts */
+		//renderPassInfo.renderPass = ((VulkanGuiRenderer*)(this->mGuiRenderer))->mRenderPass;
+		//vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		for (auto& [key, value] : Application->activeScene->UITextRendererComponents) {
+			this->mGuiRenderer->RenderText(&value);
+		}
 		vkCmdEndRenderPass(commandBuffer);
 
 #ifdef EDITOR_MODE
@@ -1695,6 +1704,7 @@ namespace Plaza {
 		this->mShadows = new VulkanShadows();
 		this->mSkybox = new VulkanSkybox();
 		this->mPicking = new VulkanPicking();
+		this->mGuiRenderer = new VulkanGuiRenderer();
 
 		VulkanShadersCompiler::mDefaultOutDirectory = Application->exeDirectory + "\\CompiledShaders\\";
 		VulkanShadersCompiler::mGlslcExePath = "C:\\VulkanSDK\\1.3.268.0\\Bin\\glslc.exe";
@@ -1757,6 +1767,7 @@ namespace Plaza {
 		std::cout << "Initializing Skybox \n";
 		this->mSkybox->Init();
 		this->mPicking->Init();
+		this->mGuiRenderer->Init();
 
 		VkSemaphoreCreateInfo semaphoreInfo = {};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -2334,9 +2345,9 @@ namespace Plaza {
 		std::string name,
 		VkSampler textureSampler,
 		VkImageLayout layout
-		) {
+	) {
 
 		VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(textureSampler == VK_NULL_HANDLE ? this->mTextureSampler : textureSampler, imageView, layout);
-		this->mTrackedImages.push_back(TrackedImage{ImTextureID(imguiDescriptorSet), std::chrono::system_clock::now(), name});
+		this->mTrackedImages.push_back(TrackedImage{ ImTextureID(imguiDescriptorSet), std::chrono::system_clock::now(), name });
 	}
 }

@@ -33,7 +33,9 @@ namespace Plaza {
 			VkPipelineColorBlendStateCreateInfo colorBlending,
 			VkPipelineDynamicStateCreateInfo dynamicState,
 			VkRenderPass renderPass,
-			VkPipelineDepthStencilStateCreateInfo depthStencil
+			VkPipelineDepthStencilStateCreateInfo depthStencil,
+			std::vector<VkVertexInputBindingDescription> vertexInputBindings = {},
+			std::vector<VkVertexInputAttributeDescription> vertexInputAttributes = {}
 		);
 		void Terminate();
 

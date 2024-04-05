@@ -780,9 +780,9 @@ namespace Plaza {
 #pragma endregion Collider
 
 #pragma region Character Controller
-	static void CharacterController_MoveCall(uint64_t uuid, glm::vec3 position, float minimumDistance, float elapsedTime) {
+	static void CharacterController_MoveCall(uint64_t uuid, glm::vec3 position, float minimumDistance, bool followOrientation, float elapsedTime) {
 		if (Application->activeScene->HasComponent<CharacterController>(uuid)) {
-			Application->activeScene->GetComponent<CharacterController>(uuid)->Move(position, minimumDistance, elapsedTime);
+			Application->activeScene->GetComponent<CharacterController>(uuid)->Move(position, minimumDistance, followOrientation, elapsedTime);
 		}
 	}
 #pragma endregion Character Controller

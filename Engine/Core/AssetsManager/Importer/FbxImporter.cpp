@@ -189,7 +189,7 @@ namespace Plaza {
 						//for (int i = polygon.from_vertex; i < polygon.from_vertex + polygon.vertex_count; ++i) {
 						ofbx::Vec3 v = positions.get(tri_indices[i]);
 						glm::vec3 vertex = glm::vec3(v.x, v.y, v.z);
-						bool isVertexUnique = uniqueVertices.count(vertex) == 0;
+						bool isVertexUnique = true;//uniqueVertices.count(vertex) == 0;
 						if (isVertexUnique) {
 							uniqueVertices[vertex] = static_cast<uint32_t>(finalMesh->vertices.size());
 							finalMesh->vertices.push_back(glm::vec3(v.x, v.y, v.z));

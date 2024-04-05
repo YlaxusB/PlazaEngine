@@ -83,7 +83,13 @@ namespace Plaza::Editor {
 						//AssetsManager::AddAsset(asset);
 					}
 					else if (extension == ".plzmod") {
-						AssetsLoader::LoadPrefabToMemory(asset);
+						std::ifstream binaryFile(entry.path(), std::ios::binary);
+						uint64_t uuid = 0;
+						binaryFile.read(reinterpret_cast<char*>(&uuid), sizeof(uint64_t));
+						binaryFile.close();
+						AssetsManager::NewAsset(uuid, AssetType::MODEL, entry.path().string());
+						//AssetsManager::LoadMetadataAsAsset(entry.path());
+						//AssetsLoader::LoadPrefabToMemory(asset);
 					}
 				}
 

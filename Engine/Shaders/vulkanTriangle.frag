@@ -254,8 +254,7 @@ void main() {
     //  gOthers.z = metallic;
    //SpecBRDF = all(equal(shad, vec3(0))) ? SpecBRDF : vec3(0);
     //vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color.xyz * (nDotL + amb / 2);//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
-    vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * max(nDotL, 0.11f) * (amb + shadow);
-
+    vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * (max(nDotL, amb.x / 2) * (amb + shadow));
     //vec3 fog = vec3(0.7f, 0.7f, 0.0f) * pow(distance(FragPos, ubo.viewPos) / 15000.0f, 0.5f);
     //FinalColor *= vec3(1.0f) - fog;
 

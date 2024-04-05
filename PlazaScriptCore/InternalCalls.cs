@@ -494,7 +494,7 @@ namespace Plaza
 
         #region CharacterController
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static void CharacterController_MoveCall(UInt64 uuid, Vector3 position, float minimumDistance, float elapsedTime);
+        public extern static void CharacterController_MoveCall(UInt64 uuid, Vector3 position, float minimumDistance, bool followOrientation, float elapsedTime);
         #endregion CharacterController
 
         #region TextRenderer

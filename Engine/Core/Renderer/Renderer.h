@@ -5,6 +5,7 @@
 #include "Shadows.h"
 #include "Skybox.h"
 #include "Picking.h"
+#include "GuiRenderer.h"
 
 namespace Plaza { 
 
@@ -29,6 +30,7 @@ namespace Plaza {
 		Shadows* mShadows;
 		Skybox* mSkybox;
 		Picking* mPicking;
+		GuiRenderer* mGuiRenderer;
 		const unsigned int mMaxFramesInFlight = 2;
 
 		virtual void Init() = 0;

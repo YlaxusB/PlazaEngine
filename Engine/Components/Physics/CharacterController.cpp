@@ -30,10 +30,22 @@ namespace Plaza {
 		this->GetGameObject()->GetComponent<Transform>()->SetRelativePosition(glm::vec3((float)this->mCharacterController->getPosition().x, (float)this->mCharacterController->getPosition().y, (float)this->mCharacterController->getPosition().z));
 	}
 
-	void CharacterController::Move(glm::vec3 position, float minimumDistance, float elapsedTime) {
-		std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+	void CharacterController::Move(glm::vec3 position, float minimumDistance, bool followOrientation, float elapsedTime) {
 		bool inf = elapsedTime == std::numeric_limits<float>::infinity();
-		mCharacterController->move(physx::PxVec3(position.x, position.y, position.z), minimumDistance, elapsedTime == std::numeric_limits<float>::infinity() ? (this->lastMoveTime - now).count() : elapsedTime, nullptr);
+		glm::vec3 finalPosition = position;
+		if (followOrientation) {
+			this->GetGameObject()->GetComponent<Transform>()->UpdateWorldMatrix();
+			glm::mat4 matrix = this->GetGameObject()->GetComponent<Transform>()->GetTransform();
+			glm::vec3 currentPosition = glm::vec3(matrix[3]);
+			glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
+			glm::vec3 leftVector = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
+			glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
+			finalPosition = forwardVector * position.x + leftVector * position.z + upVector * position.y;
+			if (finalPosition.x != 0.0f)
+				finalPosition.x = finalPosition.x;
+		}
+		std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+		mCharacterController->move(physx::PxVec3(finalPosition.x, finalPosition.y, finalPosition.z), minimumDistance, elapsedTime == std::numeric_limits<float>::infinity() ? (this->lastMoveTime - now).count() : elapsedTime, nullptr);
 		this->lastMoveTime = now;
 	}
 }

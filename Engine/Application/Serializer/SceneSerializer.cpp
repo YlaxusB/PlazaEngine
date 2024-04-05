@@ -15,6 +15,7 @@
 #include "Engine/Application/Serializer/Components/AudioSourceSerializer.h"
 
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
+#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 
 namespace Plaza {
 	void SerializeGameObjects(YAML::Emitter& out, Entity* entity) {
@@ -102,8 +103,13 @@ namespace Plaza {
 
 		/* Models */
 		out << YAML::Key << "Models" << YAML::Value << YAML::BeginSeq;
-		for (auto& [key, value] : EngineClass::models) {
-			SerializeModels(out, value.get());
+		
+		for (auto& [key, value] : AssetsManager::mLoadedModels) {
+			out << YAML::BeginMap;
+			out << YAML::Key << "Model" << YAML::Value << value->uuid;
+			out << YAML::Key << "ModelPath" << YAML::Value << AssetsManager::GetAsset(value->uuid)->mPath.string();
+			out << YAML::EndMap;
+			//SerializeModels(out, value->uuid);
 		}
 		out << YAML::EndSeq;
 
@@ -152,8 +158,9 @@ namespace Plaza {
 		auto modelsDeserialized = data["Models"];
 		if (modelsDeserialized) {
 			for (auto model : modelsDeserialized) {
-				std::string modelPath = Application->projectPath + "\\" + model["ModelPath"].as<std::string>();
-				models.emplace(model["Model"].as<uint64_t>(), modelPath);
+				std::string modelPath = model["ModelPath"].as<std::string>();
+				AssetsLoader::LoadPrefabToMemory(AssetsManager::GetAsset(model["Model"].as<uint64_t>()));
+				//models.emplace(model["Model"].as<uint64_t>(), modelPath);
 			}
 		}
 		// A map of model uuid and another map of mesh name and mesh id
@@ -245,6 +252,10 @@ namespace Plaza {
 			for (auto entity : gameObjectsDeserialized) {
 				uint64_t entityUuid = entity["Entity"].as<uint64_t>();
 				uint64_t parentUuid = entity["ParentID"].as<uint64_t>();
+
+				if (entityUuid == Application->activeScene->mainSceneEntity->uuid)
+					continue;
+
 				Entity* ent = &Application->activeScene->entities.at(entityUuid);
 				if (parentUuid && parentUuid != entityUuid && Application->activeScene->entities.find(parentUuid) != Application->activeScene->entities.end())
 					Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), Application->activeScene->entities.at(entity["ParentID"].as<uint64_t>()));

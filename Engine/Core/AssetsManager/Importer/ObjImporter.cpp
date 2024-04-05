@@ -106,7 +106,7 @@ namespace Plaza {
 					attrib.vertices[3 * index.vertex_index + 2]
 				) * mModelImporterScale;
 
-				bool isVertexUnique = uniqueVertices.count(vertex) == 0;
+				bool isVertexUnique = true;//uniqueVertices.count(vertex) == 0;
 				if (isVertexUnique) {
 					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
 

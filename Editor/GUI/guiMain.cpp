@@ -334,6 +334,7 @@ namespace Plaza {
 
 			// Adjust padding and margin sizes
 			style.WindowPadding = ImVec2(0.0f, 0.0f);  // Change window padding
+
 			if (ImGui::Begin("Editor", &Gui::isSceneOpen, windowFlags)) {
 				Application->activeCamera = Application->editorCamera;
 			};

@@ -7,7 +7,7 @@ namespace Plaza {
 		CharacterController(uint64_t uuid = 0);
 		void Init();
 		void Update();
-		void Move(glm::vec3 position, float minimumDistance = 5.0f, float elapsedTime = 1.0f);
+		void Move(glm::vec3 position, float minimumDistance = 5.0f, bool followOrientation = true, float elapsedTime = 1.0f);
 		physx::PxController* mCharacterController;
 		physx::PxCapsuleControllerDesc mDescription = physx::PxCapsuleControllerDesc();
 

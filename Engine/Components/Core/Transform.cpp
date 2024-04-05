@@ -47,7 +47,7 @@ namespace Plaza {
 			parentMatrix = glm::mat4(1.0f);
 		}
 		else {
-			parentMatrix = Application->activeScene->entities.at(this->GetGameObject()->parentUuid).GetComponent<Transform>()->modelMatrix;
+			parentMatrix = this->GetGameObject()->GetParent().GetComponent<Transform>()->modelMatrix;
 		}
 		this->modelMatrix = parentMatrix * this->GetLocalMatrix();
 		return this->modelMatrix;

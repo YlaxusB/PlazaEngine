@@ -431,9 +431,9 @@ namespace Plaza
     #region Character Controller
     public class CharacterController : Component
     {
-        public void Move(Vector3 position, float minimumDistance, float elapsedTime)
+        public void Move(Vector3 position, float minimumDistance, bool followOrientation, float elapsedTime)
         {
-            InternalCalls.CharacterController_MoveCall(this.Uuid, position, minimumDistance, elapsedTime);
+            InternalCalls.CharacterController_MoveCall(this.Uuid, position, minimumDistance, followOrientation, elapsedTime);
         }
     }
     #endregion Character Controller

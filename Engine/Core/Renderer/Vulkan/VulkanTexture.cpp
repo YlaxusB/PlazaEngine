@@ -111,7 +111,7 @@ namespace Plaza {
 		delete[] tempRow;
 	}
 
-	void VulkanTexture::CreateTextureImage(VkDevice device, std::string path, VkFormat& format, bool generateMipMaps) {
+	void VulkanTexture::CreateTextureImage(VkDevice& device, std::string path, VkFormat& format, bool generateMipMaps) {
 		bool isDDS = std::filesystem::path{ path }.extension() == ".dds";
 		dds::Image image;
 
@@ -128,6 +128,7 @@ namespace Plaza {
 			imageSize = texWidth * texHeight * 4;
 		}
 		else {
+			generateMipMaps = false;
 			dds::ReadResult res = dds::readFile(path, &image);
 			texWidth = image.width;
 			texHeight = image.height;

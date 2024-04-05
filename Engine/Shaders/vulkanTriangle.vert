@@ -40,13 +40,13 @@ out gl_PerVertex {
 void main() {
     model = mat4(instanceMatrix[0], instanceMatrix[1], instanceMatrix[2], instanceMatrix[3]);
     mat4 aInstanceMatrix = model;
-    fragTexCoord = inTexCoord;
+    fragTexCoord = vec2(0.0f, 1.0f) - inTexCoord;
 
     mat4 finalInstanceMatrix = model;
     vec4 finalModel = finalInstanceMatrix * vec4(inPosition, 1.0);
     FragPos = vec4(model * vec4(inPosition, 1.0));
     //vs_out.Normal = transpose(inverse(mat3(aInstanceMatrix))) * aNormal;
-    TexCoords = inTexCoord;
+    TexCoords = vec2(0.0f, 1.0f) -  inTexCoord;
 
     //if(usingNormal){
     //    mat3 normalMatrix = transpose(inverse(mat3(finalInstanceMatrix)));

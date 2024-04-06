@@ -12,7 +12,7 @@ namespace Plaza {
 	class VulkanGuiRenderer : public GuiRenderer {
 	public:
 		void Init() override;
-		void RenderText(Drawing::UI::TextRenderer* textRendererComponent) override;
+		void RenderText(Drawing::UI::TextRenderer* textRendererComponent = nullptr) override;
 		void Terminate() override;
 		VkRenderPass mRenderPass;
 	private:
@@ -24,7 +24,7 @@ namespace Plaza {
 		VulkanRenderer* mRenderer;
 
 		enum TextAlign { alignLeft, alignCenter, alignRight };
-		void AddText(std::string text, float x, float y, TextAlign align);
+		void AddText(std::string text, float x, float y, float scale, TextAlign align);
 		int numLetters = 0;
 
 		VkSampler mSampler;
@@ -46,8 +46,6 @@ namespace Plaza {
 		uint32_t* frameBufferWidth;
 		uint32_t* frameBufferHeight;
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-		float scale = 1.0f;
-
 		// Pointer to mapped vertex buffer
 		glm::vec4* mapped = nullptr;
 		stb_fontchar stbFontData[STB_FONT_consolas_24_latin1_NUM_CHARS];

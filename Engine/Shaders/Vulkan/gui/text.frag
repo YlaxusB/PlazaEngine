@@ -8,6 +8,6 @@ layout (location = 0) out vec4 outFragColor;
 
 void main(void)
 {
-	float color = texture(samplerFont, vec2(inUV.x, abs(inUV.y))).r;
+	float color = texture(samplerFont, vec2(inUV.x, inUV.y)).r;
 	outFragColor = vec4(color);
 }

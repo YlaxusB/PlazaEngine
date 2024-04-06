@@ -14,6 +14,7 @@
 #include "Editor/GUI/Inspector/FileInspector/TextEditor.h"
 #include "Editor/GUI/Inspector/LightInspector.h"
 #include "Editor/GUI/Inspector/CharacterControllerInspector.h"
+#include "Editor/GUI/Inspector/TextRendererInspector.h"
 
 namespace Plaza::Editor {
 	/* File Inspector*/
@@ -93,6 +94,8 @@ namespace Plaza::Editor {
 			components.push_back(&activeScene->lightComponents.at(uuid));
 		if (activeScene->characterControllerComponents.contains(uuid))
 			components.push_back(&activeScene->characterControllerComponents.at(uuid));
+		if (activeScene->UITextRendererComponents.contains(uuid))
+			components.push_back(&activeScene->UITextRendererComponents.at(uuid));
 	}
 
 	void Inspector::ComponentInspector::CreateRespectiveInspector(Component* component) {
@@ -126,6 +129,9 @@ namespace Plaza::Editor {
 		}
 		else if (CharacterController* characterController = dynamic_cast<CharacterController*>(component)) {
 			Plaza::Editor::CharacterControllerInspector::CharacterControllerInspector(characterController);
+		}
+		else if (Drawing::UI::TextRenderer* textRenderer = dynamic_cast<Drawing::UI::TextRenderer*>(component)) {
+			Plaza::Editor::TextRendererInspector::TextRendererInspector(textRenderer);
 		}
 	}
 }

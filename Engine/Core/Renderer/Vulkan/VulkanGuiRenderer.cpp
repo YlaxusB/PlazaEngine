@@ -18,13 +18,13 @@ namespace Plaza {
 
 		VkPipelineDepthStencilStateCreateInfo depthStencil{};
 		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencil.depthTestEnable = VK_TRUE;
-		depthStencil.depthWriteEnable = VK_TRUE;
+		depthStencil.depthTestEnable = VK_FALSE;
+		depthStencil.depthWriteEnable = VK_FALSE;
 		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 		depthStencil.back.compareOp = VK_COMPARE_OP_ALWAYS;
 
 		VkPipelineColorBlendAttachmentState blendAttachmentState{};
-		blendAttachmentState.blendEnable = VK_FALSE;
+		blendAttachmentState.blendEnable = VK_TRUE;
 		blendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 		blendAttachmentState.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 		blendAttachmentState.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -63,7 +63,7 @@ namespace Plaza {
 		rasterizer.depthClampEnable = VK_FALSE;
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizer.lineWidth = 1.0f;
-		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+		rasterizer.cullMode = VK_CULL_MODE_NONE;//BACK_BIT;
 		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState{};
@@ -354,7 +354,7 @@ namespace Plaza {
 		this->mRenderer->AddTrackerToImage(this->mImageView, "Text Rendering", nullptr, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 
-	void VulkanGuiRenderer::AddText(std::string text, float x, float y, TextAlign align)
+	void VulkanGuiRenderer::AddText(std::string text, float x, float y, float scale, TextAlign align)
 	{
 		const uint32_t firstChar = STB_FONT_consolas_24_latin1_FIRST_CHAR;
 
@@ -435,9 +435,11 @@ namespace Plaza {
 		vkMapMemory(*mDevice, mMemory, 0, VK_WHOLE_SIZE, 0, (void**)&mapped);
 		numLetters = 0;
 
-		textRendererComponent->mPosX = 50.0f;
-		textRendererComponent->mPosY = 50.0f;
-		this->AddText(textRendererComponent->mText, textRendererComponent->mPosX, textRendererComponent->mPosY, TextAlign::alignLeft);
+		for (auto& [key, value] : Application->activeScene->UITextRendererComponents) {
+			this->AddText(value.mText, value.mPosX, value.mPosY, value.mScale, TextAlign::alignLeft);
+		}
+
+
 
 		vkUnmapMemory(*mDevice, mMemory);
 		mapped = nullptr;

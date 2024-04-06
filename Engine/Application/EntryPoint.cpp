@@ -114,7 +114,10 @@ int main() {
 				std::cout << "Starting Scene\n";
 				Scene::Play();
 				std::cout << "Scene Played \n";
-				Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
+				if (Application->activeScene->cameraComponents.size() > 0)
+					Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
+				else
+					Application->activeCamera = Application->activeScene->mainSceneEntity->AddComponent<Camera>(new Camera());
 			}
 		}
 	}

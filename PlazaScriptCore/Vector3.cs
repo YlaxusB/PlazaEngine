@@ -257,6 +257,11 @@ namespace Plaza
             return new Vector3(a.X * b, a.Y * b, a.Z * b);
         }
 
+        public static Vector3 operator *(Vector3 a, Vector3 b)
+        {
+            return new Vector3(a.X * b.X, a.Y * b.Y, a.Z * b.Z);
+        }
+
         public static Vector3 operator /(Vector3 a, float b)
         {
             return new Vector3(a.X / b, a.Y / b, a.Z / b);
@@ -269,6 +274,11 @@ namespace Plaza
             result.Y = (v1.Z * v2.X) - (v1.X * v2.Z);
             result.Z = (v1.X * v2.Y) - (v1.Y * v2.X);
             return result;
+        }
+
+        public static float Dot(Vector3 a, Vector3 b)
+        {
+            return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
         }
 
         public static float squareRoot(float number, double epsilon = 1e-6)
@@ -291,6 +301,14 @@ namespace Plaza
             result.Y = v.Y / mag;
             result.Z = v.Z / mag;
             return result;
+        }
+
+        public static float Angle(Vector3 a, Vector3 b)
+        {
+            float dot = Dot(Normalize(a), Normalize(b));
+            dot = Math.Min(1f, Math.Max(-1f, dot));
+            float angleRad = (float)Math.Acos(dot);
+            return angleRad * (180f / (float)Math.PI);
         }
 
         public static float Distance(Vector3 v1, Vector3 v2)
@@ -360,6 +378,13 @@ namespace Plaza
         public Vector3 Cos()
         {
             return new Vector3(Math.Cos(this.X), Math.Cos(this.Y), Math.Cos(this.Z));
+        }
+
+        public static Vector3 ProjectOnPlane(Vector3 vector, Vector3 planeNormal)
+        {
+            Vector3 normalizedPlaneNormal = Vector3.Normalize(planeNormal);
+            float dot = Vector3.Dot(vector, normalizedPlaneNormal);
+            return vector - new Vector3(dot, dot, dot) * normalizedPlaneNormal;
         }
     }
 

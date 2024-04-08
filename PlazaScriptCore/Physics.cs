@@ -11,6 +11,7 @@ namespace Plaza
         public struct RaycastHit {
             public UInt64 hitUuid;
             public Vector3 point;
+            public Vector3 normal;
         }
 
         public static RaycastHit Raycast(Vector3 origin, Vector3 direction, float maxDistance)

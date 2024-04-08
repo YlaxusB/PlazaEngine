@@ -1678,7 +1678,7 @@ namespace Plaza {
 	void VulkanRenderer::CreateDepthResources() {
 		VkFormat depthFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;//FindDepthFormat();
 		CreateImage(mSwapChainExtent.width, mSwapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mDepthImage, mDepthImageMemory);
-		mDepthImageView = CreateImageView(mDepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+		mDepthImageView = CreateImageView(mDepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
 	}
 
 	void VulkanRenderer::LoadModel() {
@@ -2112,7 +2112,7 @@ namespace Plaza {
 
 			convertedVertices.push_back(Vertex{
 				vertices[i],
-				(normals.size() > i) ? normals[i] : glm::vec3(0.0f),
+				(normals.size() > i) ? normals[i] : glm::vec3(1.0f),
 				(uvs.size() > i) ? uvs[i] : glm::vec2(0.0f),
 				(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f),
 				(bitangent.size() > i) ? bitangent[i] : glm::vec3(0.0f)

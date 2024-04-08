@@ -368,6 +368,17 @@ namespace Plaza
 
     public class RigidBody : Component
     {
+        public float drag
+        {
+            get
+            {
+                return InternalCalls.RigidBody_GetDrag(Uuid);
+            }
+            set
+            {
+                InternalCalls.RigidBody_SetDrag(Uuid, value);
+            }
+        }
         public void ApplyForce(Vector3 force)
         {
             InternalCalls.RigidBody_ApplyForce(Uuid, ref force);

@@ -159,7 +159,8 @@ namespace Plaza {
 
 		pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
 		pairFlags |= PxPairFlag::eNOTIFY_CONTACT_POINTS;
-		return PxFilterFlag::eDEFAULT;
+		pairFlags |= PxPairFlag::eDETECT_CCD_CONTACT;
+		return PxFilterFlags();
 	}
 	class ContactCallBack : public PxSimulationEventCallback
 	{
@@ -204,6 +205,7 @@ namespace Plaza {
 		sceneDesc.filterShader = FilterShaderExample;
 		sceneDesc.filterCallback = &filterCallback;
 		sceneDesc.simulationEventCallback = &simulationEventCallback;
+		sceneDesc.flags = PxSceneFlag::eENABLE_CCD;
 		//sceneDesc.simulationEventCallback = &collisionCallback;
 		//sceneDesc.dynamicTreeRebuildRateHint = 100;
 		return sceneDesc;
@@ -224,7 +226,7 @@ namespace Plaza {
 		toleranceScale.speed = 9.81f;
 		toleranceScale.length = 1;
 		m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *m_foundation, toleranceScale, true);
-		m_dispatcher = PxDefaultCpuDispatcherCreate(2); // 2 is the number of worker threads
+		m_dispatcher = PxDefaultCpuDispatcherCreate(2);
 		if (!m_dispatcher) {
 			std::cerr << "PhysX CPU dispatcher creation failed!" << std::endl;
 		}
@@ -256,12 +258,12 @@ namespace Plaza {
 		//}
 	}
 
-	physx::PxTransform* Physics::GetPxTransform(Transform& transform) {
+	physx::PxTransform Physics::GetPxTransform(Transform& transform) {
 		//// Create a dynamic rigid body
-		glm::quat quaternion = transform.GetWorldQuaternion();
+		glm::quat quaternion = glm::normalize(transform.GetWorldQuaternion());
 		physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 		glm::vec3 worldPosition = transform.GetWorldPosition();
-		physx::PxTransform* pxTransform = new physx::PxTransform(
+		physx::PxTransform pxTransform = physx::PxTransform(
 			worldPosition.x, worldPosition.y, worldPosition.z,
 			pxQuaternion);
 		return pxTransform;

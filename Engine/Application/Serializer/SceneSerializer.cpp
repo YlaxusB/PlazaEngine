@@ -22,7 +22,8 @@ namespace Plaza {
 		out << YAML::BeginMap;
 		out << YAML::Key << "Entity" << YAML::Value << entity->uuid;
 		out << YAML::Key << "Name" << YAML::Value << entity->name;
-		out << YAML::Key << "ParentID" << YAML::Value << entity->parentUuid;
+		uint64_t parentUuid = (entity->uuid == Application->activeScene->mainSceneEntity->uuid) ? entity->uuid : entity->parentUuid;
+		out << YAML::Key << "ParentID" << YAML::Value << parentUuid;
 		out << YAML::Key << "Components" << YAML::BeginMap;
 		if (Transform* transform = entity->GetComponent<Transform>()) {
 			ComponentSerializer::TransformSerializer::Serialize(out, *transform);
@@ -86,11 +87,11 @@ namespace Plaza {
 		out << YAML::Key << "Name" << YAML::Value << sceneEntity->name;
 	}
 
-	void Serializer::Serialize(const Asset* asset)
+	void Serializer::Serialize(const Asset* sceneAsset)
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-		out << YAML::Key << "AssetUuid" << YAML::Value << asset->mAssetUuid;
+		out << YAML::Key << "AssetUuid" << YAML::Value << sceneAsset->mAssetUuid;
 		out << YAML::Key << "Scene" << YAML::Value << YAML::BeginMap;
 		SerializeScene(out, Application->activeScene->mainSceneEntity);
 		out << YAML::EndMap;
@@ -122,7 +123,7 @@ namespace Plaza {
 
 
 		out << YAML::EndMap;
-		std::ofstream fout(asset->mPath.string());
+		std::ofstream fout(sceneAsset->mPath.string());
 		fout << out.c_str();
 	}
 

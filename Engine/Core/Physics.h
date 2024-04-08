@@ -29,7 +29,7 @@ namespace Plaza {
 		static void InitPhysics();
 		static void Update();
 
-		static physx::PxTransform* GetPxTransform(Transform& transform);
+		static physx::PxTransform GetPxTransform(Transform& transform);
 		static physx::PxTransform* ConvertMat4ToPxTransform(const glm::mat4& mat);
 	};
 }

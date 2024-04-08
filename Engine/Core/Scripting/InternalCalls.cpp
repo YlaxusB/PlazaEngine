@@ -32,11 +32,17 @@ namespace Plaza {
 		else if (name == typeid(Collider).name()) {
 			Application->activeScene->colliderComponents.emplace(uuid, *dynamic_cast<Collider*>(component));
 		}
+		else if (name == typeid(CharacterController).name()) {
+			Application->activeScene->characterControllerComponents.emplace(uuid, *dynamic_cast<CharacterController*>(component));
+		}
 		else if (name == typeid(Camera).name()) {
 			Application->activeScene->cameraComponents.emplace(uuid, *dynamic_cast<Camera*>(component));
 		}
 		else if (name == typeid(Plaza::Drawing::UI::TextRenderer).name()) {
 			Application->activeScene->UITextRendererComponents.emplace(uuid, *dynamic_cast<Plaza::Drawing::UI::TextRenderer*>(component));
+		}
+		else if (name == typeid(Light).name()) {
+			Application->activeScene->lightComponents.emplace(uuid, *dynamic_cast<Light*>(component));
 		}
 	}
 
@@ -265,6 +271,7 @@ namespace Plaza {
 	struct RaycastHit {
 		uint64_t hitUuid;
 		glm::vec3 point;
+		glm::vec3 normal;
 	};
 	physx::PxVec3 glmToPx(glm::vec3 vector) {
 		return physx::PxVec3(vector.x, vector.y, vector.z);
@@ -275,6 +282,7 @@ namespace Plaza {
 		if (status) {
 			hit->hitUuid = (uint64_t)hitPhysx.block.actor->userData;
 			hit->point = glm::vec3(hitPhysx.block.position.x, hitPhysx.block.position.y, hitPhysx.block.position.z);
+			hit->normal = glm::vec3(hitPhysx.block.normal.x, hitPhysx.block.normal.y, hitPhysx.block.normal.z);
 		}
 	}
 #pragma endregion Physics
@@ -303,7 +311,7 @@ namespace Plaza {
 		glm::vec3 asd = glm::degrees(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation());
 	}
 	static void GetRotationCall(uint64_t uuid, glm::vec3* out) {
-		*out = glm::degrees(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation());
+		*out = glm::degrees(glm::normalize(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation()));
 	}
 
 	static void SetRotationQuaternion(uint64_t uuid, glm::vec4* quat) {
@@ -330,17 +338,17 @@ namespace Plaza {
 	*/
 	static void Transform_GetUpVector(uint64_t uuid, glm::vec3* out) {
 		glm::mat4 matrix = Application->activeScene->transformComponents.at(uuid).GetTransform();
-		*out = glm::normalize(glm::vec3(matrix[1]));
+		*out = glm::normalize(glm::vec3(matrix[1][0], matrix[1][1], matrix[1][2]));
 	}
 
 	static void Transform_GetForwardVector(uint64_t uuid, glm::vec3* out) {
-		*out = glm::normalize(glm::vec3(Application->activeScene->transformComponents.at(uuid).GetTransform()[2]));
+		glm::mat4 matrix = Application->activeScene->transformComponents.at(uuid).GetTransform();
+		*out = glm::normalize(glm::vec3(matrix[2][0], matrix[2][1], matrix[2][2]));
 	}
 
 	static void Transform_GetLeftVector(uint64_t uuid, glm::vec3* out) {
 		glm::mat4 matrix = Application->activeScene->transformComponents.at(uuid).GetTransform();
-		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
-		*out = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
+		*out = -glm::normalize(glm::vec3(matrix[0][0], matrix[0][1], matrix[0][2]));
 	}
 
 	static void Transform_GetWorldMatrix(uint64_t uuid, float** out, int* size) {
@@ -710,6 +718,16 @@ namespace Plaza {
 		if (Application->activeScene->HasComponent<RigidBody>(uuid))
 			Application->activeScene->rigidBodyComponents.at(uuid).AddTorque(*vec3, mode, autowake);
 	}
+
+	static float RigidBody_GetDrag(uint64_t uuid, float drag) {
+		if (Application->activeScene->HasComponent<RigidBody>(uuid))
+			return Application->activeScene->rigidBodyComponents.at(uuid).GetDrag();
+	}
+
+	static void RigidBody_SetDrag(uint64_t uuid, float drag) {
+		if (Application->activeScene->HasComponent<RigidBody>(uuid))
+			Application->activeScene->rigidBodyComponents.at(uuid).SetDrag(drag);
+	}
 #pragma endregion RigidBody
 
 #pragma region Collider
@@ -927,6 +945,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_ApplyForce", RigidBody_ApplyForce);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_AddForce", RigidBody_AddForce);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_AddTorque", RigidBody_AddTorque);
+		mono_add_internal_call("Plaza.InternalCalls::RigidBody_SetDrag", RigidBody_SetDrag);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_LockAngular", RigidBody_LockAngular);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_IsAngularLocked", RigidBody_IsAngularLocked);
 

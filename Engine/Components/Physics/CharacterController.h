@@ -11,6 +11,8 @@ namespace Plaza {
 		physx::PxController* mCharacterController;
 		physx::PxCapsuleControllerDesc mDescription = physx::PxCapsuleControllerDesc();
 
+		bool hasMovedInThisFrame = false;
+
 		std::chrono::system_clock::time_point lastMoveTime;
 	};
 }

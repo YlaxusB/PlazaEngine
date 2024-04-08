@@ -22,18 +22,21 @@ namespace Plaza {
 		void ApplyForce(glm::vec3 force);
 		void AddForce(glm::vec3 force, physx::PxForceMode::Enum mode = physx::PxForceMode::eFORCE, bool autowake = true);
 		void AddTorque(glm::vec3 torque, physx::PxForceMode::Enum mode = physx::PxForceMode::eFORCE, bool autowake = true);
-
+		float GetDrag();
+		void SetDrag(float drag);
 
 		bool canUpdate = true;
 
 		bool kinematic = false;
 		bool dynamic = true;
+		bool continuousDetection = false;
 		float mStaticFriction = 0.0f;
 		float mDynamicFriction = 1.0f;
 		float mRestitution = 0.5f;
 
 		physx::PxRigidDynamicLockFlags rigidDynamicLockFlags;
 		void SetRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::Enum flag, bool value);
+		void SetRigidBodyFlag(physx::PxRigidBodyFlag::Enum flag, bool value);
 
 
 		bool lockRotation = false;

@@ -30,6 +30,8 @@ namespace Plaza {
 		else {
 			this->mRigidActor = Physics::m_physics->createRigidDynamic(*new physx::PxTransform(physx::PxIdentity(1.0f)));
 		}
+
+		this->SetRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, this->continuousDetection);
 	}
 
 	void RigidBody::AddCollidersOfChildren(uint64_t parent) {
@@ -115,7 +117,21 @@ namespace Plaza {
 		}
 	}
 
+	float RigidBody::GetDrag() {
+		if (this->mRigidActor) {
+			return this->mRigidActor->is<PxRigidDynamic>()->getLinearDamping();
+		}
+	}
 
+	void RigidBody::SetDrag(float drag) {
+		if (this->mRigidActor) {
+			this->mRigidActor->is<PxRigidDynamic>()->setLinearDamping(drag);
+		}
+	}
+
+	void RigidBody::SetRigidBodyFlag(physx::PxRigidBodyFlag::Enum flag, bool value) {
+		this->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, true);
+	}
 
 	void RigidBody::SetRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::Enum flag, bool value) {
 		if (value)

@@ -64,7 +64,12 @@ namespace Plaza {
 				}
 				if (ImGui::Button("Save Scene")) {
 					//std::string path = Application->projectPath + "\\" + Application->activeScene->filePath;
-					Serializer::Serialize(AssetsManager::GetAsset(Application->editorScene->mAssetUuid));
+					/* TODO: IMPLEMENT PROPER SCENE ASSET LOADER */
+					Asset* temporarySceneAsset = new Asset();
+					temporarySceneAsset->mAssetUuid = Application->activeScene->mAssetUuid;
+					temporarySceneAsset->mPath = Application->activeProject->directory + "\\" + Application->activeScene->filePath;
+					temporarySceneAsset->mAssetExtension = Standards::sceneExtName;
+					Serializer::Serialize(temporarySceneAsset);
 					ProjectSerializer::Serialize(Application->projectPath + "\\" + Application->activeProject->name + Standards::projectExtName);
 				}
 				if (ImGui::Button("Save Scene As...")) {

@@ -403,6 +403,10 @@ namespace Plaza
         public extern static void RigidBody_AddForce(UInt64 uuid, ref Vector3 force, ForceMode mode, bool autowake);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void RigidBody_AddTorque(UInt64 uuid, ref Vector3 torque, ForceMode mode, bool autowake);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static float RigidBody_GetDrag(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void RigidBody_SetDrag(UInt64 uuid, float drag);
 
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]

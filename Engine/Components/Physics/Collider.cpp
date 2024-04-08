@@ -100,17 +100,16 @@ namespace Plaza {
 
 	void Collider::InitCollider(RigidBody* rigidBody) {
 		//this->RemoveActor();
-		physx::PxTransform* pxTransform = Physics::GetPxTransform(Application->activeScene->transformComponents.at(this->uuid));
-		this->mRigidActor = Physics::m_physics->createRigidDynamic(*pxTransform);
+		physx::PxTransform pxTransform = Physics::GetPxTransform(Application->activeScene->transformComponents.at(this->uuid));
+		this->mRigidActor = Physics::m_physics->createRigidDynamic(pxTransform);
 		if (this->mRigidActor == nullptr)
-			this->mRigidActor = Physics::m_physics->createRigidDynamic(*new physx::PxTransform(physx::PxIdentity(1.0f)));
+			this->mRigidActor = Physics::m_physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity(1.0f)));
 		if (!material) {
 			material = Physics::defaultMaterial;
 			if (this->mDynamic) {
 				material = Physics::m_physics->createMaterial(rigidBody->mStaticFriction, rigidBody->mDynamicFriction, rigidBody->mRestitution);
 			}
 		}
-
 		if (!mDynamic)
 			this->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
 
@@ -448,15 +447,14 @@ namespace Plaza {
 		PLAZA_PROFILE_SECTION("Collider: Update Pose");
 		if (transform) {
 			if (this->mRigidActor) {
-				glm::quat quaternion = transform->GetWorldQuaternion();
+				glm::quat quaternion = glm::normalize(transform->GetWorldQuaternion());
 				physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
 				glm::vec3 transformPos = transform->GetWorldPosition();
-				physx::PxTransform* pxTransform = new physx::PxTransform(
+				physx::PxTransform pxTransform = physx::PxTransform(
 					transformPos.x, transformPos.y, transformPos.z,
 					pxQuaternion);
-				this->mRigidActor->setGlobalPose(*pxTransform);
-				delete pxTransform;
+				this->mRigidActor->setGlobalPose(pxTransform);
 			}
 		}
 	}

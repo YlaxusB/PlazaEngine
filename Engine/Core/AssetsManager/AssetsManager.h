@@ -155,9 +155,11 @@ namespace Plaza {
 			std::string contentPath = Plaza::Utils::ReadBinaryString(binaryFile);
 			std::string extension = Plaza::Utils::ReadBinaryString(binaryFile);
 
+			std::string assetFinalPath = path.parent_path().string() + "\\" + std::filesystem::path{ contentPath }.filename().string();
+
 			binaryFile.close();
 
-			return AssetsManager::NewAsset(uuid, AssetsManager::mAssetTypeByExtension.at(extension), contentPath);
+			return AssetsManager::NewAsset(uuid, AssetsManager::mAssetTypeByExtension.at(extension), assetFinalPath);
 		}
 
 		static Asset* LoadBinaryFileAsAsset(std::filesystem::path path) {

@@ -257,6 +257,9 @@ namespace Plaza {
 	}
 
 	void VulkanSkybox::Init() {
+		this->mSkyboxPostEffect = new VulkanPostEffects();
+		this->mSkyboxPostEffect->mRenderPass = VulkanRenderer::GetRenderer()->mRenderPass;
+
 		std::string shadersPath;
 #ifdef EDITOR_MODE
 		shadersPath = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\";
@@ -271,14 +274,13 @@ namespace Plaza {
 		this->mSkyboxPaths[5] = shadersPath + "back.jpg";
 
 		this->mResolution = glm::vec2(2048);//Application->appSizes->sceneSize;
-		this->mSkyboxPostEffect = new VulkanPostEffects();
 		std::string vertexPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.vert");
 		std::string fragmentPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.frag");
 		this->InitializeImageSampler();
 		this->InitializeImageView();
 		this->InitializeDescriptorPool();
 		this->InitializeDescriptorSets();
-		this->InitializeRenderPass();
+		//this->InitializeRenderPass();
 
 		this->mFramebuffers.resize(Application->mRenderer->mMaxFramesInFlight);
 		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
@@ -286,7 +288,9 @@ namespace Plaza {
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 			framebufferInfo.renderPass = this->mSkyboxPostEffect->mRenderPass;
 			framebufferInfo.attachmentCount = 1;
-			framebufferInfo.pAttachments = &this->mSkyboxImageViews[i];
+			std::array<VkImageView, 1> imageViews{ this->mSkyboxImageViews[i] };
+
+			framebufferInfo.pAttachments = imageViews.data();
 			framebufferInfo.width = this->mResolution.x;
 			framebufferInfo.height = this->mResolution.y;
 			framebufferInfo.layers = 1;
@@ -306,7 +310,6 @@ namespace Plaza {
 		this->mPipelineLayoutInfo.pushConstantRangeCount = 1;
 		this->mPipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
-		this->mSkyboxPostEffect->mRenderPass = VulkanRenderer::GetRenderer()->mRenderPass;
 		this->mSkyboxPostEffect->mShaders = new VulkanShaders(vertexPath, fragmentPath, "");
 
 		VkPipelineDepthStencilStateCreateInfo depthStencil{};

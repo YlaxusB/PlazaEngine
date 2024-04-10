@@ -59,7 +59,7 @@ namespace Plaza {
 		vertexInputAttributes[1].offset = sizeof(glm::vec2);
 
 		VkPipelineRasterizationStateCreateInfo rasterizer{};
-		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO; 
+		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 		rasterizer.depthClampEnable = VK_FALSE;
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizer.lineWidth = 1.0f;
@@ -197,7 +197,7 @@ namespace Plaza {
 		} stagingBuffer;
 
 		VkBufferCreateInfo bufferCreateInfo{};
-		bufferCreateInfo.sType =VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferCreateInfo.size = allocInfo.allocationSize;
 		bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -260,9 +260,10 @@ namespace Plaza {
 		//    	VK_IMAGE_ASPECT_COLOR_BIT,
 		//    	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		//    	VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		mRenderer->TransitionImageLayout(this->mImage, VK_FORMAT_R8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
 
 		FlushCommandBuffer(copyCmd, this->mRenderer->mGraphicsQueue, mRenderer->mCommandPool, true);
+
+		mRenderer->TransitionImageLayout(this->mImage, VK_FORMAT_R8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
 
 		vkFreeMemory(*mDevice, stagingBuffer.memory, nullptr);
 		vkDestroyBuffer(*mDevice, stagingBuffer.buffer, nullptr);
@@ -403,20 +404,20 @@ namespace Plaza {
 			mapped->w = charData->t0;
 			mapped++;
 
-			mapped->x =  xOffset + (x + (float)charData->x1 * charW);
-			mapped->y =  yOffset + (y + (float)charData->y0 * charH);
+			mapped->x = xOffset + (x + (float)charData->x1 * charW);
+			mapped->y = yOffset + (y + (float)charData->y0 * charH);
 			mapped->z = charData->s1;
 			mapped->w = charData->t0;
 			mapped++;
 
-			mapped->x =  xOffset + (x + (float)charData->x0 * charW);
-			mapped->y =  yOffset + (y + (float)charData->y1 * charH);
+			mapped->x = xOffset + (x + (float)charData->x0 * charW);
+			mapped->y = yOffset + (y + (float)charData->y1 * charH);
 			mapped->z = charData->s0;
 			mapped->w = charData->t1;
 			mapped++;
 
-			mapped->x =  xOffset + (x + (float)charData->x1 * charW);
-			mapped->y =  yOffset + (y + (float)charData->y1 * charH);
+			mapped->x = xOffset + (x + (float)charData->x1 * charW);
+			mapped->y = yOffset + (y + (float)charData->y1 * charH);
 			mapped->z = charData->s1;
 			mapped->w = charData->t1;
 			mapped++;

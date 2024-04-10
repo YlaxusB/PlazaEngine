@@ -2,15 +2,7 @@
 //#extension GL_EXT_descriptor_indexing : enable
 #extension GL_EXT_nonuniform_qualifier : enable
 
-layout(binding = 1) uniform sampler2D texSampler;
-layout(binding = 9) uniform sampler2DArray shadowsDepthMap;
-layout(binding = 20) uniform sampler2D textures[];
-
-layout(location = 0) in vec4 fragColor;
-layout(location = 1) in vec2 fragTexCoord;
-layout(location = 2) in mat4 model;
-
-layout(push_constant) uniform PushConstants {
+struct MaterialData{
     vec4 color;
     float intensity;
     int diffuseIndex;
@@ -19,7 +11,19 @@ layout(push_constant) uniform PushConstants {
 	int metalnessIndex;
     float roughnessFloat;
     float metalnessFloat;
-} pushConstants;
+};
+
+layout(binding = 1) uniform sampler2D texSampler;
+layout(binding = 9) uniform sampler2DArray shadowsDepthMap;
+layout(location = 10) in flat int materialIndex;
+layout (binding = 19) buffer Materials {
+    MaterialData materials[];
+};
+layout(binding = 20) uniform sampler2D textures[];
+
+layout(location = 0) in vec4 fragColor;
+layout(location = 1) in vec2 fragTexCoord;
+layout(location = 2) in mat4 model;
 
 layout(location = 0) out vec4 FragColor;
 
@@ -55,6 +59,7 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
 
+MaterialData material;
 
 float ShadowCalculation(vec3 fragPosWorldSpace)
 {
@@ -89,7 +94,7 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
     vec3 normale;
     bool usingNormal = false;
     if(usingNormal){
-        normale = texture(textures[pushConstants.normalIndex], TexCoords).rgb;
+        normale = texture(textures[material.normalIndex], TexCoords).rgb;
         normale = normalize(normale * 2.0 - 1.0);  // this normal is in tangent space
     } else {
         normale = normalize(Normal.xyz);
@@ -157,14 +162,15 @@ float ggxDistribution(float nDotH, float roughness)
 }
 
 void main() {
+    material = materials[materialIndex];
     vec4 color;
-    if(pushConstants.diffuseIndex > -1)
+    if(material.diffuseIndex > -1)
     { 
-        color = texture(textures[pushConstants.diffuseIndex], fragTexCoord) * pushConstants.intensity;
+        color = texture(textures[material.diffuseIndex], fragTexCoord) * material.intensity;
     }
     else
     {
-        color = vec4(pushConstants.color.xyz, 1.0f) * pushConstants.intensity;
+        color = vec4(material.color.xyz, 1.0f) * material.intensity;
     }
 
     //color *= vec4((vec3(1.0f) - ShadowCalculation(FragPos.xyz) + 0.25f).xyz, 1.0f);
@@ -176,17 +182,17 @@ void main() {
     vec3 ambient = 1.32 * (lightColor / 1);
     // diffuse
 
-    float metallic = pushConstants.metalnessFloat;
-    float roughness = pushConstants.roughnessFloat;
+    float metallic = material.metalnessFloat;
+    float roughness = material.roughnessFloat;
 
-    if(pushConstants.metalnessIndex > -1)
+    if(material.metalnessIndex > -1)
     {
-        metallic =  texture(textures[pushConstants.metalnessIndex], fragTexCoord).r;//pow(texture(textures[pushConstants.metalnessIndex], fragTexCoord) / 1, vec4(1/ 2.2)).r * 1;
+        metallic =  texture(textures[material.metalnessIndex], fragTexCoord).r;//pow(texture(textures[pushConstants.metalnessIndex], fragTexCoord) / 1, vec4(1/ 2.2)).r * 1;
     }
 
-    if(pushConstants.roughnessIndex > -1)
+    if(material.roughnessIndex > -1)
     {
-        roughness = texture(textures[pushConstants.roughnessIndex], fragTexCoord).r;// pow(texture(textures[pushConstants.roughnessIndex], fragTexCoord) / 1, vec4(1/ 2.2)).r * 1;
+        roughness = texture(textures[material.roughnessIndex], fragTexCoord).r;// pow(texture(textures[pushConstants.roughnessIndex], fragTexCoord) / 1, vec4(1/ 2.2)).r * 1;
     }
 
     //metallic = texture(texture_metalness, fs_in.TexCoords).r / 255;//pow(texture(texture_metalness, fs_in.TexCoords), vec4(2.2)).r;
@@ -202,7 +208,7 @@ void main() {
 
     bool usingNormal = false;
     if(usingNormal){
-        normal = texture(textures[pushConstants.normalIndex], fragTexCoord).rgb;
+        normal = texture(textures[material.normalIndex], fragTexCoord).rgb;
         normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space
         //lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
         diff = max(dot(ubo.lightDirection.xyz, normal), 0.0);
@@ -343,3 +349,14 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
+
+layout(push_constant) uniform PushConstants {
+    vec4 color;
+    float intensity;
+    int diffuseIndex;
+    int normalIndex;
+    int roughnessIndex;
+	int metalnessIndex;
+    float roughnessFloat;
+    float metalnessFloat;
+} pushConstants;

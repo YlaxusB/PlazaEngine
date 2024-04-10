@@ -146,7 +146,7 @@ namespace Plaza {
 		imageInfo.format = mDepthFormat;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 		//imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -171,7 +171,7 @@ namespace Plaza {
 		vkBindImageMemory(renderer.mDevice, this->mShadowDepthImage, shadowsDepthMapMemory, 0);
 
 		// Transition image layout 
-		//renderer.TransitionImageLayout(this->mShadowDepthImage, mDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT, 9);
+		renderer.TransitionImageLayout(this->mShadowDepthImage, mDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, 9);
 		//renderer.TransitionImageLayout(this->mShadowDepthImage, mDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_DEPTH_BIT, 9);
 
 		mShadowDepthImageViews.resize(2);
@@ -186,7 +186,7 @@ namespace Plaza {
 			viewInfo.subresourceRange.baseMipLevel = 0;
 			viewInfo.subresourceRange.levelCount = 1;
 			viewInfo.subresourceRange.baseArrayLayer = 0;
-			viewInfo.subresourceRange.layerCount = 9;
+			viewInfo.subresourceRange.layerCount = this->mCascadeCount;
 
 			if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &this->mShadowDepthImageViews[i]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create texture image view!");
@@ -211,17 +211,17 @@ namespace Plaza {
 				throw std::runtime_error("failed to create texture image view!");
 			}
 
-			VkFramebufferCreateInfo framebufferInfo{};
-			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			framebufferInfo.renderPass = this->mRenderPass;
-			framebufferInfo.attachmentCount = 1;
-			framebufferInfo.pAttachments = &this->mCascades[i].mImageView;
-			framebufferInfo.width = this->mShadowResolution;
-			framebufferInfo.height = this->mShadowResolution;
-			framebufferInfo.layers = 1;
-			if (vkCreateFramebuffer(renderer.mDevice, &framebufferInfo, nullptr, &this->mCascades[i].mFramebuffer) != VK_SUCCESS) {
-				throw std::runtime_error("Failed to create framebuffer!");
-			}
+			//VkFramebufferCreateInfo framebufferInfo{};
+			//framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			//framebufferInfo.renderPass = this->mRenderPass;
+			//framebufferInfo.attachmentCount = 1;
+			//framebufferInfo.pAttachments = &this->mCascades[i].mImageView;
+			//framebufferInfo.width = this->mShadowResolution;
+			//framebufferInfo.height = this->mShadowResolution;
+			//framebufferInfo.layers = this->mCascadeCount;
+			//if (vkCreateFramebuffer(renderer.mDevice, &framebufferInfo, nullptr, &this->mCascades[i].mFramebuffer) != VK_SUCCESS) {
+			//	throw std::runtime_error("Failed to create framebuffer!");
+			//}
 		}
 
 		this->mFramebuffers.resize(Application->mRenderer->mMaxFramesInFlight);
@@ -234,7 +234,7 @@ namespace Plaza {
 			framebufferInfo.pAttachments = &this->mShadowDepthImageViews[i];
 			framebufferInfo.width = this->mShadowResolution;
 			framebufferInfo.height = this->mShadowResolution;
-			framebufferInfo.layers = this->mCascadeCount;
+			framebufferInfo.layers = 1;//this->mCascadeCount;
 
 			if (vkCreateFramebuffer(renderer.mDevice, &framebufferInfo, nullptr, &this->mFramebuffers[i]) != VK_SUCCESS) {
 				throw std::runtime_error("Failed to create framebuffer!");

@@ -24,7 +24,6 @@ namespace Plaza {
 		file.read(reinterpret_cast<char*>(&material->intensity), sizeof(material->intensity));
 		file.read(reinterpret_cast<char*>(&material->shininess), sizeof(material->shininess));
 
-
 		file.close();
 
 		//material->diffuse->mIndexHandle = AssetsManager::GetTexture(material->diffuse->mAssetUuid)->mIndexHandle;

@@ -3,6 +3,7 @@
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanSkybox.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanGuiRenderer.h"
+#include "Editor/DefaultAssets/Models/DefaultModels.h"
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
@@ -42,7 +43,10 @@ namespace Plaza {
 	};
 
 	VulkanRenderer* VulkanRenderer::GetRenderer() {
-		return (VulkanRenderer*)(Application->mRenderer);
+		if (Application)
+			return (VulkanRenderer*)(Application->mRenderer);
+		else
+			return nullptr;
 	}
 
 	VkResult VulkanRenderer::CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
@@ -252,10 +256,12 @@ namespace Plaza {
 		VkPhysicalDeviceFeatures deviceFeatures{};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 		deviceFeatures.multiViewport = VK_TRUE;
+		deviceFeatures.multiDrawIndirect = VK_TRUE;
 
 		VkPhysicalDeviceFeatures2 physicalFeatures2 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
 		physicalFeatures2.features.samplerAnisotropy = VK_TRUE;
 		physicalFeatures2.features.multiViewport = VK_TRUE;
+		physicalFeatures2.features.multiDrawIndirect = VK_TRUE;
 
 		VkPhysicalDeviceVulkan11Features vulkan11features{};
 		vulkan11features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
@@ -770,7 +776,7 @@ namespace Plaza {
 		auto bindingDescription = VertexGetBindingDescription();
 		auto attributeDescriptions = VertexGetAttributeDescriptions();
 
-		vertexInputInfo.vertexBindingDescriptionCount = 2;
+		vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescription.size());
 		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
 		vertexInputInfo.pVertexBindingDescriptions = bindingDescription.data();
 		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
@@ -945,12 +951,13 @@ namespace Plaza {
 				if (transformIt != Application->activeScene->transformComponents.end() && value.renderGroup) {
 					const Transform& transform = transformIt->second;
 
-					value.renderGroup->AddInstance(*Application->shader, transform.modelMatrix);
+					mInstanceModelMatrices.push_back(transform.modelMatrix);
+					//value.renderGroup->AddInstance(*Application->shader, transform.modelMatrix);
 					Time::addInstanceCalls++;
 
 					bool continueLoop = true;
 
-					value.renderGroup->AddCascadeInstance(transform.modelMatrix, 0);
+					//value.renderGroup->AddCascadeInstance(transform.modelMatrix, 0);
 				}
 			}
 		}
@@ -966,7 +973,7 @@ namespace Plaza {
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[0].mDescriptorSets[mCurrentFrame], 0, nullptr);
 
 			for (const auto& [key, value] : Application->activeScene->renderGroups) {
-				this->DrawRenderGroupShadowDepthMapInstanced(value, 0);
+				//	this->DrawRenderGroupShadowDepthMapInstanced(value, 0);
 			}
 
 			vkCmdEndRenderPass(commandBuffer);
@@ -994,7 +1001,7 @@ namespace Plaza {
 		scissor.extent.height = Application->appSizes->sceneSize.y;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		this->mSkybox->DrawSkybox();
+		//this->mSkybox->DrawSkybox();
 
 
 		// Render the scene with textures and sampling the shadow map
@@ -1009,13 +1016,57 @@ namespace Plaza {
 			std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
 			descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
-			for (const auto& [key, value] : Application->activeScene->renderGroups) {
-				if (value->instanceModelMatrices.size() > 0)
-				{
-					this->DrawRenderGroupInstanced(value);
-				}
-				value->mCascadeInstances.clear();
+
+			VkBuffer stagingBuffer;
+
+			VkDeviceSize size = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
+
+			if (mIndirectBuffer == VK_NULL_HANDLE) {
+				CreateBuffer(sizeof(VkDrawIndexedIndirectCommand) * (1024 * 512), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mIndirectBuffer, mIndirectBufferMemory);
+				VkBuffer stagingBuffer2;
+				VkDeviceMemory stagingBufferMemory2;
+				CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer2, stagingBufferMemory2);
+
+				void* data;
+				vkMapMemory(mDevice, stagingBufferMemory2, 0, size, 0, &data);
+				memcpy(data, mIndirectCommands.data(), static_cast<size_t>(size));
+				vkUnmapMemory(mDevice, stagingBufferMemory2);
+
+				CopyBuffer(stagingBuffer2, mIndirectBuffer, size);
+
+				vkDestroyBuffer(mDevice, stagingBuffer2, nullptr);
+				vkFreeMemory(mDevice, stagingBufferMemory2, nullptr);
 			}
+			RenderGroup* renderGroup = Application->activeScene->renderGroups.begin()->second;
+			VulkanMesh* mesh;
+			{
+				renderGroup->instanceModelMatrices = { glm::mat4(1.0f) };
+				PLAZA_PROFILE_SECTION("Copy Data");
+				mesh = (VulkanMesh*)renderGroup->mesh;
+				VkDeviceSize bufferSize = sizeof(glm::mat4) * mInstanceModelMatrices.size();
+				void* data;
+				vkMapMemory(this->mDevice, mMainInstanceMatrixBufferMemory, 0, bufferSize, 0, &data);
+				memcpy(data, mInstanceModelMatrices.data(), static_cast<size_t>(bufferSize));
+				vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemory);
+
+				mInstanceModelMatrices.clear();
+			}
+
+
+			VkDeviceSize offsets[1] = { 0 };
+			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
+			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffer, offsets);
+			vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffer, offsets);
+			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffer, 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+			//for (const auto& [key, value] : Application->activeScene->renderGroups) {
+			//	if (value->instanceModelMatrices.size() > 0)
+			//	{
+			//		this->DrawRenderGroupInstanced(value);
+			//	}
+			//	value->mCascadeInstances.clear();
+			//}
 		}
 
 		//vkCmdEndRenderPass(commandBuffer);
@@ -1138,18 +1189,21 @@ namespace Plaza {
 		vkBindBufferMemory(mDevice, buffer, bufferMemory, 0);
 	}
 
-	void VulkanRenderer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+	void VulkanRenderer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset) {
 		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
 		VkBufferCopy copyRegion{};
 		copyRegion.size = size;
+		copyRegion.srcOffset = 0;
+		copyRegion.dstOffset = offset;
 		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
 		EndSingleTimeCommands(commandBuffer);
 	}
 
-	void VulkanRenderer::CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer, VkDeviceMemory& indicesMemoryBuffer) {
-		VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+	void VulkanRenderer::CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer, VkDeviceMemory& indicesMemoryBuffer, VkDeviceSize bufferSize) {
+		if (bufferSize == -1)
+			bufferSize = sizeof(indices[0]) * indices.size();
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
@@ -1168,8 +1222,9 @@ namespace Plaza {
 		vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
 	}
 
-	void VulkanRenderer::CreateVertexBuffer(vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory) {
-		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+	void VulkanRenderer::CreateVertexBuffer(vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory, VkDeviceSize bufferSize) {
+		if (bufferSize == -1)
+			bufferSize = sizeof(vertices[0]) * vertices.size();
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
@@ -1219,8 +1274,15 @@ namespace Plaza {
 		depthMapLayoutBinding.pImmutableSamplers = nullptr;
 		depthMapLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
+		VkDescriptorSetLayoutBinding materialsArrayBinding{};
+		materialsArrayBinding.binding = 19;
+		materialsArrayBinding.descriptorCount = 1;
+		materialsArrayBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		materialsArrayBinding.pImmutableSamplers = nullptr;
+		materialsArrayBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-		std::array<VkDescriptorSetLayoutBinding, 3> bindings = { uboLayoutBinding, bindlessTexturesBinding, depthMapLayoutBinding };
+
+		std::array<VkDescriptorSetLayoutBinding, 4> bindings = { uboLayoutBinding, bindlessTexturesBinding, depthMapLayoutBinding, materialsArrayBinding };
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -1229,7 +1291,7 @@ namespace Plaza {
 
 		VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT, nullptr };
 		extendedInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0 };
+		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0, 0};
 		extendedInfo.pBindingFlags = bindingFlags;
 		layoutInfo.pNext = &extendedInfo;
 
@@ -1763,8 +1825,13 @@ namespace Plaza {
 		CreateTextureSampler();
 		std::cout << "Create CreateUniformBuffers \n";
 		//LoadModel();
-		//CreateVertexBuffer(vertices, mVertexBuffer, mVertexBufferMemory);
-		//CreateIndexBuffer(indices, mIndexBuffer, mIndexBufferMemory);
+		CreateBuffer(1024 * 1024 * 8 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mMainVertexBuffer, mMainVertexBufferMemory);
+		CreateBuffer(1024 * 1024 * 8 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mMainIndexBuffer, mMainIndexBufferMemory);
+		CreateBuffer(1024 * 256 * 8 * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMatrixBuffer, mMainInstanceMatrixBufferMemory);
+		CreateBuffer(1024 * 256 * 8 * sizeof(unsigned int), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMaterialBuffer, mMainInstanceMaterialBufferMemory);
+		CreateBuffer(1024 * 256 * 8 * sizeof(MaterialData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMaterialBuffer, mMaterialBufferMemory);
+		//CreateVertexBuffer({glm::vec3(0.0f)}, mMainVertexBuffer, mMainVertexBufferMemory, 1024 * 1024 * 8 * sizeof(Vertex));
+		//CreateIndexBuffer({ 0 }, mMainIndexBuffer, mMainIndexBufferMemory, 1024 * 1024 * 8 * sizeof(unsigned int));
 		CreateUniformBuffers();
 		CreateDescriptorPool();
 		CreateDescriptorSets();
@@ -2119,10 +2186,60 @@ namespace Plaza {
 				});
 		}
 
-		this->CreateVertexBuffer(convertedVertices, vulkMesh.mVertexBuffer, vulkMesh.mVertexBufferMemory);
-		this->CreateIndexBuffer(indices, vulkMesh.mIndexBuffer, vulkMesh.mIndexBufferMemory);
+		// Add vertices to the big vertex buffer
+		VkDeviceSize newDataSize = sizeof(Vertex) * convertedVertices.size();
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+		CreateBuffer(newDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+		void* data;
+		vkMapMemory(mDevice, stagingBufferMemory, 0, newDataSize, 0, &data);
+		memcpy(data, convertedVertices.data(), static_cast<size_t>(newDataSize));
+		vkUnmapMemory(mDevice, stagingBufferMemory);
+
+		CopyBuffer(stagingBuffer, mMainVertexBuffer, newDataSize, mBufferTotalVertices * sizeof(Vertex));
+
+		vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+		vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
+
+		mBufferTotalVertices += vertices.size();
+
+
+		//this->CreateVertexBuffer(convertedVertices, vulkMesh.mVertexBuffer, vulkMesh.mVertexBufferMemory);
+
+		//this->CreateIndexBuffer(indices, vulkMesh.mIndexBuffer, vulkMesh.mIndexBufferMemory);
+
+		// Add vertices to the big index buffer
+		mBufferTotalIndices += indices.size();
+		newDataSize = sizeof(indices[0]) * indices.size();
+
+		VkBuffer indexStagingBuffer;
+		VkDeviceMemory indexStagingBufferMemory;
+		CreateBuffer(newDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, indexStagingBuffer, indexStagingBufferMemory);
+
+		void* data2;
+		vkMapMemory(mDevice, indexStagingBufferMemory, 0, newDataSize, 0, &data2);
+		memcpy(data2, indices.data(), static_cast<size_t>(newDataSize));
+		vkUnmapMemory(mDevice, indexStagingBufferMemory);
+
+		CopyBuffer(indexStagingBuffer, mMainIndexBuffer, newDataSize, mBufferTotalIndices * sizeof(unsigned int));
+
+		vkDestroyBuffer(mDevice, indexStagingBuffer, nullptr);
+		vkFreeMemory(mDevice, indexStagingBufferMemory, nullptr);
+
+
+		VkDrawIndexedIndirectCommand indirectCommand{};
+		indirectCommand.firstIndex = mBufferTotalIndices - indices.size();
+		indirectCommand.vertexOffset = mBufferTotalVertices - vertices.size();
+		indirectCommand.firstInstance = mTotalInstances;
+		indirectCommand.indexCount = indices.size();
+		indirectCommand.instanceCount = 1;
+		this->mIndirectCommands.push_back(indirectCommand);
+		mTotalInstances++;
+		mIndirectDrawCount++;
 		// Create instance buffer
-		VkDeviceSize bufferSize = 32 * sizeof(glm::mat4);
+		VkDeviceSize bufferSize = 16 * sizeof(glm::mat4);
 		this->CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vulkMesh.mInstanceBuffer, vulkMesh.mInstanceBufferMemory);
 		return vulkMesh;
 	}
@@ -2364,5 +2481,43 @@ namespace Plaza {
 		VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(textureSampler == VK_NULL_HANDLE ? this->mTextureSampler : textureSampler, imageView, layout);
 		this->mTrackedImages.push_back(TrackedImage{ ImTextureID(imguiDescriptorSet), std::chrono::system_clock::now(), name });
 #endif
+}
+
+	void VulkanRenderer::AddMaterial(Material* material){
+		MaterialData materialData{};
+		materialData.color = material->diffuse->rgba;
+		materialData.diffuseIndex = material->diffuse->mIndexHandle;
+		materialData.intensity = material->intensity;
+		materialData.metalnessFloat = material->metalnessFloat;
+		materialData.metalnessIndex = material->metalness->mIndexHandle;
+		materialData.normalIndex = material->normal->mIndexHandle;
+		materialData.roughnessFloat = material->roughnessFloat;
+		materialData.roughnessIndex = material->roughness->mIndexHandle;
+		this->mUploadedMaterials.push_back(materialData);
+
+		VkDeviceSize size = mUploadedMaterials.size() * sizeof(MaterialData);
+
+		void* data;
+		vkMapMemory(mDevice, this->mMaterialBufferMemory, 0, size, 0, &data);
+		memcpy(data, mUploadedMaterials.data(), (size_t)size);
+		vkUnmapMemory(mDevice, this->mMaterialBufferMemory);
+
+		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+			VkDescriptorBufferInfo bufferInfo = {};
+			bufferInfo.buffer = this->mMaterialBuffer;
+			bufferInfo.offset = 0;
+			bufferInfo.range = sizeof(MaterialData) * this->mUploadedMaterials.size();
+
+			VkWriteDescriptorSet descriptorWrite = {};
+			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrite.dstSet = this->mDescriptorSets[i];
+			descriptorWrite.dstBinding = 19;
+			descriptorWrite.dstArrayElement = 0;
+			descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			descriptorWrite.descriptorCount = 1;
+			descriptorWrite.pBufferInfo = &bufferInfo;
+
+			vkUpdateDescriptorSets(mDevice, 1, &descriptorWrite, 0, nullptr);
+		}
 	}
 }

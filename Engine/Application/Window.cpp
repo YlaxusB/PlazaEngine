@@ -42,6 +42,7 @@ namespace Plaza {
 		}
 		else {
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+			glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 		}
 #ifdef GAME_MODE
 		// glfwWindowHint(GLFW_REFRESH_RATE, 60);

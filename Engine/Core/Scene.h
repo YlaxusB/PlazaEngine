@@ -27,6 +27,8 @@
 #include "Engine/Components/Audio/AudioSource.h"
 #include "Engine/Components/Audio/AudioListener.h"
 
+#include "Engine/Core/Renderer/Vulkan/Renderer.h"
+
 using namespace std;
 namespace Plaza {
 	struct Uint64Hash {
@@ -225,6 +227,8 @@ namespace Plaza {
 		void AddMaterial(Material* material) {
 			this->materials.emplace(material->uuid, material);
 			this->materialsNames.emplace(material->name, material->uuid);
+			if (VulkanRenderer::GetRenderer())
+				VulkanRenderer::GetRenderer()->AddMaterial(material);
 		}
 
 		void AddMaterial(std::shared_ptr<Material> material) {

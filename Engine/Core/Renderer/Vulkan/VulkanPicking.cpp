@@ -25,7 +25,7 @@ namespace Plaza {
 		this->InitializeOutline();
 
 		VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mPickingTextureImageView, "Picking Texture");
-		VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mDepthImageView, "Picking Depth Texture", nullptr, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+		VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mDepthImageView, "Picking Depth Texture", nullptr, VK_IMAGE_LAYOUT_GENERAL);
 	}
 
 	void VulkanPicking::InitializeImageView(VkImageView& imageView, VkImage& image, VkFormat format) {

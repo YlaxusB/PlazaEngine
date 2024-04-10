@@ -127,7 +127,21 @@ namespace Plaza {
 		VkExtent2D mSwapChainExtent;
 		VkQueue mGraphicsQueue = VK_NULL_HANDLE;
 		std::vector<VkFence> mInFlightFences;
+		VkImageView mDepthImageView;
+
+		void AddMaterial(Material* material);
 	private:
+		struct MaterialData {
+			glm::vec4 color;
+			float intensity;
+			int diffuseIndex;
+			int normalIndex;
+			int roughnessIndex;
+			int metalnessIndex;
+			float roughnessFloat;
+			float metalnessFloat;
+		};
+
 		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";
 		const std::string TEXTURE_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.png";
 
@@ -160,13 +174,13 @@ namespace Plaza {
 		void RecreateSwapChain();
 
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-		void CreateVertexBuffer(vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory);
-		void CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer, VkDeviceMemory& indicesMemoryBuffer);
+		void CreateVertexBuffer(vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory, VkDeviceSize bufferSize = -1);
+		void CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer, VkDeviceMemory& indicesMemoryBuffer, VkDeviceSize bufferSize = -1);
 		void CreateUniformBuffers();
 		void CreateDescriptorPool();
 		void CreateDescriptorSets();
 		void UpdateUniformBuffer(uint32_t currentImage);
-		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
 		void CreateDescriptorSetLayout();
 
 		void CreateTextureImage();
@@ -217,6 +231,28 @@ namespace Plaza {
 
 		VkDescriptorSet mMainSceneDescriptorSet;
 
+		VkBuffer mMainVertexBuffer = VK_NULL_HANDLE;
+		VkDeviceMemory mMainVertexBufferMemory = VK_NULL_HANDLE;
+		VkBuffer mMainIndexBuffer = VK_NULL_HANDLE;
+		VkDeviceMemory mMainIndexBufferMemory = VK_NULL_HANDLE;
+		VkBuffer mMainInstanceMatrixBuffer = VK_NULL_HANDLE;
+		VkDeviceMemory mMainInstanceMatrixBufferMemory = VK_NULL_HANDLE;
+		VkBuffer mMainInstanceMaterialBuffer = VK_NULL_HANDLE;
+		VkDeviceMemory mMainInstanceMaterialBufferMemory = VK_NULL_HANDLE;
+		std::vector<glm::mat4> mInstanceModelMatrices = std::vector<glm::mat4>();
+		
+		std::vector<MaterialData> mUploadedMaterials = std::vector<MaterialData>();
+		VkBuffer mMaterialBuffer;
+		VkDeviceMemory mMaterialBufferMemory;
+
+		uint64_t mBufferTotalVertices = 0;
+		uint64_t mBufferTotalIndices = 0;
+		uint64_t mIndirectDrawCount = 0;
+		uint64_t mTotalInstances = 0;
+		std::vector<VkDrawIndexedIndirectCommand> mIndirectCommands = std::vector<VkDrawIndexedIndirectCommand>();
+		VkBuffer mIndirectBuffer = VK_NULL_HANDLE;
+		VkDeviceMemory mIndirectBufferMemory = VK_NULL_HANDLE;
+
 		// ImGui variables
 		VkDescriptorPool mImguiDescriptorPool;
 		VkDescriptorSetLayout mImguiDescriptorSetLayout;
@@ -229,7 +265,6 @@ namespace Plaza {
 
 		VkImage mDepthImage;
 		VkDeviceMemory mDepthImageMemory;
-		VkImageView mDepthImageView;
 		void CreateDepthResources();
 		VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 		bool HasStencilComponent(VkFormat format);
@@ -259,8 +294,8 @@ namespace Plaza {
 		std::vector<uint32_t> indices;
 		void LoadModel();
 
-		static std::array<VkVertexInputBindingDescription, 2> VertexGetBindingDescription() {
-			std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {};
+		static std::array<VkVertexInputBindingDescription, 3> VertexGetBindingDescription() {
+			std::array<VkVertexInputBindingDescription, 3> bindingDescriptions = {};
 			bindingDescriptions[0].binding = 0;
 			bindingDescriptions[0].stride = sizeof(Vertex);
 			bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
@@ -292,11 +327,17 @@ namespace Plaza {
 			instanceAttributeDescriptions[3].offset = sizeof(float) * 12;
 
 			bindingDescriptions[1] = instanceBindingDescription;
+
+			VkVertexInputBindingDescription materialBindingDescription = {};
+			materialBindingDescription.binding = 2;
+			materialBindingDescription.stride = sizeof(unsigned int);
+			materialBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+			bindingDescriptions[2] = materialBindingDescription;
 			return bindingDescriptions;
 		}
 
-		static std::array<VkVertexInputAttributeDescription, 9> VertexGetAttributeDescriptions() {
-			std::array<VkVertexInputAttributeDescription, 9> attributeDescriptions{};
+		static std::array<VkVertexInputAttributeDescription, 10> VertexGetAttributeDescriptions() {
+			std::array<VkVertexInputAttributeDescription, 10> attributeDescriptions{};
 			attributeDescriptions[0].binding = 0;
 			attributeDescriptions[0].location = 0;
 			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
@@ -341,6 +382,11 @@ namespace Plaza {
 			attributeDescriptions[8].location = 8;
 			attributeDescriptions[8].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 			attributeDescriptions[8].offset = sizeof(float) * 12;
+
+			attributeDescriptions[9].binding = 2;
+			attributeDescriptions[9].location = 18;
+			attributeDescriptions[9].format = VK_FORMAT_R32_SINT;
+			attributeDescriptions[9].offset = sizeof(unsigned int);
 			return attributeDescriptions;
 		}
 

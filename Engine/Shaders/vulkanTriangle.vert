@@ -26,7 +26,7 @@ layout(location = 2) out mat4 model;
 layout(location = 18) in int mat;
 layout(binding = 20) uniform sampler2D textures[];
 
-layout(location = 10) out flat int materialIndex;
+layout(location = 10) out int materialIndex;
 layout(location = 11) out vec4 FragPos;
 layout(location = 12) out vec4 Normal;
 layout(location = 13) out vec2 TexCoords;
@@ -66,5 +66,5 @@ void main() {
     //}
     worldPos.xyz = vec3(finalModel);
     gl_Position = ubo.projection * (ubo.view) * finalModel;
-    materialIndex = 2;
+    materialIndex = 22;
 }

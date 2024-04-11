@@ -945,13 +945,19 @@ namespace Plaza {
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		{
+			PLAZA_PROFILE_SECTION("Update Materials");
+			UpdateMaterials();
+		}
+
+		{
 			PLAZA_PROFILE_SECTION("Group Instances");
 			for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
 				auto transformIt = Application->activeScene->transformComponents.find(key);
 				if (transformIt != Application->activeScene->transformComponents.end() && value.renderGroup) {
 					const Transform& transform = transformIt->second;
 
-					mInstanceModelMatrices.push_back(transform.modelMatrix);
+					mInstanceModelMatrices.push_back(glm::mat4(1.0f));
+					//mInstanceModelMatrices.push_back(transform.modelMatrix);
 					//value.renderGroup->AddInstance(*Application->shader, transform.modelMatrix);
 					Time::addInstanceCalls++;
 
@@ -972,9 +978,51 @@ namespace Plaza {
 			this->mShadows->UpdateAndPushConstants(commandBuffer, 0);
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[0].mDescriptorSets[mCurrentFrame], 0, nullptr);
 
-			for (const auto& [key, value] : Application->activeScene->renderGroups) {
-				//	this->DrawRenderGroupShadowDepthMapInstanced(value, 0);
+			if (mIndirectBuffer == VK_NULL_HANDLE) {
+				VkBuffer stagingBuffer;
+
+				VkDeviceSize size = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
+				CreateBuffer(sizeof(VkDrawIndexedIndirectCommand) * (1024 * 512), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mIndirectBuffer, mIndirectBufferMemory);
+				VkBuffer stagingBuffer2;
+				VkDeviceMemory stagingBufferMemory2;
+				CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer2, stagingBufferMemory2);
+
+				void* data;
+				vkMapMemory(mDevice, stagingBufferMemory2, 0, size, 0, &data);
+				memcpy(data, mIndirectCommands.data(), static_cast<size_t>(size));
+				vkUnmapMemory(mDevice, stagingBufferMemory2);
+
+				CopyBuffer(stagingBuffer2, mIndirectBuffer, size);
+
+				vkDestroyBuffer(mDevice, stagingBuffer2, nullptr);
+				vkFreeMemory(mDevice, stagingBufferMemory2, nullptr);
 			}
+
+			RenderGroup* renderGroup = Application->activeScene->renderGroups.begin()->second;
+			VulkanMesh* mesh;
+			{
+				renderGroup->instanceModelMatrices = { glm::mat4(1.0f) };
+				PLAZA_PROFILE_SECTION("Copy Data");
+				mesh = (VulkanMesh*)renderGroup->mesh;
+				VkDeviceSize bufferSize = sizeof(glm::mat4) * mInstanceModelMatrices.size();
+				void* data;
+				vkMapMemory(this->mDevice, mMainInstanceMatrixBufferMemory, 0, bufferSize, 0, &data);
+				memcpy(data, mInstanceModelMatrices.data(), static_cast<size_t>(bufferSize));
+				vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemory);
+				mInstanceModelMatrices.clear();
+			}
+
+			VkDeviceSize offsets[1] = { 0 };
+			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
+			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffer, offsets);
+			vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffer, offsets);
+			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffer, 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+
+			//for (const auto& [key, value] : Application->activeScene->renderGroups) {
+			//	//	this->DrawRenderGroupShadowDepthMapInstanced(value, 0);
+			//}
 
 			vkCmdEndRenderPass(commandBuffer);
 
@@ -1015,43 +1063,8 @@ namespace Plaza {
 			PLAZA_PROFILE_SECTION("Draw Instances");
 			std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
 			descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
+
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
-
-			VkBuffer stagingBuffer;
-
-			VkDeviceSize size = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
-
-			if (mIndirectBuffer == VK_NULL_HANDLE) {
-				CreateBuffer(sizeof(VkDrawIndexedIndirectCommand) * (1024 * 512), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mIndirectBuffer, mIndirectBufferMemory);
-				VkBuffer stagingBuffer2;
-				VkDeviceMemory stagingBufferMemory2;
-				CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer2, stagingBufferMemory2);
-
-				void* data;
-				vkMapMemory(mDevice, stagingBufferMemory2, 0, size, 0, &data);
-				memcpy(data, mIndirectCommands.data(), static_cast<size_t>(size));
-				vkUnmapMemory(mDevice, stagingBufferMemory2);
-
-				CopyBuffer(stagingBuffer2, mIndirectBuffer, size);
-
-				vkDestroyBuffer(mDevice, stagingBuffer2, nullptr);
-				vkFreeMemory(mDevice, stagingBufferMemory2, nullptr);
-			}
-			RenderGroup* renderGroup = Application->activeScene->renderGroups.begin()->second;
-			VulkanMesh* mesh;
-			{
-				renderGroup->instanceModelMatrices = { glm::mat4(1.0f) };
-				PLAZA_PROFILE_SECTION("Copy Data");
-				mesh = (VulkanMesh*)renderGroup->mesh;
-				VkDeviceSize bufferSize = sizeof(glm::mat4) * mInstanceModelMatrices.size();
-				void* data;
-				vkMapMemory(this->mDevice, mMainInstanceMatrixBufferMemory, 0, bufferSize, 0, &data);
-				memcpy(data, mInstanceModelMatrices.data(), static_cast<size_t>(bufferSize));
-				vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemory);
-
-				mInstanceModelMatrices.clear();
-			}
-
 
 			VkDeviceSize offsets[1] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
@@ -1277,7 +1290,7 @@ namespace Plaza {
 		VkDescriptorSetLayoutBinding materialsArrayBinding{};
 		materialsArrayBinding.binding = 19;
 		materialsArrayBinding.descriptorCount = 1;
-		materialsArrayBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		materialsArrayBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 		materialsArrayBinding.pImmutableSamplers = nullptr;
 		materialsArrayBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
@@ -1291,7 +1304,7 @@ namespace Plaza {
 
 		VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT, nullptr };
 		extendedInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0, 0};
+		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0, 0 };
 		extendedInfo.pBindingFlags = bindingFlags;
 		layoutInfo.pNext = &extendedInfo;
 
@@ -1351,7 +1364,7 @@ namespace Plaza {
 	void VulkanRenderer::CreateDescriptorPool() {
 		static const uint32_t maxBindlessTextures = 16536 * 4;
 
-		std::array<VkDescriptorPoolSize, 5> poolSizes{};
+		std::array<VkDescriptorPoolSize, 6> poolSizes{};
 		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		poolSizes[0].descriptorCount = static_cast<uint32_t>(mMaxFramesInFlight);
 		poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -1362,6 +1375,8 @@ namespace Plaza {
 		poolSizes[3].descriptorCount = static_cast<uint32_t>(9);
 		poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		poolSizes[4].descriptorCount = static_cast<uint32_t>(mMaxFramesInFlight);
+		poolSizes[5].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		poolSizes[5].descriptorCount = maxBindlessTextures / 4;//static_cast<uint32_t>(mMaxFramesInFlight);
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -1829,7 +1844,7 @@ namespace Plaza {
 		CreateBuffer(1024 * 1024 * 8 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mMainIndexBuffer, mMainIndexBufferMemory);
 		CreateBuffer(1024 * 256 * 8 * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMatrixBuffer, mMainInstanceMatrixBufferMemory);
 		CreateBuffer(1024 * 256 * 8 * sizeof(unsigned int), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMaterialBuffer, mMainInstanceMaterialBufferMemory);
-		CreateBuffer(1024 * 256 * 8 * sizeof(MaterialData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMaterialBuffer, mMaterialBufferMemory);
+		CreateBuffer(1024 * 16 * sizeof(MaterialData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMaterialBuffer, mMaterialBufferMemory);
 		//CreateVertexBuffer({glm::vec3(0.0f)}, mMainVertexBuffer, mMainVertexBufferMemory, 1024 * 1024 * 8 * sizeof(Vertex));
 		//CreateIndexBuffer({ 0 }, mMainIndexBuffer, mMainIndexBufferMemory, 1024 * 1024 * 8 * sizeof(unsigned int));
 		CreateUniformBuffers();
@@ -1895,7 +1910,7 @@ namespace Plaza {
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
-		}
+	}
 
 		{
 			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
@@ -1968,7 +1983,7 @@ namespace Plaza {
 
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-	}
+}
 	void VulkanRenderer::RenderBloom()
 	{
 	}
@@ -2193,6 +2208,7 @@ namespace Plaza {
 		VkDeviceMemory stagingBufferMemory;
 		CreateBuffer(newDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
+		mBufferTotalVertices += vertices.size();
 		void* data;
 		vkMapMemory(mDevice, stagingBufferMemory, 0, newDataSize, 0, &data);
 		memcpy(data, convertedVertices.data(), static_cast<size_t>(newDataSize));
@@ -2203,7 +2219,6 @@ namespace Plaza {
 		vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
 		vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
 
-		mBufferTotalVertices += vertices.size();
 
 
 		//this->CreateVertexBuffer(convertedVertices, vulkMesh.mVertexBuffer, vulkMesh.mVertexBufferMemory);
@@ -2365,7 +2380,7 @@ namespace Plaza {
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
-		}
+	}
 
 		{
 			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
@@ -2481,9 +2496,9 @@ namespace Plaza {
 		VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(textureSampler == VK_NULL_HANDLE ? this->mTextureSampler : textureSampler, imageView, layout);
 		this->mTrackedImages.push_back(TrackedImage{ ImTextureID(imguiDescriptorSet), std::chrono::system_clock::now(), name });
 #endif
-}
+	}
 
-	void VulkanRenderer::AddMaterial(Material* material){
+	void VulkanRenderer::AddMaterial(Material* material) {
 		MaterialData materialData{};
 		materialData.color = material->diffuse->rgba;
 		materialData.diffuseIndex = material->diffuse->mIndexHandle;
@@ -2495,29 +2510,69 @@ namespace Plaza {
 		materialData.roughnessIndex = material->roughness->mIndexHandle;
 		this->mUploadedMaterials.push_back(materialData);
 
-		VkDeviceSize size = mUploadedMaterials.size() * sizeof(MaterialData);
+		VkDeviceSize size = sizeof(MaterialData) * this->mUploadedMaterials.size();
 
 		void* data;
 		vkMapMemory(mDevice, this->mMaterialBufferMemory, 0, size, 0, &data);
-		memcpy(data, mUploadedMaterials.data(), (size_t)size);
+		memcpy(data, this->mUploadedMaterials.data(), static_cast<size_t>(size));
 		vkUnmapMemory(mDevice, this->mMaterialBufferMemory);
 
 		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
 			VkDescriptorBufferInfo bufferInfo = {};
 			bufferInfo.buffer = this->mMaterialBuffer;
 			bufferInfo.offset = 0;
-			bufferInfo.range = sizeof(MaterialData) * this->mUploadedMaterials.size();
+			bufferInfo.range = VK_WHOLE_SIZE;
 
 			VkWriteDescriptorSet descriptorWrite = {};
 			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			descriptorWrite.dstSet = this->mDescriptorSets[i];
 			descriptorWrite.dstBinding = 19;
 			descriptorWrite.dstArrayElement = 0;
-			descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 			descriptorWrite.descriptorCount = 1;
 			descriptorWrite.pBufferInfo = &bufferInfo;
 
 			vkUpdateDescriptorSets(mDevice, 1, &descriptorWrite, 0, nullptr);
 		}
+	}
+
+	void VulkanRenderer::UpdateMaterials() {
+		std::vector<MaterialData> materialDataVector = std::vector<MaterialData>();
+
+		for (const auto& [key, value] : Application->activeScene->materials) {
+			MaterialData materialData{};
+			materialData.color = value->diffuse->rgba;
+			materialData.diffuseIndex = value->diffuse->mIndexHandle;
+			materialData.intensity = value->intensity;
+			materialData.metalnessFloat = value->metalnessFloat;
+			materialData.metalnessIndex = value->metalness->mIndexHandle;
+			materialData.normalIndex = value->normal->mIndexHandle;
+			materialData.roughnessFloat = value->roughnessFloat;
+			materialData.roughnessIndex = value->roughness->mIndexHandle;
+			materialDataVector.push_back(materialData);
+		}
+
+		VkDeviceSize size = sizeof(MaterialData) * materialDataVector.size();
+
+		void* data;
+		vkMapMemory(mDevice, this->mMaterialBufferMemory, 0, size, 0, &data);
+		memcpy(data, materialDataVector.data(), static_cast<size_t>(size));
+		vkUnmapMemory(mDevice, this->mMaterialBufferMemory);
+
+		VkDescriptorBufferInfo bufferInfo = {};
+		bufferInfo.buffer = this->mMaterialBuffer;
+		bufferInfo.offset = 0;
+		bufferInfo.range = VK_WHOLE_SIZE;
+
+		VkWriteDescriptorSet descriptorWrite = {};
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.dstSet = this->mDescriptorSets[mCurrentFrame];
+		descriptorWrite.dstBinding = 19;
+		descriptorWrite.dstArrayElement = 0;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.pBufferInfo = &bufferInfo;
+
+		vkUpdateDescriptorSets(mDevice, 1, &descriptorWrite, 0, nullptr);
 	}
 }

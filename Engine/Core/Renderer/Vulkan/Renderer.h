@@ -130,16 +130,17 @@ namespace Plaza {
 		VkImageView mDepthImageView;
 
 		void AddMaterial(Material* material);
+		void UpdateMaterials();
 	private:
-		struct MaterialData {
-			glm::vec4 color;
-			float intensity;
-			int diffuseIndex;
-			int normalIndex;
-			int roughnessIndex;
-			int metalnessIndex;
-			float roughnessFloat;
-			float metalnessFloat;
+		struct alignas(16) MaterialData {
+			glm::vec4 color = glm::vec4(1.0f);
+			float intensity = 1.0f;
+			int diffuseIndex = -1;
+			int normalIndex = -1;
+			int roughnessIndex = -1;
+			int metalnessIndex = -1;
+			float roughnessFloat = 0.5f;
+			float metalnessFloat = 0.5f;
 		};
 
 		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";

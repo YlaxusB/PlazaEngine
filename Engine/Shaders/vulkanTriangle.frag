@@ -15,10 +15,10 @@ struct MaterialData{
 
 layout(binding = 1) uniform sampler2D texSampler;
 layout(binding = 9) uniform sampler2DArray shadowsDepthMap;
-layout(location = 10) in flat int materialIndex;
-layout (binding = 19) buffer Materials {
-    MaterialData materials[];
-};
+//layout(location = 10) in flat int materialIndex;
+layout (std430, set = 0, binding = 19) buffer MaterialsBuffer {
+    MaterialData material;
+} materials[];
 layout(binding = 20) uniform sampler2D textures[];
 
 layout(location = 0) in vec4 fragColor;
@@ -43,6 +43,7 @@ layout(binding = 0) uniform UniformBufferObject {
     bool showCascadeLevels;
 } ubo;
 
+layout(location = 10) in flat int MaterialIndex;
 layout(location = 11) in vec4 FragPos;
 layout(location = 12) in vec4 Normal;
 layout(location = 13) in vec2 TexCoords;
@@ -59,10 +60,9 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
 
-MaterialData material;
-
 float ShadowCalculation(vec3 fragPosWorldSpace)
 {
+    MaterialData material = materials[MaterialIndex].material;
     // select cascade layer
     vec4 fragPosViewSpace = ubo.view * vec4(fragPosWorldSpace, 1.0);
     float depthValue = abs(fragPosViewSpace.z);
@@ -162,20 +162,20 @@ float ggxDistribution(float nDotH, float roughness)
 }
 
 void main() {
-    material = materials[materialIndex];
+    MaterialData material = materials[MaterialIndex].material;
     vec4 color;
     if(material.diffuseIndex > -1)
     { 
-        color = texture(textures[material.diffuseIndex], fragTexCoord) * material.intensity;
+        color = texture(textures[material.diffuseIndex], fragTexCoord) * 1;
     }
     else
     {
-        color = vec4(material.color.xyz, 1.0f) * material.intensity;
+        color = vec4(1.0f, 0.0f, 0.0f, 1.0f);//vec4(material.color.xyz, 1.0f) * material.intensity;
     }
 
     //color *= vec4((vec3(1.0f) - ShadowCalculation(FragPos.xyz) + 0.25f).xyz, 1.0f);
 
-    color = color * intensity;
+    color = color * 1;
 
     vec3 lightColor = vec3(1.0f, 0.85f, 0.85f) * 255;
     // ambient
@@ -305,6 +305,7 @@ void main() {
     // calculate shadow
    FragColor = vec4(FinalLight.xyz, 1.0f);
 
+    //FragColor = vec4(material.diffuseIndex, material.normalIndex, 0.0f, 1.0f);
    //FragColor = vec4(fragTexCoord.x / 10.0f, 0.0f, 0.0f, 1.0f);
 
    //FragColor = vec4(vec3(1.0f - shadow), 1.0f);

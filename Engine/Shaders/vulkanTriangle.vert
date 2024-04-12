@@ -23,10 +23,10 @@ layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
 layout(location = 2) out mat4 model;
 
-layout(location = 18) in int mat;
+layout(location = 18) in uint mat;
 layout(binding = 20) uniform sampler2D textures[];
 
-layout(location = 10) out int materialIndex;
+layout(location = 10) out uint materialIndex;
 layout(location = 11) out vec4 FragPos;
 layout(location = 12) out vec4 Normal;
 layout(location = 13) out vec2 TexCoords;
@@ -49,7 +49,7 @@ void main() {
     vec4 finalModel = finalInstanceMatrix * vec4(inPosition, 1.0);
     FragPos = vec4(model * vec4(inPosition, 1.0));
     //vs_out.Normal = transpose(inverse(mat3(aInstanceMatrix))) * aNormal;
-    TexCoords = vec2(0.0f, 1.0f) -  inTexCoord;
+    TexCoords = vec2(1.0f, 1.0f) -  inTexCoord;
 
     //if(usingNormal){
     //    mat3 normalMatrix = transpose(inverse(mat3(finalInstanceMatrix)));

@@ -4,7 +4,7 @@
 #include "ThirdParty/DirectXTex/DirectXTex/DirectXTex.h"
 
 namespace Plaza {
-	int VulkanTexture::mLastBindingIndex = 0;
+	int VulkanTexture::mLastBindingIndex = 1;
 
 	void VulkanTexture::GenerateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkFormat format) {
 		// Check if image format supports linear blitting
@@ -306,39 +306,39 @@ namespace Plaza {
   static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 
 	void VulkanTexture::InitDescriptorSet() {
-		VkDescriptorPool descriptorPool;
-
-		VkDescriptorPoolSize poolSize{};
-		poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; // Adjust based on your descriptor type
-		poolSize.descriptorCount = 1;
-
-		VkDescriptorPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.poolSizeCount = 1;
-		poolInfo.pPoolSizes = &poolSize;
-		poolInfo.maxSets = 1;
-		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT;
-
-		static const uint32_t maxBindlessResources = 16536 * 4;
-		VkDescriptorPoolSize poolSizesBindless[] =
-		{
-			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, maxBindlessResources }
-		};
-		poolInfo.maxSets = maxBindlessResources * ArraySize(poolSizesBindless);
-		poolInfo.poolSizeCount = uint32_t(ArraySize(poolSizesBindless));
-		poolInfo.pPoolSizes = poolSizesBindless;
-
-		if (vkCreateDescriptorPool(VulkanRenderer::GetRenderer()->mDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
-		{
-			// Handle pool creation failure
-			throw std::runtime_error("Failed to create descriptor pool!");
-		}
+		//VkDescriptorPool descriptorPool;
+		//
+		//VkDescriptorPoolSize poolSize{};
+		//poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; // Adjust based on your descriptor type
+		//poolSize.descriptorCount = 1;
+		//
+		//VkDescriptorPoolCreateInfo poolInfo{};
+		//poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		//poolInfo.poolSizeCount = 1;
+		//poolInfo.pPoolSizes = &poolSize;
+		//poolInfo.maxSets = 1;
+		//poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT;
+		//
+		//static const uint32_t maxBindlessResources = 16536 * 4;
+		//VkDescriptorPoolSize poolSizesBindless[] =
+		//{
+		//	{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, maxBindlessResources }
+		//};
+		//poolInfo.maxSets = maxBindlessResources * ArraySize(poolSizesBindless);
+		//poolInfo.poolSizeCount = uint32_t(ArraySize(poolSizesBindless));
+		//poolInfo.pPoolSizes = poolSizesBindless;
+		//
+		//if (vkCreateDescriptorPool(VulkanRenderer::GetRenderer()->mDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS)
+		//{
+		//	// Handle pool creation failure
+		//	throw std::runtime_error("Failed to create descriptor pool!");
+		//}
 
 
 		std::vector<VkDescriptorSetLayout> layouts = { mDescriptorSetLayout };
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = descriptorPool;
+		allocInfo.descriptorPool = VulkanRenderer::GetRenderer()->mDescriptorPool;//descriptorPool;
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &mDescriptorSetLayout;
 

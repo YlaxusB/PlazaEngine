@@ -17,8 +17,8 @@ layout(binding = 1) uniform sampler2D texSampler;
 layout(binding = 9) uniform sampler2DArray shadowsDepthMap;
 //layout(location = 10) in flat int materialIndex;
 layout (std430, set = 0, binding = 19) buffer MaterialsBuffer {
-    MaterialData material;
-} materials[];
+    MaterialData materials[];
+};
 layout(binding = 20) uniform sampler2D textures[];
 
 layout(location = 0) in vec4 fragColor;
@@ -43,7 +43,7 @@ layout(binding = 0) uniform UniformBufferObject {
     bool showCascadeLevels;
 } ubo;
 
-layout(location = 10) in flat int MaterialIndex;
+layout(location = 10) in flat uint materialIndex;
 layout(location = 11) in vec4 FragPos;
 layout(location = 12) in vec4 Normal;
 layout(location = 13) in vec2 TexCoords;
@@ -62,7 +62,6 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0);
 
 float ShadowCalculation(vec3 fragPosWorldSpace)
 {
-    MaterialData material = materials[MaterialIndex].material;
     // select cascade layer
     vec4 fragPosViewSpace = ubo.view * vec4(fragPosWorldSpace, 1.0);
     float depthValue = abs(fragPosViewSpace.z);
@@ -94,7 +93,7 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
     vec3 normale;
     bool usingNormal = false;
     if(usingNormal){
-        normale = texture(textures[material.normalIndex], TexCoords).rgb;
+        normale = texture(textures[materials[materialIndex].normalIndex], TexCoords).rgb;
         normale = normalize(normale * 2.0 - 1.0);  // this normal is in tangent space
     } else {
         normale = normalize(Normal.xyz);
@@ -162,15 +161,15 @@ float ggxDistribution(float nDotH, float roughness)
 }
 
 void main() {
-    MaterialData material = materials[MaterialIndex].material;
+    //MaterialData material = materials[materialIndex];
     vec4 color;
-    if(material.diffuseIndex > -1)
+    if(materials[materialIndex].diffuseIndex > -1)
     { 
-        color = texture(textures[material.diffuseIndex], fragTexCoord) * 1;
+        color = texture(textures[materials[materialIndex].diffuseIndex], fragTexCoord) * 1;
     }
     else
     {
-        color = vec4(material.color.xyz, 1.0f) * material.intensity;
+        color = vec4(materials[materialIndex].color.xyz, 1.0f) * materials[materialIndex].intensity;
     }
 
     //color *= vec4((vec3(1.0f) - ShadowCalculation(FragPos.xyz) + 0.25f).xyz, 1.0f);
@@ -182,17 +181,17 @@ void main() {
     vec3 ambient = 1.32 * (lightColor / 1);
     // diffuse
 
-    float metallic = material.metalnessFloat;
-    float roughness = material.roughnessFloat;
+    float metallic = materials[materialIndex].metalnessFloat;
+    float roughness = materials[materialIndex].roughnessFloat;
 
-    if(material.metalnessIndex > -1)
+    if(materials[materialIndex].metalnessIndex > -1)
     {
-        metallic =  texture(textures[material.metalnessIndex], fragTexCoord).r;//pow(texture(textures[pushConstants.metalnessIndex], fragTexCoord) / 1, vec4(1/ 2.2)).r * 1;
+        metallic =  texture(textures[materials[materialIndex].metalnessIndex], fragTexCoord).r;//pow(texture(textures[pushConstants.metalnessIndex], fragTexCoord) / 1, vec4(1/ 2.2)).r * 1;
     }
 
-    if(material.roughnessIndex > -1)
+    if(materials[materialIndex].roughnessIndex > -1)
     {
-        roughness = texture(textures[material.roughnessIndex], fragTexCoord).r;// pow(texture(textures[pushConstants.roughnessIndex], fragTexCoord) / 1, vec4(1/ 2.2)).r * 1;
+        roughness = texture(textures[materials[materialIndex].roughnessIndex], fragTexCoord).r;// pow(texture(textures[pushConstants.roughnessIndex], fragTexCoord) / 1, vec4(1/ 2.2)).r * 1;
     }
 
     //metallic = texture(texture_metalness, fs_in.TexCoords).r / 255;//pow(texture(texture_metalness, fs_in.TexCoords), vec4(2.2)).r;
@@ -208,7 +207,7 @@ void main() {
 
     bool usingNormal = false;
     if(usingNormal){
-        normal = texture(textures[material.normalIndex], fragTexCoord).rgb;
+        normal = texture(textures[materials[materialIndex].normalIndex], fragTexCoord).rgb;
         normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space
         //lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
         diff = max(dot(ubo.lightDirection.xyz, normal), 0.0);
@@ -307,7 +306,8 @@ void main() {
 
     //FragColor = vec4(material.diffuseIndex, material.normalIndex, 0.0f, 1.0f);
    //FragColor = vec4(fragTexCoord.x / 10.0f, 0.0f, 0.0f, 1.0f);
-
+   vec4 c = vec4(materials[materialIndex].diffuseIndex * 0.01f, materialIndex * 0.01f, 0.0f, 1.0f);
+   //FragColor = c;
    //FragColor = vec4(vec3(1.0f - shadow), 1.0f);
 }
 

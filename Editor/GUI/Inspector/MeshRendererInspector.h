@@ -28,6 +28,10 @@ namespace Plaza::Editor {
 					ImGui::SameLine();
 					ImGui::Text(std::to_string(meshRenderer->renderGroup->material->diffuse->mIndexHandle).c_str());
 
+					ImGui::Text("Material Handle: ");
+					ImGui::SameLine();
+					ImGui::Text(std::to_string(meshRenderer->renderGroup->material->mIndexHandle).c_str());
+
 					for (auto [key, value] : Application->activeScene->materials) {
 						Asset* asset = AssetsManager::GetAsset(value->uuid);
 						if (!asset || value->uuid == 0)

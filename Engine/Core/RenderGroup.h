@@ -11,6 +11,7 @@ namespace Plaza {
 		Mesh* mesh = nullptr;
 		Material* material = nullptr;
 		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
+		vector<unsigned int> instanceMaterialIndices = vector<unsigned int>();
 		vector<vector<glm::mat4>> mCascadeInstances = vector<vector<glm::mat4>>();
 
 		uint64_t mBufferSize = 8;
@@ -35,8 +36,9 @@ namespace Plaza {
 			InitializeInstanceBuffer();
 		}
 
-		void AddInstance(glm::mat4 model) {
+		void AddInstance(glm::mat4 model, unsigned int material = 0) {
 			instanceModelMatrices.push_back(model);
+			this->instanceMaterialIndices.push_back(material);
 		}
 
 		void AddCascadeInstance(glm::mat4 model, unsigned int cascadeIndex) {

@@ -952,14 +952,16 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("Group Instances");
 			for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
-				auto transformIt = Application->activeScene->transformComponents.find(key);
+				const auto& transformIt = Application->activeScene->transformComponents.find(key);
 				if (transformIt != Application->activeScene->transformComponents.end() && value.renderGroup) {
-					const Transform& transform = transformIt->second;
 
 					//mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 					//mInstanceModelMatrices.push_back(transform.modelMatrix);
 
-					value.renderGroup->AddInstance(transform.modelMatrix);
+					if (value.mesh->vertices.size() == 16512)
+						std::cout << "Found \n";
+
+					value.renderGroup->AddInstance(transformIt->second.modelMatrix, value.renderGroup->material->mIndexHandle);
 					Time::addInstanceCalls++;
 
 					bool continueLoop = true;
@@ -973,6 +975,8 @@ namespace Plaza {
 			PLAZA_PROFILE_SECTION("Create Indirect Commands");
 			this->mIndirectCommands.clear();
 			this->mInstanceModelMatrices.clear();
+			this->mInstanceModelMaterialsIndex.clear();
+			this->mInstanceModelMaterialsIndex.push_back(0);
 			mTotalInstances = 0;
 			mIndirectDrawCount = 0;
 			for (const auto& [key, value] : Application->activeScene->renderGroups) {
@@ -987,13 +991,14 @@ namespace Plaza {
 
 				for (unsigned int i = 0; i < value->instanceModelMatrices.size(); ++i) {
 					this->mInstanceModelMatrices.push_back(value->instanceModelMatrices[i]);
-					this->mInstanceModelMaterialsIndex.push_back(value->material->mIndexHandle);
+					this->mInstanceModelMaterialsIndex.push_back(value->instanceMaterialIndices[i]);
 					mTotalInstances++; //= value->instanceModelMatrices.size();
 				}
 
 
 				mIndirectDrawCount++;
 				value->instanceModelMatrices.clear();
+				value->instanceMaterialIndices.clear();
 			}
 		}
 
@@ -1025,10 +1030,19 @@ namespace Plaza {
 				vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame]);
 			}
 
+			{
+				PLAZA_PROFILE_SECTION("Bind the instance's materials");
+				VkDeviceSize bufferSize = sizeof(unsigned int) * mInstanceModelMaterialsIndex.size();
+				void* data;
+				vkMapMemory(this->mDevice, mMainInstanceMaterialBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
+				memcpy(data, mInstanceModelMaterialsIndex.data(), static_cast<size_t>(bufferSize));
+				vkUnmapMemory(this->mDevice, mMainInstanceMaterialBufferMemories[mCurrentFrame]);
+			}
+
 			VkDeviceSize offsets[1] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
 			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
-			vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffer, offsets);
+			vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
 			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffer, 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
@@ -1079,20 +1093,10 @@ namespace Plaza {
 
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 
-			{
-				PLAZA_PROFILE_SECTION("Bind the instance's materials");
-				VkDeviceSize bufferSize = sizeof(int) * mInstanceModelMaterialsIndex.size();
-				void* data;
-				vkMapMemory(this->mDevice, mMainInstanceMaterialBufferMemory, 0, bufferSize, 0, &data);
-				memcpy(data, mInstanceModelMaterialsIndex.data(), static_cast<size_t>(bufferSize));
-				vkUnmapMemory(this->mDevice, mMainInstanceMaterialBufferMemory);
-				mInstanceModelMaterialsIndex.clear();
-			}
-
 			VkDeviceSize offsets[1] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
 			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
-			vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffer, offsets);
+			vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
 			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffer, 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
@@ -1889,11 +1893,15 @@ namespace Plaza {
 		CreateBuffer(1024 * 1024 * 8 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mMainIndexBuffer, mMainIndexBufferMemory);
 		mMainInstanceMatrixBuffers.resize(mMaxFramesInFlight);
 		mMainInstanceMatrixBufferMemories.resize(mMaxFramesInFlight);
+		mMainInstanceMaterialBuffers.resize(mMaxFramesInFlight);
+		mMainInstanceMaterialBufferMemories.resize(mMaxFramesInFlight);
+		mMaterialBuffers.resize(mMaxFramesInFlight);
+		mMaterialBufferMemories.resize(mMaxFramesInFlight);
 		for (unsigned int i = 0; i < mMaxFramesInFlight; ++i) {
 			CreateBuffer(1024 * 256 * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMatrixBuffers[i], mMainInstanceMatrixBufferMemories[i]);
+			CreateBuffer(1024 * 256 * sizeof(unsigned int), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMaterialBuffers[i], mMainInstanceMaterialBufferMemories[i]);
+			CreateBuffer(1024 * 16 * sizeof(MaterialData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMaterialBuffers[i], mMaterialBufferMemories[i]);
 		}
-		CreateBuffer(1024 * 256 * sizeof(unsigned int), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMaterialBuffer, mMainInstanceMaterialBufferMemory);
-		CreateBuffer(1024 * 16 * sizeof(MaterialData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMaterialBuffer, mMaterialBufferMemory);
 		//CreateVertexBuffer({glm::vec3(0.0f)}, mMainVertexBuffer, mMainVertexBufferMemory, 1024 * 1024 * 8 * sizeof(Vertex));
 		//CreateIndexBuffer({ 0 }, mMainIndexBuffer, mMainIndexBufferMemory, 1024 * 1024 * 8 * sizeof(unsigned int));
 		CreateUniformBuffers();
@@ -1971,7 +1979,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-	}
+		}
 #endif
 
 
@@ -2032,7 +2040,7 @@ namespace Plaza {
 
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-}
+	}
 	void VulkanRenderer::RenderBloom()
 	{
 	}
@@ -2447,7 +2455,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-	}
+		}
 #endif
 
 
@@ -2563,18 +2571,20 @@ namespace Plaza {
 		materialData.normalIndex = material->normal->mIndexHandle;
 		materialData.roughnessFloat = material->roughnessFloat;
 		materialData.roughnessIndex = material->roughness->mIndexHandle;
+
+		material->mIndexHandle = this->mUploadedMaterials.size();
 		this->mUploadedMaterials.push_back(materialData);
 
 		VkDeviceSize size = sizeof(MaterialData) * this->mUploadedMaterials.size();
 
-		void* data;
-		vkMapMemory(mDevice, this->mMaterialBufferMemory, 0, size, 0, &data);
-		memcpy(data, this->mUploadedMaterials.data(), static_cast<size_t>(size));
-		vkUnmapMemory(mDevice, this->mMaterialBufferMemory);
 
 		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+			void* data;
+			vkMapMemory(mDevice, this->mMaterialBufferMemories[mCurrentFrame], 0, size, 0, &data);
+			memcpy(data, this->mUploadedMaterials.data(), static_cast<size_t>(size));
+			vkUnmapMemory(mDevice, this->mMaterialBufferMemories[mCurrentFrame]);
 			VkDescriptorBufferInfo bufferInfo = {};
-			bufferInfo.buffer = this->mMaterialBuffer;
+			bufferInfo.buffer = this->mMaterialBuffers[i];
 			bufferInfo.offset = 0;
 			bufferInfo.range = VK_WHOLE_SIZE;
 
@@ -2594,7 +2604,7 @@ namespace Plaza {
 	void VulkanRenderer::UpdateMaterials() {
 		std::vector<MaterialData> materialDataVector = std::vector<MaterialData>();
 
-		for (const auto& [key, value] : Application->activeScene->materials) {
+		for (auto& [key, value] : Application->activeScene->materials) {
 			MaterialData materialData{};
 			materialData.color = value->diffuse->rgba;
 			materialData.diffuseIndex = value->diffuse->mIndexHandle;
@@ -2604,18 +2614,22 @@ namespace Plaza {
 			materialData.normalIndex = value->normal->mIndexHandle;
 			materialData.roughnessFloat = value->roughnessFloat;
 			materialData.roughnessIndex = value->roughness->mIndexHandle;
+
+			value.get()->mIndexHandle = materialDataVector.size();
+			value->mIndexHandle = materialDataVector.size();
+
 			materialDataVector.push_back(materialData);
 		}
 
 		VkDeviceSize size = sizeof(MaterialData) * materialDataVector.size();
 
 		void* data;
-		vkMapMemory(mDevice, this->mMaterialBufferMemory, 0, size, 0, &data);
+		vkMapMemory(mDevice, this->mMaterialBufferMemories[mCurrentFrame], 0, size, 0, &data);
 		memcpy(data, materialDataVector.data(), static_cast<size_t>(size));
-		vkUnmapMemory(mDevice, this->mMaterialBufferMemory);
+		vkUnmapMemory(mDevice, this->mMaterialBufferMemories[mCurrentFrame]);
 
 		VkDescriptorBufferInfo bufferInfo = {};
-		bufferInfo.buffer = this->mMaterialBuffer;
+		bufferInfo.buffer = this->mMaterialBuffers[mCurrentFrame];
 		bufferInfo.offset = 0;
 		bufferInfo.range = VK_WHOLE_SIZE;
 

@@ -240,14 +240,14 @@ namespace Plaza {
 		VkDeviceMemory mMainIndexBufferMemory = VK_NULL_HANDLE;
 		std::vector<VkBuffer> mMainInstanceMatrixBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mMainInstanceMatrixBufferMemories = std::vector<VkDeviceMemory>();
-		VkBuffer mMainInstanceMaterialBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory mMainInstanceMaterialBufferMemory = VK_NULL_HANDLE;
+		std::vector<VkBuffer> mMainInstanceMaterialBuffers = std::vector<VkBuffer>();
+		std::vector<VkDeviceMemory> mMainInstanceMaterialBufferMemories = std::vector<VkDeviceMemory>();
 		std::vector<glm::mat4> mInstanceModelMatrices = std::vector<glm::mat4>();
 		std::vector<unsigned int> mInstanceModelMaterialsIndex = std::vector<unsigned int>();
 		
 		std::vector<MaterialData> mUploadedMaterials = std::vector<MaterialData>();
-		VkBuffer mMaterialBuffer;
-		VkDeviceMemory mMaterialBufferMemory;
+		std::vector<VkBuffer> mMaterialBuffers = std::vector<VkBuffer>();
+		std::vector<VkDeviceMemory> mMaterialBufferMemories = std::vector<VkDeviceMemory>();
 
 		uint64_t mBufferTotalVertices = 0;
 		uint64_t mBufferTotalIndices = 0;
@@ -368,7 +368,7 @@ namespace Plaza {
 
 			attributeDescriptions[9].binding = 2;
 			attributeDescriptions[9].location = 18;
-			attributeDescriptions[9].format = VK_FORMAT_R32_SINT;
+			attributeDescriptions[9].format = VK_FORMAT_R32_UINT;
 			attributeDescriptions[9].offset = sizeof(unsigned int);
 			return attributeDescriptions;
 		}

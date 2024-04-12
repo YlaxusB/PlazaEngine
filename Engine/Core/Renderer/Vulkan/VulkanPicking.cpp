@@ -266,36 +266,36 @@ namespace Plaza {
 	}
 
 	void VulkanPicking::DrawMeshToPickingTexture(const MeshRenderer& meshRenderer, VkCommandBuffer& commandBuffer) {
-		VulkanMesh* mesh = (VulkanMesh*)meshRenderer.mesh;
+		//VulkanMesh* mesh = (VulkanMesh*)meshRenderer.mesh;
+		//
+		//VkDeviceSize offsets[] = { 0, 0 };
+		//VkCommandBuffer activeCommandBuffer = commandBuffer;
+		//
+		//VulkanPicking::PushConstants pushData{};
+		//pushData.projection = Application->activeCamera->GetProjectionMatrix();
+		//pushData.view = Application->activeCamera->GetViewMatrix();
+		//pushData.model = Application->activeScene->GetComponent<Transform>(meshRenderer.uuid)->modelMatrix;
+		//pushData.uuid1 = (uint32_t)(meshRenderer.uuid >> 32);
+		//pushData.uuid2 = (uint32_t)(meshRenderer.uuid & 0xFFFFFFFF);
+		//
+		//vkCmdPushConstants(commandBuffer, this->mRenderPickingTexturePostEffects->mShaders->mPipelineLayout, VK_SHADER_STAGE_ALL, 0, sizeof(VulkanPicking::PushConstants), &pushData);
+		//
+		//VkBufferCreateInfo bufferInfo{};
+		//bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		//bufferInfo.size = sizeof(glm::mat4) * 1;
+		//bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		//bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		//std::vector<glm::mat4> instanceModelMatrices = { glm::mat4(1.0f) };
+		//void* data;
+		//vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
+		//memcpy(data, instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
+		//vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, mesh->mInstanceBufferMemory);
+		//
+		//std::array<VkBuffer, 2> buffers = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
+		//vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, buffers.data(), offsets);
+		//vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-		VkDeviceSize offsets[] = { 0, 0 };
-		VkCommandBuffer activeCommandBuffer = commandBuffer;
-
-		VulkanPicking::PushConstants pushData{};
-		pushData.projection = Application->activeCamera->GetProjectionMatrix();
-		pushData.view = Application->activeCamera->GetViewMatrix();
-		pushData.model = Application->activeScene->GetComponent<Transform>(meshRenderer.uuid)->modelMatrix;
-		pushData.uuid1 = (uint32_t)(meshRenderer.uuid >> 32);
-		pushData.uuid2 = (uint32_t)(meshRenderer.uuid & 0xFFFFFFFF);
-
-		vkCmdPushConstants(commandBuffer, this->mRenderPickingTexturePostEffects->mShaders->mPipelineLayout, VK_SHADER_STAGE_ALL, 0, sizeof(VulkanPicking::PushConstants), &pushData);
-
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = sizeof(glm::mat4) * 1;
-		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		std::vector<glm::mat4> instanceModelMatrices = { glm::mat4(1.0f) };
-		void* data;
-		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
-		memcpy(data, instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
-		vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, mesh->mInstanceBufferMemory);
-
-		std::array<VkBuffer, 2> buffers = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
-		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, buffers.data(), offsets);
-		vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), 1, 0, 0, 0);
+		//vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), 1, 0, 0, 0);
 	}
 
 	void VulkanPicking::DrawSelectedObjectsUuid() {

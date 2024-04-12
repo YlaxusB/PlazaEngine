@@ -232,15 +232,18 @@ namespace Plaza {
 
 		VkDescriptorSet mMainSceneDescriptorSet;
 
+		VkBuffer mMainIndirectCommandsBuffer = VK_NULL_HANDLE;
+		VkDeviceMemory mMainIndirectCommandsBufferMemory = VK_NULL_HANDLE;
 		VkBuffer mMainVertexBuffer = VK_NULL_HANDLE;
 		VkDeviceMemory mMainVertexBufferMemory = VK_NULL_HANDLE;
 		VkBuffer mMainIndexBuffer = VK_NULL_HANDLE;
 		VkDeviceMemory mMainIndexBufferMemory = VK_NULL_HANDLE;
-		VkBuffer mMainInstanceMatrixBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory mMainInstanceMatrixBufferMemory = VK_NULL_HANDLE;
+		std::vector<VkBuffer> mMainInstanceMatrixBuffers = std::vector<VkBuffer>();
+		std::vector<VkDeviceMemory> mMainInstanceMatrixBufferMemories = std::vector<VkDeviceMemory>();
 		VkBuffer mMainInstanceMaterialBuffer = VK_NULL_HANDLE;
 		VkDeviceMemory mMainInstanceMaterialBufferMemory = VK_NULL_HANDLE;
 		std::vector<glm::mat4> mInstanceModelMatrices = std::vector<glm::mat4>();
+		std::vector<unsigned int> mInstanceModelMaterialsIndex = std::vector<unsigned int>();
 		
 		std::vector<MaterialData> mUploadedMaterials = std::vector<MaterialData>();
 		VkBuffer mMaterialBuffer;
@@ -305,27 +308,6 @@ namespace Plaza {
 			instanceBindingDescription.binding = 1;
 			instanceBindingDescription.stride = sizeof(glm::vec4) * 4;
 			instanceBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
-
-			std::array<VkVertexInputAttributeDescription, 4> instanceAttributeDescriptions = {};
-			instanceAttributeDescriptions[0].binding = 1;
-			instanceAttributeDescriptions[0].location = 5;
-			instanceAttributeDescriptions[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			instanceAttributeDescriptions[0].offset = 0;
-
-			instanceAttributeDescriptions[1].binding = 1;
-			instanceAttributeDescriptions[1].location = 6;
-			instanceAttributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			instanceAttributeDescriptions[1].offset = sizeof(float) * 4;
-
-			instanceAttributeDescriptions[2].binding = 1;
-			instanceAttributeDescriptions[2].location = 7;
-			instanceAttributeDescriptions[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			instanceAttributeDescriptions[2].offset = sizeof(float) * 8;
-
-			instanceAttributeDescriptions[3].binding = 1;
-			instanceAttributeDescriptions[3].location = 8;
-			instanceAttributeDescriptions[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			instanceAttributeDescriptions[3].offset = sizeof(float) * 12;
 
 			bindingDescriptions[1] = instanceBindingDescription;
 

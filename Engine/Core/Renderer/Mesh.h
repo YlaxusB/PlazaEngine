@@ -50,6 +50,11 @@ namespace Plaza {
 		vector<glm::vec3> tangent;
 		vector<glm::vec3> bitangent;
 
+		uint64_t verticesCount = 0;
+		uint64_t verticesOffset = 0;
+		uint64_t indicesCount = 0;
+		uint64_t indicesOffset = 0;
+
 		//vector<Texture> textures;
 		//Material material = DefaultMaterial();
 		bool usingNormal;

@@ -66,5 +66,5 @@ void main() {
     //}
     worldPos.xyz = vec3(finalModel);
     gl_Position = ubo.projection * (ubo.view) * finalModel;
-    materialIndex = 22;
+    materialIndex = mat;//22;
 }

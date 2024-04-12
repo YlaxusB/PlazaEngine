@@ -956,15 +956,44 @@ namespace Plaza {
 				if (transformIt != Application->activeScene->transformComponents.end() && value.renderGroup) {
 					const Transform& transform = transformIt->second;
 
-					mInstanceModelMatrices.push_back(glm::mat4(1.0f));
+					//mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 					//mInstanceModelMatrices.push_back(transform.modelMatrix);
-					//value.renderGroup->AddInstance(*Application->shader, transform.modelMatrix);
+
+					value.renderGroup->AddInstance(transform.modelMatrix);
 					Time::addInstanceCalls++;
 
 					bool continueLoop = true;
 
 					//value.renderGroup->AddCascadeInstance(transform.modelMatrix, 0);
 				}
+			}
+		}
+
+		{
+			PLAZA_PROFILE_SECTION("Create Indirect Commands");
+			this->mIndirectCommands.clear();
+			this->mInstanceModelMatrices.clear();
+			mTotalInstances = 0;
+			mIndirectDrawCount = 0;
+			for (const auto& [key, value] : Application->activeScene->renderGroups) {
+				VkDrawIndexedIndirectCommand indirectCommand{};
+				indirectCommand.firstIndex = value->mesh->indicesOffset;
+				indirectCommand.vertexOffset = value->mesh->verticesOffset;
+				indirectCommand.firstInstance = mTotalInstances;
+				indirectCommand.indexCount = value->mesh->indicesCount;//indices.size();
+				indirectCommand.instanceCount = value->instanceModelMatrices.size();
+
+				this->mIndirectCommands.push_back(indirectCommand);
+
+				for (unsigned int i = 0; i < value->instanceModelMatrices.size(); ++i) {
+					this->mInstanceModelMatrices.push_back(value->instanceModelMatrices[i]);
+					this->mInstanceModelMaterialsIndex.push_back(value->material->mIndexHandle);
+					mTotalInstances++; //= value->instanceModelMatrices.size();
+				}
+
+
+				mIndirectDrawCount++;
+				value->instanceModelMatrices.clear();
 			}
 		}
 
@@ -978,43 +1007,27 @@ namespace Plaza {
 			this->mShadows->UpdateAndPushConstants(commandBuffer, 0);
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[0].mDescriptorSets[mCurrentFrame], 0, nullptr);
 
-			if (mIndirectBuffer == VK_NULL_HANDLE) {
-				VkBuffer stagingBuffer;
-
-				VkDeviceSize size = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
-				CreateBuffer(sizeof(VkDrawIndexedIndirectCommand) * (1024 * 512), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mIndirectBuffer, mIndirectBufferMemory);
-				VkBuffer stagingBuffer2;
-				VkDeviceMemory stagingBufferMemory2;
-				CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer2, stagingBufferMemory2);
-
+			{
+				PLAZA_PROFILE_SECTION("Copy Indirect Data");
+				VkDeviceSize bufferSize = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
 				void* data;
-				vkMapMemory(mDevice, stagingBufferMemory2, 0, size, 0, &data);
-				memcpy(data, mIndirectCommands.data(), static_cast<size_t>(size));
-				vkUnmapMemory(mDevice, stagingBufferMemory2);
-
-				CopyBuffer(stagingBuffer2, mIndirectBuffer, size);
-
-				vkDestroyBuffer(mDevice, stagingBuffer2, nullptr);
-				vkFreeMemory(mDevice, stagingBufferMemory2, nullptr);
+				vkMapMemory(this->mDevice, mIndirectBufferMemory, 0, bufferSize, 0, &data);
+				memcpy(data, mIndirectCommands.data(), static_cast<size_t>(bufferSize));
+				vkUnmapMemory(this->mDevice, mIndirectBufferMemory);
 			}
 
-			RenderGroup* renderGroup = Application->activeScene->renderGroups.begin()->second;
-			VulkanMesh* mesh;
 			{
-				renderGroup->instanceModelMatrices = { glm::mat4(1.0f) };
 				PLAZA_PROFILE_SECTION("Copy Data");
-				mesh = (VulkanMesh*)renderGroup->mesh;
 				VkDeviceSize bufferSize = sizeof(glm::mat4) * mInstanceModelMatrices.size();
 				void* data;
-				vkMapMemory(this->mDevice, mMainInstanceMatrixBufferMemory, 0, bufferSize, 0, &data);
+				vkMapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
 				memcpy(data, mInstanceModelMatrices.data(), static_cast<size_t>(bufferSize));
-				vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemory);
-				mInstanceModelMatrices.clear();
+				vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame]);
 			}
 
 			VkDeviceSize offsets[1] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
-			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffer, offsets);
+			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
 			vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffer, offsets);
 			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
@@ -1066,9 +1079,19 @@ namespace Plaza {
 
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 
+			{
+				PLAZA_PROFILE_SECTION("Bind the instance's materials");
+				VkDeviceSize bufferSize = sizeof(int) * mInstanceModelMaterialsIndex.size();
+				void* data;
+				vkMapMemory(this->mDevice, mMainInstanceMaterialBufferMemory, 0, bufferSize, 0, &data);
+				memcpy(data, mInstanceModelMaterialsIndex.data(), static_cast<size_t>(bufferSize));
+				vkUnmapMemory(this->mDevice, mMainInstanceMaterialBufferMemory);
+				mInstanceModelMaterialsIndex.clear();
+			}
+
 			VkDeviceSize offsets[1] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
-			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffer, offsets);
+			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
 			vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffer, offsets);
 			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
@@ -1840,10 +1863,36 @@ namespace Plaza {
 		CreateTextureSampler();
 		std::cout << "Create CreateUniformBuffers \n";
 		//LoadModel();
+
+		/*
+						VkBuffer stagingBuffer;
+
+				VkDeviceSize size = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
+				CreateBuffer(sizeof(VkDrawIndexedIndirectCommand) * (1024 * 512), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mIndirectBuffer, mIndirectBufferMemory);
+				VkBuffer stagingBuffer2;
+				VkDeviceMemory stagingBufferMemory2;
+				CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer2, stagingBufferMemory2);
+
+				void* data;
+				vkMapMemory(mDevice, stagingBufferMemory2, 0, size, 0, &data);
+				memcpy(data, mIndirectCommands.data(), static_cast<size_t>(size));
+				vkUnmapMemory(mDevice, stagingBufferMemory2);
+
+				CopyBuffer(stagingBuffer2, mIndirectBuffer, size);
+
+				vkDestroyBuffer(mDevice, stagingBuffer2, nullptr);
+				vkFreeMemory(mDevice, stagingBufferMemory2, nullptr);
+		*/
+
+		CreateBuffer(1024 * 1024 * sizeof(VkDrawIndexedIndirectCommand), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mIndirectBuffer, mIndirectBufferMemory);
 		CreateBuffer(1024 * 1024 * 8 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mMainVertexBuffer, mMainVertexBufferMemory);
 		CreateBuffer(1024 * 1024 * 8 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mMainIndexBuffer, mMainIndexBufferMemory);
-		CreateBuffer(1024 * 256 * 8 * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMatrixBuffer, mMainInstanceMatrixBufferMemory);
-		CreateBuffer(1024 * 256 * 8 * sizeof(unsigned int), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMaterialBuffer, mMainInstanceMaterialBufferMemory);
+		mMainInstanceMatrixBuffers.resize(mMaxFramesInFlight);
+		mMainInstanceMatrixBufferMemories.resize(mMaxFramesInFlight);
+		for (unsigned int i = 0; i < mMaxFramesInFlight; ++i) {
+			CreateBuffer(1024 * 256 * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMatrixBuffers[i], mMainInstanceMatrixBufferMemories[i]);
+		}
+		CreateBuffer(1024 * 256 * sizeof(unsigned int), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMaterialBuffer, mMainInstanceMaterialBufferMemory);
 		CreateBuffer(1024 * 16 * sizeof(MaterialData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMaterialBuffer, mMaterialBufferMemory);
 		//CreateVertexBuffer({glm::vec3(0.0f)}, mMainVertexBuffer, mMainVertexBufferMemory, 1024 * 1024 * 8 * sizeof(Vertex));
 		//CreateIndexBuffer({ 0 }, mMainIndexBuffer, mMainIndexBufferMemory, 1024 * 1024 * 8 * sizeof(unsigned int));
@@ -1910,7 +1959,7 @@ namespace Plaza {
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
-	}
+		}
 
 		{
 			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
@@ -1922,7 +1971,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-		}
+	}
 #endif
 
 
@@ -2201,6 +2250,11 @@ namespace Plaza {
 				});
 		}
 
+		vulkMesh.verticesCount = vertices.size();
+		vulkMesh.verticesOffset = this->mBufferTotalVertices;
+		vulkMesh.indicesCount = indices.size();
+		vulkMesh.indicesOffset = this->mBufferTotalIndices;
+
 		// Add vertices to the big vertex buffer
 		VkDeviceSize newDataSize = sizeof(Vertex) * convertedVertices.size();
 
@@ -2208,7 +2262,7 @@ namespace Plaza {
 		VkDeviceMemory stagingBufferMemory;
 		CreateBuffer(newDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
-		mBufferTotalVertices += vertices.size();
+
 		void* data;
 		vkMapMemory(mDevice, stagingBufferMemory, 0, newDataSize, 0, &data);
 		memcpy(data, convertedVertices.data(), static_cast<size_t>(newDataSize));
@@ -2226,24 +2280,25 @@ namespace Plaza {
 		//this->CreateIndexBuffer(indices, vulkMesh.mIndexBuffer, vulkMesh.mIndexBufferMemory);
 
 		// Add vertices to the big index buffer
-		mBufferTotalIndices += indices.size();
-		newDataSize = sizeof(indices[0]) * indices.size();
+
+		VkDeviceSize indicesDataSize = sizeof(unsigned int) * indices.size();
 
 		VkBuffer indexStagingBuffer;
 		VkDeviceMemory indexStagingBufferMemory;
 		CreateBuffer(newDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, indexStagingBuffer, indexStagingBufferMemory);
 
 		void* data2;
-		vkMapMemory(mDevice, indexStagingBufferMemory, 0, newDataSize, 0, &data2);
-		memcpy(data2, indices.data(), static_cast<size_t>(newDataSize));
+		vkMapMemory(mDevice, indexStagingBufferMemory, 0, indicesDataSize, 0, &data2);
+		memcpy(data2, indices.data(), static_cast<size_t>(indicesDataSize));
 		vkUnmapMemory(mDevice, indexStagingBufferMemory);
 
-		CopyBuffer(indexStagingBuffer, mMainIndexBuffer, newDataSize, mBufferTotalIndices * sizeof(unsigned int));
+		CopyBuffer(indexStagingBuffer, mMainIndexBuffer, indicesDataSize, mBufferTotalIndices * sizeof(unsigned int));
 
 		vkDestroyBuffer(mDevice, indexStagingBuffer, nullptr);
 		vkFreeMemory(mDevice, indexStagingBufferMemory, nullptr);
 
-
+		mBufferTotalVertices += vertices.size();
+		mBufferTotalIndices += indices.size();
 		VkDrawIndexedIndirectCommand indirectCommand{};
 		indirectCommand.firstIndex = mBufferTotalIndices - indices.size();
 		indirectCommand.vertexOffset = mBufferTotalVertices - vertices.size();
@@ -2380,7 +2435,7 @@ namespace Plaza {
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
-	}
+		}
 
 		{
 			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
@@ -2392,7 +2447,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-		}
+	}
 #endif
 
 

@@ -170,7 +170,7 @@ void main() {
     }
     else
     {
-        color = vec4(1.0f, 0.0f, 0.0f, 1.0f);//vec4(material.color.xyz, 1.0f) * material.intensity;
+        color = vec4(material.color.xyz, 1.0f) * material.intensity;
     }
 
     //color *= vec4((vec3(1.0f) - ShadowCalculation(FragPos.xyz) + 0.25f).xyz, 1.0f);

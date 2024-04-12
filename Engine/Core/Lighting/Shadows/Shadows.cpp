@@ -93,7 +93,7 @@ namespace Plaza {
 					//Application->activeScene->entities[transform->uuid].GetComponent<Transform>()->UpdateObjectTransform(&Application->activeScene->entities[meshRendererPair.first]);
 					glm::mat4 modelMatrix = transform.modelMatrix;
 					if (meshRenderer.instanced&& meshRenderer.renderGroup && meshRenderer.renderGroup->mesh) {
-						meshRenderer.renderGroup->AddInstance(shader, modelMatrix);
+						meshRenderer.renderGroup->AddInstance(modelMatrix);
 					}
 					else if(meshRenderer.renderGroup) {
 						shader.setMat4("model", modelMatrix);

@@ -211,8 +211,8 @@ namespace Plaza {
 		PLAZA_PROFILE_SECTION("Transform: Update Physics");
 		auto it = Application->activeScene->colliderComponents.find(this->uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
-			it->second.UpdatePose(this);
 			it->second.UpdateShapeScale(this->GetWorldScale());
+			it->second.UpdatePose(this);
 		}
 
 		auto characterControllerIt = Application->activeScene->characterControllerComponents.find(this->uuid);

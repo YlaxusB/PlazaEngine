@@ -224,7 +224,10 @@ namespace Plaza {
 
 		static Material* DefaultMaterial();
 
+		unsigned int lastMaterialIndex = 0;
 		void AddMaterial(Material* material) {
+			material->mIndexHandle = lastMaterialIndex;
+			lastMaterialIndex++;
 			this->materials.emplace(material->uuid, material);
 			this->materialsNames.emplace(material->name, material->uuid);
 			if (VulkanRenderer::GetRenderer())

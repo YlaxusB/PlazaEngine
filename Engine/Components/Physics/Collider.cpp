@@ -292,7 +292,7 @@ namespace Plaza {
 		std::cout << "Third: " << size * 0.5f * 20 << "\n";
 		physx::PxHeightFieldGeometry hfGeom(aHeightField, physx::PxMeshGeometryFlags(), 1, 20,
 			20);
-		
+
 
 		float terrainWidth = 256 / 2 * 20;
 		PxTransform localPose;
@@ -352,6 +352,11 @@ namespace Plaza {
 	void Collider::UpdateShapeScale(glm::vec3 scale) {
 		PLAZA_PROFILE_SECTION("Collider: Update Shape Scale");
 		if (lastScale != scale) {
+			if (scale.x == 0 || scale.y == 0 || scale.z == 0) {
+				lastScale = scale;
+				return;
+			}
+
 			for (int i = 0; i < this->mShapes.size(); ++i) {
 				physx::PxShape* shape = this->mShapes[i]->mPxShape;
 				physx::PxGeometryHolder geometry = this->mShapes[i]->mPxShape->getGeometry();
@@ -382,10 +387,10 @@ namespace Plaza {
 					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
 				}
 				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::MESH) {
-					physx::PxTriangleMeshGeometry meshGeometry = geometry.triangleMesh();
-					meshGeometry.scale = physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z));
-					shape->release();
+					physx::PxTriangleMeshGeometry meshGeometry(geometry.triangleMesh().triangleMesh, physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z), physx::PxQuat(physx::PxIdentity)));
+					//meshGeometry.scale = physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z));
 					newShape = Physics::m_physics->createShape(meshGeometry, *material);
+					shape->release();
 					//physx::PxSphereGeometry sphereGeom;
 					//sphereGeom.radius *= 3;
 					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
@@ -443,17 +448,37 @@ namespace Plaza {
 		collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlags(flags);
 	}
 
+
+	physx::PxTransform ConvertMat4ToPxTransform(const glm::mat4& matrix) {
+		// Extract translation from the matrix
+		glm::vec3 translation = glm::vec3(matrix[3]);
+
+		// Extract rotation and scale from the upper-left 3x3 matrix
+		glm::mat3 rotationMatrix = glm::mat3(matrix);
+		glm::quat rotation = glm::quat_cast(rotationMatrix);
+
+		// Convert the glm::quat rotation to physx::PxQuat
+		physx::PxQuat pxRotation(rotation.x, rotation.y, rotation.z, rotation.w);
+
+		// Construct and return the PxTransform
+		return physx::PxTransform(physx::PxVec3(translation.x, translation.y, translation.z), pxRotation);
+	}
+
 	void Collider::UpdatePose(Transform* transform) {
 		PLAZA_PROFILE_SECTION("Collider: Update Pose");
 		if (transform) {
 			if (this->mRigidActor) {
-				glm::quat quaternion = glm::normalize(transform->GetWorldQuaternion());
+				glm::quat quaternion = transform->GetWorldQuaternion();
 				physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
+				//pxQuaternion.normalize();
 
 				glm::vec3 transformPos = transform->GetWorldPosition();
-				physx::PxTransform pxTransform = physx::PxTransform(
-					transformPos.x, transformPos.y, transformPos.z,
-					pxQuaternion);
+				physx::PxVec3 pxTranslation(transformPos.x, transformPos.y, transformPos.z);
+				physx::PxTransform pxTransform(pxTranslation); 
+				//pxTransform = pxTransform.getNormalized();
+				pxTransform.rotate(physx::PxVec3(transform->GetWorldRotation().x, transform->GetWorldRotation().y, transform->GetWorldRotation().z));
+				//pxTransform = pxTransform.getNormalized();
+
 				this->mRigidActor->setGlobalPose(pxTransform);
 			}
 		}

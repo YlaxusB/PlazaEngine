@@ -192,7 +192,7 @@ namespace Plaza {
 						bool isVertexUnique = true;//uniqueVertices.count(vertex) == 0;
 						if (isVertexUnique) {
 							uniqueVertices[vertex] = static_cast<uint32_t>(finalMesh->vertices.size());
-							finalMesh->vertices.push_back(glm::vec3(v.x, v.y, v.z));
+							finalMesh->vertices.push_back(glm::vec3(v.x, v.y, v.z) * mModelImporterScale);
 							ofbx::Vec3 n = normals.get(tri_indices[i]);
 							finalMesh->normals.push_back(glm::vec3(n.x, n.y, n.z));
 							ofbx::Vec2 u = uvs.get(tri_indices[i]);

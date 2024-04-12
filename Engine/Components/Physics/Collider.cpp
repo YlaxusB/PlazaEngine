@@ -448,35 +448,23 @@ namespace Plaza {
 		collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlags(flags);
 	}
 
-
-	physx::PxTransform ConvertMat4ToPxTransform(const glm::mat4& matrix) {
-		// Extract translation from the matrix
-		glm::vec3 translation = glm::vec3(matrix[3]);
-
-		// Extract rotation and scale from the upper-left 3x3 matrix
-		glm::mat3 rotationMatrix = glm::mat3(matrix);
-		glm::quat rotation = glm::quat_cast(rotationMatrix);
-
-		// Convert the glm::quat rotation to physx::PxQuat
-		physx::PxQuat pxRotation(rotation.x, rotation.y, rotation.z, rotation.w);
-
-		// Construct and return the PxTransform
-		return physx::PxTransform(physx::PxVec3(translation.x, translation.y, translation.z), pxRotation);
+	glm::quat GetQuaternionFromMatrix(const glm::mat4& matrix) {
+		glm::mat3 rotationMatrix = glm::mat3(matrix); // Extract rotation component
+		glm::quat rotationQuaternion = glm::quat(rotationMatrix); // Convert rotation matrix to quaternion
+		return rotationQuaternion;
 	}
 
 	void Collider::UpdatePose(Transform* transform) {
 		PLAZA_PROFILE_SECTION("Collider: Update Pose");
 		if (transform) {
 			if (this->mRigidActor) {
-				glm::quat quaternion = transform->GetWorldQuaternion();
+				glm::quat quaternion = glm::quat(transform->GetWorldRotation());
+
 				physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-				//pxQuaternion.normalize();
 
 				glm::vec3 transformPos = transform->GetWorldPosition();
 				physx::PxVec3 pxTranslation(transformPos.x, transformPos.y, transformPos.z);
-				physx::PxTransform pxTransform(pxTranslation); 
-				//pxTransform = pxTransform.getNormalized();
-				pxTransform.rotate(physx::PxVec3(transform->GetWorldRotation().x, transform->GetWorldRotation().y, transform->GetWorldRotation().z));
+				physx::PxTransform pxTransform(pxTranslation, pxQuaternion);
 				//pxTransform = pxTransform.getNormalized();
 
 				this->mRigidActor->setGlobalPose(pxTransform);

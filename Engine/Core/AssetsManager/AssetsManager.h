@@ -114,6 +114,13 @@ namespace Plaza {
 			return new Texture();
 		}
 
+		static bool TextureExists(uint64_t uuid) {
+			const auto& it = mTextures.find(uuid);
+			if (it != mTextures.end())
+				return true;
+			return false;
+		}
+
 		static void AddMesh(Mesh* mesh) {
 			AssetsManager::mLoadedMeshes.emplace(mesh->meshId, mesh);
 		}

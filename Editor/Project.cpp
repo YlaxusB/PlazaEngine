@@ -79,6 +79,8 @@ namespace Plaza::Editor {
 					Asset* asset = AssetsManager::LoadBinaryFileAsAsset(entry.path());
 					if (extension == ".plzmat")
 					{
+						if (entry.path().stem() == "mat")
+							std::cout << "mat 1 \n";
 						AssetsLoader::LoadAsset(asset);
 						//AssetsManager::AddAsset(asset);
 					}
@@ -101,6 +103,8 @@ namespace Plaza::Editor {
 
 		for (auto& [key, value] : Application->activeScene->materials) {
 			//Application->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"))->mPath.string())
+			if (value->name == "mat")
+				std::cout << "mat 2 \n";
 			if (key == 0)
 				continue;
 			value->diffuse = AssetsManager::GetTexture(value->diffuse->mAssetUuid);

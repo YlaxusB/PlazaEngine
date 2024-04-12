@@ -21,22 +21,27 @@ namespace Plaza::Editor {
 			ImGui::ColorPicker4("Diffuse", &material->diffuse->rgba.x);
 			ImGui::ColorPicker4("Specular", &material->specular->rgba.x);
 			if (ImGui::Button("Difusse Texture")) {
-				material->diffuse = Application->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"))->mPath.string());
+				Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"));
+				material->diffuse = Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid);
 				//    material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");
 				//    material->diffuse.rgba = glm::vec4(INFINITY);
 				//    material->diffuse.Load() = ModelLoader::TextureFromFile(material->diffuse.path);
 			}
 			if (ImGui::Button("Normal Texture")) {
-				material->normal = Application->mRenderer->LoadTexture(FileDialog::OpenFileDialog(".jpeg"));
+				Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"));
+				material->normal = Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid);
 			}
 			if (ImGui::Button("Metalic Texture")) {
-				material->metalness = Application->mRenderer->LoadTexture(FileDialog::OpenFileDialog(".jpeg"));
+				Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"));
+				material->metalness = Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid);
 			}
 			if (ImGui::Button("Roughness Texture")) {
-				material->roughness = Application->mRenderer->LoadTexture(FileDialog::OpenFileDialog(".jpeg"));
+				Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"));
+				material->roughness = Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid);
 			}
 			if (ImGui::Button("Height Texture")) {
-				material->height = Application->mRenderer->LoadTexture(FileDialog::OpenFileDialog(".jpeg"));
+				Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"));
+				material->height = Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid);
 			}
 
 			ImGui::DragFloat("Roughness: ", &material->roughnessFloat, 0.0f, 1.0f);
@@ -47,7 +52,9 @@ namespace Plaza::Editor {
 			//	Application->activeScene->materials.at(material->uuid) = std::make_shared<Material>(*new Material(*material));
 			//}
 			if (ImGui::Button("Apply")) {
-				MaterialFileSerializer::Serialize(file->directory, material);
+				material->name = std::filesystem::path{ file->directory }.stem().string();
+				AssetsSerializer::SerializeMaterial(material, file->directory);
+				//MaterialFileSerializer::Serialize(file->directory, material);
 			}
 
 			lastFile = file;

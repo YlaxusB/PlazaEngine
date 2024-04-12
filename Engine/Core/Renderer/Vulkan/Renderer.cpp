@@ -2217,6 +2217,8 @@ namespace Plaza {
 
 	Texture* VulkanRenderer::LoadTexture(std::string path, uint64_t uuid) {
 		VulkanTexture* texture = new VulkanTexture();
+		if (AssetsManager::TextureExists(uuid))
+			return AssetsManager::GetTexture(uuid);
 		if (uuid != 0)
 			texture->mAssetUuid = uuid;
 		texture->path = path;

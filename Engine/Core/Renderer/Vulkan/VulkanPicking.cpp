@@ -280,22 +280,22 @@ namespace Plaza {
 		
 		vkCmdPushConstants(commandBuffer, this->mRenderPickingTexturePostEffects->mShaders->mPipelineLayout, VK_SHADER_STAGE_ALL, 0, sizeof(VulkanPicking::PushConstants), &pushData);
 		
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = sizeof(glm::mat4) * 1;
-		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		std::vector<glm::mat4> instanceModelMatrices = { glm::mat4(1.0f) };
-		void* data;
-		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
-		memcpy(data, instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
-		vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, mesh->mInstanceBufferMemory);
-		
-		std::array<VkBuffer, 2> buffers = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
-		vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, buffers.data(), offsets);
-		vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		//VkBufferCreateInfo bufferInfo{};
+		//bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		//bufferInfo.size = sizeof(glm::mat4) * 1;
+		//bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		//bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		//std::vector<glm::mat4> instanceModelMatrices = { glm::mat4(1.0f) };
+		//void* data;
+		//vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
+		//memcpy(data, instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
+		//vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, mesh->mInstanceBufferMemory);
+		//
+		//std::array<VkBuffer, 2> buffers = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
+		//vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, buffers.data(), offsets);
+		//vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), 1, mesh->indicesOffset, mesh->verticesOffset, mesh->instanceOffset);
 	}
 
 	void VulkanPicking::DrawSelectedObjectsUuid() {
@@ -335,6 +335,14 @@ namespace Plaza {
 		scissor.extent.width = this->mResolution.x;
 		scissor.extent.height = this->mResolution.y;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VulkanRenderer::GetRenderer()->mMainVertexBuffer, offsets);
+		vkCmdBindVertexBuffers(commandBuffer, 1, 1, &VulkanRenderer::GetRenderer()->mMainInstanceMatrixBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], offsets);
+		//vkCmdBindVertexBuffers(commandBuffer, 2, 1, &VulkanRenderer::GetRenderer()->mMainInstanceMaterialBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], offsets);
+		vkCmdBindIndexBuffer(commandBuffer, VulkanRenderer::GetRenderer()->mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+		//vkCmdDrawIndexedIndirect(commandBuffer, VulkanRenderer::GetRenderer()->mIndirectBuffer, 0, VulkanRenderer::GetRenderer()->mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 
 		for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
 			this->DrawMeshToPickingTexture(value, commandBuffer);

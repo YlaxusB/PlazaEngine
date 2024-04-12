@@ -54,6 +54,7 @@ namespace Plaza {
 		uint64_t verticesOffset = 0;
 		uint64_t indicesCount = 0;
 		uint64_t indicesOffset = 0;
+		uint64_t instanceOffset = 0;
 
 		//vector<Texture> textures;
 		//Material material = DefaultMaterial();

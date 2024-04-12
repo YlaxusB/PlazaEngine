@@ -376,6 +376,7 @@ namespace Plaza {
 		friend class VulkanMesh;
 		friend class VulkanTexture;
 		friend class VulkanGuiRenderer;
+		friend class VulkanPicking;
 	};
 	/*
 	class VulkanRenderer : public Renderer {

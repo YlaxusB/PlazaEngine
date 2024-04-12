@@ -403,7 +403,7 @@ namespace Plaza {
 		//vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
 		//vkCmdBindIndexBuffer(mCommandBuffer, mSkyboxMesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		//PLAZA_PROFILE_SECTION("Draw Indexed");
-		vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(mSkyboxMesh->indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(mSkyboxMesh->indices.size()), 1, mSkyboxMesh->indicesOffset, mSkyboxMesh->verticesOffset, mSkyboxMesh->instanceOffset);
 
 		//PLAZA_PROFILE_SECTION("DrawRenderGroupInstanced");
 		//VulkanMesh* mesh;

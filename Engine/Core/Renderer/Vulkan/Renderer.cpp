@@ -958,9 +958,6 @@ namespace Plaza {
 					//mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 					//mInstanceModelMatrices.push_back(transform.modelMatrix);
 
-					if (value.mesh->vertices.size() == 16512)
-						std::cout << "Found \n";
-
 					value.renderGroup->AddInstance(transformIt->second.modelMatrix, value.renderGroup->material->mIndexHandle);
 					Time::addInstanceCalls++;
 
@@ -988,6 +985,7 @@ namespace Plaza {
 				indirectCommand.instanceCount = value->instanceModelMatrices.size();
 
 				this->mIndirectCommands.push_back(indirectCommand);
+				value->mesh->instanceOffset = mTotalInstances;
 
 				for (unsigned int i = 0; i < value->instanceModelMatrices.size(); ++i) {
 					this->mInstanceModelMatrices.push_back(value->instanceModelMatrices[i]);
@@ -1055,6 +1053,7 @@ namespace Plaza {
 
 		}
 
+		//this->mPicking->DrawSelectedObjectsUuid();
 
 		//vkCmdEndRenderPass(commandBuffer);
 
@@ -2324,8 +2323,8 @@ namespace Plaza {
 		mTotalInstances++;
 		mIndirectDrawCount++;
 		// Create instance buffer
-		VkDeviceSize bufferSize = 16 * sizeof(glm::mat4);
-		this->CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vulkMesh.mInstanceBuffer, vulkMesh.mInstanceBufferMemory);
+		//VkDeviceSize bufferSize = 16 * sizeof(glm::mat4);
+		//this->CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vulkMesh.mInstanceBuffer, vulkMesh.mInstanceBufferMemory);
 		return vulkMesh;
 	}
 

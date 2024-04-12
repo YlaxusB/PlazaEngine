@@ -385,25 +385,25 @@ namespace Plaza {
 		vkCmdPushConstants(this->mCommandBuffer, this->mSkyboxPostEffect->mShaders->mPipelineLayout, VK_SHADER_STAGE_ALL, 0, sizeof(VulkanSkybox::PushConstants), &pushData);
 		//vkCmdDraw(this->mCommandBuffer, 36, 1, 0, 0);
 
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = sizeof(glm::mat4) * 1;
-		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		std::vector<glm::mat4> instanceModelMatrices = { glm::mat4(1.0f) };
-		void* data;
-		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mSkyboxMesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
-		memcpy(data, instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
-		vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, mSkyboxMesh->mInstanceBufferMemory);
-
-		//PLAZA_PROFILE_SECTION("Bind Buffers");
-		vector<VkBuffer> verticesBuffer = { mSkyboxMesh->mVertexBuffer, mSkyboxMesh->mInstanceBuffer };
-		std::array<VkBuffer, 2> buffers = { mSkyboxMesh->mVertexBuffer, mSkyboxMesh->mInstanceBuffer };
-		vkCmdBindVertexBuffers(mCommandBuffer, 0, 2, buffers.data(), offsets);
+		//VkBufferCreateInfo bufferInfo{};
+		//bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		//bufferInfo.size = sizeof(glm::mat4) * 1;
+		//bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		//bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		//std::vector<glm::mat4> instanceModelMatrices = { glm::mat4(1.0f) };
+		//void* data;
+		//vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mSkyboxMesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
+		//memcpy(data, instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
+		//vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, mSkyboxMesh->mInstanceBufferMemory);
+		//
+		////PLAZA_PROFILE_SECTION("Bind Buffers");
+		//vector<VkBuffer> verticesBuffer = { mSkyboxMesh->mVertexBuffer, mSkyboxMesh->mInstanceBuffer };
+		//std::array<VkBuffer, 2> buffers = { mSkyboxMesh->mVertexBuffer, mSkyboxMesh->mInstanceBuffer };
+		//vkCmdBindVertexBuffers(mCommandBuffer, 0, 2, buffers.data(), offsets);
 		//vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
-		vkCmdBindIndexBuffer(mCommandBuffer, mSkyboxMesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		//vkCmdBindIndexBuffer(mCommandBuffer, mSkyboxMesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		//PLAZA_PROFILE_SECTION("Draw Indexed");
-		vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(mSkyboxMesh->indices.size()), instanceModelMatrices.size(), 0, 0, 0);
+		vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(mSkyboxMesh->indices.size()), 1, 0, 0, 0);
 
 		//PLAZA_PROFILE_SECTION("DrawRenderGroupInstanced");
 		//VulkanMesh* mesh;

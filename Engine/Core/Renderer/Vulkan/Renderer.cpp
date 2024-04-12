@@ -1076,7 +1076,22 @@ namespace Plaza {
 		scissor.extent.height = Application->appSizes->sceneSize.y;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		//this->mSkybox->DrawSkybox();
+
+		{
+			PLAZA_PROFILE_SECTION("Bind Instances Data");
+			std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
+			descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
+
+
+			VkDeviceSize offsets[1] = { 0 };
+			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
+			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
+			this->mSkybox->DrawSkybox();
+			vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
+		}
+
 
 
 		// Render the scene with textures and sampling the shadow map
@@ -1088,16 +1103,6 @@ namespace Plaza {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
 		{
 			PLAZA_PROFILE_SECTION("Draw Instances");
-			std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
-			descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
-
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
-
-			VkDeviceSize offsets[1] = { 0 };
-			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
-			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
-			vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
-			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffer, 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 			//for (const auto& [key, value] : Application->activeScene->renderGroups) {

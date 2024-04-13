@@ -121,9 +121,9 @@ namespace Plaza {
 			if (foundNewRenderGroup) {
 				uint64_t uuid = this->renderGroupsFindMap.at(std::pair<uint64_t, uint64_t>(newMesh->uuid, newMaterial->uuid));
 				RenderGroup* renderGroup = this->renderGroups.at(uuid);
-				renderGroup->mCount++;
-				if (resizeBuffer && renderGroup->mBufferSize < renderGroup->mCount)
-					renderGroup->ResizeInstanceBuffer(0);
+				//renderGroup->mCount++;
+				//if (resizeBuffer && renderGroup->mBufferSize < renderGroup->mCount)
+				//	renderGroup->ResizeInstanceBuffer(0);
 				return renderGroup;
 			}
 			else if (!foundNewRenderGroup)

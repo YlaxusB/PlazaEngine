@@ -82,7 +82,7 @@ namespace Plaza
 
         #region Physics
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static void Physics_Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit);
+        public extern static void Physics_Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit, UInt64 ignoredUuid = 0);
         #endregion Physics
         #region Components
 

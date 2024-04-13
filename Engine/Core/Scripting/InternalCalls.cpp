@@ -268,6 +268,33 @@ namespace Plaza {
 #pragma endregion Entity
 
 #pragma region Physics
+	class MyQueryFilterCallback : public physx::PxQueryFilterCallback {
+	public:
+		virtual physx::PxQueryHitType::Enum preFilter(
+			const physx::PxFilterData& filterData,
+			const physx::PxShape* shape,
+			const physx::PxRigidActor* actor,
+			physx::PxHitFlags& queryFlags) override
+		{
+			if (actor && actor->userData == mEntityToIgnore) {
+				return physx::PxQueryHitType::eNONE;
+			}
+			return physx::PxQueryHitType::eBLOCK;
+		}
+
+		// Set the entity to ignore
+		void setEntityToIgnore(void* entityToIgnore) {
+			mEntityToIgnore = entityToIgnore;
+		}
+
+		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit, const physx::PxShape* shape, const physx::PxRigidActor* actor) override {
+			return physx::PxQueryHitType::eTOUCH;
+		}
+
+	private:
+		void* mEntityToIgnore = nullptr;
+	};
+
 	struct RaycastHit {
 		uint64_t hitUuid;
 		glm::vec3 point;
@@ -276,9 +303,13 @@ namespace Plaza {
 	physx::PxVec3 glmToPx(glm::vec3 vector) {
 		return physx::PxVec3(vector.x, vector.y, vector.z);
 	}
-	static void Physics_Raycast(glm::vec3 origin, glm::vec3 direction, float maxDistance, RaycastHit* hit) {
+	static void Physics_Raycast(glm::vec3 origin, glm::vec3 direction, float maxDistance, RaycastHit* hit, uint64_t ignoredUuid) {
+		MyQueryFilterCallback filterCallback{};
+		filterCallback.setEntityToIgnore(reinterpret_cast<void*>(ignoredUuid));
+		physx::PxQueryFilterData filterData(physx::PxQueryFlag::ePREFILTER | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC);
+
 		physx::PxRaycastBuffer hitPhysx;
-		bool status = Physics::m_scene->raycast(glmToPx(origin), glmToPx(direction), maxDistance, hitPhysx);
+		bool status = Physics::m_scene->raycast(glmToPx(origin), glmToPx(direction), maxDistance, hitPhysx, physx::PxHitFlag::eDEFAULT, filterData, &filterCallback);
 		if (status) {
 			hit->hitUuid = (uint64_t)hitPhysx.block.actor->userData;
 			hit->point = glm::vec3(hitPhysx.block.position.x, hitPhysx.block.position.y, hitPhysx.block.position.z);

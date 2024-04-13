@@ -26,14 +26,14 @@ namespace Plaza {
 			this->uuid = Plaza::UUID::NewUUID();
 			this->mesh = mesh;
 			this->material = mat;
-			InitializeInstanceBuffer();
+			//InitializeInstanceBuffer();
 		}
 		
 		RenderGroup(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> mat) {
 			this->uuid = Plaza::UUID::NewUUID();
 			this->mesh = mesh.get();
 			this->material = mat.get();
-			InitializeInstanceBuffer();
+			//InitializeInstanceBuffer();
 		}
 
 		void AddInstance(glm::mat4 model, unsigned int material = 0) {

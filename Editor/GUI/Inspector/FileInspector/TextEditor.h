@@ -50,15 +50,15 @@ namespace Plaza::Editor {
 			}
 
 			/* Make each line editable with imgui input text*/
-			if (lines.size() > 0) {
-				for (int i = 0; i < lines.size(); ++i) {
-					char buffer[2048];
-					strncpy_s(buffer, lines[i].c_str(), sizeof(buffer));
-					if (ImGui::InputText(("##Line" + std::to_string(i)).c_str(), buffer, sizeof(buffer))) {
-						lines[i] = buffer;
-					}
-				}
-			}
+			//if (lines.size() > 0) {
+			//	for (int i = 0; i < lines.size(); ++i) {
+			//		char buffer[2048];
+			//		strncpy_s(buffer, lines[i].c_str(), sizeof(buffer));
+			//		if (ImGui::InputText(("##Line" + std::to_string(i)).c_str(), buffer, sizeof(buffer))) {
+			//			lines[i] = buffer;
+			//		}
+			//	}
+			//}
 
 			if (ImGui::Button("Apply")) {
 				SerializeFileLines(file->directory, lines);

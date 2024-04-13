@@ -351,6 +351,8 @@ namespace Plaza {
 
 	void Collider::UpdateShapeScale(glm::vec3 scale) {
 		PLAZA_PROFILE_SECTION("Collider: Update Shape Scale");
+		if (!Application->runningScene)
+			return;
 		if (lastScale != scale) {
 			if (scale.x == 0 || scale.y == 0 || scale.z == 0) {
 				lastScale = scale;

@@ -32,13 +32,13 @@ namespace Plaza {
 		imageInfo.extent.height = this->mResolution.y;
 		imageInfo.extent.depth = 1;
 		imageInfo.mipLevels = 1;
-		imageInfo.arrayLayers = 6;
+		imageInfo.arrayLayers = 1;
 		imageInfo.format = mSkyboxFormat;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-		imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+		//imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 		//imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 		if (vkCreateImage(VulkanRenderer::GetRenderer()->mDevice, &imageInfo, nullptr, &this->mSkyboxImage) != VK_SUCCESS) {
@@ -51,7 +51,7 @@ namespace Plaza {
 
 		VkMemoryAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size * 6;
+		allocInfo.allocationSize = memRequirements.size * 1;
 		allocInfo.memoryTypeIndex = VulkanRenderer::GetRenderer()->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		VkDeviceMemory mSkyboxMemory;
@@ -63,7 +63,7 @@ namespace Plaza {
 
 
 		std::vector<stbi_uc*> allPixels = std::vector<stbi_uc*>();
-		for (unsigned int i = 0; i < 6; ++i) {
+		for (unsigned int i = 0; i < 1; ++i) {
 			int texWidth, texHeight, texChannels;
 			stbi_uc* pixels = stbi_load(mSkyboxPaths[i].c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 			VkDeviceSize imageSize = texWidth * texHeight * 4;
@@ -78,9 +78,9 @@ namespace Plaza {
 
 		uint32_t imageSize = 2048 * 2048 * 4;
 
-		VulkanRenderer::GetRenderer()->CreateBuffer(imageSize * 6, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mStagingBuffer, mStagingBufferMemory);
+		VulkanRenderer::GetRenderer()->CreateBuffer(imageSize * 1, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mStagingBuffer, mStagingBufferMemory);
 
-		for (unsigned int i = 0; i < 6; ++i) {
+		for (unsigned int i = 0; i < 1; ++i) {
 
 			void* data;
 			vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mStagingBufferMemory, i * (imageSize), imageSize, 0, &data);
@@ -95,9 +95,9 @@ namespace Plaza {
 
 		}
 
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mSkyboxImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6);
-		VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, this->mSkyboxImage, static_cast<uint32_t>(mResolution.x), static_cast<uint32_t>(mResolution.y), 0, 6);
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mSkyboxImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mSkyboxImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
+		VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, this->mSkyboxImage, static_cast<uint32_t>(mResolution.x), static_cast<uint32_t>(mResolution.y), 0);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mSkyboxImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
 
 
 		vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, mStagingBuffer, nullptr);
@@ -112,20 +112,20 @@ namespace Plaza {
 			VkImageViewCreateInfo viewInfo{};
 			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 			viewInfo.image = this->mSkyboxImage;
-			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 			viewInfo.format = this->mSkyboxFormat;
 			viewInfo.subresourceRange = {};
 			viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			viewInfo.subresourceRange.baseMipLevel = 0;
 			viewInfo.subresourceRange.levelCount = 1;
 			viewInfo.subresourceRange.baseArrayLayer = 0;
-			viewInfo.subresourceRange.layerCount = 6;
+			viewInfo.subresourceRange.layerCount = 1;
 
 			if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &this->mSkyboxImageViews[i]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create texture image view!");
 			}
 		}
-		for (unsigned int i = 0; i < 6; ++i) {
+		for (unsigned int i = 0; i < 1; ++i) {
 			stbi_image_free(allPixels[i]);
 		}
 	}
@@ -133,13 +133,13 @@ namespace Plaza {
 	void VulkanSkybox::InitializeDescriptorPool() {
 		std::array<VkDescriptorPoolSize, 1> poolSizes{};
 		poolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		poolSizes[0].descriptorCount = 6;
+		poolSizes[0].descriptorCount = 2;
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 		poolInfo.pPoolSizes = poolSizes.data();
-		poolInfo.maxSets = 6;
+		poolInfo.maxSets = 2;
 
 		if (vkCreateDescriptorPool(VulkanRenderer::GetRenderer()->mDevice, &poolInfo, nullptr, &this->mDescriptorPool) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create descriptor pool!");
@@ -324,7 +324,7 @@ namespace Plaza {
 
 	void VulkanSkybox::DrawSkybox() {
 		if (!mSkyboxMesh)
-			mSkyboxMesh = (VulkanMesh*)Editor::DefaultModels::Cube();
+			mSkyboxMesh = (VulkanMesh*)Editor::DefaultModels::Sphere();
 		this->mCommandBuffer = *VulkanRenderer::GetRenderer()->mActiveCommandBuffer;
 		PLAZA_PROFILE_SECTION("Draw Skybox");
 

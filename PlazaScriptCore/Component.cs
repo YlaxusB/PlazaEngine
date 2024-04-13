@@ -379,6 +379,18 @@ namespace Plaza
                 InternalCalls.RigidBody_SetDrag(Uuid, value);
             }
         }
+        public Vector3 velocity
+        {
+            get
+            {
+                InternalCalls.RigidBody_GetVelocity(Uuid, out Vector3 value);
+                return value;
+            }
+            set
+            {
+                InternalCalls.RigidBody_SetVelocity(Uuid, ref value);
+            }
+        }
         public void ApplyForce(Vector3 force)
         {
             InternalCalls.RigidBody_ApplyForce(Uuid, ref force);

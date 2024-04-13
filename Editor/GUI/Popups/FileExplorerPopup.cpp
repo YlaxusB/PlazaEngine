@@ -41,11 +41,13 @@ namespace Plaza::Editor {
 					Editor::File::firstFocus = true;
 					Material* material = new Material();
 					material->uuid = Plaza::UUID::NewUUID();
+					material->mAssetUuid = material->uuid;
 					//Application->activeScene->materials.emplace(material.uuid, std::make_shared<Material>(material));
 					Application->activeScene->AddMaterial(material);
 					std::string path = Gui::FileExplorer::currentDirectory + "\\" + Editor::File::changingName;
-					material->mAssetUuid = AssetsManager::NewAsset(AssetType::MATERIAL,path)->mAssetUuid;
-					MaterialFileSerializer::Serialize(path, material);
+					AssetsManager::NewAsset(material->uuid, AssetType::MATERIAL, path);
+					AssetsSerializer::SerializeMaterial(material, path);
+					//MaterialFileSerializer::Serialize(path, material);
 				}
 				ImGui::EndMenu();
 			}

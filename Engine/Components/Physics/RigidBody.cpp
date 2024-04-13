@@ -32,6 +32,8 @@ namespace Plaza {
 		}
 
 		this->SetRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, this->continuousDetection);
+		this->mRigidActor->is<PxRigidDynamic>()->setLinearDamping(0.0f);
+		this->mRigidActor->is<PxRigidDynamic>()->setAngularDamping(0.0f);
 	}
 
 	void RigidBody::AddCollidersOfChildren(uint64_t parent) {
@@ -126,6 +128,19 @@ namespace Plaza {
 	void RigidBody::SetDrag(float drag) {
 		if (this->mRigidActor) {
 			this->mRigidActor->is<PxRigidDynamic>()->setLinearDamping(drag);
+		}
+	}
+
+	glm::vec3 RigidBody::GetVelocity() {
+		if (this->mRigidActor) {
+			physx::PxVec3 pxVec = this->mRigidActor->is<PxRigidDynamic>()->getLinearVelocity();
+			return glm::vec3(pxVec.x, pxVec.y, pxVec.z);
+		}
+	}
+
+	void RigidBody::SetVelocity(glm::vec3 vector) {
+		if (this->mRigidActor) {
+			this->mRigidActor->is<PxRigidDynamic>()->setLinearVelocity(physx::PxVec3(vector.x, vector.y, vector.z));
 		}
 	}
 

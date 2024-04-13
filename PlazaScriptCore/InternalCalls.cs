@@ -407,6 +407,11 @@ namespace Plaza
         public extern static float RigidBody_GetDrag(UInt64 uuid);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void RigidBody_SetDrag(UInt64 uuid, float drag);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static float RigidBody_GetVelocity(UInt64 uuid, out Vector3 velocity);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void RigidBody_SetVelocity(UInt64 uuid, ref Vector3 velocity);
+
 
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]

@@ -415,12 +415,13 @@ namespace Plaza {
 	static void MeshRenderer_SetMaterial(uint64_t uuid, uint64_t materialUuid) {
 		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end() && Application->activeScene->materials.find(materialUuid) != Application->activeScene->materials.end()) {
+			meshRendererIt->second.ChangeMaterial(Application->activeScene->materials.find(materialUuid)->second.get());
 			//meshRendererIt->second.ChangeMaterial(Application->activeScene->materials.find(materialUuid)->second.get());
-			meshRendererIt->second.material = Application->activeScene->materials.find(materialUuid)->second.get();
-			if (!meshRendererIt->second.renderGroup) {
-				meshRendererIt->second.renderGroup = new RenderGroup(meshRendererIt->second.mesh, meshRendererIt->second.material);
-				Application->activeScene->AddRenderGroup(meshRendererIt->second.renderGroup);
-			}
+			//meshRendererIt->second.material = Application->activeScene->materials.find(materialUuid)->second.get();
+			//if (!meshRendererIt->second.renderGroup) {
+			//	meshRendererIt->second.renderGroup = new RenderGroup(meshRendererIt->second.mesh, meshRendererIt->second.material);
+			//	Application->activeScene->AddRenderGroup(meshRendererIt->second.renderGroup);
+			//}
 
 		}
 	}
@@ -759,6 +760,18 @@ namespace Plaza {
 		if (Application->activeScene->HasComponent<RigidBody>(uuid))
 			Application->activeScene->rigidBodyComponents.at(uuid).SetDrag(drag);
 	}
+
+	static void RigidBody_GetVelocity(uint64_t uuid, glm::vec3* out) {
+		if (Application->activeScene->HasComponent<RigidBody>(uuid)) {
+			RigidBody* comp = Application->activeScene->GetComponent<RigidBody>(uuid);
+			*out = comp->GetVelocity();
+		}
+	}
+
+	static void RigidBody_SetVelocity(uint64_t uuid, glm::vec3* vec3) {
+		if (Application->activeScene->HasComponent<RigidBody>(uuid))
+			Application->activeScene->rigidBodyComponents.at(uuid).SetVelocity(*vec3);
+	}
 #pragma endregion RigidBody
 
 #pragma region Collider
@@ -977,6 +990,8 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_AddForce", RigidBody_AddForce);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_AddTorque", RigidBody_AddTorque);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_SetDrag", RigidBody_SetDrag);
+		mono_add_internal_call("Plaza.InternalCalls::RigidBody_GetVelocity", RigidBody_GetVelocity);
+		mono_add_internal_call("Plaza.InternalCalls::RigidBody_SetVelocity", RigidBody_SetVelocity);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_LockAngular", RigidBody_LockAngular);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_IsAngularLocked", RigidBody_IsAngularLocked);
 

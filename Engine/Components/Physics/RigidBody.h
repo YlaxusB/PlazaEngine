@@ -24,6 +24,8 @@ namespace Plaza {
 		void AddTorque(glm::vec3 torque, physx::PxForceMode::Enum mode = physx::PxForceMode::eFORCE, bool autowake = true);
 		float GetDrag();
 		void SetDrag(float drag);
+		glm::vec3 GetVelocity();
+		void SetVelocity(glm::vec3 vector);
 
 		bool canUpdate = true;
 

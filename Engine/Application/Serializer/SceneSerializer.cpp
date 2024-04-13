@@ -85,6 +85,7 @@ namespace Plaza {
 	void SerializeScene(YAML::Emitter& out, Entity* sceneEntity) {
 		out << YAML::Key << "Uuid" << YAML::Value << sceneEntity->uuid;
 		out << YAML::Key << "Name" << YAML::Value << sceneEntity->name;
+		out << YAML::Key << "LightDirection" << YAML::Value << VulkanRenderer::GetRenderer()->mShadows->mLightDirection;//Application->mRenderer->mShadows->mLightDirection;
 	}
 
 	void Serializer::Serialize(const Asset* sceneAsset)
@@ -146,6 +147,8 @@ namespace Plaza {
 		Application->activeScene = Application->editorScene;
 		Editor::DefaultModels::Init();
 		Entity* newScene = new Entity(data["Scene"]["Name"].as<std::string>(), nullptr, true, data["Scene"]["Uuid"].as<uint64_t>());
+		if (data["Scene"]["LightDirection"])
+			VulkanRenderer::GetRenderer()->mShadows->mLightDirection = data["Scene"]["LightDirection"].as<glm::vec3>();
 		//free(Application->activeScene->mainSceneEntity);
 		Application->activeScene->mainSceneEntity = newScene;
 		if (filePath.starts_with(Application->projectPath))

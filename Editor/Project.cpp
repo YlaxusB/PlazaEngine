@@ -103,10 +103,14 @@ namespace Plaza::Editor {
 			//Application->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"))->mPath.string())
 			if (key == 0)
 				continue;
-			value->diffuse = AssetsManager::GetTexture(value->diffuse->mAssetUuid);
-			value->normal = AssetsManager::GetTexture(value->normal->mAssetUuid);
-			value->roughness = AssetsManager::GetTexture(value->roughness->mAssetUuid);
-			value->metalness = AssetsManager::GetTexture(value->metalness->mAssetUuid);
+			if (value->diffuse->mAssetUuid)
+				value->diffuse = AssetsManager::GetTexture(value->diffuse->mAssetUuid);
+			if (value->normal->mAssetUuid)
+				value->normal = AssetsManager::GetTexture(value->normal->mAssetUuid);
+			if (value->roughness->mAssetUuid)
+				value->roughness = AssetsManager::GetTexture(value->roughness->mAssetUuid);
+			if (value->metalness->mAssetUuid)
+				value->metalness = AssetsManager::GetTexture(value->metalness->mAssetUuid);
 		}
 
 		std::cout << "Deserializing \n";

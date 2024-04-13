@@ -27,7 +27,7 @@ namespace Plaza::Drawing::UI {
 			this->mPosY = y;
 			this->mScale = scale;
 			this->mColor = color;
-			this->mText = "";
+			this->mText = text;
 		}
 	};
 

@@ -236,7 +236,7 @@ namespace Plaza {
 		// Create the PhysX scene
 		m_scene = m_physics->createScene(Physics::GetSceneDesc());
 		//m_scene->setSimulationEventCallback(&collisionCallback);
-		Physics::defaultMaterial = Physics::m_physics->createMaterial(0.0f, 1.0f, 0.5f);
+		Physics::defaultMaterial = Physics::m_physics->createMaterial(0.0f, 1.0f, 0.0f); /* TODO: MAKE DYNAMIC MATERIALS AND SET RESTITUTION ON DEFAULT MATERIAL TO 0.5 AGAIN*/
 
 		Physics::m_controllerManager = PxCreateControllerManager(*Physics::m_scene);
 		std::cout << "Physics Initialized" << std::endl;

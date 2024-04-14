@@ -59,6 +59,8 @@ namespace Plaza
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void MoveTowards(UInt64 uuid, Vector3 vector3);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void MoveTowardsReturn(UInt64 uuid, Vector3 vector3, out Vector3 outVector);
 
 
 
@@ -113,9 +115,11 @@ namespace Plaza
         public extern static void GetRotationCall(UInt64 uuid, out Vector3 vector);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void SetRotationQuaternion(UInt64 uuid, ref Vector4 quaternion);
-
+        
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void GetRotationQuaternionCall(UInt64 uuid, out Vector4 quaternion);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void GetWorldRotationQuaternionCall(UInt64 uuid, out Vector4 quaternion);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void SetScaleCall(UInt64 uuid, ref Vector3 vector);
 

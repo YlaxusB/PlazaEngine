@@ -178,12 +178,21 @@ namespace Plaza {
 	void Transform::MoveTowards(glm::vec3 vector) {
 		glm::mat4 matrix = this->GetTransform();
 		glm::vec3 currentPosition = glm::vec3(matrix[3]);
-		// Extract the forward, left, and up vectors from the matrix
 		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
 		glm::vec3 leftVector = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
 		glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
 		this->relativePosition += forwardVector * vector.x + leftVector * vector.z + upVector * vector.y;
 		this->UpdateSelfAndChildrenTransform();
+	}
+
+	glm::vec3 Transform::MoveTowardsReturn(glm::vec3 vector) {
+		glm::mat4 matrix = this->GetTransform();
+		glm::vec3 currentPosition = glm::vec3(matrix[3]);
+		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
+		glm::vec3 leftVector = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
+		glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
+		glm::vec3 outVector = forwardVector * vector.x + leftVector * vector.z + upVector * vector.y;
+		return outVector;
 	}
 
 	// Set Functions

@@ -339,7 +339,6 @@ namespace Plaza {
 		glm::quat quaternion = Application->activeScene->transformComponents.find(uuid)->second.rotation;
 
 		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(rotationQuat);
-		glm::vec3 asd = glm::degrees(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation());
 	}
 	static void GetRotationCall(uint64_t uuid, glm::vec3* out) {
 		*out = glm::degrees(glm::normalize(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation()));
@@ -349,7 +348,12 @@ namespace Plaza {
 		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(glm::quat(quat->w, quat->x, quat->y, quat->z));
 	}
 	static void GetRotationQuaternionCall(uint64_t uuid, glm::vec4* out) {
-		glm::quat worldQuat = Application->activeScene->transformComponents.find(uuid)->second.GetLocalQuaternion();
+		glm::quat localQuat = Application->activeScene->transformComponents.find(uuid)->second.GetLocalQuaternion();
+		*out = glm::vec4(localQuat.x, localQuat.y, localQuat.z, localQuat.w);
+	}
+
+	static void GetWorldRotationQuaternionCall(uint64_t uuid, glm::vec4* out) {
+		glm::quat worldQuat = glm::quat(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation());//Application->activeScene->transformComponents.find(uuid)->second.GetWorldQuaternion();
 		*out = glm::vec4(worldQuat.x, worldQuat.y, worldQuat.z, worldQuat.w);
 	}
 
@@ -404,7 +408,12 @@ namespace Plaza {
 		auto transformIt = Application->activeScene->transformComponents.find(uuid);
 		if (transformIt != Application->activeScene->transformComponents.end())
 			transformIt->second.MoveTowards(vector3);
+	}
 
+	static void MoveTowardsReturn(uint64_t uuid, glm::vec3 vector3, glm::vec3* outVector) {
+		auto transformIt = Application->activeScene->transformComponents.find(uuid);
+		if (transformIt != Application->activeScene->transformComponents.end())
+			*outVector = transformIt->second.MoveTowardsReturn(vector3);
 	}
 
 
@@ -966,6 +975,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::SetRotation", SetRotation);
 		mono_add_internal_call("Plaza.InternalCalls::SetRotationQuaternion", SetRotationQuaternion);
 		mono_add_internal_call("Plaza.InternalCalls::GetRotationQuaternionCall", GetRotationQuaternionCall);
+		mono_add_internal_call("Plaza.InternalCalls::GetWorldRotationQuaternionCall", GetWorldRotationQuaternionCall);
 		mono_add_internal_call("Plaza.InternalCalls::GetScaleCall", GetScaleCall);
 		mono_add_internal_call("Plaza.InternalCalls::SetScaleCall", SetScaleCall);
 		mono_add_internal_call("Plaza.InternalCalls::Transform_GetForwardVector", Transform_GetForwardVector);
@@ -974,6 +984,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::Transform_GetWorldMatrix", Transform_GetWorldMatrix);
 
 		mono_add_internal_call("Plaza.InternalCalls::MoveTowards", MoveTowards);
+		mono_add_internal_call("Plaza.InternalCalls::MoveTowardsReturn", MoveTowardsReturn);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetMaterial", MeshRenderer_SetMaterial);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetVertices", MeshRenderer_GetVertices);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetVertices", MeshRenderer_SetVertices);

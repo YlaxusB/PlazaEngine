@@ -266,6 +266,12 @@ namespace Plaza
         {
             Plaza.InternalCalls.MoveTowards(this.Uuid, vector3);
         }
+
+        public Vector3 MoveTowardsReturn(Vector3 vector3)
+        {
+            Plaza.InternalCalls.MoveTowardsReturn(this.Uuid, vector3, out Vector3 outVector);
+            return outVector;
+        }
     }
 
     public class Mesh

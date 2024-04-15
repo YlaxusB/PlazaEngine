@@ -27,5 +27,5 @@ void Plaza::Time::Update() {
 
 
 	float currentFrame = static_cast<float>(glfwGetTime());
-	deltaTime = currentFrame - lastFrame;
+	deltaTime = 1.0f / Time::fps; //currentFrame - lastFrame;
 }

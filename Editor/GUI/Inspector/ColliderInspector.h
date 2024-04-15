@@ -92,7 +92,17 @@ namespace Plaza::Editor {
 							AddChildrenMeshShape(collider, collider->uuid);
 
 						}
+					}
+					if (ImGui::MenuItem("Convex Mesh"))
+					{
+						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {
+							collider->AddConvexMeshShape((Mesh*)new OpenGLMesh(*(OpenGLMesh*)Application->activeScene->meshRendererComponents.at(collider->uuid).mesh));
+							collider->Init(nullptr);
+						}
+						if (collider->GetGameObject()->HasComponent<RigidBody>()) {
+							AddChildrenMeshShape(collider, collider->uuid);
 
+						}
 					}
 
 					ImGui::EndPopup();

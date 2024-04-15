@@ -316,6 +316,48 @@ namespace Plaza {
 			hit->normal = glm::vec3(hitPhysx.block.normal.x, hitPhysx.block.normal.y, hitPhysx.block.normal.z);
 		}
 	}
+
+	// This callback goes through anything except a specific collider uuid
+	class SpecificQueryFilterCallback : public physx::PxQueryFilterCallback {
+	public:
+		virtual physx::PxQueryHitType::Enum preFilter(
+			const physx::PxFilterData& filterData,
+			const physx::PxShape* shape,
+			const physx::PxRigidActor* actor,
+			physx::PxHitFlags& queryFlags) override
+		{
+			if (actor && actor->userData != mEntityToCollide) {
+				return physx::PxQueryHitType::eNONE;
+			}
+			return physx::PxQueryHitType::eBLOCK;
+		}
+
+		// Set the entity to ignore
+		void setEntityToCollide(void* entityToCollide) {
+			mEntityToCollide = entityToCollide;
+		}
+
+		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit, const physx::PxShape* shape, const physx::PxRigidActor* actor) override {
+			return physx::PxQueryHitType::eTOUCH;
+		}
+
+	private:
+		void* mEntityToCollide = nullptr;
+	};
+
+	static void Physics_RaycastSpecific(glm::vec3 origin, glm::vec3 direction, float maxDistance, RaycastHit* hit, uint64_t specificUuid) {
+		SpecificQueryFilterCallback filterCallback{};
+		filterCallback.setEntityToCollide(reinterpret_cast<void*>(specificUuid));
+		physx::PxQueryFilterData filterData(physx::PxQueryFlag::ePREFILTER | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC);
+
+		physx::PxRaycastBuffer hitPhysx;
+		bool status = Physics::m_scene->raycast(glmToPx(origin), glmToPx(direction), maxDistance, hitPhysx, physx::PxHitFlag::eDEFAULT, filterData, &filterCallback);
+		if (status) {
+			hit->hitUuid = (uint64_t)hitPhysx.block.actor->userData;
+			hit->point = glm::vec3(hitPhysx.block.position.x, hitPhysx.block.position.y, hitPhysx.block.position.z);
+			hit->normal = glm::vec3(hitPhysx.block.normal.x, hitPhysx.block.normal.y, hitPhysx.block.normal.z);
+		}
+	}
 #pragma endregion Physics
 
 #pragma region Components
@@ -967,6 +1009,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::AddScript", AddScript);
 
 		mono_add_internal_call("Plaza.InternalCalls::Physics_Raycast", Physics_Raycast);
+		mono_add_internal_call("Plaza.InternalCalls::Physics_RaycastSpecific", Physics_RaycastSpecific);
 		//PL_ADD_INTERNAL_CALL("Physics_Raycast");
 
 		mono_add_internal_call("Plaza.InternalCalls::GetPositionCall", GetPositionCall);

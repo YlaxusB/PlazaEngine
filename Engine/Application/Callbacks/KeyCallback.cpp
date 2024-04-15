@@ -43,6 +43,15 @@ Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	if (Application->focusedMenu == "Editor") {
 
+		if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+			if (Editor::selectedGameObject) {
+				uint64_t newUuid = Entity::Instantiate(Editor::selectedGameObject->uuid);
+				if (newUuid)
+					Application->activeScene->transformComponents.find(newUuid)->second.UpdateSelfAndChildrenTransform();
+				Editor::selectedGameObject = Application->activeScene->GetEntity(newUuid);
+			}
+		}
+
 		if (key == GLFW_KEY_T && action == GLFW_PRESS) {
 			for (int i = 0; i < 1000; ++i) {
 				Entity* obj = NewEntity("Sphere", Application->activeScene->mainSceneEntity, Editor::DefaultModels::Cube(), true, true);

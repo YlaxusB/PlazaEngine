@@ -309,6 +309,10 @@ void main() {
    vec4 c = vec4(materials[materialIndex].diffuseIndex * 0.01f, materialIndex * 0.01f, 0.0f, 1.0f);
    //FragColor = c;
    //FragColor = vec4(vec3(1.0f - shadow), 1.0f);
+
+   // TODO: REMOVE THIS TEMPORARY HACK MADE FOR LD55
+    if(materials[materialIndex].metalnessFloat == -1.0f)
+    FragColor = color;//vec4(textures[materials[materialIndex].diffuseIndex]);
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)

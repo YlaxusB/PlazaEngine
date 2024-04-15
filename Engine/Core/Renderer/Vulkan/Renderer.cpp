@@ -387,11 +387,19 @@ namespace Plaza {
 	}
 
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
+#ifdef GAME_MODE
 		for (const auto& availablePresentMode : availablePresentModes) {
-			if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
-				return availablePresentMode;
+			if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) {		//  VK_PRESENT_MODE_FIFO_KHR = Vsync 
+				return availablePresentMode;							//  VK_PRESENT_MODE_MAILBOX_KHR = No Limit
 			}
 		}
+#elif EDITOR_MODE
+		for (const auto& availablePresentMode : availablePresentModes) {
+			if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {		//  VK_PRESENT_MODE_FIFO_KHR = Vsync 
+				return availablePresentMode;								//  VK_PRESENT_MODE_MAILBOX_KHR = No Limit
+			}
+		}
+#endif
 
 		return VK_PRESENT_MODE_FIFO_KHR;
 	}
@@ -1014,9 +1022,9 @@ namespace Plaza {
 				PLAZA_PROFILE_SECTION("Copy Indirect Data");
 				VkDeviceSize bufferSize = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
 				void* data;
-				vkMapMemory(this->mDevice, mIndirectBufferMemory, 0, bufferSize, 0, &data);
+				vkMapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
 				memcpy(data, mIndirectCommands.data(), static_cast<size_t>(bufferSize));
-				vkUnmapMemory(this->mDevice, mIndirectBufferMemory);
+				vkUnmapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame]);
 			}
 
 			{
@@ -1043,7 +1051,7 @@ namespace Plaza {
 			vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
 			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffer, 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 
 			//for (const auto& [key, value] : Application->activeScene->renderGroups) {
 			//	//	this->DrawRenderGroupShadowDepthMapInstanced(value, 0);
@@ -1103,7 +1111,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("Draw Instances");
 
-			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffer, 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 			//for (const auto& [key, value] : Application->activeScene->renderGroups) {
 			//	if (value->instanceModelMatrices.size() > 0)
 			//	{
@@ -1892,9 +1900,10 @@ namespace Plaza {
 				vkFreeMemory(mDevice, stagingBufferMemory2, nullptr);
 		*/
 
-		CreateBuffer(1024 * 1024 * sizeof(VkDrawIndexedIndirectCommand), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mIndirectBuffer, mIndirectBufferMemory);
 		CreateBuffer(1024 * 1024 * 8 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mMainVertexBuffer, mMainVertexBufferMemory);
 		CreateBuffer(1024 * 1024 * 8 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mMainIndexBuffer, mMainIndexBufferMemory);
+		mIndirectBuffers.resize(mMaxFramesInFlight);
+		mIndirectBufferMemories.resize(mMaxFramesInFlight);
 		mMainInstanceMatrixBuffers.resize(mMaxFramesInFlight);
 		mMainInstanceMatrixBufferMemories.resize(mMaxFramesInFlight);
 		mMainInstanceMaterialBuffers.resize(mMaxFramesInFlight);
@@ -1902,6 +1911,7 @@ namespace Plaza {
 		mMaterialBuffers.resize(mMaxFramesInFlight);
 		mMaterialBufferMemories.resize(mMaxFramesInFlight);
 		for (unsigned int i = 0; i < mMaxFramesInFlight; ++i) {
+			CreateBuffer(1024 * 1024 * sizeof(VkDrawIndexedIndirectCommand), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mIndirectBuffers[i], mIndirectBufferMemories[i]);
 			CreateBuffer(1024 * 256 * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMatrixBuffers[i], mMainInstanceMatrixBufferMemories[i]);
 			CreateBuffer(1024 * 256 * sizeof(unsigned int), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMainInstanceMaterialBuffers[i], mMainInstanceMaterialBufferMemories[i]);
 			CreateBuffer(1024 * 16 * sizeof(MaterialData), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mMaterialBuffers[i], mMaterialBufferMemories[i]);

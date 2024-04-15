@@ -254,8 +254,9 @@ namespace Plaza {
 		uint64_t mIndirectDrawCount = 0;
 		uint64_t mTotalInstances = 0;
 		std::vector<VkDrawIndexedIndirectCommand> mIndirectCommands = std::vector<VkDrawIndexedIndirectCommand>();
-		VkBuffer mIndirectBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory mIndirectBufferMemory = VK_NULL_HANDLE;
+
+		std::vector<VkBuffer> mIndirectBuffers = std::vector<VkBuffer>();
+		std::vector<VkDeviceMemory> mIndirectBufferMemories = std::vector<VkDeviceMemory>();
 
 		// ImGui variables
 		VkDescriptorPool mImguiDescriptorPool;

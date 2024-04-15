@@ -494,6 +494,7 @@ void ApplicationClass::UpdateEngine() {
 	//Time::addInstanceCalls = 0;
 	// Update lastSizes
 	Application->lastAppSizes = Application->appSizes;
+	Input::isAnyKeyPressed = false;
 	//FrameMark;
 
 }

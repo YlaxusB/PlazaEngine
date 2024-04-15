@@ -9,6 +9,7 @@
 #include "Engine/Core/Lighting/ClusteredForward.h"
 #include "Editor/DefaultAssets/DefaultAssets.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
+#include "Engine/Core/Input/Input.h"
 using namespace Plaza;
 uint64_t lastUuid;
 
@@ -41,6 +42,8 @@ Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true
 	return obj;
 }
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (Application->focusedMenu == "Scene")
+		Input::isAnyKeyPressed = true;
 	if (Application->focusedMenu == "Editor") {
 
 		if (key == GLFW_KEY_F && action == GLFW_PRESS) {
@@ -156,12 +159,13 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 #endif
 	}
 
+#ifdef EDITOR_MODE
 	if (glfwGetKey(window, GLFW_KEY_PAGE_UP))
 		glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	else if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN))
 		glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
+#endif
 
 
 }

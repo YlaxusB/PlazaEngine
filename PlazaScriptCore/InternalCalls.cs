@@ -37,12 +37,14 @@ namespace Plaza
         public extern static void AddScript(UInt64 uuid, Type scriptType);
 
         #region Input
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static bool InputIsAnyKeyPressed();
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static bool InputIsKeyDown(KeyCode keyCode);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static bool IsKeyReleased(KeyCode keyCode);
+        public extern static bool IsKeyReleased(KeyCode keyCode); 
 
 
 

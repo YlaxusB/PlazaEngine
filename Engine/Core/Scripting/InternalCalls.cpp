@@ -169,6 +169,12 @@ namespace Plaza {
 
 #pragma region Input
 
+	static bool InputIsAnyKeyPressed() {
+		if (Application->focusedMenu == "Scene") {
+			return Input::isAnyKeyPressed;
+		}
+	}
+
 	static bool InputIsKeyDown(int keyCode) {
 		if (Application->focusedMenu == "Scene") {
 			return glfwGetKey(Application->Window->glfwWindow, keyCode) == GLFW_PRESS;
@@ -952,7 +958,7 @@ namespace Plaza {
 		Application->activeScene->audioSourceComponents.find(uuid)->second.Play();
 	}
 	static void AudioSource_Stop(uint64_t uuid) {
-		Application->activeScene->audioSourceComponents.find(uuid)->second.Play();
+		Application->activeScene->audioSourceComponents.find(uuid)->second.Stop();
 	}
 	static bool AudioSource_GetSpatial(uint64_t uuid) {
 		return Application->activeScene->audioSourceComponents.find(uuid)->second.mSpatial;
@@ -989,8 +995,9 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::Instantiate", Instantiate);
 
 
+		mono_add_internal_call("Plaza.InternalCalls::InputIsAnyKeyPressed", InputIsAnyKeyPressed);
 		mono_add_internal_call("Plaza.InternalCalls::InputIsKeyDown", InputIsKeyDown);
-		mono_add_internal_call("Plaza.InternalCalls::IsKeyReleased", IsKeyReleased);
+		mono_add_internal_call("Plaza.InternalCalls::IsKeyReleased", IsKeyReleased); 
 		mono_add_internal_call("Plaza.InternalCalls::InputIsMouseDown", InputIsMouseDown);
 		mono_add_internal_call("Plaza.InternalCalls::GetMouseDelta", GetMouseDelta);
 		mono_add_internal_call("Plaza.InternalCalls::CursorHide", CursorHide);

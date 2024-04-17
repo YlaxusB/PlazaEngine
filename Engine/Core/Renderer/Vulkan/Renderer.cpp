@@ -1409,20 +1409,20 @@ namespace Plaza {
 		poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		poolSizes[1].descriptorCount = static_cast<uint32_t>(mMaxFramesInFlight);
 		poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		poolSizes[2].descriptorCount = maxBindlessTextures;
+		poolSizes[2].descriptorCount = maxBindlessTextures;//maxBindlessTextures;
 		poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		poolSizes[3].descriptorCount = static_cast<uint32_t>(9);
 		poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		poolSizes[4].descriptorCount = static_cast<uint32_t>(mMaxFramesInFlight);
 		poolSizes[5].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		poolSizes[5].descriptorCount = maxBindlessTextures / 4;//static_cast<uint32_t>(mMaxFramesInFlight);
+		poolSizes[5].descriptorCount = 16;//static_cast<uint32_t>(mMaxFramesInFlight);
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 		poolInfo.pPoolSizes = poolSizes.data();
 		poolInfo.maxSets = static_cast<uint32_t>(mMaxFramesInFlight);
-		poolInfo.maxSets = maxBindlessTextures * sizeof(poolSizes);
+		poolInfo.maxSets = 4 * sizeof(poolSizes);
 		poolInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
 
 		if (vkCreateDescriptorPool(mDevice, &poolInfo, nullptr, &mDescriptorPool) != VK_SUCCESS) {

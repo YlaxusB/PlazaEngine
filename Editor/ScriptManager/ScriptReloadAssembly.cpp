@@ -143,7 +143,7 @@ namespace Plaza::Editor {
 			mono_domain_set(Mono::mAppDomain, true);
 			ScriptManager::RecompileDll(dllPath, scriptPath);
 			/* Load a copy of the script dll if its running the editor, so it can recompile the dll without breaking anything (its temporary, since I dont have hot reloading yet)*/
-#ifdef GAME_REL
+#ifdef GAME_MODE
 			std::string scriptDllPath = (Application->projectPath + "\\Binaries\\" + Application->activeProject->name + ".dll");
 #else
 			std::string scriptDllPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll");

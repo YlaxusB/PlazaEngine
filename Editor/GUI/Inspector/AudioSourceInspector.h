@@ -38,6 +38,9 @@ namespace Plaza::Editor {
 				if (ImGui::Checkbox("Spatial", &component->mSpatial)) {
 					component->SetSpatial(component->mSpatial);
 				}
+				if (ImGui::Checkbox("Loop", &component->mLoop)) {
+					component->SetLoop(component->mLoop);
+				}
 
 				ImGui::PopID();
 			}

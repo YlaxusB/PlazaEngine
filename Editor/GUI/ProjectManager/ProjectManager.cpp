@@ -9,6 +9,10 @@
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Editor/Settings/ProjectGenerator.h"
 #include "Editor/SessionCache/Cache.h"
+#include <ThirdParty/imgui/imgui_impl_opengl3.h>
+#include "Editor/DefaultAssets/DefaultAssets.h"
+#include "Editor/DefaultAssets/Models/DefaultModels.h"
+
 namespace Plaza {
 	namespace Editor {
 		void ProjectManagerGui::ProjectManagerContent::UpdateContent(ProjectManagerGui& projectManagerGui) {
@@ -44,14 +48,17 @@ namespace Plaza {
 					ProjectGenerator::GenerateProject(projectName, outputDirectory);
 
 					// Create scripts holder file
-					ScriptManagerSerializer::Create(Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
-					ScriptManagerSerializer::DeSerialize(Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
+					//ScriptManagerSerializer::Create(Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
+					//ScriptManagerSerializer::DeSerialize(Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
 
 					// Update the file explorer content
 					Editor::Gui::FileExplorer::UpdateContent(Application->activeProject->directory);
 
 					Application->projectPath = Application->activeProject->directory;
 					Cache::Serialize(Application->enginePathAppData + "\\cache.yaml");
+
+					// Load Default Models
+					Editor::DefaultModels::Init();
 				}
 				if (ImGui::Button("Cancel")) {
 					projectManagerGui.currentContent = new ProjectManagerContent();
@@ -63,6 +70,7 @@ namespace Plaza {
 
 		void ProjectManagerGui::Update() {
 			ProjectManagerGui::SetupDockspace();
+			Application->mRenderer->UpdateProjectManager();
 		}
 
 
@@ -102,7 +110,8 @@ namespace Plaza {
 			ImGui::PopStyleColor();
 			ImGui::PopStyleVar();
 			ImGui::Render();
-			ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+			if (Application->mRendererAPI = RendererAPI::OpenGL)
+				ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		}
 
 		void ProjectManagerGui::SetupProjectsTreeNode() {

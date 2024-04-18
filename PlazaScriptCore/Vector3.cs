@@ -257,6 +257,11 @@ namespace Plaza
             return new Vector3(a.X * b, a.Y * b, a.Z * b);
         }
 
+        public static Vector3 operator *(Vector3 a, Vector3 b)
+        {
+            return new Vector3(a.X * b.X, a.Y * b.Y, a.Z * b.Z);
+        }
+
         public static Vector3 operator /(Vector3 a, float b)
         {
             return new Vector3(a.X / b, a.Y / b, a.Z / b);
@@ -269,6 +274,11 @@ namespace Plaza
             result.Y = (v1.Z * v2.X) - (v1.X * v2.Z);
             result.Z = (v1.X * v2.Y) - (v1.Y * v2.X);
             return result;
+        }
+
+        public static float Dot(Vector3 a, Vector3 b)
+        {
+            return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
         }
 
         public static float squareRoot(float number, double epsilon = 1e-6)
@@ -291,6 +301,14 @@ namespace Plaza
             result.Y = v.Y / mag;
             result.Z = v.Z / mag;
             return result;
+        }
+
+        public static float Angle(Vector3 a, Vector3 b)
+        {
+            float dot = Dot(Normalize(a), Normalize(b));
+            dot = Math.Min(1f, Math.Max(-1f, dot));
+            float angleRad = (float)Math.Acos(dot);
+            return angleRad * (180f / (float)Math.PI);
         }
 
         public static float Distance(Vector3 v1, Vector3 v2)
@@ -360,6 +378,38 @@ namespace Plaza
         public Vector3 Cos()
         {
             return new Vector3(Math.Cos(this.X), Math.Cos(this.Y), Math.Cos(this.Z));
+        }
+
+        public static Vector3 ProjectOnPlane(Vector3 vector, Vector3 planeNormal)
+        {
+            Vector3 normalizedPlaneNormal = Vector3.Normalize(planeNormal);
+            float dot = Vector3.Dot(vector, normalizedPlaneNormal);
+            return vector - new Vector3(dot, dot, dot) * normalizedPlaneNormal;
+        }
+
+        public Vector3 LookAt(Vector3 target)
+        {
+            return LookAt(target, new Vector3(0.0f, 1.0f, 0.0f));
+        }
+
+        public Vector3 LookAt(Vector3 target, Vector3 up)
+        {
+            Vector3 source = this;
+            Vector3 forward = Vector3.Normalize(target - source);
+            Vector3 right = Vector3.Normalize(Vector3.Cross(up, forward));
+            Vector3 newUp = Vector3.Cross(forward, right);
+
+            float[,] matrix = new float[3, 3] { { right.X, right.Y, right.Z }, { newUp.X, newUp.Y, newUp.Z }, { forward.X, forward.Y, forward.Z } };
+            float det = matrix[0, 0] * matrix[1, 1] * matrix[2, 2] + matrix[0, 1] * matrix[1, 2] * matrix[2, 0] + matrix[0, 2] * matrix[1, 0] * matrix[2, 1]
+                      - matrix[0, 2] * matrix[1, 1] * matrix[2, 0] - matrix[0, 1] * matrix[1, 0] * matrix[2, 2] - matrix[0, 0] * matrix[1, 2] * matrix[2, 1];
+
+            if (det < 0)
+            {
+                right = right * -1.0f;
+                matrix = new float[3, 3] { { right.X, right.Y, right.Z }, { newUp.X, newUp.Y, newUp.Z }, { forward.X, forward.Y, forward.Z } };
+            }
+
+            return new Vector3(matrix[0, 0], matrix[1, 0], matrix[2, 0]);
         }
     }
 

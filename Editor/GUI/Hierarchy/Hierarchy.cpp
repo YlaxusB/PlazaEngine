@@ -253,6 +253,13 @@ namespace Plaza::Editor {
 					entity.AddComponent<Light>(light);
 				}
 
+				if (ImGui::MenuItem("Character Controller"))
+				{
+					CharacterController* characterController = new CharacterController();
+					characterController->uuid = entity.uuid;
+					entity.AddComponent<CharacterController>(characterController);
+				}
+
 				ImGui::EndMenu();
 			}
 

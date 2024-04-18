@@ -36,8 +36,8 @@ void PickingTexture::Render(Shader& shader) {
 				std::vector<uint32_t> uint32Values = { lower32, upper32 };
 				glUniform1uiv(glGetUniformLocation(shader.ID, "uuidArray"), uint32Values.size(), uint32Values.data());
 
-				if (meshRenderer->mesh)
-					meshRenderer->mesh->Draw(shader);
+				//  if (meshRenderer->mesh)
+				//  meshRenderer->mesh.Draw(shader);
 			}
 		}
 	}

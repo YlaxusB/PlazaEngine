@@ -14,7 +14,7 @@ namespace Plaza {
 		string modelPlazaPath;
 		vector<string> texturesPaths;
 		vector<string> materialsPaths;
-		vector<Material> materials;
+		std::unordered_map<std::string, shared_ptr<Material>> materials;
 		std::unordered_map<std::string, shared_ptr<Mesh>> meshes;
 		float scale = 1.0f;
 		bool useTangent = false;

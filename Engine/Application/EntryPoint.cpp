@@ -1,6 +1,7 @@
-#include "Engine/Core/PreCompiledHeaders.h"
+#define PX_PHYSX_STATIC_LIB
+#include <Engine/Core/PreCompiledHeaders.h>
 #include "EntryPoint.h"
-#include <GLFW/glfw3.h>
+#include <ThirdParty/GLFW/include/GLFW/glfw3.h>
 
 #include "Engine/Application/Application.h"
 #include "Engine/Core/Time.h"
@@ -10,7 +11,7 @@
 ApplicationClass* Plaza::Application = new Plaza::ApplicationClass();
 
 using namespace Plaza;
- 
+
 
 #define TRACY_NO_INVARIANT_CHECK 1
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
@@ -23,7 +24,12 @@ using namespace Plaza;
 #include "Editor/Settings/SettingsSerializer.h"
 
 
+
+#include "Engine/Core/ModelLoader/ModelLoader.h"
+#include "Engine/Application/Serializer/ModelSerializer.h"
+
 #include <windows.h>
+#include <codecvt>
 
 int main() {
 	// Buffer to hold the path to the .exe
@@ -39,7 +45,10 @@ int main() {
 
 	// Append "\\Dlls" to the directory path
 	std::wstring dllFolderPath = exeDirectory3 + L"\\Dlls";
-#ifdef GAME_REL != 0
+
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	Application->exeDirectory = converter.to_bytes(exeDirectory3);
+#ifdef GAME_MODE
 	wchar_t buffer2[MAX_PATH];
 	GetModuleFileNameW(NULL, buffer2, MAX_PATH);
 
@@ -60,14 +69,18 @@ int main() {
 
 #endif
 
+	AssetsManager::Init();
+
 	// Start
 	std::cout << "Creating Application \n";
 	Application->CreateApplication();
 
+	Application->mThreadsManager->Init();
+
 	/* Load Editor settings */
-#ifndef GAME_REL
+#ifdef EDITOR_MODE
 	Editor::EditorSettingsSerializer::DeSerialize();
-#endif // GAME_REL
+#endif
 
 	/* Initialize Audio */
 	Audio::Init();
@@ -75,14 +88,14 @@ int main() {
 	std::cout << "Initializating Physics \n";
 	Physics::Init();
 	Application->activeScene->mainSceneEntity = new Entity("Scene");
-	Editor::DefaultModels::Init();
+	////   Editor::DefaultModels::Init();
 
 	//for (auto const& dir_entry : std::filesystem::directory_iterator{ sandbox })
 	//	std::cout << dir_entry.path() << '\n';
 
 
 	std::cout << "Loading Project \n";
-#ifdef GAME_REL != 0
+#ifdef GAME_MODE
 	wchar_t buffer[MAX_PATH];
 	GetModuleFileNameW(NULL, buffer, MAX_PATH);
 
@@ -101,7 +114,10 @@ int main() {
 				std::cout << "Starting Scene\n";
 				Scene::Play();
 				std::cout << "Scene Played \n";
-				Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
+				if (Application->activeScene->cameraComponents.size() > 0)
+					Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
+				else
+					Application->activeCamera = Application->activeScene->mainSceneEntity->AddComponent<Camera>(new Camera());
 			}
 		}
 	}
@@ -115,9 +131,15 @@ int main() {
 	if (filesystem::exists(Application->enginePathAppData + "cache.yaml"))
 		Editor::Cache::Load();
 #endif
-	Skybox::Init();
+	if (Application->mRenderer->api == RendererAPI::OpenGL)
+		OpenGLSkybox::Init();
 
-	
+	/*  -----   TEMPORARILY LOAD MODEL   -----  */
+	// ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod"), "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod");
+	// ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod"), "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod");
+
+	//Application->activeScene->entities.at(Application->activeScene->mainSceneEntity->uuid).parentUuid = 0;
+
 	std::cout << "Starting Loop \n";
 	Application->Loop();
 	std::cout << "Terminate \n";

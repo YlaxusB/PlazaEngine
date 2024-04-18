@@ -1,7 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Shadows.h"
 
-#include "Engine/Core/Renderer.h"
+#include "Engine/Core/Renderer/Renderer.h"
 
 #include <iostream>
 #include <unordered_map>
@@ -73,7 +73,7 @@ namespace Plaza {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glCullFace(GL_FRONT);
 		ShadowsClass::RenderScene(*Application->shadowsDepthShader);
-		Renderer::RenderInstancesShadowMap(*Application->shadowsDepthShader);
+		Application->mRenderer->RenderShadowMap(*Application->shadowsDepthShader);
 		glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -93,11 +93,11 @@ namespace Plaza {
 					//Application->activeScene->entities[transform->uuid].GetComponent<Transform>()->UpdateObjectTransform(&Application->activeScene->entities[meshRendererPair.first]);
 					glm::mat4 modelMatrix = transform.modelMatrix;
 					if (meshRenderer.instanced&& meshRenderer.renderGroup && meshRenderer.renderGroup->mesh) {
-						meshRenderer.renderGroup->AddInstance(shader, modelMatrix);
+						meshRenderer.renderGroup->AddInstance(modelMatrix);
 					}
 					else if(meshRenderer.renderGroup) {
 						shader.setMat4("model", modelMatrix);
-						meshRenderer.renderGroup->Draw(shader);
+						//[] meshRenderer.renderGroup->Draw(shader);
 					}
 
 				}

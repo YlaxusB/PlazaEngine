@@ -1,5 +1,5 @@
 #pragma once
-#include <imgui/imgui.h>
+#include <ThirdParty/imgui/imgui.h>
 
 #include "Engine/Components/Core/Entity.h"
 #include "Editor/GUI/guiMain.h"

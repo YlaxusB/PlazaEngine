@@ -39,7 +39,7 @@ namespace Plaza::Editor {
         // Write the content from the default premake file to destination file
         destinationFile << sourceContent;
         destinationFile.close();
-        std::string premakeCommand = PlazaRootDir + "Engine/Vendor/premake/premake5.exe vs2022";
+        std::string premakeCommand = PlazaRootDir + "ThirdParty/premake/premake5.exe vs2022";
 
         // Execute the Premake command
         std::filesystem::current_path(outputDirectory);

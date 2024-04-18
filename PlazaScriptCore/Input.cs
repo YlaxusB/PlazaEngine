@@ -8,6 +8,11 @@ namespace Plaza
 {
     public class Input
     {
+        public static bool IsAnyKeyPressed()
+        {
+            return InternalCalls.InputIsAnyKeyPressed();
+        }
+
         public static bool IsKeyDown(KeyCode keycode)
         {
             return InternalCalls.InputIsKeyDown(keycode);
@@ -187,6 +192,8 @@ namespace Plaza
         RightControl = 345,
         RightAlt = 346,
         RightSuper = 347,
-        Menu = 348
+        Menu = 348,
+
+        Unknown = -1
     }
 }

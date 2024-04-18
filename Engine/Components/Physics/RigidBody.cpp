@@ -30,6 +30,10 @@ namespace Plaza {
 		else {
 			this->mRigidActor = Physics::m_physics->createRigidDynamic(*new physx::PxTransform(physx::PxIdentity(1.0f)));
 		}
+
+		this->SetRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, this->continuousDetection);
+		this->mRigidActor->is<PxRigidDynamic>()->setLinearDamping(0.0f);
+		this->mRigidActor->is<PxRigidDynamic>()->setAngularDamping(0.0f);
 	}
 
 	void RigidBody::AddCollidersOfChildren(uint64_t parent) {
@@ -115,7 +119,34 @@ namespace Plaza {
 		}
 	}
 
+	float RigidBody::GetDrag() {
+		if (this->mRigidActor) {
+			return this->mRigidActor->is<PxRigidDynamic>()->getLinearDamping();
+		}
+	}
 
+	void RigidBody::SetDrag(float drag) {
+		if (this->mRigidActor) {
+			this->mRigidActor->is<PxRigidDynamic>()->setLinearDamping(drag);
+		}
+	}
+
+	glm::vec3 RigidBody::GetVelocity() {
+		if (this->mRigidActor) {
+			physx::PxVec3 pxVec = this->mRigidActor->is<PxRigidDynamic>()->getLinearVelocity();
+			return glm::vec3(pxVec.x, pxVec.y, pxVec.z);
+		}
+	}
+
+	void RigidBody::SetVelocity(glm::vec3 vector) {
+		if (this->mRigidActor) {
+			this->mRigidActor->is<PxRigidDynamic>()->setLinearVelocity(physx::PxVec3(vector.x, vector.y, vector.z));
+		}
+	}
+
+	void RigidBody::SetRigidBodyFlag(physx::PxRigidBodyFlag::Enum flag, bool value) {
+		this->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(PxRigidBodyFlag::eENABLE_CCD, true);
+	}
 
 	void RigidBody::SetRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::Enum flag, bool value) {
 		if (value)

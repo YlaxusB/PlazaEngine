@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Time.h"
-#include <GLFW/glfw3.h>
+#include <ThirdParty/GLFW/include/GLFW/glfw3.h>
 
 void Plaza::Time::Update() {
 	// Delta time
@@ -27,5 +27,5 @@ void Plaza::Time::Update() {
 
 
 	float currentFrame = static_cast<float>(glfwGetTime());
-	deltaTime = currentFrame - lastFrame;
+	deltaTime = 1.0f / Time::fps; //currentFrame - lastFrame;
 }

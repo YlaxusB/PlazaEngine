@@ -1,6 +1,6 @@
 #pragma once
 using namespace std;
-#include "Engine/Vendor/assimp/scene.h"
+#include "ThirdParty/assimp/include/assimp/scene.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
 namespace Plaza {
 	class ModelLoader
@@ -14,10 +14,10 @@ namespace Plaza {
 		static Entity* LoadModelToGame(string const& path, std::string modelName, bool useTangent);
 		static Entity* LoadModelToGame(string const& path, std::string modelName, aiScene const* scene, bool useTangent, std::string currentPath);
 		static void LoadModelMeshes(string filePath, unordered_map<uint64_t, shared_ptr<MeshRenderer>>& meshRenderers, Model* model, bool useTangent, std::map<std::string, uint64_t> meshesMap = std::map<std::string, uint64_t>());
-		static void ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, vector<Material>& materialsLoaded, string* directory, Entity* modelMainObject, unsigned int& index, bool useTangent, std::string currentPath, std::string modelName);
-		static Mesh ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node, bool useTangent);
+		static void ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh*>& meshes, vector<Texture*>& textures_loaded, vector<Material>& materialsLoaded, string* directory, Entity* modelMainObject, unsigned int& index, bool useTangent, std::string currentPath, std::string modelName);
+		static Mesh& ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture*>& textures_loaded, string* directory, aiNode* node, bool useTangent, Material* outMaterial);
 
-		static vector<Texture> LoadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture>& textures_loaded, string* directory);
+		static vector<Texture*> LoadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture*>& textures_loaded, string* directory);
 		static unsigned int TextureFromFile(const char* path, const string& directory, bool gamma);
 		static unsigned int TextureFromFile(std::string filePath, bool gamma = true);
 		static bool CheckFlippedTextures(const std::string& modelPath);

@@ -8,8 +8,8 @@ using namespace Plaza::Editor;
 using namespace Plaza;
 
 void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-	if (Application->hoveredMenu != "File Explorer" && Application->hoveredMenu != "Inspector")
-		Editor::selectedFiles.clear();
+	//if (Application->hoveredMenu != "File Explorer" && Application->hoveredMenu != "Inspector")
+	//	Editor::selectedFiles.clear();
 	if (Application->hoveredMenu == "Editor" && Application->focusedMenu != "Scene") {
 		ApplicationSizes& appSizes = *Application->appSizes;
 		ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
@@ -28,35 +28,32 @@ void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int bu
 #pragma region Picking
 		if (Application->focusedMenu == "Editor") {
 			float xposGame = lastX - appSizes.hierarchySize.x;
-			float yposGame = lastY - appSizes.appHeaderSize + 5;
-			yposGame = appSizes.sceneSize.y - yposGame;
-			yposGame = appSizes.sceneSize.y - (lastY - appSizes.sceneImageStart.y);
-			uint64_t clickUuid = -1;
-			if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && (!ImGuizmo::IsUsing() || (ImGuizmo::IsOver() && !ImGuizmo::IsUsing))) {
-				Application->pickingTexture->GenerateTexture();
-				clickUuid = Application->pickingTexture->readPixel(xposGame, yposGame);
-			}
+			float yposGame = lastY - appSizes.sceneImageStart.y;
+			//yposGame = appSizes.sceneSize.y - yposGame;
+			yposGame = appSizes.sceneSize.y - (lastY - appSizes.sceneImageStart.y - 35);
+			uint64_t clickUuid = 0;
 
+			if (Editor::selectedGameObject && Editor::selectedGameObject->GetComponent<Transform>() != nullptr && Editor::selectedGameObject->parentUuid != 0)
+				ImGuizmoHelper::IsDrawing = true;
+			else
+				ImGuizmoHelper::IsDrawing = false;
 
-			// Select nothing if didnt clicked on a Entity
-			if (button == GLFW_MOUSE_BUTTON_LEFT && !ImGuizmo::IsUsing() && !ImGuizmo::IsOver() && clickUuid <= 0 && Application->hoveredMenu == "Editor") {
-				Plaza::Editor::Gui::changeSelectedGameObject(nullptr);
-			}
-
-
-			// Select the Entity
-			// Mouse is over imguizmo but imguizmo is not drawing || Mouse inst over imguizmo and its being drawn
-			if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !ImGuizmo::IsUsing() && ((ImGuizmo::IsOver() && !ImGuizmoHelper::IsDrawing) || !(ImGuizmo::IsOver() && ImGuizmoHelper::IsDrawing)) && clickUuid != 0 && (!ImGuizmo::IsOver() && !ImGuizmoHelper::IsDrawing)) {
-				//
-				//int targetName = Application->pickingTexture->readPixel(xposGame, yposGame);
-
+			bool pressingLeftClick = button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS;
+			bool drawingButMouseNotOverGizmo = !ImGuizmo::IsOver() && ImGuizmoHelper::IsDrawing;
+			if (pressingLeftClick && (!ImGuizmoHelper::IsDrawing || drawingButMouseNotOverGizmo)) {
+				//	Application->pickingTexture->GenerateTexture();
+				//    	clickUuid = Application->pickingTexture->readPixel(xposGame, yposGame);
+				clickUuid = Application->mRenderer->mPicking->DrawAndRead(glm::vec2(xposGame, yposGame));
 
 				auto it = Application->activeScene->entities.find(clickUuid);
 				if (it != Application->activeScene->entities.end()) {
 					// Object with the specified name found
 					Plaza::Editor::Gui::changeSelectedGameObject(&it->second);
 				}
+				else
+					Plaza::Editor::Gui::changeSelectedGameObject(nullptr);
 			}
+
 		}
 #pragma endregion Picking
 	}

@@ -43,7 +43,7 @@ void main()
     vec2 MetallicEmmissive = vec2(1.0f);//texture2D(gOthers, TexCoords).rg;
     Metallic = MetallicEmmissive.r;
 
-    if(texture(gPosition, TexCoords).y > 1)
+    if(texture(gPosition, TexCoords).y > 100)
         Metallic = 0;
 
     if(Metallic < 0.01 || texture(gDepth, TexCoords).x == 0.0)

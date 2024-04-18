@@ -1,7 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Collider.h"
 #include "Engine/Core/Physics.h"
-#include "Engine/Vendor/physx/geometry/PxHeightFieldGeometry.h"
+#include "ThirdParty/PhysX/physx/include/geometry/PxHeightFieldGeometry.h"
 
 Plaza::Vertex CombineVertices(const Plaza::Vertex& v1, const Plaza::Vertex& v2) {
 	// Calculate the new position by averaging the positions of v1 and v2
@@ -100,17 +100,16 @@ namespace Plaza {
 
 	void Collider::InitCollider(RigidBody* rigidBody) {
 		//this->RemoveActor();
-		physx::PxTransform* pxTransform = Physics::GetPxTransform(Application->activeScene->transformComponents.at(this->uuid));
-		this->mRigidActor = Physics::m_physics->createRigidDynamic(*pxTransform);
+		physx::PxTransform pxTransform = Physics::GetPxTransform(Application->activeScene->transformComponents.at(this->uuid));
+		this->mRigidActor = Physics::m_physics->createRigidDynamic(pxTransform);
 		if (this->mRigidActor == nullptr)
-			this->mRigidActor = Physics::m_physics->createRigidDynamic(*new physx::PxTransform(physx::PxIdentity(1.0f)));
+			this->mRigidActor = Physics::m_physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity(1.0f)));
 		if (!material) {
 			material = Physics::defaultMaterial;
 			if (this->mDynamic) {
 				material = Physics::m_physics->createMaterial(rigidBody->mStaticFriction, rigidBody->mDynamicFriction, rigidBody->mRestitution);
 			}
 		}
-
 		if (!mDynamic)
 			this->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
 
@@ -155,7 +154,7 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(physx::PxConvexMeshGeometry(convexMesh),
 			*Physics::defaultMaterial);
 
-		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::CONVEX_MESH, mesh->meshId));
+		this->mShapes.push_back(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::CONVEX_MESH, mesh->meshId));
 		delete mesh;
 	}
 
@@ -216,7 +215,7 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(physx::PxTriangleMeshGeometry(triangleMesh),
 			*Physics::defaultMaterial);
 		auto end4 = std::chrono::high_resolution_clock::now();
-		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::MESH, mesh->meshId));
+		this->mShapes.push_back(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::MESH, mesh->meshId));
 		auto end0 = std::chrono::high_resolution_clock::now();
 
 		std::cout << "Time taken by function 1: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " milliseconds" << std::endl;
@@ -235,7 +234,7 @@ namespace Plaza {
 		physx::PxReal min = PX_MAX_F32;
 		physx::PxReal max = -PX_MAX_F32;
 
-		Mesh* debugMesh = new Mesh();
+		OpenGLMesh* debugMesh = new OpenGLMesh();
 		debugMesh->vertices.reserve(size);
 		debugMesh->indices.reserve(size);
 		debugMesh->indices.push_back(0);
@@ -293,7 +292,7 @@ namespace Plaza {
 		std::cout << "Third: " << size * 0.5f * 20 << "\n";
 		physx::PxHeightFieldGeometry hfGeom(aHeightField, physx::PxMeshGeometryFlags(), 1, 20,
 			20);
-		
+
 
 		float terrainWidth = 256 / 2 * 20;
 		PxTransform localPose;
@@ -304,7 +303,7 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(hfGeom,
 			*Physics::defaultMaterial, false);
 		shape->setLocalPose(localPose);
-		this->mShapes.push_back(new ColliderShape(shape, ColliderShapeEnum::HEIGHT_FIELD));
+		this->mShapes.push_back(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::HEIGHT_FIELD));
 		auto end0 = std::chrono::high_resolution_clock::now();
 		delete[] hfSamples;
 
@@ -312,31 +311,31 @@ namespace Plaza {
 		//delete mesh;
 	}
 
-	void Collider::CreateShape(ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh) {
-		if (shapeEnum == ColliderShapeEnum::BOX) {
+	void Collider::CreateShape(ColliderShape::ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh) {
+		if (shapeEnum == ColliderShape::ColliderShapeEnum::BOX) {
 			physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
-			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShapeEnum::BOX, 0));
+			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::BOX, 0));
 		}
-		else if (shapeEnum == ColliderShapeEnum::SPHERE) {
+		else if (shapeEnum == ColliderShape::ColliderShapeEnum::SPHERE) {
 			physx::PxSphereGeometry geometry(1.0f);
-			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShapeEnum::SPHERE, 0));
+			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::SPHERE, 0));
 		}
-		else if (shapeEnum == ColliderShapeEnum::PLANE) {
+		else if (shapeEnum == ColliderShape::ColliderShapeEnum::PLANE) {
 			physx::PxBoxGeometry geometry(transform->scale.x / 2.1, 0.001f, transform->scale.z / 2.1);
-			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShapeEnum::PLANE, 0));
+			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::PLANE, 0));
 		}
-		else if (shapeEnum == ColliderShapeEnum::CAPSULE) {
+		else if (shapeEnum == ColliderShape::ColliderShapeEnum::CAPSULE) {
 			/* TODO: Implement capsule shape*/
 			std::cout << "Capsule not yet implemented" << std::endl;
 		}
-		else if (shapeEnum == ColliderShapeEnum::CYLINDER) {
+		else if (shapeEnum == ColliderShape::ColliderShapeEnum::CYLINDER) {
 			/* TODO: Implement cylinder shape*/
 			std::cout << "Cylinder not yet implemented" << std::endl;
 		}
-		else if (shapeEnum == ColliderShapeEnum::MESH) {
+		else if (shapeEnum == ColliderShape::ColliderShapeEnum::MESH) {
 			this->AddMeshShape(mesh);
 		}
-		else if (shapeEnum == ColliderShapeEnum::CONVEX_MESH) {
+		else if (shapeEnum == ColliderShape::ColliderShapeEnum::CONVEX_MESH) {
 			this->AddConvexMeshShape(mesh);
 		}
 	}
@@ -352,7 +351,14 @@ namespace Plaza {
 
 	void Collider::UpdateShapeScale(glm::vec3 scale) {
 		PLAZA_PROFILE_SECTION("Collider: Update Shape Scale");
+		if (!Application->runningScene)
+			return;
 		if (lastScale != scale) {
+			if (scale.x == 0 || scale.y == 0 || scale.z == 0) {
+				lastScale = scale;
+				return;
+			}
+
 			for (int i = 0; i < this->mShapes.size(); ++i) {
 				physx::PxShape* shape = this->mShapes[i]->mPxShape;
 				physx::PxGeometryHolder geometry = this->mShapes[i]->mPxShape->getGeometry();
@@ -360,19 +366,19 @@ namespace Plaza {
 				physx::PxMaterial* material;
 				this->mShapes[i]->mPxShape->getMaterials(&material, 1);
 				// Scale the geometry parameters by the given factor
-				if (this->mShapes[i]->mEnum == ColliderShapeEnum::BOX) {
+				if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::BOX) {
 					physx::PxBoxGeometry boxGeom = geometry.box();
 					boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
 					shape->release();
 					newShape = Physics::m_physics->createShape(boxGeom, *material);
 				}
-				else if (this->mShapes[i]->mEnum == ColliderShapeEnum::PLANE) {
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::PLANE) {
 					physx::PxBoxGeometry planeGeom = geometry.box();
 					planeGeom.halfExtents = physx::PxVec3(scale.x / 2, 0.001f, scale.z / 2);
 					shape->release();
 					newShape = Physics::m_physics->createShape(planeGeom, *material);
 				}
-				else if (this->mShapes[i]->mEnum == ColliderShapeEnum::SPHERE) {
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::SPHERE) {
 					physx::PxSphereGeometry sphereGeometry = geometry.sphere();
 					//boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
 					sphereGeometry.radius = (scale.x + scale.y + scale.z) / 3;
@@ -382,16 +388,16 @@ namespace Plaza {
 					//sphereGeom.radius *= 3;
 					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
 				}
-				else if (this->mShapes[i]->mEnum == ColliderShapeEnum::MESH) {
-					physx::PxTriangleMeshGeometry meshGeometry = geometry.triangleMesh();
-					meshGeometry.scale = physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z));
-					shape->release();
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::MESH) {
+					physx::PxTriangleMeshGeometry meshGeometry(geometry.triangleMesh().triangleMesh, physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z), physx::PxQuat(physx::PxIdentity)));
+					//meshGeometry.scale = physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z));
 					newShape = Physics::m_physics->createShape(meshGeometry, *material);
+					shape->release();
 					//physx::PxSphereGeometry sphereGeom;
 					//sphereGeom.radius *= 3;
 					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
 				}
-				else if (this->mShapes[i]->mEnum == ColliderShapeEnum::HEIGHT_FIELD) {
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::HEIGHT_FIELD) {
 					physx::PxHeightFieldGeometry heightGeometry = geometry.heightField();
 					heightGeometry.heightScale = 1.0f;
 					shape->release();
@@ -444,19 +450,26 @@ namespace Plaza {
 		collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlags(flags);
 	}
 
+	glm::quat GetQuaternionFromMatrix(const glm::mat4& matrix) {
+		glm::mat3 rotationMatrix = glm::mat3(matrix); // Extract rotation component
+		glm::quat rotationQuaternion = glm::quat(rotationMatrix); // Convert rotation matrix to quaternion
+		return rotationQuaternion;
+	}
+
 	void Collider::UpdatePose(Transform* transform) {
 		PLAZA_PROFILE_SECTION("Collider: Update Pose");
 		if (transform) {
 			if (this->mRigidActor) {
-				glm::quat quaternion = transform->GetWorldQuaternion();
+				glm::quat quaternion = glm::quat(transform->GetWorldRotation());
+
 				physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
 				glm::vec3 transformPos = transform->GetWorldPosition();
-				physx::PxTransform* pxTransform = new physx::PxTransform(
-					transformPos.x, transformPos.y, transformPos.z,
-					pxQuaternion);
-				this->mRigidActor->setGlobalPose(*pxTransform);
-				delete pxTransform;
+				physx::PxVec3 pxTranslation(transformPos.x, transformPos.y, transformPos.z);
+				physx::PxTransform pxTransform(pxTranslation, pxQuaternion);
+				//pxTransform = pxTransform.getNormalized();
+
+				this->mRigidActor->setGlobalPose(pxTransform);
 			}
 		}
 	}

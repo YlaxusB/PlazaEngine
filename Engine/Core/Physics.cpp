@@ -1,6 +1,10 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Physics.h"
-#include <physx/cooking/Pxc.h>
+#include <ThirdParty/PhysX/physx/include/cooking/Pxc.h>
+#include <ThirdParty/PhysX/physx/include/characterkinematic/PxController.h>
+#include <ThirdParty/PhysX/physx/include/characterkinematic/PxControllerManager.h>
+#include <ThirdParty/PhysX/physx/include/characterkinematic/PxControllerBehavior.h>
+#include <ThirdParty/PhysX/physx/include/characterkinematic/PxBoxController.h>
 using namespace physx;
 namespace Plaza {
 	class CollisionCallback : public physx::PxSimulationEventCallback {
@@ -105,6 +109,7 @@ namespace Plaza {
 	physx::PxScene* Physics::m_scene = NULL;
 	physx::PxMaterial* Physics::m_material = NULL;
 	physx::PxPvd* Physics::m_pvd = NULL;
+	physx::PxControllerManager* Physics::m_controllerManager = NULL;
 
 	physx::PxMaterial* Physics::defaultMaterial = nullptr;
 
@@ -154,7 +159,8 @@ namespace Plaza {
 
 		pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
 		pairFlags |= PxPairFlag::eNOTIFY_CONTACT_POINTS;
-		return PxFilterFlag::eDEFAULT;
+		pairFlags |= PxPairFlag::eDETECT_CCD_CONTACT;
+		return PxFilterFlags();
 	}
 	class ContactCallBack : public PxSimulationEventCallback
 	{
@@ -199,6 +205,7 @@ namespace Plaza {
 		sceneDesc.filterShader = FilterShaderExample;
 		sceneDesc.filterCallback = &filterCallback;
 		sceneDesc.simulationEventCallback = &simulationEventCallback;
+		sceneDesc.flags = PxSceneFlag::eENABLE_CCD;
 		//sceneDesc.simulationEventCallback = &collisionCallback;
 		//sceneDesc.dynamicTreeRebuildRateHint = 100;
 		return sceneDesc;
@@ -219,7 +226,7 @@ namespace Plaza {
 		toleranceScale.speed = 9.81f;
 		toleranceScale.length = 1;
 		m_physics = PxCreatePhysics(PX_PHYSICS_VERSION, *m_foundation, toleranceScale, true);
-		m_dispatcher = PxDefaultCpuDispatcherCreate(2); // 2 is the number of worker threads
+		m_dispatcher = PxDefaultCpuDispatcherCreate(2);
 		if (!m_dispatcher) {
 			std::cerr << "PhysX CPU dispatcher creation failed!" << std::endl;
 		}
@@ -229,15 +236,21 @@ namespace Plaza {
 		// Create the PhysX scene
 		m_scene = m_physics->createScene(Physics::GetSceneDesc());
 		//m_scene->setSimulationEventCallback(&collisionCallback);
-		Physics::defaultMaterial = Physics::m_physics->createMaterial(0.0f, 1.0f, 0.5f);
+		Physics::defaultMaterial = Physics::m_physics->createMaterial(0.0f, 1.0f, 0.0f); /* TODO: MAKE DYNAMIC MATERIALS AND SET RESTITUTION ON DEFAULT MATERIAL TO 0.5 AGAIN*/
+
+		Physics::m_controllerManager = PxCreateControllerManager(*Physics::m_scene);
 		std::cout << "Physics Initialized" << std::endl;
 	}
 
 	void Physics::Update() {
 		PLAZA_PROFILE_SECTION("Update");
+		for (auto& [key, value] : Application->runtimeScene->characterControllerComponents) {
+			value.Update();
+		}
 		for (auto& [key, value] : Application->runtimeScene->rigidBodyComponents) {
 			value.Update();
 		}
+
 		//for (auto& [key, value] : Application->runtimeScene->colliderComponents) {
 		//	if (Application->runtimeScene->rigidBodyComponents.find(key) == Application->runtimeScene->rigidBodyComponents.end()) {
 		//		value.Update();
@@ -245,12 +258,12 @@ namespace Plaza {
 		//}
 	}
 
-	physx::PxTransform* Physics::GetPxTransform(Transform& transform) {
+	physx::PxTransform Physics::GetPxTransform(Transform& transform) {
 		//// Create a dynamic rigid body
-		glm::quat quaternion = transform.GetWorldQuaternion();
+		glm::quat quaternion = glm::normalize(transform.GetWorldQuaternion());
 		physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 		glm::vec3 worldPosition = transform.GetWorldPosition();
-		physx::PxTransform* pxTransform = new physx::PxTransform(
+		physx::PxTransform pxTransform = physx::PxTransform(
 			worldPosition.x, worldPosition.y, worldPosition.z,
 			pxQuaternion);
 		return pxTransform;

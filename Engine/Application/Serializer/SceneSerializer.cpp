@@ -15,13 +15,15 @@
 #include "Engine/Application/Serializer/Components/AudioSourceSerializer.h"
 
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
+#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 
 namespace Plaza {
 	void SerializeGameObjects(YAML::Emitter& out, Entity* entity) {
 		out << YAML::BeginMap;
 		out << YAML::Key << "Entity" << YAML::Value << entity->uuid;
 		out << YAML::Key << "Name" << YAML::Value << entity->name;
-		out << YAML::Key << "ParentID" << YAML::Value << entity->parentUuid;
+		uint64_t parentUuid = (entity->uuid == Application->activeScene->mainSceneEntity->uuid) ? entity->uuid : entity->parentUuid;
+		out << YAML::Key << "ParentID" << YAML::Value << parentUuid;
 		out << YAML::Key << "Components" << YAML::BeginMap;
 		if (Transform* transform = entity->GetComponent<Transform>()) {
 			ComponentSerializer::TransformSerializer::Serialize(out, *transform);
@@ -83,12 +85,14 @@ namespace Plaza {
 	void SerializeScene(YAML::Emitter& out, Entity* sceneEntity) {
 		out << YAML::Key << "Uuid" << YAML::Value << sceneEntity->uuid;
 		out << YAML::Key << "Name" << YAML::Value << sceneEntity->name;
+		out << YAML::Key << "LightDirection" << YAML::Value << VulkanRenderer::GetRenderer()->mShadows->mLightDirection;//Application->mRenderer->mShadows->mLightDirection;
 	}
 
-	void Serializer::Serialize(const std::string filePath)
+	void Serializer::Serialize(const Asset* sceneAsset)
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap;
+		out << YAML::Key << "AssetUuid" << YAML::Value << sceneAsset->mAssetUuid;
 		out << YAML::Key << "Scene" << YAML::Value << YAML::BeginMap;
 		SerializeScene(out, Application->activeScene->mainSceneEntity);
 		out << YAML::EndMap;
@@ -101,8 +105,13 @@ namespace Plaza {
 
 		/* Models */
 		out << YAML::Key << "Models" << YAML::Value << YAML::BeginSeq;
-		for (auto& [key, value] : EngineClass::models) {
-			SerializeModels(out, value.get());
+		
+		for (auto& [key, value] : AssetsManager::mLoadedModels) {
+			out << YAML::BeginMap;
+			out << YAML::Key << "Model" << YAML::Value << value->uuid;
+			out << YAML::Key << "ModelPath" << YAML::Value << AssetsManager::GetAsset(value->uuid)->mPath.string();
+			out << YAML::EndMap;
+			//SerializeModels(out, value->uuid);
 		}
 		out << YAML::EndSeq;
 
@@ -115,7 +124,7 @@ namespace Plaza {
 
 
 		out << YAML::EndMap;
-		std::ofstream fout(filePath);
+		std::ofstream fout(sceneAsset->mPath.string());
 		fout << out.c_str();
 	}
 
@@ -134,11 +143,13 @@ namespace Plaza {
 		/* Scene */
 		if (!deserializingProject)
 			Application->editorScene = new Scene();
+		Application->editorScene->mAssetUuid = data["AssetUuid"].as<uint64_t>();
 		Application->activeScene = Application->editorScene;
 		Editor::DefaultModels::Init();
-		Entity* oldScene = Application->activeScene->mainSceneEntity;
 		Entity* newScene = new Entity(data["Scene"]["Name"].as<std::string>(), nullptr, true, data["Scene"]["Uuid"].as<uint64_t>());
-		free(Application->activeScene->mainSceneEntity);
+		if (data["Scene"]["LightDirection"])
+			VulkanRenderer::GetRenderer()->mShadows->mLightDirection = data["Scene"]["LightDirection"].as<glm::vec3>();
+		//free(Application->activeScene->mainSceneEntity);
 		Application->activeScene->mainSceneEntity = newScene;
 		if (filePath.starts_with(Application->projectPath))
 			Application->activeScene->filePath = filePath.substr(Application->projectPath.length() + 1, filePath.length() - Application->projectPath.length());
@@ -151,8 +162,9 @@ namespace Plaza {
 		auto modelsDeserialized = data["Models"];
 		if (modelsDeserialized) {
 			for (auto model : modelsDeserialized) {
-				std::string modelPath = Application->projectPath + "\\" + model["ModelPath"].as<std::string>();
-				models.emplace(model["Model"].as<uint64_t>(), modelPath);
+				std::string modelPath = model["ModelPath"].as<std::string>();
+				AssetsLoader::LoadPrefabToMemory(AssetsManager::GetAsset(model["Model"].as<uint64_t>()));
+				//models.emplace(model["Model"].as<uint64_t>(), modelPath);
 			}
 		}
 		// A map of model uuid and another map of mesh name and mesh id
@@ -244,6 +256,11 @@ namespace Plaza {
 			for (auto entity : gameObjectsDeserialized) {
 				uint64_t entityUuid = entity["Entity"].as<uint64_t>();
 				uint64_t parentUuid = entity["ParentID"].as<uint64_t>();
+
+				if (entityUuid == Application->activeScene->mainSceneEntity->uuid)
+					continue;
+
+				Entity* ent = &Application->activeScene->entities.at(entityUuid);
 				if (parentUuid && parentUuid != entityUuid && Application->activeScene->entities.find(parentUuid) != Application->activeScene->entities.end())
 					Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), Application->activeScene->entities.at(entity["ParentID"].as<uint64_t>()));
 				else

@@ -1,12 +1,12 @@
 #pragma once
-#include "Engine/Components/Rendering/Mesh.h"
 namespace Plaza {
 	class Prefab : public Component {
 	public:
+		uint64_t mPrefabUuid;
+		uint64_t mAssetUuid;
 		class Child;
 		class Base;
-		std::string prefabId;
-		std::string prefabName;
+		std::string mPrefabName;
 	};
 
 	class Prefab::Child : public Prefab {

@@ -187,18 +187,18 @@ namespace Plaza
                 InternalCalls.SetRotationQuaternion(Uuid, ref quaternion);
             }
         }
-/*        public Vector3 Rotation
-        {
-            get
-            {
-                InternalCalls.GetRotationCall(Entity.Uuid, out Vector3 rotation);
-                return rotation;
-            }
-            set
-            {
-                InternalCalls.SetRotation(Uuid, ref value);
-            }
-        }*/
+        /*        public Vector3 Rotation
+                {
+                    get
+                    {
+                        InternalCalls.GetRotationCall(Entity.Uuid, out Vector3 rotation);
+                        return rotation;
+                    }
+                    set
+                    {
+                        InternalCalls.SetRotation(Uuid, ref value);
+                    }
+                }*/
         public Vector3 Scale
         {
             get
@@ -265,6 +265,12 @@ namespace Plaza
         public void MoveTowards(Vector3 vector3)
         {
             Plaza.InternalCalls.MoveTowards(this.Uuid, vector3);
+        }
+
+        public Vector3 MoveTowardsReturn(Vector3 vector3)
+        {
+            Plaza.InternalCalls.MoveTowardsReturn(this.Uuid, vector3, out Vector3 outVector);
+            return outVector;
         }
     }
 
@@ -368,6 +374,29 @@ namespace Plaza
 
     public class RigidBody : Component
     {
+        public float drag
+        {
+            get
+            {
+                return InternalCalls.RigidBody_GetDrag(Uuid);
+            }
+            set
+            {
+                InternalCalls.RigidBody_SetDrag(Uuid, value);
+            }
+        }
+        public Vector3 velocity
+        {
+            get
+            {
+                InternalCalls.RigidBody_GetVelocity(Uuid, out Vector3 value);
+                return value;
+            }
+            set
+            {
+                InternalCalls.RigidBody_SetVelocity(Uuid, ref value);
+            }
+        }
         public void ApplyForce(Vector3 force)
         {
             InternalCalls.RigidBody_ApplyForce(Uuid, ref force);
@@ -413,7 +442,7 @@ namespace Plaza
     {
         public void AddShape(ColliderShapeEnum shape)
         {
-                InternalCalls.Collider_AddShape(this.Uuid, shape);
+            InternalCalls.Collider_AddShape(this.Uuid, shape);
         }
 
         public void AddShape(ColliderShapeEnum shape, Mesh mesh)
@@ -427,6 +456,16 @@ namespace Plaza
         }
     }
     #endregion Collider
+
+    #region Character Controller
+    public class CharacterController : Component
+    {
+        public void Move(Vector3 position, float minimumDistance, bool followOrientation, float elapsedTime)
+        {
+            InternalCalls.CharacterController_MoveCall(this.Uuid, position, minimumDistance, followOrientation, elapsedTime);
+        }
+    }
+    #endregion Character Controller
 
     #region TextRenderer
     public class TextRenderer : Component

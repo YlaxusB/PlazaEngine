@@ -15,7 +15,7 @@ namespace Plaza::Editor {
 		void AddChildrenMeshShape(Collider* collider, uint64_t parentUuid) {
 			for (uint64_t childUuid : Application->activeScene->entities.at(parentUuid).childrenUuid) {
 				if (Application->activeScene->entities.at(childUuid).HasComponent<MeshRenderer>()) {
-					collider->AddConvexMeshShape(new Mesh(*Application->activeScene->meshRendererComponents.at(childUuid).mesh));
+					collider->AddConvexMeshShape((Mesh*)(new OpenGLMesh(*(OpenGLMesh*)(Application->activeScene->meshRendererComponents.at(childUuid).mesh))));
 				}
 				AddChildrenMeshShape(collider, childUuid);
 			}
@@ -68,31 +68,41 @@ namespace Plaza::Editor {
 					{
 						physx::PxBoxGeometry geometry(transform.scale.x / 2.1, transform.scale.y / 2.1, transform.scale.z / 2.1);
 						physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
-						collider->AddShape(new ColliderShape(shape, ColliderShapeEnum::BOX, 0));
+						collider->AddShape(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::BOX, 0));
 					}
 					if (ImGui::MenuItem("Plane"))
 					{
 						physx::PxBoxGeometry geometry(transform.scale.x / 2.1, 0.001f, transform.scale.z / 2.1);
 						physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
-						collider->AddShape(new ColliderShape(shape, ColliderShapeEnum::PLANE, 0));
+						collider->AddShape(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::PLANE, 0));
 					}
 					if (ImGui::MenuItem("Sphere"))
 					{
 						physx::PxSphereGeometry geometry(1.0f);
 						physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
-						collider->AddShape(new ColliderShape(shape, ColliderShapeEnum::SPHERE, 0));
+						collider->AddShape(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::SPHERE, 0));
 					}
 					if (ImGui::MenuItem("Mesh"))
 					{
 						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {
-							collider->AddMeshShape(new Mesh(*Application->activeScene->meshRendererComponents.at(collider->uuid).mesh));
+							collider->AddMeshShape((Mesh*)new OpenGLMesh(*(OpenGLMesh*)Application->activeScene->meshRendererComponents.at(collider->uuid).mesh));
 							collider->Init(nullptr);
 						}
 						if (collider->GetGameObject()->HasComponent<RigidBody>()) {
 							AddChildrenMeshShape(collider, collider->uuid);
 
 						}
+					}
+					if (ImGui::MenuItem("Convex Mesh"))
+					{
+						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {
+							collider->AddConvexMeshShape((Mesh*)new OpenGLMesh(*(OpenGLMesh*)Application->activeScene->meshRendererComponents.at(collider->uuid).mesh));
+							collider->Init(nullptr);
+						}
+						if (collider->GetGameObject()->HasComponent<RigidBody>()) {
+							AddChildrenMeshShape(collider, collider->uuid);
 
+						}
 					}
 
 					ImGui::EndPopup();

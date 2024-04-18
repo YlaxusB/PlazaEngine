@@ -5,12 +5,13 @@
 #include "Engine/Core/ModelLoader/Model.h"
 #include "Engine/Components/Core/Entity.h"
 #include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
+#include "Engine/Core/Renderer/Renderer.h"
 
 namespace Plaza {
 	Material DefaultMaterial() {
 		Material material;
-		material.diffuse.rgba = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
-		material.specular.rgba = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+		material.diffuse->rgba = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
+		material.specular->rgba = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
 		material.shininess = 3.0f;
 		return material;
 	}
@@ -48,12 +49,18 @@ namespace Plaza {
 					MeshRenderer* newMeshRenderer = new MeshRenderer();
 					newMeshRenderer->instanced = true;
 					newMeshRenderer->uuid = newGameObject->uuid;
-					newMeshRenderer->mesh = model->meshes.at(meshRenderer->aiMeshName).get();
-					newMeshRenderer->material = &model->meshes.at(meshRenderer->aiMeshName)->material;
-					newMeshRenderer->material = Application->activeScene->materials.at(meshRenderer->material->uuid).get();
+					if (model->meshes.find(meshRenderer->aiMeshName) != model->meshes.end())
+						newMeshRenderer->mesh = model->meshes.at(meshRenderer->aiMeshName).get();
+					newMeshRenderer->material = meshRenderer->material;
+					if (model->materials.find(meshRenderer->aiMeshName) != model->materials.end())
+						newMeshRenderer->material = model->materials.at(meshRenderer->aiMeshName).get();//Application->activeScene->materials.at(meshRenderer->material->uuid).get();
 					//newMeshRenderer->material = MaterialFileSerializer::DeSerialize(newMeshRenderer->material->filePath);
 					//newMeshRenderer->material->LoadTextures(std::filesystem::path{ newMeshRenderer->material->filePath }.parent_path().string());
-					newMeshRenderer->renderGroup = make_shared<RenderGroup>(newMeshRenderer->mesh, newMeshRenderer->material);
+
+					if (model->meshes.find(meshRenderer->aiMeshName) != model->meshes.end() && model->materials.find(meshRenderer->aiMeshName) != model->materials.end())
+						newMeshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newMeshRenderer->mesh, newMeshRenderer->material);//make_shared<RenderGroup>(newMeshRenderer->mesh, newMeshRenderer->material);
+					else
+						newMeshRenderer->renderGroup = Application->activeScene->renderGroups[0];
 					//newMeshRenderer->material = Application->activeScene->materials.at(entity->GetComponent<MeshRenderer>()->material->uuid);
 
 					if (Application->activeScene->materials.find(it->second->uuid) == Application->activeScene->materials.end()) {
@@ -64,14 +71,18 @@ namespace Plaza {
 					else {
 						//newMeshRenderer->material = Application->activeScene->materials.at(Application->activeScene->materialsNames.at(newMeshRenderer->material->name));
 					}
-					Application->activeScene->AddRenderGroup(newMeshRenderer->renderGroup);
+					//Application->activeScene->AddRenderGroup(newMeshRenderer->renderGroup);
 					//Application->activeScene->renderGroups.emplace(newMeshRenderer->renderGroup->uuid, newMeshRenderer->renderGroup);
 					newGameObject->AddComponent<MeshRenderer>(newMeshRenderer, true);
 					//newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
 					Collider* collider = new Collider(newGameObject->uuid);
-					collider->CreateShape(ColliderShapeEnum::MESH, transform, newMeshRenderer->mesh);
-					//collider->AddMeshShape(new Mesh(*newMeshRenderer->mesh));
-					newGameObject->AddComponent<Collider>(collider);
+					if (newGameObject->HasComponent<MeshRenderer>())
+						if (newGameObject->GetComponent<MeshRenderer>()->mesh)
+						{
+							collider->CreateShape(ColliderShape::ColliderShapeEnum::MESH, transform, newMeshRenderer->mesh);
+							//collider->AddMeshShape(new Mesh(*newMeshRenderer->mesh));
+							newGameObject->AddComponent<Collider>(collider);
+						}
 				}
 				modelInstanceGameObjects.emplace(entity->uuid, newGameObject);
 				/*
@@ -124,9 +135,9 @@ namespace Plaza {
 	}
 
 	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName, bool useTangent) {
-		vector<Texture>* textures_loaded = new vector<Texture>;
+		vector<Texture*>* textures_loaded = new vector<Texture*>;
 		vector<Material>* materialsLoaded = new vector<Material>;
-		vector<Mesh>* meshes = new vector<Mesh>;
+		vector<Mesh*>* meshes = new vector<Mesh*>();
 		string directory;
 		// read file via ASSIMP
 		Assimp::Importer importer;
@@ -154,8 +165,8 @@ namespace Plaza {
 	}
 
 	void ModelLoader::LoadModelMeshes(string filePath, unordered_map<uint64_t, shared_ptr<MeshRenderer>>& meshRenderers, Model* model, bool useTangent, std::map<std::string, uint64_t> meshesMap) {
-		vector<Texture>* texturesLoaded = new vector<Texture>;
-		vector<Material> materialsLoaded = vector<Material>();
+		vector<Texture*>* texturesLoaded = new vector<Texture*>;
+		vector<shared_ptr<Material>> materialsLoaded = vector<shared_ptr<Material>>();
 		vector<Mesh>* meshes = new vector<Mesh>;
 		string directory = filesystem::path{ filePath }.parent_path().string() + "\\textures";
 		// read file via ASSIMP
@@ -163,47 +174,60 @@ namespace Plaza {
 		std::string path = model->modelObjectPath;
 		if (!path.starts_with(Application->projectPath))
 			path = Application->projectPath + "\\" + path;
+#ifdef GAME_MODE
+		path = model->modelObjectPath;
+#endif
 		const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_GenUVCoords | aiProcess_TransformUVCoords);
 		unsigned int index = 0;
 		for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 			aiMesh* aiMesh = scene->mMeshes[i];
-			Mesh* mesh = new Mesh(ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr, useTangent));
+			Material* processedMaterial = new Material();
+			Mesh& mesh = ModelLoader::ProcessMesh(aiMesh, scene, *texturesLoaded, &directory, nullptr, useTangent, processedMaterial);
 
-			for (Material& material : materialsLoaded) {
-				if (mesh->material.SameAs(material)) {
-					mesh->material = material;
-				}
-				else
-					materialsLoaded.push_back(mesh->material);
-			}
+			mesh.meshId = Plaza::UUID::NewUUID();
 
-			mesh->meshName = aiMesh->mName.C_Str() + to_string(index);
+			//for (shared_ptr<Material> material : materialsLoaded) {
+			//	if (processedMaterial->SameAs(*material.get())) {
+			//		processedMaterial = material;
+			//	}
+			//	else
+			//		materialsLoaded.push_back(processedMaterial);
+			//}
 
-			mesh->material.name = mesh->meshName + "material";
-			mesh->material.filePath = std::string(directory) + "\\" + mesh->material.name + Standards::materialExtName;
+			mesh.meshName = aiMesh->mName.C_Str() + to_string(index);
 
-			if (Application->activeScene->materials.find(mesh->material.uuid) == Application->activeScene->materials.end()) {
+			processedMaterial->name = mesh.meshName + "material";
+			processedMaterial->filePath = std::string(directory) + "\\" + processedMaterial->name + Standards::materialExtName;
+
+			if (Application->activeScene->materials.find(processedMaterial->uuid) == Application->activeScene->materials.end()) {
 				//Application->activeScene->materials.emplace(mesh->material.uuid, &mesh->material);
 				//Application->activeScene->AddMaterial(&mesh->material);
 				//MaterialFileSerializer::Serialize(mesh->material.filePath, &mesh->material);
 			}
-			mesh->modelUuid = model->uuid;
+			mesh.modelUuid = model->uuid;
 			if (meshesMap.size() > 0) {
-				mesh->meshId = meshesMap.at(mesh->meshName);
+				mesh.meshId = meshesMap.at(mesh.meshName);
 			}
-
-			Application->editorScene->meshes.emplace(mesh->meshId, make_shared<Mesh>(*mesh));
-			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), Application->editorScene->meshes.at(mesh->meshId));
-			if (Application->runningScene)
-				Application->runtimeScene->meshes.emplace(mesh->meshId, Application->editorScene->meshes.at(mesh->meshId));
+			std::shared_ptr<Mesh> sharedMesh = std::make_shared<VulkanMesh>(dynamic_cast<VulkanMesh&>(mesh));
+			std::shared_ptr<Material> sharedMaterial = std::make_shared<Material>(dynamic_cast<Material&>(*processedMaterial));
+			sharedMesh->uuid = sharedMesh->meshId;
+			AssetsManager::AddMesh(sharedMesh.get());
+			model->meshes.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), sharedMesh);
+			model->materials.emplace(std::string(aiMesh->mName.C_Str() + to_string(index)), sharedMaterial);
+			//((VulkanMesh&)(model->meshes.at(std::string(aiMesh->mName.C_Str() + to_string(index)))).get()).Drawe();
+			//shar->Draw(*Application->shader);
+			//Application->editorScene->meshes.at(mesh.meshId)->Draw(*Application->shader);
+			//((VulkanMesh&)(Application->editorScene->meshes.at(mesh.meshId))).Draw(*asd);
+				//if (Application->runningScene)
+				//	Application->runtimeScene->meshes.emplace(mesh.meshId, Application->editorScene->meshes.at(mesh.meshId));
 			index++;
 		}
 	}
 
 	Entity* ModelLoader::LoadModelToGame(string const& path, std::string modelName, aiScene const* scene, bool useTangent, std::string currentPath) {
-		vector<Texture>* textures_loaded = new vector<Texture>;
+		vector<Texture*>* textures_loaded = new vector<Texture*>;
 		vector<Material>* materialsLoaded = new vector<Material>;
-		vector<Mesh>* meshes = new vector<Mesh>;
+		vector<Mesh*>* meshes = new vector<Mesh*>;
 		string directory;
 		// retrieve the directory path of the filepath
 		directory = path.substr(0, path.find_last_of('/'));
@@ -222,21 +246,22 @@ namespace Plaza {
 	}
 
 	// processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
-	void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh>& meshes, vector<Texture>& textures_loaded, vector<Material>& materialsLoaded, string* directory, Entity* modelMainObject, unsigned int& index, bool useTangent, std::string currentPath, std::string modelName)
+	void ModelLoader::ProcessNode(aiNode* node, const aiScene* scene, vector<Mesh*>& meshes, vector<Texture*>& textures_loaded, vector<Material>& materialsLoaded, string* directory, Entity* modelMainObject, unsigned int& index, bool useTangent, std::string currentPath, std::string modelName)
 	{
 		for (unsigned int i = 0; i < node->mNumMeshes; i++)
 		{
 			// Get the assimp mesh of the current node
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			// Convert it to my own mesh
-			Mesh nodeMesh = ProcessMesh(mesh, scene, textures_loaded, directory, node, useTangent);
+			Material* processedMaterial = new Material();
+			Mesh& nodeMesh = ProcessMesh(mesh, scene, textures_loaded, directory, node, useTangent, processedMaterial);
 
 			for (Material& material : materialsLoaded) {
-				if (nodeMesh.material.SameAs(material)) {
-					nodeMesh.material = material;
+				if (processedMaterial->SameAs(material)) {
+					*processedMaterial = material;
 				}
 			}
-			materialsLoaded.push_back(nodeMesh.material);
+			materialsLoaded.push_back(*processedMaterial);
 
 			std::string childName = std::string(node->mName.C_Str());
 			// Get the position of the mesh
@@ -255,12 +280,12 @@ namespace Plaza {
 				parentObject = Application->activeScene->gameObjects.front().get();
 			}
 			Entity* childObject = new Entity(childName, parentObject);
-			MeshRenderer* childMeshRenderer = new MeshRenderer(nodeMesh);
+			MeshRenderer* childMeshRenderer = new MeshRenderer(&nodeMesh);
 			childMeshRenderer->instanced = true;
 			childMeshRenderer->aiMeshName = string(mesh->mName.C_Str()) + to_string(index);
-			nodeMesh.material.name = childMeshRenderer->aiMeshName + nodeMesh.material.name;
-			nodeMesh.material.filePath = currentPath + "\\" + modelName + "\\textures\\" + nodeMesh.material.name;
-			childMeshRenderer->material = new Material(nodeMesh.material);
+			processedMaterial->name = childMeshRenderer->aiMeshName + processedMaterial->name;
+			processedMaterial->filePath = currentPath + "\\" + modelName + "\\textures\\" + processedMaterial->name;
+			childMeshRenderer->material = new Material(*processedMaterial);
 
 			//childMeshRenderer->material->uuid = Plaza::UUID::NewUUID();
 			childObject->AddComponent<MeshRenderer>(childMeshRenderer);
@@ -275,7 +300,7 @@ namespace Plaza {
 		}
 	}
 
-	Mesh ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture>& textures_loaded, string* directory, aiNode* node, bool useTangent)
+	Mesh& ModelLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, vector<Texture*>& textures_loaded, string* directory, aiNode* node, bool useTangent, Material* outMaterial)
 	{
 		// data to fill
 		//vector<Vertex> vertices;
@@ -366,25 +391,27 @@ namespace Plaza {
 
 		Material convertedMaterial = DefaultMaterial();
 		convertedMaterial.uuid = Plaza::UUID::NewUUID();
+		//	convertedMaterial.diffuse = Application->mRenderer->LoadTexture();
 
 		convertedMaterial.diffuse = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse", textures_loaded, directory)[0];
-		convertedMaterial.specular = ModelLoader::LoadMaterialTextures(material, aiTextureType_SPECULAR, "specular", textures_loaded, directory)[0];
-		convertedMaterial.normal = ModelLoader::LoadMaterialTextures(material, aiTextureType_HEIGHT, "normal", textures_loaded, directory)[0];
-		convertedMaterial.height = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT, "height", textures_loaded, directory)[0];
-		convertedMaterial.metalness = ModelLoader::LoadMaterialTextures(material, aiTextureType_METALNESS, "metalness", textures_loaded, directory)[0];
-		convertedMaterial.roughness = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "roughness", textures_loaded, directory)[0];
-		convertedMaterial.aoMap = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "aoMap", textures_loaded, directory)[0];
+		//    convertedMaterial.specular = ModelLoader::LoadMaterialTextures(material, aiTextureType_SPECULAR, "specular", textures_loaded, directory)[0] ;
+		//    convertedMaterial.normal = ModelLoader::LoadMaterialTextures(material, aiTextureType_HEIGHT, "normal", textures_loaded, directory)[0];
+		//    convertedMaterial.height = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT, "height", textures_loaded, directory)[0];
+		//    convertedMaterial.metalness = ModelLoader::LoadMaterialTextures(material, aiTextureType_METALNESS, "metalness", textures_loaded, directory) [   0];
+		//    convertedMaterial.roughness = ModelLoader::LoadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "roughness", textures_loaded, // d   irectory)[0];
+		//    convertedMaterial.aoMap = ModelLoader::LoadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "aoMap", textures_loaded, directory)[0];
 
 
 		convertedMaterial.name = std::string(material->GetName().C_Str()) + "_" + std::string(material->GetName().C_Str()) + Standards::materialExtName;
 		convertedMaterial.filePath = std::string(directory->c_str()) + "\\" + convertedMaterial.name;
-		convertedMaterial.diffuse.rgba = glm::vec4(INFINITY);
-		convertedMaterial.specular.rgba = glm::vec4(INFINITY);
-		convertedMaterial.normal.rgba = glm::vec4(INFINITY);
-		convertedMaterial.height.rgba = glm::vec4(INFINITY);
-		Mesh finalMesh = Mesh(vertices, normals, uvs, tangents, bitangents, indices, convertedMaterial);
-		finalMesh.material = convertedMaterial;
-		finalMesh.usingNormal = usingNormal;
-		return finalMesh;
+		//convertedMaterial.diffuse->rgba = glm::vec4(INFINITY);
+		//convertedMaterial.specular->rgba = glm::vec4(INFINITY);
+		//convertedMaterial.normal->rgba = glm::vec4(INFINITY);
+		//convertedMaterial.height->rgba = glm::vec4(INFINITY);
+		//OpenGLMesh finalMesh = OpenGLMesh(vertices, normals, uvs, tangents, bitangents, indices, //convertedMaterial);
+		//finalMesh.material = convertedMaterial;
+		//finalMesh.usingNormal = usingNormal;
+		*outMaterial = *new Material(convertedMaterial);
+		return Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, bitangents, indices, convertedMaterial, usingNormal);
 	}
 }

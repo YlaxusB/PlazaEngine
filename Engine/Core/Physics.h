@@ -8,6 +8,7 @@ namespace Plaza {
 		static physx::PxTolerancesScale m_toleranceScale;
 		static physx::PxFoundation* m_foundation;
 		static physx::PxPhysics* m_physics;
+		static physx::PxControllerManager* m_controllerManager;
 
 		static physx::PxMaterial* defaultMaterial;
 
@@ -28,7 +29,7 @@ namespace Plaza {
 		static void InitPhysics();
 		static void Update();
 
-		static physx::PxTransform* GetPxTransform(Transform& transform);
+		static physx::PxTransform GetPxTransform(Transform& transform);
 		static physx::PxTransform* ConvertMat4ToPxTransform(const glm::mat4& mat);
 	};
 }

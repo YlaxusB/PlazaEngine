@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Engine/Vendor/GLFW/glfw3.h"
-//#include "Engine/Vendor/imgui/imgui.h"
-//#include "Engine/Vendor/imgui/imgui_impl_glfw.h"
-//#include "Engine/Vendor/imgui/imgui_impl_opengl3.h"
+#include "ThirdParty/GLFW/include/GLFW/glfw3.h"
+//#include "ThirdParty/imgui/imgui.h"
+//#include "ThirdParty/imgui/imgui_impl_glfw.h"
+//#include "ThirdParty/imgui/imgui_impl_opengl3.h"
 
 //#include "Engine/Application/EditorCamera.h"
 #include "Engine/Components/Core/Entity.h"
@@ -37,6 +37,14 @@ namespace Plaza {
 			static void beginEditor(int gameFrameBuffer, Camera& camera);
 			static void beginHierarchyView(int gameFrameBuffer);
 			static void beginInspector(int gameFrameBuffer, Camera camera);
+			static void beginImageInspector(int gameFrameBuffer, Camera camera);
+			static void beginAssetsViewer(int gameFrameBuffer, Camera camera);
+
+			static inline bool mImageInspectorShowAllImages = false;
+			static inline bool mShowSelectedImageInEditorView = false;
+			static inline bool mFlipY = true;
+			static inline ImTextureID mSelectedImageInspector = 0;
+			static inline ImVec2 imageSize = ImVec2(200, 200);
 
 			static string scenePayloadName;
 
@@ -47,7 +55,7 @@ namespace Plaza {
 			static bool isFileExplorerOpen;
 			static bool canUpdateContent;
 
-			static unsigned int playPauseButtonImageId;
+			static ImTextureID playPauseButtonImageId;
 
 			static void UpdateSizes();
 		};

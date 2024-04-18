@@ -63,22 +63,23 @@ namespace Plaza {
 		newScene->audioSourceComponents = ComponentMultiMap<uint64_t, AudioSource>(copyScene->audioSourceComponents);
 		newScene->audioListenerComponents = ComponentMultiMap<uint64_t, AudioListener>(copyScene->audioListenerComponents);
 		newScene->lightComponents = ComponentMultiMap<uint64_t, Light>(copyScene->lightComponents);
+		newScene->characterControllerComponents = ComponentMultiMap<uint64_t, CharacterController>(copyScene->characterControllerComponents);
 		newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
 
-		newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
+		//newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
 		newScene->materials = std::unordered_map<uint64_t, std::shared_ptr<Material>>(copyScene->materials);
 		newScene->materialsNames = std::unordered_map<std::string, uint64_t>(copyScene->materialsNames);
 
-		newScene->renderGroups = std::unordered_map<uint64_t, shared_ptr<RenderGroup>>();
+		newScene->renderGroups = std::unordered_map<uint64_t, RenderGroup*>();
 		newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash>();
-		newScene->rederGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>();
-		newScene->rederGroupsFindMapWithMaterialUuid = std::unordered_map<uint64_t, uint64_t>();
+		newScene->renderGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>();
+		newScene->renderGroupsFindMapWithMaterialUuid = std::unordered_map<uint64_t, uint64_t>();
 
 		for (auto& [key, value] : newScene->meshRendererComponents) {
 			if (value.material && value.mesh) {
 				RenderGroup* newRenderGroup = new RenderGroup(value.mesh, value.material);
 				//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
-				value.renderGroup = newScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
+				value.renderGroup = newScene->AddRenderGroup(newRenderGroup);
 			}
 		}
 		//newScene->renderGroups = std::unordered_map<uint64_t, shared_ptr<RenderGroup>>(copyScene->renderGroups);
@@ -119,13 +120,14 @@ namespace Plaza {
 	}
 
 	Scene::Scene() {
+		this->mAssetUuid = Plaza::UUID::NewUUID();
 		this->RegisterMaps();
 
 
 		Material* defaultMaterial = new Material();
 		defaultMaterial->uuid = 0;
-		defaultMaterial->diffuse.rgba = glm::vec4(1.0f);
-		defaultMaterial->specular.rgba = glm::vec4(1.0f);
+		defaultMaterial->diffuse->rgba = glm::vec4(1.0f);
+		defaultMaterial->specular->rgba = glm::vec4(1.0f);
 		defaultMaterial->shininess = 3.0f;
 		defaultMaterial->name = "Default Material";
 		defaultMaterial->uuid = 0;
@@ -148,10 +150,6 @@ namespace Plaza {
 		if (it != Application->editorScene->meshRenderers.end()) {
 			Application->editorScene->meshRenderers.erase(it);
 		}
-	}
-
-	void Scene::RemoveRenderGroup(uint64_t uuid) {
-		//this->ren
 	}
 
 	void Scene::Play() {
@@ -201,8 +199,9 @@ namespace Plaza {
 		Application->runningScene = true;
 		for (auto& [key, collider] : Application->activeScene->colliderComponents) {
 			collider.UpdateShapeScale(Application->activeScene->transformComponents.at(collider.uuid).GetWorldScale());;
+			collider.UpdatePose();
 		}
-#ifndef GAME_REL
+#ifdef EDITOR_MODE
 		ImGui::SetWindowFocus("Scene");
 #endif
 		int width, height;
@@ -217,7 +216,9 @@ namespace Plaza {
 			value.Init();
 		}
 
-
+		for (auto& [key, value] : Application->activeScene->characterControllerComponents) {
+			value.Init();
+		}
 
 		if (scriptDllExists) {
 			Mono::OnStartAll(false);
@@ -278,6 +279,45 @@ namespace Plaza {
 	}
 	void Scene::Pause() {
 
+	}
+
+	void Scene::RemoveEntity(uint64_t uuid) {
+		Entity* entity = this->GetEntity(uuid);
+		std::vector<uint64_t> children = entity->childrenUuid;
+		for (uint64_t child : children) {
+			if (Application->activeScene->entities.find(child) != Application->activeScene->entities.end())
+				Application->activeScene->RemoveEntity(child);
+				//Application->activeScene->entities.at(child).~Entity();
+		}
+		if (entity->HasComponent<Transform>())
+			entity->RemoveComponent<Transform>();
+		if (entity->HasComponent<MeshRenderer>())
+			entity->RemoveComponent<MeshRenderer>();
+		if (entity->HasComponent<Collider>())
+			entity->RemoveComponent<Collider>();
+		if (entity->HasComponent<RigidBody>())
+			entity->RemoveComponent<RigidBody>();
+		if (entity->HasComponent<Camera>())
+			entity->RemoveComponent<Camera>();
+		if (entity->HasComponent<CsScriptComponent>())
+			entity->RemoveComponent<CsScriptComponent>();
+		if (entity->HasComponent<Plaza::Drawing::UI::TextRenderer>())
+			entity->RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
+		if (entity->HasComponent<AudioSource>())
+			entity->RemoveComponent<AudioSource>();
+		if (entity->HasComponent<AudioListener>())
+			entity->RemoveComponent<AudioListener>();
+		if (entity->HasComponent<Light>())
+			entity->RemoveComponent<Light>();
+
+		if (Editor::selectedGameObject && Editor::selectedGameObject->uuid == entity->uuid)
+			Editor::selectedGameObject = nullptr;
+
+		entity->GetParent().childrenUuid.erase(std::remove(entity->GetParent().childrenUuid.begin(), entity->GetParent().childrenUuid.end(), entity->uuid), entity->GetParent().childrenUuid.end());
+		if (Application->activeScene->entitiesNames.find(entity->name) != Application->activeScene->entitiesNames.end())
+			Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(entity->name));
+
+		Application->activeScene->entities.extract(entity->uuid);
 	}
 
 	Entity* Scene::GetEntity(uint64_t uuid) {

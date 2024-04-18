@@ -14,6 +14,10 @@ namespace Plaza {
 	public:
 		uint64_t uuid;
 		uint64_t parentUuid;
+		uint64_t prefabUuid;
+		uint64_t equivalentPrefabUuid;
+		uint64_t equivalentPrefabParentUuid;
+		bool isPrefab = false;
 		std::vector<uint64_t> childrenUuid;
 		std::string name;
 		bool changingName = false;
@@ -129,10 +133,10 @@ namespace Plaza {
 #include <typeinfo>
 #include <list>
 #include <string>
-#include "Engine/Vendor/glm/glm.hpp"
-#include "Engine/Vendor/glm/gtc/matrix_transform.hpp"
-#include "Engine/Vendor/glm/gtc/type_ptr.hpp"
-#include "Engine/Vendor/uuid_v4/uuid_v4.h"
+#include "ThirdParty/glm/glm.hpp"
+#include "ThirdParty/glm/gtc/matrix_transform.hpp"
+#include "ThirdParty/glm/gtc/type_ptr.hpp"
+#include "ThirdParty/uuid_v4/uuid_v4.h"
 #include "Engine/Utils/glmUtils.h"
 #include "Engine/Components/Component.h"
 #include "Engine/Components/Core/Transform.h"

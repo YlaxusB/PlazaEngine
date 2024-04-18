@@ -7,6 +7,7 @@ namespace Plaza {
 
 		out << YAML::Key << "Uuid" << YAML::Value << rigidBody.uuid;
 		out << YAML::Key << "DynamicLockFlags" << YAML::Value << (unsigned int)rigidBody.rigidDynamicLockFlags;
+		out << YAML::Key << "ContinuousDetection" << YAML::Value << rigidBody.continuousDetection;
 
 		out << YAML::EndMap; // RigidBody Component
 	}
@@ -14,6 +15,7 @@ namespace Plaza {
 	RigidBody* ComponentSerializer::RigidBodySerializer::DeSerialize(YAML::Node data) {
 		RigidBody* rigidBody = new RigidBody(data["Uuid"].as<uint64_t>(), Application->runningScene);
 		rigidBody->rigidDynamicLockFlags = physx::PxRigidDynamicLockFlags(data["DynamicLockFlags"].as<unsigned int>());
+		rigidBody->continuousDetection = data["ContinuousDetection"].as<bool>();
 		return rigidBody;
 	}
 }

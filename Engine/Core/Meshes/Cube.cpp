@@ -1,28 +1,25 @@
 
-#include <glad/glad.h>
-#include <glad/glad.c>
-#include <GLFW/glfw3.h>
+#include <ThirdParty/glad/glad.h>
+#include <ThirdParty/glad/glad.c>
+#include <ThirdParty/GLFW/include/GLFW/glfw3.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/trigonometric.hpp>
+#include <ThirdParty/glm/glm.hpp>
+#include <ThirdParty/glm/gtc/matrix_transform.hpp>
+#include <ThirdParty/glm/gtc/type_ptr.hpp>
+#include <ThirdParty/glm/gtx/matrix_decompose.hpp>
+#include <ThirdParty/glm/trigonometric.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <stb/stb_image.h>
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
+#include <ThirdParty/glm/gtx/quaternion.hpp>
+#include <ThirdParty/stb/stb_image.h>
+#include <ThirdParty/imgui/imgui.h>
+//#include <ThirdParty/imgui/imgui_impl_glfw.h>
+//#include <ThirdParty/imgui/imgui_impl_opengl3.h>
 
 #include <iostream>
 #include <random>
 #include <unordered_map>
 #include <fileSystem>
-#include <fileSystem/fileSystem.h>
-
-#include "Engine/Components/Core/Mesh.h"
-
+#include <ThirdParty/fileSystem/filesys.h>
 
 #include "Engine/Components/Core/Entity.h"
 #include "Editor/GUI/Style/EditorStyle.h"

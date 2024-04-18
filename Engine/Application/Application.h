@@ -17,6 +17,13 @@
 #include "Editor/Project.h"
 #include "Engine/Core/Engine.h"
 #include "Engine/Core/FrameBuffer.h"
+
+#include "Engine/Core/Renderer/Renderer.h"
+#include "Engine/Core/Renderer/OpenGL/Renderer.h"
+#include "Engine/Core/Renderer/Vulkan/Renderer.h"
+#include "Engine/Core/AssetsManager/AssetsManager.h"
+#include "Engine/Threads/ThreadManager.h"
+
 namespace Plaza {
 	class Camera;
 	class WindowClass;
@@ -24,6 +31,12 @@ namespace Plaza {
 	//class WindowClass;
 	class ApplicationClass {
 	public:
+		AssetsManager* mAssetsManager;
+		Renderer* mRenderer = nullptr;
+		RendererAPI mRendererAPI;
+		ThreadsManager* mThreadsManager = new ThreadsManager();
+		bool showCascadeLevels = false;
+
 		Scene* editorScene = new Scene();
 		Scene* runtimeScene = new Scene();
 		Scene* activeScene = editorScene;
@@ -31,6 +44,7 @@ namespace Plaza {
 		int drawCalls = 0;
 		bool runningEditor = true;
 
+		std::string exeDirectory;
 		std::string projectPath;
 		std::string dllPath;
 		std::string enginePath;
@@ -85,7 +99,8 @@ namespace Plaza {
 		Shader* textRenderingShader = nullptr;
 
 		bool runProjectManagerGui = true;
-		bool runEngine = false;
+		////   bool runEngine = false;
+		bool runEngine = true;
 
 		void CreateApplication();
 		static GLFWwindow* InitApplication();

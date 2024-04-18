@@ -2,12 +2,12 @@
 #include <iostream>
 #include <string>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <ThirdParty/glm/glm.hpp>
+#include <ThirdParty/glm/gtc/matrix_transform.hpp>
+#include <ThirdParty/glm/gtc/type_ptr.hpp>
 
-#include <imgui/imgui.h>
-#include "Engine/Vendor/imgui/ImGuizmo.h"
+#include <ThirdParty/imgui/imgui.h>
+#include "ThirdParty/imgui/ImGuizmo.h"
 
 #include "Engine/Application/Application.h"
 #include "Engine/Application/EditorCamera.h"

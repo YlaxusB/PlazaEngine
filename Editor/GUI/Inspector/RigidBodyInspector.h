@@ -60,6 +60,7 @@ namespace Plaza::Editor {
 				}
 
 				ImGui::Checkbox("Kinematic: ", &kinematic);
+				ImGui::Checkbox("Continuous Detection: ", &rigidBody->continuousDetection);
 
 				ImGui::PopID();
 			}

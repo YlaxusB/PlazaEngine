@@ -37,12 +37,14 @@ namespace Plaza
         public extern static void AddScript(UInt64 uuid, Type scriptType);
 
         #region Input
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static bool InputIsAnyKeyPressed();
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static bool InputIsKeyDown(KeyCode keyCode);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static bool IsKeyReleased(KeyCode keyCode);
+        public extern static bool IsKeyReleased(KeyCode keyCode); 
 
 
 
@@ -59,6 +61,8 @@ namespace Plaza
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void MoveTowards(UInt64 uuid, Vector3 vector3);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void MoveTowardsReturn(UInt64 uuid, Vector3 vector3, out Vector3 outVector);
 
 
 
@@ -82,7 +86,9 @@ namespace Plaza
 
         #region Physics
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static void Physics_Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit);
+        public extern static void Physics_Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit, UInt64 ignoredUuid = 0);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Physics_RaycastSpecific(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit, UInt64 specificUuid);
         #endregion Physics
         #region Components
 
@@ -113,9 +119,11 @@ namespace Plaza
         public extern static void GetRotationCall(UInt64 uuid, out Vector3 vector);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void SetRotationQuaternion(UInt64 uuid, ref Vector4 quaternion);
-
+        
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void GetRotationQuaternionCall(UInt64 uuid, out Vector4 quaternion);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void GetWorldRotationQuaternionCall(UInt64 uuid, out Vector4 quaternion);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void SetScaleCall(UInt64 uuid, ref Vector3 vector);
 
@@ -403,6 +411,15 @@ namespace Plaza
         public extern static void RigidBody_AddForce(UInt64 uuid, ref Vector3 force, ForceMode mode, bool autowake);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void RigidBody_AddTorque(UInt64 uuid, ref Vector3 torque, ForceMode mode, bool autowake);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static float RigidBody_GetDrag(UInt64 uuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void RigidBody_SetDrag(UInt64 uuid, float drag);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static float RigidBody_GetVelocity(UInt64 uuid, out Vector3 velocity);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void RigidBody_SetVelocity(UInt64 uuid, ref Vector3 velocity);
+
 
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -491,6 +508,11 @@ namespace Plaza
         }
 
         #endregion Collider
+
+        #region CharacterController
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void CharacterController_MoveCall(UInt64 uuid, Vector3 position, float minimumDistance, bool followOrientation, float elapsedTime);
+        #endregion CharacterController
 
         #region TextRenderer
         [MethodImplAttribute(MethodImplOptions.InternalCall)]

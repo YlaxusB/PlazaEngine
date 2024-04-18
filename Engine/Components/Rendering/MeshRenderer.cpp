@@ -1,18 +1,17 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
-#include "Engine/Components/Rendering/Mesh.h"
 
 namespace Plaza {
-	MeshRenderer::MeshRenderer(Plaza::Mesh initialMesh, bool addToScene) {
+	MeshRenderer::MeshRenderer(Plaza::Mesh* initialMesh, bool addToScene) {
 		this->uuid = Plaza::UUID::NewUUID();
-		this->mesh = &initialMesh;//std::make_unique<Mesh>(initialMesh);
+		this->mesh = initialMesh;//std::make_unique<Mesh>(initialMesh);
 		if (addToScene)
 			Application->activeScene->meshRenderers.emplace_back(this);
 	}
 
-	MeshRenderer::MeshRenderer(Plaza::Mesh initialMesh, Material material, bool addToScene) {
+	MeshRenderer::MeshRenderer(Plaza::Mesh* initialMesh, Material material, bool addToScene) {
 		this->uuid = Plaza::UUID::NewUUID();
-		this->mesh = &initialMesh;
+		this->mesh = initialMesh;
 		this->material = &material;
 
 		auto renderGroupIt = Application->activeScene->renderGroupsFindMap.find(std::make_pair(this->mesh->uuid, this->material->uuid));
@@ -37,8 +36,22 @@ namespace Plaza {
 	}
 
 	MeshRenderer::~MeshRenderer() {
-		Application->activeScene->RemoveMeshRenderer(this->uuid);
-		Application->activeScene->RemoveRenderGroup(this->uuid);
+		// TODO: FIX MESHRENDERER DELETION
+		//if (!Application->activeScene->mIsDeleting) {
+		//	if (this->renderGroup)
+		//		Application->activeScene->RemoveRenderGroup(this->renderGroup->uuid);
+		//	Application->activeScene->RemoveMeshRenderer(this->uuid);
+		//}
 		//this->renderGroup.~shared_ptr();
+	}
+
+	void MeshRenderer::ChangeMaterial(Material* newMaterial) {
+		uint64_t oldUuid = newMaterial->uuid;
+		this->material = newMaterial;
+		this->renderGroup = Application->activeScene->AddRenderGroup(new RenderGroup(this->mesh, this->material));
+		//this->renderGroup->ChangeMaterial(newMaterial);
+	}
+	void MeshRenderer::ChangeMesh(Mesh* newMesh) {
+
 	}
 }

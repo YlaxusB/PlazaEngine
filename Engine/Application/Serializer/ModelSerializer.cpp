@@ -42,11 +42,12 @@ namespace Plaza {
 		out << YAML::EndMap;
 	}
 
-	void ModelSerializer::SerializeModel(Entity* mainObject, string filePath, string modelFilePath) {
+	void ModelSerializer::SerializeModel(Entity* mainObject, const Asset* asset, string modelFilePath) {
 
 		uint64_t modelUuid = Plaza::UUID::NewUUID();
 		YAML::Emitter out;
 		out << YAML::BeginMap;
+		out << YAML::Key << "AssetUuid" << YAML::Value << asset->mAssetUuid;
 		out << YAML::Key << "Model" << YAML::Value << mainObject->name;
 		out << YAML::Key << "ModelFilePath" << YAML::Value << modelFilePath;
 		out << YAML::Key << "ModelUuid" << YAML::Value << modelUuid;
@@ -61,15 +62,15 @@ namespace Plaza {
 		}
 		out << YAML::EndSeq;
 		out << YAML::EndMap;
-		std::ofstream fout(filePath);
+		std::ofstream fout(asset->mPath.string());
 		fout << out.c_str();
 
 	}
 
 	void DeSerializeTexture(Material& material, const auto& textureNode) {
 		if (textureNode) {
-			material.diffuse.path = textureNode["Path"].as<string>();
-			material.diffuse.rgba = textureNode["Rgba"].as<glm::vec4>();
+			material.diffuse->path = textureNode["Path"].as<string>();
+			material.diffuse->rgba = textureNode["Rgba"].as<glm::vec4>();
 			//glm::vec4& rgba = material.diffuse.rgba;
 			//rgba.x = textureNode["Rgba"][0].as<float>();
 			//rgba.y = textureNode["Rgba"][1].as<float>();
@@ -80,7 +81,8 @@ namespace Plaza {
 
 	void DeSerializeMaterial(const auto& materialNode, Model* model, MeshRenderer* meshRenderer) {
 		if (meshRenderer->mesh != nullptr) {
-			Material* material = &meshRenderer->mesh->material;
+			meshRenderer->material = new Material();
+			Material* material = meshRenderer->material;
 			material->shininess = materialNode["Shininess"].as<float>();
 			const auto& textureDiffuseNode = materialNode["texture_diffuse"];
 			DeSerializeTexture(*material, textureDiffuseNode);
@@ -113,12 +115,14 @@ namespace Plaza {
 		if (componentsEntry["MeshComponent"]) {
 			MeshRenderer* oldMeshRenderer = entity->GetComponent<MeshRenderer>();
 			MeshRenderer* newMeshRenderer = new MeshRenderer();
+			newMeshRenderer->mesh = new OpenGLMesh();
 			newMeshRenderer->instanced = true;
 			newMeshRenderer->aiMeshName = componentsEntry["MeshComponent"]["AiMeshName"].as<string>();
 			DeSerializeMaterial(componentsEntry["MeshComponent"]["MaterialComponent"], model, newMeshRenderer);
 			newMeshRenderer->uuid = entity->uuid;
 			uint64_t materialUuid = componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>();
 			if (componentsEntry["MeshComponent"]["MaterialUuid"])
+				/* TODO:FIX THE WAY TO GET MATERIALS, IT HAS BEEN TEMPORARILY DISABLED TO LOAD MODELS WITH VULKAN */
 				newMeshRenderer->material = Application->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>()).get();
 			model->meshRenderers.emplace(entity->uuid, newMeshRenderer);
 		}
@@ -140,6 +144,11 @@ namespace Plaza {
 			model->scale = data["ModelScale"].as<float>();
 			model->useTangent = data["UseTangent"].as<bool>();
 			model->modelObjectPath = data["ModelFilePath"].as<string>();
+			if (model->modelObjectPath.starts_with("."))
+			{
+				std::string objPath = model->modelObjectPath.substr(2);
+				model->modelObjectPath = std::filesystem::path{ filePath }.parent_path().string() + "\\" + objPath;
+			}
 			model->modelPlazaPath = filePath;
 			// DeSerialize the model's main object
 			DeSerializeGameObject(data["MainObject"][0], model);

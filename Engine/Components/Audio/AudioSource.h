@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine/Components/Component.h"
-#include <AL/al.h>
+#include <ThirdParty/AL/include/AL/al.h>
 namespace Plaza {
 	enum class AudioFileFormat
 	{

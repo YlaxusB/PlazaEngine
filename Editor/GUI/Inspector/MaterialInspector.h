@@ -14,54 +14,33 @@ namespace Plaza::Editor {
 				MeshRenderer* meshRenderer = entity->GetComponent<MeshRenderer>();
 
 				MeshRenderer* meshR = entity->GetComponent<MeshRenderer>();
-				RenderGroup* oldRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup.get();
+				RenderGroup* oldRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup;
 
-				/*
-						std::shared_ptr<Material> material;
-		if (Application->activeScene->materials.find(materialUuid) != Application->activeScene->materials.end() && materialUuid != 0) {
-			material = Application->activeScene->materials.at(materialUuid);
-		}
-		else
-			material = std::shared_ptr<Material>(Scene::DefaultMaterial());
-		meshRenderer->material = material;
-		if (meshRenderer->mesh && meshRenderer->material) {
-			meshRenderer->renderGroup = std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);
-			Application->activeScene->AddRenderGroup(meshRenderer->renderGroup);
-		}
-				
-				*/
 				for (auto [key, value] : Application->activeScene->materials) {
-					try {
-						if (value.get()) {
-							if (value && value.get() && !value.get()->name.empty() && ImGui::Button(value->name.c_str())) {
-								entity->GetComponent<MeshRenderer>()->material = value.get(); //= std::shared_ptr<Material>();
-								if (!oldRenderGroup) {
-									entity->GetComponent<MeshRenderer>()->renderGroup = std::make_shared<RenderGroup>(entity->GetComponent<MeshRenderer>()->mesh, entity->GetComponent<MeshRenderer>()->material);
-									Application->activeScene->AddRenderGroup(entity->GetComponent<MeshRenderer>()->renderGroup);
-								}
-								entity->GetComponent<MeshRenderer>()->renderGroup->material = entity->GetComponent<MeshRenderer>()->material;
-							}
-						}
-					}
-					catch (exception) {
+					if (value.get()->name.empty())
+						continue;
 
+					if (ImGui::Button(value->name.c_str())) {
+						entity->GetComponent<MeshRenderer>()->material = value.get();
+						entity->GetComponent<MeshRenderer>()->renderGroup->mesh = entity->GetComponent<MeshRenderer>()->mesh;
+						entity->GetComponent<MeshRenderer>()->renderGroup->ChangeMaterial(value.get());
 					}
 				}
-				RenderGroup* newRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup.get();
+				RenderGroup* newRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup;
 
 				Material& material = *(entity->GetComponent<MeshRenderer>()->material);
-				if (meshRenderer->mesh && meshRenderer->renderGroup.get() && meshRenderer->material) {
-					glm::vec4& diffuse = material.diffuse.rgba;
-					glm::vec4& specular = material.specular.rgba;
+				if (meshRenderer->mesh && meshRenderer->renderGroup && meshRenderer->material) {
+					glm::vec4& diffuse = material.diffuse->rgba;
+					glm::vec4& specular = material.specular->rgba;
 					float shininess = material.shininess;
 
-					ImGui::Text("Mesh VAO: ");
-					ImGui::SameLine();
-					ImGui::Text(std::to_string(meshRenderer->mesh->VAO).c_str());
+					//  ImGui::Text("Mesh VAO: ");
+					//  ImGui::SameLine();
+					//  ImGui::Text(std::to_string(meshRenderer->mesh->VAO).c_str());
 
-					ImGui::Text("Render Group Mesh VAO: ");
-					ImGui::SameLine();
-					ImGui::Text(std::to_string(meshRenderer->renderGroup->mesh->VAO).c_str());
+					//ImGui::Text("Render Group Mesh VAO: ");
+					//ImGui::SameLine();
+					//ImGui::Text(std::to_string(meshRenderer->renderGroup->mesh->VAO).c_str());
 
 					ImGui::Text("Material Name: ");
 					ImGui::SameLine();
@@ -91,7 +70,7 @@ namespace Plaza::Editor {
 
 					ImGui::Text("Diffuse Path: ");
 					ImGui::SameLine();
-					ImGui::Text(material.diffuse.path.c_str());
+					ImGui::Text(material.diffuse->path.c_str());
 
 					material.shininess = shininess;
 
@@ -101,27 +80,16 @@ namespace Plaza::Editor {
 					ImGui::Checkbox("Cast Shadows", &entity->GetComponent<MeshRenderer>()->castShadows);
 					ImGui::DragFloat("Intensity", &entity->GetComponent<MeshRenderer>()->material->intensity);
 
+					ImGui::Text("Max Vector: ");
+					ImGui::Text("X: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.maxVector.x).c_str());
+					ImGui::Text("Y: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.maxVector.y).c_str());
+					ImGui::Text("Z: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.maxVector.z).c_str());
 
+					ImGui::Text("Min Vector: ");
+					ImGui::Text("X: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.minVector.x).c_str());
+					ImGui::Text("Y: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.minVector.y).c_str());
+					ImGui::Text("Z: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.minVector.z).c_str());
 
-					if (ImGui::Button("New Material")) {
-						uint64_t renderGroupUuid = Plaza::UUID::NewUUID();
-						std::shared_ptr<Material> material = std::make_shared<Material>(Material());
-						RenderGroup* renderGroup = new RenderGroup(entity->GetComponent<MeshRenderer>()->mesh, material.get());
-						renderGroup->uuid = renderGroupUuid;
-						Application->activeScene->AddRenderGroup(renderGroup);
-						entity->GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->renderGroups.at(renderGroupUuid);
-						/*
-								auto renderGroupIt = Application->activeScene->renderGroupsFindMap.find(std::make_pair(this->mesh->uuid, this->material->uuid));
-								if (renderGroupIt != Application->activeScene->renderGroupsFindMap.end()) {
-									this->renderGroup = Application->activeScene->renderGroups.at(renderGroupIt->second);
-								}
-								else {
-									uint64_t renderGroupUuid = Plaza::UUID::NewUUID();
-									Application->activeScene->renderGroups.emplace(renderGroupUuid, new RenderGroup(this->mesh, this->material));
-									Application->activeScene->renderGroupsFindMap.emplace(std::make_pair(this->mesh->uuid, this->material->uuid), renderGroupUuid);
-									this->renderGroup = Application->activeScene->renderGroups.at(renderGroupUuid);
-								}*/
-					}
 				}
 				ImGui::PopID();
 			}

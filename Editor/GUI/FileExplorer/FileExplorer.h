@@ -6,9 +6,11 @@ namespace Plaza {
 		class Gui::FileExplorer {
 		public:
 			static std::vector<File> files;
+			static std::vector<File> updatedFiles;
 			static std::string currentDirectory;
 			static void Init();
 			static void UpdateGui();
+			static void DrawFile(File* file);
 			/// <summary>
 			/// Read the project directory to get the present files
 			/// </summary>

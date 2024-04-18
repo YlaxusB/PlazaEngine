@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Inspector.h"
 
+#include "Editor/GUI/Inspector/MeshRendererInspector.h"
 #include "Editor/GUI/Inspector/RigidBodyInspector.h"
 #include "Editor/GUI/Inspector/SceneInspector.h"
 #include "Editor/GUI/Inspector/ColliderInspector.h"
@@ -12,6 +13,8 @@
 #include "Editor/GUI/Inspector/FileInspector/MaterialInspector.h"
 #include "Editor/GUI/Inspector/FileInspector/TextEditor.h"
 #include "Editor/GUI/Inspector/LightInspector.h"
+#include "Editor/GUI/Inspector/CharacterControllerInspector.h"
+#include "Editor/GUI/Inspector/TextRendererInspector.h"
 
 namespace Plaza::Editor {
 	/* File Inspector*/
@@ -41,7 +44,8 @@ namespace Plaza::Editor {
 		if (Editor::selectedGameObject) {
 			ImGui::SetCursorPosY(50);
 			ImGui::Indent(10);
-			if (Editor::selectedGameObject->uuid == Application->activeScene->mainSceneEntity->uuid) {
+			bool selectedEntityIsSceneEntity = Editor::selectedGameObject->uuid == Application->activeScene->mainSceneEntity->uuid;
+			if (selectedEntityIsSceneEntity) {
 				SceneInspector::SceneInspector(Application->activeScene);
 			}
 			else {
@@ -88,6 +92,10 @@ namespace Plaza::Editor {
 			components.push_back(&activeScene->audioListenerComponents.at(uuid));
 		if (activeScene->lightComponents.contains(uuid))
 			components.push_back(&activeScene->lightComponents.at(uuid));
+		if (activeScene->characterControllerComponents.contains(uuid))
+			components.push_back(&activeScene->characterControllerComponents.at(uuid));
+		if (activeScene->UITextRendererComponents.contains(uuid))
+			components.push_back(&activeScene->UITextRendererComponents.at(uuid));
 	}
 
 	void Inspector::ComponentInspector::CreateRespectiveInspector(Component* component) {
@@ -95,7 +103,8 @@ namespace Plaza::Editor {
 			Editor::Gui::TransformInspector inspector{ Editor::selectedGameObject };
 		}
 		else if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {
-			Plaza::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
+			Plaza::Editor::MeshRendererInspector::MeshRendererInspector(Editor::selectedGameObject);
+			//Plaza::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
 		}
 		else if (Camera* camera = dynamic_cast<Camera*>(component)) {
 			Plaza::Editor::CameraInspector::CameraInspector(camera);
@@ -117,6 +126,12 @@ namespace Plaza::Editor {
 		}
 		else if (Light* light = dynamic_cast<Light*>(component)) {
 			Plaza::Editor::LightInspector::LightInspector(light);
+		}
+		else if (CharacterController* characterController = dynamic_cast<CharacterController*>(component)) {
+			Plaza::Editor::CharacterControllerInspector::CharacterControllerInspector(characterController);
+		}
+		else if (Drawing::UI::TextRenderer* textRenderer = dynamic_cast<Drawing::UI::TextRenderer*>(component)) {
+			Plaza::Editor::TextRendererInspector::TextRendererInspector(textRenderer);
 		}
 	}
 }

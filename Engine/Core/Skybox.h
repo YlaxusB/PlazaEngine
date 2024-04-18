@@ -1,14 +1,14 @@
 #pragma once
-#include "Engine/Vendor/stb/stb_image.h"
+#include "ThirdParty/stb/stb_image.h"
 #include <iostream>
 #include <algorithm>
 #include <unordered_map>
 #include <fileSystem>
-#include "Engine/Vendor/filesystem/filesys.h"
+#include "ThirdParty/filesystem/filesys.h"
 
 #include "Engine/Shaders/Shader.h"
 namespace Plaza {
-	class Skybox {
+	class OpenGLSkybox {
 	public:
 		static Shader* skyboxShader;
 		static unsigned int vao, vbo, cubemapTexture;
@@ -72,7 +72,7 @@ namespace Plaza {
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
-#ifdef GAME_REL
+#ifdef GAME_MODE
 			std::string faceDirectory = Application->projectPath + "\\DefaultAssets\\Skybox\\";
 #else
 			std::string faceDirectory = Application->enginePath + "\\DefaultAssets\\Skybox\\";
@@ -163,7 +163,7 @@ namespace Plaza {
 		}
 	};
 }
-inline Shader* Plaza::Skybox::skyboxShader = nullptr;
-inline unsigned int Plaza::Skybox::vao = 0;
-inline unsigned int Plaza::Skybox::vbo = 0;
-inline unsigned int Plaza::Skybox::cubemapTexture = 0;
+inline Shader* Plaza::OpenGLSkybox::skyboxShader = nullptr;
+inline unsigned int Plaza::OpenGLSkybox::vao = 0;
+inline unsigned int Plaza::OpenGLSkybox::vbo = 0;
+inline unsigned int Plaza::OpenGLSkybox::cubemapTexture = 0;

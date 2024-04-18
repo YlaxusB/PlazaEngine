@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/Vendor/glm/glm.hpp"
+#include "ThirdParty/glm/glm.hpp"
 namespace Plaza {
 	class ApplicationSizes {
 	public:

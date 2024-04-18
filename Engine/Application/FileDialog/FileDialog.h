@@ -3,7 +3,7 @@
 #include <Commdlg.h>
 
 #define GLFW_EXPOSE_NATIVE_WIN32
-#include "Engine/Vendor//GLFW/glfw3native.h"
+#include "ThirdParty/GLFW/include/GLFW/glfw3native.h"
 namespace Plaza {
 	class FileDialog {
 	public:

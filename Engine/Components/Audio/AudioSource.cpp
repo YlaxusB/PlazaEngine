@@ -1,9 +1,9 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "AudioSource.h"
 #include "Engine/Core/Audio/AudioSourceLoader.h"
-#include "AL/al.h"
-#include "AL/alext.h"
-#include "Engine/Vendor/AL/alc.h"
+#include "ThirdParty/AL/include/AL/al.h"
+#include "ThirdParty/AL/include/AL/alext.h"
+#include "ThirdParty/AL/include/AL/alc.h"
 namespace Plaza {
 	static AudioFileFormat GetFileFormat(const std::string& filePath)
 	{

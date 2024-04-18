@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "DefaultModels.h"
-#include "Engine/Components/Rendering/Mesh.h"
+#include "Engine/Core/Renderer/OpenGL/OpenGLMesh.h"
 #include "Engine/Core/ModelLoader/ModelLoader.h"
 namespace Plaza::Editor {
 
@@ -23,17 +23,17 @@ namespace Plaza::Editor {
 		//Application->activeScene->AddMaterial(&defaultMaterial);
 	}
 	Mesh* DefaultModels::Cube() {
-		return Application->editorScene->meshes.at(cubeUuid).get();
+		return AssetsManager::GetMesh(cubeUuid);
 	}
 	Mesh* DefaultModels::Sphere() {
-		return Application->editorScene->meshes.at(sphereUuid).get();
+		return AssetsManager::GetMesh(sphereUuid);
 	}
 	Mesh* DefaultModels::Plane() {
-		return Application->editorScene->meshes.at(planeUuid).get();
+		return AssetsManager::GetMesh(planeUuid);
 	}
 
 	Mesh* DefaultModels::Cylinder() {
-		return Application->editorScene->meshes.at(cylinderUuid).get();
+		return AssetsManager::GetMesh(cylinderUuid);
 	}
 
 	void DefaultModels::InitCube() {
@@ -102,10 +102,11 @@ namespace Plaza::Editor {
 			glm::vec2(0, 1),glm::vec2(1, 1)
 		};
 
-		Mesh* newMesh = new Mesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
-		newMesh->usingNormal = false;
+		//new Mesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
+		Mesh* newMesh = &Application->mRenderer->CreateNewMesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices, *new Material(), false);
 		newMesh->meshId = cubeUuid;
-		Application->editorScene->meshes.emplace(newMesh->meshId, shared_ptr<Mesh>(newMesh));
+		newMesh->uuid = cubeUuid;
+		AssetsManager::AddMesh(newMesh);
 	}
 
 	void DefaultModels::InitSphere() {
@@ -166,10 +167,10 @@ namespace Plaza::Editor {
 			}
 		}
 
-		shared_ptr<Mesh> newMesh = make_shared<Mesh>(vertices, normals, uvs, tangents, bitangents, indices);
-		newMesh->usingNormal = false;
+		Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, uvs, vector<glm::vec3>(), vector<glm::vec3>(), indices, *new Material(), false);
 		newMesh->meshId = sphereUuid;
-		Application->editorScene->meshes.emplace(newMesh->meshId, shared_ptr<Mesh>(newMesh));
+		newMesh->uuid = sphereUuid;
+		AssetsManager::AddMesh(newMesh);
 	}
 
 	void DefaultModels::InitPlane() {
@@ -199,10 +200,10 @@ namespace Plaza::Editor {
 			glm::vec2(0, 1)
 		};
 
-		Mesh* newMesh = new Mesh(vertices, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
-		newMesh->usingNormal = false;
+		Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices, *new Material(), false);
 		newMesh->meshId = planeUuid;
-		Application->editorScene->meshes.emplace(newMesh->meshId, shared_ptr<Mesh>(newMesh));
+		newMesh->uuid = planeUuid;
+		AssetsManager::AddMesh(newMesh);
 	}
 
 	void DefaultModels::InitCylinder() {

@@ -23,10 +23,11 @@ namespace Plaza {
 		meshRenderer->instanced = data["Instanced"].as<bool>();
 		if (data["CastShadows"])
 			meshRenderer->castShadows = data["CastShadows"].as<bool>();
-		if (Application->activeScene->meshes.find(meshRenderDeserialized["MeshId"].as<uint64_t>()) != Application->activeScene->meshes.end())
-			meshRenderer->mesh = Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()).get();
+		uint64_t meshId = meshRenderDeserialized["MeshId"].as<uint64_t>();
+		if (AssetsManager::HasMesh(meshRenderDeserialized["MeshId"].as<uint64_t>()))
+			meshRenderer->mesh = AssetsManager::GetMesh(meshRenderDeserialized["MeshId"].as<uint64_t>());//Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()).get();
 		else
-			meshRenderer->mesh = new Mesh();
+			meshRenderer->mesh = nullptr;//new OpenGLMesh();
 		uint64_t materialUuid;
 		if (data["Material"])
 			materialUuid = data["Material"].as<uint64_t>();;
@@ -38,8 +39,8 @@ namespace Plaza {
 			material = Scene::DefaultMaterial();
 		meshRenderer->material = material;
 		if (meshRenderer->mesh && meshRenderer->material) {
-			meshRenderer->renderGroup = std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);
-			Application->activeScene->AddRenderGroup(meshRenderer->renderGroup);
+			meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(meshRenderer->mesh, meshRenderer->material);//std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);
+			//Application->activeScene->AddRenderGroup(meshRenderer->renderGroup);
 		}
 		return meshRenderer;
 	}

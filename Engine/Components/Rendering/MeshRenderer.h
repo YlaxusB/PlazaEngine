@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine/Components/Component.h"
-#include "Engine/Components/Rendering/Mesh.h"
+//#include "Engine/Components/Rendering/Mesh.h"
 #include "Engine/Core/RenderGroup.h"
 #include "Engine/Components/Core/Transform.h"
 using namespace std;
@@ -43,9 +43,9 @@ namespace Plaza {
 		string aiMeshName;
 		//uint64_t uuid;
 		std::string meshName;
-		Mesh* mesh;
-		Material* material;
-		std::shared_ptr<RenderGroup> renderGroup;
+		Mesh* mesh = nullptr;
+		Material* material = nullptr;
+		RenderGroup* renderGroup = nullptr;
 		GLuint heightMap;
 
 		Array2D<float> m_heightMap;
@@ -113,14 +113,17 @@ namespace Plaza {
 
 			m_heightMap.InitArray2D(m_terrainSize, m_terrainSize, (float*)p);
 		}
-		Transform* transform;
+		Transform* transform = nullptr;
 		bool instanced = false;
-		MeshRenderer(Mesh initialMesh, bool addToScene = false);
-		MeshRenderer(Plaza::Mesh initialMesh, Material material, bool addToScene = false);
+		MeshRenderer(Mesh* initialMesh, bool addToScene = false);
+		MeshRenderer(Plaza::Mesh* initialMesh, Material material, bool addToScene = false);
 		MeshRenderer(const MeshRenderer& other) = default;
 		~MeshRenderer();
 		MeshRenderer() {
 			uuid = Plaza::UUID::NewUUID();
 		}
+
+		void ChangeMaterial(Material* newMaterial);
+		void ChangeMesh(Mesh* newMesh);
 	};
 }

@@ -1,10 +1,12 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Mono.h"
 #include <functional>
-#include "Engine/Vendor/mono/metadata/object.h"
-#include "Engine/Vendor/mono/metadata/threads.h"
-#include "Engine/Vendor/mono/metadata/mono-debug.h"
+#include "ThirdParty/mono/include/mono/metadata/object.h"
+#include "ThirdParty/mono/include/mono/metadata/threads.h"
+#include "ThirdParty/mono/include/mono/metadata/mono-debug.h"
 #include "Editor/ScriptManager/ScriptManager.h"
+#include "Engine/Components/Physics/CharacterController.h"
+#include "Engine/Components/Rendering/Light.h"
 
 char* ConvertConstCharToChar(const char* constCharString) {
 	// Calculate the length of the input string
@@ -231,7 +233,7 @@ namespace Plaza {
 		mono_domain_set(mAppDomain, true);
 
 		// Load the PlazaScriptCore.dll assembly
-#ifdef GAME_REL
+#ifdef GAME_MODE
 		Application->dllPath = Application->projectPath + "\\dll";
 #endif // GAME_REL
 
@@ -260,14 +262,14 @@ namespace Plaza {
 		mEntityObject = InstantiateClass("Plaza", "Entity", LoadCSharpAssembly(Application->dllPath + "\\PlazaScriptCore.dll"), mAppDomain);
 		mEntityClass = mono_object_get_class(mEntityObject);
 
-#ifdef GAME_REL
+#ifdef GAME_MODE
 		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str());
 #else
 		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll").c_str());
 #endif
 		if (!Mono::mScriptAssembly) {
 			// Handle assembly loading error
-			std::cout << "Failed to load assembly on path: " << (Application->projectPath + "\\Binaries\\" + Application->activeProject->name + ".dll").c_str() << "\n";
+			std::cout << "Failed to load assembly on path: " << (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str() << "\n";
 		}
 		else
 			Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
@@ -279,7 +281,7 @@ namespace Plaza {
 
 	// Execute OnStart on all scripts
 	void Mono::OnStartAll(bool callOnStart) {
-#ifdef GAME_REL
+#ifdef GAME_MODE
 		Editor::ScriptManager::ReloadScriptsAssembly();
 #else
 		/* Make a copy of the scripts dll, so it does not break when it updates */
@@ -323,10 +325,12 @@ namespace Plaza {
 		RegisterComponent<Camera>();
 		RegisterComponent<Collider>();
 		RegisterComponent<RigidBody>();
+		RegisterComponent<CharacterController>();
 		RegisterComponent<CsScriptComponent>();
 		RegisterComponent<Plaza::Drawing::UI::TextRenderer>();
 		RegisterComponent<AudioSource>();
 		RegisterComponent<AudioListener>();
+		RegisterComponent<Light>();
 	}
 
 	void Mono::ReloadAppDomain() {

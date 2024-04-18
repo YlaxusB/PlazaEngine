@@ -1,6 +1,36 @@
-[submodule "Engine/Vendor/yaml-cpp/yaml-cpp"]
-	path = Engine/Vendor/yaml-cpp/yaml-cpp
+[submodule "ThirdParty/yaml-cpp/yaml-cpp"]
+	path = ThirdParty/yaml-cpp/yaml-cpp
 	url = https://github.com/TheCherno/yaml-cpp.git
-[submodule "PhysX"]
-	path = PhysX
-	url = https://github.com/NVIDIA-Omniverse/PhysX
+[submodule "ThirdParty/Tracy"]
+	path = ThirdParty/Tracy
+	url = https://github.com/wolfpld/tracy.git
+[submodule "ThirdParty/freetype"]
+	path = ThirdParty/freetype
+	url = https://github.com/freetype/freetype.git
+[submodule "ThirdParty/assimp"]
+	path = ThirdParty/assimp
+	url = https://github.com/assimp/assimp.git
+[submodule "ThirdParty/GLFW"]
+	path = ThirdParty/GLFW
+	url = https://github.com/glfw/glfw.git
+[submodule "ThirdParty/yaml"]
+	path = ThirdParty/yaml
+	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "ThirdParty/AL"]
+	path = ThirdParty/AL
+	url = https://github.com/kcat/openal-soft.git
+[submodule "ThirdParty/PhysX"]
+	path = ThirdParty/PhysX
+	url = https://github.com/NVIDIA-Omniverse/PhysX.git
+[submodule "ThirdParty/OpenFBX"]
+	path = ThirdParty/OpenFBX
+	url = https://github.com/nem0/OpenFBX.git
+[submodule "ThirdParty/yaml-cpp"]
+	path = ThirdParty/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "ThirdParty/libdeflate"]
+	path = ThirdParty/libdeflate
+	url = https://github.com/ebiggers/libdeflate.git
+[submodule "ThirdParty/DirectXTex"]
+	path = ThirdParty/DirectXTex
+	url = https://github.com/microsoft/DirectXTex.git

@@ -6,9 +6,9 @@
 #include <fstream>
 #include <memory>
 namespace Plaza {
-	vector<Texture> ModelLoader::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture>& textures_loaded, string* directory)
+	vector<Texture*> ModelLoader::LoadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName, vector<Texture*>& textures_loaded, string* directory)
 	{
-		vector<Texture> textures;
+		vector<Texture*> textures;
 		for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
 		{
 			aiString str;
@@ -17,7 +17,7 @@ namespace Plaza {
 			bool skip = false;
 			for (unsigned int j = 0; j < textures_loaded.size(); j++)
 			{
-				if (textures_loaded[j].path == str.C_Str()) {
+				if (textures_loaded[j]->path == str.C_Str()) {
 					textures.push_back(textures_loaded[j]);
 					skip = true;
 					break;
@@ -25,17 +25,17 @@ namespace Plaza {
 			}
 			if (!skip)
 			{   // Load a new texture
-				Texture texture;
-				texture.id = TextureFromFile(str.C_Str(), *directory, true);
-				texture.type = typeName;
-				texture.path = ".\\" + std::filesystem::path(str.C_Str()).filename().string();
+				Texture* texture = Application->mRenderer->LoadTexture(std::string(*directory + "\\" + str.C_Str()).c_str());
+				texture->type = typeName;
+				texture->path = ".\\" + std::filesystem::path(str.C_Str()).filename().string();
 				textures.push_back(texture);
-				texture.path = str.C_Str();
+				texture->path = str.C_Str();
+				texture->rgba = glm::vec4(INFINITY);
 				textures_loaded.push_back(texture); // Add it to textures loaded to prevent other textures being loaded multiple times
 			}
 		}
 		if (textures.size() == 0)
-			textures.push_back(Texture(typeName));
+			textures.push_back(new Texture(typeName));
 		return textures;
 	}
 

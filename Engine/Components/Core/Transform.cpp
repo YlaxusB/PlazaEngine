@@ -47,7 +47,7 @@ namespace Plaza {
 			parentMatrix = glm::mat4(1.0f);
 		}
 		else {
-			parentMatrix = Application->activeScene->entities.at(this->GetGameObject()->parentUuid).GetComponent<Transform>()->modelMatrix;
+			parentMatrix = this->GetGameObject()->GetParent().GetComponent<Transform>()->modelMatrix;
 		}
 		this->modelMatrix = parentMatrix * this->GetLocalMatrix();
 		return this->modelMatrix;
@@ -63,14 +63,15 @@ namespace Plaza {
 	void Transform::UpdateWorldMatrix() {
 		PLAZA_PROFILE_SECTION("Transform: Update World Matrix");
 		uint64_t parentUuid = Application->activeScene->entities.find(this->uuid)->second.parentUuid;
-		if (parentUuid) {
+		if (parentUuid && Application->activeScene->transformComponents.find(parentUuid) != Application->activeScene->transformComponents.end()) {
 			glm::mat4 parentModelMatrix = Application->activeScene->transformComponents.find(parentUuid)->second.modelMatrix;
 			if (this->lastParentModelMatrix != parentModelMatrix || this->lastLocalMatrix != this->localMatrix) {
 				this->modelMatrix = parentModelMatrix * this->localMatrix;
 				this->lastParentModelMatrix = parentModelMatrix;
 				this->lastLocalMatrix = this->localMatrix;
 			}
-		} else
+		}
+		else
 			this->modelMatrix = glm::mat4(1.0f) * this->localMatrix;
 	}
 
@@ -158,7 +159,8 @@ namespace Plaza {
 		PLAZA_PROFILE_SECTION("Transform: Update Self And Children Transform");
 		this->UpdateLocalMatrix();
 		this->UpdateWorldMatrix();
-		this->UpdatePhysics();
+		if (Application->runningScene)
+			this->UpdatePhysics();
 		for (uint64_t child : this->GetGameObject()->childrenUuid) {
 			Application->activeScene->transformComponents.at(child).UpdateSelfAndChildrenTransform();
 		}
@@ -176,12 +178,21 @@ namespace Plaza {
 	void Transform::MoveTowards(glm::vec3 vector) {
 		glm::mat4 matrix = this->GetTransform();
 		glm::vec3 currentPosition = glm::vec3(matrix[3]);
-		// Extract the forward, left, and up vectors from the matrix
 		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
 		glm::vec3 leftVector = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
 		glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
 		this->relativePosition += forwardVector * vector.x + leftVector * vector.z + upVector * vector.y;
 		this->UpdateSelfAndChildrenTransform();
+	}
+
+	glm::vec3 Transform::MoveTowardsReturn(glm::vec3 vector) {
+		glm::mat4 matrix = this->GetTransform();
+		glm::vec3 currentPosition = glm::vec3(matrix[3]);
+		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
+		glm::vec3 leftVector = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
+		glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
+		glm::vec3 outVector = forwardVector * vector.x + leftVector * vector.z + upVector * vector.y;
+		return outVector;
 	}
 
 	// Set Functions
@@ -209,8 +220,13 @@ namespace Plaza {
 		PLAZA_PROFILE_SECTION("Transform: Update Physics");
 		auto it = Application->activeScene->colliderComponents.find(this->uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
-			it->second.UpdatePose(this);
 			it->second.UpdateShapeScale(this->GetWorldScale());
+			it->second.UpdatePose(this);
+		}
+
+		auto characterControllerIt = Application->activeScene->characterControllerComponents.find(this->uuid);
+		if (characterControllerIt != Application->activeScene->characterControllerComponents.end() && !characterControllerIt->second.hasMovedInThisFrame) {
+			characterControllerIt->second.mCharacterController->setPosition(physx::PxExtendedVec3(this->GetWorldPosition().x, this->GetWorldPosition().y, this->GetWorldPosition().z));
 		}
 	}
 

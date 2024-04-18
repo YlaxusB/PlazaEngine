@@ -1,7 +1,7 @@
 #pragma once
-#include "Engine/Vendor/glm/glm.hpp"
-#include "Engine/Vendor/glm/gtc/matrix_transform.hpp"
-#include "Engine/Vendor/glm/gtc/type_ptr.hpp"
+#include "ThirdParty/glm/glm.hpp"
+#include "ThirdParty/glm/gtc/matrix_transform.hpp"
+#include "ThirdParty/glm/gtc/type_ptr.hpp"
 
 
 #include "Engine/Components/Core/Entity.h"
@@ -39,6 +39,7 @@ namespace Plaza {
 		void UpdateChildrenScale(Entity* entity);
 		void UpdateChildrenScale();
 		void MoveTowards(glm::vec3 vector);
+		glm::vec3 MoveTowardsReturn(glm::vec3 vector);
 
 		void UpdateWorldMatrix();
 		void UpdateLocalMatrix();
@@ -46,7 +47,7 @@ namespace Plaza {
 		void SetRelativePosition(glm::vec3 vector);
 		void SetRelativeRotation(glm::quat quat);
 		void SetRelativeScale(glm::vec3 vector);
-		
+
 		void SetWorldPosition(glm::vec3 vector);
 		void SetWorldRotation(glm::vec3 vector);
 		void SetWorldScale(glm::vec3 vector);
@@ -70,5 +71,5 @@ namespace Plaza {
 		//this->localMatrix = glm::translate(glm::mat4(1.0f), this->relativePosition)
 		//	* glm::toMat4(glm::quat(rotation))
 		//	* glm::scale(glm::mat4(1.0f), scale);
-	}; 
+	};
 }

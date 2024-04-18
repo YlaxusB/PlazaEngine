@@ -11,9 +11,9 @@ namespace Plaza::Editor {
 		Application->activeScene->entities.at(obj->uuid).changingName = true;
 		Gui::Hierarchy::Item::firstFocus = true;
 		obj->GetComponent<Transform>()->UpdateChildrenTransform();
-		MeshRenderer* meshRenderer = new MeshRenderer(*mesh, Scene::DefaultMaterial());
+		MeshRenderer* meshRenderer = new MeshRenderer(mesh, Scene::DefaultMaterial());
 		meshRenderer->instanced = true;
-		meshRenderer->mesh = new Mesh(*mesh);
+		//meshRenderer->mesh = new Mesh(*mesh);
 		meshRenderer->material = Scene::DefaultMaterial();
 		RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
 		meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
@@ -41,7 +41,7 @@ namespace Plaza::Editor {
 				Entity* obj = NewEntity("Cube", parent, DefaultModels::Cube(), true, true);
 				Transform* transform = obj->GetComponent<Transform>();
 				Collider* collider = new Collider(obj->uuid);
-				collider->CreateShape(ColliderShapeEnum::BOX, transform);
+				collider->CreateShape(ColliderShape::ColliderShapeEnum::BOX, transform);
 				obj->AddComponent<Collider>(collider);
 			}
 
@@ -50,7 +50,7 @@ namespace Plaza::Editor {
 				Entity* obj = NewEntity("Sphere", parent, DefaultModels::Sphere(), true, true);
 				Transform* transform = obj->GetComponent<Transform>();
 				Collider* collider = new Collider(obj->uuid);
-				collider->CreateShape(ColliderShapeEnum::SPHERE, transform);
+				collider->CreateShape(ColliderShape::ColliderShapeEnum::SPHERE, transform);
 				obj->AddComponent<Collider>(collider);
 			}
 
@@ -61,7 +61,7 @@ namespace Plaza::Editor {
 				transform->scale = glm::vec3(10.0f, 0.05f, 10.0f);
 				transform->UpdateChildrenTransform();
 				Collider* collider = new Collider(obj->uuid);
-				collider->CreateShape(ColliderShapeEnum::PLANE, transform);
+				collider->CreateShape(ColliderShape::ColliderShapeEnum::PLANE, transform);
 				obj->AddComponent<Collider>(collider);
 			}
 

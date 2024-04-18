@@ -51,9 +51,11 @@ namespace Plaza {
 						//free(Application->editorScene);
 						//free(Application->runtimeScene);
 						Application->editorScene = new Scene();
-						Application->editorScene->mainSceneEntity = new Entity("Scene");
 						Application->activeScene = Application->editorScene;
-						Serializer::Serialize(newPath);
+						Application->editorScene->mainSceneEntity = new Entity("Scene");
+						Application->editorScene->entities.at(Application->editorScene->mainSceneEntity->uuid).parentUuid = Application->editorScene->mainSceneEntity->uuid;
+						Application->editorScene->mainSceneEntity->parentUuid = Application->editorScene->mainSceneEntity->uuid;
+						Serializer::Serialize(AssetsManager::NewAsset(AssetType::SCENE, newPath));
 						if (newPath.starts_with(Application->projectPath))
 							Application->editorScene->filePath = newPath.substr(Application->projectPath.length() + 1, newPath.length() - Application->projectPath.length());
 						ProjectSerializer::Serialize(Application->projectPath + "\\" + Application->activeProject->name + Standards::projectExtName);
@@ -61,13 +63,19 @@ namespace Plaza {
 					}
 				}
 				if (ImGui::Button("Save Scene")) {
-					Serializer::Serialize(Application->projectPath + "\\" + Application->activeScene->filePath);
+					//std::string path = Application->projectPath + "\\" + Application->activeScene->filePath;
+					/* TODO: IMPLEMENT PROPER SCENE ASSET LOADER */
+					Asset* temporarySceneAsset = new Asset();
+					temporarySceneAsset->mAssetUuid = Application->activeScene->mAssetUuid;
+					temporarySceneAsset->mPath = Application->activeProject->directory + "\\" + Application->activeScene->filePath;
+					temporarySceneAsset->mAssetExtension = Standards::sceneExtName;
+					Serializer::Serialize(temporarySceneAsset);
 					ProjectSerializer::Serialize(Application->projectPath + "\\" + Application->activeProject->name + Standards::projectExtName);
 				}
 				if (ImGui::Button("Save Scene As...")) {
 					std::string path = FileDialog::SaveFileDialog(("Engine (*.%s)", Standards::sceneExtName).c_str());
 					if (!path.empty()) {
-						Serializer::Serialize(path);
+						Serializer::Serialize(AssetsManager::NewAsset(AssetType::SCENE, path));
 						if (path.starts_with(Application->projectPath))
 							Application->editorScene->filePath = path.substr(Application->projectPath.length() + 1, path.length() - Application->projectPath.length());
 						ProjectSerializer::Serialize(Application->projectPath + "\\" + Application->activeProject->name + Standards::projectExtName);

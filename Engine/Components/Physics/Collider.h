@@ -1,18 +1,21 @@
 #pragma once
-#include "Engine/Vendor/physx/PxPhysicsAPI.h"
+#include "ThirdParty/PhysX/physx/include/PxPhysicsAPI.h"
+//#include <PhysX/physx/include/PxPhysicsAPI.h>
 #include "Engine/Components/Core/Transform.h"
 namespace Plaza {
-	enum ColliderShapeEnum {
-		BOX,
-		SPHERE,
-		CAPSULE,
-		PLANE,
-		CYLINDER,
-		MESH,
-		CONVEX_MESH,
-		HEIGHT_FIELD
-	};
+
 	struct ColliderShape {
+		enum ColliderShapeEnum {
+			BOX,
+			SPHERE,
+			CAPSULE,
+			PLANE,
+			CYLINDER,
+			MESH,
+			CONVEX_MESH,
+			HEIGHT_FIELD
+		};
+
 		ColliderShape(physx::PxShape* shape, ColliderShapeEnum newEnum = ColliderShapeEnum::BOX, uint64_t meshUuid = 0) : mPxShape(shape), mEnum(newEnum), mMeshUuid(meshUuid){}
 		physx::PxShape* mPxShape;
 		ColliderShapeEnum mEnum;
@@ -23,10 +26,10 @@ namespace Plaza {
 		glm::vec3 lastScale = glm::vec3(1.0f);
 		Collider() {};
 		vector<ColliderShape*> mShapes;
-		physx::PxRigidActor* mRigidActor;
-		physx::PxRigidBody* mStaticPxRigidBody;
-		physx::PxRigidBody* pxRigidBody;
-		physx::PxMaterial* material;
+		physx::PxRigidActor* mRigidActor = nullptr;
+		physx::PxRigidBody* mStaticPxRigidBody = nullptr;
+		physx::PxRigidBody* pxRigidBody = nullptr;
+		physx::PxMaterial* material = nullptr;
 		bool mDynamic = false;
 		Collider(std::uint64_t uuid, RigidBody* rigidBody = nullptr);
 		~Collider() override;
@@ -38,7 +41,7 @@ namespace Plaza {
 		void RemoveCollider();
 		void Update();
 
-		void CreateShape(ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh = nullptr);
+		void CreateShape(ColliderShape::ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh = nullptr);
 		void AddShape(ColliderShape* shape);
 		void AddConvexMeshShape(Mesh* mesh);
 		void AddMeshShape(Mesh* mesh);

@@ -12,7 +12,8 @@ namespace Plaza::Drawing::UI {
 	public:
 		std::map<GLchar, Character> mCharacters;
 		std::string mText;
-		float mPosX, mPosY = 0;
+		float mPosX = 0;
+		float mPosY = 0;
 		float mScale = 1.0f;
 		glm::vec4 mColor = glm::vec4(1.0f);
 		unsigned int mVAO, mVBO;
@@ -26,7 +27,7 @@ namespace Plaza::Drawing::UI {
 			this->mPosY = y;
 			this->mScale = scale;
 			this->mColor = color;
-			this->mText = "";
+			this->mText = text;
 		}
 	};
 

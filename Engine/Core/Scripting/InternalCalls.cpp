@@ -14,6 +14,7 @@
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Scripting/FieldManager.h"
 #include "Engine/Core/Physics.h"
+#include "Engine/Core/AssetsManager/AssetsManager.h"
 
 namespace Plaza {
 
@@ -31,11 +32,17 @@ namespace Plaza {
 		else if (name == typeid(Collider).name()) {
 			Application->activeScene->colliderComponents.emplace(uuid, *dynamic_cast<Collider*>(component));
 		}
+		else if (name == typeid(CharacterController).name()) {
+			Application->activeScene->characterControllerComponents.emplace(uuid, *dynamic_cast<CharacterController*>(component));
+		}
 		else if (name == typeid(Camera).name()) {
 			Application->activeScene->cameraComponents.emplace(uuid, *dynamic_cast<Camera*>(component));
 		}
 		else if (name == typeid(Plaza::Drawing::UI::TextRenderer).name()) {
 			Application->activeScene->UITextRendererComponents.emplace(uuid, *dynamic_cast<Plaza::Drawing::UI::TextRenderer*>(component));
+		}
+		else if (name == typeid(Light).name()) {
+			Application->activeScene->lightComponents.emplace(uuid, *dynamic_cast<Light*>(component));
 		}
 	}
 
@@ -162,6 +169,12 @@ namespace Plaza {
 
 #pragma region Input
 
+	static bool InputIsAnyKeyPressed() {
+		if (Application->focusedMenu == "Scene") {
+			return Input::isAnyKeyPressed;
+		}
+	}
+
 	static bool InputIsKeyDown(int keyCode) {
 		if (Application->focusedMenu == "Scene") {
 			return glfwGetKey(Application->Window->glfwWindow, keyCode) == GLFW_PRESS;
@@ -261,19 +274,94 @@ namespace Plaza {
 #pragma endregion Entity
 
 #pragma region Physics
+	class MyQueryFilterCallback : public physx::PxQueryFilterCallback {
+	public:
+		virtual physx::PxQueryHitType::Enum preFilter(
+			const physx::PxFilterData& filterData,
+			const physx::PxShape* shape,
+			const physx::PxRigidActor* actor,
+			physx::PxHitFlags& queryFlags) override
+		{
+			if (actor && actor->userData == mEntityToIgnore) {
+				return physx::PxQueryHitType::eNONE;
+			}
+			return physx::PxQueryHitType::eBLOCK;
+		}
+
+		// Set the entity to ignore
+		void setEntityToIgnore(void* entityToIgnore) {
+			mEntityToIgnore = entityToIgnore;
+		}
+
+		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit, const physx::PxShape* shape, const physx::PxRigidActor* actor) override {
+			return physx::PxQueryHitType::eTOUCH;
+		}
+
+	private:
+		void* mEntityToIgnore = nullptr;
+	};
+
 	struct RaycastHit {
 		uint64_t hitUuid;
 		glm::vec3 point;
+		glm::vec3 normal;
 	};
 	physx::PxVec3 glmToPx(glm::vec3 vector) {
 		return physx::PxVec3(vector.x, vector.y, vector.z);
 	}
-	static void Physics_Raycast(glm::vec3 origin, glm::vec3 direction, float maxDistance, RaycastHit* hit) {
+	static void Physics_Raycast(glm::vec3 origin, glm::vec3 direction, float maxDistance, RaycastHit* hit, uint64_t ignoredUuid) {
+		MyQueryFilterCallback filterCallback{};
+		filterCallback.setEntityToIgnore(reinterpret_cast<void*>(ignoredUuid));
+		physx::PxQueryFilterData filterData(physx::PxQueryFlag::ePREFILTER | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC);
+
 		physx::PxRaycastBuffer hitPhysx;
-		bool status = Physics::m_scene->raycast(glmToPx(origin), glmToPx(direction), maxDistance, hitPhysx);
+		bool status = Physics::m_scene->raycast(glmToPx(origin), glmToPx(direction), maxDistance, hitPhysx, physx::PxHitFlag::eDEFAULT, filterData, &filterCallback);
 		if (status) {
 			hit->hitUuid = (uint64_t)hitPhysx.block.actor->userData;
 			hit->point = glm::vec3(hitPhysx.block.position.x, hitPhysx.block.position.y, hitPhysx.block.position.z);
+			hit->normal = glm::vec3(hitPhysx.block.normal.x, hitPhysx.block.normal.y, hitPhysx.block.normal.z);
+		}
+	}
+
+	// This callback goes through anything except a specific collider uuid
+	class SpecificQueryFilterCallback : public physx::PxQueryFilterCallback {
+	public:
+		virtual physx::PxQueryHitType::Enum preFilter(
+			const physx::PxFilterData& filterData,
+			const physx::PxShape* shape,
+			const physx::PxRigidActor* actor,
+			physx::PxHitFlags& queryFlags) override
+		{
+			if (actor && actor->userData != mEntityToCollide) {
+				return physx::PxQueryHitType::eNONE;
+			}
+			return physx::PxQueryHitType::eBLOCK;
+		}
+
+		// Set the entity to ignore
+		void setEntityToCollide(void* entityToCollide) {
+			mEntityToCollide = entityToCollide;
+		}
+
+		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit, const physx::PxShape* shape, const physx::PxRigidActor* actor) override {
+			return physx::PxQueryHitType::eTOUCH;
+		}
+
+	private:
+		void* mEntityToCollide = nullptr;
+	};
+
+	static void Physics_RaycastSpecific(glm::vec3 origin, glm::vec3 direction, float maxDistance, RaycastHit* hit, uint64_t specificUuid) {
+		SpecificQueryFilterCallback filterCallback{};
+		filterCallback.setEntityToCollide(reinterpret_cast<void*>(specificUuid));
+		physx::PxQueryFilterData filterData(physx::PxQueryFlag::ePREFILTER | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC);
+
+		physx::PxRaycastBuffer hitPhysx;
+		bool status = Physics::m_scene->raycast(glmToPx(origin), glmToPx(direction), maxDistance, hitPhysx, physx::PxHitFlag::eDEFAULT, filterData, &filterCallback);
+		if (status) {
+			hit->hitUuid = (uint64_t)hitPhysx.block.actor->userData;
+			hit->point = glm::vec3(hitPhysx.block.position.x, hitPhysx.block.position.y, hitPhysx.block.position.z);
+			hit->normal = glm::vec3(hitPhysx.block.normal.x, hitPhysx.block.normal.y, hitPhysx.block.normal.z);
 		}
 	}
 #pragma endregion Physics
@@ -299,17 +387,21 @@ namespace Plaza {
 		glm::quat quaternion = Application->activeScene->transformComponents.find(uuid)->second.rotation;
 
 		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(rotationQuat);
-		glm::vec3 asd = glm::degrees(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation());
 	}
 	static void GetRotationCall(uint64_t uuid, glm::vec3* out) {
-		*out = glm::degrees(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation());
+		*out = glm::degrees(glm::normalize(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation()));
 	}
 
 	static void SetRotationQuaternion(uint64_t uuid, glm::vec4* quat) {
 		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(glm::quat(quat->w, quat->x, quat->y, quat->z));
 	}
 	static void GetRotationQuaternionCall(uint64_t uuid, glm::vec4* out) {
-		glm::quat worldQuat = Application->activeScene->transformComponents.find(uuid)->second.GetLocalQuaternion();
+		glm::quat localQuat = Application->activeScene->transformComponents.find(uuid)->second.GetLocalQuaternion();
+		*out = glm::vec4(localQuat.x, localQuat.y, localQuat.z, localQuat.w);
+	}
+
+	static void GetWorldRotationQuaternionCall(uint64_t uuid, glm::vec4* out) {
+		glm::quat worldQuat = glm::quat(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation());//Application->activeScene->transformComponents.find(uuid)->second.GetWorldQuaternion();
 		*out = glm::vec4(worldQuat.x, worldQuat.y, worldQuat.z, worldQuat.w);
 	}
 
@@ -329,17 +421,17 @@ namespace Plaza {
 	*/
 	static void Transform_GetUpVector(uint64_t uuid, glm::vec3* out) {
 		glm::mat4 matrix = Application->activeScene->transformComponents.at(uuid).GetTransform();
-		*out = glm::normalize(glm::vec3(matrix[1]));
+		*out = glm::normalize(glm::vec3(matrix[1][0], matrix[1][1], matrix[1][2]));
 	}
 
 	static void Transform_GetForwardVector(uint64_t uuid, glm::vec3* out) {
-		*out = glm::normalize(glm::vec3(Application->activeScene->transformComponents.at(uuid).GetTransform()[2]));
+		glm::mat4 matrix = Application->activeScene->transformComponents.at(uuid).GetTransform();
+		*out = glm::normalize(glm::vec3(matrix[2][0], matrix[2][1], matrix[2][2]));
 	}
 
 	static void Transform_GetLeftVector(uint64_t uuid, glm::vec3* out) {
 		glm::mat4 matrix = Application->activeScene->transformComponents.at(uuid).GetTransform();
-		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
-		*out = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
+		*out = -glm::normalize(glm::vec3(matrix[0][0], matrix[0][1], matrix[0][2]));
 	}
 
 	static void Transform_GetWorldMatrix(uint64_t uuid, float** out, int* size) {
@@ -364,7 +456,12 @@ namespace Plaza {
 		auto transformIt = Application->activeScene->transformComponents.find(uuid);
 		if (transformIt != Application->activeScene->transformComponents.end())
 			transformIt->second.MoveTowards(vector3);
+	}
 
+	static void MoveTowardsReturn(uint64_t uuid, glm::vec3 vector3, glm::vec3* outVector) {
+		auto transformIt = Application->activeScene->transformComponents.find(uuid);
+		if (transformIt != Application->activeScene->transformComponents.end())
+			*outVector = transformIt->second.MoveTowardsReturn(vector3);
 	}
 
 
@@ -375,11 +472,13 @@ namespace Plaza {
 	static void MeshRenderer_SetMaterial(uint64_t uuid, uint64_t materialUuid) {
 		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end() && Application->activeScene->materials.find(materialUuid) != Application->activeScene->materials.end()) {
-			meshRendererIt->second.material = Application->activeScene->materials.find(materialUuid)->second.get();
-			if (!meshRendererIt->second.renderGroup.get()) {
-				meshRendererIt->second.renderGroup = std::shared_ptr<RenderGroup>(new RenderGroup(meshRendererIt->second.mesh, meshRendererIt->second.material));
-				Application->activeScene->AddRenderGroup(meshRendererIt->second.renderGroup);
-			}
+			meshRendererIt->second.ChangeMaterial(Application->activeScene->materials.find(materialUuid)->second.get());
+			//meshRendererIt->second.ChangeMaterial(Application->activeScene->materials.find(materialUuid)->second.get());
+			//meshRendererIt->second.material = Application->activeScene->materials.find(materialUuid)->second.get();
+			//if (!meshRendererIt->second.renderGroup) {
+			//	meshRendererIt->second.renderGroup = new RenderGroup(meshRendererIt->second.mesh, meshRendererIt->second.material);
+			//	Application->activeScene->AddRenderGroup(meshRendererIt->second.renderGroup);
+			//}
 
 		}
 	}
@@ -400,7 +499,7 @@ namespace Plaza {
 		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
-			Mesh* oldMesh = meshRendererIt->second.mesh;
+			Mesh* oldMesh = (Mesh*)meshRendererIt->second.mesh;
 			Mesh* newMesh;
 			if (oldMesh)
 				newMesh = new Mesh(*oldMesh);
@@ -410,12 +509,13 @@ namespace Plaza {
 			newMesh->temporaryMesh = true;
 			if (oldMesh && oldMesh->temporaryMesh) {
 				newMesh->meshId = oldMesh->meshId;
-				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
+				*AssetsManager::GetMesh(newMesh->meshId) = *newMesh;
 			}
 			else {
-				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+				AssetsManager::AddMesh(newMesh);
+				//Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId).get();
+			Application->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);
 			vector<glm::vec3>& meshVertices = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->vertices;
 			meshVertices.clear();
 
@@ -427,11 +527,12 @@ namespace Plaza {
 				meshVertices.push_back(vertices[i]);
 			}
 
-			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			//    Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			Application->mRenderer->RestartMesh(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
 			//RenderGroup* rend = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup.get();
 			//Mesh* mes = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh.get();
 			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (Mesh*)(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
 			//delete newMesh;
 		}
 	}
@@ -453,7 +554,7 @@ namespace Plaza {
 		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
-			Mesh* oldMesh = meshRendererIt->second.mesh;
+			Mesh* oldMesh = (Mesh*)meshRendererIt->second.mesh;
 			Mesh* newMesh;
 			if (oldMesh)
 				newMesh = new Mesh(*oldMesh);
@@ -463,12 +564,12 @@ namespace Plaza {
 			newMesh->temporaryMesh = true;
 			if (oldMesh->temporaryMesh) {
 				newMesh->meshId = oldMesh->meshId;
-				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
+				*AssetsManager::GetMesh(newMesh->meshId) = *newMesh;
 			}
 			else {
-				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+				AssetsManager::AddMesh(newMesh);
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId).get();
+			Application->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);
 			vector<unsigned int>& meshIndices = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->indices;
 			meshIndices.clear();
 
@@ -480,9 +581,10 @@ namespace Plaza {
 				meshIndices.push_back(indices[i]);
 			}
 
-			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			//    Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			Application->mRenderer->RestartMesh(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
 			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			delete newMesh;
 		}
 	}
@@ -504,22 +606,22 @@ namespace Plaza {
 		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
-			Mesh* oldMesh = meshRendererIt->second.mesh;
-			Mesh* newMesh;
+			OpenGLMesh* oldMesh = (OpenGLMesh*)meshRendererIt->second.mesh;
+			OpenGLMesh* newMesh;
 			if (oldMesh)
-				newMesh = new Mesh(*oldMesh);
+				newMesh = new OpenGLMesh(*oldMesh);
 			else
-				newMesh = new Mesh();
+				newMesh = new OpenGLMesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
 			if (oldMesh->temporaryMesh) {
 				newMesh->meshId = oldMesh->meshId;
-				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
+				*AssetsManager::GetMesh(newMesh->meshId) = *newMesh;
 			}
 			else {
-				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+				AssetsManager::AddMesh(newMesh);
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId).get();
+			Application->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);
 			vector<glm::vec3>& meshNormals = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->normals;
 			meshNormals.clear();
 
@@ -530,9 +632,10 @@ namespace Plaza {
 			for (int i = 0; i < size; ++i) {
 				meshNormals.push_back(normals[i]);
 			}
-			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			//    Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			Application->mRenderer->RestartMesh(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
 			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			delete newMesh;
 		}
 	}
@@ -554,22 +657,22 @@ namespace Plaza {
 		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
-			Mesh* oldMesh = meshRendererIt->second.mesh;
-			Mesh* newMesh;
+			OpenGLMesh* oldMesh = (OpenGLMesh*)meshRendererIt->second.mesh;
+			OpenGLMesh* newMesh;
 			if (oldMesh)
-				newMesh = new Mesh(*oldMesh);
+				newMesh = new OpenGLMesh(*oldMesh);
 			else
-				newMesh = new Mesh();
+				newMesh = new OpenGLMesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
 			if (oldMesh->temporaryMesh) {
 				newMesh->meshId = oldMesh->meshId;
-				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
+				*AssetsManager::GetMesh(newMesh->meshId) = *newMesh;
 			}
 			else {
-				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+				AssetsManager::AddMesh(newMesh);
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = Application->activeScene->meshes.at(newMesh->meshId).get();
+			Application->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);//Application->activeScene->meshes.at(newMesh->meshId).get();
 			vector<glm::vec2>& meshUvs = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->uvs;
 			meshUvs.clear();
 
@@ -580,9 +683,10 @@ namespace Plaza {
 			for (int i = 0; i < size; ++i) {
 				meshUvs.push_back(uvs[i]);
 			}
-			Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			//    Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			Application->mRenderer->RestartMesh(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
 			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			delete newMesh;
 		}
 	}
@@ -591,22 +695,22 @@ namespace Plaza {
 		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
 		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
-			Mesh* oldMesh = meshRendererIt->second.mesh;
+			Mesh* oldMesh = (Mesh*)meshRendererIt->second.mesh;
 			Mesh* newMesh;
 			//if (oldMesh.get())
 			//	newMesh = new Mesh(*oldMesh);
 			//else
 			newMesh = new Mesh();
+			newMesh->uuid = Plaza::UUID::NewUUID();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
 			if (oldMesh && oldMesh->temporaryMesh) {
 				newMesh->meshId = oldMesh->meshId;
-				*Application->activeScene->meshes[newMesh->meshId].get() = *newMesh;
+				*AssetsManager::GetMesh(newMesh->meshId) = *newMesh;
 			}
 			else {
-				Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+				AssetsManager::AddMesh(newMesh);
 			}
-			Application->activeScene->meshRendererComponents.find(uuid)->second.mesh = Application->activeScene->meshes.find(newMesh->meshId)->second.get();
 			newMesh->vertices.clear();
 			newMesh->vertices.reserve(verticesSize);
 			newMesh->vertices.assign(vertices, vertices + verticesSize);
@@ -623,19 +727,22 @@ namespace Plaza {
 			newMesh->uvs.reserve(uvsSize);
 			newMesh->uvs.assign(uvs, uvs + uvsSize);
 
-			meshRendererIt->second.mesh = newMesh;
 			uint64_t oldMeshUuid = oldMesh->uuid;
 			//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
-			if (oldMeshUuid == meshRendererIt->second.mesh->uuid && Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup.get()) {
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
-			}
-			else {
-				RenderGroup* newRenderGroup = new RenderGroup(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh, Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->material);
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
-			}
-			Editor::Filewatcher::AddToMainThread([uuid]() {
-				Application->activeScene->meshRendererComponents.find(uuid)->second.mesh->Restart();
 
+			Editor::Filewatcher::AddToMainThread([uuid, oldMeshUuid, meshRendererIt, newMesh]() {
+				Application->activeScene->meshRendererComponents.find(uuid)->second.mesh = AssetsManager::GetMesh(newMesh->meshId);
+				meshRendererIt->second.mesh = newMesh;
+
+				Application->activeScene->meshRendererComponents.find(uuid)->second.mesh = Application->mRenderer->RestartMesh(Application->activeScene->meshRendererComponents.find(uuid)->second.mesh);
+
+				if (oldMeshUuid == meshRendererIt->second.mesh->uuid && Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup) {
+					Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				}
+				else {
+					RenderGroup* newRenderGroup = new RenderGroup(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh, Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->material);
+					Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
+				}
 				});
 
 			//delete newMesh;
@@ -700,15 +807,37 @@ namespace Plaza {
 		if (Application->activeScene->HasComponent<RigidBody>(uuid))
 			Application->activeScene->rigidBodyComponents.at(uuid).AddTorque(*vec3, mode, autowake);
 	}
+
+	static float RigidBody_GetDrag(uint64_t uuid, float drag) {
+		if (Application->activeScene->HasComponent<RigidBody>(uuid))
+			return Application->activeScene->rigidBodyComponents.at(uuid).GetDrag();
+	}
+
+	static void RigidBody_SetDrag(uint64_t uuid, float drag) {
+		if (Application->activeScene->HasComponent<RigidBody>(uuid))
+			Application->activeScene->rigidBodyComponents.at(uuid).SetDrag(drag);
+	}
+
+	static void RigidBody_GetVelocity(uint64_t uuid, glm::vec3* out) {
+		if (Application->activeScene->HasComponent<RigidBody>(uuid)) {
+			RigidBody* comp = Application->activeScene->GetComponent<RigidBody>(uuid);
+			*out = comp->GetVelocity();
+		}
+	}
+
+	static void RigidBody_SetVelocity(uint64_t uuid, glm::vec3* vec3) {
+		if (Application->activeScene->HasComponent<RigidBody>(uuid))
+			Application->activeScene->rigidBodyComponents.at(uuid).SetVelocity(*vec3);
+	}
 #pragma endregion RigidBody
 
 #pragma region Collider
-	static void Collider_AddShape(uint64_t uuid, ColliderShapeEnum shape) {
+	static void Collider_AddShape(uint64_t uuid, ColliderShape::ColliderShapeEnum shape) {
 		auto it = Application->activeScene->colliderComponents.find(uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
 			Editor::Filewatcher::AddToMainThread([it, uuid, shape]() {
 
-				if ((shape == ColliderShapeEnum::CONVEX_MESH || shape == ColliderShapeEnum::MESH) && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
+				if ((shape == ColliderShape::ColliderShapeEnum::CONVEX_MESH || shape == ColliderShape::ColliderShapeEnum::MESH) && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
 					it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), Application->activeScene->meshRendererComponents.at(uuid).mesh);
 				}
 				else
@@ -718,10 +847,10 @@ namespace Plaza {
 		}
 	}
 
-	static void Collider_AddShapeMeshCall(uint64_t uuid, ColliderShapeEnum shape, glm::vec3* vertices, int verticesSize, unsigned int* indices, int indicesSize, glm::vec3* normals, int normalsSize, glm::vec2* uvs, int uvsSize) {
+	static void Collider_AddShapeMeshCall(uint64_t uuid, ColliderShape::ColliderShapeEnum shape, glm::vec3* vertices, int verticesSize, unsigned int* indices, int indicesSize, glm::vec3* normals, int normalsSize, glm::vec2* uvs, int uvsSize) {
 		auto it = Application->activeScene->colliderComponents.find(uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
-			Mesh* newMesh = new Mesh();
+			OpenGLMesh* newMesh = new OpenGLMesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
 			newMesh->vertices.clear();
@@ -747,11 +876,11 @@ namespace Plaza {
 				});
 		}
 	}
-	static void Collider_AddShapeHeightFieldCall(uint64_t uuid, ColliderShapeEnum shape, MonoArray* floatArray, int size) {
+	static void Collider_AddShapeHeightFieldCall(uint64_t uuid, ColliderShape::ColliderShapeEnum shape, MonoArray* floatArray, int size) {
 		auto it = Application->activeScene->colliderComponents.find(uuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
 			float min = 0;
-			if (shape == ColliderShapeEnum::HEIGHT_FIELD && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
+			if (shape == ColliderShape::ColliderShapeEnum::HEIGHT_FIELD && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
 				float** data = new float* [size];
 				for (int i = 0; i < size; ++i) {
 					data[i] = new float[size];
@@ -768,6 +897,14 @@ namespace Plaza {
 	}
 
 #pragma endregion Collider
+
+#pragma region Character Controller
+	static void CharacterController_MoveCall(uint64_t uuid, glm::vec3 position, float minimumDistance, bool followOrientation, float elapsedTime) {
+		if (Application->activeScene->HasComponent<CharacterController>(uuid)) {
+			Application->activeScene->GetComponent<CharacterController>(uuid)->Move(position, minimumDistance, followOrientation, elapsedTime);
+		}
+	}
+#pragma endregion Character Controller
 
 #pragma region TextRenderer
 	static string TextRenderer_GetText(uint64_t uuid) {
@@ -821,7 +958,7 @@ namespace Plaza {
 		Application->activeScene->audioSourceComponents.find(uuid)->second.Play();
 	}
 	static void AudioSource_Stop(uint64_t uuid) {
-		Application->activeScene->audioSourceComponents.find(uuid)->second.Play();
+		Application->activeScene->audioSourceComponents.find(uuid)->second.Stop();
 	}
 	static bool AudioSource_GetSpatial(uint64_t uuid) {
 		return Application->activeScene->audioSourceComponents.find(uuid)->second.mSpatial;
@@ -858,8 +995,9 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::Instantiate", Instantiate);
 
 
+		mono_add_internal_call("Plaza.InternalCalls::InputIsAnyKeyPressed", InputIsAnyKeyPressed);
 		mono_add_internal_call("Plaza.InternalCalls::InputIsKeyDown", InputIsKeyDown);
-		mono_add_internal_call("Plaza.InternalCalls::IsKeyReleased", IsKeyReleased);
+		mono_add_internal_call("Plaza.InternalCalls::IsKeyReleased", IsKeyReleased); 
 		mono_add_internal_call("Plaza.InternalCalls::InputIsMouseDown", InputIsMouseDown);
 		mono_add_internal_call("Plaza.InternalCalls::GetMouseDelta", GetMouseDelta);
 		mono_add_internal_call("Plaza.InternalCalls::CursorHide", CursorHide);
@@ -878,6 +1016,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::AddScript", AddScript);
 
 		mono_add_internal_call("Plaza.InternalCalls::Physics_Raycast", Physics_Raycast);
+		mono_add_internal_call("Plaza.InternalCalls::Physics_RaycastSpecific", Physics_RaycastSpecific);
 		//PL_ADD_INTERNAL_CALL("Physics_Raycast");
 
 		mono_add_internal_call("Plaza.InternalCalls::GetPositionCall", GetPositionCall);
@@ -886,6 +1025,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::SetRotation", SetRotation);
 		mono_add_internal_call("Plaza.InternalCalls::SetRotationQuaternion", SetRotationQuaternion);
 		mono_add_internal_call("Plaza.InternalCalls::GetRotationQuaternionCall", GetRotationQuaternionCall);
+		mono_add_internal_call("Plaza.InternalCalls::GetWorldRotationQuaternionCall", GetWorldRotationQuaternionCall);
 		mono_add_internal_call("Plaza.InternalCalls::GetScaleCall", GetScaleCall);
 		mono_add_internal_call("Plaza.InternalCalls::SetScaleCall", SetScaleCall);
 		mono_add_internal_call("Plaza.InternalCalls::Transform_GetForwardVector", Transform_GetForwardVector);
@@ -894,6 +1034,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::Transform_GetWorldMatrix", Transform_GetWorldMatrix);
 
 		mono_add_internal_call("Plaza.InternalCalls::MoveTowards", MoveTowards);
+		mono_add_internal_call("Plaza.InternalCalls::MoveTowardsReturn", MoveTowardsReturn);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetMaterial", MeshRenderer_SetMaterial);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_GetVertices", MeshRenderer_GetVertices);
 		mono_add_internal_call("Plaza.InternalCalls::MeshRenderer_SetVertices", MeshRenderer_SetVertices);
@@ -909,12 +1050,17 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_ApplyForce", RigidBody_ApplyForce);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_AddForce", RigidBody_AddForce);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_AddTorque", RigidBody_AddTorque);
+		mono_add_internal_call("Plaza.InternalCalls::RigidBody_SetDrag", RigidBody_SetDrag);
+		mono_add_internal_call("Plaza.InternalCalls::RigidBody_GetVelocity", RigidBody_GetVelocity);
+		mono_add_internal_call("Plaza.InternalCalls::RigidBody_SetVelocity", RigidBody_SetVelocity);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_LockAngular", RigidBody_LockAngular);
 		mono_add_internal_call("Plaza.InternalCalls::RigidBody_IsAngularLocked", RigidBody_IsAngularLocked);
 
 		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShape", Collider_AddShape);
 		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShapeMeshCall", Collider_AddShapeMeshCall);
 		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShapeHeightFieldCall", Collider_AddShapeHeightFieldCall);
+
+		mono_add_internal_call("Plaza.InternalCalls::CharacterController_MoveCall", CharacterController_MoveCall);
 
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_GetText", TextRenderer_GetText);
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetText", TextRenderer_SetText);

@@ -2,18 +2,17 @@
 #include "Engine/Application/EditorCamera.h"
 #include "Engine/Components/Core/Entity.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
-#include <glm/trigonometric.hpp>
-#include <glm/gtx/euler_angles.hpp>
+#include <ThirdParty/glm/glm.hpp>
+#include <ThirdParty/glm/gtc/matrix_transform.hpp>
+#include <ThirdParty/glm/gtc/type_ptr.hpp>
+#include <ThirdParty/glm/gtx/matrix_decompose.hpp>
+#include <ThirdParty/glm/trigonometric.hpp>
+#include <ThirdParty/glm/gtx/euler_angles.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-
+#include <ThirdParty/glm/gtx/quaternion.hpp>
 
 #include <float.h>
-#include <glm/gtx/euler_angles.hpp>
+#include <ThirdParty/glm/gtx/euler_angles.hpp>
 
 #include "Editor/GUI/TransformOverlay.h"
 #include "Editor/GUI/guiMain.h"

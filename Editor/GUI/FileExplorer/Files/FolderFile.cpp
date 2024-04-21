@@ -8,6 +8,7 @@ namespace Plaza {
 			Editor::Gui::FileExplorer::currentDirectory = this->directory;
 			Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 			Editor::selectedFiles.clear();
+			Gui::FileExplorer::breakFilesLoop = true;
 		}
 
 		void FolderFile::Delete() {

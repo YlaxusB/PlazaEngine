@@ -37,12 +37,20 @@ namespace Plaza {
 					Application->hoveredMenu = "File Explorer";
 				File::currentPos = ImVec2(-1.0f, 1.0f);
 
+				FileExplorer::breakFilesLoop = false;
+
 				ImGui::BeginGroup();
 				// Create all the icons
 				unsigned int index = 0;
 				for (const auto& file : files) {
 					if (file->name != "")
 						FileExplorer::DrawFile(file.get());
+
+					if (FileExplorer::breakFilesLoop)
+					{
+						FileExplorer::breakFilesLoop = false;
+						break;
+					}
 					// Show back button
 					//if (index == 0) {
 					//	// Back Button Click

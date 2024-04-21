@@ -40,6 +40,7 @@ namespace Plaza {
 			virtual void Copy() {}
 			virtual void Paste() {}
 			virtual void Popup() {}
+			virtual void DragDrop() {}
 		};
 	}
 }

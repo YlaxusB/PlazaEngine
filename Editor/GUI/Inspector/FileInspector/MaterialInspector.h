@@ -10,12 +10,21 @@ namespace Plaza::Editor {
 	public:
 		static Material* material;
 		static File* lastFile;
+
+		Texture* LoadTextureButton() {
+			Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"));
+			if (asset)
+				return Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid);
+			else
+				return AssetsManager::mTextures.find(1)->second;
+		}
+
 		MaterialFileInspector(File* file) {
 			if (!material || file != lastFile) {
 				if (AssetsManager::GetAsset(file->directory))
 				{
 					auto materialIt = Application->activeScene->materials.find(AssetsManager::GetAsset(file->directory)->mAssetUuid);
-					if (nullptr && materialIt != Application->activeScene->materials.end())
+					if (materialIt != Application->activeScene->materials.end())
 						material = materialIt->second.get();
 				}
 			}
@@ -31,27 +40,22 @@ namespace Plaza::Editor {
 			ImGui::ColorPicker4("Diffuse", &material->diffuse->rgba.x);
 			ImGui::ColorPicker4("Specular", &material->specular->rgba.x);
 			if (ImGui::Button("Difusse Texture")) {
-				Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"));
-				material->diffuse = Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid);
+				material->diffuse = LoadTextureButton();
 				//    material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");
 				//    material->diffuse.rgba = glm::vec4(INFINITY);
 				//    material->diffuse.Load() = ModelLoader::TextureFromFile(material->diffuse.path);
 			}
 			if (ImGui::Button("Normal Texture")) {
-				Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"));
-				material->normal = Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid);
+				material->normal = LoadTextureButton();
 			}
 			if (ImGui::Button("Metalic Texture")) {
-				Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"));
-				material->metalness = Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid);
+				material->metalness = LoadTextureButton();
 			}
 			if (ImGui::Button("Roughness Texture")) {
-				Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"));
-				material->roughness = Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid);
+				material->roughness = LoadTextureButton();
 			}
 			if (ImGui::Button("Height Texture")) {
-				Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"));
-				material->height = Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid);
+				material->height = LoadTextureButton();
 			}
 
 			ImGui::DragFloat("Roughness: ", &material->roughnessFloat, 0.0f, 1.0f);

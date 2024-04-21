@@ -10,7 +10,8 @@ namespace Plaza {
 		if (!asset) {
 			std::string importedAssetPath = AssetsImporter::ImportAsset(path, uuid);
 			asset = AssetsManager::GetAsset(importedAssetPath);
-			AssetsLoader::LoadAsset(asset);
+			if (asset)
+				AssetsLoader::LoadAsset(asset);
 		}
 		return asset;
 	}

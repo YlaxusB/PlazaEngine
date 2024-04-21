@@ -7,6 +7,7 @@ namespace Plaza {
 		void BackFile::DoubleClick() {
 			Editor::Gui::FileExplorer::currentDirectory = filesystem::path{ Gui::FileExplorer::currentDirectory }.parent_path().string();
 			Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+			Gui::FileExplorer::breakFilesLoop = true;
 		}
 
 		void BackFile::Delete() {

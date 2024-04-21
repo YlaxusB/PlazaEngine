@@ -15,7 +15,7 @@ namespace Plaza {
 			void Copy();
 			void Paste();
 			void Popup();
-
+			void DragDrop();
 		};
 	}
 }

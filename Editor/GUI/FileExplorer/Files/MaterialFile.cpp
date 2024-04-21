@@ -30,5 +30,9 @@ namespace Plaza {
 		void MaterialFile::Popup() {
 
 		}
+
+		void MaterialFile::DragDrop() {
+
+		}
 	}
 }

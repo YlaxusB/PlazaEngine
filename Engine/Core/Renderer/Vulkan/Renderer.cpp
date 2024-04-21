@@ -82,12 +82,13 @@ namespace Plaza {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 	VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
 	VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME,
-	VK_KHR_MULTIVIEW_EXTENSION_NAME,
+	VK_KHR_MULTIVIEW_EXTENSION_NAME
 	};
 
 	struct QueueFamilyIndices {
 		std::optional<uint32_t> graphicsFamily;
 		std::optional<uint32_t> presentFamily;
+		std::optional<uint32_t> graphicsAndComputeFamily;
 
 		bool isComplete() {
 			return graphicsFamily.has_value() && presentFamily.has_value();
@@ -136,6 +137,8 @@ namespace Plaza {
 		//if (enableValidationLayers) {
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		//}
+		//extensions.push_back(VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME);
+		//extensions.push_back(VK_KHR_GET_MULTIVIEW_EXTENSION_NAME);
 
 		return extensions;
 	}
@@ -323,6 +326,23 @@ namespace Plaza {
 
 		vkGetDeviceQueue(mDevice, indices.graphicsFamily.value(), 0, &mGraphicsQueue);
 		vkGetDeviceQueue(mDevice, indices.presentFamily.value(), 0, &mPresentQueue);
+
+		/* Compute Queue */
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, nullptr);
+
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, queueFamilies.data());
+
+		int i = 0;
+		for (const auto& queueFamily : queueFamilies) {
+			if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
+				indices.graphicsAndComputeFamily = i;
+			}
+
+			i++;
+		}
+		vkGetDeviceQueue(mDevice, indices.graphicsAndComputeFamily.value(), 0, &mComputeQueue);
 	}
 
 	void VulkanRenderer::InitSurface()
@@ -536,7 +556,9 @@ namespace Plaza {
 	{
 		mImageAvailableSemaphores.resize(mMaxFramesInFlight);
 		mRenderFinishedSemaphores.resize(mMaxFramesInFlight);
+		mComputeFinishedSemaphores.resize(mMaxFramesInFlight);
 		mInFlightFences.resize(mMaxFramesInFlight);
+		mComputeInFlightFences.resize(mMaxFramesInFlight);
 
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -551,6 +573,10 @@ namespace Plaza {
 				vkCreateFence(mDevice, &fenceInfo, nullptr, &mInFlightFences[i]) != VK_SUCCESS) {
 
 				throw std::runtime_error("failed to create synchronization objects for a frame!");
+			}
+			if (vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &mComputeFinishedSemaphores[i]) != VK_SUCCESS ||
+				vkCreateFence(mDevice, &fenceInfo, nullptr, &mComputeInFlightFences[i]) != VK_SUCCESS) {
+				throw std::runtime_error("failed to create compute synchronization objects for a frame!");
 			}
 		}
 	}
@@ -1082,7 +1108,9 @@ namespace Plaza {
 		scissor.extent.width = Application->appSizes->sceneSize.x;
 		scissor.extent.height = Application->appSizes->sceneSize.y;
 
+
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		this->mParticleCompute.RunCompute();
 
 		{
 			PLAZA_PROFILE_SECTION("Bind Instances Data");
@@ -1112,22 +1140,10 @@ namespace Plaza {
 			PLAZA_PROFILE_SECTION("Draw Instances");
 
 			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
-			//for (const auto& [key, value] : Application->activeScene->renderGroups) {
-			//	if (value->instanceModelMatrices.size() > 0)
-			//	{
-			//		this->DrawRenderGroupInstanced(value);
-			//	}
-			//	value->mCascadeInstances.clear();
-			//}
 		}
+		this->mParticleCompute.Draw();
 
-		//vkCmdEndRenderPass(commandBuffer);
 
-		/* Render texts */
-		//renderPassInfo.renderPass = ((VulkanGuiRenderer*)(this->mGuiRenderer))->mRenderPass;
-		//vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		//viewport.width = Application->appSizes->sceneSize.x;
 		viewport.height = Application->appSizes->sceneSize.y;
 		viewport.y = 0.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
@@ -1922,6 +1938,7 @@ namespace Plaza {
 		CreateDescriptorPool();
 		CreateDescriptorSets();
 		CreateCommandBuffers();
+		InitComputeCommandBuffers();
 		InitSyncStructures();
 		CreateImGuiTextureSampler();
 
@@ -1935,6 +1952,8 @@ namespace Plaza {
 		this->mSkybox->Init();
 		this->mPicking->Init();
 		this->mGuiRenderer->Init();
+
+		this->mParticleCompute.Init(Application->enginePath + "\\Shaders\\Vulkan\\compute\\particles.comp");
 
 		VkSemaphoreCreateInfo semaphoreInfo = {};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -1962,6 +1981,7 @@ namespace Plaza {
 			PLAZA_PROFILE_SECTION("Wait Fences");
 			Application->mThreadsManager->mFrameRendererBeforeFenceThread->Update();
 			vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+			//vkWaitForFences(mDevice, 1, &mComputeInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
 			Application->mThreadsManager->mFrameRendererAfterFenceThread->Update();
 		}
 
@@ -2002,30 +2022,44 @@ namespace Plaza {
 			PLAZA_PROFILE_SECTION("Reset Fences/CommandBuffer and Record command buffer");
 			vkResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]);
 			vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0);
+			//vkResetFences(mDevice, 1, &mComputeInFlightFences[mCurrentFrame]);
+			//vkResetCommandBuffer(mComputeCommandBuffers[mCurrentFrame], 0);
 
 			RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
 		}
 
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
 		VkSemaphore waitSemaphores[] = { mImageAvailableSemaphores[mCurrentFrame] };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT };
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = waitSemaphores;
-		submitInfo.pWaitDstStageMask = waitStages;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
-
 		VkSemaphore signalSemaphores[] = { mRenderFinishedSemaphores[mCurrentFrame] };
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = signalSemaphores;
 
 		{
+			VkSubmitInfo submitInfo{};
+			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			submitInfo.waitSemaphoreCount = 1;
+			submitInfo.pWaitSemaphores = waitSemaphores;
+			submitInfo.pWaitDstStageMask = waitStages;
+			submitInfo.commandBufferCount = 1;
+			submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
+			submitInfo.signalSemaphoreCount = 1;
+			submitInfo.pSignalSemaphores = signalSemaphores;
 			PLAZA_PROFILE_SECTION("Queue");
 			if (vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to submit draw command buffer!");
 			}
+
+
+		}
+
+		{
+			//VkSubmitInfo submitInfo{};
+			//submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			//submitInfo.commandBufferCount = 1;
+			//submitInfo.pCommandBuffers = &mComputeCommandBuffers[mCurrentFrame];
+			//submitInfo.signalSemaphoreCount = 1;
+			//submitInfo.pSignalSemaphores = &mComputeFinishedSemaphores[mCurrentFrame];
+			//if (vkQueueSubmit(mComputeQueue, 1, &submitInfo, nullptr) != VK_SUCCESS) {
+			//	throw std::runtime_error("failed to submit draw command buffer!");
+			//}
 		}
 
 		VkPresentInfoKHR presentInfo{};
@@ -2659,5 +2693,19 @@ namespace Plaza {
 		descriptorWrite.pBufferInfo = &bufferInfo;
 
 		vkUpdateDescriptorSets(mDevice, 1, &descriptorWrite, 0, nullptr);
+	}
+
+	void VulkanRenderer::InitComputeCommandBuffers() {
+		mComputeCommandBuffers.resize(mMaxFramesInFlight);
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = mCommandPool;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = (uint32_t)mComputeCommandBuffers.size();
+
+		if (vkAllocateCommandBuffers(mDevice, &allocInfo, mComputeCommandBuffers.data()) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate compute command buffers!");
+		}
 	}
 }

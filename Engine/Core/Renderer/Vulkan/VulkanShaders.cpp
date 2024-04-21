@@ -2,7 +2,7 @@
 #include "VulkanShaders.h"
 
 namespace Plaza {
-	static VkShaderModule createShaderModule(const std::vector<char>& code, VkDevice device) {
+	VkShaderModule VulkanShaders::CreateShaderModule(const std::vector<char>& code, VkDevice device) {
 		VkShaderModuleCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		createInfo.codeSize = code.size();
@@ -17,7 +17,7 @@ namespace Plaza {
 	}
 
 
-	static std::vector<char> readFile(const std::string& filename) {
+	std::vector<char> VulkanShaders::ReadFile(const std::string& filename) {
 		std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
 		if (!file.is_open()) {
@@ -65,12 +65,12 @@ namespace Plaza {
 	}
 
 	void VulkanShaders::InitializeDefaultValues(VkDevice device, VkRenderPass renderPass, int width, int height, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo, std::vector<VkPushConstantRange> pushConstantRanges, bool useVertexInputInfo) {
-		auto vertShaderCode = readFile(mVertexShaderPath);
-		auto fragShaderCode = readFile(mFragmentShaderPath);
+		auto vertShaderCode = ReadFile(mVertexShaderPath);
+		auto fragShaderCode = ReadFile(mFragmentShaderPath);
 		//auto geomShaderCode = readFile(mGeometryShaderPath);
 
-		vertShaderModule = createShaderModule(vertShaderCode, device);
-		fragShaderModule = createShaderModule(fragShaderCode, device);
+		vertShaderModule = CreateShaderModule(vertShaderCode, device);
+		fragShaderModule = CreateShaderModule(fragShaderCode, device);
 		//VkShaderModule geomShaderModule = createShaderModule(geomShaderCode, device);
 
 		if (!mVertexShaderPath.empty())
@@ -267,12 +267,12 @@ namespace Plaza {
 		std::vector<VkVertexInputBindingDescription> vertexInputBindings,
 		std::vector<VkVertexInputAttributeDescription> vertexInputAttributes
 	) {
-		auto vertShaderCode = readFile(mVertexShaderPath);
-		auto fragShaderCode = readFile(mFragmentShaderPath);
+		auto vertShaderCode = ReadFile(mVertexShaderPath);
+		auto fragShaderCode = ReadFile(mFragmentShaderPath);
 		//auto geomShaderCode = readFile(mGeometryShaderPath);
 
-		vertShaderModule = createShaderModule(vertShaderCode, device);
-		fragShaderModule = createShaderModule(fragShaderCode, device);
+		vertShaderModule = CreateShaderModule(vertShaderCode, device);
+		fragShaderModule = CreateShaderModule(fragShaderCode, device);
 		//VkShaderModule geomShaderModule = createShaderModule(geomShaderCode, device);
 
 		if (!mVertexShaderPath.empty())

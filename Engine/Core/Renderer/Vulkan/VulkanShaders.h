@@ -2,6 +2,8 @@
 namespace Plaza {
 	class VulkanShaders {
 	public:
+		static VkShaderModule CreateShaderModule(const std::vector<char>& code, VkDevice device);
+		static std::vector<char> ReadFile(const std::string& filename);
 		std::string mVertexShaderPath;
 		std::string mFragmentShaderPath;
 		std::string mGeometryShaderPath;

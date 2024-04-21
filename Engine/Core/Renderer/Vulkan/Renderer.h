@@ -10,6 +10,7 @@
 #include "VulkanTexture.h"
 #include "VulkanShadows.h"
 #include "VulkanPicking.h"
+#include "VulkanComputeShaders.h"
 namespace Plaza {
 	struct SwapChainSupportDetails {
 		VkSurfaceCapabilitiesKHR capabilities;
@@ -21,7 +22,7 @@ namespace Plaza {
 	public:
 		VkSemaphore semaphore;
 
-
+		VulkanComputeShaders mParticleCompute;
 
 
 		struct PushConstants {
@@ -126,11 +127,14 @@ namespace Plaza {
 		VkFramebuffer mFinalSceneFramebuffer;
 		VkExtent2D mSwapChainExtent;
 		VkQueue mGraphicsQueue = VK_NULL_HANDLE;
+		VkQueue mComputeQueue = VK_NULL_HANDLE;
 		std::vector<VkFence> mInFlightFences;
 		VkImageView mDepthImageView;
 
 		void AddMaterial(Material* material);
 		void UpdateMaterials();
+
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
 	private:
 		struct alignas(16) MaterialData {
 			glm::vec4 color = glm::vec4(1.0f);
@@ -181,7 +185,6 @@ namespace Plaza {
 		void CreateDescriptorPool();
 		void CreateDescriptorSets();
 		void UpdateUniformBuffer(uint32_t currentImage);
-		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
 		void CreateDescriptorSetLayout();
 
 		void CreateTextureImage();
@@ -208,9 +211,16 @@ namespace Plaza {
 		VkPipelineLayout mPipelineLayout;
 		VkCommandPool mCommandPool;
 		std::vector<VkCommandBuffer> mCommandBuffers;
+		std::vector<VkCommandBuffer> mComputeCommandBuffers;
+
 		std::vector<VkSemaphore> mImageAvailableSemaphores;
 		std::vector<VkSemaphore> mRenderFinishedSemaphores;
+		std::vector<VkSemaphore> mComputeFinishedSemaphores;
+		std::vector<VkFence> mComputeInFlightFences;
 
+		void InitComputeCommandBuffers();
+		void InitComputeSemaphores();
+		void InitComputeInFlightFences();
 
 		VkFormat mSwapChainImageFormat;
 

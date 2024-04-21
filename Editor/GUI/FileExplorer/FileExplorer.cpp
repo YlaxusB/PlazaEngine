@@ -7,6 +7,12 @@
 #include "Editor/GUI/Popups/FileExplorerFilePopup.h"
 #include "Editor/GUI/Popups/FileExplorerPopup.h"
 #include "Editor/GUI/Utils/Filesystem.h"
+#include "Editor/GUI/FileExplorer/FileIcon.h"
+
+#include "Editor/GUI/FileExplorer/File.h"
+#include "Editor/GUI/FileExplorer/Files/BackFile.h"
+#include "Editor/GUI/FileExplorer/Files/FolderFile.h"
+#include "Editor/GUI/FileExplorer/Files/MaterialFile.h"
 
 unsigned int startSelected = 0;
 namespace Plaza {
@@ -34,17 +40,17 @@ namespace Plaza {
 				ImGui::BeginGroup();
 				// Create all the icons
 				unsigned int index = 0;
-				for (File& file : files) {
-					if (file.name != "")
-						FileExplorer::DrawFile(&file);
-					//file.Update();
-					if (index == 0) {
-						// Back Button Click
-						if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0) && filesystem::path{ currentDirectory }.parent_path().string().starts_with(Application->activeProject->directory)) {
-							Editor::Gui::FileExplorer::currentDirectory = filesystem::path{ currentDirectory }.parent_path().string();
-							Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
-						}
-					}
+				for (const auto& file : files) {
+					if (file->name != "")
+						FileExplorer::DrawFile(file.get());
+					// Show back button
+					//if (index == 0) {
+					//	// Back Button Click
+					//	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0) && filesystem::path{ currentDirectory }.parent_path().string().starts_with(Application->activeProject->directory)) {
+					//		Editor::Gui::FileExplorer::currentDirectory = filesystem::path{ currentDirectory }.parent_path().string();
+					//		Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+					//	}
+					//}
 					index++;
 				}
 
@@ -55,27 +61,17 @@ namespace Plaza {
 
 			ImGui::End();
 			ImGui::PopStyleColor();
-
-			files.clear();
-			files = updatedFiles;
 		}
 
 		/* Read all files in a directory and push them to the files vector */
-		std::vector<File> Gui::FileExplorer::files = std::vector<File>();
-		std::vector<File> Gui::FileExplorer::updatedFiles = std::vector<File>();
+		std::vector<std::unique_ptr<File>> Gui::FileExplorer::files = std::vector<std::unique_ptr<File>>();
 		void Gui::FileExplorer::UpdateContent(std::string folderPath) {
-			updatedFiles.clear();
 			namespace fs = std::filesystem;
-
+			files.clear();
 			// Back Button
 			std::string currentDirectory = Gui::FileExplorer::currentDirectory;
 			const std::string& currentDirectoryPath = filesystem::path{ currentDirectory }.string();
-			File backFile = File();
-			backFile.directory = currentDirectory + "\\asd.back";
-			backFile.extension = ".back";
-			backFile.name = ".back";
-			backFile.textureId = Icon::textures.at("").id;
-			updatedFiles.push_back(backFile);
+			files.push_back(make_unique<BackFile>(".back", currentDirectory + "\\asd.back", ".back"));
 
 			// Loop through all files found and create an icon on the file explorer
 			for (const auto& entry : fs::directory_iterator(folderPath)) {
@@ -83,29 +79,15 @@ namespace Plaza {
 				std::string extension = entry.path().extension().string();
 				if (entry.path().stem().string() == filename)
 					extension = filename;
-				// Check if its a folder
-				if (fs::is_directory(entry.path())) {
-					File newFile = File();
-					newFile.directory = entry.path().string();
-					newFile.name = filename;
-					newFile.extension = extension;
-					newFile.textureId = Icon::textures.at("").id;
-					updatedFiles.push_back(newFile);
-				}
-				else if (entry.path().extension() != ".dll") {
-					File newFile = File();
-					newFile.directory = entry.path().string();
-					newFile.name = filename;
-					newFile.extension = extension;
-					const auto& it = Icon::textures.find(extension);
-					if (it != Icon::textures.end()) {
-						newFile.textureId = it->second.id;
-					}
-					else {
-						newFile.textureId = Icon::textures.at(".notFound").id;
-					}
-					updatedFiles.push_back(newFile);
-				}
+
+				// Call the respective constructor
+				if (fs::is_directory(entry.path()))
+					files.emplace_back(make_unique<FolderFile>(filename, entry.path().string(), ""));
+				else if (extension == Standards::materialExtName)
+					files.emplace_back(make_unique<MaterialFile>(filename, entry.path().string(), extension));
+				else
+					files.emplace_back(make_unique<File>(filename, entry.path().string(), extension));
+
 			}
 		}
 
@@ -189,50 +171,51 @@ namespace Plaza {
 				// Clicked on a folder and is not holding ctrl
 				if (ImGui::IsMouseDoubleClicked(0)) {
 					// Handle double click on folders
-					if (filesystem::is_directory(filesystem::path{ file->directory }) && glfwGetKey(Application->Window->glfwWindow, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS) {
-						Editor::Gui::FileExplorer::currentDirectory = file->directory;
-						Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
-						Editor::selectedFiles.clear();
-					} // Handle double click on .cs files
-					else if (filesystem::path{ file->directory }.extension() == ".cs") {
-						/* Get Devenv path */
-						std::string getDevenvCommand = (Application->enginePath + "/vendor/vsWhere/vswhere -latest -requires Microsoft.Component.MSBuild -find Common7/IDE/devenv.exe");
-						// Open a pipe to capture the command output
-						FILE* pipe = _popen(getDevenvCommand.c_str(), "r");
-						if (!pipe) {
-							std::cerr << "Error: Unable to execute the command." << std::endl;
-						}
-						char buffer[1024];
-						std::string devenvPath = "";
-
-						// Read the command output character by character
-						int c;
-						while ((c = fgetc(pipe)) != EOF) {
-							// Filter out newline characters
-							if (c != '\n' && c != '\r') {
-								devenvPath += static_cast<char>(c);
-							}
-						}
-						// Close the pipe
-						_pclose(pipe);
-
-						/* "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" /command "File.OpenFile" "Speed Runers.sln" scriptchola.cs */
-						std::string projectPath = std::filesystem::path{ Application->activeProject->directory + "/" + Application->activeProject->name }.replace_extension(".sln").string();
-						std::string scriptPath = file->directory;
-						std::string openCsFileCommand = "\"\"" + devenvPath + "\" \"" + projectPath + "\" \"" + scriptPath + "\"\"";
-						for (size_t i = 0; i < openCsFileCommand.length(); ++i) {
-							if (openCsFileCommand[i] == '\\') {
-								openCsFileCommand[i] = '/';
-							}
-						}
-						std::cout << "OpenCsFileCommand: " << openCsFileCommand.c_str() << "\n";
-						//system(openCsFileCommand.c_str());
-
-						FILE* pipe2 = _popen(openCsFileCommand.c_str(), "r");
-						if (!pipe2) {
-							std::cerr << "Error: Unable to execute the command." << std::endl;
-						}
-					}
+					file->DoubleClick();
+					//if (filesystem::is_directory(filesystem::path{ file->directory }) && glfwGetKey(Application->Window->glfwWindow, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS) {
+					//	Editor::Gui::FileExplorer::currentDirectory = file->directory;
+					//	Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+					//	Editor::selectedFiles.clear();
+					//} // Handle double click on .cs files
+					//else if (filesystem::path{ file->directory }.extension() == ".cs") {
+					//	/* Get Devenv path */
+					//	std::string getDevenvCommand = (Application->enginePath + "/vendor/vsWhere/vswhere -latest -requires Microsoft.Component.MSBuild -find Common7/IDE/devenv.exe");
+					//	// Open a pipe to capture the command output
+					//	FILE* pipe = _popen(getDevenvCommand.c_str(), "r");
+					//	if (!pipe) {
+					//		std::cerr << "Error: Unable to execute the command." << std::endl;
+					//	}
+					//	char buffer[1024];
+					//	std::string devenvPath = "";
+					//
+					//	// Read the command output character by character
+					//	int c;
+					//	while ((c = fgetc(pipe)) != EOF) {
+					//		// Filter out newline characters
+					//		if (c != '\n' && c != '\r') {
+					//			devenvPath += static_cast<char>(c);
+					//		}
+					//	}
+					//	// Close the pipe
+					//	_pclose(pipe);
+					//
+					//	/* "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" /command "File.OpenFile" "Speed Runers.sln" scriptchola.cs */
+					//	std::string projectPath = std::filesystem::path{ Application->activeProject->directory + "/" + Application->activeProject->name }.replace_extension(".sln").string();
+					//	std::string scriptPath = file->directory;
+					//	std::string openCsFileCommand = "\"\"" + devenvPath + "\" \"" + projectPath + "\" \"" + scriptPath + "\"\"";
+					//	for (size_t i = 0; i < openCsFileCommand.length(); ++i) {
+					//		if (openCsFileCommand[i] == '\\') {
+					//			openCsFileCommand[i] = '/';
+					//		}
+					//	}
+					//	std::cout << "OpenCsFileCommand: " << openCsFileCommand.c_str() << "\n";
+					//	//system(openCsFileCommand.c_str());
+					//
+					//	FILE* pipe2 = _popen(openCsFileCommand.c_str(), "r");
+					//	if (!pipe2) {
+					//		std::cerr << "Error: Unable to execute the command." << std::endl;
+					//	}
+					//}
 				}
 				else {
 					Editor::selectedGameObject = 0;

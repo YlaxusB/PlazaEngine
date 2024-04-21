@@ -5,8 +5,7 @@ namespace Plaza {
 	namespace Editor {
 		class Gui::FileExplorer {
 		public:
-			static std::vector<File> files;
-			static std::vector<File> updatedFiles;
+			static std::vector<std::unique_ptr<File>> files;
 			static std::string currentDirectory;
 			static void Init();
 			static void UpdateGui();

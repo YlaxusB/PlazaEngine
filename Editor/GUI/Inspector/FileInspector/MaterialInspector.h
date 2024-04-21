@@ -12,10 +12,20 @@ namespace Plaza::Editor {
 		static File* lastFile;
 		MaterialFileInspector(File* file) {
 			if (!material || file != lastFile) {
-				material = Application->activeScene->materials.at(AssetsManager::GetAsset(file->directory)->mAssetUuid).get();//MaterialFileSerializer::DeSerialize(file->directory);
-				//if (material->uuid && Application->activeScene->materials.find(material->uuid) != Application->activeScene->materials.end())
-				//	material = Application->activeScene->materials.at(material->uuid).get();
+				if (AssetsManager::GetAsset(file->directory))
+				{
+					auto materialIt = Application->activeScene->materials.find(AssetsManager::GetAsset(file->directory)->mAssetUuid);
+					if (nullptr && materialIt != Application->activeScene->materials.end())
+						material = materialIt->second.get();
+				}
 			}
+
+			if (!material)
+			{
+				ImGui::Text("Material not found");
+				return;
+			}
+
 			ImGui::Text(file->directory.c_str());
 
 			ImGui::ColorPicker4("Diffuse", &material->diffuse->rgba.x);

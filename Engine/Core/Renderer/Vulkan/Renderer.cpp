@@ -1110,7 +1110,7 @@ namespace Plaza {
 
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		this->mParticleCompute.RunCompute();
+		//this->mParticleCompute.RunCompute();
 
 		{
 			PLAZA_PROFILE_SECTION("Bind Instances Data");
@@ -1141,7 +1141,8 @@ namespace Plaza {
 
 			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 		}
-		this->mParticleCompute.Draw();
+		//this->mParticleCompute.Draw();
+
 
 
 		viewport.height = Application->appSizes->sceneSize.y;
@@ -1152,6 +1153,7 @@ namespace Plaza {
 		this->mGuiRenderer->RenderText(nullptr);
 
 		vkCmdEndRenderPass(commandBuffer);
+		this->mBloom.Draw();
 
 #ifdef EDITOR_MODE
 		renderPassInfo.renderPass = mRenderPass;
@@ -1595,7 +1597,7 @@ namespace Plaza {
 		vkFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
 	}
 
-	void VulkanRenderer::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask, unsigned int layerCount) {
+	void VulkanRenderer::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask, unsigned int layerCount, unsigned int mipCount) {
 		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
 		VkImageMemoryBarrier barrier{};
@@ -1607,7 +1609,7 @@ namespace Plaza {
 		barrier.image = image;
 		barrier.subresourceRange.aspectMask = aspectMask;
 		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = 1;
+		barrier.subresourceRange.levelCount = mipCount;
 		barrier.subresourceRange.baseArrayLayer = 0;
 		barrier.subresourceRange.layerCount = layerCount;
 
@@ -1676,6 +1678,13 @@ namespace Plaza {
 
 			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_GENERAL) {
+			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 		}
 		else {
 			throw std::invalid_argument("unsupported layout transition!");
@@ -1953,7 +1962,8 @@ namespace Plaza {
 		this->mPicking->Init();
 		this->mGuiRenderer->Init();
 
-		this->mParticleCompute.Init(Application->enginePath + "\\Shaders\\Vulkan\\compute\\particles.comp");
+		//this->mParticleCompute.Init(Application->enginePath + "\\Shaders\\Vulkan\\compute\\particles.comp");
+		this->mBloom.Init();
 
 		VkSemaphoreCreateInfo semaphoreInfo = {};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;

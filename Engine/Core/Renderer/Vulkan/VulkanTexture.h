@@ -23,6 +23,8 @@ namespace Plaza {
 		void GenerateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkFormat format);
 		void CreateTextureImage(VkDevice& device, std::string path, VkFormat& format, bool generateMipMaps = false);
 		void CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps = false);
+		void InitDescriptorSet();
+		void InitDescriptorSetLayout();
 	private:
 		VkBuffer mStagingBuffer;
 		VkDeviceMemory mStagingBufferMemory;
@@ -31,8 +33,6 @@ namespace Plaza {
 		unsigned int GetTextureID() override;
 		ImTextureID GetImGuiTextureID() override;
 
-		void InitDescriptorSet();
-		void InitDescriptorSetLayout();
 
 		friend VulkanRenderer;
 	};

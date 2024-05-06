@@ -11,6 +11,7 @@
 #include "VulkanShadows.h"
 #include "VulkanPicking.h"
 #include "VulkanComputeShaders.h"
+#include "VulkanBloom.h"
 namespace Plaza {
 	struct SwapChainSupportDetails {
 		VkSurfaceCapabilitiesKHR capabilities;
@@ -70,6 +71,7 @@ namespace Plaza {
 		static VulkanRenderer* GetRenderer();
 		RendererAPI api = RendererAPI::Vulkan;
 		VulkanShadows* mShadows; //= new VulkanShadows();
+		VulkanBloom mBloom;
 
 		void Init() override;
 		void UpdateProjectManager() override;
@@ -111,7 +113,7 @@ namespace Plaza {
 		VkFormat FindDepthFormat();
 
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, unsigned int layerCount = 1);
+		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, unsigned int layerCount = 1, unsigned int mipCount = 1);
 
 		void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
@@ -135,6 +137,7 @@ namespace Plaza {
 		void UpdateMaterials();
 
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
+		VkSampler mTextureSampler;
 	private:
 		struct alignas(16) MaterialData {
 			glm::vec4 color = glm::vec4(1.0f);
@@ -276,7 +279,6 @@ namespace Plaza {
 		VkPipelineLayout mImguiPipelineLayout;
 		VkImage mImguiImage;
 
-		VkSampler mTextureSampler;
 
 		VkImage mDepthImage;
 		VkDeviceMemory mDepthImageMemory;

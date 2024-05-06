@@ -27,7 +27,10 @@ namespace Plaza {
 		};
 
 		struct UniformBufferObject {
-			float deltaTime = 1.0f;
+			glm::vec4 u_threshold;
+			glm::vec2 u_texel_size;
+			int u_mip_level;
+			bool u_use_threshold;
 		};
 
 		void CreateComputeDescriptorSetLayout();
@@ -35,13 +38,15 @@ namespace Plaza {
 		void Init(std::string shadersPath);
 		void RunCompute();
 		void Draw();
+		void Dispatch(int x, int y, int z);
 		void Terminate();
 
 		std::vector<VkBuffer> mShaderStorageBuffers;
 		std::vector<VkDeviceMemory> mShaderStorageBuffersMemory;
-	private:
-		std::vector<VkDescriptorSet> mComputeDescriptorSets;
 		VkDescriptorSetLayout mComputeDescriptorSetLayout;
+		std::vector<VkWriteDescriptorSet> mDescriptorWrites{};
+		std::vector<VkDescriptorSet> mComputeDescriptorSets;
+	private:
 		VkPipelineLayout mComputePipelineLayout;
 		VkPipeline mComputePipeline;
 

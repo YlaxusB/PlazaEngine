@@ -33,7 +33,8 @@ namespace Plaza {
 		}
 	}
 	void VulkanComputeShaders::Init(std::string shadersPath) {
-		CreateComputeDescriptorSetLayout();
+		if (mComputeDescriptorSetLayout == VK_NULL_HANDLE)
+			CreateComputeDescriptorSetLayout();
 		VkShaderModule computeShaderModule = VulkanShaders::CreateShaderModule(VulkanShaders::ReadFile(VulkanShadersCompiler::Compile(shadersPath)), VulkanRenderer::GetRenderer()->mDevice);
 
 		VkPipelineShaderStageCreateInfo computeShaderStageInfo{};
@@ -112,94 +113,54 @@ namespace Plaza {
 		layoutInfo.bindingCount = 3;
 		layoutInfo.pBindings = layoutBindings.data();
 
-		if (vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &layoutInfo, nullptr, &mComputeDescriptorSetLayout) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create compute descriptor set layout!");
-		}
+		//if (vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &layoutInfo, nullptr, &mComputeDescriptorSetLayout) != VK_SUCCESS) {
+		//	throw std::runtime_error("failed to create compute descriptor set layout!");
+		//}
 
-		bufferSize = sizeof(UniformBufferObject);
+		//bufferSize = sizeof(UniformBufferObject);
+		//
+		//mUniformBuffers.resize(VulkanRenderer::GetRenderer()->mMaxFramesInFlight);
+		//mUniformBuffersMemory.resize(VulkanRenderer::GetRenderer()->mMaxFramesInFlight);
+		//mUniformBuffersMapped.resize(VulkanRenderer::GetRenderer()->mMaxFramesInFlight);
+		//
+		//for (size_t i = 0; i < VulkanRenderer::GetRenderer()->mMaxFramesInFlight; i++) {
+		//	VulkanRenderer::GetRenderer()->CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffers[i], mUniformBuffersMemory[i]);
+		//
+		//	vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mUniformBuffersMemory[i], 0, bufferSize, 0, &mUniformBuffersMapped[i]);
+		//}
 
-		mUniformBuffers.resize(VulkanRenderer::GetRenderer()->mMaxFramesInFlight);
-		mUniformBuffersMemory.resize(VulkanRenderer::GetRenderer()->mMaxFramesInFlight);
-		mUniformBuffersMapped.resize(VulkanRenderer::GetRenderer()->mMaxFramesInFlight);
+		//std::array<VkDescriptorPoolSize, 2> poolSizes{};
+		//poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		//poolSizes[0].descriptorCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
+		//
+		//poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		//poolSizes[1].descriptorCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight) * 2;
+		//
+		//VkDescriptorPoolCreateInfo poolInfo{};
+		//poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		//poolInfo.poolSizeCount = 2;
+		//poolInfo.pPoolSizes = poolSizes.data();
+		//poolInfo.maxSets = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
+		//
+		//VkDescriptorPool descriptorPool;
+		//if (vkCreateDescriptorPool(VulkanRenderer::GetRenderer()->mDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+		//	throw std::runtime_error("failed to create descriptor pool!");
+		//}
 
-		for (size_t i = 0; i < VulkanRenderer::GetRenderer()->mMaxFramesInFlight; i++) {
-			VulkanRenderer::GetRenderer()->CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffers[i], mUniformBuffersMemory[i]);
-
-			vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mUniformBuffersMemory[i], 0, bufferSize, 0, &mUniformBuffersMapped[i]);
-		}
-
-		std::array<VkDescriptorPoolSize, 2> poolSizes{};
-		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		poolSizes[0].descriptorCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
-
-		poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		poolSizes[1].descriptorCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight) * 2;
-
-		VkDescriptorPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.poolSizeCount = 2;
-		poolInfo.pPoolSizes = poolSizes.data();
-		poolInfo.maxSets = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
-
-		VkDescriptorPool descriptorPool;
-		if (vkCreateDescriptorPool(VulkanRenderer::GetRenderer()->mDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create descriptor pool!");
-		}
-
-		mComputeDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
-		std::vector<VkDescriptorSetLayout> layouts(Application->mRenderer->mMaxFramesInFlight, mComputeDescriptorSetLayout);
-		VkDescriptorSetAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = descriptorPool;
-		allocInfo.descriptorSetCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
-		allocInfo.pSetLayouts = layouts.data();
-
-		if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, mComputeDescriptorSets.data()) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate descriptor sets!");
-		}
-		for (size_t i = 0; i < VulkanRenderer::GetRenderer()->mMaxFramesInFlight; i++) {
-			VkDescriptorBufferInfo uniformBufferInfo{};
-			uniformBufferInfo.buffer = mUniformBuffers[i];
-			uniformBufferInfo.offset = 0;
-			uniformBufferInfo.range = sizeof(UniformBufferObject);
-
-			std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
-			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[0].dstSet = mComputeDescriptorSets[i];
-			descriptorWrites[0].dstBinding = 0;
-			descriptorWrites[0].dstArrayElement = 0;
-			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			descriptorWrites[0].descriptorCount = 1;
-			descriptorWrites[0].pBufferInfo = &uniformBufferInfo;
-
-			VkDescriptorBufferInfo storageBufferInfoLastFrame{};
-			storageBufferInfoLastFrame.buffer = mShaderStorageBuffers[(i - 1) % VulkanRenderer::GetRenderer()->mMaxFramesInFlight];
-			storageBufferInfoLastFrame.offset = 0;
-			storageBufferInfoLastFrame.range = sizeof(Particle) * PARTICLE_COUNT;
-
-			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[1].dstSet = mComputeDescriptorSets[i];
-			descriptorWrites[1].dstBinding = 1;
-			descriptorWrites[1].dstArrayElement = 0;
-			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-			descriptorWrites[1].descriptorCount = 1;
-			descriptorWrites[1].pBufferInfo = &storageBufferInfoLastFrame;
-
-			VkDescriptorBufferInfo storageBufferInfoCurrentFrame{};
-			storageBufferInfoCurrentFrame.buffer = mShaderStorageBuffers[i];
-			storageBufferInfoCurrentFrame.offset = 0;
-			storageBufferInfoCurrentFrame.range = sizeof(Particle) * PARTICLE_COUNT;
-
-			descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[2].dstSet = mComputeDescriptorSets[i];
-			descriptorWrites[2].dstBinding = 2;
-			descriptorWrites[2].dstArrayElement = 0;
-			descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-			descriptorWrites[2].descriptorCount = 1;
-			descriptorWrites[2].pBufferInfo = &storageBufferInfoCurrentFrame;
-
-			vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, 3, descriptorWrites.data(), 0, nullptr);
-		}
+		//mComputeDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
+		//std::vector<VkDescriptorSetLayout> layouts(Application->mRenderer->mMaxFramesInFlight, mComputeDescriptorSetLayout);
+		//VkDescriptorSetAllocateInfo allocInfo{};
+		//allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		//allocInfo.descriptorPool = descriptorPool;
+		//allocInfo.descriptorSetCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
+		//allocInfo.pSetLayouts = layouts.data();
+		//
+		//if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, mComputeDescriptorSets.data()) != VK_SUCCESS) {
+		//	throw std::runtime_error("failed to allocate descriptor sets!");
+		//}
+		//for (size_t i = 0; i < VulkanRenderer::GetRenderer()->mMaxFramesInFlight; i++) {		
+		//	vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, mDescriptorWrites.size(), mDescriptorWrites.data(), 0, nullptr);
+		//}
 
 		VkComputePipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
@@ -217,7 +178,7 @@ namespace Plaza {
 
 
 		UniformBufferObject ubo{};
-		ubo.deltaTime = Time::deltaTime * 1000.0f;
+		//ubo.deltaTime = Time::deltaTime * 1000.0f;
 
 		memcpy(mUniformBuffersMapped[Application->mRenderer->mCurrentFrame], &ubo, sizeof(ubo));
 
@@ -226,6 +187,15 @@ namespace Plaza {
 		vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipelineLayout, 0, 1, &mComputeDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
 
 		vkCmdDispatch(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, PARTICLE_COUNT / 256, 1, 1);
+	}
+
+	void VulkanComputeShaders::Dispatch(int x, int y, int z) {
+		vkCmdBindPipeline(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipeline);
+
+		uint32_t offsets[1] = { 0 };
+		vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipelineLayout, 0, 1, &mComputeDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 1, offsets);
+
+		vkCmdDispatch(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, x, y, z);
 	}
 
 	void VulkanComputeShaders::Draw() {

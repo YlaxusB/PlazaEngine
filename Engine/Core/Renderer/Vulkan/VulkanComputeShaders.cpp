@@ -166,6 +166,7 @@ namespace Plaza {
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
 		pipelineInfo.layout = mComputePipelineLayout;
 		pipelineInfo.stage = computeShaderStageInfo;
+		//pipelineInfo.flags = VK_NULL_HANDLE;
 
 		if (vkCreateComputePipelines(VulkanRenderer::GetRenderer()->mDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &mComputePipeline) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create compute pipeline!");
@@ -193,6 +194,7 @@ namespace Plaza {
 		vkCmdBindPipeline(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipeline);
 
 		uint32_t offsets[1] = { 0 };
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mFinalSceneImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipelineLayout, 0, 1, &mComputeDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 1, offsets);
 
 		vkCmdDispatch(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, x, y, z);

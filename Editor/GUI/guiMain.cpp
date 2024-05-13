@@ -527,7 +527,7 @@ namespace Plaza {
 			ImGui::Checkbox("Flip Y", &mFlipY);
 
 			if (!Gui::mImageInspectorShowAllImages)
-				ImGui::Image(mSelectedImageInspector, Gui::imageSize, uv0, uv1);
+				ImGui::Image(Gui::mSelectedImageInspector, Gui::imageSize, uv0, uv1);
 
 			for (unsigned int i = 0; i < Application->mRenderer->mTrackedImages.size(); ++i) {
 				if (Gui::mImageInspectorShowAllImages) {

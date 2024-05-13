@@ -581,6 +581,60 @@ namespace Plaza {
 		}
 	}
 
+		void VulkanRenderer::CreateSwapchainRenderPass()
+	{
+		VkAttachmentDescription colorAttachment{};
+		colorAttachment.format = VK_FORMAT_B8G8R8A8_UNORM;
+		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+		VkAttachmentReference colorAttachmentRef{};
+		colorAttachmentRef.attachment = 0;
+		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = 1;
+		subpass.pColorAttachments = &colorAttachmentRef;
+
+		std::array<VkSubpassDependency, 2> dependencies;
+
+		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[0].dstSubpass = 0;
+		dependencies[0].srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		dependencies[0].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+		dependencies[0].dependencyFlags = 0;
+
+		dependencies[1].srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependencies[1].dstSubpass = 0;
+		dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependencies[1].srcAccessMask = 0;
+		dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+		dependencies[1].dependencyFlags = 0;
+
+		std::array<VkAttachmentDescription, 1> attachments = { colorAttachment };
+		VkRenderPassCreateInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		renderPassInfo.pAttachments = attachments.data();
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = dependencies.size();
+		renderPassInfo.pDependencies = dependencies.data();
+
+		if (vkCreateRenderPass(mDevice, &renderPassInfo, nullptr, &mSwapchainRenderPass) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create render pass!");
+		}
+	}
+
 	void VulkanRenderer::CreateRenderPass()
 	{
 		VkAttachmentDescription colorAttachment{};
@@ -882,7 +936,9 @@ namespace Plaza {
 			throw std::runtime_error("failed to create framebuffer!");
 		}
 
-
+		if (vkCreateFramebuffer(mDevice, &framebufferInfo, nullptr, &mDeferredFramebuffer) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create framebuffer!");
+		}
 	}
 
 	void VulkanRenderer::CreateCommandPool() {
@@ -1094,11 +1150,8 @@ namespace Plaza {
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
 		renderPassInfo.renderPass = mRenderPass;
-#ifdef GAME_MODE
-		renderPassInfo.framebuffer = mSwapChainFramebuffers[imageIndex];
-#else
-		renderPassInfo.framebuffer = mFinalSceneFramebuffer;
-#endif
+		renderPassInfo.framebuffer = mDeferredFramebuffer;
+
 		renderPassInfo.renderArea.extent.width = Application->appSizes->sceneSize.x;
 		renderPassInfo.renderArea.extent.height = Application->appSizes->sceneSize.y;
 
@@ -1154,6 +1207,24 @@ namespace Plaza {
 
 		vkCmdEndRenderPass(commandBuffer);
 		this->mBloom.Draw();
+
+		/* Render to ImGui or swapchain */
+		renderPassInfo.renderPass = this->mSwapchainRenderer.mRenderPass;
+#ifdef GAME_MODE
+		renderPassInfo.framebuffer = mSwapChainFramebuffers[imageIndex];
+#else
+		renderPassInfo.framebuffer = mFinalSceneFramebuffer;
+#endif
+		std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
+		descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mSwapchainRenderer.mShaders->mPipeline);
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, 1, descriptorSets.data(), 0, nullptr);
+		this->mSwapchainRenderer.Update();
+		this->mSwapchainRenderer.DrawFullScreenRectangle();
+		//vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		//vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		vkCmdEndRenderPass(commandBuffer);
 
 #ifdef EDITOR_MODE
 		renderPassInfo.renderPass = mRenderPass;
@@ -1644,6 +1715,13 @@ namespace Plaza {
 			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 			destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_PRESENT_SRC_KHR && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+			barrier.srcAccessMask = 0; // Assuming no access is needed
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT; 
+		}
 		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
 			barrier.srcAccessMask = 0;
 			barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
@@ -1965,6 +2043,33 @@ namespace Plaza {
 		//this->mParticleCompute.Init(Application->enginePath + "\\Shaders\\Vulkan\\compute\\particles.comp");
 		this->mBloom.Init();
 
+
+		CreateSwapchainRenderPass();
+		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+		samplerLayoutBinding.binding = 1;
+		samplerLayoutBinding.descriptorCount = 1;
+		samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		samplerLayoutBinding.pImmutableSamplers = nullptr;
+		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		std::array<VkDescriptorSetLayoutBinding, 1> bindings = { samplerLayoutBinding };
+		VkDescriptorSetLayoutCreateInfo layoutInfo{};
+		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+		layoutInfo.pBindings = bindings.data();
+		layoutInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT;
+
+		if (vkCreateDescriptorSetLayout(mDevice, &layoutInfo, nullptr, &mSwapchainDescriptorSetLayout) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create descriptor set layout!");
+		}
+		VkPipelineLayoutCreateInfo mSwapchainPipelineLayoutInfo{};
+		mSwapchainPipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		mSwapchainPipelineLayoutInfo.setLayoutCount = 1;
+		mSwapchainPipelineLayoutInfo.pSetLayouts = &mSwapchainDescriptorSetLayout;
+		mSwapchainPipelineLayoutInfo.pushConstantRangeCount = 0;
+		this->mSwapchainRenderer.mRenderPass = this->mSwapchainRenderPass;
+		this->mSwapchainRenderer.Init(VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.vert"), VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.frag"), "", this->mDevice, Application->appSizes->sceneSize, mSwapchainDescriptorSetLayout, mSwapchainPipelineLayoutInfo);
+
 		VkSemaphoreCreateInfo semaphoreInfo = {};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &semaphore);
@@ -2054,7 +2159,7 @@ namespace Plaza {
 			submitInfo.pSignalSemaphores = signalSemaphores;
 			PLAZA_PROFILE_SECTION("Queue");
 			if (vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]) != VK_SUCCESS) {
-				throw std::runtime_error("failed to submit draw command buffer!");
+ 				throw std::runtime_error("failed to submit draw command buffer!");
 			}
 
 

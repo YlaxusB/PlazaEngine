@@ -68,10 +68,13 @@ namespace Plaza {
 
 		VkDevice mDevice = VK_NULL_HANDLE;
 		VkRenderPass mRenderPass;
+		VkRenderPass mSwapchainRenderPass;
 		static VulkanRenderer* GetRenderer();
 		RendererAPI api = RendererAPI::Vulkan;
 		VulkanShadows* mShadows; //= new VulkanShadows();
 		VulkanBloom mBloom;
+
+		VulkanPostEffects mSwapchainRenderer;
 
 		void Init() override;
 		void UpdateProjectManager() override;
@@ -124,9 +127,12 @@ namespace Plaza {
 		VkCommandBuffer* mActiveCommandBuffer;
 
 		void ChangeFinalDescriptorImageView(VkImageView newImageView);
+		VkFormat mSwapChainImageFormat;
+		VkImage mFinalSceneImage;
 		VkImageView mFinalSceneImageView;
 		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 		VkFramebuffer mFinalSceneFramebuffer;
+		VkFramebuffer mDeferredFramebuffer;
 		VkExtent2D mSwapChainExtent;
 		VkQueue mGraphicsQueue = VK_NULL_HANDLE;
 		VkQueue mComputeQueue = VK_NULL_HANDLE;
@@ -139,6 +145,8 @@ namespace Plaza {
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
 		VkSampler mTextureSampler;
 	private:
+		VkDescriptorSetLayout mSwapchainDescriptorSetLayout = VK_NULL_HANDLE;
+
 		struct alignas(16) MaterialData {
 			glm::vec4 color = glm::vec4(1.0f);
 			float intensity = 1.0f;
@@ -172,6 +180,7 @@ namespace Plaza {
 		void InitCommands();
 		void InitSyncStructures();
 		void CreateRenderPass();
+		void CreateSwapchainRenderPass();
 		void CreateGraphicsPipeline();
 		void CreateFramebuffers();
 		void CreateCommandPool();
@@ -201,7 +210,6 @@ namespace Plaza {
 		VkImageView mTextureImageView;
 
 
-		VkImage mFinalSceneImage;
 		VkDescriptorSet mFinalSceneDescriptorSet;
 
 		VkInstance mVulkanInstance = VK_NULL_HANDLE;
@@ -225,7 +233,6 @@ namespace Plaza {
 		void InitComputeSemaphores();
 		void InitComputeInFlightFences();
 
-		VkFormat mSwapChainImageFormat;
 
 		VkBuffer mVertexBuffer;
 		VkDeviceMemory mVertexBufferMemory;
@@ -233,6 +240,7 @@ namespace Plaza {
 		VkDeviceMemory mIndexBufferMemory;
 		VkDescriptorSetLayout mDescriptorSetLayout;
 		std::vector<VkDescriptorSet> mDescriptorSets;
+		std::vector<VkDescriptorSet> mSwapPassDescriptorSets;
 
 		std::vector<VkBuffer> mUniformBuffers;
 		std::vector<VkDeviceMemory> mUniformBuffersMemory;
@@ -257,7 +265,7 @@ namespace Plaza {
 		std::vector<VkDeviceMemory> mMainInstanceMaterialBufferMemories = std::vector<VkDeviceMemory>();
 		std::vector<glm::mat4> mInstanceModelMatrices = std::vector<glm::mat4>();
 		std::vector<unsigned int> mInstanceModelMaterialsIndex = std::vector<unsigned int>();
-		
+
 		std::vector<MaterialData> mUploadedMaterials = std::vector<MaterialData>();
 		std::vector<VkBuffer> mMaterialBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mMaterialBufferMemories = std::vector<VkDeviceMemory>();

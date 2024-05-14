@@ -258,7 +258,7 @@ namespace Plaza {
 
 	void VulkanSkybox::Init() {
 		this->mSkyboxPostEffect = new VulkanPostEffects();
-		this->mSkyboxPostEffect->mRenderPass = VulkanRenderer::GetRenderer()->mRenderPass;
+		this->mSkyboxPostEffect->mRenderPass = VulkanRenderer::GetRenderer()->mDeferredRenderPass;
 
 		std::string shadersPath;
 #ifdef EDITOR_MODE
@@ -319,7 +319,7 @@ namespace Plaza {
 		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.stencilTestEnable = VK_FALSE;
-		this->mSkyboxPostEffect->mShaders->InitializeFull(VulkanRenderer::GetRenderer()->mDevice, this->mPipelineLayoutInfo, true, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, {}, {}, {}, {}, {}, {}, {}, {}, VulkanRenderer::GetRenderer()->mRenderPass, depthStencil);
+		this->mSkyboxPostEffect->mShaders->InitializeFull(VulkanRenderer::GetRenderer()->mDevice, this->mPipelineLayoutInfo, true, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, {}, {}, {}, {}, {}, {}, {}, {}, VulkanRenderer::GetRenderer()->mDeferredRenderPass, depthStencil);
 	}
 
 	void VulkanSkybox::DrawSkybox() {
@@ -332,8 +332,8 @@ namespace Plaza {
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		//renderPassInfo.renderPass = this->mSkyboxPostEffect->mRenderPass;
 		//renderPassInfo.framebuffer = this->mFramebuffers[Application->mRenderer->mCurrentFrame];//mSwapChainFramebuffers[0];//mSwapChainFramebuffers[imageIndex];
-		renderPassInfo.renderPass = VulkanRenderer::GetRenderer()->mRenderPass;
-		renderPassInfo.framebuffer = VulkanRenderer::GetRenderer()->mFinalSceneFramebuffer;
+		renderPassInfo.renderPass = VulkanRenderer::GetRenderer()->mDeferredRenderPass;
+		renderPassInfo.framebuffer = VulkanRenderer::GetRenderer()->mDeferredFramebuffer;
 
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = VulkanRenderer::GetRenderer()->mSwapChainExtent;

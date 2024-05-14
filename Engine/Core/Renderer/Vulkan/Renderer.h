@@ -65,9 +65,10 @@ namespace Plaza {
 	mat4 lightSpaceMatrices[32];
 		*/
 
-
+		
 		VkDevice mDevice = VK_NULL_HANDLE;
 		VkRenderPass mRenderPass;
+		VkRenderPass mDeferredRenderPass;
 		VkRenderPass mSwapchainRenderPass;
 		static VulkanRenderer* GetRenderer();
 		RendererAPI api = RendererAPI::Vulkan;
@@ -127,9 +128,14 @@ namespace Plaza {
 		VkCommandBuffer* mActiveCommandBuffer;
 
 		void ChangeFinalDescriptorImageView(VkImageView newImageView);
+		VkFormat mFinalDeferredFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
 		VkFormat mSwapChainImageFormat;
+		std::vector<VkDescriptorSet> mSwapchainDescriptorSets = std::vector<VkDescriptorSet>();
 		VkImage mFinalSceneImage;
 		VkImageView mFinalSceneImageView;
+		VkImage mDeferredFinalImage;
+		VkImageView mDeferredFinalImageView;
+		
 		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 		VkFramebuffer mFinalSceneFramebuffer;
 		VkFramebuffer mDeferredFramebuffer;
@@ -211,7 +217,6 @@ namespace Plaza {
 
 
 		VkDescriptorSet mFinalSceneDescriptorSet;
-
 		VkInstance mVulkanInstance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT mDebugMessenger = VK_NULL_HANDLE;
 		VkQueue mPresentQueue = VK_NULL_HANDLE;

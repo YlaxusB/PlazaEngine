@@ -547,6 +547,33 @@ namespace Plaza {
 		if (vkCreateImageView(mDevice, &createInfo, nullptr, &mFinalSceneImageView) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create image views!");
 		}
+
+		/* Deferred */
+		imageCreateInfo.format = mFinalDeferredFormat;
+
+		if (vkCreateImage(mDevice, &imageCreateInfo, nullptr, &mDeferredFinalImage) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create image!");
+		}
+
+		vkGetImageMemoryRequirements(mDevice, mDeferredFinalImage, &memoryRequirements);
+
+		allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocateInfo.allocationSize = memoryRequirements.size;
+		allocateInfo.memoryTypeIndex = FindMemoryType(
+			memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		if (vkAllocateMemory(mDevice, &allocateInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate image memory!");
+		}
+		vkBindImageMemory(mDevice, mDeferredFinalImage, imageMemory, 0);
+
+		this->TransitionImageLayout(mDeferredFinalImage, mFinalDeferredFormat, initialLayout, VK_IMAGE_LAYOUT_GENERAL, 1U);
+
+		createInfo.image = mDeferredFinalImage;
+		createInfo.format = mFinalDeferredFormat;
+		if (vkCreateImageView(mDevice, &createInfo, nullptr, &mDeferredFinalImageView) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create image views!");
+		}
 	}
 
 	void VulkanRenderer::InitCommands()
@@ -703,6 +730,19 @@ namespace Plaza {
 			throw std::runtime_error("failed to create render pass!");
 		}
 
+		colorAttachment.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+		std::array<VkAttachmentDescription, 2> deferredAttachments = { colorAttachment, depthAttachment };
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = static_cast<uint32_t>(deferredAttachments.size());
+		renderPassInfo.pAttachments = deferredAttachments.data();
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = dependencies.size();
+		renderPassInfo.pDependencies = dependencies.data();
+
+		if (vkCreateRenderPass(mDevice, &renderPassInfo, nullptr, &mDeferredRenderPass) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create render pass!");
+		}
 	}
 
 
@@ -881,7 +921,7 @@ namespace Plaza {
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDynamicState = &dynamicState;
 		pipelineInfo.layout = mPipelineLayout;
-		pipelineInfo.renderPass = mRenderPass;
+		pipelineInfo.renderPass = this->mDeferredRenderPass;
 		pipelineInfo.subpass = 0;
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 		pipelineInfo.pDepthStencilState = &depthStencil;
@@ -898,15 +938,14 @@ namespace Plaza {
 		mSwapChainFramebuffers.resize(mSwapChainImageViews.size());
 
 		for (size_t i = 0; i < mSwapChainImageViews.size(); i++) {
-			std::array<VkImageView, 2> attachments = {
-				mSwapChainImageViews[i],
-				mDepthImageView
+			std::array<VkImageView, 1> attachments = {
+				mSwapChainImageViews[i]
 			};
 
 
 			VkFramebufferCreateInfo framebufferInfo{};
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			framebufferInfo.renderPass = mRenderPass;
+			framebufferInfo.renderPass = this->mSwapchainRenderPass;
 			framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 			framebufferInfo.pAttachments = attachments.data();
 			framebufferInfo.width = mSwapChainExtent.width;
@@ -918,14 +957,13 @@ namespace Plaza {
 			}
 		}
 
-		std::array<VkImageView, 2> attachments = {
-			mFinalSceneImageView,
-			mDepthImageView
+		std::vector<VkImageView> attachments = {
+			mFinalSceneImageView
 		};
 
 		VkFramebufferCreateInfo framebufferInfo{};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = mRenderPass;
+		framebufferInfo.renderPass = this->mSwapchainRenderPass;
 		framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		framebufferInfo.pAttachments = attachments.data();
 		framebufferInfo.width = Application->appSizes->sceneSize.x;
@@ -936,6 +974,11 @@ namespace Plaza {
 			throw std::runtime_error("failed to create framebuffer!");
 		}
 
+		attachments[0] = mDeferredFinalImageView;
+		framebufferInfo.renderPass = mDeferredRenderPass;
+		attachments.push_back(mDepthImageView);
+		framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		framebufferInfo.pAttachments = attachments.data();
 		if (vkCreateFramebuffer(mDevice, &framebufferInfo, nullptr, &mDeferredFramebuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create framebuffer!");
 		}
@@ -1149,7 +1192,7 @@ namespace Plaza {
 
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
-		renderPassInfo.renderPass = mRenderPass;
+		renderPassInfo.renderPass = mDeferredRenderPass;
 		renderPassInfo.framebuffer = mDeferredFramebuffer;
 
 		renderPassInfo.renderArea.extent.width = Application->appSizes->sceneSize.x;
@@ -1209,25 +1252,26 @@ namespace Plaza {
 		this->mBloom.Draw();
 
 		/* Render to ImGui or swapchain */
-		renderPassInfo.renderPass = this->mSwapchainRenderer.mRenderPass;
+		renderPassInfo.renderPass = this->mSwapchainRenderPass;
 #ifdef GAME_MODE
 		renderPassInfo.framebuffer = mSwapChainFramebuffers[imageIndex];
 #else
 		renderPassInfo.framebuffer = mFinalSceneFramebuffer;
 #endif
+
 		std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
-		descriptorSets.push_back(this->mDescriptorSets[this->mCurrentFrame]);
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mSwapchainRenderer.mShaders->mPipeline);
+		descriptorSets.push_back(this->mSwapchainDescriptorSets[mCurrentFrame]);
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, 1, descriptorSets.data(), 0, nullptr);
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mSwapchainRenderer.mShaders->mPipeline);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mSwapchainRenderer.mShaders->mPipelineLayout, 0, 1, descriptorSets.data(), 0, nullptr);
 		this->mSwapchainRenderer.Update();
 		this->mSwapchainRenderer.DrawFullScreenRectangle();
-		//vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 		//vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 		vkCmdEndRenderPass(commandBuffer);
 
 #ifdef EDITOR_MODE
-		renderPassInfo.renderPass = mRenderPass;
+		renderPassInfo.renderPass = mSwapchainRenderPass;
 		renderPassInfo.framebuffer = mSwapChainFramebuffers[imageIndex];
 		renderPassInfo.renderArea.extent = mSwapChainExtent;
 
@@ -1965,6 +2009,7 @@ namespace Plaza {
 		std::cout << "Initializing image views \n";
 		CreateImageViews(VK_IMAGE_LAYOUT_UNDEFINED);
 		std::cout << "CreateRenderPass \n";
+		CreateSwapchainRenderPass();
 		CreateRenderPass();
 		std::cout << "CreateDescriptorSetLayout \n";
 		CreateDescriptorSetLayout();
@@ -2044,7 +2089,6 @@ namespace Plaza {
 		this->mBloom.Init();
 
 
-		CreateSwapchainRenderPass();
 		VkDescriptorSetLayoutBinding samplerLayoutBinding{};
 		samplerLayoutBinding.binding = 1;
 		samplerLayoutBinding.descriptorCount = 1;
@@ -2069,6 +2113,36 @@ namespace Plaza {
 		mSwapchainPipelineLayoutInfo.pushConstantRangeCount = 0;
 		this->mSwapchainRenderer.mRenderPass = this->mSwapchainRenderPass;
 		this->mSwapchainRenderer.Init(VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.vert"), VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.frag"), "", this->mDevice, Application->appSizes->sceneSize, mSwapchainDescriptorSetLayout, mSwapchainPipelineLayoutInfo);
+
+		std::vector<VkDescriptorSetLayout> layouts(mMaxFramesInFlight, mSwapchainDescriptorSetLayout);
+		VkDescriptorSetAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+		allocInfo.descriptorPool = mDescriptorPool;
+		allocInfo.descriptorSetCount = layouts.size();
+		allocInfo.pSetLayouts = layouts.data();
+
+
+		mSwapchainDescriptorSets.resize(mMaxFramesInFlight);
+		if (vkAllocateDescriptorSets(mDevice, &allocInfo, mSwapchainDescriptorSets.data()) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate descriptor sets!");
+		}
+		for (size_t i = 0; i < mMaxFramesInFlight; i++) {
+			VkDescriptorImageInfo imageInfo{};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			imageInfo.imageView = mDeferredFinalImageView;
+			imageInfo.sampler = mTextureSampler;
+
+			std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
+
+			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[0].dstSet = mSwapchainDescriptorSets[i];
+			descriptorWrites[0].dstBinding = 1;
+			descriptorWrites[0].dstArrayElement = 0;
+			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[0].descriptorCount = 1;
+			descriptorWrites[0].pImageInfo = &imageInfo;
+
+			vkUpdateDescriptorSets(mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+		}
 
 		VkSemaphoreCreateInfo semaphoreInfo = {};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -2317,7 +2391,7 @@ namespace Plaza {
 		initInfo.ImageCount = mMaxFramesInFlight;
 		initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 		initInfo.CheckVkResultFn = check_vk_result;
-		ImGui_ImplVulkan_Init(&initInfo, mRenderPass);
+		ImGui_ImplVulkan_Init(&initInfo, this->mSwapchainRenderPass);
 
 		ImGui_ImplVulkan_SetMinImageCount(mMaxFramesInFlight);
 

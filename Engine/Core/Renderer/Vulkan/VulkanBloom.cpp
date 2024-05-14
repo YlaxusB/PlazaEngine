@@ -93,7 +93,7 @@ namespace Plaza {
 		}
 
 		for (size_t i = 0; i < VulkanRenderer::GetRenderer()->mMaxFramesInFlight; i++) {
-			UpdateDescriptorSet(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture2->mImageView, i);
+			UpdateDescriptorSet(VK_IMAGE_LAYOUT_GENERAL, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture2->mImageView, i);
 		}
 	}
 
@@ -154,7 +154,7 @@ namespace Plaza {
 	}
 
 	void VulkanBloom::UpdateUniformBuffers(glm::vec2 texelSize, unsigned int mipLevel, bool useThreshold) {
-		float mThreshold = 1.5f;
+		float mThreshold = 0.3f;
 		float mKnee = 0.1f;
 		float m_bloom_intensity = 16.0f;
 		float m_bloom_dirt_intensity = 1.0f;
@@ -172,12 +172,12 @@ namespace Plaza {
 	void VulkanBloom::Draw() {
 		/* Bloom: downscale */
 		glm::uvec2 mipSize = glm::uvec2(Application->appSizes->sceneSize.x / 2, Application->appSizes->sceneSize.y / 2);
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mFinalSceneImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mFinalSceneImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		UpdateDescriptorSet(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture1->mImageView, Application->mRenderer->mCurrentFrame);
+		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mFinalSceneImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mFinalSceneImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		// UpdateDescriptorSet(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture1->mImageView, Application->mRenderer->mCurrentFrame);
 		//UpdateDescriptorSet(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture2->mImageView, i);
 		std::cout << "Start \n";
-		for (uint8_t i = 0; i < 2; ++i)
+		for (uint8_t i = 0; i < 1; ++i)
 		{
 			//glBindImageTexture(0, mFinalTexturePair->texture1.id, i + 1, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 			UpdateUniformBuffers(1.0f / glm::vec2(mipSize), i, i == 0);
@@ -236,7 +236,7 @@ namespace Plaza {
 				0, nullptr, // Buffer memory barriers
 				1, &imageMemoryBarrier); // Image memory barriers
 
-			UpdateDescriptorSet(VK_IMAGE_LAYOUT_GENERAL, this->mTexture1->mImageView, this->mTexture1->mSampler, this->mTexture2->mImageView, Application->mRenderer->mCurrentFrame);
+			//UpdateDescriptorSet(VK_IMAGE_LAYOUT_GENERAL, this->mTexture1->mImageView, this->mTexture1->mSampler, this->mTexture2->mImageView, Application->mRenderer->mCurrentFrame);
 
 			//glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
 		}

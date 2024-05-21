@@ -197,7 +197,6 @@ namespace Plaza {
 	void VulkanComputeShaders::Dispatch(int x, int y, int z, void* pushConstantData, unsigned int pushConstantSize, VkDescriptorSet descriptorSet) {
 		vkCmdBindPipeline(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipeline);
 
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mDeferredFinalImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		uint32_t offsets[1] = { 0 };
 		vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipelineLayout, 0, 1, descriptorSet == VK_NULL_HANDLE ? &mComputeDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame] : &descriptorSet, 0, nullptr);
 

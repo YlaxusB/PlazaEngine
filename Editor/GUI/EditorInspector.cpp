@@ -4,6 +4,7 @@
 #include<iostream>
 #include "Editor/Settings/EditorSettings.h"
 #include "Editor/Settings/SettingsSerializer.h"
+#include "Engine/Core/Renderer/Vulkan/VulkanBloom.h"
 
 namespace Plaza::Editor {
 	void EditorInspector::Update() {
@@ -15,6 +16,12 @@ namespace Plaza::Editor {
 				if (ImGui::Checkbox("VSync", &Editor::Settings::vsync)) {
 					Settings::ReapplyAllSettings();
 				}
+
+				
+				ImGui::DragFloat("Bloom Intensity", &VulkanRenderer::GetRenderer()->mBloom.mBloomIntensity);
+				ImGui::DragFloat("Bloom Knee", &VulkanRenderer::GetRenderer()->mBloom.mKnee);
+				ImGui::DragFloat("Bloom Threshold", &VulkanRenderer::GetRenderer()->mBloom.mThreshold);
+				
 
 				if (ImGui::Button("Save Settings")) {
 					Editor::EditorSettingsSerializer::Serialize();

@@ -5,6 +5,11 @@
 namespace Plaza {
 	class VulkanBloom {
 	public:
+		float mThreshold = 1.5f;
+		float mKnee = 0.1f;
+		float mBloomIntensity = 16.0f;
+		float mBloomDirtIntensity = 1.0f;
+
 		void Init();
 		void Draw();
 		void BlendBloomWithScene();
@@ -14,7 +19,9 @@ namespace Plaza {
 		void UpdateDescriptorSet(VkImageLayout inputLayout, VkImageView inputView, VkSampler inputSampler, VkImageView outputImageView, unsigned int frame, VkDescriptorSet& descriptorSet);
 		void InitializeDescriptorSets();
 	private:
-		std::vector<std::vector<VkDescriptorSet>> mDescriptorSets = std::vector<std::vector<VkDescriptorSet>>();
+		uint8_t CalculateMipmapLevels(int m_width, int m_height, int m_max_iterations, int m_downscale_limit);
+		std::vector<std::vector<VkDescriptorSet>> mDownScaleDescriptorSets = std::vector<std::vector<VkDescriptorSet>>();
+		std::vector<std::vector<VkDescriptorSet>> mUpScaleDescriptorSets = std::vector<std::vector<VkDescriptorSet>>();
 
 		struct PushConstant {
 			glm::vec4 u_threshold;

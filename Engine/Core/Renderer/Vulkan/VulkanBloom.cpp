@@ -1,12 +1,38 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "VulkanBloom.h"
 namespace Plaza {
+	uint8_t VulkanBloom::CalculateMipmapLevels(int m_width, int m_height, int m_max_iterations, int m_downscale_limit)
+	{
+		uint32_t width = m_width / 2;
+		uint32_t height = m_height / 2;
+		uint8_t  mip_levels = 1;
+
+		printf("Mip level %d: %d x %d\n", 0, m_width, m_height);
+		printf("Mip level %d: %d x %d\n", mip_levels, width, height);
+
+		for (uint8_t i = 0; i < m_max_iterations; ++i)
+		{
+			width = width / 2;
+			height = height / 2;
+
+			if (width < m_downscale_limit || height < m_downscale_limit) break;
+
+			++mip_levels;
+
+			printf("Mip level %d: %d x %d\n", mip_levels, width, height);
+		}
+
+		return mip_levels + 1;
+	}
+
 	void VulkanBloom::InitializeDescriptorSets() {
-		this->mDescriptorSets.resize(this->mMipCount);
+		this->mDownScaleDescriptorSets.resize(this->mMipCount);
+		this->mUpScaleDescriptorSets.resize(this->mMipCount);
 
 		bool pingPong = true;
 		for (unsigned int i = 0; i < this->mMipCount; ++i) {
-			this->mDescriptorSets[i].resize(Application->mRenderer->mMaxFramesInFlight);
+			this->mDownScaleDescriptorSets[i].resize(Application->mRenderer->mMaxFramesInFlight);
+			this->mUpScaleDescriptorSets[i].resize(Application->mRenderer->mMaxFramesInFlight);
 
 			std::array<VkDescriptorPoolSize, 2> poolSizes{};
 			poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -33,15 +59,25 @@ namespace Plaza {
 			allocInfo.descriptorSetCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
 			allocInfo.pSetLayouts = layouts.data();
 
-			if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, this->mDescriptorSets[i].data()) != VK_SUCCESS) {
+			if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, this->mDownScaleDescriptorSets[i].data()) != VK_SUCCESS) {
+				throw std::runtime_error("failed to allocate descriptor sets!");
+			}
+
+			VkDescriptorPool descriptorPool2;
+			if (vkCreateDescriptorPool(VulkanRenderer::GetRenderer()->mDevice, &poolInfo, nullptr, &descriptorPool2) != VK_SUCCESS) {
+				throw std::runtime_error("failed to create descriptor pool!");
+			}
+			allocInfo.descriptorPool = descriptorPool2;
+			if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, this->mUpScaleDescriptorSets[i].data()) != VK_SUCCESS) {
 				throw std::runtime_error("failed to allocate descriptor sets!");
 			}
 
 			VkImageLayout inputLayout = VK_IMAGE_LAYOUT_GENERAL;
-			VkImageView inputView = pingPong ? this->mTexture1->mImageView : this->mTexture2->mImageView;
-			VkSampler inputSampler = pingPong ? this->mTexture1->mSampler : this->mTexture2->mSampler;
-			VkImageView outputImageView = pingPong ? this->mTexture2->mImageView : this->mTexture1->mImageView;
+			VkImageView inputView = pingPong ? this->mTexture1->mImageView : this->mTexture1->mImageView;
+			VkSampler inputSampler = pingPong ? this->mTexture1->mSampler : this->mTexture1->mSampler;
+			VkImageView outputImageView = pingPong ? this->mTexture1->mImageView : this->mTexture1->mImageView;
 
+			/* Downscale */
 			if (i == 0) {
 				inputLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 				inputView = VulkanRenderer::GetRenderer()->mDeferredFinalImageView;
@@ -50,7 +86,7 @@ namespace Plaza {
 			else {
 				VkImageViewCreateInfo viewInfo = {};
 				viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-				viewInfo.image = pingPong ? this->mTexture1->mImage : this->mTexture2->mImage; // Your VkImage object
+				viewInfo.image = pingPong ? this->mTexture1->mImage : this->mTexture1->mImage; // Your VkImage object
 				viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 				viewInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT; // Your image format
 				viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -61,14 +97,41 @@ namespace Plaza {
 
 				vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &inputView);
 
-				viewInfo.image = pingPong ? this->mTexture2->mImage : this->mTexture1->mImage;
+				viewInfo.image = pingPong ? this->mTexture1->mImage : this->mTexture1->mImage;
 				viewInfo.subresourceRange.baseMipLevel = i;
 				vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &outputImageView);
 			}
 
-
 			for (unsigned int j = 0; j < Application->mRenderer->mMaxFramesInFlight; ++j) {
-				UpdateDescriptorSet(inputLayout, inputView, inputSampler, outputImageView, j, this->mDescriptorSets[i][j]);
+				UpdateDescriptorSet(inputLayout, inputView, inputSampler, outputImageView, j, this->mDownScaleDescriptorSets[i][j]);
+			}
+
+			/* Upscale */
+			if (i == 0) {
+				inputLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				inputView = VulkanRenderer::GetRenderer()->mDeferredFinalImageView;
+				outputImageView = this->mTexture1->mImageView;
+			}
+			else {
+				VkImageViewCreateInfo viewInfo = {};
+				viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+				viewInfo.image = pingPong ? this->mTexture1->mImage : this->mTexture1->mImage; // Your VkImage object
+				viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				viewInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT; // Your image format
+				viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				viewInfo.subresourceRange.baseMipLevel = i; // Specify the mip level
+				viewInfo.subresourceRange.levelCount = 1;
+				viewInfo.subresourceRange.baseArrayLayer = 0;
+				viewInfo.subresourceRange.layerCount = 1;
+
+				vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &inputView);
+
+				viewInfo.image = pingPong ? this->mTexture1->mImage : this->mTexture1->mImage;
+				viewInfo.subresourceRange.baseMipLevel = i - 1;
+				vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &outputImageView);
+			}
+			for (unsigned int j = 0; j < Application->mRenderer->mMaxFramesInFlight; ++j) {
+				UpdateDescriptorSet(inputLayout, inputView, inputSampler, outputImageView, j, this->mUpScaleDescriptorSets[i][j]);
 			}
 
 			if (i > 0)
@@ -173,6 +236,7 @@ namespace Plaza {
 	}
 
 	void VulkanBloom::Init() {
+		this->mMipCount = this->CalculateMipmapLevels(Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 16, 10);
 		this->mTexture1 = new VulkanTexture();
 		this->mTexture1->mMipLevels = this->mMipCount;
 		this->mTexture1->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, true);
@@ -268,25 +332,21 @@ namespace Plaza {
 		// UpdateDescriptorSet(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture2->mImageView, Application->mRenderer->mCurrentFrame);
 		//UpdateDescriptorSet(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture2->mImageView, i);
 		std::cout << "Start \n";
-
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mDeferredFinalImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		bool useFirstImage = false;
-		for (uint8_t i = 0; i < mMipCount; ++i)
+		for (uint8_t i = 0; i < mMipCount - 1; ++i)
 		{
 			//glBindImageTexture(0, mFinalTexturePair->texture1.id, i + 1, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 			//UpdateUniformBuffers(1.0f / glm::vec2(mipSize), i, i == 0);
 
-			float mThreshold = 0.3f;
-			float mKnee = 0.1f;
-			float m_bloom_intensity = 16.0f;
-			float m_bloom_dirt_intensity = 1.0f;
 			PushConstant pushConstant{};
 			pushConstant.u_texel_size = 1.0f / glm::vec2(mipSize);
 			pushConstant.u_mip_level = i;
 			pushConstant.u_threshold = glm::vec4(mThreshold, mThreshold - mKnee, 2.0f * mKnee, 0.25f * mKnee);
 			pushConstant.u_use_threshold = i == 0;
 
-			this->mComputeShadersScaleDown.Dispatch(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1, &pushConstant, sizeof(PushConstant), this->mDescriptorSets[i][Application->mRenderer->mCurrentFrame]);
+			this->mComputeShadersScaleDown.Dispatch(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1, &pushConstant, sizeof(PushConstant), this->mDownScaleDescriptorSets[i][Application->mRenderer->mCurrentFrame]);
 
 			VkImageMemoryBarrier imageMemoryBarrier = {};
 			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -347,22 +407,19 @@ namespace Plaza {
 		//mBloomUpScaleShader->setFloat("u_bloom_intensity", m_bloom_intensity);
 		//glBindTextureUnit(0, mFinalTexturePair->texture1.id);
 
-		for (uint8_t i = mMipCount; i >= 1; --i)
+		for (uint8_t i = mMipCount - 1; i >= 1; --i)
 		{
 			mipSize.x = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.x) / glm::pow(2.0, i - 1)));
 			mipSize.y = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.y) / glm::pow(2.0, i - 1)));
 
-			float mThreshold = 1.5f;
-			float mKnee = 0.1f;
-			float m_bloom_intensity = 16.0f;
-			float m_bloom_dirt_intensity = 1.0f;
+
 			PushConstant pushConstant{};
 			pushConstant.u_texel_size = 1.0f / glm::vec2(mipSize);
 			pushConstant.u_mip_level = i;
 			pushConstant.u_threshold = glm::vec4(mThreshold, mThreshold - mKnee, 2.0f * mKnee, 0.25f * mKnee);
 			pushConstant.u_use_threshold = i == 0;
 
-			this->mComputeShadersScaleUp.Dispatch(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1, &pushConstant, sizeof(PushConstant), this->mDescriptorSets[i - 1][Application->mRenderer->mCurrentFrame]);
+			this->mComputeShadersScaleUp.Dispatch(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1, &pushConstant, sizeof(PushConstant), this->mUpScaleDescriptorSets[i][Application->mRenderer->mCurrentFrame]);
 
 			VkImageMemoryBarrier imageMemoryBarrier = {};
 			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;

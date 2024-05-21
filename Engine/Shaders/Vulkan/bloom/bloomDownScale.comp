@@ -3,12 +3,12 @@
 layout(binding = 0)			 uniform sampler2D u_input_texture;
 layout(rgba32f, binding = 1) uniform image2D u_output_image;
 
-layout(std140, binding = 2) uniform InputBlock {
+layout(push_constant) uniform PushConstants {
     vec4 u_threshold;
     vec2 u_texel_size;
     int u_mip_level;
     bool u_use_threshold;
-} inputBlock;
+} pushConstants;
 
 const float epsilon = 1.0e-4;
 
@@ -71,10 +71,10 @@ void main()
     // The first (TILE_PIXEL_COUNT - GROUP_THREAD_COUNT) threads load at most 2 texel values
     for (int i = int(gl_LocalInvocationIndex); i < TILE_PIXEL_COUNT; i += GROUP_THREAD_COUNT)
     {
-        vec2 uv        = (vec2(base_index) + 0.5) * inputBlock.u_texel_size;
-        vec2 uv_offset = vec2(i % TILE_SIZE, i / TILE_SIZE) * inputBlock.u_texel_size;
+        vec2 uv        = (vec2(base_index) + 0.5) * pushConstants.u_texel_size;
+        vec2 uv_offset = vec2(i % TILE_SIZE, i / TILE_SIZE) * pushConstants.u_texel_size;
         
-        vec4 color = textureLod(u_input_texture, uv + uv_offset, inputBlock.u_mip_level);
+        vec4 color = textureLod(u_input_texture, uv + uv_offset, pushConstants.u_mip_level);
         store_lds(i, color);
     }
 
@@ -108,9 +108,9 @@ void main()
          c += karis_avg((F + G + L + K) * div.y);
          c += karis_avg((G + H + M + L) * div.y);
 
-	if (inputBlock.u_use_threshold)
+	if (pushConstants.u_use_threshold)
     {
-      c = quadratic_threshold(c, inputBlock.u_threshold.x, inputBlock.u_threshold.yzw);
+      c = quadratic_threshold(c, pushConstants.u_threshold.x, pushConstants.u_threshold.yzw);
     }
 	//imageStore(u_output_image, pixel_coords, vec4(pixel_coords / ivec2(1820, 720), 0.0f, 1.0f));
 

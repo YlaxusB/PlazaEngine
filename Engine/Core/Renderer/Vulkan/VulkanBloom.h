@@ -11,9 +11,12 @@ namespace Plaza {
 		void Terminate();
 		void UpdateDescriptorSets();
 		void UpdateUniformBuffers(glm::vec2 texelSize, unsigned int mipLevel, bool useThreshold);
-		void UpdateDescriptorSet(VkImageLayout inputLayout, VkImageView inputView, VkSampler inputSmapler, VkImageView outputImageView, unsigned int frame);
+		void UpdateDescriptorSet(VkImageLayout inputLayout, VkImageView inputView, VkSampler inputSampler, VkImageView outputImageView, unsigned int frame, VkDescriptorSet& descriptorSet);
+		void InitializeDescriptorSets();
 	private:
-		struct UniformBufferObject {
+		std::vector<std::vector<VkDescriptorSet>> mDescriptorSets = std::vector<std::vector<VkDescriptorSet>>();
+
+		struct PushConstant {
 			glm::vec4 u_threshold;
 			glm::vec2 u_texel_size;
 			int u_mip_level;

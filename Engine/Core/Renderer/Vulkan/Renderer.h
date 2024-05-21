@@ -150,6 +150,7 @@ namespace Plaza {
 
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
 		VkSampler mTextureSampler;
+		std::vector<VkFence> mComputeInFlightFences;
 	private:
 		VkDescriptorSetLayout mSwapchainDescriptorSetLayout = VK_NULL_HANDLE;
 
@@ -232,7 +233,7 @@ namespace Plaza {
 		std::vector<VkSemaphore> mImageAvailableSemaphores;
 		std::vector<VkSemaphore> mRenderFinishedSemaphores;
 		std::vector<VkSemaphore> mComputeFinishedSemaphores;
-		std::vector<VkFence> mComputeInFlightFences;
+
 
 		void InitComputeCommandBuffers();
 		void InitComputeSemaphores();

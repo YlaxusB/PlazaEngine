@@ -32,7 +32,7 @@ namespace Plaza {
 			throw std::runtime_error("failed to create compute descriptor set layout!");
 		}
 	}
-	void VulkanComputeShaders::Init(std::string shadersPath) {
+	void VulkanComputeShaders::Init(std::string shadersPath, unsigned int pushConstantsCount, VkPushConstantRange pushConstantRange) {
 		if (mComputeDescriptorSetLayout == VK_NULL_HANDLE)
 			CreateComputeDescriptorSetLayout();
 		VkShaderModule computeShaderModule = VulkanShaders::CreateShaderModule(VulkanShaders::ReadFile(VulkanShadersCompiler::Compile(shadersPath)), VulkanRenderer::GetRenderer()->mDevice);
@@ -47,6 +47,10 @@ namespace Plaza {
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 1;
 		pipelineLayoutInfo.pSetLayouts = &mComputeDescriptorSetLayout;
+		if (pushConstantsCount > 0) {
+			pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+			pipelineLayoutInfo.pushConstantRangeCount = pushConstantsCount;
+		}
 
 		if (vkCreatePipelineLayout(VulkanRenderer::GetRenderer()->mDevice, &pipelineLayoutInfo, nullptr, &mComputePipelineLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create compute pipeline layout!");
@@ -190,12 +194,16 @@ namespace Plaza {
 		vkCmdDispatch(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, PARTICLE_COUNT / 256, 1, 1);
 	}
 
-	void VulkanComputeShaders::Dispatch(int x, int y, int z) {
+	void VulkanComputeShaders::Dispatch(int x, int y, int z, void* pushConstantData, unsigned int pushConstantSize, VkDescriptorSet descriptorSet) {
 		vkCmdBindPipeline(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipeline);
 
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mDeferredFinalImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		uint32_t offsets[1] = { 0 };
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mFinalSceneImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipelineLayout, 0, 1, &mComputeDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 1, offsets);
+		vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipelineLayout, 0, 1, descriptorSet == VK_NULL_HANDLE ? &mComputeDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame] : &descriptorSet, 0, nullptr);
+
+		if (pushConstantData)
+			vkCmdPushConstants(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, this->mComputePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstantSize, pushConstantData);
+
 
 		vkCmdDispatch(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, x, y, z);
 	}

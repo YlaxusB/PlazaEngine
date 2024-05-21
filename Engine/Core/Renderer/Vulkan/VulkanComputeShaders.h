@@ -35,10 +35,10 @@ namespace Plaza {
 
 		void CreateComputeDescriptorSetLayout();
 
-		void Init(std::string shadersPath);
+		void Init(std::string shadersPath, unsigned int pushConstantsCount = 0, VkPushConstantRange pushConstantRange = VkPushConstantRange{});
 		void RunCompute();
 		void Draw();
-		void Dispatch(int x, int y, int z);
+		void Dispatch(int x, int y, int z, void* pushConstantData = nullptr, unsigned int pushConstantSize = 0, VkDescriptorSet descriptorSet = VK_NULL_HANDLE);
 		void Terminate();
 
 		std::vector<VkBuffer> mShaderStorageBuffers;

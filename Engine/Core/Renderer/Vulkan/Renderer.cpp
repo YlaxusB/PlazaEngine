@@ -2128,7 +2128,7 @@ namespace Plaza {
 		for (size_t i = 0; i < mMaxFramesInFlight; i++) {
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-			imageInfo.imageView = mDeferredFinalImageView;
+			imageInfo.imageView = this->mBloom.mTexture1->mImageView;
 			imageInfo.sampler = mTextureSampler;
 
 			std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
@@ -2718,7 +2718,8 @@ namespace Plaza {
 			mActiveCommandBuffer = &commandBuffer;
 
 			VkRenderPassBeginInfo renderPassInfo{};
-			renderPassInfo.renderPass = mRenderPass;
+			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			renderPassInfo.renderPass = mSwapchainRenderPass;
 			renderPassInfo.framebuffer = mSwapChainFramebuffers[imageIndex];
 			renderPassInfo.renderArea.extent = mSwapChainExtent;
 

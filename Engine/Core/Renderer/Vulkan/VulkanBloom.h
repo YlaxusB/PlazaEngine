@@ -18,6 +18,8 @@ namespace Plaza {
 		void UpdateUniformBuffers(glm::vec2 texelSize, unsigned int mipLevel, bool useThreshold);
 		void UpdateDescriptorSet(VkImageLayout inputLayout, VkImageView inputView, VkSampler inputSampler, VkImageView outputImageView, unsigned int frame, VkDescriptorSet& descriptorSet);
 		void InitializeDescriptorSets();
+		VulkanTexture* mTexture1 = nullptr;
+		VulkanTexture* mTexture2 = nullptr;
 	private:
 		uint8_t CalculateMipmapLevels(int m_width, int m_height, int m_max_iterations, int m_downscale_limit);
 		std::vector<std::vector<VkDescriptorSet>> mDownScaleDescriptorSets = std::vector<std::vector<VkDescriptorSet>>();
@@ -33,8 +35,6 @@ namespace Plaza {
 		VulkanComputeShaders mComputeShadersScaleUp;
 		VulkanComputeShaders mComputeShadersBlend;
 
-		VulkanTexture* mTexture1 = nullptr;
-		VulkanTexture* mTexture2 = nullptr;
 
 		std::vector<VkBuffer> mUniformBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mUniformBuffersMemory = std::vector<VkDeviceMemory>();

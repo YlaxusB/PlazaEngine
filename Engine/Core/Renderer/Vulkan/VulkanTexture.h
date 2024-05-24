@@ -19,7 +19,7 @@ namespace Plaza {
 
 		void CreateTextureImageView();
 		VkImageView CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D, unsigned int layerCount = 1);
-		void CreateTextureSampler();
+		void CreateTextureSampler(VkSamplerAddressMode adressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT, VkSamplerMipmapMode mipMapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR, VkFilter magFilter = VK_FILTER_LINEAR, VkFilter minFilter = VK_FILTER_LINEAR);
 		void GenerateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkFormat format);
 		void CreateTextureImage(VkDevice& device, std::string path, VkFormat& format, bool generateMipMaps = false);
 		void CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps = false);

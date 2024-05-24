@@ -119,7 +119,7 @@ namespace Plaza {
 				viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 				viewInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT; // Your image format
 				viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				viewInfo.subresourceRange.baseMipLevel = i; // Specify the mip level
+				viewInfo.subresourceRange.baseMipLevel = i + 1; // Specify the mip level
 				viewInfo.subresourceRange.levelCount = 1;
 				viewInfo.subresourceRange.baseArrayLayer = 0;
 				viewInfo.subresourceRange.layerCount = 1;
@@ -149,7 +149,7 @@ namespace Plaza {
 		mComputeShadersScaleDown.mComputeDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
 		mUniformBuffers.resize(Application->mRenderer->mMaxFramesInFlight);
 
-		mComputeShadersScaleDown.mDescriptorWrites.resize(2);
+		mComputeShadersScaleDown.mDescriptorWrites.resize(3);
 		mComputeShadersScaleDown.mDescriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		mComputeShadersScaleDown.mDescriptorWrites[0].dstSet = descriptorSet;
 		mComputeShadersScaleDown.mDescriptorWrites[0].dstBinding = 0;
@@ -169,6 +169,18 @@ namespace Plaza {
 		mComputeShadersScaleDown.mDescriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 		mComputeShadersScaleDown.mDescriptorWrites[1].descriptorCount = 1;
 		mComputeShadersScaleDown.mDescriptorWrites[1].pImageInfo = &storageImageInfo;
+
+		VkDescriptorImageInfo sceneImageInfo{};
+		sceneImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+		sceneImageInfo.imageView = VulkanRenderer::GetRenderer()->mDeferredFinalImageView;
+		sceneImageInfo.sampler = this->mTexture1->mSampler;
+		mComputeShadersScaleDown.mDescriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		mComputeShadersScaleDown.mDescriptorWrites[2].dstSet = descriptorSet;
+		mComputeShadersScaleDown.mDescriptorWrites[2].dstBinding = 2;
+		mComputeShadersScaleDown.mDescriptorWrites[2].dstArrayElement = 0;
+		mComputeShadersScaleDown.mDescriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		mComputeShadersScaleDown.mDescriptorWrites[2].descriptorCount = 1;
+		mComputeShadersScaleDown.mDescriptorWrites[2].pImageInfo = &sceneImageInfo;
 
 		//VkDescriptorBufferInfo uniformBufferInfo{};
 		//uniformBufferInfo.buffer = mUniformBuffers[frame];
@@ -236,25 +248,25 @@ namespace Plaza {
 	}
 
 	void VulkanBloom::Init() {
-		this->mMipCount = this->CalculateMipmapLevels(Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 16, 10);
+		this->mMipCount = this->CalculateMipmapLevels(Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 16, 10) + 1;
 		this->mTexture1 = new VulkanTexture();
 		this->mTexture1->mMipLevels = this->mMipCount;
 		this->mTexture1->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, true);
-		this->mTexture1->CreateTextureSampler();
+		this->mTexture1->CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_MIPMAP_MODE_LINEAR, VK_FILTER_NEAREST);
 		this->mTexture1->CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
 		//this->mTexture1->InitDescriptorSetLayout();
 
 		this->mTexture2 = new VulkanTexture();
 		this->mTexture2->mMipLevels = this->mMipCount;
 		this->mTexture2->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, true);
-		this->mTexture2->CreateTextureSampler();
+		this->mTexture2->CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_MIPMAP_MODE_NEAREST);
 		this->mTexture2->CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
 		//this->mTexture2->InitDescriptorSetLayout();
 
 		VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mTexture1->mImageView, "Bloom Downscale", this->mTexture1->mSampler, VK_IMAGE_LAYOUT_GENERAL);
 		VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mTexture2->mImageView, "Bloom Upscale", this->mTexture2->mSampler, VK_IMAGE_LAYOUT_GENERAL);
 
-		std::array<VkDescriptorSetLayoutBinding, 2> layoutBindings{};
+		std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
 		layoutBindings[0].binding = 0;
 		layoutBindings[0].descriptorCount = 1;
 		layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -269,16 +281,16 @@ namespace Plaza {
 		layoutBindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 		layoutBindings[1].stageFlags |= VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
 
-		//layoutBindings[2].binding = 2;
-		//layoutBindings[2].descriptorCount = 1;
-		//layoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-		//layoutBindings[2].pImmutableSamplers = nullptr;
-		//layoutBindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-		//layoutBindings[2].stageFlags |= VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
+		layoutBindings[2].binding = 2;
+		layoutBindings[2].descriptorCount = 1;
+		layoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		layoutBindings[2].pImmutableSamplers = nullptr;
+		layoutBindings[2].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+		layoutBindings[2].stageFlags |= VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
 
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = 2;
+		layoutInfo.bindingCount = 3;
 		layoutInfo.pBindings = layoutBindings.data();
 		//layoutInfo.flags = VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT;
 
@@ -352,7 +364,7 @@ namespace Plaza {
 			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 			imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL; // Previous layout used by the image
 			imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL; // New layout to transition the image to
-			imageMemoryBarrier.image = this->mTexture2->mImage; // The image to transition
+			imageMemoryBarrier.image = VulkanRenderer::GetRenderer()->mDeferredFinalImage;//this->mTexture2->mImage; // The image to transition
 			imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // Aspect of the image to transition
 			imageMemoryBarrier.subresourceRange.baseMipLevel = 0; // Base mip level
 			imageMemoryBarrier.subresourceRange.levelCount = this->mTexture2->mMipLevels; // Number of mip levels
@@ -407,7 +419,7 @@ namespace Plaza {
 		//mBloomUpScaleShader->setFloat("u_bloom_intensity", m_bloom_intensity);
 		//glBindTextureUnit(0, mFinalTexturePair->texture1.id);
 
-		for (uint8_t i = mMipCount - 1; i >= 1; --i)
+		for (uint8_t i = mMipCount - 2; i >= 1; --i)
 		{
 			mipSize.x = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.x) / glm::pow(2.0, i - 1)));
 			mipSize.y = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.y) / glm::pow(2.0, i - 1)));
@@ -425,7 +437,7 @@ namespace Plaza {
 			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 			imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL; // Previous layout used by the image
 			imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL; // New layout to transition the image to
-			imageMemoryBarrier.image = this->mTexture2->mImage; // The image to transition
+			imageMemoryBarrier.image = VulkanRenderer::GetRenderer()->mDeferredFinalImage; // The image to transition
 			imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // Aspect of the image to transition
 			imageMemoryBarrier.subresourceRange.baseMipLevel = 0; // Base mip level
 			imageMemoryBarrier.subresourceRange.levelCount = this->mTexture2->mMipLevels; // Number of mip levels

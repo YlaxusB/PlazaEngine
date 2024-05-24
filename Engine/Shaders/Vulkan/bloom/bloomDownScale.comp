@@ -91,7 +91,7 @@ void main()
     vec4 F = load_lds(sm_idx - 1            );
     vec4 G = load_lds(sm_idx                );
     vec4 H = load_lds(sm_idx + 1            );
-    vec4 K = load_lds(sm_idx + TILE_SIZE - 1);'
+    vec4 K = load_lds(sm_idx + TILE_SIZE - 1);
     vec4 L = load_lds(sm_idx + TILE_SIZE    );
     vec4 M = load_lds(sm_idx + TILE_SIZE + 1);
 

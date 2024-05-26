@@ -79,8 +79,8 @@ namespace Plaza {
 
 			/* Downscale */
 			if (i == 0) {
-				inputLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				inputView = this->mTexture1->mImageView;//VulkanRenderer::GetRenderer()->mDeferredFinalImageView;
+				inputLayout = VK_IMAGE_LAYOUT_GENERAL;
+				inputView = this->mTexture1->mImageView;
 				inputSampler = this->mTexture1->mSampler;
 				//outputImageView = this->mTexture1->mImageView;
 
@@ -123,7 +123,7 @@ namespace Plaza {
 
 			/* Upscale */
 			if (i == 0) {
-				inputLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				inputLayout = VK_IMAGE_LAYOUT_GENERAL;
 				inputView = this->mTexture1->mImageView;//VulkanRenderer::GetRenderer()->mDeferredFinalImageView;
 				inputSampler = this->mTexture1->mSampler;
 				//outputImageView = this->mTexture1->mImageView;
@@ -159,6 +159,8 @@ namespace Plaza {
 				viewInfo.image = pingPong ? this->mTexture1->mImage : this->mTexture1->mImage;
 				viewInfo.subresourceRange.baseMipLevel = i - 1;
 				vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &outputImageView);
+
+				
 			}
 			for (unsigned int j = 0; j < Application->mRenderer->mMaxFramesInFlight; ++j) {
 				UpdateDescriptorSet(inputLayout, inputView, inputSampler, outputImageView, j, this->mUpScaleDescriptorSets[i][j]);
@@ -295,24 +297,14 @@ namespace Plaza {
 	}
 
 	void VulkanBloom::Draw() {
-		/* Bloom: downscale */
-		glm::uvec2 mipSize = glm::uvec2(Application->appSizes->sceneSize.x / 2, Application->appSizes->sceneSize.y / 2);
-		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mFinalSceneImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mFinalSceneImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		 //UpdateDescriptorSet(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture1->mImageView, Application->mRenderer->mCurrentFrame);
-		// UpdateDescriptorSet(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture2->mImageView, Application->mRenderer->mCurrentFrame);
-		//UpdateDescriptorSet(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture2->mImageView, i);
-		std::cout << "Start \n";
-		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mDeferredFinalImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
 		this->CopySceneTexture();
 
-		bool useFirstImage = false;
+		/* Bloom: downscale */
+		glm::uvec2 mipSize = glm::uvec2(Application->appSizes->sceneSize.x / 2, Application->appSizes->sceneSize.y / 2);
+		std::cout << "Start \n";
+
 		for (uint8_t i = 0; i < mMipCount - 1; ++i)
 		{
-			//glBindImageTexture(0, mFinalTexturePair->texture1.id, i + 1, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-			//UpdateUniformBuffers(1.0f / glm::vec2(mipSize), i, i == 0);
-
 			PushConstant pushConstant{};
 			pushConstant.u_texel_size = 1.0f / glm::vec2(mipSize);
 			pushConstant.u_mip_level = i;
@@ -323,63 +315,32 @@ namespace Plaza {
 
 			VkImageMemoryBarrier imageMemoryBarrier = {};
 			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL; // Previous layout used by the image
-			imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL; // New layout to transition the image to
-			imageMemoryBarrier.image = VulkanRenderer::GetRenderer()->mDeferredFinalImage;//this->mTexture2->mImage; // The image to transition
-			imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // Aspect of the image to transition
-			imageMemoryBarrier.subresourceRange.baseMipLevel = 0; // Base mip level
-			imageMemoryBarrier.subresourceRange.levelCount = this->mTexture2->mMipLevels; // Number of mip levels
-			imageMemoryBarrier.subresourceRange.baseArrayLayer = 0; // Base array layer
-			imageMemoryBarrier.subresourceRange.layerCount = 1; // Number of array layers
+			imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+			imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+			imageMemoryBarrier.image = this->mTexture1->mImage;
+			imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+			imageMemoryBarrier.subresourceRange.levelCount = this->mTexture1->mMipLevels;
+			imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+			imageMemoryBarrier.subresourceRange.layerCount = 1;
 
-			// Specify the access masks and pipeline stages for the transition
-			imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT; // Access mask for the compute shader write
-			imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT; // Access mask for subsequent shader read
-			imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; // Queue family indices
+			imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+			imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-			// Insert pipeline barrier
 			vkCmdPipelineBarrier(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, // Compute shader stage
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, // Subsequent shader stage
-				0, // Dependency flags
-				0, nullptr, // Memory barriers
-				0, nullptr, // Buffer memory barriers
-				1, &imageMemoryBarrier); // Image memory barriers
-
-			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL; // Previous layout used by the image
-			imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL; // New layout to transition the image to
-			imageMemoryBarrier.image = this->mTexture1->mImage; // The image to transition
-			imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // Aspect of the image to transition
-			imageMemoryBarrier.subresourceRange.baseMipLevel = 0; // Base mip level
-			imageMemoryBarrier.subresourceRange.levelCount = this->mTexture1->mMipLevels; // Number of mip levels
-			imageMemoryBarrier.subresourceRange.baseArrayLayer = 0; // Base array layer
-			imageMemoryBarrier.subresourceRange.layerCount = 1; // Number of array layers
-
-			// Specify the access masks and pipeline stages for the transition
-			imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT; // Access mask for the compute shader write
-			imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT; // Access mask for subsequent shader read
-			imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; // Queue family indices
-			imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-			// Insert pipeline barrier
-			vkCmdPipelineBarrier(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, // Compute shader stage
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, // Subsequent shader stage
-				0, // Dependency flags
-				0, nullptr, // Memory barriers
-				0, nullptr, // Buffer memory barriers
-				1, &imageMemoryBarrier); // Image memory barriers
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 
+				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 
+				0,
+				0, nullptr,
+				0, nullptr,
+				1, &imageMemoryBarrier);
 
 			mipSize = mipSize / 2u;
 		}
 
 		/* Bloom: upscale */
-		//mBloomUpScaleShader->use();
-		//mBloomUpScaleShader->setFloat("u_bloom_intensity", m_bloom_intensity);
-		//glBindTextureUnit(0, mFinalTexturePair->texture1.id);
-
 		for (uint8_t i = mMipCount - 1; i >= 1; --i)
 		{
 			mipSize.x = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.x) / glm::pow(2.0, i - 1)));
@@ -396,65 +357,28 @@ namespace Plaza {
 
 			VkImageMemoryBarrier imageMemoryBarrier = {};
 			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL; // Previous layout used by the image
-			imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL; // New layout to transition the image to
-			imageMemoryBarrier.image = VulkanRenderer::GetRenderer()->mDeferredFinalImage; // The image to transition
-			imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // Aspect of the image to transition
-			imageMemoryBarrier.subresourceRange.baseMipLevel = 0; // Base mip level
-			imageMemoryBarrier.subresourceRange.levelCount = this->mTexture2->mMipLevels; // Number of mip levels
-			imageMemoryBarrier.subresourceRange.baseArrayLayer = 0; // Base array layer
-			imageMemoryBarrier.subresourceRange.layerCount = 1; // Number of array layers
+			imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+			imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+			imageMemoryBarrier.image = this->mTexture1->mImage;
+			imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+			imageMemoryBarrier.subresourceRange.levelCount = this->mTexture1->mMipLevels;
+			imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+			imageMemoryBarrier.subresourceRange.layerCount = 1;
 
-			// Specify the access masks and pipeline stages for the transition
-			imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT; // Access mask for the compute shader write
-			imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT; // Access mask for subsequent shader read
-			imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; // Queue family indices
+			imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+			imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-			// Insert pipeline barrier
 			vkCmdPipelineBarrier(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, // Compute shader stage
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, // Subsequent shader stage
-				0, // Dependency flags
-				0, nullptr, // Memory barriers
-				0, nullptr, // Buffer memory barriers
-				1, &imageMemoryBarrier); // Image memory barriers
-
-			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-			imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL; // Previous layout used by the image
-			imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL; // New layout to transition the image to
-			imageMemoryBarrier.image = this->mTexture1->mImage; // The image to transition
-			imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT; // Aspect of the image to transition
-			imageMemoryBarrier.subresourceRange.baseMipLevel = 0; // Base mip level
-			imageMemoryBarrier.subresourceRange.levelCount = this->mTexture1->mMipLevels; // Number of mip levels
-			imageMemoryBarrier.subresourceRange.baseArrayLayer = 0; // Base array layer
-			imageMemoryBarrier.subresourceRange.layerCount = 1; // Number of array layers
-
-			// Specify the access masks and pipeline stages for the transition
-			imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT; // Access mask for the compute shader write
-			imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT; // Access mask for subsequent shader read
-			imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; // Queue family indices
-			imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-			// Insert pipeline barrier
-			vkCmdPipelineBarrier(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer,
-				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, // Compute shader stage
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, // Subsequent shader stage
-				0, // Dependency flags
-				0, nullptr, // Memory barriers
-				0, nullptr, // Buffer memory barriers
-				1, &imageMemoryBarrier); // Image memory barriers
-			//mBloomUpScaleShader->setVec2("u_texel_size", 1.0f / glm::vec2(mipSize));
-			//mBloomUpScaleShader->setInt("u_mip_level", i);
-			//
-			//glBindImageTexture(0, mFinalTexturePair->texture1.id, i - 1, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
-
-			//((**    this->mComputeShadersScaleDown.Dispatch(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1);
-
-			//glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT);
+				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				0,
+				0, nullptr,
+				0, nullptr,
+				1, &imageMemoryBarrier);
 		}
-
-		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mFinalSceneImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}
 
 	void VulkanBloom::CopySceneTexture() {
@@ -482,12 +406,12 @@ namespace Plaza {
 		imageCopyRegion.extent.height = Application->appSizes->sceneSize.y;
 		imageCopyRegion.extent.depth = 1;
 
-		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mDeferredFinalImage, VulkanRenderer::GetRenderer()->mFinalDeferredFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mDeferredFinalImage, VulkanRenderer::GetRenderer()->mFinalDeferredFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mTexture1->mImage, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 		vkCmdCopyImage(
 			*VulkanRenderer::GetRenderer()->mActiveCommandBuffer,
-			VulkanRenderer::GetRenderer()->mDeferredFinalImage, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+			VulkanRenderer::GetRenderer()->mDeferredFinalImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 			this->mTexture1->mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			1, &imageCopyRegion
 		);

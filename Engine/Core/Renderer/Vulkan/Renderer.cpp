@@ -504,7 +504,7 @@ namespace Plaza {
 		imageCreateInfo.format = mSwapChainImageFormat;
 		imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageCreateInfo.initialLayout = initialLayout;
-		imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
 		if (vkCreateImage(mDevice, &imageCreateInfo, nullptr, &mFinalSceneImage) != VK_SUCCESS) {
@@ -567,7 +567,7 @@ namespace Plaza {
 		}
 		vkBindImageMemory(mDevice, mDeferredFinalImage, imageMemory, 0);
 
-		this->TransitionImageLayout(mDeferredFinalImage, mFinalDeferredFormat, initialLayout, VK_IMAGE_LAYOUT_GENERAL, 1U);
+		//this->TransitionImageLayout(mDeferredFinalImage, mFinalDeferredFormat, initialLayout, VK_IMAGE_LAYOUT_GENERAL, 1U);
 
 		createInfo.image = mDeferredFinalImage;
 		createInfo.format = mFinalDeferredFormat;

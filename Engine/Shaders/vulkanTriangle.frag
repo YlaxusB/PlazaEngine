@@ -306,7 +306,7 @@ void main() {
 
     //FragColor = vec4(material.diffuseIndex, material.normalIndex, 0.0f, 1.0f);
    //FragColor = vec4(fragTexCoord.x / 10.0f, 0.0f, 0.0f, 1.0f);
-   vec4 c = vec4(materials[materialIndex].diffuseIndex * 0.01f, materialIndex * 0.01f, 0.0f, 1.0f);
+   // // // // vec4 c = vec4(materials[materialIndex].diffuseIndex * 0.01f, materialIndex * 0.01f, 0.0f, 1.0f);
    //FragColor = c;
    //FragColor = vec4(vec3(1.0f - shadow), 1.0f);
 

@@ -75,13 +75,28 @@ namespace Plaza {
 			VkImageLayout inputLayout = VK_IMAGE_LAYOUT_GENERAL;
 			VkImageView inputView = pingPong ? this->mTexture1->mImageView : this->mTexture1->mImageView;
 			VkSampler inputSampler = pingPong ? this->mTexture1->mSampler : this->mTexture1->mSampler;
-			VkImageView outputImageView = pingPong ? this->mTexture1->mImageView : this->mTexture1->mImageView;
+			VkImageView outputImageView = VK_NULL_HANDLE; //= pingPong ? this->mTexture1->mImageView : this->mTexture1->mImageView;
 
 			/* Downscale */
 			if (i == 0) {
 				inputLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				inputView = VulkanRenderer::GetRenderer()->mDeferredFinalImageView;
-				outputImageView = this->mTexture1->mImageView;
+				inputView = this->mTexture1->mImageView;//VulkanRenderer::GetRenderer()->mDeferredFinalImageView;
+				inputSampler = this->mTexture1->mSampler;
+				//outputImageView = this->mTexture1->mImageView;
+
+				VkImageViewCreateInfo viewInfo = {};
+				viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+				viewInfo.image = pingPong ? this->mTexture1->mImage : this->mTexture1->mImage; // Your VkImage object
+				viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				viewInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT; // Your image format
+				viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				viewInfo.subresourceRange.baseMipLevel = 1; // Specify the mip level
+				viewInfo.subresourceRange.levelCount = 1;
+				viewInfo.subresourceRange.baseArrayLayer = 0;
+				viewInfo.subresourceRange.layerCount = 1;
+
+				//vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &inputView);
+				vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &outputImageView);
 			}
 			else {
 				VkImageViewCreateInfo viewInfo = {};
@@ -90,7 +105,7 @@ namespace Plaza {
 				viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 				viewInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT; // Your image format
 				viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				viewInfo.subresourceRange.baseMipLevel = i - 1; // Specify the mip level
+				viewInfo.subresourceRange.baseMipLevel = i; // Specify the mip level
 				viewInfo.subresourceRange.levelCount = 1;
 				viewInfo.subresourceRange.baseArrayLayer = 0;
 				viewInfo.subresourceRange.layerCount = 1;
@@ -98,7 +113,7 @@ namespace Plaza {
 				vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &inputView);
 
 				viewInfo.image = pingPong ? this->mTexture1->mImage : this->mTexture1->mImage;
-				viewInfo.subresourceRange.baseMipLevel = i;
+				viewInfo.subresourceRange.baseMipLevel = i + 1;
 				vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &outputImageView);
 			}
 
@@ -109,8 +124,23 @@ namespace Plaza {
 			/* Upscale */
 			if (i == 0) {
 				inputLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				inputView = VulkanRenderer::GetRenderer()->mDeferredFinalImageView;
-				outputImageView = this->mTexture1->mImageView;
+				inputView = this->mTexture1->mImageView;//VulkanRenderer::GetRenderer()->mDeferredFinalImageView;
+				inputSampler = this->mTexture1->mSampler;
+				//outputImageView = this->mTexture1->mImageView;
+
+				VkImageViewCreateInfo viewInfo = {};
+				viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+				viewInfo.image = pingPong ? this->mTexture1->mImage : this->mTexture1->mImage; // Your VkImage object
+				viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+				viewInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT; // Your image format
+				viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				viewInfo.subresourceRange.baseMipLevel = i; // Specify the mip level
+				viewInfo.subresourceRange.levelCount = 1;
+				viewInfo.subresourceRange.baseArrayLayer = 0;
+				viewInfo.subresourceRange.layerCount = 1;
+				viewInfo.image = pingPong ? this->mTexture1->mImage : this->mTexture1->mImage;
+				viewInfo.subresourceRange.baseMipLevel = 0;
+				vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &outputImageView);
 			}
 			else {
 				VkImageViewCreateInfo viewInfo = {};
@@ -119,7 +149,7 @@ namespace Plaza {
 				viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 				viewInfo.format = VK_FORMAT_R32G32B32A32_SFLOAT; // Your image format
 				viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				viewInfo.subresourceRange.baseMipLevel = i + 1; // Specify the mip level
+				viewInfo.subresourceRange.baseMipLevel = i; // Specify the mip level
 				viewInfo.subresourceRange.levelCount = 1;
 				viewInfo.subresourceRange.baseArrayLayer = 0;
 				viewInfo.subresourceRange.layerCount = 1;
@@ -182,84 +212,26 @@ namespace Plaza {
 		mComputeShadersScaleDown.mDescriptorWrites[2].descriptorCount = 1;
 		mComputeShadersScaleDown.mDescriptorWrites[2].pImageInfo = &sceneImageInfo;
 
-		//VkDescriptorBufferInfo uniformBufferInfo{};
-		//uniformBufferInfo.buffer = mUniformBuffers[frame];
-		//uniformBufferInfo.offset = 0;
-		//uniformBufferInfo.range = sizeof(UniformBufferObject);
-		//
-		//mComputeShadersScaleDown.mDescriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		//mComputeShadersScaleDown.mDescriptorWrites[2].dstSet = descriptorSet;
-		//mComputeShadersScaleDown.mDescriptorWrites[2].dstBinding = 2;
-		//mComputeShadersScaleDown.mDescriptorWrites[2].dstArrayElement = 0;
-		//mComputeShadersScaleDown.mDescriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
-		//mComputeShadersScaleDown.mDescriptorWrites[2].descriptorCount = 1;
-		//mComputeShadersScaleDown.mDescriptorWrites[2].pBufferInfo = &uniformBufferInfo;
-
 		vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, mComputeShadersScaleDown.mDescriptorWrites.size(), mComputeShadersScaleDown.mDescriptorWrites.data(), 0, nullptr);
 	}
 
 	void VulkanBloom::UpdateDescriptorSets() {
-		//VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-		//
-		//mUniformBuffers.resize(VulkanRenderer::GetRenderer()->mMaxFramesInFlight);
-		//mUniformBuffersMemory.resize(VulkanRenderer::GetRenderer()->mMaxFramesInFlight);
-		//mUniformBuffersMapped.resize(VulkanRenderer::GetRenderer()->mMaxFramesInFlight);
-		//
-		//for (size_t i = 0; i < VulkanRenderer::GetRenderer()->mMaxFramesInFlight; i++) {
-		//	VulkanRenderer::GetRenderer()->CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffers[i], mUniformBuffersMemory[i]);
-		//
-		//	vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mUniformBuffersMemory[i], 0, bufferSize, 0, &mUniformBuffersMapped[i]);
-		//}
 
-
-		//std::array<VkDescriptorPoolSize, 2> poolSizes{};
-		//poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		//poolSizes[0].descriptorCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
-		//
-		//poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		//poolSizes[1].descriptorCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight) * 2;
-		//
-		//VkDescriptorPoolCreateInfo poolInfo{};
-		//poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		//poolInfo.poolSizeCount = 2;
-		//poolInfo.pPoolSizes = poolSizes.data();
-		//poolInfo.maxSets = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
-		//
-		//VkDescriptorPool descriptorPool;
-		//if (vkCreateDescriptorPool(VulkanRenderer::GetRenderer()->mDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-		//	throw std::runtime_error("failed to create descriptor pool!");
-		//}
-		//
-		//mComputeShadersScaleDown.mComputeDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
-		//std::vector<VkDescriptorSetLayout> layouts(Application->mRenderer->mMaxFramesInFlight, mComputeShadersScaleDown.mComputeDescriptorSetLayout);
-		//VkDescriptorSetAllocateInfo allocInfo{};
-		//allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		//allocInfo.descriptorPool = descriptorPool;
-		//allocInfo.descriptorSetCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
-		//allocInfo.pSetLayouts = layouts.data();
-		//
-		//if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, mComputeShadersScaleDown.mComputeDescriptorSets.data()) != VK_SUCCESS) {
-		//	throw std::runtime_error("failed to allocate descriptor sets!");
-		//}
-		//
-		//for (size_t i = 0; i < VulkanRenderer::GetRenderer()->mMaxFramesInFlight; i++) {
-		//	//UpdateDescriptorSet(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture2->mImageView, i);
-		//}
 	}
 
 	void VulkanBloom::Init() {
-		this->mMipCount = this->CalculateMipmapLevels(Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 16, 10) + 1;
+		this->mMipCount = this->CalculateMipmapLevels(Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 16, 10);
 		this->mTexture1 = new VulkanTexture();
 		this->mTexture1->mMipLevels = this->mMipCount;
 		this->mTexture1->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, true);
-		this->mTexture1->CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_MIPMAP_MODE_LINEAR, VK_FILTER_NEAREST);
-		this->mTexture1->CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
+		this->mTexture1->CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_MIPMAP_MODE_NEAREST, VK_FILTER_LINEAR, VK_FILTER_LINEAR);
+		this->mTexture1->CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D);
 		//this->mTexture1->InitDescriptorSetLayout();
 
 		this->mTexture2 = new VulkanTexture();
 		this->mTexture2->mMipLevels = this->mMipCount;
 		this->mTexture2->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, true);
-		this->mTexture2->CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_MIPMAP_MODE_NEAREST);
+		this->mTexture2->CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_MIPMAP_MODE_LINEAR, VK_FILTER_NEAREST, VK_FILTER_NEAREST);
 		this->mTexture2->CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
 		//this->mTexture2->InitDescriptorSetLayout();
 
@@ -320,31 +292,20 @@ namespace Plaza {
 		float m_bloom_intensity = 16.0f;
 		float m_bloom_dirt_intensity = 1.0f;
 
-
-		//UniformBufferObject uniformBuffer{};
-		//uniformBuffer.u_texel_size = texelSize;
-		//uniformBuffer.u_mip_level = mipLevel;
-		//uniformBuffer.u_threshold = glm::vec4(mThreshold, mThreshold - mKnee, 2.0f * mKnee, 0.25f * mKnee);
-		//uniformBuffer.u_use_threshold = useThreshold;
-		//
-		//unsigned int frameIndex = Application->mRenderer->mCurrentFrame;
-		//void* data;
-		//vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mUniformBuffersMemory[frameIndex], 0, sizeof(uniformBuffer), 0, &data);
-		//memcpy(data, &uniformBuffer, sizeof(uniformBuffer));
-		//vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, mUniformBuffersMemory[frameIndex]);
-
 	}
 
 	void VulkanBloom::Draw() {
 		/* Bloom: downscale */
-		glm::uvec2 mipSize = glm::uvec2(Application->appSizes->sceneSize.x / 1, Application->appSizes->sceneSize.y / 1);
+		glm::uvec2 mipSize = glm::uvec2(Application->appSizes->sceneSize.x / 2, Application->appSizes->sceneSize.y / 2);
 		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mFinalSceneImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mFinalSceneImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		 //UpdateDescriptorSet(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture1->mImageView, Application->mRenderer->mCurrentFrame);
 		// UpdateDescriptorSet(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture2->mImageView, Application->mRenderer->mCurrentFrame);
 		//UpdateDescriptorSet(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VulkanRenderer::GetRenderer()->mFinalSceneImageView, VulkanRenderer::GetRenderer()->mTextureSampler, this->mTexture2->mImageView, i);
 		std::cout << "Start \n";
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mDeferredFinalImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mDeferredFinalImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+		this->CopySceneTexture();
 
 		bool useFirstImage = false;
 		for (uint8_t i = 0; i < mMipCount - 1; ++i)
@@ -419,7 +380,7 @@ namespace Plaza {
 		//mBloomUpScaleShader->setFloat("u_bloom_intensity", m_bloom_intensity);
 		//glBindTextureUnit(0, mFinalTexturePair->texture1.id);
 
-		for (uint8_t i = mMipCount - 2; i >= 1; --i)
+		for (uint8_t i = mMipCount - 1; i >= 1; --i)
 		{
 			mipSize.x = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.x) / glm::pow(2.0, i - 1)));
 			mipSize.y = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.y) / glm::pow(2.0, i - 1)));
@@ -495,6 +456,46 @@ namespace Plaza {
 
 		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mFinalSceneImage, VulkanRenderer::GetRenderer()->mSwapChainImageFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}
+
+	void VulkanBloom::CopySceneTexture() {
+		VkImageSubresourceRange subresourceRange{};
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.baseMipLevel = 0;
+		subresourceRange.levelCount = 1;
+		subresourceRange.baseArrayLayer = 0;
+		subresourceRange.layerCount = 1;
+
+		VkImageCopy imageCopyRegion{};
+		imageCopyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageCopyRegion.srcSubresource.mipLevel = 0;
+		imageCopyRegion.srcSubresource.baseArrayLayer = 0;
+		imageCopyRegion.srcSubresource.layerCount = 1;
+		imageCopyRegion.srcOffset = { 0, 0, 0 };
+
+		imageCopyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageCopyRegion.dstSubresource.mipLevel = 0;
+		imageCopyRegion.dstSubresource.baseArrayLayer = 0;
+		imageCopyRegion.dstSubresource.layerCount = 1;
+		imageCopyRegion.dstOffset = { 0, 0, 0 };
+
+		imageCopyRegion.extent.width = Application->appSizes->sceneSize.x;
+		imageCopyRegion.extent.height = Application->appSizes->sceneSize.y;
+		imageCopyRegion.extent.depth = 1;
+
+		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mDeferredFinalImage, VulkanRenderer::GetRenderer()->mFinalDeferredFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mTexture1->mImage, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+		vkCmdCopyImage(
+			*VulkanRenderer::GetRenderer()->mActiveCommandBuffer,
+			VulkanRenderer::GetRenderer()->mDeferredFinalImage, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+			this->mTexture1->mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			1, &imageCopyRegion
+		);
+
+		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mDeferredFinalImage, VulkanRenderer::GetRenderer()->mFinalDeferredFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mTexture1->mImage, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+	}
+
 	void VulkanBloom::BlendBloomWithScene() {
 
 	}

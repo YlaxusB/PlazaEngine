@@ -21,6 +21,7 @@ namespace Plaza::Editor {
 				ImGui::DragFloat("Bloom Intensity", &VulkanRenderer::GetRenderer()->mBloom.mBloomIntensity);
 				ImGui::DragFloat("Bloom Knee", &VulkanRenderer::GetRenderer()->mBloom.mKnee);
 				ImGui::DragFloat("Bloom Threshold", &VulkanRenderer::GetRenderer()->mBloom.mThreshold);
+				ImGui::DragInt("Bloom Mip Count", &VulkanRenderer::GetRenderer()->mBloom.mMipCount);
 				
 
 				if (ImGui::Button("Save Settings")) {

@@ -13,6 +13,7 @@ const float epsilon = 1.0e-4;
 // Curve = (threshold - knee, knee * 2.0, knee * 0.25)
 vec4 quadratic_threshold(vec4 color, float threshold, vec3 curve)
 {
+    vec4 oldColor = color;
 	// Pixel brightness
     float br = max(color.r, max(color.g, color.b));
 
@@ -22,6 +23,10 @@ vec4 quadratic_threshold(vec4 color, float threshold, vec3 curve)
 
     // Combine and apply the brightness response curve.
     color *= max(rq, br - threshold) / max(br, epsilon);
+
+    if (color.x < 0.01f && color.y < 0.01f && color.z < 0.01f) {
+        color = oldColor;
+    }
 
     return color;
 }

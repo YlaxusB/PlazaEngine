@@ -303,13 +303,13 @@ namespace Plaza {
 		return id;
 	}
 
-	VkImageView VulkanTexture::CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType, unsigned int layerCount) {
+	VkImageView VulkanTexture::CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType, unsigned int layerCount, unsigned int baseMipLevel) {
 		VkImageViewCreateInfo viewInfo{};
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		viewInfo.image = this->mImage;
 		viewInfo.viewType = viewType;
 		viewInfo.format = format;
-		viewInfo.subresourceRange.baseMipLevel = 0;
+		viewInfo.subresourceRange.baseMipLevel = baseMipLevel;
 		viewInfo.subresourceRange.levelCount = this->mMipLevels;
 		viewInfo.subresourceRange.baseArrayLayer = 0;
 		viewInfo.subresourceRange.layerCount = layerCount;
@@ -448,8 +448,8 @@ namespace Plaza {
 	void VulkanTexture::CreateTextureSampler(VkSamplerAddressMode adressMode, VkSamplerMipmapMode mipMapMode, VkFilter magFilter, VkFilter minFilter) {
 		VkSamplerCreateInfo samplerInfo{};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		samplerInfo.magFilter = VK_FILTER_LINEAR;
-		samplerInfo.minFilter = VK_FILTER_LINEAR;
+		samplerInfo.magFilter = magFilter;
+		samplerInfo.minFilter = minFilter;
 		samplerInfo.addressModeU = adressMode;
 		samplerInfo.addressModeV = adressMode;
 		samplerInfo.addressModeW = adressMode;

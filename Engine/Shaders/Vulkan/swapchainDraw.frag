@@ -5,7 +5,7 @@ layout (location = 0) in vec2 inUV;
 layout (location = 0) out vec4 outFragcolor;
 
 float u_exposure = 1.2f;
-float u_gamma = 1.1f;
+float u_gamma = 2.6f;
 vec3 gammaCorrect(vec3 color) 
 {
     return pow(color, vec3(1.0/u_gamma));
@@ -36,12 +36,12 @@ vec3 RRTAndODTFit(vec3 v)
 
 void main() 
 {
-    vec4 x = u_exposure * texture(samplerTexture, inUV);
+    vec4 x = 0.4f * texture(samplerTexture, inUV);
     vec3 color = ACESInputMat * x.rgb;
          color = RRTAndODTFit(color);
          color = ACESOutputMat * color;
 
          color = gammaCorrect(color);
          color = clamp(color, 0.0, 1.0);
-	outFragcolor = vec4(color / (1.0f / u_gamma), 1.0f);
+	outFragcolor = vec4(color, 1.0f);
 }

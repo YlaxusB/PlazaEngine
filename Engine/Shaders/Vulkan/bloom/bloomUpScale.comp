@@ -105,7 +105,7 @@ void main()
 
     if(pushConstants.u_mip_level == 1)
     {
-        out_pixel.xyz += textureLod(sceneTexture, pixel_coords * (pushConstants.u_texel_size), 0).xyz;
+        out_pixel.xyz = out_pixel.xyz + imageLoad(u_output_image, pixel_coords).xyz;
     }
 
 	imageStore(u_output_image, pixel_coords, out_pixel);

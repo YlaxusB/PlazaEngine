@@ -5,6 +5,7 @@
 namespace Plaza {
 	class VulkanBloom {
 	public:
+		int mMipCount = 5;
 		float mThreshold = 1.5f;
 		float mKnee = 0.1f;
 		float mBloomIntensity = 16.0f;
@@ -12,6 +13,7 @@ namespace Plaza {
 
 		void Init();
 		void Draw();
+		void CopySceneTexture();
 		void BlendBloomWithScene();
 		void Terminate();
 		void UpdateDescriptorSets();
@@ -39,6 +41,5 @@ namespace Plaza {
 		std::vector<VkBuffer> mUniformBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mUniformBuffersMemory = std::vector<VkDeviceMemory>();
 		std::vector<void*> mUniformBuffersMapped = std::vector<void*>();
-		int mMipCount = 5;
 	};
 }

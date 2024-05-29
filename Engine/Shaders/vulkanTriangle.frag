@@ -40,6 +40,7 @@ layout(binding = 0) uniform UniformBufferObject {
     vec4 viewPos;
     mat4 lightSpaceMatrices[16];
     vec4 cascadePlaneDistances[16];
+    vec4 sunColor;
     bool showCascadeLevels;
 } ubo;
 
@@ -176,7 +177,7 @@ void main() {
 
     color = color * 1;
 
-    vec3 lightColor = vec3(1.0f, 0.85f, 0.85f) * 255;
+    vec3 lightColor = ubo.sunColor.xyz * 255;//vec3(1.0f, 0.85f, 0.85f) * 255;
     // ambient
     vec3 ambient = 1.32 * (lightColor / 1);
     // diffuse
@@ -259,7 +260,7 @@ void main() {
     //  gOthers.z = metallic;
    //SpecBRDF = all(equal(shad, vec3(0))) ? SpecBRDF : vec3(0);
     //vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color.xyz * (nDotL + amb / 2);//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
-    vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * (max(nDotL, amb.x / 2) * (amb + shadow));
+    vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * (max(nDotL, amb.x / 2) * (amb + (ubo.sunColor.xyz * shadow)));
     //vec3 fog = vec3(0.7f, 0.7f, 0.0f) * pow(distance(FragPos, ubo.viewPos) / 15000.0f, 0.5f);
     //FinalColor *= vec3(1.0f) - fog;
 

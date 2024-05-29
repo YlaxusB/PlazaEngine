@@ -10,6 +10,7 @@ layout(binding = 0) uniform UniformBufferObject {
     vec4 viewPos;
     mat4[16] lightSpaceMatrices;
     vec4[16] cascadePlaneDistances;
+    vec4 sunColor;
     bool showCascadeLevels;
 } ubo;
 layout(location = 0) in vec3 inPosition;

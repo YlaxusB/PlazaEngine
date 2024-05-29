@@ -47,6 +47,7 @@ namespace Plaza {
 			alignas(16) glm::vec4 viewPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 			glm::mat4 lightSpaceMatrices[16] = { glm::mat4(2.0f) };
 			glm::vec4 cascadePlaneDistances[16] = { glm::vec4(1.0f) };
+			alignas(16) glm::vec4 sunColor;
 			bool showCascadeLevels;
 		};
 
@@ -149,9 +150,15 @@ namespace Plaza {
 		void UpdateMaterials();
 
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
+		void CopyImage(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
 		VkSampler mTextureSampler;
 		std::vector<VkFence> mComputeInFlightFences;
 	private:
+		struct SwapChainPushConstant {
+			float exposure = 1.2f;
+			float gamma = 2.6f;
+		};
+
 		VkDescriptorSetLayout mSwapchainDescriptorSetLayout = VK_NULL_HANDLE;
 
 		struct alignas(16) MaterialData {

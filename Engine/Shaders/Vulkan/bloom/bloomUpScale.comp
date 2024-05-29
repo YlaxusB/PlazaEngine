@@ -101,12 +101,5 @@ void main()
 	vec4 out_pixel = imageLoad(u_output_image, pixel_coords);//vec4(0.0f, 0.0f, 0.0f, 1.0f);
     out_pixel += bloom * 1.3f;
 
-    // out_pixel = quadratic_threshold(out_pixel, u_threshold.x, u_threshold.yzw);
-
-    if(pushConstants.u_mip_level == 1)
-    {
-        out_pixel.xyz = out_pixel.xyz + imageLoad(u_output_image, pixel_coords).xyz;
-    }
-
 	imageStore(u_output_image, pixel_coords, out_pixel);
 }

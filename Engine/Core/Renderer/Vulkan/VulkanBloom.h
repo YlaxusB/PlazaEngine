@@ -6,8 +6,8 @@ namespace Plaza {
 	class VulkanBloom {
 	public:
 		int mMipCount = 5;
-		float mThreshold = 1.5f;
-		float mKnee = 0.1f;
+		float mThreshold = 1.0f;
+		float mKnee = 0.5f;
 		float mBloomIntensity = 16.0f;
 		float mBloomDirtIntensity = 1.0f;
 

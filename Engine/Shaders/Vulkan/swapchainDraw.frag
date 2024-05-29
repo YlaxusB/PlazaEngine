@@ -4,11 +4,13 @@ layout (binding = 1) uniform sampler2D samplerTexture;
 layout (location = 0) in vec2 inUV;
 layout (location = 0) out vec4 outFragcolor;
 
-float u_exposure = 1.2f;
-float u_gamma = 2.6f;
+layout(push_constant) uniform PushConstants {
+    float exposure; //1.2f
+    float gamma; //2.6f
+} pushConstants;
 vec3 gammaCorrect(vec3 color) 
 {
-    return pow(color, vec3(1.0/u_gamma));
+    return pow(color, vec3(1.0 / pushConstants.gamma));
 }
 
 // sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
@@ -36,7 +38,7 @@ vec3 RRTAndODTFit(vec3 v)
 
 void main() 
 {
-    vec4 x = 0.4f * texture(samplerTexture, inUV);
+    vec4 x = pushConstants.exposure * texture(samplerTexture, inUV);
     vec3 color = ACESInputMat * x.rgb;
          color = RRTAndODTFit(color);
          color = ACESOutputMat * color;

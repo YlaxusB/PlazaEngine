@@ -23,6 +23,9 @@ namespace Plaza::Editor {
 				ImGui::DragFloat("Bloom Threshold", &VulkanRenderer::GetRenderer()->mBloom.mThreshold);
 				ImGui::DragInt("Bloom Mip Count", &VulkanRenderer::GetRenderer()->mBloom.mMipCount);
 				
+				ImGui::DragFloat("Exposure", &VulkanRenderer::GetRenderer()->exposure);
+				ImGui::DragFloat("Gamma", &VulkanRenderer::GetRenderer()->gamma);
+				ImGui::ColorPicker3("Directional Light Color", &VulkanRenderer::GetRenderer()->sunColor.x);
 
 				if (ImGui::Button("Save Settings")) {
 					Editor::EditorSettingsSerializer::Serialize();

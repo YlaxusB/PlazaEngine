@@ -3,7 +3,6 @@
 #include "Mesh.h"
 #include "Engine/Core/RenderGroup.h"
 #include "Shadows.h"
-#include "Lighting.h"
 #include "Skybox.h"
 #include "Picking.h"
 #include "GuiRenderer.h"
@@ -33,7 +32,6 @@ namespace Plaza {
 
 		RendererAPI api;
 		Shadows* mShadows;
-		Lighting* mLighting;
 		Skybox* mSkybox;
 		Picking* mPicking;
 		GuiRenderer* mGuiRenderer;

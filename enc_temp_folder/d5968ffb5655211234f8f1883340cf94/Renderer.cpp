@@ -2,7 +2,6 @@
 #include "Renderer.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanSkybox.h"
-#include "Engine/Core/Renderer/Vulkan/VulkanLighting.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanGuiRenderer.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 
@@ -2007,7 +2006,6 @@ namespace Plaza {
 	{
 		Application->mRendererAPI = RendererAPI::Vulkan;
 		this->mShadows = new VulkanShadows();
-		this->mLighting = new VulkanLighting();
 		this->mSkybox = new VulkanSkybox();
 		this->mPicking = new VulkanPicking();
 		this->mGuiRenderer = new VulkanGuiRenderer();
@@ -2110,7 +2108,6 @@ namespace Plaza {
 		VkFormatProperties vkFormatProperties;
 		vkGetPhysicalDeviceFormatProperties(mPhysicalDevice, VK_FORMAT_R8G8B8_UNORM, &vkFormatProperties);
 		std::cout << "Initializing Skybox \n";
-		this->mLighting->Init();
 		this->mSkybox->Init();
 		this->mPicking->Init();
 		this->mGuiRenderer->Init();

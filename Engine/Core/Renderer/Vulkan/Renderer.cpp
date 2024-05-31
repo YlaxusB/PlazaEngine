@@ -2,7 +2,6 @@
 #include "Renderer.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanSkybox.h"
-#include "Engine/Core/Renderer/Vulkan/VulkanLighting.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanGuiRenderer.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 
@@ -1207,7 +1206,6 @@ namespace Plaza {
 
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		//this->mParticleCompute.RunCompute();
 
 		{
 			PLAZA_PROFILE_SECTION("Bind Instances Data");
@@ -1238,9 +1236,6 @@ namespace Plaza {
 
 			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 		}
-		//this->mParticleCompute.Draw();
-
-
 
 		viewport.height = Application->appSizes->sceneSize.y;
 		viewport.y = 0.0f;
@@ -1250,6 +1245,12 @@ namespace Plaza {
 		this->mGuiRenderer->RenderText(nullptr);
 
 		vkCmdEndRenderPass(commandBuffer);
+
+		/* Tiled Lighting */
+		this->mLighting->GetLights();
+		this->mLighting->UpdateTiles();
+		this->mLighting->DrawDeferredPass();
+
 		this->mBloom.Draw();
 
 		/* Render to ImGui or swapchain */
@@ -1266,7 +1267,6 @@ namespace Plaza {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mSwapchainRenderer.mShaders->mPipeline);
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mSwapchainRenderer.mShaders->mPipelineLayout, 0, 1, descriptorSets.data(), 0, nullptr);
 		this->mSwapchainRenderer.Update();
-		this->mSwapchainRenderer.DrawFullScreenRectangle();
 		SwapChainPushConstant swapChainPushConstant{};
 		swapChainPushConstant.exposure = this->exposure;
 		swapChainPushConstant.gamma = this->gamma;
@@ -1543,7 +1543,7 @@ namespace Plaza {
 	void VulkanRenderer::CreateDescriptorPool() {
 		static const uint32_t maxBindlessTextures = 16536 * 4;
 
-		std::array<VkDescriptorPoolSize, 6> poolSizes{};
+		std::array<VkDescriptorPoolSize, 8> poolSizes{};
 		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		poolSizes[0].descriptorCount = static_cast<uint32_t>(mMaxFramesInFlight);
 		poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -1555,7 +1555,12 @@ namespace Plaza {
 		poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		poolSizes[4].descriptorCount = static_cast<uint32_t>(mMaxFramesInFlight);
 		poolSizes[5].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-		poolSizes[5].descriptorCount = 16;//static_cast<uint32_t>(mMaxFramesInFlight);
+		poolSizes[5].descriptorCount = 128;
+		poolSizes[6].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+		poolSizes[6].descriptorCount = 128;
+		poolSizes[7].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+		poolSizes[7].descriptorCount = 128;
+
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -1968,39 +1973,8 @@ namespace Plaza {
 
 	void VulkanRenderer::CreateDepthResources() {
 		VkFormat depthFormat = VK_FORMAT_D32_SFLOAT_S8_UINT;//FindDepthFormat();
-		CreateImage(mSwapChainExtent.width, mSwapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mDepthImage, mDepthImageMemory);
-		mDepthImageView = CreateImageView(mDepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
-	}
-
-	void VulkanRenderer::LoadModel() {
-		tinyobj::attrib_t attrib;
-		std::vector<tinyobj::shape_t> shapes;
-		std::vector<tinyobj::material_t> materials;
-		std::string warn, err;
-
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str())) {
-			throw std::runtime_error(warn + err);
-		}
-
-		for (const auto& shape : shapes) {
-			for (const auto& index : shape.mesh.indices) {
-				Vertex vertex{};
-
-				vertex.position = {
-	attrib.vertices[3 * index.vertex_index + 0],
-	attrib.vertices[3 * index.vertex_index + 1],
-	attrib.vertices[3 * index.vertex_index + 2]
-				};
-
-				vertex.texCoords = {
-					attrib.texcoords[2 * index.texcoord_index + 0],
-					1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
-				};
-
-				vertices.push_back(vertex);
-				indices.push_back(indices.size());
-			}
-		}
+		CreateImage(mSwapChainExtent.width, mSwapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mDepthImage, mDepthImageMemory);
+		mDepthImageView = CreateImageView(mDepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 	}
 
 	void VulkanRenderer::Init()
@@ -2055,27 +2029,6 @@ namespace Plaza {
 		std::cout << "CreateTextureSampler \n";
 		CreateTextureSampler();
 		std::cout << "Create CreateUniformBuffers \n";
-		//LoadModel();
-
-		/*
-						VkBuffer stagingBuffer;
-
-				VkDeviceSize size = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
-				CreateBuffer(sizeof(VkDrawIndexedIndirectCommand) * (1024 * 512), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mIndirectBuffer, mIndirectBufferMemory);
-				VkBuffer stagingBuffer2;
-				VkDeviceMemory stagingBufferMemory2;
-				CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer2, stagingBufferMemory2);
-
-				void* data;
-				vkMapMemory(mDevice, stagingBufferMemory2, 0, size, 0, &data);
-				memcpy(data, mIndirectCommands.data(), static_cast<size_t>(size));
-				vkUnmapMemory(mDevice, stagingBufferMemory2);
-
-				CopyBuffer(stagingBuffer2, mIndirectBuffer, size);
-
-				vkDestroyBuffer(mDevice, stagingBuffer2, nullptr);
-				vkFreeMemory(mDevice, stagingBufferMemory2, nullptr);
-		*/
 
 		CreateBuffer(1024 * 1024 * 8 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mMainVertexBuffer, mMainVertexBufferMemory);
 		CreateBuffer(1024 * 1024 * 8 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mMainIndexBuffer, mMainIndexBufferMemory);
@@ -2115,7 +2068,6 @@ namespace Plaza {
 		this->mPicking->Init();
 		this->mGuiRenderer->Init();
 
-		//this->mParticleCompute.Init(Application->enginePath + "\\Shaders\\Vulkan\\compute\\particles.comp");
 		this->mBloom.Init();
 
 

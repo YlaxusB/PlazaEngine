@@ -15,8 +15,8 @@ namespace Plaza {
 
 	}
 
-	void VulkanPostEffects::DrawFullScreenRectangle() {
-
+	void VulkanPostEffects::DrawFullScreenRectangle(VkCommandBuffer commandBuffer) {
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 	}
 
 	void VulkanPostEffects::Terminate() {

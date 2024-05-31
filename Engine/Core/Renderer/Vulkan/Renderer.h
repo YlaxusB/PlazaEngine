@@ -9,6 +9,7 @@
 
 #include "VulkanTexture.h"
 #include "VulkanShadows.h"
+#include "VulkanLighting.h"
 #include "VulkanPicking.h"
 #include "VulkanComputeShaders.h"
 #include "VulkanBloom.h"
@@ -22,9 +23,6 @@ namespace Plaza {
 	class VulkanRenderer : public Renderer {
 	public:
 		VkSemaphore semaphore;
-
-		VulkanComputeShaders mParticleCompute;
-
 
 		struct PushConstants {
 			glm::vec4 color = glm::vec4(1.0f);
@@ -50,22 +48,6 @@ namespace Plaza {
 			alignas(16) glm::vec4 sunColor;
 			bool showCascadeLevels;
 		};
-
-
-
-		/*
-	mat4 projection;
-	mat4 view;
-	mat4 model;
-	int cascadeCount;
-	float farPlane;
-	float nearPlane;
-	float cascadePlaneDistances[32];
-	vec4 lightDirection;
-	vec4 viewPos;
-	mat4 lightSpaceMatrices[32];
-		*/
-
 		
 		VkDevice mDevice = VK_NULL_HANDLE;
 		VkRenderPass mRenderPass;
@@ -74,6 +56,7 @@ namespace Plaza {
 		static VulkanRenderer* GetRenderer();
 		RendererAPI api = RendererAPI::Vulkan;
 		VulkanShadows* mShadows; //= new VulkanShadows();
+		VulkanLighting* mLighting; 
 		VulkanBloom mBloom;
 
 		VulkanPostEffects mSwapchainRenderer;
@@ -153,6 +136,8 @@ namespace Plaza {
 		void CopyImage(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
 		VkSampler mTextureSampler;
 		std::vector<VkFence> mComputeInFlightFences;
+
+		VkDescriptorPool mDescriptorPool;
 	private:
 		struct SwapChainPushConstant {
 			float exposure = 1.2f;
@@ -258,7 +243,6 @@ namespace Plaza {
 		std::vector<VkBuffer> mUniformBuffers;
 		std::vector<VkDeviceMemory> mUniformBuffersMemory;
 		std::vector<void*> mUniformBuffersMapped;
-		VkDescriptorPool mDescriptorPool;
 
 		std::vector<VkImage> mSwapChainImages;
 		std::vector<VkImageView> mSwapChainImageViews;
@@ -330,7 +314,6 @@ namespace Plaza {
 
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
-		void LoadModel();
 
 		static std::array<VkVertexInputBindingDescription, 3> VertexGetBindingDescription() {
 			std::array<VkVertexInputBindingDescription, 3> bindingDescriptions = {};

@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/Shaders/ComputeShader.h"
 namespace Plaza {
-	class Lighting {
+	class ClusteredLighting {
 	public:
 		struct LightStruct {
 			glm::vec3 color;
@@ -43,3 +43,4 @@ namespace Plaza {
 		static void UpdateBuffers();
 	};
 }
+

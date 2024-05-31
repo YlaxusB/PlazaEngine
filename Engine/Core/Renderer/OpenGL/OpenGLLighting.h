@@ -6,6 +6,7 @@ namespace Plaza {
 	public:
 		void Init() override;
 		void UpdateTiles() override;
+		void GetLights() override;
 		void Terminate() override;
-	}
+	};
 }

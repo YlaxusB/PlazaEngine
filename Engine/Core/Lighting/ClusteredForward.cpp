@@ -5,17 +5,17 @@
 #include <vector>
 
 namespace Plaza {
-	int Lighting::mLightsSize = 0;
-	GLuint Lighting::mClustersBuffer = 0;
-	GLuint Lighting::mLightsBuffer = 0;
-	GLuint Lighting::mLightsBuffer2 = 0;
-	unsigned int Lighting::frameBuffer, Lighting::textureColorbuffer, Lighting::rbo = 0;
-	Shader* Lighting::mLightAccumulationShader = nullptr;
-	Shader* Lighting::mLightMergerShader = nullptr;
-	ComputeShader* Lighting::mLightSorterComputeShader = nullptr;
-	std::vector<Lighting::Cluster> Lighting::mClusters = std::vector<Cluster>();
-	std::vector<Lighting::LightStruct> Lighting::mLights = std::vector<LightStruct>();
-	void Lighting::InitializeClusters(float numberClustersX, float numberClustersY, float numberClustersZ, std::vector<Cluster>& clusters) {
+	int ClusteredLighting::mLightsSize = 0;
+	GLuint ClusteredLighting::mClustersBuffer = 0;
+	GLuint ClusteredLighting::mLightsBuffer = 0;
+	GLuint ClusteredLighting::mLightsBuffer2 = 0;
+	unsigned int ClusteredLighting::frameBuffer, ClusteredLighting::textureColorbuffer, ClusteredLighting::rbo = 0;
+	Shader* ClusteredLighting::mLightAccumulationShader = nullptr;
+	Shader* ClusteredLighting::mLightMergerShader = nullptr;
+	ComputeShader* ClusteredLighting::mLightSorterComputeShader = nullptr;
+	std::vector<ClusteredLighting::Cluster> ClusteredLighting::mClusters = std::vector<Cluster>();
+	std::vector<ClusteredLighting::LightStruct> ClusteredLighting::mLights = std::vector<LightStruct>();
+	void ClusteredLighting::InitializeClusters(float numberClustersX, float numberClustersY, float numberClustersZ, std::vector<Cluster>& clusters) {
 		std::string shadersFolder = Application->enginePath;
 		mLightAccumulationShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\accumulationVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\accumulationFragment.glsl").c_str());
 		// Clear any existing data in clusters
@@ -35,7 +35,7 @@ namespace Plaza {
 		}
 	}
 
-	void Lighting::AssignLightsToClusters(const std::vector<LightStruct>& lights, std::vector<Cluster>& clusters) {
+	void ClusteredLighting::AssignLightsToClusters(const std::vector<LightStruct>& lights, std::vector<Cluster>& clusters) {
 		// Clear existing light indices in clusters
 
 		// Iterate over lights and assign them to clusters based on intersection
@@ -57,7 +57,7 @@ namespace Plaza {
 		}
 	}
 
-	void Lighting::CreateClusterBuffers(const std::vector<Cluster>& clusters) {
+	void ClusteredLighting::CreateClusterBuffers(const std::vector<Cluster>& clusters) {
 		int size = 32;
 		int clusterCount = glm::ceil(glm::ceil(Application->appSizes->sceneSize.x / size + 1) * glm::ceil(Application->appSizes->sceneSize.y / size + 1));
 		for (int i = 0; i < clusterCount; i++) {
@@ -116,23 +116,23 @@ namespace Plaza {
 
 		ApplicationSizes& appSizes = *Application->appSizes;
 		//unsigned int& textureColorbuffer = Application->textureColorbuffer;
-		glGenFramebuffers(1, &Lighting::frameBuffer);
-		glBindFramebuffer(GL_FRAMEBUFFER, Lighting::frameBuffer);
+		glGenFramebuffers(1, &ClusteredLighting::frameBuffer);
+		glBindFramebuffer(GL_FRAMEBUFFER, ClusteredLighting::frameBuffer);
 		// create a color attachment texture
-		glGenTextures(1, &Lighting::textureColorbuffer);
-		glBindTexture(GL_TEXTURE_2D, Lighting::textureColorbuffer);
+		glGenTextures(1, &ClusteredLighting::textureColorbuffer);
+		glBindTexture(GL_TEXTURE_2D, ClusteredLighting::textureColorbuffer);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, appSizes.sceneSize.x, appSizes.sceneSize.y, 0, GL_RGBA, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, Lighting::textureColorbuffer, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ClusteredLighting::textureColorbuffer, 0);
 
 
 		// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-		glGenRenderbuffers(1, &Lighting::rbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, Lighting::rbo);
+		glGenRenderbuffers(1, &ClusteredLighting::rbo);
+		glBindRenderbuffer(GL_RENDERBUFFER, ClusteredLighting::rbo);
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, appSizes.sceneSize.x, appSizes.sceneSize.y); // use a single renderbuffer object for both a depth AND stencil buffer.
 		glViewport(0, 0, appSizes.sceneSize.x, appSizes.sceneSize.y);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, Lighting::rbo); // now actually attach it
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, ClusteredLighting::rbo); // now actually attach it
 
 		// Disable reading
 		glReadBuffer(GL_NONE);
@@ -175,13 +175,13 @@ namespace Plaza {
 		glBufferData(GL_SHADER_STORAGE_BUFFER, clusterCount * sizeof(glm::vec2), vector<glm::vec2>().data(), GL_DYNAMIC_DRAW);
 	}
 
-	void Lighting::LightingPass(const std::vector<Cluster>& clusters, const std::vector<LightStruct>& lights) {
+	void ClusteredLighting::LightingPass(const std::vector<Cluster>& clusters, const std::vector<LightStruct>& lights) {
 		PLAZA_PROFILE_SECTION("Lighting Pass");
 		GLuint lightsBindingLocation2 = glGetUniformLocation(mLightSorterComputeShader->ID, "LightsBuffer");
 		GLuint clustersBindingLocation = glGetUniformLocation(mLightSorterComputeShader->ID, "ClusterBuffer");
 		GLuint clustersBindingLocation3 = glGetUniformLocation(mLightSorterComputeShader->ID, "SizesBuffer");
 		GLuint frustumsBindingLocation = glGetUniformLocation(mLightSorterComputeShader->ID, "FrustumsBuffer");
-		if (Lighting::mLightsSize > 0)
+		if (ClusteredLighting::mLightsSize > 0)
 		{
 			// Set up shaders and framebuffer for the lighting pass
 			glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
@@ -284,7 +284,7 @@ namespace Plaza {
 		glEnable(GL_DEPTH_TEST);
 	}
 
-	void Lighting::UpdateBuffers() {
+	void ClusteredLighting::UpdateBuffers() {
 		std::vector<LightStruct> mLights = std::vector<LightStruct>();
 		for (auto [key, value] : Application->activeScene->lightComponents) {
 			Transform& transform = Application->activeScene->transformComponents.find(key)->second;

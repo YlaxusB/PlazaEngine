@@ -10,7 +10,7 @@ namespace Plaza {
 		void Init(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) override;
 		void InitializeShaders(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) override;
 		void Update() override;
-		void DrawFullScreenRectangle() override;
+		void DrawFullScreenRectangle(VkCommandBuffer commandBuffer) override;
 		void Terminate() override;
 
 	};

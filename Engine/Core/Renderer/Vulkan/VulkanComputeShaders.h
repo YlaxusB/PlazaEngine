@@ -4,6 +4,8 @@
 namespace Plaza {
 	class VulkanComputeShaders {
 	public:
+		VulkanComputeShaders() = default;
+
 		struct Particle {
 			glm::vec2 position;
 			glm::vec2 velocity;
@@ -46,8 +48,8 @@ namespace Plaza {
 		VkDescriptorSetLayout mComputeDescriptorSetLayout;
 		std::vector<VkWriteDescriptorSet> mDescriptorWrites{};
 		std::vector<VkDescriptorSet> mComputeDescriptorSets;
-	private:
 		VkPipelineLayout mComputePipelineLayout;
+	private:
 		VkPipeline mComputePipeline;
 
 		std::vector<VkBuffer> mUniformBuffers;

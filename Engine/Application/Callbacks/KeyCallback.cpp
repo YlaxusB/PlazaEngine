@@ -116,11 +116,11 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-			for (Lighting::LightStruct& light : Lighting::mLights) {
-				uint64_t uuid = *Application->activeScene->entitiesNames.find("Light")->second.begin();
-				uint64_t instantiatedUuid = Application->activeScene->entities.at(uuid).Instantiate(uuid);
-				Application->activeScene->entities.find(instantiatedUuid)->second.GetComponent<Transform>()->SetRelativePosition(light.position);
-			}
+			//for (Lighting::LightStruct& light : Lighting::mLights) {
+			//	uint64_t uuid = *Application->activeScene->entitiesNames.find("Light")->second.begin();
+			//	uint64_t instantiatedUuid = Application->activeScene->entities.at(uuid).Instantiate(uuid);
+			//	Application->activeScene->entities.find(instantiatedUuid)->second.GetComponent<Transform>()->SetRelativePosition(light.position);
+			//}
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {

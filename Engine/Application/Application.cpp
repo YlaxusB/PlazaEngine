@@ -167,15 +167,15 @@ void ApplicationClass::InitShaders() {
 
 	Application->distortionCorrectionShader = new Shader((shadersFolder + "\\Shaders\\distortionCorrection\\distortionCorrectionVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\distortionCorrection\\distortionCorrectionFragment.glsl").c_str());
 
-	Lighting::mLightAccumulationShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\accumulationVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\accumulationFragment.glsl").c_str());
-	Lighting::mLightMergerShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\lightMergerVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\lightMergerFragment.glsl").c_str());
-	Lighting::mLightMergerShader->use();
-	Lighting::mLightMergerShader->setInt("gPosition", 0);
-	Lighting::mLightMergerShader->setInt("gNormal", 1);
-	Lighting::mLightMergerShader->setInt("gDiffuse", 2);
-	Lighting::mLightMergerShader->setInt("gOthers", 3);
-
-	Lighting::mLightSorterComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\ClusteredForward\\lightSorterCompute.glsl").c_str());
+	//Lighting::mLightAccumulationShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\accumulationVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\accumulationFragment.glsl").c_str());
+	//Lighting::mLightMergerShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\lightMergerVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\lightMergerFragment.glsl").c_str());
+	//Lighting::mLightMergerShader->use();
+	//Lighting::mLightMergerShader->setInt("gPosition", 0);
+	//Lighting::mLightMergerShader->setInt("gNormal", 1);
+	//Lighting::mLightMergerShader->setInt("gDiffuse", 2);
+	//Lighting::mLightMergerShader->setInt("gOthers", 3);
+	//
+	//Lighting::mLightSorterComputeShader = new ComputeShader((shadersFolder + "\\Shaders\\ClusteredForward\\lightSorterCompute.glsl").c_str());
 
 	ScreenSpaceReflections::mScreenSpaceReflectionsShader = new Shader((shadersFolder + "\\Shaders\\screenSpaceReflections\\screenSpaceReflectionsVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\screenSpaceReflections\\screenSpaceReflectionsFragment.glsl").c_str());
 	ScreenSpaceReflections::mScreenSpaceReflectionsShader->use();
@@ -264,23 +264,23 @@ void ApplicationClass::CreateApplication() {
 
 
 	/* Initialize clustered forward rendering */
-	if (Settings::mDefaultRendererAPI == RendererAPI::OpenGL)
-	{
-		Lighting::InitializeClusters(12, 12, 12, Lighting::mClusters);
-
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_real_distribution<float> dis(0.0f, 1.0f);
-		std::uniform_real_distribution<float> dis2(-100.0f, 100.0f);
-
-		for (int i = 0; i < 2000; i++) {
-			glm::vec3 randomPos(dis2(gen), 0, dis2(gen));
-			glm::vec3 randomColor(dis(gen), dis(gen), dis(gen));
-			//Lighting::mLights.push_back(Lighting::LightStruct(randomPos, glm::vec3(randomColor), 1.0f, 1.0f, 1.0f));
-		}
-		Lighting::AssignLightsToClusters(Lighting::mLights, Lighting::mClusters);
-		Lighting::CreateClusterBuffers(Lighting::mClusters);
-	}
+	//if (Settings::mDefaultRendererAPI == RendererAPI::OpenGL)
+	//{
+	//	Lighting::InitializeClusters(12, 12, 12, Lighting::mClusters);
+	//
+	//	std::random_device rd;
+	//	std::mt19937 gen(rd());
+	//	std::uniform_real_distribution<float> dis(0.0f, 1.0f);
+	//	std::uniform_real_distribution<float> dis2(-100.0f, 100.0f);
+	//
+	//	for (int i = 0; i < 2000; i++) {
+	//		glm::vec3 randomPos(dis2(gen), 0, dis2(gen));
+	//		glm::vec3 randomColor(dis(gen), dis(gen), dis(gen));
+	//		//Lighting::mLights.push_back(Lighting::LightStruct(randomPos, glm::vec3(randomColor), 1.0f, 1.0f, 1.0f));
+	//	}
+	//	Lighting::AssignLightsToClusters(Lighting::mLights, Lighting::mClusters);
+	//	Lighting::CreateClusterBuffers(Lighting::mClusters);
+	//}
 }
 
 
@@ -362,8 +362,8 @@ void ApplicationClass::UpdateEngine() {
 	}
 
 	/* Update lights buffer */
-	if (Application->mRenderer->api == RendererAPI::OpenGL)
-		Lighting::UpdateBuffers();
+//	if (Application->mRenderer->api == RendererAPI::OpenGL)
+//		Lighting::UpdateBuffers();
 
 	// Imgui New Frame (only if running editor)
 #ifdef GAME_MODE
@@ -402,7 +402,7 @@ void ApplicationClass::UpdateEngine() {
 		Application->mRenderer->RenderInstances(*Application->shader);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-		Lighting::LightingPass(Lighting::mClusters, Lighting::mLights);
+		//Lighting::LightingPass(Lighting::mClusters, Lighting::mLights);
 
 		// Update Skybox
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, Application->geometryFramebuffer);

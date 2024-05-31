@@ -1,5 +1,5 @@
 #include <Engine/Core/PreCompiledHeaders.h>
-#include "Lighting.h"
+#include "OpenGLLighting.h"
 
 namespace Plaza {
 	void OpenGLLighting::Init() {

@@ -22,3 +22,4 @@ lib/assimp-vc143-mtd.lib
 /CMakeFiles/
 /CMakeCache.txt
 /cmake_install.cmake
+/enc_temp_folder

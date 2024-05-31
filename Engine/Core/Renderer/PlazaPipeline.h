@@ -1,8 +1,9 @@
 #pragma once-
 
 namespace Plaza {
-	class PostEffects {
+	class PlazaPipeline {
 	public:
+		PlazaPipeline() = default;
 		virtual void Init(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) = 0;
 		virtual void InitializeShaders(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) = 0;
 		virtual void Update() = 0;

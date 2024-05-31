@@ -1,6 +1,6 @@
 #pragma once
 #include <Engine/Core/Renderer/GuiRenderer.h>
-#include "VulkanPostEffects.h"
+#include "VulkanPlazaPipeline.h"
 
 #include <sstream>
 #include <iomanip>
@@ -19,7 +19,7 @@ namespace Plaza {
 		void InitializeRenderPass();
 
 		VkPipelineLayoutCreateInfo mPipelineLayoutInfo{};
-		VulkanPostEffects* mTextPipeline = nullptr;
+		VulkanPlazaPipeline* mTextPipeline = nullptr;
 		void PreparePipeline();
 		VulkanRenderer* mRenderer;
 

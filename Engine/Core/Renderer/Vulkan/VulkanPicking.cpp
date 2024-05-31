@@ -1,6 +1,6 @@
 #include <Engine/Core/PreCompiledHeaders.h>
 #include "VulkanPicking.h"
-#include "VulkanPostEffects.h"
+#include "VulkanPlazaPipeline.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "VulkanShaders.h"
 
@@ -182,7 +182,7 @@ namespace Plaza {
 		const std::string pickingVertexPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\picking\\picking.vert");
 		const std::string pickingFragmentPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\picking\\picking.frag");
 
-		this->mRenderPickingTexturePostEffects = new VulkanPostEffects();
+		this->mRenderPickingTexturePostEffects = new VulkanPlazaPipeline();
 
 		this->InitializeRenderPass();
 

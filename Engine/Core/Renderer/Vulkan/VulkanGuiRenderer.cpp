@@ -7,7 +7,7 @@ namespace Plaza {
 		std::string vertexPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\gui\\text.vert");
 		std::string fragmentPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\gui\\text.frag");
 
-		this->mTextPipeline = new VulkanPostEffects();
+		this->mTextPipeline = new VulkanPlazaPipeline();
 		this->mTextPipeline->mShaders = new VulkanShaders(vertexPath, fragmentPath, "");
 		this->mTextPipeline->mShaders->mRenderPass = mRenderer->mRenderPass;
 		//this->mTextPipeline->mShaders->InitializeFull(*mDevice, )

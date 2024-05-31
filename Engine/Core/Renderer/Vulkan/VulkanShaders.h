@@ -12,11 +12,12 @@ namespace Plaza {
 		VkShaderModule fragShaderModule{};
 		VkShaderModule geomShaderModule{};
 
+		VulkanShaders() {};
 		VulkanShaders(std::string vertexPath, std::string fragmentPath, std::string geometryPath) : mVertexShaderPath(vertexPath), mFragmentShaderPath(fragmentPath), mGeometryShaderPath(geometryPath) {};
 
 		VkPipeline mPipeline;
 		VkPipelineLayout mPipelineLayout;
-		VkDescriptorSet mDescriptorSet;
+		std::vector<VkDescriptorSet> mDescriptorSets;
 		VkDescriptorSetLayout mDescriptorSetLayout;
 
 		void Init(VkDevice device, VkRenderPass renderPass, int width, int height, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo, std::vector<VkPushConstantRange> pushConstantRanges = std::vector<VkPushConstantRange>(), bool useVertexInputInfo = true);

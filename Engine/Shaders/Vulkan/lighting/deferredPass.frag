@@ -1,9 +1,9 @@
 #version 450
-uniform sampler2D gPosition;
-uniform sampler2D gNormal;
-uniform sampler2D gDiffuse;
-uniform sampler2D gOthers;
 
+layout (binding = 0) uniform sampler2D gPosition;
+layout (binding = 1) uniform sampler2D gNormal;
+layout (binding = 2) uniform sampler2D gDiffuse;
+layout (binding = 3) uniform sampler2D gOthers;
 
 layout(push_constant) uniform PushConstants {
     vec3 viewPos;
@@ -13,9 +13,8 @@ layout(push_constant) uniform PushConstants {
     int lightCount;
 } pushConstants;
 
-out vec4 FragColor;
-
-in vec2 TexCoords;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) in vec2 TexCoords;
 
 struct LightStruct {
     vec3 color;
@@ -124,7 +123,7 @@ vec4 HeatMap(int clusterIndex, int numLights)
 }
 
 vec2 worldToScreen(vec3 position){
-    vec4 viewSpace = projection * (view * vec4(position, 1.0));
+    vec4 viewSpace = pushConstants.projection * (pushConstants.view * vec4(position, 1.0));
     vec3 ndcPosition = viewSpace.xyz / viewSpace.w;
     vec2 uvCoordinates = (ndcPosition.xy + 1.0) / 2.0;
     return uvCoordinates;
@@ -147,7 +146,7 @@ void main()
     vec3 lighting  = Diffuse * 0.1; // hard-coded ambient component
 
 
-    if(lightCount > 0)
+    if(pushConstants.lightCount > 0)
     {
         vec3 FragPos = texture(gPosition, TexCoords).rgb;
         vec3 Normal = texture(gNormal, TexCoords).rgb;
@@ -160,7 +159,7 @@ void main()
         int clusterIndex = GetIndex(TexCoords, clusterCount);
         Cluster currentCluster = clusters[clusterIndex];
 
-        vec3 viewDir  = normalize(viewPos - FragPos);
+        vec3 viewDir  = normalize(pushConstants.viewPos - FragPos);
 
         for (int i = 0; i < MAX_POINT_LIGHT_PER_TILE && clusters[clusterIndex].lightsIndex[i] != -1; ++i)
         {

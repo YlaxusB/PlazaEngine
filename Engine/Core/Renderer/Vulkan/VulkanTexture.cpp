@@ -112,6 +112,8 @@ namespace Plaza {
 	}
 
 	void VulkanTexture::CreateTextureImage(VkDevice& device, std::string path, VkFormat& format, bool generateMipMaps) {
+		this->SetFormat(format);
+
 		bool isDDS = std::filesystem::path{ path }.extension() == ".dds";
 		dds::Image image;
 
@@ -220,7 +222,7 @@ namespace Plaza {
 			GenerateMipmaps(this->mImage, texWidth, texHeight, this->mMipLevels, imageFormat);
 		else
 			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1U, 1, this->mMipLevels);
-
+		mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 		vkDestroyBuffer(device, mStagingBuffer, nullptr);
 		vkFreeMemory(device, mStagingBufferMemory, nullptr);
@@ -229,7 +231,8 @@ namespace Plaza {
 
 	}
 
-	void VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps) {
+	void VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps, VkImageUsageFlags usageFlags) {
+		this->SetFormat(format);
 		if (!generateMipMaps)
 			this->mMipLevels = 1;
 
@@ -244,7 +247,7 @@ namespace Plaza {
 		imageInfo.format = format;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+		imageInfo.usage = usageFlags; //VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		//imageInfo.flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
@@ -276,6 +279,7 @@ namespace Plaza {
 		vkBindImageMemory(device, mImage, mImageMemory, 0);
 
 		VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 1, this->mMipLevels);
+		mLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		//VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
 		//VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 1, this->mMipLevels);
 
@@ -470,5 +474,13 @@ namespace Plaza {
 		if (vkCreateSampler(VulkanRenderer::GetRenderer()->mDevice, &samplerInfo, nullptr, &mSampler) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture sampler!");
 		}
+	}
+
+	VkFormat VulkanTexture::GetFormat() {
+		return this->mFormat;
+	}
+
+	void VulkanTexture::SetFormat(VkFormat newFormat) {
+		this->mFormat = newFormat;
 	}
 }

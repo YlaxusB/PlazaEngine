@@ -13,6 +13,8 @@
 #include "VulkanPicking.h"
 #include "VulkanComputeShaders.h"
 #include "VulkanBloom.h"
+#include "VulkanPlazaWrapper.h"
+
 namespace Plaza {
 	struct SwapChainSupportDetails {
 		VkSurfaceCapabilitiesKHR capabilities;
@@ -48,18 +50,6 @@ namespace Plaza {
 			alignas(16) glm::vec4 sunColor;
 			bool showCascadeLevels;
 		};
-		
-		VkDevice mDevice = VK_NULL_HANDLE;
-		VkRenderPass mRenderPass;
-		VkRenderPass mDeferredRenderPass;
-		VkRenderPass mSwapchainRenderPass;
-		static VulkanRenderer* GetRenderer();
-		RendererAPI api = RendererAPI::Vulkan;
-		VulkanShadows* mShadows; //= new VulkanShadows();
-		VulkanLighting* mLighting; 
-		VulkanBloom mBloom;
-
-		VulkanPostEffects mSwapchainRenderer;
 
 		void Init() override;
 		void UpdateProjectManager() override;
@@ -102,6 +92,7 @@ namespace Plaza {
 
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, unsigned int layerCount = 1, unsigned int mipCount = 1);
+		void TransitionTextureLayout(VulkanTexture& texture, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, unsigned int layerCount = 1, unsigned int mipCount = 1);
 
 		void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
@@ -137,7 +128,24 @@ namespace Plaza {
 		VkSampler mTextureSampler;
 		std::vector<VkFence> mComputeInFlightFences;
 
+		static VulkanRenderer* GetRenderer();
+
+
+		RendererAPI api = RendererAPI::Vulkan;
+		VulkanShadows* mShadows;
+		VulkanLighting* mLighting;
+		VulkanBloom mBloom;
+		VkDevice mDevice = VK_NULL_HANDLE;
 		VkDescriptorPool mDescriptorPool;
+		VkRenderPass mRenderPass;
+		VkRenderPass mDeferredRenderPass;
+		VkRenderPass mSwapchainRenderPass;
+		VulkanPlazaPipeline mSwapchainRenderer;
+
+		VulkanTexture deferredPositionTexture;
+		VulkanTexture deferredNormalTexture;
+		VulkanTexture deferredDiffuseTexture;
+		VulkanTexture deferredOthersTexture;
 	private:
 		struct SwapChainPushConstant {
 			float exposure = 1.2f;

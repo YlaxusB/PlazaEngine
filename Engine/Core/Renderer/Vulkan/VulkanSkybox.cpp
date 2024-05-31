@@ -1,6 +1,6 @@
 #include <Engine/Core/PreCompiledHeaders.h>
 #include "VulkanSkybox.h"
-#include "VulkanPostEffects.h"
+#include "VulkanPlazaPipeline.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 
 namespace Plaza {
@@ -257,7 +257,7 @@ namespace Plaza {
 	}
 
 	void VulkanSkybox::Init() {
-		this->mSkyboxPostEffect = new VulkanPostEffects();
+		this->mSkyboxPostEffect = new VulkanPlazaPipeline();
 		this->mSkyboxPostEffect->mRenderPass = VulkanRenderer::GetRenderer()->mDeferredRenderPass;
 
 		std::string shadersPath;
@@ -383,75 +383,9 @@ namespace Plaza {
 		pushData.projection = Application->activeCamera->GetProjectionMatrix();
 		pushData.view = Application->activeCamera->GetViewMatrix();
 		vkCmdPushConstants(this->mCommandBuffer, this->mSkyboxPostEffect->mShaders->mPipelineLayout, VK_SHADER_STAGE_ALL, 0, sizeof(VulkanSkybox::PushConstants), &pushData);
-		//vkCmdDraw(this->mCommandBuffer, 36, 1, 0, 0);
 
-		//VkBufferCreateInfo bufferInfo{};
-		//bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		//bufferInfo.size = sizeof(glm::mat4) * 1;
-		//bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		//bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		//std::vector<glm::mat4> instanceModelMatrices = { glm::mat4(1.0f) };
-		//void* data;
-		//vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mSkyboxMesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
-		//memcpy(data, instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
-		//vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, mSkyboxMesh->mInstanceBufferMemory);
-		//
-		////PLAZA_PROFILE_SECTION("Bind Buffers");
-		//vector<VkBuffer> verticesBuffer = { mSkyboxMesh->mVertexBuffer, mSkyboxMesh->mInstanceBuffer };
-		//std::array<VkBuffer, 2> buffers = { mSkyboxMesh->mVertexBuffer, mSkyboxMesh->mInstanceBuffer };
-		//vkCmdBindVertexBuffers(mCommandBuffer, 0, 2, buffers.data(), offsets);
-		//vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
-		//vkCmdBindIndexBuffer(mCommandBuffer, mSkyboxMesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-		//PLAZA_PROFILE_SECTION("Draw Indexed");
 		vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(mSkyboxMesh->indices.size()), 1, mSkyboxMesh->indicesOffset, mSkyboxMesh->verticesOffset, mSkyboxMesh->instanceOffset);
 
-		//PLAZA_PROFILE_SECTION("DrawRenderGroupInstanced");
-		//VulkanMesh* mesh;
-		//{
-		//	PLAZA_PROFILE_SECTION("Copy Data");
-		//	mesh = (VulkanMesh*)renderGroup->mesh;
-		//	VkBufferCreateInfo bufferInfo{};
-		//	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		//	bufferInfo.size = sizeof(glm::mat4) * renderGroup->instanceModelMatrices.size();
-		//	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		//	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		//	void* data;
-		//	vkMapMemory(this->mDevice, mesh->mInstanceBufferMemory, 0, bufferInfo.size, 0, &data);
-		//	memcpy(data, renderGroup->instanceModelMatrices.data(), static_cast<size_t>(bufferInfo.size));
-		//	vkUnmapMemory(this->mDevice, mesh->mInstanceBufferMemory);
-		//}
-		//
-		//VkDeviceSize offsets[] = { 0, 0 };
-		//VkCommandBuffer activeCommandBuffer = *this->mActiveCommandBuffer;
-		//
-		//VulkanRenderer::PushConstants pushData;
-		//if (renderGroup->material->diffuse->mIndexHandle < 0) {
-		//	pushData.color = renderGroup->material->diffuse->rgba;
-		//}
-		//else
-		//	pushData.diffuseIndex = renderGroup->material->diffuse->mIndexHandle;
-		//
-		//{
-		//	PLAZA_PROFILE_SECTION("PushConstants and Descriptor sets");
-		//	vkCmdPushConstants(*this->mActiveCommandBuffer, this->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(VulkanRenderer::PushConstants), &pushData);
-		//}
-		//
-		//{
-		//	PLAZA_PROFILE_SECTION("Bind Buffers");
-		//	vector<VkBuffer> verticesBuffer = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
-		//	std::array<VkBuffer, 2> buffers = { mesh->mVertexBuffer, mesh->mInstanceBuffer };
-		//	vkCmdBindVertexBuffers(activeCommandBuffer, 0, 2, buffers.data(), offsets);
-		//	//vkCmdBindVertexBuffers(activeCommandBuffer, 1, 1, &mesh->mInstanceBuffer, offsets);
-		//	vkCmdBindIndexBuffer(activeCommandBuffer, mesh->mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-		//}
-		//
-		//{
-		//	PLAZA_PROFILE_SECTION("Draw Indexed");
-		//	vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), renderGroup->instanceModelMatrices.size(), 0, 0, 0);
-		//}
-		//renderGroup->instanceModelMatrices.clear();
-
-		//vkCmdEndRenderPass(mCommandBuffer);
 	}
 
 	void VulkanSkybox::UpdateAndPushConstants(VkCommandBuffer commandBuffer) {

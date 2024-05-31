@@ -1,6 +1,6 @@
 #pragma once
 #include <Engine/Core/Renderer/Skybox.h>
-#include "VulkanPostEffects.h"
+#include "VulkanPlazaPipeline.h"
 
 namespace Plaza {
 	class VulkanSkybox : public Skybox {
@@ -13,7 +13,7 @@ namespace Plaza {
 		std::vector<std::string> mSkyboxPaths = std::vector<std::string>(6);
 		VkFormat mSkyboxFormat = VK_FORMAT_R8G8B8A8_UNORM;//VK_FORMAT_B8G8R8A8_UNORM;
 
-		VulkanPostEffects* mSkyboxPostEffect = nullptr;
+		VulkanPlazaPipeline* mSkyboxPostEffect = nullptr;
 		std::vector<VkFramebuffer> mFramebuffers = std::vector<VkFramebuffer>();
 		std::vector<VkDescriptorSet> mDescriptorSets = std::vector<VkDescriptorSet>();
 		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;

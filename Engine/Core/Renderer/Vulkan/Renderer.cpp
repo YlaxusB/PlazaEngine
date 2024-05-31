@@ -1206,7 +1206,6 @@ namespace Plaza {
 
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
 		{
 			PLAZA_PROFILE_SECTION("Bind Instances Data");
 			std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
@@ -1217,16 +1216,11 @@ namespace Plaza {
 			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
 			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
-			this->mSkybox->DrawSkybox();
 			vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 		}
 
-
-
 		// Render the scene with textures and sampling the shadow map
-
-
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
@@ -1237,13 +1231,16 @@ namespace Plaza {
 			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 		}
 
+		vkCmdEndRenderPass(commandBuffer);
+
 		viewport.height = Application->appSizes->sceneSize.y;
 		viewport.y = 0.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		this->mGuiRenderer->RenderText(nullptr);
-
+		//renderPassInfo.renderPass = scene;
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		this->mSkybox->DrawSkybox();
 		vkCmdEndRenderPass(commandBuffer);
 
 		/* Tiled Lighting */
@@ -1251,7 +1248,11 @@ namespace Plaza {
 		this->mLighting->UpdateTiles();
 		this->mLighting->DrawDeferredPass();
 
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
 		this->mBloom.Draw();
+		/* ----------------- this->mGuiRenderer->RenderText(nullptr) ----------------- */;
 
 		/* Render to ImGui or swapchain */
 		renderPassInfo.renderPass = this->mSwapchainRenderPass;
@@ -1857,6 +1858,11 @@ namespace Plaza {
 		EndSingleTimeCommands(commandBuffer);
 	}
 
+	void VulkanRenderer::TransitionTextureLayout(VulkanTexture& texture, VkImageLayout newLayout, VkImageAspectFlags aspectMask, unsigned int layerCount, unsigned int mipCount) {
+		this->TransitionImageLayout(texture.mImage, texture.GetFormat(), texture.mLayout, newLayout, aspectMask, layerCount, mipCount);
+		texture.mLayout = newLayout;
+	}
+
 	void VulkanRenderer::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel, unsigned int arrayLayerCount) {
 		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
@@ -2267,7 +2273,7 @@ namespace Plaza {
 
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-	}
+		}
 	void VulkanRenderer::RenderBloom()
 	{
 	}
@@ -2777,7 +2783,7 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-	}
+		}
 
 	void VulkanRenderer::AddTrackerToImage(
 		VkImageView imageView,
@@ -2888,4 +2894,4 @@ namespace Plaza {
 			throw std::runtime_error("failed to allocate compute command buffers!");
 		}
 	}
-}
+	}

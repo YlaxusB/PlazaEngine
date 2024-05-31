@@ -1,13 +1,13 @@
 #pragma once
 #include "Renderer.h"
-#include "PostEffects.h"
+#include "PlazaPipeline.h"
 
 namespace Plaza {
 	class Picking {
 	public:
 		glm::vec2 mResolution;
-		PostEffects* mRenderPickingTexturePostEffects;
-		PostEffects* mOutlinePostEffects;
+		PlazaPipeline* mRenderPickingTexturePostEffects;
+		PlazaPipeline* mOutlinePostEffects;
 		virtual void Init() = 0;
 		virtual void DrawSelectedObjectsUuid() = 0;
 		virtual void DrawOutline() = 0;

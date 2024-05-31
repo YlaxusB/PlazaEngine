@@ -1,6 +1,6 @@
 #include <Engine/Core/PreCompiledHeaders.h>
 #include "VulkanLighting.h"
-#include "VulkanPostEffects.h"
+#include "VulkanPlazaPipeline.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "VulkanShaders.h"
 
@@ -157,6 +157,8 @@ layout(binding = 4) uniform sampler2D depthMap;
 	}
 
 	void VulkanLighting::Init() {
+		this->mScreenSize = Application->appSizes->sceneSize;
+
 		std::cerr << "Initializing Tiled Deferred Shading \n";
 		/* Initialize Light Sorter Compute Shaders */
 		this->InitializeBuffers();
@@ -169,8 +171,113 @@ layout(binding = 4) uniform sampler2D depthMap;
 		this->mLightSorterComputeShaders.Init(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\lightSorter.comp", 1, pushConstantRange);
 
 		/* Initialize Deferred Pass */
-		mDeferredPassRenderer = new VulkanPostEffects();
-		mDeferredPassRenderer->Init();
+		VkFormat form = VK_FORMAT_R32G32B32A32_SFLOAT;
+		mDeferredEndTexture.CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, form, this->mScreenSize.x, this->mScreenSize.y, false, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+		mDeferredEndTexture.CreateTextureSampler();
+		mDeferredEndTexture.CreateImageView(form, VK_IMAGE_ASPECT_COLOR_BIT);
+		mDeferredEndTexture.InitDescriptorSetLayout();
+
+		VulkanRenderer::GetRenderer()->AddTrackerToImage(mDeferredEndTexture.mImageView, "Deferred End Texture", VulkanRenderer::GetRenderer()->mTextureSampler, mDeferredEndTexture.GetLayout());
+
+		PlDescriptorSetLayout positionLayoutBinding(0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
+		PlDescriptorSetLayout normalLayoutBinding(1, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
+		PlDescriptorSetLayout diffuseLayoutBinding(2, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
+		PlDescriptorSetLayout othersLayoutBinding(3, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+		std::vector<VkDescriptorSetLayoutBinding> bindings = { positionLayoutBinding, normalLayoutBinding, diffuseLayoutBinding, othersLayoutBinding };
+		PlDescriptorSetLayoutCreateInfo layoutInfo(bindings, VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT);
+
+		if (vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &layoutInfo, nullptr, &this->mDeferredEndPassRenderer.mShaders->mDescriptorSetLayout) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create descriptor set layout!");
+		}
+
+		VkPipelineLayoutCreateInfo mSwapchainPipelineLayoutInfo{};
+		mSwapchainPipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		mSwapchainPipelineLayoutInfo.setLayoutCount = 1;
+		mSwapchainPipelineLayoutInfo.pSetLayouts = &this->mDeferredEndPassRenderer.mShaders->mDescriptorSetLayout;
+
+		VkPushConstantRange deferredPassPushConstantRange = {};
+		deferredPassPushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		deferredPassPushConstantRange.offset = 0;
+		deferredPassPushConstantRange.size = sizeof(DeferredPassPushConstants);
+		mSwapchainPipelineLayoutInfo.pushConstantRangeCount = 1;
+		mSwapchainPipelineLayoutInfo.pPushConstantRanges = &deferredPassPushConstantRange;
+
+		/* Render pass */
+		VkAttachmentDescription colorAttachment{};
+		colorAttachment.format = this->mDeferredEndTextureFormat;
+		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+		VkAttachmentReference colorAttachmentRef{};
+		colorAttachmentRef.attachment = 0;
+		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = 1;
+		subpass.pColorAttachments = &colorAttachmentRef;
+
+		VkSubpassDependency dependency{};
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.dstSubpass = 0;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.srcAccessMask = 0;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+		std::array<VkAttachmentDescription, 1> attachments = { colorAttachment };
+		VkRenderPassCreateInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		renderPassInfo.pAttachments = attachments.data();
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = 1;
+		renderPassInfo.pDependencies = &dependency;
+
+		if (vkCreateRenderPass(VulkanRenderer::GetRenderer()->mDevice, &renderPassInfo, nullptr, &this->mDeferredEndPassRenderer.mRenderPass) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create render pass!");
+		}
+
+		std::vector<VkImageView> imageViews = { this->mDeferredEndTexture.mImageView };
+		this->mDeferredEndPassRenderer.InitializeFramebuffer(imageViews.data(), imageViews.size(), this->mScreenSize, 1);
+
+		mDeferredEndPassRenderer.Init(
+			VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.vert"),
+			VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.frag"),
+			"",
+			VulkanRenderer::GetRenderer()->mDevice,
+			this->mScreenSize,
+			this->mDeferredEndPassRenderer.mShaders->mDescriptorSetLayout,
+			mSwapchainPipelineLayoutInfo
+		);
+
+		// Descriptor Set
+		VkDescriptorSetAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+		allocInfo.descriptorPool = VulkanRenderer::GetRenderer()->mDescriptorPool;
+		allocInfo.descriptorSetCount = 1;
+		allocInfo.pSetLayouts = &this->mDeferredEndPassRenderer.mShaders->mDescriptorSetLayout;
+
+		this->mDeferredEndPassRenderer.mShaders->mDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
+		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+			if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, &this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i]) != VK_SUCCESS) {
+				throw std::runtime_error("failed to allocate descriptor sets!");
+			}
+
+			PlDescriptorImageInfo imageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->mDeferredEndTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
+			std::vector<PlWriteDescriptorSet> descriptorWrites{ PlWriteDescriptorSet(this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i], 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo) };
+
+			vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+		}
 	}
 
 	void VulkanLighting::GetLights() {
@@ -188,26 +295,76 @@ layout(binding = 4) uniform sampler2D depthMap;
 	}
 
 	void VulkanLighting::UpdateTiles() {
-		this->sceneSize = Application->appSizes->sceneSize;
+		this->mScreenSize = Application->appSizes->sceneSize;
 
 		glm::vec2 clusterSize = glm::vec2(32.0f);
-		glm::vec2 clusterCount = glm::ceil(this->sceneSize / clusterSize);
-		int extraX = int(Application->appSizes->sceneSize.x) % 32 != 0 ? 1 : 0;
+		glm::vec2 clusterCount = glm::ceil(this->mScreenSize / clusterSize);
+
 		LightSorterPushConstants lightSorterPushConstants{};
 		lightSorterPushConstants.clusterSize = glm::vec2(32);
 		lightSorterPushConstants.first = true;
 		lightSorterPushConstants.lightCount = this->mLights.size();
 		lightSorterPushConstants.projection = Application->activeCamera->GetProjectionMatrix();
 		lightSorterPushConstants.view = Application->activeCamera->GetViewMatrix();
-		lightSorterPushConstants.screenSize = this->sceneSize;
+		lightSorterPushConstants.screenSize = this->mScreenSize;
 		vkCmdPushConstants(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, this->mLightSorterComputeShaders.mComputePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, { 0 }, sizeof(LightSorterPushConstants), &lightSorterPushConstants);
 		this->mLightSorterComputeShaders.Dispatch(clusterCount.x, clusterCount.y, 1);
 
-		
+
 	}
 
 	void VulkanLighting::DrawDeferredPass() {
-		mDeferredPassRenderer->DrawFullScreenRectangle(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer);
+		mDeferredEndPassRenderer.UpdateCommandBuffer(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer);
+
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		//renderPassInfo.renderPass = this->mSkyboxPostEffect->mRenderPass;
+		//renderPassInfo.framebuffer = this->mFramebuffers[Application->mRenderer->mCurrentFrame];//mSwapChainFramebuffers[0];//mSwapChainFramebuffers[imageIndex];
+		renderPassInfo.renderPass = this->mDeferredEndPassRenderer.mRenderPass;
+		renderPassInfo.framebuffer = this->mDeferredEndPassRenderer.mFramebuffer;
+
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = VulkanRenderer::GetRenderer()->mSwapChainExtent;
+
+		std::array<VkClearValue, 2> clearValues{};
+		clearValues[0].color = { {0.0f, 0.0f, 0.0f, 0.0f} };
+		clearValues[1].depthStencil = { 0.0f, 0 };
+
+		renderPassInfo.clearValueCount = 2;
+		renderPassInfo.pClearValues = clearValues.data();
+
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		viewport.width = static_cast<float>(VulkanRenderer::GetRenderer()->mSwapChainExtent.width);
+		viewport.height = static_cast<float>(VulkanRenderer::GetRenderer()->mSwapChainExtent.height);
+		//viewport.y = this->mResolution.y;
+
+		renderPassInfo.renderArea.extent.width = Application->appSizes->sceneSize.x;
+		renderPassInfo.renderArea.extent.height = Application->appSizes->sceneSize.y;
+
+		viewport.width = Application->appSizes->sceneSize.x;
+		viewport.height = -Application->appSizes->sceneSize.y;
+		viewport.y = Application->appSizes->sceneSize.y;
+		vkCmdSetViewport(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor{};
+		scissor.offset = { 0, 0 };
+		scissor.extent = VulkanRenderer::GetRenderer()->mSwapChainExtent;
+		scissor.extent.width = Application->appSizes->sceneSize.x;
+		scissor.extent.height = Application->appSizes->sceneSize.y;
+		vkCmdSetScissor(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, 0, 1, &scissor);
+
+		vkCmdBeginRenderPass(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		//vkCmdBeginRenderPass(this->mCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBindPipeline(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mDeferredEndPassRenderer.mShaders->mPipeline);
+		//vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, &this->mDeferredPassRenderer.mShaders->mDescriptorSetLayout, 0, 1, &this->mDeferredPassRenderer.mShaders->mDescriptorSet, 0, 0);
+
+		mDeferredEndPassRenderer.DrawFullScreenRectangle();
+
+		vkCmdEndRenderPass(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer);
 	}
 
 	void VulkanLighting::Terminate() {

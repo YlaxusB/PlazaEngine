@@ -32,7 +32,7 @@ namespace Plaza {
 		virtual void UpdateTiles() = 0;
 		virtual void Terminate() = 0;
 
-		glm::vec2 sceneSize = glm::vec2(0.0f);
+		glm::vec2 mScreenSize = glm::vec2(0.0f);
 		int mLightsSize;
 		std::vector<Tile> mTiles;
 		std::vector<LightStruct> mLights;

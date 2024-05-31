@@ -1,0 +1,47 @@
+#include "Engine/Core/PreCompiledHeaders.h"
+#include "VulkanPlazaPipeline.h"
+
+namespace Plaza {
+	void VulkanPlazaPipeline::InitializeShaders(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) {
+		this->mShaders->mVertexShaderPath = vertexPath;
+		this->mShaders->mFragmentShaderPath = fragmentPath;
+		this->mShaders->mGeometryShaderPath = geometryPath;
+		this->mShaders->Init(device, this->mRenderPass, size.x, size.y, descriptorSetLayout, pipelineLayoutInfo, std::vector<VkPushConstantRange>(), true);
+	}
+
+	void VulkanPlazaPipeline::Init(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) {
+		this->InitializeShaders(vertexPath, fragmentPath, geometryPath, device, size, descriptorSetLayout, pipelineLayoutInfo);
+	}
+
+	void VulkanPlazaPipeline::InitializeFramebuffer(VkImageView* pAttachmentsData, uint32_t attachmentsCount, glm::vec2 size, uint32_t layers) {
+		VkFramebufferCreateInfo framebufferInfo{};
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = this->mRenderPass;
+		framebufferInfo.attachmentCount = attachmentsCount;
+		framebufferInfo.pAttachments = pAttachmentsData;
+		framebufferInfo.width = Application->appSizes->sceneSize.x;
+		framebufferInfo.height = Application->appSizes->sceneSize.y;
+		framebufferInfo.layers = layers;
+
+		if (vkCreateFramebuffer(VulkanRenderer::GetRenderer()->mDevice, &framebufferInfo, nullptr, &this->mFramebuffer) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create framebuffer!");
+		}
+	}
+
+	void VulkanPlazaPipeline::Update() {
+
+	}
+
+	void VulkanPlazaPipeline::DrawFullScreenRectangle() {
+		vkCmdBindDescriptorSets(this->mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShaders->mPipelineLayout, 0, 1, &this->mShaders->mDescriptorSets[Application->mRenderer->mCurrentFrame], 0, nullptr);
+		vkCmdDraw(mCommandBuffer, 3, 1, 0, 0);
+	}
+
+	void VulkanPlazaPipeline::UpdateCommandBuffer(VkCommandBuffer commandBuffer) {
+		this->mCommandBuffer = commandBuffer;
+	}
+
+	void VulkanPlazaPipeline::Terminate() {
+
+	}
+}

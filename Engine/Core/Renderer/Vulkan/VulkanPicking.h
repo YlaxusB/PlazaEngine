@@ -1,6 +1,6 @@
 #pragma once
 #include <Engine/Core/Renderer/Picking.h>
-#include "VulkanPostEffects.h"
+#include "VulkanPlazaPipeline.h"
 
 namespace Plaza {
 	class VulkanPicking : public Picking {
@@ -16,8 +16,8 @@ namespace Plaza {
 		std::vector<std::string> mSkyboxPaths = std::vector<std::string>(6);
 		VkFormat mSkyboxFormat = VK_FORMAT_R8G8B8A8_UNORM;
 
-		VulkanPostEffects* mRenderPickingTexturePostEffects = nullptr;
-		VulkanPostEffects* mOutlinePostEffects = nullptr;
+		VulkanPlazaPipeline* mRenderPickingTexturePostEffects = nullptr;
+		VulkanPlazaPipeline* mOutlinePostEffects = nullptr;
 		std::vector<VkFramebuffer> mFramebuffers = std::vector<VkFramebuffer>();
 		std::vector<VkDescriptorSet> mDescriptorSets = std::vector<VkDescriptorSet>();
 		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;

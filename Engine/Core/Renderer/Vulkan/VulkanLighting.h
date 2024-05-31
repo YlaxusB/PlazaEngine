@@ -1,15 +1,11 @@
 #pragma once
 #include <Engine/Core/Renderer/Lighting.h>
-#include "VulkanPostEffects.h"
+#include "VulkanPlazaPipeline.h"
 #include "VulkanComputeShaders.h"
 
 namespace Plaza {
 	class VulkanLighting : public Lighting {
 	public:
-		VulkanComputeShaders mLightSorterComputeShaders;
-		VulkanPostEffects* mDeferredPassRenderer;
-		VulkanShaders* mDeferredPass = nullptr;
-
 		void Init() override;
 		void GetLights() override;
 		void UpdateTiles() override;
@@ -25,9 +21,26 @@ namespace Plaza {
 			glm::vec2 screenSize;
 			glm::vec2 clusterSize;
 		};
+
+		struct DeferredPassPushConstants {
+			glm::vec3 viewPos;
+			float time;
+			glm::mat4 view;
+			glm::mat4 projection;
+			int lightCount;
+		};
+
 		void InitializeDescriptorSets();
 		void InitializeBuffers();
 		
+	private:
+		VkFormat mDeferredEndTextureFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+		VulkanTexture mDeferredEndTexture;
+
+		VulkanComputeShaders mLightSorterComputeShaders;
+		VulkanPlazaPipeline mDeferredEndPassRenderer;
+		VulkanShaders* mDeferredPass = nullptr;
+
 		std::vector<VkBuffer> mLightsBuffer;
 		std::vector<VkDeviceMemory> mLightsBufferMemory;
 		std::vector<VkBuffer> mTilesBuffer;

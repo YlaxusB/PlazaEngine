@@ -13,7 +13,6 @@
 #include "VulkanPicking.h"
 #include "VulkanComputeShaders.h"
 #include "VulkanBloom.h"
-#include "VulkanPlazaWrapper.h"
 
 namespace Plaza {
 	struct SwapChainSupportDetails {
@@ -142,10 +141,12 @@ namespace Plaza {
 		VkRenderPass mSwapchainRenderPass;
 		VulkanPlazaPipeline mSwapchainRenderer;
 
-		VulkanTexture deferredPositionTexture;
-		VulkanTexture deferredNormalTexture;
-		VulkanTexture deferredDiffuseTexture;
-		VulkanTexture deferredOthersTexture;
+		VulkanPlazaPipeline mGeometryPassRenderer;
+
+		VulkanTexture mDeferredPositionTexture;
+		VulkanTexture mDeferredNormalTexture;
+		VulkanTexture mDeferredDiffuseTexture;
+		VulkanTexture mDeferredOthersTexture;
 	private:
 		struct SwapChainPushConstant {
 			float exposure = 1.2f;
@@ -205,6 +206,7 @@ namespace Plaza {
 		void CreateDescriptorSets();
 		void UpdateUniformBuffer(uint32_t currentImage);
 		void CreateDescriptorSetLayout();
+		void InitializeGeometryPassRenderer();
 
 		void CreateTextureImage();
 

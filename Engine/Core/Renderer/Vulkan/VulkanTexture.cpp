@@ -286,9 +286,13 @@ namespace Plaza {
 
 
 		if (generateMipMaps)
+		{
 			GenerateMipmaps(this->mImage, width, height, this->mMipLevels, format);
-
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, 1, this->mMipLevels);
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, 1, this->mMipLevels);
+		}
+		else
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, 1, this->mMipLevels);
+		mLayout = VK_IMAGE_LAYOUT_GENERAL;
 
 		vkDestroyBuffer(device, mStagingBuffer, nullptr);
 		vkFreeMemory(device, mStagingBufferMemory, nullptr);

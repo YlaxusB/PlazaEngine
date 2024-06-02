@@ -13,6 +13,21 @@ namespace Plaza {
 		this->InitializeShaders(vertexPath, fragmentPath, geometryPath, device, size, descriptorSetLayout, pipelineLayoutInfo);
 	}
 
+	void VulkanPlazaPipeline::InitializeRenderPass(VkAttachmentDescription* attachmentDescs, uint32_t attachmentsCount, VkSubpassDescription* subpasses, uint32_t subpassesCount, VkSubpassDependency* dependencies, uint32_t dependenciesCount) {
+		VkRenderPassCreateInfo renderPassInfo = {};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.pAttachments = attachmentDescs;
+		renderPassInfo.attachmentCount = attachmentsCount;
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = subpasses;
+		renderPassInfo.dependencyCount = dependenciesCount;
+		renderPassInfo.pDependencies = dependencies;
+
+		if (vkCreateRenderPass(VulkanRenderer::GetRenderer()->mDevice, &renderPassInfo, nullptr, &this->mRenderPass) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create framebuffer!");
+		}
+	}
+
 	void VulkanPlazaPipeline::InitializeFramebuffer(VkImageView* pAttachmentsData, uint32_t attachmentsCount, glm::vec2 size, uint32_t layers) {
 		VkFramebufferCreateInfo framebufferInfo{};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;

@@ -3,6 +3,7 @@
 #include "VulkanPlazaPipeline.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "VulkanShaders.h"
+#include "VulkanPlazaInitializator.h"
 
 namespace Plaza {
 	void VulkanLighting::InitializeBuffers() {
@@ -172,20 +173,20 @@ layout(binding = 4) uniform sampler2D depthMap;
 
 		/* Initialize Deferred Pass */
 		VkFormat form = VK_FORMAT_R32G32B32A32_SFLOAT;
-		mDeferredEndTexture.CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, form, this->mScreenSize.x, this->mScreenSize.y, false, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+		mDeferredEndTexture.CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, form, this->mScreenSize.x, this->mScreenSize.y, false, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 		mDeferredEndTexture.CreateTextureSampler();
 		mDeferredEndTexture.CreateImageView(form, VK_IMAGE_ASPECT_COLOR_BIT);
 		mDeferredEndTexture.InitDescriptorSetLayout();
 
 		VulkanRenderer::GetRenderer()->AddTrackerToImage(mDeferredEndTexture.mImageView, "Deferred End Texture", VulkanRenderer::GetRenderer()->mTextureSampler, mDeferredEndTexture.GetLayout());
 
-		PlDescriptorSetLayout positionLayoutBinding(0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
-		PlDescriptorSetLayout normalLayoutBinding(1, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
-		PlDescriptorSetLayout diffuseLayoutBinding(2, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
-		PlDescriptorSetLayout othersLayoutBinding(3, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
+		VkDescriptorSetLayoutBinding positionLayoutBinding = plvk::descriptorSetLayoutBinding(0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
+		VkDescriptorSetLayoutBinding normalLayoutBinding = plvk::descriptorSetLayoutBinding(1, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
+		VkDescriptorSetLayoutBinding diffuseLayoutBinding = plvk::descriptorSetLayoutBinding(2, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
+		VkDescriptorSetLayoutBinding othersLayoutBinding = plvk::descriptorSetLayoutBinding(3, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
 
 		std::vector<VkDescriptorSetLayoutBinding> bindings = { positionLayoutBinding, normalLayoutBinding, diffuseLayoutBinding, othersLayoutBinding };
-		PlDescriptorSetLayoutCreateInfo layoutInfo(bindings, VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT);
+		VkDescriptorSetLayoutCreateInfo layoutInfo = plvk::descriptorSetLayoutCreateInfo(bindings, VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT);
 
 		if (vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &layoutInfo, nullptr, &this->mDeferredEndPassRenderer.mShaders->mDescriptorSetLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create descriptor set layout!");
@@ -273,8 +274,8 @@ layout(binding = 4) uniform sampler2D depthMap;
 				throw std::runtime_error("failed to allocate descriptor sets!");
 			}
 
-			PlDescriptorImageInfo imageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->mDeferredEndTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
-			std::vector<PlWriteDescriptorSet> descriptorWrites{ PlWriteDescriptorSet(this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i], 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo) };
+			VkDescriptorImageInfo imageInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->mDeferredEndTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
+			std::vector<VkWriteDescriptorSet> descriptorWrites{ plvk::writeDescriptorSet(this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i], 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo) };
 
 			vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}

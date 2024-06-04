@@ -4,26 +4,26 @@
 namespace Plaza {
 	class Lighting {
 	public:
-		struct LightStruct {
+		struct alignas(16) LightStruct {
 			glm::vec3 color;
 			float radius;
 			glm::vec3 position;
 			float intensity;
 		};
 
-		struct Tile {
+		struct alignas(16) Tile {
 			int lightIndices[256];
 			int lightsCount = 0;
 			glm::vec3 minBounds;
 			glm::vec3 maxBounds;
 		};
 
-		struct Plane {
+		struct alignas(16) Plane {
 			glm::vec3 Normal;
 			float Distance;
 		};
 
-		struct Frustum {
+		struct alignas(16) Frustum {
 			Plane planes[4];
 		};
 

@@ -12,6 +12,7 @@ namespace Plaza {
 		void DrawDeferredPass();
 		void Terminate() override;
 
+		VulkanTexture mDeferredEndTexture;
 	private:
 		struct LightSorterPushConstants {
 			glm::mat4 view;
@@ -35,7 +36,6 @@ namespace Plaza {
 		
 	private:
 		VkFormat mDeferredEndTextureFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
-		VulkanTexture mDeferredEndTexture;
 
 		VulkanComputeShaders mLightSorterComputeShaders;
 		VulkanPlazaPipeline mDeferredEndPassRenderer;

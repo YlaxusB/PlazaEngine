@@ -176,7 +176,7 @@ layout(binding = 4) uniform sampler2D depthMap;
 		mDeferredEndTexture.CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, form, this->mScreenSize.x, this->mScreenSize.y, false, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 		mDeferredEndTexture.CreateTextureSampler();
 		mDeferredEndTexture.CreateImageView(form, VK_IMAGE_ASPECT_COLOR_BIT);
-		mDeferredEndTexture.InitDescriptorSetLayout();
+		//mDeferredEndTexture.InitDescriptorSetLayout();
 
 		VulkanRenderer::GetRenderer()->AddTrackerToImage(mDeferredEndTexture.mImageView, "Deferred End Texture", VulkanRenderer::GetRenderer()->mTextureSampler, mDeferredEndTexture.GetLayout());
 
@@ -185,7 +185,10 @@ layout(binding = 4) uniform sampler2D depthMap;
 		VkDescriptorSetLayoutBinding diffuseLayoutBinding = plvk::descriptorSetLayoutBinding(2, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
 		VkDescriptorSetLayoutBinding othersLayoutBinding = plvk::descriptorSetLayoutBinding(3, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-		std::vector<VkDescriptorSetLayoutBinding> bindings = { positionLayoutBinding, normalLayoutBinding, diffuseLayoutBinding, othersLayoutBinding };
+		VkDescriptorSetLayoutBinding lightsLayoutBinding = plvk::descriptorSetLayoutBinding(4, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
+		VkDescriptorSetLayoutBinding tilesLayoutBinding = plvk::descriptorSetLayoutBinding(5, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+		std::vector<VkDescriptorSetLayoutBinding> bindings = { positionLayoutBinding, normalLayoutBinding, diffuseLayoutBinding, othersLayoutBinding, lightsLayoutBinding, tilesLayoutBinding };
 		VkDescriptorSetLayoutCreateInfo layoutInfo = plvk::descriptorSetLayoutCreateInfo(bindings, VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT);
 
 		if (vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &layoutInfo, nullptr, &this->mDeferredEndPassRenderer.mShaders->mDescriptorSetLayout) != VK_SUCCESS) {
@@ -252,7 +255,7 @@ layout(binding = 4) uniform sampler2D depthMap;
 		std::vector<VkImageView> imageViews = { this->mDeferredEndTexture.mImageView };
 		this->mDeferredEndPassRenderer.InitializeFramebuffer(imageViews.data(), imageViews.size(), this->mScreenSize, 1);
 
-		mDeferredEndPassRenderer.Init(
+ 		mDeferredEndPassRenderer.Init(
 			VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.vert"),
 			VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.frag"),
 			"",
@@ -274,8 +277,25 @@ layout(binding = 4) uniform sampler2D depthMap;
 				throw std::runtime_error("failed to allocate descriptor sets!");
 			}
 
-			VkDescriptorImageInfo imageInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->mDeferredEndTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
-			std::vector<VkWriteDescriptorSet> descriptorWrites{ plvk::writeDescriptorSet(this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i], 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo) };
+			VkDescriptorImageInfo geometryPositionInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredPositionTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
+			VkDescriptorImageInfo geometryNormalInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredNormalTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
+			VkDescriptorImageInfo geometryDiffuseInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredDiffuseTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
+			VkDescriptorImageInfo geometryOthersInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredOthersTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
+
+			VkDescriptorBufferInfo lightsBufferInfo = plvk::descriptorBufferInfo(this->mLightsBuffer[i], 0, 1024 * sizeof(LightStruct));
+			VkDescriptorBufferInfo tilesBufferInfo = plvk::descriptorBufferInfo(this->mTilesBuffer[i], 0, 1024 * sizeof(Tile));
+			//std::vector<VkWriteDescriptorSet> descriptorWrites{ plvk::writeDescriptorSet(this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i], 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &geometryPositionInfo) };
+
+			//VkDescriptorBufferInfo bufferInfo = plvk::descriptorBufferInfo(this->mUniformBuffers[i], 0, sizeof(UniformBufferObject));
+			//VkDescriptorImageInfo imageInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->mShadows->mShadowDepthImageViews[i], this->mShadows->mShadowsSampler);
+
+			std::vector<VkWriteDescriptorSet> descriptorWrites = std::vector<VkWriteDescriptorSet>();
+			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i], 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &geometryPositionInfo));
+			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i], 1, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &geometryNormalInfo));
+			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i], 2, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &geometryDiffuseInfo));
+			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i], 3, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &geometryOthersInfo));
+			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i], 4, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &lightsBufferInfo));
+			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i], 5, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &tilesBufferInfo));
 
 			vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
@@ -362,7 +382,12 @@ layout(binding = 4) uniform sampler2D depthMap;
 		//vkCmdBeginRenderPass(this->mCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mDeferredEndPassRenderer.mShaders->mPipeline);
 		//vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, &this->mDeferredPassRenderer.mShaders->mDescriptorSetLayout, 0, 1, &this->mDeferredPassRenderer.mShaders->mDescriptorSet, 0, 0);
-
+		DeferredPassPushConstants deferredPassPushConstants{};
+		deferredPassPushConstants.lightCount = this->mLights.size();
+		deferredPassPushConstants.projection = Application->activeCamera->GetProjectionMatrix();
+		deferredPassPushConstants.view = Application->activeCamera->GetViewMatrix();
+		deferredPassPushConstants.viewPos = Application->activeCamera->Position;
+		vkCmdPushConstants(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, this->mDeferredEndPassRenderer.mShaders->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(DeferredPassPushConstants), &deferredPassPushConstants);
 		mDeferredEndPassRenderer.DrawFullScreenRectangle();
 
 		vkCmdEndRenderPass(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer);

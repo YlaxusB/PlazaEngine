@@ -72,6 +72,18 @@ namespace Plaza {
 			return imageInfo;
 		}
 
+		static VkDescriptorBufferInfo descriptorBufferInfo(
+			VkBuffer& buffer,
+			uint32_t offset,
+			uint32_t range
+		) {
+			VkDescriptorBufferInfo bufferInfo{};
+			bufferInfo.buffer = buffer;
+			bufferInfo.offset = offset;
+			bufferInfo.range = range;
+			return bufferInfo;
+		}
+
 		static VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo(
 			uint32_t setLayoutCount,
 			VkDescriptorSetLayout* pSetLayouts,

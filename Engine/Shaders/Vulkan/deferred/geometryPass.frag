@@ -257,8 +257,8 @@ void main() {
     float specularIntensity = 13.0f;
 
 
-      gOthers = vec4(SpecBRDF * specularIntensity, 1.0f);
-      gOthers.z = metallic;
+    gOthers = vec4(SpecBRDF * specularIntensity, 1.0f);
+    gOthers.z = metallic;
 
     vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * (max(nDotL, amb.x / 2) * (amb + (ubo.sunColor.xyz * shadow)));
     //vec3 fog = vec3(0.7f, 0.7f, 0.0f) * pow(distance(FragPos, ubo.viewPos) / 15000.0f, 0.5f);

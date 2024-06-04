@@ -25,6 +25,10 @@ layout(location = 0) in vec4 fragColor;
 layout(location = 1) in vec2 fragTexCoord;
 layout(location = 2) in mat4 model;
 
+layout(location = 0) out vec4 FragColor;
+
+
+
 layout(binding = 0) uniform UniformBufferObject {
     mat4 projection;
     mat4 view;
@@ -48,11 +52,6 @@ layout(location = 14) in vec4 TangentLightPos;
 layout(location = 15) in vec4 TangentViewPos;
 layout(location = 16) in vec4 TangentFragPos;
 layout(location = 17) in vec4 worldPos;
-
-layout (location = 0) out vec4 gPosition;
-layout (location = 1) out vec4 gNormal;
-layout (location = 2) out vec4 gDiffuse;
-layout (location = 3) out vec4 gOthers;
 
 const float PI = 3.14159265359;
 float ao = 0;
@@ -257,31 +256,64 @@ void main() {
     float specularIntensity = 13.0f;
 
 
-      gOthers = vec4(SpecBRDF * specularIntensity, 1.0f);
-      gOthers.z = metallic;
-
+    //  gOthers = vec4(SpecBRDF * specularIntensity, 1.0f);
+    //  gOthers.z = metallic;
+   //SpecBRDF = all(equal(shad, vec3(0))) ? SpecBRDF : vec3(0);
+    //vec3 FinalColor = (shad + (DiffuseBRDF + SpecBRDF * specularIntensity)) * color.xyz * (nDotL + amb / 2);//((DiffuseBRDF)) * (shad / 255) * lightColor * nDotL * (vec3(0.3 / 255) * lightColor);
     vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * (max(nDotL, amb.x / 2) * (amb + (ubo.sunColor.xyz * shadow)));
     //vec3 fog = vec3(0.7f, 0.7f, 0.0f) * pow(distance(FragPos, ubo.viewPos) / 15000.0f, 0.5f);
     //FinalColor *= vec3(1.0f) - fog;
 
+    //FinalColor += vec3(0.13f / 255);
+    //FinalColor *= vec3(1);
+    //FinalColor -= shadow;
+
+//    FinalColor = FinalColor / (FinalColor + vec3(1.0));
+    //FinalColor *= ambient;
+    //FinalColor *= (1 - shadow) * 1;
+    //FinalColor += vec3(0.01f);
+
     /* Geometry */
-      gPosition = vec4(FragPos);
-      gDiffuse = vec4(FinalColor, 1.0f);
+    //  gPosition = vec4(fs_in.FragPos, 1.0f);
+    //  gDiffuse = vec4(FinalColor, 1.0f);
 
-      if(usingNormal)
-      {
-          vec3 T = normalize(TangentLightPos - TangentFragPos).xyz;
-          vec3 B = cross(normal, T);
-          mat3 TBN = mat3(T, B, normal);
-          vec3 normalB = normalize(TBN * normal);
-          // Transform normal to world space
-          //normalB = normalize((view * model * vec4(normal, 0.0)).xyz);
-          vec3 normalWorld = normalize((ubo.view * model * vec4(normalB, 1.0f)).xyz);
-          gNormal = vec4(normalWorld, 1.0f);
-      }
-      else
-          gNormal = vec4(normalize(normal), 1.0f);
+    //  if(usingNormal)
+    //  {
+    //      vec3 T = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
+    //      vec3 B = cross(normal, T);
+    //      mat3 TBN = mat3(T, B, normal);
+    //      vec3 normalB = normalize(TBN * normal);
+    //      // Transform normal to world space
+    //      //normalB = normalize((view * model * vec4(normal, 0.0)).xyz);
+    //      vec3 normalWorld = normalize((view * model * vec4(normalB, 1.0f)).xyz);
+    //      gNormal = vec4(normalWorld, 1.0f);
+    //  }
+    //  else
+    //      gNormal = vec4(normalize(normal), 1.0f);
 
+
+    vec3 reflectDir = reflect(-lightDir, normal);
+    //gOthers.r = pow(max(dot(viewDir, reflectDir), 0.0), 8.0);
+
+    //  float dep = gl_FragCoord.z / gl_FragCoord.w / far;//LinearizeDepth(gl_FragCoord.z) / far;//
+    //  gDepth = vec4(dep, LinearizeDepth(gl_FragCoord.z / gl_FragCoord.w) / far, gl_FragCoord.z, 1.0f);//gl_FragCoord.z / gl_FragCoord.w;
+    //gDepth.x = gDepth.y;
+     //gPosition = vec4(1.0f, 0.2f, 0.2f, 1.0f);
+    // Gamma correction
+    vec4 FinalLight = vec4(FinalColor, 1.0);
+
+    // calculate shadow
+   FragColor = vec4(FinalLight.xyz, 1.0f);
+
+    //FragColor = vec4(material.diffuseIndex, material.normalIndex, 0.0f, 1.0f);
+   //FragColor = vec4(fragTexCoord.x / 10.0f, 0.0f, 0.0f, 1.0f);
+   // // // // vec4 c = vec4(materials[materialIndex].diffuseIndex * 0.01f, materialIndex * 0.01f, 0.0f, 1.0f);
+   //FragColor = c;
+   //FragColor = vec4(vec3(1.0f - shadow), 1.0f);
+
+   // TODO: REMOVE THIS TEMPORARY HACK MADE FOR LD55
+    if(materials[materialIndex].metalnessFloat == -1.0f)
+    FragColor = color;//vec4(textures[materials[materialIndex].diffuseIndex]);
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)

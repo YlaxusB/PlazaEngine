@@ -403,7 +403,7 @@ namespace Plaza {
 			bufferInfo2.range = sizeof(VulkanRenderer::UniformBufferObject);
 
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[0].dstSet = VulkanRenderer::GetRenderer()->mDescriptorSets[i];
+			descriptorWrites[0].dstSet = VulkanRenderer::GetRenderer()->GetGeometryPassDescriptorSet(i);// VulkanRenderer::GetRenderer()->mDescriptorSets[i];
 			descriptorWrites[0].dstBinding = 0;
 			descriptorWrites[0].dstArrayElement = 0;
 			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -411,7 +411,7 @@ namespace Plaza {
 			descriptorWrites[0].pBufferInfo = &bufferInfo2;
 
 			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[1].dstSet = VulkanRenderer::GetRenderer()->mDescriptorSets[i];
+			descriptorWrites[1].dstSet = VulkanRenderer::GetRenderer()->GetGeometryPassDescriptorSet(i);
 			descriptorWrites[1].dstBinding = 20;
 			descriptorWrites[1].dstArrayElement = VulkanTexture::mLastBindingIndex;
 			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;

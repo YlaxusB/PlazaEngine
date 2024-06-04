@@ -209,7 +209,7 @@ namespace Plaza {
 
 		VkDescriptorImageInfo sceneImageInfo{};
 		sceneImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-		sceneImageInfo.imageView = VulkanRenderer::GetRenderer()->mDeferredFinalImageView;
+		sceneImageInfo.imageView = VulkanRenderer::GetRenderer()->mLighting->mDeferredEndTexture.mImageView;//VulkanRenderer::GetRenderer()->mDeferredFinalImageView;
 		sceneImageInfo.sampler = this->mTexture1->mSampler;
 		mComputeShadersScaleDown.mDescriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		mComputeShadersScaleDown.mDescriptorWrites[2].dstSet = descriptorSet;
@@ -405,13 +405,13 @@ namespace Plaza {
 		imageCopyRegion.extent.height = Application->appSizes->sceneSize.y;
 		imageCopyRegion.extent.depth = 1;
 
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mDeferredFinalImage, VulkanRenderer::GetRenderer()->mFinalDeferredFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mLighting->mDeferredEndTexture.mImage, VulkanRenderer::GetRenderer()->mFinalDeferredFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mTexture1->mImage, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 		VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
 		vkCmdCopyImage(
 			commandBuffer,
-			VulkanRenderer::GetRenderer()->mDeferredFinalImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			VulkanRenderer::GetRenderer()->mLighting->mDeferredEndTexture.mImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 			this->mTexture1->mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			1, &imageCopyRegion
 		);

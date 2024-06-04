@@ -209,6 +209,7 @@ namespace Plaza {
 		void InitializeGeometryPassRenderer();
 
 		void CreateTextureImage();
+		VkDescriptorSet GetGeometryPassDescriptorSet(unsigned int frame);
 
 		VkCommandBuffer CreateCommandBuffer();
 

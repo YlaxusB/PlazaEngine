@@ -41,17 +41,17 @@ struct Frustum
     Plane planes[4];
 };
 
-layout (std430, binding = 0) buffer LightsBuffer {
+layout (std430, binding = 4) buffer LightsBuffer {
     LightStruct lights[];
 };
 
-layout (std430, binding = 1) buffer ClusterBuffer {
+layout (std430, binding = 5) buffer ClusterBuffer {
     Cluster[] clusters;
 };
 
-layout (std430, binding = 7) buffer FrustumsBuffer {
-    Frustum frustums[];
-};
+//layout (std430, binding = 6) buffer FrustumsBuffer {
+//    Frustum frustums[];
+//};
 
 float attenuate(vec3 lightDirection, float radius) {
 	float cutoff = .99;
@@ -197,42 +197,42 @@ void main()
     //lighting += 1.0f;
     vec3 color;
 
-#ifdef SHOW_HEATMAP
-    vec2 co = TexCoords * screenSize;// (clusterSize.xy );//* clusterSize.xy);
-    vec2 pos = co.xy;
-    const float w = screenSize.x;
-    const uint gridIndex = uint(GetGridIndex(pos));
-    const Frustum f = frustums[gridIndex];
-    const float halfTile = 32 / 2; // (screenSize.x);//clusterSize.x / 2 / screenSize.x);
-    const float halfTileY = halfTile; // (screenSize.y);//clusterSize.x / 2 / screenSize.x);
-    color = abs(f.planes[1].Normal);
-    if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) == gridIndex)
-    {
-        color = abs(f.planes[0].Normal);
-    }
-    else if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) != gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) == gridIndex)
-    {
-        color = abs(f.planes[2].Normal);
-    }
-    else if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) != gridIndex)
-    {
-        color = abs(f.planes[3].Normal);//abs(f.planes[3].Normal);
-    }
-
-    clusterIndexXY = pos / 32;
-    float c = (clusterIndexXY.x + clusterCount.x * clusterIndexXY.y) * 0.00001f;
-    if(int(clusterIndexXY.x) % 2 == 0) c += 0.1f;
-    if(int(clusterIndexXY.y) % 2 == 0) c += 0.1f;
-
-    vec3 heatmap = HeatMap(clusterIndex, currentCluster.lightsCount).xyz;
-    heatmap = heatmap == vec3(0.0f, 1.0f, 0.0f) ? vec3(0.0f, 0.0f, 0.5f) : heatmap;
-
-
-    color = mix(Diffuse + lighting, heatmap, 0.8f);
-
-#else
+//#ifdef SHOW_HEATMAP
+//    vec2 co = TexCoords * screenSize;// (clusterSize.xy );//* clusterSize.xy);
+//    vec2 pos = co.xy;
+//    const float w = screenSize.x;
+//    const uint gridIndex = uint(GetGridIndex(pos));
+//    const Frustum f = frustums[gridIndex];
+//    const float halfTile = 32 / 2; // (screenSize.x);//clusterSize.x / 2 / screenSize.x);
+//    const float halfTileY = halfTile; // (screenSize.y);//clusterSize.x / 2 / screenSize.x);
+//    color = abs(f.planes[1].Normal);
+//    if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) == gridIndex)
+//    {
+//        color = abs(f.planes[0].Normal);
+//    }
+//    else if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) != gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) == gridIndex)
+//    {
+//        color = abs(f.planes[2].Normal);
+//    }
+//    else if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) != gridIndex)
+//    {
+//        color = abs(f.planes[3].Normal);//abs(f.planes[3].Normal);
+//    }
+//
+//    clusterIndexXY = pos / 32;
+//    float c = (clusterIndexXY.x + clusterCount.x * clusterIndexXY.y) * 0.00001f;
+//    if(int(clusterIndexXY.x) % 2 == 0) c += 0.1f;
+//    if(int(clusterIndexXY.y) % 2 == 0) c += 0.1f;
+//
+//    vec3 heatmap = HeatMap(clusterIndex, currentCluster.lightsCount).xyz;
+//    heatmap = heatmap == vec3(0.0f, 1.0f, 0.0f) ? vec3(0.0f, 0.0f, 0.5f) : heatmap;
+//
+//
+//    color = mix(Diffuse + lighting, heatmap, 0.8f);
+//
+//#else
     color = Diffuse + lighting;
-#endif
+//#endif
 
 
 

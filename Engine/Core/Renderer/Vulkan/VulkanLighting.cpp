@@ -16,13 +16,13 @@ namespace Plaza {
 
 		for (int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
 			VulkanRenderer::GetRenderer()->CreateBuffer(
-				sizeof(LightStruct) * 1024,
+				sizeof(LightStruct) * 1024 * 1024,
 				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
 				this->mLightsBuffer[i],
 				this->mLightsBufferMemory[i]);
 
-			VulkanRenderer::GetRenderer()->CreateBuffer(sizeof(Tile) * 1024,
+			VulkanRenderer::GetRenderer()->CreateBuffer(sizeof(Tile) * 1024 * 1024,
 				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
 				this->mTilesBuffer[i],
@@ -282,8 +282,8 @@ layout(binding = 4) uniform sampler2D depthMap;
 			VkDescriptorImageInfo geometryDiffuseInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredDiffuseTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
 			VkDescriptorImageInfo geometryOthersInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredOthersTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
 
-			VkDescriptorBufferInfo lightsBufferInfo = plvk::descriptorBufferInfo(this->mLightsBuffer[i], 0, 1024 * sizeof(LightStruct));
-			VkDescriptorBufferInfo tilesBufferInfo = plvk::descriptorBufferInfo(this->mTilesBuffer[i], 0, 1024 * sizeof(Tile));
+			VkDescriptorBufferInfo lightsBufferInfo = plvk::descriptorBufferInfo(this->mLightsBuffer[i], 0, 1024 * 1024 * sizeof(LightStruct));
+			VkDescriptorBufferInfo tilesBufferInfo = plvk::descriptorBufferInfo(this->mTilesBuffer[i], 0, 1024 * 1024 * sizeof(Tile));
 			//std::vector<VkWriteDescriptorSet> descriptorWrites{ plvk::writeDescriptorSet(this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i], 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &geometryPositionInfo) };
 
 			//VkDescriptorBufferInfo bufferInfo = plvk::descriptorBufferInfo(this->mUniformBuffers[i], 0, sizeof(UniformBufferObject));

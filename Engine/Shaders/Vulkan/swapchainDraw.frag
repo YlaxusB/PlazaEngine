@@ -42,7 +42,6 @@ void main()
     vec3 color = ACESInputMat * x.rgb;
          color = RRTAndODTFit(color);
          color = ACESOutputMat * color;
-
          color = gammaCorrect(color);
          color = clamp(color, 0.0, 1.0);
 	outFragcolor = vec4(color, 1.0f);

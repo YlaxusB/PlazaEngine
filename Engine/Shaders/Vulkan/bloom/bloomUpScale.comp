@@ -99,7 +99,7 @@ void main()
     vec4 bloom = s * (1.0 / 16.0);
 
 	vec4 out_pixel = imageLoad(u_output_image, pixel_coords);//vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    out_pixel += bloom * 1.3f;
+    out_pixel += bloom * 1.0f;
 
 	imageStore(u_output_image, pixel_coords, out_pixel);
 }

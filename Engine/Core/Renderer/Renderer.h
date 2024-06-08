@@ -27,8 +27,8 @@ namespace Plaza {
 
 		uint32_t mCurrentFrame = 0;
 
-		float exposure = 1.0f;
-		float gamma = 1.5f;
+		float exposure = 4.5f;
+		float gamma = 2.0f;
 		glm::vec3 sunColor = glm::vec3(1.0f);
 
 		RendererAPI api;

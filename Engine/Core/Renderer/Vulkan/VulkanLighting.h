@@ -11,7 +11,7 @@ namespace Plaza {
 		void UpdateTiles() override;
 		void DrawDeferredPass();
 		void Terminate() override;
-
+		
 		VulkanTexture mDeferredEndTexture;
 	private:
 		struct LightSorterPushConstants {

@@ -143,7 +143,7 @@ void main()
     // retrieve data from gbuffer
     vec3 Diffuse = texture(gDiffuse, TexCoords).xyz;
     // then calculate lighting as usual
-    vec3 lighting  = Diffuse * 0.1; // hard-coded ambient component
+    vec3 lighting  = vec3(0.0f);//Diffuse * 0.1; // hard-coded ambient component
 
 
     if(pushConstants.lightCount > 0)
@@ -174,23 +174,34 @@ void main()
             //if(distance < light.radius)
             if(distance < light.radius)
             {
-                vec3 lightColor = light.color;
-                // diffuse
-                vec3 lightDir = normalize(lightPosition - FragPos);
-                vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * (lightColor * light.intensity);
-                // specular
-                vec3 halfwayDir = normalize(lightDir + viewDir);  
-                float spec = pow(max(dot(Normal, halfwayDir), 0.0), 16.0);
-                vec3 specular = (lightColor * light.intensity) * spec * Specular;
-                // attenuation
-                float constant = 1.0f;
-                float quadratic = 1.8f;
-                float linear = 0.7f;
-                float attenuation = 1.0 / (1.0 + linear * distance + quadratic * distance * distance);
-                attenuation *= (light.radius / 1);
-                diffuse *= attenuation;
-                specular *= attenuation;
-                lighting += (diffuse + specular); //* attenuation;
+                //vec3 lightColor = light.color;
+                //// diffuse
+                //vec3 lightDir = normalize(lightPosition - FragPos);
+                //vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * (lightColor * light.intensity);
+                //// specular
+                //vec3 halfwayDir = normalize(lightDir + viewDir);  
+                //float spec = pow(max(dot(Normal, halfwayDir), 0.0), 16.0);
+                //vec3 specular = (lightColor * light.intensity) * spec * Specular;
+                //// attenuation
+                //float constant = 1.0f;
+                //float quadratic = 1.8f;
+                //float linear = 0.7f;
+                //float attenuation = 1.0 / (1.0 + linear * distance + quadratic * distance * distance);
+                //attenuation *= (light.radius / 1);
+                //diffuse *= attenuation;
+                //specular *= attenuation;
+
+                vec3 L = lightPosition.xyz - FragPos;
+		        float dist = length(L);
+
+		        L = normalize(L);
+		        float atten = light.radius / (pow(dist, 3.0) + 1.0);
+
+		        vec3 N = normalize(Normal);
+		        float NdotL = max(0.0, dot(N, L));
+		        vec3 diff = light.color * Diffuse * NdotL * atten;
+                //lighting += (diffuse + specular); //* attenuation;
+                lighting += diff;
             }
         }    
      }

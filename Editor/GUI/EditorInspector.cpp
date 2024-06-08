@@ -25,7 +25,10 @@ namespace Plaza::Editor {
 				
 				ImGui::DragFloat("Exposure", &VulkanRenderer::GetRenderer()->exposure);
 				ImGui::DragFloat("Gamma", &VulkanRenderer::GetRenderer()->gamma);
-				ImGui::ColorPicker3("Directional Light Color", &VulkanRenderer::GetRenderer()->sunColor.x);
+				ImGui::ColorPicker3("Directional Light Color", &VulkanRenderer::GetRenderer()->mLighting->directionalLightColor.x);
+				ImGui::DragFloat("Directional Intensity", &VulkanRenderer::GetRenderer()->mLighting->directionalLightIntensity);
+				ImGui::ColorPicker3("Ambient Light Color", &VulkanRenderer::GetRenderer()->mLighting->ambientLightColor.x);
+				ImGui::DragFloat("Ambient Intesnity", &VulkanRenderer::GetRenderer()->mLighting->ambientLightIntensity);
 
 				if (ImGui::Button("Save Settings")) {
 					Editor::EditorSettingsSerializer::Serialize();

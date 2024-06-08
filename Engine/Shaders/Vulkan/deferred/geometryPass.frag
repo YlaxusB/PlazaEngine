@@ -36,7 +36,8 @@ layout(binding = 0) uniform UniformBufferObject {
     vec4 viewPos;
     mat4 lightSpaceMatrices[16];
     vec4 cascadePlaneDistances[16];
-    vec4 sunColor;
+    vec4 directionalLightColor;
+    vec4 ambientLightColor;
     bool showCascadeLevels;
 } ubo;
 
@@ -173,12 +174,13 @@ void main() {
     {
         color = vec4(materials[materialIndex].color.xyz, 1.0f) * materials[materialIndex].intensity;
     }
+        color.xyz = pow(color.xyz, vec3(2.2f));
 
     //color *= vec4((vec3(1.0f) - ShadowCalculation(FragPos.xyz) + 0.25f).xyz, 1.0f);
 
     color = color * 1;
 
-    vec3 lightColor = ubo.sunColor.xyz * 255;//vec3(1.0f, 0.85f, 0.85f) * 255;
+    vec3 lightColor = ubo.directionalLightColor.xyz * 255;//vec3(1.0f, 0.85f, 0.85f) * 255;
     // ambient
     vec3 ambient = 1.32 * (lightColor / 1);
     // diffuse
@@ -252,7 +254,7 @@ void main() {
     vec3 DiffuseBRDF = kD * fLambert / PI;
 
     float shadow = (1 - ShadowCalculation(FragPos.xyz)) * 2;
-    vec3 amb = vec3(0.72f);
+    vec3 amb = ubo.ambientLightColor.xyz;//vec3(0.72f);
 
     float specularIntensity = 13.0f;
 
@@ -260,7 +262,14 @@ void main() {
     gOthers = vec4(SpecBRDF * specularIntensity, 1.0f);
     gOthers.z = metallic;
 
-    vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * (max(nDotL, amb.x / 2) * (amb + (ubo.sunColor.xyz * shadow)));
+    vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * (max(nDotL, amb.x / 2) * (amb + (ubo.directionalLightColor.xyz * shadow)));
+
+    vec3 dif2 = color.xyz;
+    vec3 spec2 = vec3(0.0f);
+
+    kD = 1.0f - F;
+    kD *= 1.0f - metallic;
+    FinalColor = (kD * dif2 + spec2) * ((ubo.directionalLightColor.xyz * shadow) + ubo.ambientLightColor.xyz);//(max(nDotL, amb.x / 2) * (amb + (ubo.directionalLightColor.xyz * shadow)));
     //vec3 fog = vec3(0.7f, 0.7f, 0.0f) * pow(distance(FragPos, ubo.viewPos) / 15000.0f, 0.5f);
     //FinalColor *= vec3(1.0f) - fog;
 

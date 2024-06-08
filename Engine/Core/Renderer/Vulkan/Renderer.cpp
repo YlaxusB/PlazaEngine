@@ -1251,15 +1251,15 @@ namespace Plaza {
 		//renderPassInfo.renderPass = scene;
 		renderPassInfo.renderPass = mDeferredRenderPass;
 		renderPassInfo.framebuffer = mDeferredFramebuffer;
-		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		this->mSkybox->DrawSkybox();
-		vkCmdEndRenderPass(commandBuffer);
 
 		/* Tiled Lighting */
 		this->mLighting->GetLights();
 		this->mLighting->UpdateTiles();
 		this->mLighting->DrawDeferredPass();
 
+		//vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		//this->mSkybox->DrawSkybox();
+		//vkCmdEndRenderPass(commandBuffer);
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
@@ -1535,7 +1535,10 @@ namespace Plaza {
 		ubo.lightDirection = glm::vec4(lightDir, 1.0f);
 		ubo.viewPos = glm::vec4(Application->activeCamera->Position, 1.0f);
 
-		ubo.sunColor = glm::vec4(this->sunColor, 1.0f);
+		ubo.directionalLightColor = glm::vec4(this->mLighting->directionalLightColor * this->mLighting->directionalLightIntensity);
+		ubo.directionalLightColor.a = 1.0f;
+		ubo.ambientLightColor = glm::vec4(this->mLighting->ambientLightColor * this->mLighting->ambientLightIntensity);
+		ubo.ambientLightColor.a = 1.0f;
 
 		VulkanShadows::ShadowsUniformBuffer ub{};
 		for (int i = 0; i < this->mShadows->mCascades.size(); ++i) {

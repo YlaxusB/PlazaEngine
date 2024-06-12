@@ -1,9 +1,11 @@
 #include "AssetsSerializer.h"
 #include "ComponentsConverter/ComponentsConverter.h"
 #include "Engine/Core/AssetsManager/Serializer/ComponentsSerializer/ComponentsSerializer.h"
+#include <fstream>
+#include <ThirdParty/cereal/cereal/archives/binary.hpp>
+#include <ThirdParty/cereal/cereal/types/polymorphic.hpp>
 
 namespace Plaza {
-
 	SerializableTransform* ConvertTransform(Transform* transform) {
 		SerializableTransform* serializableTransform = new SerializableTransform();
 		serializableTransform->uuid = transform->uuid;
@@ -21,15 +23,15 @@ namespace Plaza {
 
 		unsigned int componentCount = 0;
 		if (entity->HasComponent<Transform>()) {
-			serializableEntity.components.emplace(SerializableComponentType::TRANSFORM, ConvertTransform(entity->GetComponent<Transform>()));
+			serializableEntity.components.push_back(std::shared_ptr<SerializableComponents>(ConvertTransform(entity->GetComponent<Transform>())));
 			componentCount++;
 		}
 		if (entity->HasComponent<MeshRenderer>()) {
-			serializableEntity.components.emplace(SerializableComponentType::MESH_RENDERER, ComponentsConverter::ConvertMeshRenderer(entity->GetComponent<MeshRenderer>()));
+			serializableEntity.components.push_back(std::shared_ptr<SerializableComponents>(ComponentsConverter::ConvertMeshRenderer(entity->GetComponent<MeshRenderer>())));
 			componentCount++;
 		}
 		if (entity->HasComponent<Collider>()) {
-			serializableEntity.components.emplace(SerializableComponentType::COLLIDER, ComponentsConverter::ConvertCollider(entity->GetComponent<Collider>()));
+			serializableEntity.components.push_back(std::shared_ptr<SerializableComponents>(ComponentsConverter::ConvertCollider(entity->GetComponent<Collider>())));
 			componentCount++;
 		}
 
@@ -56,12 +58,31 @@ namespace Plaza {
 		serializablePrefab.entities.push_back(ConvertEntity(entity, entityCount, serializablePrefab.entities));
 		serializablePrefab.entitiesCount = entityCount;
 
-		std::ofstream file(outPath.string(), std::ios::binary);
-		if (!file.is_open()) {
-			std::cerr << "Error: Failed to open file for writing: " << outPath.string() << std::endl;
-			return;
+		std::ofstream os(outPath.string(), std::ios::binary);
+		cereal::BinaryOutputArchive archive(os);
+		Serp ser{ serializablePrefab };
+		archive(ser);
+		os.close();
+
+		// serializablePrefab.serialize(archive);
+
+
+	// Deserialize from binary
+
+		{
+			Serp loadedPrefab;
+			std::ifstream is(outPath.string(), std::ios::binary);
+			cereal::BinaryInputArchive archive2(is);
+			archive2(loadedPrefab);
+			std::cout << loadedPrefab.data.assetUuid << "\n";
 		}
 
+		//std::ofstream file(outPath.string(), std::ios::binary);
+		//if (!file.is_open()) {
+		//	std::cerr << "Error: Failed to open file for writing: " << outPath.string() << std::endl;
+		//	return;
+		//}
+		/*
 		// Write asset UUID
 		file.write(reinterpret_cast<const char*>(&serializablePrefab.assetUuid), sizeof(serializablePrefab.assetUuid));
 
@@ -118,8 +139,9 @@ namespace Plaza {
 
 			}
 		}
+		*/
 
-		file.close();
+		//file.close();
 
 		//// Write serializablePrefab to the file
 		//outfile.write(reinterpret_cast<const char*>(&serializablePrefab), sizeof(serializablePrefab));

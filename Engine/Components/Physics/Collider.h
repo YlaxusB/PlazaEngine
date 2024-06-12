@@ -16,7 +16,7 @@ namespace Plaza {
 			HEIGHT_FIELD
 		};
 
-		ColliderShape(physx::PxShape* shape, ColliderShapeEnum newEnum = ColliderShapeEnum::BOX, uint64_t meshUuid = 0) : mPxShape(shape), mEnum(newEnum), mMeshUuid(meshUuid){}
+		ColliderShape(physx::PxShape* shape, ColliderShapeEnum newEnum = ColliderShapeEnum::BOX, uint64_t meshUuid = 0) : mPxShape(shape), mEnum(newEnum), mMeshUuid(meshUuid) {}
 		physx::PxShape* mPxShape;
 		ColliderShapeEnum mEnum;
 		uint64_t mMeshUuid;
@@ -46,7 +46,7 @@ namespace Plaza {
 		void AddConvexMeshShape(Mesh* mesh);
 		void AddMeshShape(Mesh* mesh);
 		void AddHeightShape(float** heightData, int size);
-		void UpdateShapeScale(glm::vec3 scale); 
+		void UpdateShapeScale(glm::vec3 scale);
 		void UpdateAllShapesScale();
 		template <typename EnumType>
 		void SetSelfAndChildrenFlag(EnumType flag, bool value);

@@ -140,7 +140,7 @@ namespace Plaza {
 			}
 
 		}
-		void Init() 
+		void Init()
 		{
 
 		}
@@ -169,6 +169,8 @@ namespace Plaza {
 					(uvs.size() > i) ? uvs[i] : glm::vec2(0.0f),
 					(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f),
 					(bitangent.size() > i) ? bitangent[i] : glm::vec3(0.0f)
+					//(bones.size() > i && bones[i].mId != -1) ? bones[i].mId : std::array<int, MAX_BONE_INFLUENCE>(),
+					//(weights.size() > i) ? weights[i] : std::array<float, MAX_BONE_INFLUENCE>()
 					});
 			}
 			glBufferData(GL_ARRAY_BUFFER, convertedVertices.size() * sizeof(Vertex), &convertedVertices[0], GL_STATIC_DRAW);

@@ -14,6 +14,13 @@ namespace Plaza {
 		serializedMesh.uvs = mesh->uvs;
 		serializedMesh.indicesCount = mesh->indices.size();
 		serializedMesh.indices = mesh->indices;
+		serializedMesh.bonesHoldersCount = mesh->bonesHolder.size();
+		serializedMesh.bonesHolders = mesh->bonesHolder;
+		serializedMesh.uniqueBonesCount = mesh->uniqueBonesInfo.size();
+		serializedMesh.uniqueBones.resize(mesh->uniqueBonesInfo.size());
+		for (const auto& [key, value] : mesh->uniqueBonesInfo) {
+			serializedMesh.uniqueBones.push_back(value);
+		}
 		return serializedMesh;
 	}
 }

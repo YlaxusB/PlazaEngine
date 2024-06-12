@@ -52,8 +52,7 @@ namespace Plaza {
 		/* Blur pingpong framebuffer */
 		glGenFramebuffers(2, pingpongFBO);
 		glGenTextures(2, pingpongColorbuffers);
-		for (unsigned int i = 0; i < 2; i++)
-		{
+		for (unsigned int i = 0; i < 2; i++) {
 			glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
 			glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -102,8 +101,7 @@ namespace Plaza {
 		shader.setFloat("farPlane", Application->activeCamera->farPlane);
 		shader.setInt("cascadeCount", Application->Shadows->shadowCascadeLevels.size());
 		shader.setVec3("lightDirection", Application->Shadows->lightDir);
-		for (size_t i = 0; i < Application->Shadows->shadowCascadeLevels.size(); ++i)
-		{
+		for (size_t i = 0; i < Application->Shadows->shadowCascadeLevels.size(); ++i) {
 			shader.setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", Application->Shadows->shadowCascadeLevels[i]);
 		}
 
@@ -150,8 +148,7 @@ namespace Plaza {
 		shader.setFloat("farPlane", Application->activeCamera->farPlane);
 		shader.setInt("cascadeCount", Application->Shadows->shadowCascadeLevels.size());
 		shader.setVec3("lightDirection", Application->Shadows->lightDir);
-		for (size_t i = 0; i < Application->Shadows->shadowCascadeLevels.size(); ++i)
-		{
+		for (size_t i = 0; i < Application->Shadows->shadowCascadeLevels.size(); ++i) {
 			shader.setFloat("cascadePlaneDistances[" + std::to_string(i) + "]", Application->Shadows->shadowCascadeLevels[i]);
 		}
 
@@ -184,8 +181,7 @@ namespace Plaza {
 		}
 	}
 
-	void OpenGLRenderer::BlurBuffer(GLint colorBuffer, int passes)
-	{
+	void OpenGLRenderer::BlurBuffer(GLint colorBuffer, int passes) {
 
 		blurShader->use();
 		blurShader->setInt("image", 0);
@@ -194,8 +190,7 @@ namespace Plaza {
 		bool firstIteration = true;
 		bool horizontal = true;
 
-		for (unsigned int i = 0; i < passes; i++)
-		{
+		for (unsigned int i = 0; i < passes; i++) {
 			glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
 			blurShader->setInt("horizontal", horizontal);
 			glBindTexture(GL_TEXTURE_2D, firstIteration ? colorBuffer : pingpongColorbuffers[!horizontal]);  // bind texture of other framebuffer (or scene if first iteration)
@@ -328,11 +323,11 @@ namespace Plaza {
 
 	void OpenGLRenderer::CopyLastFramebufferToFinalDrawBuffer() {
 		GLint drawBuffer;
-#ifdef GAME_MODE
+	#ifdef GAME_MODE
 		drawBuffer = 0;
-#else
+	#else
 		drawBuffer = Application->frameBuffer;
-#endif
+	#endif
 		glBindFramebuffer(GL_FRAMEBUFFER, drawBuffer);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -366,7 +361,7 @@ namespace Plaza {
 		return (ImTextureID)Application->textureColorbuffer;
 	}
 
-	Mesh& OpenGLRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal) {
+	Mesh& OpenGLRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal, vector<BonesHolder> bonesHolder) {
 		return *new OpenGLMesh(vertices, normals, uvs, tangent, bitangent, indices, usingNormal);
 	}
 
@@ -375,9 +370,9 @@ namespace Plaza {
 		texture->mAssetUuid = uuid;
 		texture->path = path;
 		texture->rgba = glm::vec4(INFINITY);
-//    material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");
-//    material->diffuse.rgba = glm::vec4(INFINITY);
-//    material->diffuse.Load() = ModelLoader::TextureFromFile(material->diffuse.path);
+		//    material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");
+		//    material->diffuse.rgba = glm::vec4(INFINITY);
+		//    material->diffuse.Load() = ModelLoader::TextureFromFile(material->diffuse.path);
 
 		int width, height, nrComponents;
 		if (std::filesystem::path{ path }.extension().string() == ".dds") {
@@ -385,8 +380,7 @@ namespace Plaza {
 		}
 		else {
 			unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrComponents, 4);
-			if (data)
-			{
+			if (data) {
 				glGenTextures(1, &texture->id);
 
 				GLenum format;
@@ -413,8 +407,7 @@ namespace Plaza {
 
 				stbi_image_free(data);
 			}
-			else
-			{
+			else {
 				std::cout << "Texture failed to load at path: " << path << std::endl;
 				stbi_image_free(data);
 			}

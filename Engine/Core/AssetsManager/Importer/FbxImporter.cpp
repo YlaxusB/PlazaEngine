@@ -38,8 +38,7 @@ namespace Plaza {
 		const ofbx::Texture* ofbxDiffuse = ofbxMaterial->getTexture(ofbx::Texture::DIFFUSE);
 		if (ofbxDiffuse) {
 			const std::string diffusePath = materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxDiffuse->getFileName()) }.filename().string();
-			if (ofbxDiffuse && loadedTextures.find(diffusePath) == loadedTextures.end())
-			{
+			if (ofbxDiffuse && loadedTextures.find(diffusePath) == loadedTextures.end()) {
 				material->diffuse = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(diffusePath, Plaza::UUID::NewUUID()));
 				loadedTextures.emplace(diffusePath, material->diffuse->mAssetUuid);
 			}
@@ -50,8 +49,7 @@ namespace Plaza {
 		const ofbx::Texture* ofbxNormal = ofbxMaterial->getTexture(ofbx::Texture::NORMAL);
 		if (ofbxNormal) {
 			const std::string normalPath = materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxNormal->getFileName()) }.filename().string();
-			if (loadedTextures.find(normalPath) == loadedTextures.end())
-			{
+			if (loadedTextures.find(normalPath) == loadedTextures.end()) {
 				material->normal = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(normalPath, Plaza::UUID::NewUUID()));
 				loadedTextures.emplace(normalPath, material->normal->mAssetUuid);
 			}
@@ -62,8 +60,7 @@ namespace Plaza {
 		const ofbx::Texture* ofbxSpecular = ofbxMaterial->getTexture(ofbx::Texture::SPECULAR);
 		if (ofbxSpecular) {
 			const std::string specularPath = materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxSpecular->getFileName()) }.filename().string();
-			if (ofbxSpecular && loadedTextures.find(specularPath) == loadedTextures.end())
-			{
+			if (ofbxSpecular && loadedTextures.find(specularPath) == loadedTextures.end()) {
 				material->roughness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(specularPath, Plaza::UUID::NewUUID()));
 				loadedTextures.emplace(specularPath, material->roughness->mAssetUuid);
 			}
@@ -74,8 +71,7 @@ namespace Plaza {
 		const ofbx::Texture* ofbxReflection = ofbxMaterial->getTexture(ofbx::Texture::REFLECTION);
 		if (ofbxReflection) {
 			const std::string reflectionPath = materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxReflection->getFileName()) }.filename().string();
-			if (ofbxReflection && loadedTextures.find(reflectionPath) == loadedTextures.end())
-			{
+			if (ofbxReflection && loadedTextures.find(reflectionPath) == loadedTextures.end()) {
 				material->metalness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(reflectionPath, Plaza::UUID::NewUUID()));
 				loadedTextures.emplace(reflectionPath, material->metalness->mAssetUuid);
 			}
@@ -98,19 +94,12 @@ namespace Plaza {
 
 		ofbx::LoadFlags flags =
 			//		ofbx::LoadFlags::IGNORE_MODELS |
-			ofbx::LoadFlags::IGNORE_BLEND_SHAPES |
 			ofbx::LoadFlags::IGNORE_CAMERAS |
 			ofbx::LoadFlags::IGNORE_LIGHTS |
 			//		ofbx::LoadFlags::IGNORE_TEXTURES |
-			ofbx::LoadFlags::IGNORE_SKIN |
-			ofbx::LoadFlags::IGNORE_BONES |
-			ofbx::LoadFlags::IGNORE_PIVOTS |
 			//		ofbx::LoadFlags::IGNORE_MATERIALS |
-			ofbx::LoadFlags::IGNORE_POSES |
-			ofbx::LoadFlags::IGNORE_VIDEOS |
-			ofbx::LoadFlags::IGNORE_LIMBS |
-			//		ofbx::LoadFlags::IGNORE_MESHES |
-			ofbx::LoadFlags::IGNORE_ANIMATIONS;
+			ofbx::LoadFlags::IGNORE_VIDEOS;
+		//		ofbx::LoadFlags::IGNORE_MESHES |;
 
 		ofbx::IScene* loadedScene = ofbx::load((ofbx::u8*)content, fileSize, (ofbx::u16)flags);
 		delete[] content;
@@ -145,8 +134,7 @@ namespace Plaza {
 				material = Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second);
 
 			Entity* entity;
-			if (!mainEntity)
-			{
+			if (!mainEntity) {
 				entity = new Entity(mesh.name, Application->activeScene->mainSceneEntity);
 				mainEntity = entity;
 			}
@@ -161,7 +149,6 @@ namespace Plaza {
 					//entity->ChangeParent(Application->activeScene->GetEntity(entity->GetParent().uuid), Application->activeScene->GetEntity(parentIt->second));
 				}
 			}
-
 
 			const ofbx::GeometryData& geom = mesh.getGeometryData();
 			const ofbx::Vec3Attributes positions = geom.getPositions();
@@ -197,12 +184,75 @@ namespace Plaza {
 							finalMesh->normals.push_back(glm::vec3(n.x, n.y, n.z));
 							ofbx::Vec2 u = uvs.get(tri_indices[i]);
 							finalMesh->uvs.push_back(glm::vec2(u.x, u.y));
+
+							//std::vector<int> boneIDs = std::vector<int>();
+
+							//const ofbx::Skin* skin = mesh.getGeometry()->getSkin();
+							//const int clusterCount = skin->getClusterCount();
+							//// Iterate over clusters
+							//for (int j = 0; j < clusterCount; ++j) {
+							//	const ofbx::Cluster* cluster = skin->getCluster(j);
+							//	const int* indices = cluster->getIndices();
+
+							//	// Check if this cluster affects the current vertex
+							//	for (int k = 0; k < cluster->getIndicesCount(); ++k) {
+							//		if (indices[k] == i) {
+							//			// Add bone ID to the list
+							//			if (boneIDs.size() < 4)
+							//				boneIDs.push_back(cluster->getLink()->id);
+							//			break;
+							//		}
+							//	}
+							//}
+							//finalMesh->bonesHolder = ;
 						}
 						finalMesh->indices.push_back(uniqueVertices[vertex]);
 					}
 				}
 				indicesOffset += positions.count;
 			}
+
+			/* Get bones */
+			//const ofbx::Skin* te = mesh.getSkin();
+			//int count = mesh.getSkin()->getClusterCount();
+			//for (int i = 0; i < mesh.getSkin()->getClusterCount(); ++i) {
+			//	const ofbx::Cluster* cluster = mesh.getSkin()->getCluster(i);
+			//	const ofbx::Cluster* cluster2 = mesh.getSkin()->getCluster(i);
+			//}
+			std::cout << " ---- BONES START ---- \n";
+			for (int i = 0, n = loadedScene->getAnimationStackCount(); i < n; ++i) {
+				const ofbx::AnimationStack* stack = loadedScene->getAnimationStack(i);
+				for (int j = 0; stack->getLayer(j); ++j) {
+					const ofbx::AnimationLayer* layer = stack->getLayer(j);
+					for (int k = 0; layer->getCurveNode(k); ++k) {
+						const ofbx::AnimationCurveNode* node = layer->getCurveNode(k);
+						if (node->getBone())
+						{
+							const ofbx::Object* bone = node->getBone();
+
+							Plaza::Bone plazaBone{ bone->id, bone->name };
+							if (finalMesh->uniqueBonesInfo.find(plazaBone.mId) == finalMesh->uniqueBonesInfo.end())
+								finalMesh->uniqueBonesInfo.emplace(plazaBone.mId, plazaBone);
+						};
+					}
+				}
+			}
+
+			const ofbx::Skin* skin = mesh.getSkin();
+			finalMesh->bonesHolder.resize(finalMesh->vertices.size());
+			if (skin) {
+				for (unsigned int i = 0; i < skin->getClusterCount(); ++i) {
+					const ofbx::Cluster* cluster = skin->getCluster(i);
+					for (unsigned int j = 0; j < cluster->getIndicesCount(); ++j) {
+						Plaza::Bone plazaBone{ cluster->getLink()->id, cluster->getLink()->name };
+						finalMesh->bonesHolder[cluster->getIndices()[j]].mBones.push_back(plazaBone);
+					}
+					std::cout << cluster->name << "\n";
+					//insertHierarchy(m_bones, cluster->getLink());
+				}
+			}
+
+
 
 			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, Application->activeScene->DefaultMaterial());
 			meshRenderer->material = material;//AssetsLoader::LoadMaterial(AssetsManager::GetAsset(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name + Standards::materialExtName}.string()));

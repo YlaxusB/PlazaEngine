@@ -20,10 +20,18 @@ layout(location = 2) in vec2 inTexCoord;
 layout(location = 3) in vec3 tangent;
 layout(location = 4) in vec3 bitangent;
 layout(location = 5) in vec4 instanceMatrix[4];
+layout(location = 9) in ivec4 boneIds;
+layout(location = 10) in vec4 weights;
 
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
 layout(location = 2) out mat4 model;
+
+const int MAX_BONES = 100;
+const int MAX_BONE_INFLUENCE = 4;
+layout(std430, set = 2, binding = 0) readonly buffer BoneMatrices {
+	mat4 boneMatrices[];
+};
 
 layout(location = 18) in uint mat;
 layout(binding = 20) uniform sampler2D textures[];
@@ -42,13 +50,13 @@ out gl_PerVertex {
 };
 
 void main() {
+// TODO: FIX ANIMATION NORMALS
     model = mat4(instanceMatrix[0], instanceMatrix[1], instanceMatrix[2], instanceMatrix[3]);
 
     mat4 aInstanceMatrix = model;
     fragTexCoord = vec2(0.0f, 1.0f) - inTexCoord;
 
     mat4 finalInstanceMatrix = model;
-    vec4 finalModel = finalInstanceMatrix * vec4(inPosition, 1.0);
     FragPos = vec4(model * vec4(inPosition, 1.0));
     //vs_out.Normal = transpose(inverse(mat3(aInstanceMatrix))) * aNormal;
     TexCoords = vec2(1.0f, 1.0f) -  inTexCoord;
@@ -66,7 +74,35 @@ void main() {
     //} else{
         Normal.xyz = transpose(inverse(mat3(finalInstanceMatrix))) * inNormal;
     //}
+
+    vec4 totalPosition = vec4(0.0f);
+    bool allNegative = true;
+    for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
+    {
+          if(boneIds[i] == -1) 
+          {
+            continue;
+          }   
+          else
+          {
+               allNegative = false;
+          }
+          if(boneIds[i] >= MAX_BONES) 
+          {
+              totalPosition = vec4(inPosition,1.0f);
+              break;
+          }
+          vec4 localPosition = boneMatrices[boneIds[i]] * vec4(inPosition,1.0f);
+          totalPosition += localPosition * weights[i];
+          vec3 localNormal = mat3(boneMatrices[boneIds[i]]) * Normal.xyz;
+    }
+     
+     if(allNegative)
+         totalPosition = vec4(inPosition,1.0f);
+
+    vec4 finalModel = finalInstanceMatrix * totalPosition;
+
     worldPos.xyz = vec3(finalModel);
-    gl_Position = ubo.projection * (ubo.view) * finalModel;
+    gl_Position = ubo.projection * ubo.view * finalModel;
     materialIndex = mat;//22;
 }

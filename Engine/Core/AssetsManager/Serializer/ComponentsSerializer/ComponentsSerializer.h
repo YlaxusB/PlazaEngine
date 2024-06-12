@@ -32,6 +32,14 @@ namespace Plaza {
 			for (unsigned int i = 0; i < meshRenderer->serializedMesh.indices.size(); ++i) {
 				file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.indices[i]), sizeof(unsigned int));
 			}
+			file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.bonesHoldersCount), sizeof(uint64_t));
+			for (unsigned int i = 0; i < meshRenderer->serializedMesh.bonesHolders.size(); ++i) {
+				file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.bonesHolders[i]), sizeof(Plaza::BonesHolder));
+			}
+			file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.uniqueBonesCount), sizeof(uint64_t));
+			for (unsigned int i = 0; i < meshRenderer->serializedMesh.uniqueBones.size(); ++i) {
+				file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.uniqueBones[i]), sizeof(Plaza::Bone));
+			}
 		}
 
 		static void SerializeCollider(SerializableCollider* collider, std::ofstream& file) {

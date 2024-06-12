@@ -14,8 +14,7 @@ namespace Plaza::Editor {
 			std::filesystem::path fsPath = std::filesystem::path{ path };
 			std::string finalPath = pathToWatch + "\\" + path;
 			mQueuedEvents.emplace(changeType, finalPath);
-			switch (changeType)
-			{
+			switch (changeType) {
 			case filewatch::Event::added: // The file was added to the directory
 				if (fsPath.extension() == ".cs") {
 					Application->activeProject->scripts.emplace(pathToWatch + "\\" + path, Script());
@@ -29,14 +28,12 @@ namespace Plaza::Editor {
 			case filewatch::Event::modified: // The file was modified. This can be a change in the time stamp or attributes
 				if (fsPath.extension() == ".cs") {
 					// TODO: For now its just recompiling the scripting but not hot reloading
-					if (Filewatcher::mMainThreadQueue.size() <= 0)
-					{
-						Filewatcher::AddToMainThread([finalPath]()
-							{
-								ScriptManager::RecompileDll("", "");
-								std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = FieldManager::GetAllScritpsFields();
-								Mono::OnStartAll(false);
-								FieldManager::ApplyAllScritpsFields(allFields);
+					if (Filewatcher::mMainThreadQueue.size() <= 0) {
+						Filewatcher::AddToMainThread([finalPath]() {
+							ScriptManager::RecompileDll("", "");
+							std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = FieldManager::GetAllScritpsFields();
+							Mono::OnStartAll(false);
+							FieldManager::ApplyAllScritpsFields(allFields);
 							});
 						//Filewatcher::AddToMainThread([finalPath]() {ScriptManager::ReloadSpecificAssembly(finalPath); });
 					}

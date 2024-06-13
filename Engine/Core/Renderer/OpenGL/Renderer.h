@@ -100,7 +100,8 @@ namespace Plaza {
 			vector<unsigned int> indices,
 			Material& material,
 			bool usingNormal,
-			vector<BonesHolder> bonesHolder = vector<BonesHolder>()) override;
+			vector<BonesHolder> bonesHolder = vector<BonesHolder>(),
+			vector<Bone>  uniqueBonesInfo = vector<Bone>()) override;
 
 		Mesh* RestartMesh(Mesh* mesh) override;
 		void DrawRenderGroupInstanced(RenderGroup* renderGroup) override;

@@ -92,16 +92,16 @@ namespace Plaza {
 		auto* content = new ofbx::u8[fileSize];
 		fread(content, 1, fileSize, fileOpen);
 
-		ofbx::LoadFlags flags =
+	//	ofbx::LoadFlags flags =
 			//		ofbx::LoadFlags::IGNORE_MODELS |
-			ofbx::LoadFlags::IGNORE_CAMERAS |
-			ofbx::LoadFlags::IGNORE_LIGHTS |
+			//ofbx::LoadFlags::::IGNORE_CAMERAS |
+			//ofbx::LoadFlags::IGNORE_LIGHTS |
 			//		ofbx::LoadFlags::IGNORE_TEXTURES |
 			//		ofbx::LoadFlags::IGNORE_MATERIALS |
-			ofbx::LoadFlags::IGNORE_VIDEOS;
+			//ofbx::LoadFlags::IGNORE_VIDEOS;
 		//		ofbx::LoadFlags::IGNORE_MESHES |;
 
-		ofbx::IScene* loadedScene = ofbx::load((ofbx::u8*)content, fileSize, (ofbx::u16)flags);
+		ofbx::IScene* loadedScene = ofbx::load((ofbx::u8*)content, fileSize, 0);
 		delete[] content;
 		fclose(fileOpen);
 
@@ -149,11 +149,12 @@ namespace Plaza {
 					//entity->ChangeParent(Application->activeScene->GetEntity(entity->GetParent().uuid), Application->activeScene->GetEntity(parentIt->second));
 				}
 			}
-
-			const ofbx::GeometryData& geom = mesh.getGeometryData();
-			const ofbx::Vec3Attributes positions = geom.getPositions();
-			const ofbx::Vec3Attributes normals = geom.getNormals();
-			const ofbx::Vec2Attributes uvs = geom.getUVs();
+			const ofbx::Geometry* geometry = mesh.getGeometry();
+			const ofbx::Vec3* positions = geometry->getVertices();
+			const ofbx::Vec3* normals = geometry->getNormals();
+			const ofbx::Vec2* uvs = geometry->getUVs();
+			const int* faceIndicies = geometry->getFaceIndices();
+			int indexCount = geometry->getIndexCount();
 
 			Mesh* finalMesh = new Mesh();
 
@@ -161,6 +162,66 @@ namespace Plaza {
 			std::unordered_map<glm::vec3, uint32_t> uniqueVertices = std::unordered_map<glm::vec3, uint32_t>();
 			//int* tri_indices = new int();
 			int indicesOffset = 0;
+
+			std::unordered_map<uint64_t, std::vector<uint64_t>> vertexToBoneIDs;
+			std::unordered_map<uint64_t, std::vector<float>> vertexToWeights;
+
+			const ofbx::Skin* skin = mesh.getGeometry()->getSkin();
+			if (skin) {
+				const int clusterCount = skin->getClusterCount();
+				for (int j = 0; j < clusterCount; ++j) {
+					const ofbx::Cluster* cluster = skin->getCluster(j);
+					if (cluster->getIndicesCount() <= 0)
+						continue;
+					const int* indices = cluster->getIndices();
+					const double* weightsData = cluster->getWeights();
+
+					for (int k = 0; k < cluster->getIndicesCount(); ++k) {
+						int vertexIndex = indices[k];
+						uint64_t boneID = cluster->getLink()->id;
+						float weight = static_cast<float>(weightsData[k]);
+
+						vertexToBoneIDs[vertexIndex].push_back(boneID);
+						vertexToWeights[vertexIndex].push_back(weight);
+					}
+				}
+			}
+
+			for (int j = 0; j < geometry->getVertexCount(); j++)
+			{
+				auto& v = geometry->getVertices()[j];
+				auto& n = geometry->getNormals()[j];
+				auto& t = geometry->getTangents()[j];
+				auto& uv = geometry->getUVs()[j];
+
+				Vertex vertex{};
+				finalMesh->vertices.push_back(glm::vec3(v.x, v.y, v.z));
+				finalMesh->normals.push_back(glm::vec3(n.x, n.y, n.z));
+
+				//if (geometry->getTangents() != nullptr) {
+				//	vertex.tangent = glm::vec3(t.x, t.y, t.z);
+				//	vertex.bitangent = glm::cross(vertex.tangent, vertex.normal);
+				//}
+				if (geometry->getUVs() != nullptr)
+					finalMesh->uvs.push_back(glm::vec2(uv.x, 1.0f - uv.y));
+				finalMesh->indices.push_back(j);
+
+				if (vertexToBoneIDs.find(j) != vertexToBoneIDs.end()) {
+					BonesHolder holder{};
+					for (int k = 0; k < vertexToBoneIDs[j].size(); ++k) {
+						holder.mBones.push_back(Bone{ vertexToBoneIDs[j][k], ""});
+					}
+					finalMesh->bonesHolder.push_back(holder);
+				}
+				//vertex.blendingIndex[0] = -1;
+				//vertex.blendingIndex[1] = -1;
+				//vertex.blendingIndex[2] = -1;
+				//vertex.blendingIndex[3] = -1;
+				//vertex.blendingWeight = glm::vec4(0, 0, 0, 0);
+				//vertices.push_back(vertex);
+			}
+
+			/*
 			for (int partitionIdx = 0; partitionIdx < geom.getPartitionCount(); ++partitionIdx) {
 				if (partitionIdx > 0)
 					std::cout << partitionIdx << "\n";
@@ -185,6 +246,8 @@ namespace Plaza {
 							ofbx::Vec2 u = uvs.get(tri_indices[i]);
 							finalMesh->uvs.push_back(glm::vec2(u.x, u.y));
 
+
+
 							//std::vector<int> boneIDs = std::vector<int>();
 
 							//const ofbx::Skin* skin = mesh.getGeometry()->getSkin();
@@ -206,12 +269,21 @@ namespace Plaza {
 							//}
 							//finalMesh->bonesHolder = ;
 						}
+						std::vector<uint64_t> boneIDs = vertexToBoneIDs[tri_indices[i]];
+						std::vector<float> weights = vertexToWeights[tri_indices[i]];
+						const ofbx::Skin* skin = mesh.getGeometry()->getSkin();
+
+						BonesHolder holder{};
+						for (int i = 0; i < boneIDs.size(); ++i) {
+							holder.mBones.push_back(Bone{ boneIDs[i], "" });
+						}
+						finalMesh->bonesHolder.push_back(holder);
 						finalMesh->indices.push_back(uniqueVertices[vertex]);
 					}
 				}
 				indicesOffset += positions.count;
 			}
-
+			*/
 			/* Get bones */
 			//const ofbx::Skin* te = mesh.getSkin();
 			//int count = mesh.getSkin()->getClusterCount();
@@ -229,28 +301,54 @@ namespace Plaza {
 						if (node->getBone())
 						{
 							const ofbx::Object* bone = node->getBone();
-
+			
 							Plaza::Bone plazaBone{ bone->id, bone->name };
+							plazaBone.mParentId = bone->getParent()->id;
 							if (finalMesh->uniqueBonesInfo.find(plazaBone.mId) == finalMesh->uniqueBonesInfo.end())
 								finalMesh->uniqueBonesInfo.emplace(plazaBone.mId, plazaBone);
 						};
 					}
 				}
 			}
-
-			const ofbx::Skin* skin = mesh.getSkin();
-			finalMesh->bonesHolder.resize(finalMesh->vertices.size());
-			if (skin) {
-				for (unsigned int i = 0; i < skin->getClusterCount(); ++i) {
-					const ofbx::Cluster* cluster = skin->getCluster(i);
-					for (unsigned int j = 0; j < cluster->getIndicesCount(); ++j) {
-						Plaza::Bone plazaBone{ cluster->getLink()->id, cluster->getLink()->name };
-						finalMesh->bonesHolder[cluster->getIndices()[j]].mBones.push_back(plazaBone);
+			
+			/* Reiterate to adjust parentship */
+			for (int i = 0, n = loadedScene->getAnimationStackCount(); i < n; ++i) {
+				const ofbx::AnimationStack* stack = loadedScene->getAnimationStack(i);
+				for (int j = 0; stack->getLayer(j); ++j) {
+					const ofbx::AnimationLayer* layer = stack->getLayer(j);
+					for (int k = 0; layer->getCurveNode(k); ++k) {
+						const ofbx::AnimationCurveNode* node = layer->getCurveNode(k);
+						if (node->getBone())
+						{
+							const ofbx::Object* bone = node->getBone();
+							uint64_t parentId = bone->getParent()->id;
+			
+							Plaza::Bone plazaBone{ bone->id, bone->name };
+							if (finalMesh->uniqueBonesInfo.find(parentId) != finalMesh->uniqueBonesInfo.end())
+								finalMesh->uniqueBonesInfo[parentId].mChildren.push_back(bone->id);
+						};
 					}
-					std::cout << cluster->name << "\n";
-					//insertHierarchy(m_bones, cluster->getLink());
 				}
 			}
+
+			//const ofbx::Cluster* cluster = mesh.gets()->getCluster(0);
+			//const ofbx::Skin* skin = mesh.getSkin();
+			finalMesh->bonesHolder.resize(finalMesh->indices.size());
+			int count = 0;
+			//if (skin) {
+			//	for (unsigned int i = 0; i < skin->getClusterCount(); ++i) {
+			//		const ofbx::Cluster* cluster = skin->getCluster(i);
+			//		for (unsigned int j = 0; j < cluster->getIndicesCount(); ++j) {
+			//			Plaza::Bone plazaBone{ cluster->getLink()->id, cluster->getLink()->getParent()->id, cluster->getLink()->name};
+			//			if(finalMesh->uniqueBonesInfo.find(plazaBone.mId) == finalMesh->uniqueBonesInfo.end())
+			//				finalMesh->uniqueBonesInfo.emplace(plazaBone.mId, plazaBone);
+			//			std::cout << cluster->getIndices()[j] << "\n";
+			//			finalMesh->bonesHolder[cluster->getIndices()[j]].mBones.push_back(plazaBone);
+			//		}
+			//		count += cluster->getIndicesCount();
+			//		//insertHierarchy(m_bones, cluster->getLink());
+			//	}
+			//}
 
 
 

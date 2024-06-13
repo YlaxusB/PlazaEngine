@@ -47,17 +47,21 @@ namespace Plaza {
 
 	struct Bone {
 		uint64_t mId = -1;
+		uint64_t mParentId = -1;
 		std::string mName = "bone";
 		Bone(uint64_t id, std::string name) : mId(id), mName(name) {};
+		Bone(uint64_t id, uint64_t parentId, std::string name) : mId(id), mParentId(parentId), mName(name) {};
 		float weight = 0.0f;
-		glm::vec4 mPosition;
-		glm::quat mRotation;
-		glm::vec3 mScale;
+		glm::vec3 mPosition = glm::vec3(0.0f);
+		glm::quat mRotation = glm::quat(glm::vec3(0.0f));
+		glm::vec3 mScale = glm::vec3(1.0f);
+		glm::mat4 mTransform = glm::mat4(1.0f);
+		std::vector<uint64_t> mChildren = std::vector<uint64_t>();
 		Bone() {};
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(mId, mName, weight, mPosition, mRotation, mScale);
+			archive(mId, mName, weight, mPosition, mRotation, mScale, mParentId, mChildren);
 		}
 	};
 
@@ -67,14 +71,14 @@ namespace Plaza {
 
 		std::array<int, MAX_BONE_INFLUENCE> GetBoneIds() {
 			std::array<int, MAX_BONE_INFLUENCE> bonesArray = std::array<int, MAX_BONE_INFLUENCE>();
-			for (unsigned int i = 0; i < mBones.size(); ++i) {
+			for (unsigned int i = 0; i < mBones.size() && i < MAX_BONE_INFLUENCE; ++i) {
 				bonesArray[i] = this->mBones[i].mId;
 			}
 			return bonesArray;
 		}
 		std::array<float, MAX_BONE_INFLUENCE> GetBoneWeights() {
 			std::array<float, MAX_BONE_INFLUENCE> weightArray = std::array<float, MAX_BONE_INFLUENCE>();
-			for (unsigned int i = 0; i < mBones.size(); ++i) {
+			for (unsigned int i = 0; i < mBones.size() && i < MAX_BONE_INFLUENCE; ++i) {
 				weightArray[i] = this->mBones[i].weight;
 			}
 			return weightArray;

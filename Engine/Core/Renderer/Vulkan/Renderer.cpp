@@ -1090,6 +1090,41 @@ namespace Plaza {
 		return commandBuffer;
 	}
 
+	void VulkanRenderer::CalculateBone(Bone* bone, Bone* parentBone, float time) {
+		glm::vec3 targetTranslation = glm::vec3(5.0f, 3.0f, 1.0f);
+		glm::vec3 currentTranslation = glm::vec3(bone->mTransform[3]);
+		glm::vec3 newTranslation = glm::mix(glm::vec3(0.0f), targetTranslation, time);
+		bone->mTransform[3] = glm::vec4(newTranslation, 1.0f);
+
+		if (parentBone)
+			bone->mTransform = parentBone->mTransform * bone->mTransform;
+		for (uint64_t childId : bone->mChildren) {
+			if (this->mBones.find(childId) != this->mBones.end())
+				this->CalculateBone(&this->mBones[childId], bone, time);
+		}
+	}
+
+	void VulkanRenderer::EarlyAnimationController() {
+		if (increasing) {
+			time += 0.01f; // Adjust the increment value as needed for smoothness
+			if (time >= 1.0f) {
+				time = 1.0f;
+				increasing = false;
+			}
+		}
+		else {
+			time -= 0.01f; // Adjust the decrement value as needed for smoothness
+			if (time <= 0.0f) {
+				time = 0.0f;
+				increasing = true;
+			}
+		}
+		for (auto& [key, value] : this->mBones) {
+			if (value.mId != -1 && value.mParentId != -1 && this->mBones.find(value.mParentId) != this->mBones.end())
+				CalculateBone(&value, nullptr, time);
+		}
+	}
+
 	void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer,
 		uint32_t imageIndex) {
 		PLAZA_PROFILE_SECTION("Record Command Buffer");
@@ -1148,8 +1183,7 @@ namespace Plaza {
 
 		{
 			PLAZA_PROFILE_SECTION("Group Instances");
-			for (const auto& [key, value] :
-				Application->activeScene->meshRendererComponents) {
+			for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
 				const auto& transformIt = Application->activeScene->transformComponents.find(key);
 				if (transformIt != Application->activeScene->transformComponents.end() && value.renderGroup) {
 					// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
@@ -1254,17 +1288,53 @@ namespace Plaza {
 				PLAZA_PROFILE_SECTION("Bind the instance's materials");
 				VkDeviceSize bufferSize = sizeof(unsigned int) * mInstanceModelMaterialsIndex.size();
 				void* data;
-				vkMapMemory(this->mDevice,
-					mMainInstanceMaterialBufferMemories[mCurrentFrame],
-					0,
-					bufferSize,
-					0,
-					&data);
-				memcpy(data,
-					mInstanceModelMaterialsIndex.data(),
-					static_cast<size_t>(bufferSize));
-				vkUnmapMemory(this->mDevice,
-					mMainInstanceMaterialBufferMemories[mCurrentFrame]);
+				vkMapMemory(this->mDevice, mMainInstanceMaterialBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
+				memcpy(data, mInstanceModelMaterialsIndex.data(), static_cast<size_t>(bufferSize));
+				vkUnmapMemory(this->mDevice, mMainInstanceMaterialBufferMemories[mCurrentFrame]);
+			}
+
+			{
+				this->EarlyAnimationController();
+				std::unordered_set<int> matricesIds = std::unordered_set<int>();
+				std::vector<glm::mat4> matrices = std::vector<glm::mat4>();
+				//for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
+					//if (value.mesh->uniqueBonesInfo.size() > 0) {
+						//for (int i = 1; i < value.mesh->uniqueBonesInfo.size(); ++i) {
+							//for (const auto& [key, value] : value.mesh->uniqueBonesInfo) {
+								//if (matrices.size() == 0)
+								//	matrices.resize(value.mId * 2);
+								//if (value.mId < matrices.size())
+								//if (matricesIds.find(value.mId) == matricesIds.end()) {
+									//matrices.push_back(value);
+				//for (int i = 0; i < mBones.size(); ++i) {
+				for (const auto& [key, value] : mBones) {
+					//auto now = std::chrono::system_clock::now();
+					//auto duration = now.time_since_epoch();
+					//
+					//// Convert the duration to milliseconds (or any other suitable duration)
+					//auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+					//
+					//// Seed the random number generator
+					//std::srand(static_cast<unsigned int>(millis));
+					//float x = -5.0f + static_cast<float>(std::rand()) / (static_cast<float>(RAND_MAX / 10.0f));
+					//float y = -5.0f + static_cast<float>(std::rand()) / (static_cast<float>(RAND_MAX / 10.0f));
+					//float z = -5.0f + static_cast<float>(std::rand()) / (static_cast<float>(RAND_MAX / 10.0f));
+					//glm::mat4 mat = glm::mat4(1.0f);
+					//mat = glm::translate(mat, glm::vec3(x, y, z));
+					matrices.push_back(value.mTransform);
+					//matricesIds.emplace(value.mId);
+				}
+
+				//}
+			//}
+		//}
+	//}
+
+				VkDeviceSize bufferSize = matrices.size() * sizeof(glm::mat4);//sizeof(glm::mat4) * 1024 * 1024 * 16;
+				void* data;
+				vkMapMemory(mDevice, this->mBoneMatricesBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
+				memcpy(data, matrices.data(), static_cast<size_t>(bufferSize));
+				vkUnmapMemory(mDevice, this->mBoneMatricesBufferMemories[mCurrentFrame]);
 			}
 
 			VkDeviceSize offsets[1] = { 0 };
@@ -2392,38 +2462,18 @@ namespace Plaza {
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(
 			0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nullptr, VK_SHADER_STAGE_ALL));
 		static const uint32_t maxBindlessResources = 16536;
-		descriptorSets.push_back(
-			plvk::descriptorSetLayoutBinding(20,
-				maxBindlessResources,
-				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-				nullptr,
-				VK_SHADER_STAGE_FRAGMENT_BIT));
-		descriptorSets.push_back(
-			plvk::descriptorSetLayoutBinding(9,
-				1,
-				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-				nullptr,
-				VK_SHADER_STAGE_FRAGMENT_BIT));
-		descriptorSets.push_back(
-			plvk::descriptorSetLayoutBinding(19,
-				1,
-				VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-				nullptr,
-				VK_SHADER_STAGE_FRAGMENT_BIT));
+		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(20, maxBindlessResources, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
+		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(9, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
+		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(19, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
+		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_VERTEX_BIT));
 
 		VkDescriptorBindingFlags bindlessFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
-		VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo{
-			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT,
-			nullptr
-		};
-		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0, 0 };
+		VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT,	nullptr };
+		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0, 0, 0 };
 		extendedInfo.pBindingFlags = bindingFlags;
 		extendedInfo.bindingCount = static_cast<uint32_t>(descriptorSets.size());
 
-		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = plvk::descriptorSetLayoutCreateInfo(
-			descriptorSets,
-			VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT,
-			&extendedInfo);
+		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = plvk::descriptorSetLayoutCreateInfo(descriptorSets, VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT, &extendedInfo);
 
 		vkCreateDescriptorSetLayout(
 			this->mDevice,
@@ -2433,16 +2483,10 @@ namespace Plaza {
 
 		VkPushConstantRange pushConstantRange = plvk::pushConstantRange(
 			VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants));
-		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = plvk::pipelineLayoutCreateInfo(
-			1,
-			&this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout,
-			1,
-			&pushConstantRange);
+		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = plvk::pipelineLayoutCreateInfo(1, &this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout, 1, &pushConstantRange);
 
-		this->mGeometryPassRenderer.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(
-			Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert");
-		this->mGeometryPassRenderer.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(
-			Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag");
+		this->mGeometryPassRenderer.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert");
+		this->mGeometryPassRenderer.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag");
 		auto bindingsArray = VertexGetBindingDescription();
 		std::vector<VkVertexInputBindingDescription> bindings(
 			std::begin(bindingsArray), std::end(bindingsArray));
@@ -2452,16 +2496,7 @@ namespace Plaza {
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = plvk::pipelineVertexInputStateCreateInfo(bindings, attributes);
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = plvk::pipelineInputAssemblyStateCreateInfo(
 			VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_FALSE);
-		VkPipelineRasterizationStateCreateInfo rasterizationState = plvk::pipelineRasterizationStateCreateInfo(VK_FALSE,
-			VK_FALSE,
-			VK_POLYGON_MODE_FILL,
-			1.0f,
-			VK_FALSE,
-			0.0f,
-			0.0f,
-			0.0f,
-			VK_CULL_MODE_BACK_BIT,
-			VK_FRONT_FACE_COUNTER_CLOCKWISE);
+		VkPipelineRasterizationStateCreateInfo rasterizationState = plvk::pipelineRasterizationStateCreateInfo(VK_FALSE, VK_FALSE, VK_POLYGON_MODE_FILL, 1.0f, VK_FALSE, 0.0f, 0.0f, 0.0f, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 		VkPipelineColorBlendAttachmentState blendAttachmentState = plvk::pipelineColorBlendAttachmentState(VK_TRUE);
 		std::vector<VkPipelineColorBlendAttachmentState> blendAttachments{
 			blendAttachmentState,
@@ -2515,28 +2550,14 @@ namespace Plaza {
 				!= VK_SUCCESS) {
 				throw std::runtime_error("failed to allocate descriptor sets!");
 			}
-			VkDescriptorBufferInfo bufferInfo = plvk::descriptorBufferInfo(
-				this->mUniformBuffers[i], 0, sizeof(UniformBufferObject));
-			VkDescriptorImageInfo imageInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
-				this->mShadows->mShadowDepthImageViews[i],
-				this->mShadows->mShadowsSampler);
+			VkDescriptorBufferInfo bufferInfo = plvk::descriptorBufferInfo(this->mUniformBuffers[i], 0, sizeof(UniformBufferObject));
+			VkDescriptorImageInfo imageInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, this->mShadows->mShadowDepthImageViews[i], this->mShadows->mShadowsSampler);
+			VkDescriptorBufferInfo bonesBufferInfo = plvk::descriptorBufferInfo(this->mBoneMatricesBuffers[i], 0, 1024 * 16 * sizeof(glm::mat4));
 
 			std::vector<VkWriteDescriptorSet> descriptorWrites = std::vector<VkWriteDescriptorSet>();
-			descriptorWrites.push_back(plvk::writeDescriptorSet(
-				this->mGeometryPassRenderer.mShaders->mDescriptorSets[i],
-				0,
-				0,
-				VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-				1,
-				nullptr,
-				&bufferInfo));
-			descriptorWrites.push_back(plvk::writeDescriptorSet(
-				this->mGeometryPassRenderer.mShaders->mDescriptorSets[i],
-				9,
-				0,
-				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-				1,
-				&imageInfo));
+			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 0, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, nullptr, &bufferInfo));
+			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 9, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo));
+			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 1, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bonesBufferInfo));
 
 			vkUpdateDescriptorSets(this->mDevice,
 				static_cast<uint32_t>(descriptorWrites.size()),
@@ -2614,6 +2635,8 @@ namespace Plaza {
 		mMainInstanceMatrixBufferMemories.resize(mMaxFramesInFlight);
 		mMainInstanceMaterialBuffers.resize(mMaxFramesInFlight);
 		mMainInstanceMaterialBufferMemories.resize(mMaxFramesInFlight);
+		mBoneMatricesBuffers.resize(mMaxFramesInFlight);
+		mBoneMatricesBufferMemories.resize(mMaxFramesInFlight);
 		mMaterialBuffers.resize(mMaxFramesInFlight);
 		mMaterialBufferMemories.resize(mMaxFramesInFlight);
 		for (unsigned int i = 0; i < mMaxFramesInFlight; ++i) {
@@ -2637,6 +2660,11 @@ namespace Plaza {
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 				mMaterialBuffers[i],
 				mMaterialBufferMemories[i]);
+			CreateBuffer(1024 * 16 * sizeof(glm::mat4),
+				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				mBoneMatricesBuffers[i],
+				mBoneMatricesBufferMemories[i]);
 		}
 		// CreateVertexBuffer({glm::vec3(0.0f)}, mMainVertexBuffer,
 		// mMainVertexBufferMemory, 1024 * 1024 * 8 * sizeof(Vertex));
@@ -3102,7 +3130,7 @@ namespace Plaza {
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		return texture;
 	}
-
+	static int bonesIndex = 0;
 	Mesh& VulkanRenderer::CreateNewMesh(
 		vector<glm::vec3> vertices,
 		vector<glm::vec3> normals,
@@ -3112,7 +3140,8 @@ namespace Plaza {
 		vector<unsigned int> indices,
 		Material& material,
 		bool usingNormal,
-		vector<BonesHolder> bonesHolder) {
+		vector<BonesHolder> bonesHolder,
+		vector<Bone> uniqueBonesInfo) {
 		VulkanMesh& vulkMesh = *new VulkanMesh(vertices,
 			normals,
 			uvs,
@@ -3125,17 +3154,35 @@ namespace Plaza {
 		vector<Vertex> convertedVertices;
 		convertedVertices.reserve(vertices.size());
 
+		for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
+			if (this->mBones.find(uniqueBonesInfo[i].mId) == this->mBones.end())
+				this->mBones.emplace(uniqueBonesInfo[i].mId, Bone{ mBones.size() + 1, uniqueBonesInfo[i].mParentId, uniqueBonesInfo[i].mName });
+		}
+
 		for (unsigned int i = 0; i < vertices.size(); i++) {
 			vulkMesh.CalculateVertexInBoundingBox(vertices[i]);
 
-			convertedVertices.push_back(Vertex{
+			Vertex vertex{
 				vertices[i],
 				(normals.size() > i) ? normals[i] : glm::vec3(1.0f),
 				(uvs.size() > i) ? uvs[i] : glm::vec2(0.0f),
 				(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f),
 				(bitangent.size() > i) ? bitangent[i] : glm::vec3(0.0f),
 				(bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0) ? bonesHolder[i].GetBoneIds() : std::array<int, MAX_BONE_INFLUENCE>{-1, -1, -1, -1},
-				(bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0) ? bonesHolder[i].GetBoneWeights() : std::array<float, MAX_BONE_INFLUENCE>{0, 0, 0, 0} });
+				(bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0) ? bonesHolder[i].GetBoneWeights() : std::array<float, MAX_BONE_INFLUENCE>{0, 0, 0, 0} };
+			for (int i = 0; i < 4; ++i) {
+				if (vertex.boneIds[i] == -1)
+					continue;
+				vertex.weights[i] = 1.0f;
+				if (mBones.find(vertex.boneIds[i]) != mBones.end())
+					vertex.boneIds[i] = mBones[vertex.boneIds[i]].mId;
+				else {
+					//mBones.emplace(vertex.boneIds[i], Bone{ mBones.size() + 1, uniqueBonesInfo[vertex.boneIds[i]].mParentId, uniqueBonesInfo[vertex.boneIds[i]].mName });
+					//vertex.boneIds[i] = mBones[vertex.boneIds[i]].mId;
+				}
+			}
+			//vertex.weights = { 1.0f, 1.0f, 1.0f, 1.0f };
+			convertedVertices.push_back(vertex);
 		}
 
 		vulkMesh.verticesCount = vertices.size();
@@ -3540,8 +3587,7 @@ namespace Plaza {
 
 		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
 			void* data;
-			vkMapMemory(
-				mDevice, this->mMaterialBufferMemories[mCurrentFrame], 0, size, 0, &data);
+			vkMapMemory(mDevice, this->mMaterialBufferMemories[mCurrentFrame], 0, size, 0, &data);
 			memcpy(data, this->mUploadedMaterials.data(), static_cast<size_t>(size));
 			vkUnmapMemory(mDevice, this->mMaterialBufferMemories[mCurrentFrame]);
 			VkDescriptorBufferInfo bufferInfo = {};
@@ -3551,8 +3597,7 @@ namespace Plaza {
 
 			VkWriteDescriptorSet descriptorWrite = {};
 			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrite.dstSet = this->mGeometryPassRenderer.mShaders->mDescriptorSets
-				[this->mCurrentFrame]; // this->mDescriptorSets[mCurrentFrame];
+			descriptorWrite.dstSet = this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame]; // this->mDescriptorSets[mCurrentFrame];
 			descriptorWrite.dstBinding = 19;
 			descriptorWrite.dstArrayElement = 0;
 			descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;

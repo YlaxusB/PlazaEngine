@@ -323,11 +323,11 @@ namespace Plaza {
 
 	void OpenGLRenderer::CopyLastFramebufferToFinalDrawBuffer() {
 		GLint drawBuffer;
-	#ifdef GAME_MODE
+#ifdef GAME_MODE
 		drawBuffer = 0;
-	#else
+#else
 		drawBuffer = Application->frameBuffer;
-	#endif
+#endif
 		glBindFramebuffer(GL_FRAMEBUFFER, drawBuffer);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -361,7 +361,7 @@ namespace Plaza {
 		return (ImTextureID)Application->textureColorbuffer;
 	}
 
-	Mesh& OpenGLRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal, vector<BonesHolder> bonesHolder) {
+	Mesh& OpenGLRenderer::CreateNewMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, Material& material, bool usingNormal, vector<BonesHolder> bonesHolder, vector<Bone>  uniqueBonesInfo) {
 		return *new OpenGLMesh(vertices, normals, uvs, tangent, bitangent, indices, usingNormal);
 	}
 

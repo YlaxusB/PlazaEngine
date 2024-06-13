@@ -29,7 +29,7 @@ layout(location = 2) out mat4 model;
 
 const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
-layout(std430, set = 2, binding = 0) readonly buffer BoneMatrices {
+layout(std430, binding = 1) readonly buffer BoneMatrices {
 	mat4 boneMatrices[];
 };
 

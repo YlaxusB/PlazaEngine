@@ -26,11 +26,29 @@
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
 #include "Engine/Components/Audio/AudioSource.h"
 #include "Engine/Components/Audio/AudioListener.h"
+#include "Engine/Components/Rendering/AnimationComponent.h"
 
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
 
 using namespace std;
 namespace Plaza {
+	struct VectorHash {
+		template <class T>
+		std::size_t operator()(const std::vector<T>& vector) const {
+			std::size_t seed = vector.size();
+			for (const auto& i : vector) {
+				seed ^= std::hash<T>()(i) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+			}
+			return seed;
+		}
+	};
+	template <class T>
+	struct VectorEqual {
+		bool operator()(const std::vector<T>& lhs, const std::vector<T>& rhs) const {
+			return lhs == rhs;
+		}
+	};
+
 	struct Uint64Hash {
 		size_t operator()(uint64_t key) const {
 			uint64_t v = key * 3935559000370003845 + 2691343689449507681;
@@ -62,10 +80,13 @@ namespace Plaza {
 	};
 
 	struct PairHash {
-		std::size_t operator () (const std::pair<uint64_t, uint64_t>& p) const {
+		std::size_t operator () (const std::pair<uint64_t, std::vector<uint64_t>>& p) const {
 			// Combine the hash values of the two uint64_t values
 			std::size_t h1 = std::hash<uint64_t>{}(p.first);
-			std::size_t h2 = std::hash<uint64_t>{}(p.second);
+			std::size_t h2 = p.second.size();
+			for (const auto& i : p.second) {
+				h2 ^= std::hash<uint64_t>()(i) + 0x9e3779b9 + (h2 << 6) + (h2 >> 2);
+			}//VectorHash{}//std::hash<std::vector<uint64_t>>{}(p.second);
 			return h1 ^ h2;
 		}
 	};
@@ -88,7 +109,7 @@ namespace Plaza {
 
 		Entity* mainSceneEntity;
 
-
+		std::map<uint64_t, Animation&> mPlayingAnimations = std::map<uint64_t, Animation&>();
 
 		std::unordered_map<uint64_t, Entity> entities;
 		ComponentMultiMap<uint64_t, Transform> transformComponents;
@@ -102,6 +123,7 @@ namespace Plaza {
 		ComponentMultiMap<uint64_t, AudioListener> audioListenerComponents;
 		ComponentMultiMap<uint64_t, Light> lightComponents;
 		ComponentMultiMap<uint64_t, CharacterController> characterControllerComponents;
+		ComponentMultiMap<uint64_t, AnimationComponent> animationComponentComponents;
 
 		std::unordered_map<std::string, void*> componentsMap;
 
@@ -110,16 +132,16 @@ namespace Plaza {
 		std::unordered_map<std::string, uint64_t> materialsNames;
 
 		std::unordered_map<uint64_t, RenderGroup*> renderGroups;
-		std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash> renderGroupsFindMap;
+		std::unordered_map<std::pair<uint64_t, std::vector<uint64_t>>, uint64_t, PairHash> renderGroupsFindMap;
 		std::unordered_map<uint64_t, uint64_t> renderGroupsFindMapWithMeshUuid;
-		std::unordered_map<uint64_t, uint64_t> renderGroupsFindMapWithMaterialUuid;
+		std::unordered_map<std::vector<uint64_t>, uint64_t, VectorHash, VectorEqual<uint64_t>> renderGroupsFindMapWithMaterialUuid;
 
 		std::unordered_map<std::string, std::unordered_set<uint64_t>> entitiesNames;
 
-		RenderGroup* AddRenderGroup(Mesh* newMesh, Material* newMaterial, bool resizeBuffer = true) {
-			bool foundNewRenderGroup = this->renderGroupsFindMap.find(std::pair<uint64_t, uint64_t>(newMesh->uuid, newMaterial->uuid)) != this->renderGroupsFindMap.end();
+		RenderGroup* AddRenderGroup(Mesh* newMesh, std::vector<Material*> newMaterials, bool resizeBuffer = true) {
+			bool foundNewRenderGroup = this->renderGroupsFindMap.find(std::pair<uint64_t, std::vector<uint64_t>>(newMesh->uuid, Material::GetMaterialsUuids(newMaterials))) != this->renderGroupsFindMap.end();
 			if (foundNewRenderGroup) {
-				uint64_t uuid = this->renderGroupsFindMap.at(std::pair<uint64_t, uint64_t>(newMesh->uuid, newMaterial->uuid));
+				uint64_t uuid = this->renderGroupsFindMap.at(std::pair<uint64_t, std::vector<uint64_t>>(newMesh->uuid, Material::GetMaterialsUuids(newMaterials)));
 				RenderGroup* renderGroup = this->renderGroups.at(uuid);
 				//renderGroup->mCount++;
 				//if (resizeBuffer && renderGroup->mBufferSize < renderGroup->mCount)
@@ -128,22 +150,22 @@ namespace Plaza {
 			}
 			else if (!foundNewRenderGroup)
 			{
-				RenderGroup* newRenderGroup = new RenderGroup(newMesh, newMaterial);
+				RenderGroup* newRenderGroup = new RenderGroup(newMesh, newMaterials);
 				newRenderGroup->mCount++;
 				this->renderGroups.emplace(newRenderGroup->uuid, newRenderGroup);
 				this->renderGroupsFindMapWithMeshUuid.emplace(newRenderGroup->mesh->uuid, newRenderGroup->uuid);
-				this->renderGroupsFindMapWithMaterialUuid.emplace(newRenderGroup->material->uuid, newRenderGroup->uuid);
-				this->renderGroupsFindMap.emplace(std::make_pair(newRenderGroup->mesh->uuid, newRenderGroup->material->uuid), newRenderGroup->uuid);
+				//;;this->renderGroupsFindMapWithMaterialUuid.emplace(newRenderGroup->material->uuid, newRenderGroup->uuid);
+				//;;this->renderGroupsFindMap.emplace(std::make_pair(newRenderGroup->mesh->uuid, newRenderGroup->material->uuid), newRenderGroup->uuid);
 				return newRenderGroup;
 			}
 		}
 
 		RenderGroup* AddRenderGroup(RenderGroup* renderGroup) {
-			return AddRenderGroup(renderGroup->mesh, renderGroup->material);
+			return AddRenderGroup(renderGroup->mesh, renderGroup->materials);
 		}
 
-		RenderGroup* GetRenderGroupWithUuids(uint64_t meshUuid, uint64_t materialUuid) {
-			const auto& renderGroupIt = renderGroupsFindMap.find(std::make_pair(meshUuid, materialUuid));
+		RenderGroup* GetRenderGroupWithUuids(uint64_t meshUuid, std::vector<uint64_t> materialsUuid) {
+			const auto& renderGroupIt = renderGroupsFindMap.find(std::make_pair(meshUuid, materialsUuid));
 			if (renderGroupIt != this->renderGroupsFindMap.end())
 				return renderGroups.at(renderGroupIt->second);
 			return nullptr;
@@ -163,10 +185,10 @@ namespace Plaza {
 				EraseFoundMap(this->renderGroups, renderGroup->uuid);
 				if (renderGroup->mesh)
 					EraseFoundMap(this->renderGroupsFindMapWithMeshUuid, renderGroup->mesh->uuid);
-				if (renderGroup->material)
-					EraseFoundMap(this->renderGroupsFindMapWithMaterialUuid, renderGroup->material->uuid);
-				if (renderGroup->mesh && renderGroup->material)
-					EraseFoundMap(this->renderGroupsFindMap, std::pair<uint64_t, uint64_t>(renderGroup->mesh->uuid, renderGroup->material->uuid));
+				//if (renderGroup->material)
+				//	EraseFoundMap(this->renderGroupsFindMapWithMaterialUuid, renderGroup->material->uuid);
+				//if (renderGroup->mesh && renderGroup->material)
+				//	EraseFoundMap(this->renderGroupsFindMap, std::pair<uint64_t, uint64_t>(renderGroup->mesh->uuid, renderGroup->material->uuid));
 			}
 		}
 
@@ -213,6 +235,7 @@ namespace Plaza {
 			componentsMap["class Plaza::AudioListener"] = &audioListenerComponents;
 			componentsMap["class Plaza::Light"] = &lightComponents;
 			componentsMap["class Plaza::CharacterController"] = &characterControllerComponents;
+			componentsMap["class Plaza::AnimationComponent"] = &animationComponentComponents;
 			//componentsMap.emplace("Camera", &cameraComponents);
 			//componentsMap.emplace("MeshRenderer", &meshRendererComponents);
 			//componentsMap.emplace("RigidBody", &rigidBodyComponents);
@@ -244,6 +267,22 @@ namespace Plaza {
 				return it->second.get();
 			}
 			return this->DefaultMaterial();
+		}
+
+		std::vector<Material*> GetMaterialsVector(std::vector<uint64_t>& uuids) {
+			std::vector<Material*> materials = std::vector<Material*>();
+			for (unsigned int i = 0; i < uuids.size(); ++i) {
+				auto it = this->materials.find(uuids[i]);
+				if (it != this->materials.end()) {
+					materials.push_back(it->second.get());
+				}
+				else {
+					materials.push_back(this->DefaultMaterial());
+				}
+			}
+			if (materials.size() == 0)
+				return { this->DefaultMaterial() };
+			return materials;
 		}
 	};
 }

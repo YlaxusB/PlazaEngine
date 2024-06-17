@@ -359,6 +359,11 @@ namespace Plaza
         }
     }
 
+    public class AnimationComponent : Component
+    {
+
+    }
+
     #region Rigid Body
     public struct Angular
     {

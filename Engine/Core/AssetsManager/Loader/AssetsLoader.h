@@ -45,6 +45,8 @@ namespace Plaza {
 		static void LoadPrefabToScene(LoadedModel* model, bool loadToScene);
 		static void LoadScript(Asset* asset) {};
 		static Texture* LoadTexture(Asset* asset) {
+			if (!asset)
+				return new Texture();
 			if (AssetsManager::mTextures.find(asset->mAssetUuid) != AssetsManager::mTextures.end())
 				return AssetsManager::mTextures.at(asset->mAssetUuid);
 

@@ -23,7 +23,7 @@ namespace Plaza {
 
 	class VulkanRenderer : public Renderer {
 	public:
-		std::map<int, Bone> mBones = std::map<int, Bone>();
+		std::map<uint64_t, Bone> mBones = std::map<uint64_t, Bone>();
 		VkSemaphore semaphore;
 
 		struct PushConstants {
@@ -86,7 +86,7 @@ namespace Plaza {
 			vector<glm::vec3> tangent,
 			vector<glm::vec3> bitangent,
 			vector<unsigned int> indices,
-			Material& material,
+			vector<unsigned int> materialsIndices,
 			bool usingNormal,
 			vector<BonesHolder> bonesHolder = vector<BonesHolder>(),
 			vector<Bone> uniqueBonesInfo = vector<Bone>()) override;
@@ -213,7 +213,8 @@ namespace Plaza {
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		float time = 0.0f;
 		bool increasing = true;
-		void CalculateBone(Bone* bone, Bone* parentBone, float time);
+		void CalculateIndividualBone(Bone* bone, glm::mat4 target, int time, uint64_t boneId);
+		void CalculateBonesParentship(Bone* bone, Bone* parentBone);
 		void EarlyAnimationController();
 		void CreateVertexBuffer(vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory, VkDeviceSize bufferSize = -1);
 		void CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer, VkDeviceMemory& indicesMemoryBuffer, VkDeviceSize bufferSize = -1);
@@ -293,6 +294,7 @@ namespace Plaza {
 		std::vector<unsigned int> mInstanceModelMaterialsIndex = std::vector<unsigned int>();
 
 		std::vector<MaterialData> mUploadedMaterials = std::vector<MaterialData>();
+		std::unordered_map<uint64_t, unsigned int> mMaterialsHandles = std::unordered_map<uint64_t, unsigned int>();
 		std::vector<VkBuffer> mMaterialBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mMaterialBufferMemories = std::vector<VkDeviceMemory>();
 
@@ -344,8 +346,8 @@ vec3 viewPos;
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 
-		static std::array<VkVertexInputBindingDescription, 3> VertexGetBindingDescription() {
-			std::array<VkVertexInputBindingDescription, 3> bindingDescriptions = {};
+		static std::array<VkVertexInputBindingDescription, 2> VertexGetBindingDescription() {
+			std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {};
 			bindingDescriptions[0].binding = 0;
 			bindingDescriptions[0].stride = sizeof(Vertex);
 			bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
@@ -357,11 +359,11 @@ vec3 viewPos;
 
 			bindingDescriptions[1] = instanceBindingDescription;
 
-			VkVertexInputBindingDescription materialBindingDescription = {};
-			materialBindingDescription.binding = 2;
-			materialBindingDescription.stride = sizeof(unsigned int);
-			materialBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
-			bindingDescriptions[2] = materialBindingDescription;
+			//VkVertexInputBindingDescription materialBindingDescription = {};
+			//materialBindingDescription.binding = 2;
+			//materialBindingDescription.stride = sizeof(unsigned int);
+			//materialBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+			//bindingDescriptions[2] = materialBindingDescription;
 			return bindingDescriptions;
 		}
 
@@ -427,10 +429,16 @@ vec3 viewPos;
 			attributeDescriptions[10].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 			attributeDescriptions[10].offset = offsetof(Vertex, weights);
 
-			attributeDescriptions[11].binding = 2;
-			attributeDescriptions[11].location = 18;
+			//attributeDescriptions[11].binding = 2;
+			//attributeDescriptions[11].location = 18;
+			//attributeDescriptions[11].format = VK_FORMAT_R32_UINT;
+			//attributeDescriptions[11].offset = sizeof(unsigned int);
+
+			// Material
+			attributeDescriptions[11].binding = 0;
+			attributeDescriptions[11].location = 11;
 			attributeDescriptions[11].format = VK_FORMAT_R32_UINT;
-			attributeDescriptions[11].offset = sizeof(unsigned int);
+			attributeDescriptions[11].offset = offsetof(Vertex, materialIndex);
 			return attributeDescriptions;
 		}
 

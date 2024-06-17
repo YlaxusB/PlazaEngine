@@ -88,5 +88,13 @@ namespace Plaza {
 				this->shininess == other.shininess
 				);
 		}
+		static std::vector<uint64_t> GetMaterialsUuids(std::vector<Material*>& materials) {
+			std::vector<uint64_t> materialsUuid = std::vector<uint64_t>();
+			for (Material* material : materials) {
+				materialsUuid.push_back(material->uuid);
+			}
+			return materialsUuid;
+		}
 	};
+
 }

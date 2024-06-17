@@ -146,6 +146,8 @@ namespace Plaza {
 				this->RemoveComponent<AudioListener>();
 			if (this->HasComponent<Light>())
 				this->RemoveComponent<Light>();
+			if (this->HasComponent<AnimationComponent>())
+				this->RemoveComponent<AnimationComponent>();
 
 			if (Editor::selectedGameObject && Editor::selectedGameObject->uuid == this->uuid)
 				Editor::selectedGameObject = nullptr;
@@ -192,6 +194,8 @@ namespace Plaza {
 			this->RemoveComponent<AudioListener>();
 		if (this->HasComponent<Light>())
 			this->RemoveComponent<Light>();
+		if (this->HasComponent<AnimationComponent>())
+			this->RemoveComponent<AnimationComponent>();
 
 		/*
 					MeshRenderer* meshRendererToInstantiate = entityToInstantiate->GetComponent<MeshRenderer>();
@@ -224,6 +228,7 @@ namespace Plaza {
 	template AudioSource* Entity::AddComp<AudioSource>();
 	template AudioListener* Entity::AddComp<AudioListener>();
 	template Light* Entity::AddComp<Light>();
+	template AnimationComponent* Entity::AddComp<AnimationComponent>();
 	template<typename T>
 	T* Entity::AddComp() {
 		return new T();
@@ -260,7 +265,7 @@ namespace Plaza {
 			newMeshRenderer->uuid = instantiatedEntity->uuid;
 			newMeshRenderer->instanced = true;
 			newMeshRenderer->mesh = meshRendererIt->second.mesh;//shared_ptr<Mesh>(meshRendererToInstantiate->mesh);
-			newMeshRenderer->material = meshRendererIt->second.material;
+			newMeshRenderer->mMaterials = meshRendererIt->second.mMaterials;
 			newMeshRenderer->renderGroup = meshRendererIt->second.renderGroup;
 			instantiatedEntity->AddComponent<MeshRenderer>(newMeshRenderer);
 		}

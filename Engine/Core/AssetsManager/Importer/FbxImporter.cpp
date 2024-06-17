@@ -24,12 +24,26 @@ struct Vec3Hash {
 
 
 namespace Plaza {
-
 	static std::string toStringView(ofbx::DataView data) {
 		return std::string(
 			(const char*)data.begin,
 			(const char*)data.end
 		);
+	}
+
+	static std::string GetFbxTexturePath(const ofbx::Texture* texture, const std::string& materialFolderPath) {
+		std::string path = toStringView(texture->getFileName());
+		if (!std::filesystem::exists(path)) {
+			path = std::filesystem::path{ materialFolderPath }.parent_path().string() + "\\" + toStringView(texture->getRelativeFileName());
+			if (!std::filesystem::exists(path)) {
+				path = materialFolderPath + "\\" + std::filesystem::path{ toStringView(texture->getFileName()) }.filename().string();
+				if (!std::filesystem::exists(path)) {
+					path = "";
+				}
+			}
+		}
+
+		return path;
 	}
 	Material* AssetsImporter::FbxModelMaterialLoader(const ofbx::Material* ofbxMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures) {
 		Material* material = new Material();
@@ -37,7 +51,7 @@ namespace Plaza {
 
 		const ofbx::Texture* ofbxDiffuse = ofbxMaterial->getTexture(ofbx::Texture::DIFFUSE);
 		if (ofbxDiffuse) {
-			const std::string diffusePath = materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxDiffuse->getFileName()) }.filename().string();
+			const std::string diffusePath = GetFbxTexturePath(ofbxDiffuse, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxDiffuse->getFileName()) }.filename().string();
 			if (ofbxDiffuse && loadedTextures.find(diffusePath) == loadedTextures.end()) {
 				material->diffuse = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(diffusePath, Plaza::UUID::NewUUID()));
 				loadedTextures.emplace(diffusePath, material->diffuse->mAssetUuid);
@@ -48,7 +62,7 @@ namespace Plaza {
 
 		const ofbx::Texture* ofbxNormal = ofbxMaterial->getTexture(ofbx::Texture::NORMAL);
 		if (ofbxNormal) {
-			const std::string normalPath = materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxNormal->getFileName()) }.filename().string();
+			const std::string normalPath = GetFbxTexturePath(ofbxNormal, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxNormal->getFileName()) }.filename().string();
 			if (loadedTextures.find(normalPath) == loadedTextures.end()) {
 				material->normal = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(normalPath, Plaza::UUID::NewUUID()));
 				loadedTextures.emplace(normalPath, material->normal->mAssetUuid);
@@ -59,7 +73,7 @@ namespace Plaza {
 
 		const ofbx::Texture* ofbxSpecular = ofbxMaterial->getTexture(ofbx::Texture::SPECULAR);
 		if (ofbxSpecular) {
-			const std::string specularPath = materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxSpecular->getFileName()) }.filename().string();
+			const std::string specularPath = GetFbxTexturePath(ofbxSpecular, materialFolderPath);;//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxSpecular->getFileName()) }.filename().string();
 			if (ofbxSpecular && loadedTextures.find(specularPath) == loadedTextures.end()) {
 				material->roughness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(specularPath, Plaza::UUID::NewUUID()));
 				loadedTextures.emplace(specularPath, material->roughness->mAssetUuid);
@@ -70,7 +84,7 @@ namespace Plaza {
 
 		const ofbx::Texture* ofbxReflection = ofbxMaterial->getTexture(ofbx::Texture::REFLECTION);
 		if (ofbxReflection) {
-			const std::string reflectionPath = materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxReflection->getFileName()) }.filename().string();
+			const std::string reflectionPath = GetFbxTexturePath(ofbxReflection, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxReflection->getFileName()) }.filename().string();
 			if (ofbxReflection && loadedTextures.find(reflectionPath) == loadedTextures.end()) {
 				material->metalness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(reflectionPath, Plaza::UUID::NewUUID()));
 				loadedTextures.emplace(reflectionPath, material->metalness->mAssetUuid);
@@ -79,6 +93,10 @@ namespace Plaza {
 				material->metalness = AssetsManager::mTextures.at(loadedTextures.at(reflectionPath));
 		}
 		return material;
+	}
+
+	int decodeIndex(int idx) {
+		return (idx < 0) ? (-idx - 1) : idx;
 	}
 
 	Entity* AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath) {
@@ -92,16 +110,16 @@ namespace Plaza {
 		auto* content = new ofbx::u8[fileSize];
 		fread(content, 1, fileSize, fileOpen);
 
-	//	ofbx::LoadFlags flags =
-			//		ofbx::LoadFlags::IGNORE_MODELS |
-			//ofbx::LoadFlags::::IGNORE_CAMERAS |
-			//ofbx::LoadFlags::IGNORE_LIGHTS |
-			//		ofbx::LoadFlags::IGNORE_TEXTURES |
-			//		ofbx::LoadFlags::IGNORE_MATERIALS |
-			//ofbx::LoadFlags::IGNORE_VIDEOS;
-		//		ofbx::LoadFlags::IGNORE_MESHES |;
+		//	ofbx::LoadFlags flags = 
+				//		ofbx::LoadFlags::IGNORE_MODELS |
+				//ofbx::LoadFlags::::IGNORE_CAMERAS |
+				//ofbx::LoadFlags::IGNORE_LIGHTS |
+				//		ofbx::LoadFlags::IGNORE_TEXTURES |
+				//		ofbx::LoadFlags::IGNORE_MATERIALS |
+				//ofbx::LoadFlags::IGNORE_VIDEOS;
+			//		ofbx::LoadFlags::IGNORE_MESHES |;
 
-		ofbx::IScene* loadedScene = ofbx::load((ofbx::u8*)content, fileSize, 0);
+		ofbx::IScene* loadedScene = ofbx::load((ofbx::u8*)content, fileSize, (ofbx::u64)ofbx::LoadFlags::TRIANGULATE);
 		delete[] content;
 		fclose(fileOpen);
 
@@ -110,53 +128,84 @@ namespace Plaza {
 		int meshCount = loadedScene->getMeshCount();
 
 		// output unindexed geometry
-		Entity* mainEntity = nullptr;
+		Entity* mainEntity = new Entity(loadedScene->getRoot()->name, Application->activeScene->mainSceneEntity);
+		mainEntity->GetComponent<Transform>()->scale = glm::vec3(1.0f);
 		std::unordered_map<ofbx::u64, uint64_t> meshIndexEntityMap = std::unordered_map<ofbx::u64, uint64_t>();
+		std::unordered_map<uint64_t, Entity*> entities = std::unordered_map<uint64_t, Entity*>();
+		std::unordered_map<uint64_t, ofbx::u64> entityMeshParent = std::unordered_map<uint64_t, ofbx::u64>();
 		std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
 		std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
-
+		std::unordered_map<ofbx::u64, uint64_t> materialsMap = std::unordered_map<ofbx::u64, uint64_t>();
 
 		for (int meshIndex = 0; meshIndex < meshCount; ++meshIndex) {
 			const ofbx::Mesh& mesh = *loadedScene->getMesh(meshIndex);
-			const ofbx::Material* ofbxMaterial = mesh.getMaterial(0);
-			Material* material;
 
-			material = AssetsImporter::FbxModelMaterialLoader(ofbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+			std::vector<Material*> meshMaterials = std::vector<Material*>();
 
-			std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName;
-
-			if (loadedMaterials.find(materialOutPath) == loadedMaterials.end()) {
-				loadedMaterials.emplace(materialOutPath, material->uuid);
-				AssetsSerializer::SerializeMaterial(material, materialOutPath);
-				Application->activeScene->AddMaterial(material);
+			for (int materialIndex = 0; materialIndex < mesh.getMaterialCount(); ++materialIndex) {
+				std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + mesh.getMaterial(materialIndex)->name) + Standards::materialExtName;
+				bool materialIsNotLoaded = loadedMaterials.find(materialOutPath) == loadedMaterials.end();//materialsMap.find(mesh.getMaterial(materialIndex)->id) == materialsMap.end();
+				if (materialIsNotLoaded) {
+					Material* material = AssetsImporter::FbxModelMaterialLoader(mesh.getMaterial(materialIndex), std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+					loadedMaterials.emplace(materialOutPath, material->uuid);
+					materialsMap.emplace(mesh.getMaterial(materialIndex)->id, material->mAssetUuid);
+					meshMaterials.push_back(material);
+				}
 			}
-			else
-				material = Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second);
 
-			Entity* entity;
-			if (!mainEntity) {
-				entity = new Entity(mesh.name, Application->activeScene->mainSceneEntity);
-				mainEntity = entity;
-			}
-			else
-				entity = new Entity(mesh.name, mainEntity, true);
+			//Material* material;
+			//if (mesh.getMaterialCount() > 0) {
+			//	const ofbx::Material* ofbxMaterial = mesh.getMaterial(0);
+			//
+			//	material = AssetsImporter::FbxModelMaterialLoader(ofbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+			//}
+			//else {
+			//	material = Scene::DefaultMaterial();
+			//}
 
+			//std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName;
+			//
+			//if (loadedMaterials.find(materialOutPath) == loadedMaterials.end()) {
+			//	loadedMaterials.emplace(materialOutPath, material->uuid);
+			//	AssetsSerializer::SerializeMaterial(material, materialOutPath);
+			//	Application->activeScene->AddMaterial(material);
+			//}
+			//else
+			//	material = Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second);
+
+			Entity* entity = new Entity(mesh.name, mainEntity, true);
+			const ofbx::Vec3 translation = mesh.getLocalTranslation();
+			const glm::vec3 rotation = glm::vec3(mesh.getLocalRotation().x, mesh.getLocalRotation().y, mesh.getLocalRotation().z) * glm::vec3(glm::pi<float>() / 180.0f);
+			entity->GetComponent<Transform>()->SetRelativePosition(glm::vec3(translation.x * mModelImporterScale.x, translation.y * mModelImporterScale.y, translation.z * mModelImporterScale.z));
+			entity->GetComponent<Transform>()->SetRelativeRotation(glm::quat(glm::vec3(rotation.x, rotation.y, rotation.z)));
+			entity->GetComponent<Transform>()->SetRelativeScale(glm::vec3(mesh.getLocalScaling().x, mesh.getLocalScaling().y, mesh.getLocalScaling().z));
+
+			entities.emplace(entity->uuid, entity);
 			meshIndexEntityMap.emplace(mesh.id, entity->uuid);
 			ofbx::Object* parent = mesh.getParent();
 			if (parent) {
+				entityMeshParent.emplace(entity->uuid, parent->id);
 				auto parentIt = meshIndexEntityMap.find(parent->id);
 				if (parentIt != meshIndexEntityMap.end()) {
 					//entity->ChangeParent(Application->activeScene->GetEntity(entity->GetParent().uuid), Application->activeScene->GetEntity(parentIt->second));
 				}
+			}
+			else {
+				entityMeshParent.emplace(entity->uuid, 0);
 			}
 			const ofbx::Geometry* geometry = mesh.getGeometry();
 			const ofbx::Vec3* positions = geometry->getVertices();
 			const ofbx::Vec3* normals = geometry->getNormals();
 			const ofbx::Vec2* uvs = geometry->getUVs();
 			const int* faceIndicies = geometry->getFaceIndices();
+			const int* meshTriangleMaterials = geometry->getMaterials();
 			int indexCount = geometry->getIndexCount();
 
 			Mesh* finalMesh = new Mesh();
+
+			for (int j = 0; j < indexCount; ++j) {
+				finalMesh->indices.push_back(decodeIndex(faceIndicies[j]));
+			}
 
 			/* TODO: FIX UNIQUE VERTICES, SO THEY ALSO DIFFER FROM NORMAL AND UV */
 			std::unordered_map<glm::vec3, uint32_t> uniqueVertices = std::unordered_map<glm::vec3, uint32_t>();
@@ -176,6 +225,7 @@ namespace Plaza {
 					const int* indices = cluster->getIndices();
 					const double* weightsData = cluster->getWeights();
 
+					finalMesh->uniqueBonesInfo.emplace(cluster->getLink()->id, Bone { cluster->getLink()->id, cluster->getLink()->getParent()->id, cluster->name });
 					for (int k = 0; k < cluster->getIndicesCount(); ++k) {
 						int vertexIndex = indices[k];
 						uint64_t boneID = cluster->getLink()->id;
@@ -195,7 +245,7 @@ namespace Plaza {
 				auto& uv = geometry->getUVs()[j];
 
 				Vertex vertex{};
-				finalMesh->vertices.push_back(glm::vec3(v.x, v.y, v.z));
+				finalMesh->vertices.push_back(glm::vec3(v.x * mModelImporterScale.x, v.y * mModelImporterScale.y, v.z * mModelImporterScale.z));
 				finalMesh->normals.push_back(glm::vec3(n.x, n.y, n.z));
 
 				//if (geometry->getTangents() != nullptr) {
@@ -204,13 +254,21 @@ namespace Plaza {
 				//}
 				if (geometry->getUVs() != nullptr)
 					finalMesh->uvs.push_back(glm::vec2(uv.x, 1.0f - uv.y));
-				finalMesh->indices.push_back(j);
+				//finalMesh->indices.push_back(geometry->getFaceIndices()[j]);
+
+				if (meshTriangleMaterials)
+					finalMesh->materialsIndices.push_back(meshTriangleMaterials[j / 3]);
+				else
+					finalMesh->materialsIndices.push_back(0);
 
 				if (vertexToBoneIDs.find(j) != vertexToBoneIDs.end()) {
 					BonesHolder holder{};
 					for (int k = 0; k < vertexToBoneIDs[j].size(); ++k) {
-						holder.mBones.push_back(Bone{ vertexToBoneIDs[j][k], ""});
+						holder.mBones.push_back(Bone{ vertexToBoneIDs[j][k], "" });
+						holder.mWeights.push_back(vertexToWeights[j][k]);
 					}
+					if (vertexToBoneIDs[j].size() > 4)
+						std::cout << "bones array bigger than 4 \n";
 					finalMesh->bonesHolder.push_back(holder);
 				}
 				//vertex.blendingIndex[0] = -1;
@@ -220,6 +278,7 @@ namespace Plaza {
 				//vertex.blendingWeight = glm::vec4(0, 0, 0, 0);
 				//vertices.push_back(vertex);
 			}
+
 
 			/*
 			for (int partitionIdx = 0; partitionIdx < geom.getPartitionCount(); ++partitionIdx) {
@@ -291,26 +350,26 @@ namespace Plaza {
 			//	const ofbx::Cluster* cluster = mesh.getSkin()->getCluster(i);
 			//	const ofbx::Cluster* cluster2 = mesh.getSkin()->getCluster(i);
 			//}
-			std::cout << " ---- BONES START ---- \n";
-			for (int i = 0, n = loadedScene->getAnimationStackCount(); i < n; ++i) {
-				const ofbx::AnimationStack* stack = loadedScene->getAnimationStack(i);
-				for (int j = 0; stack->getLayer(j); ++j) {
-					const ofbx::AnimationLayer* layer = stack->getLayer(j);
-					for (int k = 0; layer->getCurveNode(k); ++k) {
-						const ofbx::AnimationCurveNode* node = layer->getCurveNode(k);
-						if (node->getBone())
-						{
-							const ofbx::Object* bone = node->getBone();
-			
-							Plaza::Bone plazaBone{ bone->id, bone->name };
-							plazaBone.mParentId = bone->getParent()->id;
-							if (finalMesh->uniqueBonesInfo.find(plazaBone.mId) == finalMesh->uniqueBonesInfo.end())
-								finalMesh->uniqueBonesInfo.emplace(plazaBone.mId, plazaBone);
-						};
-					}
-				}
-			}
-			
+			//std::cout << " ---- BONES START ---- \n";
+			//for (int i = 0, n = loadedScene->getAnimationStackCount(); i < n; ++i) {
+			//	const ofbx::AnimationStack* stack = loadedScene->getAnimationStack(i);
+			//	for (int j = 0; stack->getLayer(j); ++j) {
+			//		const ofbx::AnimationLayer* layer = stack->getLayer(j);
+			//		for (int k = 0; layer->getCurveNode(k); ++k) {
+			//			const ofbx::AnimationCurveNode* node = layer->getCurveNode(k);
+			//			if (node->getBone())
+			//			{
+			//				const ofbx::Object* bone = node->getBone();
+			//
+			//				Plaza::Bone plazaBone{ bone->id, bone->name };
+			//				plazaBone.mParentId = bone->getParent()->id;
+			//				if (finalMesh->uniqueBonesInfo.find(plazaBone.mId) == finalMesh->uniqueBonesInfo.end())
+			//					finalMesh->uniqueBonesInfo.emplace(plazaBone.mId, plazaBone);
+			//			};
+			//		}
+			//	}
+			//}
+
 			/* Reiterate to adjust parentship */
 			for (int i = 0, n = loadedScene->getAnimationStackCount(); i < n; ++i) {
 				const ofbx::AnimationStack* stack = loadedScene->getAnimationStack(i);
@@ -322,7 +381,7 @@ namespace Plaza {
 						{
 							const ofbx::Object* bone = node->getBone();
 							uint64_t parentId = bone->getParent()->id;
-			
+
 							Plaza::Bone plazaBone{ bone->id, bone->name };
 							if (finalMesh->uniqueBonesInfo.find(parentId) != finalMesh->uniqueBonesInfo.end())
 								finalMesh->uniqueBonesInfo[parentId].mChildren.push_back(bone->id);
@@ -352,8 +411,8 @@ namespace Plaza {
 
 
 
-			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, Application->activeScene->DefaultMaterial());
-			meshRenderer->material = material;//AssetsLoader::LoadMaterial(AssetsManager::GetAsset(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name + Standards::materialExtName}.string()));
+			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, meshMaterials);
+			//meshRenderer->;//material = material;//AssetsLoader::LoadMaterial(AssetsManager::GetAsset(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name + Standards::materialExtName}.string()));
 			entity->AddComponent<MeshRenderer>(meshRenderer);
 
 			Collider* collider = new Collider();
@@ -361,6 +420,13 @@ namespace Plaza {
 			collider->AddShape(shape);
 			entity->AddComponent<Collider>(collider);
 			verticesCount += finalMesh->vertices.size();
+		}
+
+		for (auto& [key, value] : entityMeshParent) {
+			Entity* entity = &Application->activeScene->entities.at(key);
+			if (value != 0 && meshIndexEntityMap.find(value) != meshIndexEntityMap.end()) {
+				entity->ChangeParent(&entity->GetParent(), &Application->activeScene->entities.at(meshIndexEntityMap.at(value)));
+			}
 		}
 
 		return Application->activeScene->GetEntity(mainEntity->uuid);

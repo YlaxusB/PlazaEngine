@@ -150,10 +150,10 @@ namespace Plaza {
 				SerializableMeshRenderer deserializedMeshRenderer = *(SerializableMeshRenderer*)(component.get());
 				SerializableMesh* deserializedMesh = &deserializedMeshRenderer.serializedMesh;
 				mesh = AssetsManager::GetMesh(deserializedMesh->assetUuid);
-				MeshRenderer* meshRenderer = new MeshRenderer(mesh, Application->activeScene->GetMaterial(deserializedMeshRenderer.materialUuid));
+				MeshRenderer* meshRenderer = new MeshRenderer(mesh, Application->activeScene->GetMaterialsVector(deserializedMeshRenderer.materialsUuid));
 				meshRenderer->instanced = true;
-				meshRenderer->material = Application->activeScene->GetMaterial(deserializedMeshRenderer.materialUuid);
-				RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
+				meshRenderer->mMaterials = Application->activeScene->GetMaterialsVector(deserializedMeshRenderer.materialsUuid);
+				RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
 				meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
 				newEntity->AddComponent<MeshRenderer>(meshRenderer);
 			}
@@ -162,7 +162,8 @@ namespace Plaza {
 
 				Collider* collider = new Collider(deserializedCollider.uuid);
 				for (unsigned int i = 0; i < deserializedCollider.shapesCount; ++i) {
-					collider->CreateShape(deserializedCollider.shapes[i].shape, newEntity->GetComponent<Transform>(), mesh);
+					// TODO: WARNING: ADD COLLIDER SHAPES AGAIN
+					//collider->CreateShape(deserializedCollider.shapes[i].shape, newEntity->GetComponent<Transform>(), mesh);
 				}
 				newEntity->AddComponent<Collider>(collider);
 			}
@@ -197,7 +198,7 @@ namespace Plaza {
 					SerializableMeshRenderer deserializedMeshRenderer = *(SerializableMeshRenderer*)(component.get());//std::any_cast<SerializableMeshRenderer>(deserializedEntity.components.find(SerializableComponentType::MESH_RENDERER)->second);
 
 					SerializableMesh* deserializedMesh = &deserializedMeshRenderer.serializedMesh;
-					Mesh* mesh = &Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), deserializedMesh->indices, *Scene::DefaultMaterial(), false, deserializedMesh->bonesHolders, deserializedMesh->uniqueBones);
+					Mesh* mesh = &Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), deserializedMesh->indices, deserializedMesh->materialsIndices, false, deserializedMesh->bonesHolders, deserializedMesh->uniqueBones);
 
 					/* TEMPORARY: TODO: FIX THE UNIQUE BONES */
 					for (int i = 0; i < deserializedMesh->uniqueBones.size(); ++i) {

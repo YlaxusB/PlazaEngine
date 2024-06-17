@@ -207,7 +207,7 @@ namespace Plaza {
 		this->UpdateSelfAndChildrenTransform();
 	}
 
-	void Transform::SetRelativeScale(glm::vec3 vector) {
+	void Transform::SetRelativeScale(glm::vec3 vector) { 
 		this->scale = vector;
 		this->UpdateSelfAndChildrenTransform();
 		auto it = Application->activeScene->colliderComponents.find(this->uuid);

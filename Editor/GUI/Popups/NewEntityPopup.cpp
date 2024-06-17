@@ -14,8 +14,8 @@ namespace Plaza::Editor {
 		MeshRenderer* meshRenderer = new MeshRenderer(mesh, Scene::DefaultMaterial());
 		meshRenderer->instanced = true;
 		//meshRenderer->mesh = new Mesh(*mesh);
-		meshRenderer->material = Scene::DefaultMaterial();
-		RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
+		meshRenderer->mMaterials.push_back(Scene::DefaultMaterial());
+		RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
 		meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
 		//meshRenderer->renderGroup->material = make_shared<Material>(*Scene::DefaultMaterial());
 		obj->AddComponent<MeshRenderer>(meshRenderer);

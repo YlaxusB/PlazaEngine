@@ -32,9 +32,9 @@ Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true
 	MeshRenderer* meshRenderer = new MeshRenderer(mesh, Scene::DefaultMaterial());
 	meshRenderer->instanced = true;
 	//meshRenderer->mesh = new Mesh(*mesh);
-	meshRenderer->material = Scene::DefaultMaterial();
+	meshRenderer->mMaterials.push_back(Scene::DefaultMaterial());
 	//RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
-	meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(meshRenderer->mesh, meshRenderer->material);
+	meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
 	//meshRenderer->renderGroup->material = make_shared<Material>(*Scene::DefaultMaterial());
 	obj->AddComponent<MeshRenderer>(meshRenderer);
 	Editor::selectedGameObject = obj;

@@ -22,6 +22,7 @@ layout(location = 4) in vec3 bitangent;
 layout(location = 5) in vec4 instanceMatrix[4];
 layout(location = 9) in ivec4 boneIds;
 layout(location = 10) in vec4 weights;
+layout(location = 11) in uint vertexMaterialIndex;
 
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
@@ -33,7 +34,10 @@ layout(std430, binding = 1) readonly buffer BoneMatrices {
 	mat4 boneMatrices[];
 };
 
-layout(location = 18) in uint mat;
+//#define MESH_RENDERER_MAX_MATERIALS 64
+//layout(location = 18) in uint[MESH_RENDERER_MAX_MATERIALS] meshRendererMaterials;
+layout(location = 18) in uint meshRendererMaterials;
+//layout(location = 18) in uint mat;
 layout(binding = 20) uniform sampler2D textures[];
 
 layout(location = 10) out uint materialIndex;
@@ -79,7 +83,7 @@ void main() {
     bool allNegative = true;
     for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
     {
-          if(boneIds[i] == -1) 
+          if(boneIds[i] == -1 || boneIds[i] > 1000) 
           {
             continue;
           }   
@@ -104,5 +108,8 @@ void main() {
 
     worldPos.xyz = vec3(finalModel);
     gl_Position = ubo.projection * ubo.view * finalModel;
-    materialIndex = mat;//22;
+    if(vertexMaterialIndex < 16536)
+    materialIndex = vertexMaterialIndex;//meshRendererMaterials[vertexMaterialIndex];//22;
+    else
+    materialIndex = 0;
 }

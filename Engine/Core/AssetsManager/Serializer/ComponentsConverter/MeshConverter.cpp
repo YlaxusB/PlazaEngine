@@ -14,6 +14,7 @@ namespace Plaza {
 		serializedMesh.uvs = mesh->uvs;
 		serializedMesh.indicesCount = mesh->indices.size();
 		serializedMesh.indices = mesh->indices;
+		serializedMesh.materialsIndices = mesh->materialsIndices;
 		serializedMesh.bonesHoldersCount = mesh->bonesHolder.size();
 		serializedMesh.bonesHolders = mesh->bonesHolder;
 		serializedMesh.uniqueBonesCount = mesh->uniqueBonesInfo.size();

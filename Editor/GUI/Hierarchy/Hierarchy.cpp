@@ -162,7 +162,7 @@ namespace Plaza::Editor {
 				if (ImGui::MenuItem("Mesh Renderer"))
 				{
 					MeshRenderer* meshRenderer = new MeshRenderer();
-					meshRenderer->material = Scene::DefaultMaterial();
+					meshRenderer->mMaterials.push_back(Scene::DefaultMaterial());
 					meshRenderer->instanced = true;
 					entity.AddComponent<MeshRenderer>(meshRenderer);
 				}
@@ -258,6 +258,13 @@ namespace Plaza::Editor {
 					CharacterController* characterController = new CharacterController();
 					characterController->uuid = entity.uuid;
 					entity.AddComponent<CharacterController>(characterController);
+				}
+
+				if (ImGui::MenuItem("Animation"))
+				{
+					AnimationComponent* animationComponent = new AnimationComponent();
+					animationComponent->uuid = entity.uuid;
+					entity.AddComponent<AnimationComponent>(animationComponent);
 				}
 
 				ImGui::EndMenu();

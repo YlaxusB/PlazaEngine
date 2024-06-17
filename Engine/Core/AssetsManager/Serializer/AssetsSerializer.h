@@ -66,6 +66,7 @@ namespace Plaza {
 		std::vector<glm::vec2> uvs;
 		uint64_t indicesCount;
 		std::vector<unsigned int> indices;
+		std::vector<unsigned int> materialsIndices;
 		uint64_t bonesHoldersCount;
 		std::vector<Plaza::BonesHolder> bonesHolders;
 		uint64_t uniqueBonesCount;
@@ -74,20 +75,19 @@ namespace Plaza {
 		template <class Archive>
 		void serialize(Archive& archive) {
 			archive(assetUuid, assetType, materialAssetUuid, verticesCount, vertices,
-				normalsCount, normals, uvsCount, uvs, indicesCount, indices,
+				normalsCount, normals, uvsCount, uvs, indicesCount, indices, materialsIndices,
 				bonesHoldersCount, bonesHolders, uniqueBonesCount, uniqueBones);
 		}
 	};
 
 	struct SerializableMeshRenderer : public SerializableComponents {
 		void sayType() {};
-		uint64_t materialUuid;
+		std::vector<uint64_t> materialsUuid;
 		SerializableMesh serializedMesh{};
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			std::cout << "SERIALIZING MESH RENDERER \n";
-			archive(cereal::base_class<SerializableComponents>(this), materialUuid, serializedMesh);
+			archive(cereal::base_class<SerializableComponents>(this), materialsUuid, serializedMesh);
 		}
 	};
 

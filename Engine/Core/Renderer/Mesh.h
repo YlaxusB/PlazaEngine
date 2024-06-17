@@ -18,7 +18,8 @@ namespace Plaza {
 		glm::vec2 texCoords;
 		glm::vec3 tangent;
 		glm::vec3 bitangent;
-		std::array<int, MAX_BONE_INFLUENCE> boneIds;
+		unsigned int materialIndex = -1;
+		std::array<int64_t, MAX_BONE_INFLUENCE> boneIds;
 		std::array<float, MAX_BONE_INFLUENCE> weights;
 		bool isValid;
 
@@ -32,8 +33,8 @@ namespace Plaza {
 			}
 		}
 
-		Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const glm::vec3& bitan, const std::array<int, MAX_BONE_INFLUENCE> boneIds = std::array<int, MAX_BONE_INFLUENCE>(), const std::array<float, MAX_BONE_INFLUENCE> weights = std::array<float, MAX_BONE_INFLUENCE>())
-			: position(pos), normal(norm), texCoords(tex), tangent(tan), bitangent(bitan), isValid(true), boneIds(boneIds), weights(weights) {
+		Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const glm::vec3& bitan, const unsigned int& materialIndex = 0, const std::array<int64_t, MAX_BONE_INFLUENCE> boneIds = std::array<int64_t, MAX_BONE_INFLUENCE>(), const std::array<float, MAX_BONE_INFLUENCE> weights = std::array<float, MAX_BONE_INFLUENCE>())
+			: position(pos), normal(norm), texCoords(tex), tangent(tan), bitangent(bitan), materialIndex(materialIndex), isValid(true), boneIds(boneIds), weights(weights) {
 		}
 
 		Vertex()
@@ -55,6 +56,7 @@ namespace Plaza {
 		glm::vec3 mPosition = glm::vec3(0.0f);
 		glm::quat mRotation = glm::quat(glm::vec3(0.0f));
 		glm::vec3 mScale = glm::vec3(1.0f);
+		glm::mat4 mLocalTransform = glm::mat4(1.0f);
 		glm::mat4 mTransform = glm::mat4(1.0f);
 		std::vector<uint64_t> mChildren = std::vector<uint64_t>();
 		Bone() {};
@@ -67,10 +69,11 @@ namespace Plaza {
 
 	struct BonesHolder {
 		std::vector<Bone> mBones = std::vector<Bone>();
+		std::vector<float> mWeights = std::vector<float>();
 		//std::vector<unsigned int> mBonesIds = std::vector<unsigned int>();
 
-		std::array<int, MAX_BONE_INFLUENCE> GetBoneIds() {
-			std::array<int, MAX_BONE_INFLUENCE> bonesArray = std::array<int, MAX_BONE_INFLUENCE>();
+		std::array<int64_t, MAX_BONE_INFLUENCE> GetBoneIds() {
+			std::array<int64_t, MAX_BONE_INFLUENCE> bonesArray = std::array<int64_t, MAX_BONE_INFLUENCE>();
 			for (unsigned int i = 0; i < mBones.size() && i < MAX_BONE_INFLUENCE; ++i) {
 				bonesArray[i] = this->mBones[i].mId;
 			}
@@ -79,14 +82,14 @@ namespace Plaza {
 		std::array<float, MAX_BONE_INFLUENCE> GetBoneWeights() {
 			std::array<float, MAX_BONE_INFLUENCE> weightArray = std::array<float, MAX_BONE_INFLUENCE>();
 			for (unsigned int i = 0; i < mBones.size() && i < MAX_BONE_INFLUENCE; ++i) {
-				weightArray[i] = this->mBones[i].weight;
+				weightArray[i] = this->mWeights[i];
 			}
 			return weightArray;
 		}
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(mBones);
+			archive(mBones, mWeights);
 		}
 	};
 
@@ -102,6 +105,7 @@ namespace Plaza {
 
 		MeshType meshType = MeshType::Triangle;
 		bool temporaryMesh = false;
+		bool mImportedMesh = false;
 		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
 		uint64_t uuid;
 		uint64_t meshId;
@@ -110,12 +114,13 @@ namespace Plaza {
 		std::string meshName;
 		uint64_t modelUuid;
 
-		vector<glm::vec3> vertices;
-		vector<unsigned int> indices;
-		vector<glm::vec3> normals;
-		vector<glm::vec2> uvs;
-		vector<glm::vec3> tangent;
-		vector<glm::vec3> bitangent;
+		vector<glm::vec3> vertices = vector<glm::vec3>();
+		vector<unsigned int> indices = vector<unsigned int>();
+		vector<glm::vec3> normals = vector<glm::vec3>();
+		vector<glm::vec2> uvs = vector<glm::vec2>();
+		vector<glm::vec3> tangent = vector<glm::vec3>();
+		vector<glm::vec3> bitangent = vector<glm::vec3>();
+		vector<unsigned int> materialsIndices = vector<unsigned int>();
 		vector<BonesHolder> bonesHolder;
 		map<uint64_t, Bone> uniqueBonesInfo = map<uint64_t, Bone>();
 

@@ -98,7 +98,7 @@ namespace Plaza {
 			vector<glm::vec3> tangent,
 			vector<glm::vec3> bitangent,
 			vector<unsigned int> indices,
-			Material& material,
+			vector<unsigned int> materialsIndices,
 			bool usingNormal,
 			vector<BonesHolder> bonesHolder = vector<BonesHolder>(),
 			vector<Bone>  uniqueBonesInfo = vector<Bone>()) override;

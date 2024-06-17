@@ -11,7 +11,8 @@ namespace Plaza {
 			file.write(reinterpret_cast<const char*>(&meshRenderer->uuid), sizeof(meshRenderer->uuid));
 			file.write(reinterpret_cast<const char*>(&meshRenderer->type), sizeof(meshRenderer->type));
 
-			file.write(reinterpret_cast<const char*>(&meshRenderer->materialUuid), sizeof(uint64_t));
+			/* TODO: FIX MATERIAL SERIALIZATION */
+			//file.write(reinterpret_cast<const char*>(&meshRenderer->materialUuid), sizeof(uint64_t));
 
 			/* Mesh */
 			file.write(reinterpret_cast<const char*>(&meshRenderer->serializedMesh.assetUuid), sizeof(uint64_t));

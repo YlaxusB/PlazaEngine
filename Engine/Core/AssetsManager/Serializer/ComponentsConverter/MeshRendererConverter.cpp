@@ -6,7 +6,7 @@ namespace Plaza {
 		SerializableMeshRenderer* serializedMeshRenderer = new SerializableMeshRenderer();
 		serializedMeshRenderer->uuid = meshRenderer->uuid;
 		serializedMeshRenderer->type = SerializableComponentType::MESH_RENDERER;
-		serializedMeshRenderer->materialUuid = meshRenderer->material->mAssetUuid;
+		serializedMeshRenderer->materialsUuid = Material::GetMaterialsUuids(meshRenderer->mMaterials);
 		serializedMeshRenderer->serializedMesh = ComponentsConverter::ConvertMesh(meshRenderer->mesh);
 		return serializedMeshRenderer;
 	}

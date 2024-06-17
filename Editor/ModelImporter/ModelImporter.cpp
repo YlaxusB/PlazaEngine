@@ -24,11 +24,11 @@ namespace Plaza::Editor {
 		for (uint64_t child : entity->childrenUuid) {
 			SerializeEntityAndChildsMaterials(&Application->activeScene->entities.at(child));
 		}
-		if (entity->HasComponent<MeshRenderer>() && entity->GetComponent<MeshRenderer>()->material) {
-			if (serializedMaterials.find(entity->GetComponent<MeshRenderer>()->material->uuid) == serializedMaterials.end()) {
-				MaterialFileSerializer::Serialize(entity->GetComponent<MeshRenderer>()->material->filePath, entity->GetComponent<MeshRenderer>()->material);
-				serializedMaterials.emplace(entity->GetComponent<MeshRenderer>()->material->uuid);
-			}
+		if (entity->HasComponent<MeshRenderer>() && entity->GetComponent<MeshRenderer>()->mMaterials.size() > 0) {
+			//if (serializedMaterials.find(entity->GetComponent<MeshRenderer>()->material->uuid) == serializedMaterials.end()) {
+			//	MaterialFileSerializer::Serialize(entity->GetComponent<MeshRenderer>()->material->filePath, entity->GetComponent<MeshRenderer>()->material);
+			//	serializedMaterials.emplace(entity->GetComponent<MeshRenderer>()->material->uuid);
+			//}
 		}
 	}
 

@@ -12,7 +12,8 @@ namespace Plaza {
 		out << YAML::Key << "Instanced" << YAML::Value << meshRenderer.instanced;
 		uint64_t meshId = meshRenderer.mesh->meshId;
 		out << YAML::Key << "MeshId" << YAML::Value << meshId;
-		out << YAML::Key << "Material" << YAML::Value << meshRenderer.material->uuid;
+		// TODO: FIX MATERIAL SERIALIZATION
+		//out << YAML::Key << "Material" << YAML::Value << meshRenderer.material->uuid;
 		//ComponentSerializer::MeshSerializer::Serialize(out, *meshRenderer.mesh);
 		out << YAML::EndMap;
 	}
@@ -37,9 +38,9 @@ namespace Plaza {
 		}
 		else
 			material = Scene::DefaultMaterial();
-		meshRenderer->material = material;
-		if (meshRenderer->mesh && meshRenderer->material) {
-			meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(meshRenderer->mesh, meshRenderer->material);//std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);
+		meshRenderer->mMaterials.push_back(material);
+		if (meshRenderer->mesh && meshRenderer->mMaterials.size() > 0) {
+			meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);//std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);
 			//Application->activeScene->AddRenderGroup(meshRenderer->renderGroup);
 		}
 		return meshRenderer;

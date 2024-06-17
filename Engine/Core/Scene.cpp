@@ -71,13 +71,13 @@ namespace Plaza {
 		newScene->materialsNames = std::unordered_map<std::string, uint64_t>(copyScene->materialsNames);
 
 		newScene->renderGroups = std::unordered_map<uint64_t, RenderGroup*>();
-		newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash>();
-		newScene->renderGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>();
-		newScene->renderGroupsFindMapWithMaterialUuid = std::unordered_map<uint64_t, uint64_t>();
+		newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, std::vector<uint64_t>>, uint64_t, PairHash>();
+		newScene->renderGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>(); 
+		newScene->renderGroupsFindMapWithMaterialUuid = std::unordered_map<std::vector<uint64_t>, uint64_t, VectorHash, VectorEqual<uint64_t>>();
 
 		for (auto& [key, value] : newScene->meshRendererComponents) {
-			if (value.material && value.mesh) {
-				RenderGroup* newRenderGroup = new RenderGroup(value.mesh, value.material);
+			if (value.mMaterials.size() > 0 && value.mesh) {
+				RenderGroup* newRenderGroup = new RenderGroup(value.mesh, value.mMaterials);
 				//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
 				value.renderGroup = newScene->AddRenderGroup(newRenderGroup);
 			}

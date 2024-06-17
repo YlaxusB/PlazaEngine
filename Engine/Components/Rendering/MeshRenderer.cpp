@@ -9,24 +9,23 @@ namespace Plaza {
 			Application->activeScene->meshRenderers.emplace_back(this);
 	}
 
-	MeshRenderer::MeshRenderer(Plaza::Mesh* initialMesh, Material material, bool addToScene) {
+	MeshRenderer::MeshRenderer(Plaza::Mesh* initialMesh, std::vector<Material*> materials, bool addToScene) {
 		this->uuid = Plaza::UUID::NewUUID();
 		this->mesh = initialMesh;
-		this->material = &material;
+		this->mMaterials = materials;
 
-		auto renderGroupIt = Application->activeScene->renderGroupsFindMap.find(std::make_pair(this->mesh->uuid, this->material->uuid));
+		auto renderGroupIt = Application->activeScene->renderGroupsFindMap.find(std::make_pair(this->mesh->uuid, Material::GetMaterialsUuids(this->mMaterials)));
 		if (renderGroupIt != Application->activeScene->renderGroupsFindMap.end()) {
 			this->renderGroup = Application->activeScene->renderGroups.at(renderGroupIt->second);
 		}
 		else {
-			uint64_t renderGroupUuid = Plaza::UUID::NewUUID();
-			RenderGroup* renderGroup = new RenderGroup(this->mesh, this->material);
-			renderGroup->uuid = renderGroupUuid;
-			Application->activeScene->AddRenderGroup(renderGroup);
+			RenderGroup* renderGroup = Application->activeScene->AddRenderGroup(this->mesh, this->mMaterials);//new RenderGroup(this->mesh, this->mMaterials);
+			uint64_t renderGroupUuid = renderGroup->uuid;
+			//Application->activeScene->AddRenderGroup(renderGroup);
 			//Application->activeScene->renderGroups.emplace(renderGroupUuid, new RenderGroup(this->mesh, this->material));
-			std::cout << "ok \n";
+
 			uint64_t meshUuid = this->mesh->uuid;
-			uint64_t materialUuid = this->material->uuid;
+			//uint64_t materialUuid = this->material->uuid;
 			//Application->activeScene->renderGroupsFindMap.emplace(std::make_pair(meshUuid, materialUuid), renderGroupUuid);
 			this->renderGroup = Application->activeScene->renderGroups.at(renderGroupUuid);
 		}
@@ -45,10 +44,10 @@ namespace Plaza {
 		//this->renderGroup.~shared_ptr();
 	}
 
-	void MeshRenderer::ChangeMaterial(Material* newMaterial) {
+	void MeshRenderer::ChangeMaterial(Material* newMaterial, unsigned int index) {
 		uint64_t oldUuid = newMaterial->uuid;
-		this->material = newMaterial;
-		this->renderGroup = Application->activeScene->AddRenderGroup(new RenderGroup(this->mesh, this->material));
+		this->mMaterials[index] = newMaterial;
+		this->renderGroup = Application->activeScene->AddRenderGroup(new RenderGroup(this->mesh, this->mMaterials));
 		//this->renderGroup->ChangeMaterial(newMaterial);
 	}
 	void MeshRenderer::ChangeMesh(Mesh* newMesh) {

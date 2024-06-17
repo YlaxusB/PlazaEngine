@@ -44,7 +44,8 @@ namespace Plaza {
 		//uint64_t uuid;
 		std::string meshName;
 		Mesh* mesh = nullptr;
-		Material* material = nullptr;
+		//Material* material = nullptr;
+		std::vector<Material*> mMaterials = std::vector<Material*>();
 		RenderGroup* renderGroup = nullptr;
 		GLuint heightMap;
 
@@ -116,14 +117,14 @@ namespace Plaza {
 		Transform* transform = nullptr;
 		bool instanced = false;
 		MeshRenderer(Mesh* initialMesh, bool addToScene = false);
-		MeshRenderer(Plaza::Mesh* initialMesh, Material material, bool addToScene = false);
+		MeshRenderer(Plaza::Mesh* initialMesh, std::vector<Material*> materials, bool addToScene = false);
 		MeshRenderer(const MeshRenderer& other) = default;
 		~MeshRenderer();
 		MeshRenderer() {
 			uuid = Plaza::UUID::NewUUID();
 		}
 
-		void ChangeMaterial(Material* newMaterial);
+		void ChangeMaterial(Material* newMaterial, unsigned int index = 0);
 		void ChangeMesh(Mesh* newMesh);
 	};
 }

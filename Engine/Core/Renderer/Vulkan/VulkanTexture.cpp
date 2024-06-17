@@ -368,26 +368,26 @@ namespace Plaza {
 		//}
 
 
-		std::vector<VkDescriptorSetLayout> layouts = { mDescriptorSetLayout };
-		VkDescriptorSetAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = VulkanRenderer::GetRenderer()->mDescriptorPool;//descriptorPool;
-		allocInfo.descriptorSetCount = 1;
-		allocInfo.pSetLayouts = &mDescriptorSetLayout;
-
-		VkDescriptorSetVariableDescriptorCountAllocateInfoEXT countInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
-		uint32_t maxBinding = 16536 - 1;
-		countInfo.descriptorSetCount = 1;
-		countInfo.pDescriptorCounts = &maxBinding;
-		//allocInfo.pNext = &countInfo;
-
-		if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, &mDescriptorSet) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate descriptor sets!");
-		}
-		VkDescriptorBufferInfo bufferInfo{};
-		bufferInfo.buffer = VulkanRenderer::GetRenderer()->mUniformBuffers[0];
-		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(VulkanRenderer::UniformBufferObject);
+		//std::vector<VkDescriptorSetLayout> layouts = { mDescriptorSetLayout };
+		//VkDescriptorSetAllocateInfo allocInfo{};
+		//allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		//allocInfo.descriptorPool = VulkanRenderer::GetRenderer()->mDescriptorPool;//descriptorPool;
+		//allocInfo.descriptorSetCount = 1;
+		//allocInfo.pSetLayouts = &mDescriptorSetLayout;
+		//
+		//VkDescriptorSetVariableDescriptorCountAllocateInfoEXT countInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
+		//uint32_t maxBinding = 16536 - 1;
+		//countInfo.descriptorSetCount = 1;
+		//countInfo.pDescriptorCounts = &maxBinding;
+		////allocInfo.pNext = &countInfo;
+		//
+		//if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, &mDescriptorSet) != VK_SUCCESS) {
+		//	throw std::runtime_error("failed to allocate descriptor sets!");
+		//}
+		//VkDescriptorBufferInfo bufferInfo{};
+		//bufferInfo.buffer = VulkanRenderer::GetRenderer()->mUniformBuffers[0];
+		//bufferInfo.offset = 0;
+		//bufferInfo.range = sizeof(VulkanRenderer::UniformBufferObject);
 
 		VkDescriptorImageInfo imageInfo{};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

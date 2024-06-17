@@ -45,44 +45,44 @@ namespace Plaza {
 
 				const auto& it = model->meshRenderers.find(entity->uuid);
 				if (it != model->meshRenderers.end()) {
-					MeshRenderer* meshRenderer = model->meshRenderers.at(entity->uuid).get();
-					MeshRenderer* newMeshRenderer = new MeshRenderer();
-					newMeshRenderer->instanced = true;
-					newMeshRenderer->uuid = newGameObject->uuid;
-					if (model->meshes.find(meshRenderer->aiMeshName) != model->meshes.end())
-						newMeshRenderer->mesh = model->meshes.at(meshRenderer->aiMeshName).get();
-					newMeshRenderer->material = meshRenderer->material;
-					if (model->materials.find(meshRenderer->aiMeshName) != model->materials.end())
-						newMeshRenderer->material = model->materials.at(meshRenderer->aiMeshName).get();//Application->activeScene->materials.at(meshRenderer->material->uuid).get();
-					//newMeshRenderer->material = MaterialFileSerializer::DeSerialize(newMeshRenderer->material->filePath);
-					//newMeshRenderer->material->LoadTextures(std::filesystem::path{ newMeshRenderer->material->filePath }.parent_path().string());
-
-					if (model->meshes.find(meshRenderer->aiMeshName) != model->meshes.end() && model->materials.find(meshRenderer->aiMeshName) != model->materials.end())
-						newMeshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newMeshRenderer->mesh, newMeshRenderer->material);//make_shared<RenderGroup>(newMeshRenderer->mesh, newMeshRenderer->material);
-					else
-						newMeshRenderer->renderGroup = Application->activeScene->renderGroups[0];
-					//newMeshRenderer->material = Application->activeScene->materials.at(entity->GetComponent<MeshRenderer>()->material->uuid);
-
-					if (Application->activeScene->materials.find(it->second->uuid) == Application->activeScene->materials.end()) {
-						//MaterialFileSerializer::Serialize(newMeshRenderer->material->filePath, newMeshRenderer->material.get());
-						//Application->activeScene->materials.emplace(newMeshRenderer->material->uuid, newMeshRenderer->material);
-						//Application->activeScene->AddMaterial(newMeshRenderer->material.get());
-					}
-					else {
-						//newMeshRenderer->material = Application->activeScene->materials.at(Application->activeScene->materialsNames.at(newMeshRenderer->material->name));
-					}
+					//MeshRenderer* meshRenderer = model->meshRenderers.at(entity->uuid).get();
+					//MeshRenderer* newMeshRenderer = new MeshRenderer();
+					//newMeshRenderer->instanced = true;
+					//newMeshRenderer->uuid = newGameObject->uuid;
+					//if (model->meshes.find(meshRenderer->aiMeshName) != model->meshes.end())
+					//	newMeshRenderer->mesh = model->meshes.at(meshRenderer->aiMeshName).get();
+					//newMeshRenderer->mMaterials = meshRenderer->mMaterials;
+					//if (model->materials.find(meshRenderer->aiMeshName) != model->materials.end())
+					//	newMeshRenderer->mMaterials = model->materials.at(meshRenderer->aiMeshName).get();//Application->activeScene->materials.at(meshRenderer->material->uuid).get();
+					////newMeshRenderer->material = MaterialFileSerializer::DeSerialize(newMeshRenderer->material->filePath);
+					////newMeshRenderer->material->LoadTextures(std::filesystem::path{ newMeshRenderer->material->filePath }.parent_path().string());
+					//
+					//if (model->meshes.find(meshRenderer->aiMeshName) != model->meshes.end() && model->materials.find(meshRenderer->aiMeshName) != model->materials.end())
+					//	newMeshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newMeshRenderer->mesh, newMeshRenderer->mMaterials);//make_shared<RenderGroup>(newMeshRenderer->mesh, newMeshRenderer->material);
+					//else
+					//	newMeshRenderer->renderGroup = Application->activeScene->renderGroups[0];
+					////newMeshRenderer->material = Application->activeScene->materials.at(entity->GetComponent<MeshRenderer>()->material->uuid);
+					//
+					//if (Application->activeScene->materials.find(it->second->uuid) == Application->activeScene->materials.end()) {
+					//	//MaterialFileSerializer::Serialize(newMeshRenderer->material->filePath, newMeshRenderer->material.get());
+					//	//Application->activeScene->materials.emplace(newMeshRenderer->material->uuid, newMeshRenderer->material);
+					//	//Application->activeScene->AddMaterial(newMeshRenderer->material.get());
+					//}
+					//else {
+					//	//newMeshRenderer->material = Application->activeScene->materials.at(Application->activeScene->materialsNames.at(newMeshRenderer->material->name));
+					//}
 					//Application->activeScene->AddRenderGroup(newMeshRenderer->renderGroup);
 					//Application->activeScene->renderGroups.emplace(newMeshRenderer->renderGroup->uuid, newMeshRenderer->renderGroup);
-					newGameObject->AddComponent<MeshRenderer>(newMeshRenderer, true);
+					//newGameObject->AddComponent<MeshRenderer>(newMeshRenderer, true);
 					//newGameObject->AddComponent<MeshRenderer>(model->meshRenderers.find(meshRenderer->aiMeshName)->second.get());
-					Collider* collider = new Collider(newGameObject->uuid);
-					if (newGameObject->HasComponent<MeshRenderer>())
-						if (newGameObject->GetComponent<MeshRenderer>()->mesh)
-						{
-							collider->CreateShape(ColliderShape::ColliderShapeEnum::MESH, transform, newMeshRenderer->mesh);
-							//collider->AddMeshShape(new Mesh(*newMeshRenderer->mesh));
-							newGameObject->AddComponent<Collider>(collider);
-						}
+					//Collider* collider = new Collider(newGameObject->uuid);
+					//if (newGameObject->HasComponent<MeshRenderer>())
+					//	if (newGameObject->GetComponent<MeshRenderer>()->mesh)
+					//	{
+					//		collider->CreateShape(ColliderShape::ColliderShapeEnum::MESH, transform, newMeshRenderer->mesh);
+					//		//collider->AddMeshShape(new Mesh(*newMeshRenderer->mesh));
+					//		newGameObject->AddComponent<Collider>(collider);
+					//	}
 				}
 				modelInstanceGameObjects.emplace(entity->uuid, newGameObject);
 				/*
@@ -285,7 +285,7 @@ namespace Plaza {
 			childMeshRenderer->aiMeshName = string(mesh->mName.C_Str()) + to_string(index);
 			processedMaterial->name = childMeshRenderer->aiMeshName + processedMaterial->name;
 			processedMaterial->filePath = currentPath + "\\" + modelName + "\\textures\\" + processedMaterial->name;
-			childMeshRenderer->material = new Material(*processedMaterial);
+			childMeshRenderer->mMaterials.push_back(new Material(*processedMaterial));
 
 			//childMeshRenderer->material->uuid = Plaza::UUID::NewUUID();
 			childObject->AddComponent<MeshRenderer>(childMeshRenderer);
@@ -412,6 +412,6 @@ namespace Plaza {
 		//finalMesh.material = convertedMaterial;
 		//finalMesh.usingNormal = usingNormal;
 		*outMaterial = *new Material(convertedMaterial);
-		return Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, bitangents, indices, convertedMaterial, usingNormal);
+		return *new Mesh();//Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, bitangents, indices, { &convertedMaterial }, usingNormal);
 	}
 }

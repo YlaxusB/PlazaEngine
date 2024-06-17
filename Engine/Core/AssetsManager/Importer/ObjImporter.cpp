@@ -149,9 +149,9 @@ namespace Plaza {
 				}
 
 
-				Mesh& mesh = Application->mRenderer->CreateNewMesh(vertices, normals, uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), indices, *material, false);// new Mesh();
+				Mesh& mesh = Application->mRenderer->CreateNewMesh(vertices, normals, uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), indices, { 0 }, false);// new Mesh();
 				MeshRenderer* meshRenderer = new MeshRenderer(&mesh, material);
-				meshRenderer->material = material;
+				meshRenderer->mMaterials.push_back(material);
 				newEntity->AddComponent<MeshRenderer>(meshRenderer);
 
 				Collider* collider = new Collider();

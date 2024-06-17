@@ -32,9 +32,10 @@ namespace Plaza {
 				out << YAML::Key << "AiMeshName" << YAML::Value << meshRenderer->aiMeshName;
 				out << YAML::Key << "MeshName" << YAML::Value << entity->name;
 				out << YAML::Key << "MeshUUID" << YAML::Value << meshRenderer->mesh->uuid;
-				out << YAML::Key << "MaterialUuid" << YAML::Value << meshRenderer->material->uuid;
-				out << YAML::Key << "MaterialPath" << YAML::Value << meshRenderer->material->filePath;
-				ComponentSerializer::MaterialSerializer::Serialize(out, *meshRenderer->material);
+				// TODO: FIX MATERIAL SERIALIZATION
+				//out << YAML::Key << "MaterialUuid" << YAML::Value << meshRenderer->material->uuid;
+				//out << YAML::Key << "MaterialPath" << YAML::Value << meshRenderer->material->filePath;
+				//ComponentSerializer::MaterialSerializer::Serialize(out, *meshRenderer->material);
 				out << YAML::EndMap;
 			}
 		}
@@ -81,8 +82,8 @@ namespace Plaza {
 
 	void DeSerializeMaterial(const auto& materialNode, Model* model, MeshRenderer* meshRenderer) {
 		if (meshRenderer->mesh != nullptr) {
-			meshRenderer->material = new Material();
-			Material* material = meshRenderer->material;
+			meshRenderer->mMaterials.push_back(new Material());
+			Material* material = meshRenderer->mMaterials[0];
 			material->shininess = materialNode["Shininess"].as<float>();
 			const auto& textureDiffuseNode = materialNode["texture_diffuse"];
 			DeSerializeTexture(*material, textureDiffuseNode);
@@ -123,7 +124,7 @@ namespace Plaza {
 			uint64_t materialUuid = componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>();
 			if (componentsEntry["MeshComponent"]["MaterialUuid"])
 				/* TODO:FIX THE WAY TO GET MATERIALS, IT HAS BEEN TEMPORARILY DISABLED TO LOAD MODELS WITH VULKAN */
-				newMeshRenderer->material = Application->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>()).get();
+				//newMeshRenderer->material = Application->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>()).get();
 			model->meshRenderers.emplace(entity->uuid, newMeshRenderer);
 		}
 		model->transforms.emplace(entity->uuid, newTransform);

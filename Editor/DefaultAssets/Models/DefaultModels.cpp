@@ -103,7 +103,7 @@ namespace Plaza::Editor {
           };
 
           //new Mesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
-          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices, *new Material(), false);
+          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices, { 0 }, false);
           newMesh->meshId = cubeUuid;
           newMesh->uuid = cubeUuid;
           AssetsManager::AddMesh(newMesh);
@@ -167,7 +167,7 @@ namespace Plaza::Editor {
                }
           }
 
-          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, uvs, vector<glm::vec3>(), vector<glm::vec3>(), indices, *new Material(), false);
+          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, uvs, vector<glm::vec3>(), vector<glm::vec3>(), indices, { 0 }, false);
           newMesh->meshId = sphereUuid;
           newMesh->uuid = sphereUuid;
           AssetsManager::AddMesh(newMesh);
@@ -200,7 +200,7 @@ namespace Plaza::Editor {
 	          glm::vec2(0, 1)
           };
 
-          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices, *new Material(), false);
+          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices, { 0 }, false);
           newMesh->meshId = planeUuid;
           newMesh->uuid = planeUuid;
           AssetsManager::AddMesh(newMesh);

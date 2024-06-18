@@ -243,6 +243,14 @@ namespace cereal {
 		archive(q.w, q.x, q.y, q.z);
 	}
 
+	template <class Archive> void serialize(Archive& archive, glm::mat4& mat) {
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				archive(cereal::make_nvp("m" + std::to_string(i) + std::to_string(j), mat[i][j]));
+			}
+		}
+	}
+
 	template <class Archive>
 	void serialize(Archive& archive, SerializableComponentType& state) {
 		std::uint8_t value = static_cast<

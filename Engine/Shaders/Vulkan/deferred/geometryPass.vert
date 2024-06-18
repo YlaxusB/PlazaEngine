@@ -83,7 +83,7 @@ void main() {
     bool allNegative = true;
     for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
     {
-          if(boneIds[i] == -1 || boneIds[i] > 1000) 
+          if(boneIds[i] <= 0 || boneIds[i] > 1000) 
           {
             continue;
           }   

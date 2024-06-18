@@ -99,6 +99,29 @@ namespace Plaza {
 		return (idx < 0) ? (-idx - 1) : idx;
 	}
 
+	static glm::mat4 ofbxToGlm(const ofbx::Matrix& ofbxMat, glm::vec3 scale) {
+		glm::mat4 glmMat;
+
+		// Copy elements from ofbx::Matrix to glm::mat4
+		for (int i = 0; i < 4; ++i) {
+			for (int j = 0; j < 4; ++j) {
+				glmMat[i][j] = static_cast<float>(ofbxMat.m[i * 4 + j]);
+			}
+		}
+
+		glm::mat4& m = glmMat;
+		m[0][2] = -m[0][2]; // M13
+		m[1][2] = -m[1][2]; // M23
+		m[3][2] = -m[3][2]; // M43
+		m[2][0] = -m[2][0]; // M31
+		m[2][1] = -m[2][1]; // M32
+		m[2][3] = -m[2][3]; // M34
+
+		glmMat[3] *= glm::vec4(scale, 1.0f);
+
+		return glmMat;
+	}
+
 	Entity* AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath) {
 		FILE* fileOpen = fopen(asset.mPath.c_str(), "rb");
 
@@ -224,8 +247,7 @@ namespace Plaza {
 						continue;
 					const int* indices = cluster->getIndices();
 					const double* weightsData = cluster->getWeights();
-
-					finalMesh->uniqueBonesInfo.emplace(cluster->getLink()->id, Bone { cluster->getLink()->id, cluster->getLink()->getParent()->id, cluster->name });
+					finalMesh->uniqueBonesInfo.emplace(cluster->getLink()->id, Bone { cluster->getLink()->id, cluster->getLink()->getParent()->id, cluster->name, glm::inverse(ofbxToGlm(cluster->getTransformLinkMatrix(), mModelImporterScale)) });
 					for (int k = 0; k < cluster->getIndicesCount(); ++k) {
 						int vertexIndex = indices[k];
 						uint64_t boneID = cluster->getLink()->id;
@@ -264,7 +286,7 @@ namespace Plaza {
 				if (vertexToBoneIDs.find(j) != vertexToBoneIDs.end()) {
 					BonesHolder holder{};
 					for (int k = 0; k < vertexToBoneIDs[j].size(); ++k) {
-						holder.mBones.push_back(Bone{ vertexToBoneIDs[j][k], "" });
+						holder.mBones.push_back(vertexToBoneIDs[j][k]);
 						holder.mWeights.push_back(vertexToWeights[j][k]);
 					}
 					if (vertexToBoneIDs[j].size() > 4)

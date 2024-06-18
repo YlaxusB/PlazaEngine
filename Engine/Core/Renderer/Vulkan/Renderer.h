@@ -23,6 +23,8 @@ namespace Plaza {
 
 	class VulkanRenderer : public Renderer {
 	public:
+		std::array<int64_t, MAX_BONE_INFLUENCE> GetBoneIds(std::vector<unsigned int> bones);
+
 		std::map<uint64_t, Bone> mBones = std::map<uint64_t, Bone>();
 		VkSemaphore semaphore;
 
@@ -214,7 +216,7 @@ namespace Plaza {
 		float time = 0.0f;
 		bool increasing = true;
 		void CalculateIndividualBone(Bone* bone, glm::mat4 target, int time, uint64_t boneId);
-		void CalculateBonesParentship(Bone* bone, Bone* parentBone);
+		void CalculateBonesParentship(Bone* bone, glm::mat4 parentTransform);
 		void EarlyAnimationController();
 		void CreateVertexBuffer(vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory, VkDeviceSize bufferSize = -1);
 		void CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer, VkDeviceMemory& indicesMemoryBuffer, VkDeviceSize bufferSize = -1);

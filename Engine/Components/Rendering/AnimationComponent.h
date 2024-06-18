@@ -68,7 +68,6 @@ namespace Plaza {
 
 				const ofbx::AnimationStack* animationStack = (ofbx::AnimationStack*)scene->getAnimationStack(i);
 				const ofbx::TakeInfo* takeInfo = scene->getTakeInfo(animationStack->name);
-
 				if (takeInfo) {
 					if (takeInfo->name.begin != takeInfo->name.end) {
 						animation.mName = DataViewToString(takeInfo->name);
@@ -82,9 +81,9 @@ namespace Plaza {
 				else {
 					animation.mName = "";
 				}
-
 				for (int i = 0; animationStack->getLayer(i); ++i) {
 					const ofbx::AnimationLayer* layer = animationStack->getLayer(i);
+
 					//if (!layer || !layer->getCurveNode(0)) {
 					//	mAnimations.pop_back();
 					//	continue;
@@ -121,7 +120,7 @@ namespace Plaza {
 
 						if (rotationNode) {
 							for (size_t i = 0; i < vectorsSize; ++i) {
-								animation.mRotations[bone->id].push_back(glm::quat(1.0f, rotationNode->getCurve(0)->getKeyValue()[i] * mImportScale, rotationNode->getCurve(1)->getKeyValue()[i] * mImportScale, rotationNode->getCurve(2)->getKeyValue()[i] * mImportScale));
+								animation.mRotations[bone->id].push_back(glm::quat(glm::vec3(rotationNode->getCurve(0)->getKeyValue()[i], rotationNode->getCurve(1)->getKeyValue()[i], rotationNode->getCurve(2)->getKeyValue()[i])));
 							}
 						}
 

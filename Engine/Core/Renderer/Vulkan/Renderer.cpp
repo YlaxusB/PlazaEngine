@@ -1093,35 +1093,44 @@ namespace Plaza {
 	void VulkanRenderer::CalculateIndividualBone(Bone* bone, glm::mat4 target, int time, uint64_t boneId) {
 		//bone->mLocalTransform[3] = glm::vec4(glm::vec3(10.0f, 5.0f, 3.0f) * time, 1.0f);
 		for (const auto& [key, animation] : Application->activeScene->mPlayingAnimations) {
+			glm::vec3 position = glm::vec3(0.0f);
+			glm::quat rotation = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
 			if (animation.mTranslations[boneId].size() > time) {
-				bone->mLocalTransform[3] = glm::vec4(animation.mTranslations[boneId][time], 1.0f);
+				position = animation.mTranslations[boneId][time];
 			}
 			if (animation.mRotations[boneId].size() > time) {
-				glm::quat rotationQuat = animation.mRotations[boneId][time];
-				glm::mat4 rotationMatrix = glm::toMat4(rotationQuat);
-				bone->mLocalTransform = bone->mLocalTransform; //* rotationMatrix;
+				rotation = glm::normalize(animation.mRotations[boneId][time]);//glm::quat(glm::vec3(glm::eulerAngles(glm::normalize(animation.mRotations[boneId][time])) * glm::vec3(180.0f / glm::pi<float>())));//glm::quat(glm::eulerAngles(glm::normalize(animation.mRotations[boneId][time])) * glm::vec3(180.0f / glm::pi<float>())); //* (180.0f / glm::pi<float>());
 			}
+			//bone->mLocalTransform = glm::mat4(1.0f);
+			//bone->mLocalTransform[3] = glm::vec4(position, 1.0f);//glm::translate(glm::mat4(1.0f), position)
+			//bone->mLocalTransform *= glm::rotate(bone->mLocalTransform, glm::mat4_cast(rotation));
+			glm::mat4 translate = glm::translate(glm::mat4(1.0), position);
+			glm::mat4 rotate = glm::toMat4(rotation);
+			glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(1.0f));
+			bone->mLocalTransform = translate * rotate * scale;
+			//* glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 		}
 	}
 
-	void VulkanRenderer::CalculateBonesParentship(Bone* bone, Bone* parentBone) {
+	void VulkanRenderer::CalculateBonesParentship(Bone* bone, glm::mat4 parentTransform) {
 		//glm::vec3 targetTranslation = glm::vec3(5.0f, 3.0f, 1.0f);
 		//glm::vec3 currentTranslation = glm::vec3(bone->mTransform[3]);
 		//glm::vec3 newTranslation = glm::mix(glm::vec3(0.0f), targetTranslation, time);
 		//bone->mTransform[3] = glm::vec4(newTranslation, 1.0f);
 
-		if (parentBone)
-			bone->mTransform = parentBone->mTransform * bone->mLocalTransform;//bone->mTransform;
-		else
-			bone->mTransform = bone->mLocalTransform;
+		//if (parentBone)
+			bone->mTransform = parentTransform * bone->mLocalTransform;//bone->mTransform;
+		//else
+		//	bone->mTransform = glm::mat4(1.0f) * bone->mLocalTransform;
 		for (uint64_t childId : bone->mChildren) {
 			if (this->mBones.find(childId) != this->mBones.end())
-				this->CalculateBonesParentship(&this->mBones[childId], bone);
+				this->CalculateBonesParentship(&this->mBones[childId], bone->mTransform);
 		}
 	}
+	static inline int tim2 = 0;
 	static inline int tim = 0;
 	void VulkanRenderer::EarlyAnimationController() {
-		if (tim > 150)
+		if (tim > 120)
 			tim = 0;
 		if (increasing) {
 			time += 0.01f; // Adjust the increment value as needed for smoothness
@@ -1144,10 +1153,14 @@ namespace Plaza {
 		}
 		for (auto& [key, value] : this->mBones) {
 			if (value.mId != -1 && value.mParentId == 0)
-				CalculateBonesParentship(&value, nullptr);
+				CalculateBonesParentship(&value, glm::mat4(1.0f));
 		}
 
+		if (tim2 == 20) {
+			tim2 = 0;
+		}
 		tim++;
+		tim2++;
 	}
 
 	void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer,
@@ -1319,6 +1332,7 @@ namespace Plaza {
 				this->EarlyAnimationController();
 				std::unordered_set<int> matricesIds = std::unordered_set<int>();
 				std::vector<glm::mat4> matrices = std::vector<glm::mat4>();
+				matrices.resize(this->mBones.size() + 5);
 				//for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
 					//if (value.mesh->uniqueBonesInfo.size() > 0) {
 						//for (int i = 1; i < value.mesh->uniqueBonesInfo.size(); ++i) {
@@ -1343,7 +1357,9 @@ namespace Plaza {
 					//float z = -5.0f + static_cast<float>(std::rand()) / (static_cast<float>(RAND_MAX / 10.0f));
 					//glm::mat4 mat = glm::mat4(1.0f);
 					//mat = glm::translate(mat, glm::vec3(x, y, z));
-					matrices.push_back(value.mTransform);
+					glm::mat4 off = value.mOffset;
+					//off[3] *= glm::vec4(glm::vec3(0.01f), 1.0f);
+					matrices[value.mId] = value.mTransform * value.mOffset; //* value.mOffset;
 					//matricesIds.emplace(value.mId);
 				}
 
@@ -3152,6 +3168,17 @@ namespace Plaza {
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		return texture;
 	}
+
+	std::array<int64_t, MAX_BONE_INFLUENCE> VulkanRenderer::GetBoneIds(std::vector<unsigned int> bones) {
+		std::array<int64_t, MAX_BONE_INFLUENCE> ids = std::array<int64_t, MAX_BONE_INFLUENCE>();
+		for (int i = 0; i < 4; ++i) {
+			if (bones.size() > i && bones[i] > 0)
+				ids[i] = this->mBones[bones[i]].mId;
+			else
+				ids[i] = -1;
+		}
+		return ids;
+	}
 	static int bonesIndex = 0;
 	Mesh& VulkanRenderer::CreateNewMesh(
 		vector<glm::vec3> vertices,
@@ -3180,10 +3207,19 @@ namespace Plaza {
 			uint64_t siz = mBones.size();
 			uint64_t siz1 = mBones.size() + 1;
 
-			if (this->mBones.find(uniqueBonesInfo[i].mId) == this->mBones.end())
-				this->mBones.emplace(uniqueBonesInfo[i].mId, Bone{ mBones.size() + 1, uniqueBonesInfo[i].mParentId, uniqueBonesInfo[i].mName });
+			if (this->mBones.find(uniqueBonesInfo[i].mId) == this->mBones.end()) {
+				this->mBones.emplace(uniqueBonesInfo[i].mId, Bone{ mBones.size() + 1, uniqueBonesInfo[i].mParentId, uniqueBonesInfo[i].mName, uniqueBonesInfo[i].mOffset});
+
+			}
 			if (this->mBones[uniqueBonesInfo[i].mId].mId > 1000)
 				std::cout << "bigger \n";
+		}
+		for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
+			uint64_t siz = mBones.size();
+			uint64_t siz1 = mBones.size() + 1;
+			if (uniqueBonesInfo[i].mParentId != 0 && this->mBones.find(uniqueBonesInfo[i].mParentId) != this->mBones.end()) {
+				this->mBones.at(uniqueBonesInfo[i].mParentId).mChildren.push_back(uniqueBonesInfo[i].mId);
+			}
 		}
 
 		for (unsigned int i = 0; i < vertices.size(); i++) {
@@ -3199,16 +3235,16 @@ namespace Plaza {
 				(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f),
 				(bitangent.size() > i) ? bitangent[i] : glm::vec3(0.0f),
 				(materialsIndices.size() > i) ? materialsIndices[i] : 0,
-				(bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0) ? bonesHolder[i].GetBoneIds() : std::array<int64_t, MAX_BONE_INFLUENCE>{-1, -1, -1, -1},
+				(bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0) ? this->GetBoneIds(bonesHolder[i].mBones) : std::array<int64_t, MAX_BONE_INFLUENCE>{-1, -1, -1, -1},
 				(bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0) ? bonesHolder[i].GetBoneWeights() : std::array<float, MAX_BONE_INFLUENCE>{0, 0, 0, 0} };
-			for (int i = 0; i < 4; ++i) {
-				if (vertex.boneIds[i] == -1)
+			for (int j = 0; j < 4; ++j) {
+				if (vertex.boneIds[j] <= 0)
 					continue;
-				vertex.weights[i] = 1.0f;
-				if (mBones.find(vertex.boneIds[i]) != mBones.end()) {
-					if (mBones[vertex.boneIds[i]].mId > 1000)
+				//vertex.weights[i] = 1.0f;
+				if (mBones.find(vertex.boneIds[j]) != mBones.end()) {
+					if (mBones[vertex.boneIds[j]].mId > 1000)
 						std::cout << "bigger 2 \n";
-					vertex.boneIds[i] = mBones[vertex.boneIds[i]].mId;
+					//vertex.boneIds[i] = mBones[vertex.boneIds[i]].mId;
 				}
 				else {
 					//mBones.emplace(vertex.boneIds[i], Bone{ mBones.size() + 1, uniqueBonesInfo[vertex.boneIds[i]].mParentId, uniqueBonesInfo[vertex.boneIds[i]].mName });

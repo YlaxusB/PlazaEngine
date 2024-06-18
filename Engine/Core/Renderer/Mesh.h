@@ -1,11 +1,14 @@
 #pragma once
 #include "Engine/Core/PreCompiledHeaders.h"
 #include <unordered_set>
+#include <ThirdParty/glm/glm.hpp>
 #include <ThirdParty/cereal/cereal/types/string.hpp>
 #include <ThirdParty/cereal/cereal/types/vector.hpp>
 #include <ThirdParty/cereal/cereal/cereal.hpp>
 
+
 namespace Plaza {
+
 	enum RendererAPI;
 	enum MeshType {
 		Triangle = 0,
@@ -51,31 +54,32 @@ namespace Plaza {
 		uint64_t mParentId = -1;
 		std::string mName = "bone";
 		Bone(uint64_t id, std::string name) : mId(id), mName(name) {};
-		Bone(uint64_t id, uint64_t parentId, std::string name) : mId(id), mParentId(parentId), mName(name) {};
+		Bone(uint64_t id, uint64_t parentId, std::string name, glm::mat4 offset = glm::mat4(1.0f)) : mId(id), mParentId(parentId), mName(name), mOffset(offset) {};
 		float weight = 0.0f;
 		glm::vec3 mPosition = glm::vec3(0.0f);
 		glm::quat mRotation = glm::quat(glm::vec3(0.0f));
 		glm::vec3 mScale = glm::vec3(1.0f);
 		glm::mat4 mLocalTransform = glm::mat4(1.0f);
 		glm::mat4 mTransform = glm::mat4(1.0f);
+		glm::mat4 mOffset = glm::mat4(1.0f);
 		std::vector<uint64_t> mChildren = std::vector<uint64_t>();
 		Bone() {};
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(mId, mName, weight, mPosition, mRotation, mScale, mParentId, mChildren);
+			archive(mId, mName, weight, mPosition, mRotation, mScale, mOffset, mParentId, mChildren);
 		}
 	};
 
 	struct BonesHolder {
-		std::vector<Bone> mBones = std::vector<Bone>();
+		std::vector<unsigned int> mBones = std::vector<unsigned int>();
 		std::vector<float> mWeights = std::vector<float>();
 		//std::vector<unsigned int> mBonesIds = std::vector<unsigned int>();
 
 		std::array<int64_t, MAX_BONE_INFLUENCE> GetBoneIds() {
 			std::array<int64_t, MAX_BONE_INFLUENCE> bonesArray = std::array<int64_t, MAX_BONE_INFLUENCE>();
 			for (unsigned int i = 0; i < mBones.size() && i < MAX_BONE_INFLUENCE; ++i) {
-				bonesArray[i] = this->mBones[i].mId;
+				bonesArray[i] = this->mBones[i];
 			}
 			return bonesArray;
 		}

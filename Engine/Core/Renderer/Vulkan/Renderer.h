@@ -286,13 +286,23 @@ namespace Plaza {
 		VkDeviceMemory mMainVertexBufferMemory = VK_NULL_HANDLE;
 		VkBuffer mMainIndexBuffer = VK_NULL_HANDLE;
 		VkDeviceMemory mMainIndexBufferMemory = VK_NULL_HANDLE;
+
 		std::vector<VkBuffer> mMainInstanceMatrixBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mMainInstanceMatrixBufferMemories = std::vector<VkDeviceMemory>();
+
 		std::vector<VkBuffer> mMainInstanceMaterialBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mMainInstanceMaterialBufferMemories = std::vector<VkDeviceMemory>();
+
+		std::vector<VkBuffer> mMainInstanceMaterialOffsetsBuffers = std::vector<VkBuffer>();
+		std::vector<VkDeviceMemory> mMainInstanceMaterialOffsetsBufferMemories = std::vector<VkDeviceMemory>();
+
+		std::vector<VkBuffer> mMainInstanceRenderGroupOffsetsBuffers = std::vector<VkBuffer>();
+		std::vector<VkDeviceMemory> mMainInstanceRenderGroupOffsetsBufferMemories = std::vector<VkDeviceMemory>();
+
 		std::vector<VkBuffer> mBoneMatricesBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mBoneMatricesBufferMemories = std::vector<VkDeviceMemory>();
 		std::vector<glm::mat4> mInstanceModelMatrices = std::vector<glm::mat4>();
+		std::vector<std::vector<unsigned int>> mInstanceModelMaterialOffsets = std::vector<std::vector<unsigned int>>();
 		std::vector<unsigned int> mInstanceModelMaterialsIndex = std::vector<unsigned int>();
 
 		std::vector<MaterialData> mUploadedMaterials = std::vector<MaterialData>();
@@ -348,6 +358,11 @@ vec3 viewPos;
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 
+		struct VertexMaterialsOffsets {
+			std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
+			std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
+		};
+
 		static std::array<VkVertexInputBindingDescription, 2> VertexGetBindingDescription() {
 			std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {};
 			bindingDescriptions[0].binding = 0;
@@ -363,7 +378,7 @@ vec3 viewPos;
 
 			//VkVertexInputBindingDescription materialBindingDescription = {};
 			//materialBindingDescription.binding = 2;
-			//materialBindingDescription.stride = sizeof(unsigned int);
+			//materialBindingDescription.stride = 64 * sizeof(unsigned int);
 			//materialBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
 			//bindingDescriptions[2] = materialBindingDescription;
 			return bindingDescriptions;

@@ -173,6 +173,9 @@ namespace Plaza {
 					loadedMaterials.emplace(materialOutPath, material->uuid);
 					materialsMap.emplace(mesh.getMaterial(materialIndex)->id, material->mAssetUuid);
 					meshMaterials.push_back(material);
+
+					AssetsSerializer::SerializeMaterial(material, materialOutPath);
+					Application->activeScene->AddMaterial(material);
 				}
 			}
 

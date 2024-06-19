@@ -1119,7 +1119,7 @@ namespace Plaza {
 		//bone->mTransform[3] = glm::vec4(newTranslation, 1.0f);
 
 		//if (parentBone)
-			bone->mTransform = parentTransform * bone->mLocalTransform;//bone->mTransform;
+		bone->mTransform = parentTransform * bone->mLocalTransform;//bone->mTransform;
 		//else
 		//	bone->mTransform = glm::mat4(1.0f) * bone->mLocalTransform;
 		for (uint64_t childId : bone->mChildren) {
@@ -1237,6 +1237,9 @@ namespace Plaza {
 			}
 		}
 
+		unsigned int allMaterialsCount = 0;
+		std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
+		std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
 		{
 			PLAZA_PROFILE_SECTION("Create Indirect Commands");
 			this->mIndirectCommands.clear();
@@ -1245,26 +1248,39 @@ namespace Plaza {
 			this->mInstanceModelMaterialsIndex.push_back(0);
 			mTotalInstances = 0;
 			mIndirectDrawCount = 0;
+			unsigned int lastRendergroupMaterialsCount = 0;
 			for (const auto& [key, value] : Application->activeScene->renderGroups) {
+				const size_t& materialsCount = value->materials.size();
+				const size_t& instanceCount = value->instanceModelMatrices.size();
+				allMaterialsCount += materialsCount;
+
 				VkDrawIndexedIndirectCommand indirectCommand{};
 				indirectCommand.firstIndex = value->mesh->indicesOffset;
 				indirectCommand.vertexOffset = value->mesh->verticesOffset;
 				indirectCommand.firstInstance = mTotalInstances;
 				indirectCommand.indexCount = value->mesh->indicesCount; // indices.size();
-				indirectCommand.instanceCount = value->instanceModelMatrices.size();
+				indirectCommand.instanceCount = instanceCount;
 
 				this->mIndirectCommands.push_back(indirectCommand);
 				value->mesh->instanceOffset = mTotalInstances;
 
-				for (unsigned int i = 0; i < value->instanceModelMatrices.size(); ++i) {
+				for (unsigned int i = 0; i < instanceCount; ++i) {
 					this->mInstanceModelMatrices.push_back(value->instanceModelMatrices[i]);
+					this->mInstanceModelMaterialOffsets.push_back(value->instanceMaterialOffsets);
 					//this->mInstanceModelMaterialsIndex.push_back(value->instanceMaterialIndices[i]);
+					renderGroupOffsets.push_back(allMaterialsCount - materialsCount);
 					mTotalInstances++; //= value->instanceModelMatrices.size();
+				}
+
+				for (unsigned int i = 0; i < materialsCount; ++i) {
+					renderGroupMaterialsOffsets.push_back(value->materials[i]->mIndexHandle);
 				}
 
 				mIndirectDrawCount++;
 				value->instanceModelMatrices.clear();
 				value->instanceMaterialIndices.clear();
+				lastRendergroupMaterialsCount = materialsCount;
+
 			}
 		}
 
@@ -1279,26 +1295,13 @@ namespace Plaza {
 				this->mShadows->mShadowsShader->mPipeline);
 
 			this->mShadows->UpdateAndPushConstants(commandBuffer, 0);
-			vkCmdBindDescriptorSets(
-				commandBuffer,
-				VK_PIPELINE_BIND_POINT_GRAPHICS,
-				this->mShadows->mShadowsShader->mPipelineLayout,
-				0,
-				1,
-				&this->mShadows->mCascades[0].mDescriptorSets[mCurrentFrame],
-				0,
-				nullptr);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[0].mDescriptorSets[mCurrentFrame], 0, nullptr);
 
 			{
 				PLAZA_PROFILE_SECTION("Copy Indirect Data");
 				VkDeviceSize bufferSize = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
 				void* data;
-				vkMapMemory(this->mDevice,
-					mIndirectBufferMemories[mCurrentFrame],
-					0,
-					bufferSize,
-					0,
-					&data);
+				vkMapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
 				memcpy(data, mIndirectCommands.data(), static_cast<size_t>(bufferSize));
 				vkUnmapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame]);
 			}
@@ -1307,16 +1310,9 @@ namespace Plaza {
 				PLAZA_PROFILE_SECTION("Copy Data");
 				VkDeviceSize bufferSize = sizeof(glm::mat4) * mInstanceModelMatrices.size();
 				void* data;
-				vkMapMemory(this->mDevice,
-					mMainInstanceMatrixBufferMemories[mCurrentFrame],
-					0,
-					bufferSize,
-					0,
-					&data);
-				memcpy(
-					data, mInstanceModelMatrices.data(), static_cast<size_t>(bufferSize));
-				vkUnmapMemory(this->mDevice,
-					mMainInstanceMatrixBufferMemories[mCurrentFrame]);
+				vkMapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
+				memcpy(data, mInstanceModelMatrices.data(), static_cast<size_t>(bufferSize));
+				vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame]);
 			}
 
 			{
@@ -1326,6 +1322,24 @@ namespace Plaza {
 				vkMapMemory(this->mDevice, mMainInstanceMaterialBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
 				memcpy(data, mInstanceModelMaterialsIndex.data(), static_cast<size_t>(bufferSize));
 				vkUnmapMemory(this->mDevice, mMainInstanceMaterialBufferMemories[mCurrentFrame]);
+			}
+
+			{
+				PLAZA_PROFILE_SECTION("Bind the instance material offsets");
+				VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupMaterialsOffsets.size());
+				void* data;
+				vkMapMemory(this->mDevice, mMainInstanceMaterialOffsetsBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
+				memcpy(data, renderGroupMaterialsOffsets.data(), sizeof(uint32_t) * renderGroupMaterialsOffsets.size());
+				vkUnmapMemory(this->mDevice, mMainInstanceMaterialOffsetsBufferMemories[mCurrentFrame]);
+			}
+
+			{
+				PLAZA_PROFILE_SECTION("Bind the instance material offsets 2");
+				VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupOffsets.size());
+				void* data;
+				vkMapMemory(this->mDevice, mMainInstanceRenderGroupOffsetsBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
+				memcpy(data, renderGroupOffsets.data(), sizeof(uint32_t) * renderGroupOffsets.size());
+				vkUnmapMemory(this->mDevice, mMainInstanceRenderGroupOffsetsBufferMemories[mCurrentFrame]);
 			}
 
 			{
@@ -1359,7 +1373,7 @@ namespace Plaza {
 					//mat = glm::translate(mat, glm::vec3(x, y, z));
 					glm::mat4 off = value.mOffset;
 					//off[3] *= glm::vec4(glm::vec3(0.01f), 1.0f);
-					matrices[value.mId] = value.mTransform * value.mOffset; //* value.mOffset;
+					matrices[value.mId] = value.mTransform; //* value.mOffset;
 					//matricesIds.emplace(value.mId);
 				}
 
@@ -1377,21 +1391,11 @@ namespace Plaza {
 
 			VkDeviceSize offsets[1] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
-			vkCmdBindVertexBuffers(
-				commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
-			vkCmdBindVertexBuffers(commandBuffer,
-				2,
-				1,
-				&mMainInstanceMaterialBuffers[mCurrentFrame],
-				offsets);
-			vkCmdBindIndexBuffer(
-				commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
+			//vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
+			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdDrawIndexedIndirect(commandBuffer,
-				mIndirectBuffers[mCurrentFrame],
-				0,
-				mIndirectDrawCount,
-				sizeof(VkDrawIndexedIndirectCommand));
+			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 
 			// for (const auto& [key, value] : Application->activeScene->renderGroups) {
 			//	//	this->DrawRenderGroupShadowDepthMapInstanced(value, 0);
@@ -1424,51 +1428,31 @@ namespace Plaza {
 		scissor.extent.width = Application->appSizes->sceneSize.x;
 		scissor.extent.height = Application->appSizes->sceneSize.y;
 
-		vkCmdBeginRenderPass(
-			commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 		{
 			PLAZA_PROFILE_SECTION("Bind Instances Data");
 			std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
-			descriptorSets.push_back(this->mGeometryPassRenderer.mShaders
-				->mDescriptorSets[this->mCurrentFrame]);
+			descriptorSets.push_back(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame]);
 
 			VkDeviceSize offsets[1] = { 0 };
-			vkCmdBindIndexBuffer(
-				commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
-			vkCmdBindVertexBuffers(
-				commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
-			vkCmdBindVertexBuffers(commandBuffer,
-				2,
-				1,
-				&mMainInstanceMaterialBuffers[mCurrentFrame],
-				offsets);
-			vkCmdBindDescriptorSets(
-				commandBuffer,
-				VK_PIPELINE_BIND_POINT_GRAPHICS,
-				this->mGeometryPassRenderer.mShaders->mPipelineLayout,
-				0,
-				descriptorSets.size(),
-				descriptorSets.data(),
-				0,
-				nullptr);
+			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
+			//vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
+			//vkCmdBindVertexBuffers(commandBuffer, 3, 1, &mMainInstanceMaterialOffsetsBuffers[mCurrentFrame], offsets);
+			//vkCmdBindVertexBuffers(commandBuffer, 4, 1, &mMainInstanceRenderGroupOffsetsBuffers[mCurrentFrame], offsets);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mGeometryPassRenderer.mShaders->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 		}
 
 		// Render the scene with textures and sampling the shadow map
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		vkCmdBindPipeline(commandBuffer,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			this->mGeometryPassRenderer.mShaders->mPipeline);
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mGeometryPassRenderer.mShaders->mPipeline);
 		{
 			PLAZA_PROFILE_SECTION("Draw Instances");
 
-			vkCmdDrawIndexedIndirect(commandBuffer,
-				mIndirectBuffers[mCurrentFrame],
-				0,
-				mIndirectDrawCount,
-				sizeof(VkDrawIndexedIndirectCommand));
+			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 		}
 
 		vkCmdEndRenderPass(commandBuffer);
@@ -2497,59 +2481,44 @@ namespace Plaza {
 
 		// Descriptor set
 		std::vector<VkDescriptorSetLayoutBinding> descriptorSets{};
-		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(
-			0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nullptr, VK_SHADER_STAGE_ALL));
+		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nullptr, VK_SHADER_STAGE_ALL));
 		static const uint32_t maxBindlessResources = 16536;
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(20, maxBindlessResources, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(9, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(19, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_VERTEX_BIT));
+		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(2, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_VERTEX_BIT));
+		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(3, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_VERTEX_BIT));
 
 		VkDescriptorBindingFlags bindlessFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
 		VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT,	nullptr };
-		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0, 0, 0 };
+		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0, 0, 0, 0, 0 };
 		extendedInfo.pBindingFlags = bindingFlags;
 		extendedInfo.bindingCount = static_cast<uint32_t>(descriptorSets.size());
 
 		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = plvk::descriptorSetLayoutCreateInfo(descriptorSets, VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT, &extendedInfo);
 
-		vkCreateDescriptorSetLayout(
-			this->mDevice,
-			&descriptorSetLayoutCreateInfo,
-			nullptr,
-			&this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout);
+		vkCreateDescriptorSetLayout(this->mDevice, &descriptorSetLayoutCreateInfo, nullptr, &this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout);
 
-		VkPushConstantRange pushConstantRange = plvk::pushConstantRange(
-			VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants));
+		VkPushConstantRange pushConstantRange = plvk::pushConstantRange(VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants));
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = plvk::pipelineLayoutCreateInfo(1, &this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout, 1, &pushConstantRange);
 
 		this->mGeometryPassRenderer.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert");
 		this->mGeometryPassRenderer.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag");
 		auto bindingsArray = VertexGetBindingDescription();
-		std::vector<VkVertexInputBindingDescription> bindings(
-			std::begin(bindingsArray), std::end(bindingsArray));
+		std::vector<VkVertexInputBindingDescription> bindings(std::begin(bindingsArray), std::end(bindingsArray));
 		auto attributesArray = VertexGetAttributeDescriptions();
-		std::vector<VkVertexInputAttributeDescription> attributes(
-			std::begin(attributesArray), std::end(attributesArray));
+		std::vector<VkVertexInputAttributeDescription> attributes(std::begin(attributesArray), std::end(attributesArray));
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = plvk::pipelineVertexInputStateCreateInfo(bindings, attributes);
-		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = plvk::pipelineInputAssemblyStateCreateInfo(
-			VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_FALSE);
+		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = plvk::pipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_FALSE);
 		VkPipelineRasterizationStateCreateInfo rasterizationState = plvk::pipelineRasterizationStateCreateInfo(VK_FALSE, VK_FALSE, VK_POLYGON_MODE_FILL, 1.0f, VK_FALSE, 0.0f, 0.0f, 0.0f, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 		VkPipelineColorBlendAttachmentState blendAttachmentState = plvk::pipelineColorBlendAttachmentState(VK_TRUE);
-		std::vector<VkPipelineColorBlendAttachmentState> blendAttachments{
-			blendAttachmentState,
-			blendAttachmentState,
-			blendAttachmentState,
-			blendAttachmentState
-		};
+		std::vector<VkPipelineColorBlendAttachmentState> blendAttachments{ blendAttachmentState,blendAttachmentState,blendAttachmentState,blendAttachmentState };
 		VkPipelineColorBlendStateCreateInfo colorBlendState = plvk::pipelineColorBlendStateCreateInfo(4, blendAttachments.data());
-		VkPipelineDepthStencilStateCreateInfo depthStencilState = plvk::pipelineDepthStencilStateCreateInfo(
-			VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS_OR_EQUAL);
+		VkPipelineDepthStencilStateCreateInfo depthStencilState = plvk::pipelineDepthStencilStateCreateInfo(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS_OR_EQUAL);
 		VkPipelineViewportStateCreateInfo viewportState = plvk::pipelineViewportStateCreateInfo(1, 1);
 		VkPipelineMultisampleStateCreateInfo multisampleState = plvk::pipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
-		std::vector<VkDynamicState> dynamicStateEnables = {
-			VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR
-		};
+		std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 		VkPipelineDynamicStateCreateInfo dynamicState = plvk::pipelineDynamicStateCreateInfo(dynamicStateEnables);
 		this->mGeometryPassRenderer.mShaders->InitializeFull(
 			this->mDevice,
@@ -2570,15 +2539,12 @@ namespace Plaza {
 			// this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout,
 		);
 
-		VkDescriptorSetAllocateInfo allocInfo{
-			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO
-		};
+		VkDescriptorSetAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 		allocInfo.descriptorPool = this->mDescriptorPool;
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout;
 
-		this->mGeometryPassRenderer.mShaders->mDescriptorSets.resize(
-			Application->mRenderer->mMaxFramesInFlight);
+		this->mGeometryPassRenderer.mShaders->mDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
 		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight;
 			++i) {
 			if (vkAllocateDescriptorSets(
@@ -2597,11 +2563,12 @@ namespace Plaza {
 			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 9, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo));
 			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 1, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bonesBufferInfo));
 
-			vkUpdateDescriptorSets(this->mDevice,
-				static_cast<uint32_t>(descriptorWrites.size()),
-				descriptorWrites.data(),
-				0,
-				nullptr);
+			VkDescriptorBufferInfo renderGroupOffsetsBufferInfo = plvk::descriptorBufferInfo(this->mMainInstanceRenderGroupOffsetsBuffers[i], 0, 1024 * 256 * (64 * sizeof(unsigned int)));
+			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 2, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &renderGroupOffsetsBufferInfo));
+			VkDescriptorBufferInfo materialOffsetsbufferInfo = plvk::descriptorBufferInfo(this->mMainInstanceMaterialOffsetsBuffers[i], 0, 1024 * 256 * (64 * sizeof(unsigned int)));
+			descriptorWrites.push_back(plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 3, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &materialOffsetsbufferInfo));
+
+			vkUpdateDescriptorSets(this->mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
 	}
 
@@ -2673,6 +2640,10 @@ namespace Plaza {
 		mMainInstanceMatrixBufferMemories.resize(mMaxFramesInFlight);
 		mMainInstanceMaterialBuffers.resize(mMaxFramesInFlight);
 		mMainInstanceMaterialBufferMemories.resize(mMaxFramesInFlight);
+		mMainInstanceMaterialOffsetsBuffers.resize(mMaxFramesInFlight);
+		mMainInstanceMaterialOffsetsBufferMemories.resize(mMaxFramesInFlight);
+		mMainInstanceRenderGroupOffsetsBuffers.resize(mMaxFramesInFlight);
+		mMainInstanceRenderGroupOffsetsBufferMemories.resize(mMaxFramesInFlight);
 		mBoneMatricesBuffers.resize(mMaxFramesInFlight);
 		mBoneMatricesBufferMemories.resize(mMaxFramesInFlight);
 		mMaterialBuffers.resize(mMaxFramesInFlight);
@@ -2698,6 +2669,21 @@ namespace Plaza {
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 				mMaterialBuffers[i],
 				mMaterialBufferMemories[i]);
+
+			CreateBuffer(1024 * 256 * (64 * sizeof(unsigned int)),
+				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				mMainInstanceMaterialOffsetsBuffers[i],
+				mMainInstanceMaterialOffsetsBufferMemories[i]);
+			CreateBuffer(1024 * 256 * (64 * sizeof(unsigned int)),
+				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				mMainInstanceRenderGroupOffsetsBuffers[i],
+				mMainInstanceRenderGroupOffsetsBufferMemories[i]);
+
+
+
+
 			CreateBuffer(1024 * 16 * sizeof(glm::mat4),
 				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -3208,7 +3194,7 @@ namespace Plaza {
 			uint64_t siz1 = mBones.size() + 1;
 
 			if (this->mBones.find(uniqueBonesInfo[i].mId) == this->mBones.end()) {
-				this->mBones.emplace(uniqueBonesInfo[i].mId, Bone{ mBones.size() + 1, uniqueBonesInfo[i].mParentId, uniqueBonesInfo[i].mName, uniqueBonesInfo[i].mOffset});
+				this->mBones.emplace(uniqueBonesInfo[i].mId, Bone{ mBones.size() + 1, uniqueBonesInfo[i].mParentId, uniqueBonesInfo[i].mName, uniqueBonesInfo[i].mOffset });
 
 			}
 			if (this->mBones[uniqueBonesInfo[i].mId].mId > 1000)
@@ -3660,21 +3646,15 @@ namespace Plaza {
 			vkMapMemory(mDevice, this->mMaterialBufferMemories[mCurrentFrame], 0, size, 0, &data);
 			memcpy(data, this->mUploadedMaterials.data(), static_cast<size_t>(size));
 			vkUnmapMemory(mDevice, this->mMaterialBufferMemories[mCurrentFrame]);
-			VkDescriptorBufferInfo bufferInfo = {};
-			bufferInfo.buffer = this->mMaterialBuffers[i];
-			bufferInfo.offset = 0;
-			bufferInfo.range = VK_WHOLE_SIZE;
 
-			VkWriteDescriptorSet descriptorWrite = {};
-			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrite.dstSet = this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame]; // this->mDescriptorSets[mCurrentFrame];
-			descriptorWrite.dstBinding = 19;
-			descriptorWrite.dstArrayElement = 0;
-			descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-			descriptorWrite.descriptorCount = 1;
-			descriptorWrite.pBufferInfo = &bufferInfo;
+			VkDescriptorBufferInfo bufferInfo1 = plvk::descriptorBufferInfo(this->mMaterialBuffers[i], 0, VK_WHOLE_SIZE);
+			VkWriteDescriptorSet materialDescriptorWrite = plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame], 19, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bufferInfo1);
+			VkDescriptorBufferInfo bufferInfo2 = plvk::descriptorBufferInfo(this->mMainInstanceMaterialOffsetsBuffers[i], 0, VK_WHOLE_SIZE);
+			VkWriteDescriptorSet renderGroupMaterialsDescriptorWrite = plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame], 3, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bufferInfo2);
+			VkDescriptorBufferInfo bufferInfo3 = plvk::descriptorBufferInfo(this->mMainInstanceMaterialOffsetsBuffers[i], 0, VK_WHOLE_SIZE);
+			VkWriteDescriptorSet renderGroupMaterialsOffsetDescriptorWrite = plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame], 4, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bufferInfo3);
 
-			vkUpdateDescriptorSets(mDevice, 1, &descriptorWrite, 0, nullptr);
+			vkUpdateDescriptorSets(mDevice, 1, &materialDescriptorWrite, 0, nullptr);
 		}
 	}
 
@@ -3714,8 +3694,7 @@ namespace Plaza {
 
 		VkWriteDescriptorSet descriptorWrite = {};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = this->mGeometryPassRenderer.mShaders->mDescriptorSets
-			[this->mCurrentFrame]; // this->mDescriptorSets[mCurrentFrame];
+		descriptorWrite.dstSet = this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame]; // this->mDescriptorSets[mCurrentFrame];
 		descriptorWrite.dstBinding = 19;
 		descriptorWrite.dstArrayElement = 0;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;

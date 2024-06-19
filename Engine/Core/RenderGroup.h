@@ -14,6 +14,7 @@ namespace Plaza {
 		std::vector<Material*> materials = std::vector<Material*>();
 		std::vector<uint64_t> materialsUuid = std::vector<uint64_t>();
 		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
+		std::vector<unsigned int> instanceMaterialOffsets = std::vector<unsigned int>();
 		vector<unsigned int> instanceMaterialIndices = vector<unsigned int>();
 		vector<vector<glm::mat4>> mCascadeInstances = vector<vector<glm::mat4>>();
 

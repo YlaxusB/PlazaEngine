@@ -154,7 +154,7 @@ namespace Plaza {
 				meshRenderer->instanced = true;
 				meshRenderer->mMaterials = Application->activeScene->GetMaterialsVector(deserializedMeshRenderer.materialsUuid);
 				RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
-				meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
+				//meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
 				newEntity->AddComponent<MeshRenderer>(meshRenderer);
 			}
 			if (typeid(*component.get()) == typeid(SerializableCollider)) {

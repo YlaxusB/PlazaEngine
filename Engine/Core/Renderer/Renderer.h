@@ -23,6 +23,7 @@ namespace Plaza {
 
 	class Renderer {
 	public:
+
 		std::vector<TrackedImage> mTrackedImages = std::vector<TrackedImage>();
 
 		uint32_t mCurrentFrame = 0;

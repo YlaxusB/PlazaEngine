@@ -23,6 +23,7 @@ layout(location = 5) in vec4 instanceMatrix[4];
 layout(location = 9) in ivec4 boneIds;
 layout(location = 10) in vec4 weights;
 layout(location = 11) in uint vertexMaterialIndex;
+//layout(location = 12) in uint materialsOffsets[64];
 
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
@@ -34,9 +35,22 @@ layout(std430, binding = 1) readonly buffer BoneMatrices {
 	mat4 boneMatrices[];
 };
 
+//layout(std430, binding = 2) readonly buffer RenderGroups {
+//    uint renderGroupOffsets[]; // This takes the instance id, returns an index that will be the starting point of the material offsets, thus converting the vertex material index (from 0 to ...) into an index that takes into account prior materials 
+//	uint renderGroupMaterialsOffsets[]; // This takes the converted vertex material index and returns the real material index
+//};
+
+layout(std430, binding = 2) readonly buffer RenderGroupOffsetsBuffer {
+    uint renderGroupOffsets[]; 
+};
+
+layout(std430, binding = 3) readonly buffer RenderGroupMaterialsOffsetsBuffer { 
+	uint renderGroupMaterialsOffsets[];
+};
+
 //#define MESH_RENDERER_MAX_MATERIALS 64
 //layout(location = 18) in uint[MESH_RENDERER_MAX_MATERIALS] meshRendererMaterials;
-layout(location = 18) in uint meshRendererMaterials;
+//layout(location = 18) in uint meshRendererMaterials;
 //layout(location = 18) in uint mat;
 layout(binding = 20) uniform sampler2D textures[];
 
@@ -63,7 +77,6 @@ void main() {
     mat4 finalInstanceMatrix = model;
     FragPos = vec4(model * vec4(inPosition, 1.0));
     //vs_out.Normal = transpose(inverse(mat3(aInstanceMatrix))) * aNormal;
-    TexCoords = vec2(1.0f, 1.0f) -  inTexCoord;
 
     //if(usingNormal){
     //    mat3 normalMatrix = transpose(inverse(mat3(finalInstanceMatrix)));
@@ -109,7 +122,7 @@ void main() {
     worldPos.xyz = vec3(finalModel);
     gl_Position = ubo.projection * ubo.view * finalModel;
     if(vertexMaterialIndex < 16536)
-    materialIndex = vertexMaterialIndex;//meshRendererMaterials[vertexMaterialIndex];//22;
+        materialIndex = renderGroupMaterialsOffsets[vertexMaterialIndex + renderGroupOffsets[gl_InstanceIndex]];//meshRendererMaterials[vertexMaterialIndex];//22;
     else
-    materialIndex = 0;
+        materialIndex = 0;
 }

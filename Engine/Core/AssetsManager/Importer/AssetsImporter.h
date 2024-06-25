@@ -4,7 +4,9 @@
 #include <assimp/postprocess.h>
 #include <assimp/vector3.h>
 //#include "ThirdParty/OpenFBX/src/ofbx.h"
-#include "ThirdParty/ufbx/ufbx.h"
+//#define UFBX_STATIC
+#include "ThirdParty/ufbx/ufbx/ufbx.h"
+//#include <include/ufbx.c>
 #include "ThirdParty/tinyobjloader/tiny_obj_loader.h"
 
 namespace Plaza {
@@ -44,7 +46,7 @@ namespace Plaza {
 			{".tga", TGA}
 		};
 
-		static Material* FbxModelMaterialLoader(const ofbx::Material* ofbxMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures);
+		static Material* FbxModelMaterialLoader(const ufbx_material* ufbxMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures);
 		static Material* ObjModelMaterialLoader(const tinyobj::material_t* tinyobjMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures);
 	};
 }

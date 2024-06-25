@@ -3,7 +3,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/vector3.h>
-#include "ThirdParty/OpenFBX/src/ofbx.h"
+//#include "ThirdParty/OpenFBX/src/ofbx.h"
+#include "ThirdParty/ufbx/ufbx.h"
 #include "ThirdParty/tinyobjloader/tiny_obj_loader.h"
 
 namespace Plaza {
@@ -24,7 +25,7 @@ namespace Plaza {
 
 	class AssetsImporter {
 	public:
-		static inline glm::vec3 mModelImporterScale = glm::vec3(0.01f);
+		static inline glm::vec3 mModelImporterScale = glm::vec3(1.0f);//glm::vec3(0.01f);
 		static std::string ImportAsset(std::string path, uint64_t uuid = 0);
 		static void ImportModel(AssetImported asset);
 		static Entity* ImportOBJ(AssetImported asset, std::filesystem::path outPath);

@@ -70,7 +70,7 @@ add_subdirectory("ThirdParty/GLFW/")
 #add_subdirectory("ThirdParty/mono/")
 add_subdirectory("ThirdParty/Tracy/")
 add_subdirectory("ThirdParty/yaml-cpp/")
-add_subdirectory("ThirdParty/OpenFBX/")
+#add_subdirectory("ThirdParty/OpenFBX/")
 include("ThirdParty/PhysX/physx/compiler/vc17win64/cmake_install.cmake")
 #add_subdirectory("ThirdParty/PhysX/physx/compiler/public/")
 #add_subdirectory("ThirdParty/PhysX/physx/bin/win.x86_64.vc143.mt/debug/")
@@ -264,7 +264,7 @@ if(MSVC)
 endif()
 
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper DirectXTex OpenFBX
+target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper DirectXTex
     PhysX_64
     PhysXCommon_64
     PhysXFoundation_64
@@ -274,7 +274,7 @@ target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-
 "${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 target_include_directories(PlazaShippingGame PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper DirectXTex OpenFBX
+target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper DirectXTex
     PhysX_64
     PhysXCommon_64
     PhysXFoundation_64

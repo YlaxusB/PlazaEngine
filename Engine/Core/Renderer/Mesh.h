@@ -22,7 +22,7 @@ namespace Plaza {
 		glm::vec3 tangent;
 		glm::vec3 bitangent;
 		unsigned int materialIndex = -1;
-		std::array<int64_t, MAX_BONE_INFLUENCE> boneIds;
+		std::array<int, MAX_BONE_INFLUENCE> boneIds;
 		std::array<float, MAX_BONE_INFLUENCE> weights;
 		bool isValid;
 
@@ -36,7 +36,7 @@ namespace Plaza {
 			}
 		}
 
-		Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const glm::vec3& bitan, const unsigned int& materialIndex = 0, const std::array<int64_t, MAX_BONE_INFLUENCE> boneIds = std::array<int64_t, MAX_BONE_INFLUENCE>(), const std::array<float, MAX_BONE_INFLUENCE> weights = std::array<float, MAX_BONE_INFLUENCE>())
+		Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const glm::vec3& bitan, const unsigned int& materialIndex = 0, const std::array<int, MAX_BONE_INFLUENCE> boneIds = std::array<int, MAX_BONE_INFLUENCE>(), const std::array<float, MAX_BONE_INFLUENCE> weights = std::array<float, MAX_BONE_INFLUENCE>())
 			: position(pos), normal(norm), texCoords(tex), tangent(tan), bitangent(bitan), materialIndex(materialIndex), isValid(true), boneIds(boneIds), weights(weights) {
 		}
 
@@ -57,7 +57,7 @@ namespace Plaza {
 		Bone(uint64_t id, uint64_t parentId, std::string name, glm::mat4 offset = glm::mat4(1.0f)) : mId(id), mParentId(parentId), mName(name), mOffset(offset) {};
 		float weight = 0.0f;
 		glm::vec3 mPosition = glm::vec3(0.0f);
-		glm::quat mRotation = glm::quat(glm::vec3(0.0f));
+		glm::vec3 mRotation =glm::vec3(0.0f);
 		glm::vec3 mScale = glm::vec3(1.0f);
 		glm::mat4 mLocalTransform = glm::mat4(1.0f);
 		glm::mat4 mTransform = glm::mat4(1.0f);
@@ -72,7 +72,7 @@ namespace Plaza {
 	};
 
 	struct BonesHolder {
-		std::vector<unsigned int> mBones = std::vector<unsigned int>();
+		std::vector<uint64_t> mBones = std::vector<uint64_t>();
 		std::vector<float> mWeights = std::vector<float>();
 		//std::vector<unsigned int> mBonesIds = std::vector<unsigned int>();
 

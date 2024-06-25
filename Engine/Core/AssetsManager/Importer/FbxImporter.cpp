@@ -100,24 +100,33 @@ namespace Plaza {
 	}
 
 	static glm::mat4 ofbxToGlm(const ofbx::Matrix& ofbxMat, glm::vec3 scale) {
-		glm::mat4 glmMat;
+		glm::mat4 glmMat = glm::mat4(1.0f);
 
-		// Copy elements from ofbx::Matrix to glm::mat4
-		for (int i = 0; i < 4; ++i) {
-			for (int j = 0; j < 4; ++j) {
-				glmMat[i][j] = static_cast<float>(ofbxMat.m[i * 4 + j]);
+		//// Copy elements from ofbx::Matrix to glm::mat4
+		//for (int i = 0; i < 4; ++i) {
+		//	for (int j = 0; j < 4; ++j) {
+		//		glmMat[i][j] = static_cast<float>(ofbxMat.m[i * 4 + j]);
+		//	}
+		//}
+
+		for (int row = 0; row < 4; ++row) {
+			for (int col = 0; col < 4; ++col) {
+				double v = ofbxMat.m[4 * col + row];
+				glmMat[col][row] = v;
 			}
 		}
 
-		glm::mat4& m = glmMat;
-		m[0][2] = -m[0][2]; // M13
-		m[1][2] = -m[1][2]; // M23
-		m[3][2] = -m[3][2]; // M43
-		m[2][0] = -m[2][0]; // M31
-		m[2][1] = -m[2][1]; // M32
-		m[2][3] = -m[2][3]; // M34
+		//glm::mat4& m = glmMat;
+		//m[0][2] = -m[0][2]; // M13
+		//m[1][2] = -m[1][2]; // M23
+		//m[3][2] = -m[3][2]; // M43
+		//m[2][0] = -m[2][0]; // M31
+		//m[2][1] = -m[2][1]; // M32
+		//m[2][3] = -m[2][3]; // M34
 
-		glmMat[3] *= glm::vec4(scale, 1.0f);
+		//glmMat[3] *= glm::vec4(scale, 1.0f);
+
+		//glmMat = glm::scale(glmMat, scale);
 
 		return glmMat;
 	}
@@ -250,7 +259,7 @@ namespace Plaza {
 						continue;
 					const int* indices = cluster->getIndices();
 					const double* weightsData = cluster->getWeights();
-					finalMesh->uniqueBonesInfo.emplace(cluster->getLink()->id, Bone { cluster->getLink()->id, cluster->getLink()->getParent()->id, cluster->name, glm::inverse(ofbxToGlm(cluster->getTransformLinkMatrix(), mModelImporterScale)) });
+					finalMesh->uniqueBonesInfo.emplace(cluster->getLink()->id, Bone { cluster->getLink()->id, cluster->getLink()->getParent()->id, cluster->name, (ofbxToGlm(cluster->getTransformMatrix(), mModelImporterScale)) });
 					for (int k = 0; k < cluster->getIndicesCount(); ++k) {
 						int vertexIndex = indices[k];
 						uint64_t boneID = cluster->getLink()->id;
@@ -408,8 +417,10 @@ namespace Plaza {
 							uint64_t parentId = bone->getParent()->id;
 
 							Plaza::Bone plazaBone{ bone->id, bone->name };
-							if (finalMesh->uniqueBonesInfo.find(parentId) != finalMesh->uniqueBonesInfo.end())
+							if (finalMesh->uniqueBonesInfo.find(parentId) != finalMesh->uniqueBonesInfo.end()) {
 								finalMesh->uniqueBonesInfo[parentId].mChildren.push_back(bone->id);
+								finalMesh->uniqueBonesInfo[bone->id].mOffset = finalMesh->uniqueBonesInfo[parentId].mOffset * finalMesh->uniqueBonesInfo[bone->id].mOffset;
+							}
 						};
 					}
 				}

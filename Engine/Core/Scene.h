@@ -109,7 +109,7 @@ namespace Plaza {
 
 		Entity* mainSceneEntity;
 
-		std::map<uint64_t, Animation&> mPlayingAnimations = std::map<uint64_t, Animation&>();
+		std::map<uint64_t, Animation> mPlayingAnimations = std::map<uint64_t, Animation>();
 
 		std::unordered_map<uint64_t, Entity> entities;
 		ComponentMultiMap<uint64_t, Transform> transformComponents;

@@ -49,6 +49,7 @@ layout(location = 14) in vec4 TangentLightPos;
 layout(location = 15) in vec4 TangentViewPos;
 layout(location = 16) in vec4 TangentFragPos;
 layout(location = 17) in vec4 worldPos;
+layout(location = 18) in flat int affected;
 
 layout (location = 0) out vec4 gPosition;
 layout (location = 1) out vec4 gNormal;
@@ -169,6 +170,8 @@ void main() {
     if(materials[materialIndex].diffuseIndex > -1)
     { 
         color = texture(textures[materials[materialIndex].diffuseIndex], fragTexCoord) * 1;
+        if(color.w <= 0.1f)
+            discard;
     }
     else
     {
@@ -290,6 +293,9 @@ void main() {
       }
       else
           gNormal = vec4(normalize(normal), 1.0f);
+
+    //if(affected == 1)
+    //    gDiffuse = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
 }
 

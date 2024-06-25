@@ -7,12 +7,11 @@ namespace Plaza {
 		std::string mName = "";
 		std::map<uint64_t, std::vector<float>> mTimes = std::map<uint64_t, std::vector<float>>();
 		std::map<uint64_t, std::vector<glm::vec3>> mTranslations = std::map<uint64_t, std::vector<glm::vec3 >>();
-		std::map<uint64_t, std::vector<glm::quat>> mRotations = std::map<uint64_t, std::vector<glm::quat>>();
+		std::map<uint64_t, std::vector<glm::vec3>> mRotations = std::map<uint64_t, std::vector<glm::vec3>>();
 
 		void Play();
 		void Stop() {};
 		bool GetState() { return mIsPlaying; };
-
 
 	private:
 		bool mIsPlaying = false;
@@ -21,9 +20,9 @@ namespace Plaza {
 
 	class AnimationComponent : public Component {
 	public:
-		float mImportScale = 0.01f;
+		float mImportScale = 1.0f;//0.01f;
 		std::vector<Animation> mAnimations = std::vector<Animation>();
-		void GetAnimation(std::string filePath, unsigned int index = 0) {
+		void GetAnimation(std::string filePath, std::map<uint64_t, Plaza::Bone>& bonesMap, unsigned int index = 0) {
 			std::ofstream outfile;
 			FILE* fp = fopen(filePath.c_str(), "rb");
 			if (!fp) {
@@ -59,6 +58,8 @@ namespace Plaza {
 							uniqueBones.push_back(cluster->getLink());
 
 						boneIds.emplace(cluster->getLink()->id);
+
+						bonesMap[cluster->getLink()->id].mOffset = glm::inverse(ofbxToGlm(cluster->getTransformLinkMatrix(), glm::vec3(1.0f)));
 						//finalMesh->uniqueBonesInfo.emplace(cluster->getLink()->id, Bone { cluster->getLink()->id, cluster->getLink()->getParent()->id, cluster->name });
 					}
 				}
@@ -81,6 +82,28 @@ namespace Plaza {
 				else {
 					animation.mName = "";
 				}
+
+				/*
+				const ofbx::AnimationStack* stack = loadedScene->getAnimationStack(i);
+				for (int j = 0; stack->getLayer(j); ++j) {
+					const ofbx::AnimationLayer* layer = stack->getLayer(j);
+					for (int k = 0; layer->getCurveNode(k); ++k) {
+						const ofbx::AnimationCurveNode* node = layer->getCurveNode(k);
+						if (node->getBone())
+						{
+							const ofbx::Object* bone = node->getBone();
+							uint64_t parentId = bone->getParent()->id;
+
+							Plaza::Bone plazaBone{ bone->id, bone->name };
+							if (finalMesh->uniqueBonesInfo.find(parentId) != finalMesh->uniqueBonesInfo.end()) {
+								finalMesh->uniqueBonesInfo[parentId].mChildren.push_back(bone->id);
+								finalMesh->uniqueBonesInfo[bone->id].mOffset = finalMesh->uniqueBonesInfo[parentId].mOffset * finalMesh->uniqueBonesInfo[bone->id].mOffset;
+							}
+						};
+					}
+				}
+				*/
+
 				for (int i = 0; animationStack->getLayer(i); ++i) {
 					const ofbx::AnimationLayer* layer = animationStack->getLayer(i);
 
@@ -100,13 +123,13 @@ namespace Plaza {
 						if (translationNode) {
 							vectorsSize = translationNode->getCurve(0)->getKeyCount();
 							for (size_t i = 0; i < vectorsSize; ++i) {
-								animation.mTimes[bone->id].push_back(translationNode->getCurve(0)->getKeyTime()[i] / 1000000000);
+								animation.mTimes[bone->id].push_back(ofbx::fbxTimeToSeconds(translationNode->getCurve(0)->getKeyTime()[i]));
 							}
 						}
 						else if (rotationNode) {
 							vectorsSize = rotationNode->getCurve(0)->getKeyCount();
 							for (size_t i = 0; i < vectorsSize; ++i) {
-								animation.mTimes[bone->id].push_back(rotationNode->getCurve(0)->getKeyTime()[i]);
+								animation.mTimes[bone->id].push_back(ofbx::fbxTimeToSeconds(rotationNode->getCurve(0)->getKeyTime()[i]));
 							}
 						}
 
@@ -120,7 +143,8 @@ namespace Plaza {
 
 						if (rotationNode) {
 							for (size_t i = 0; i < vectorsSize; ++i) {
-								animation.mRotations[bone->id].push_back(glm::quat(glm::vec3(rotationNode->getCurve(0)->getKeyValue()[i], rotationNode->getCurve(1)->getKeyValue()[i], rotationNode->getCurve(2)->getKeyValue()[i])));
+								glm::vec3 rotation = glm::vec3(rotationNode->getCurve(0)->getKeyValue()[i], rotationNode->getCurve(1)->getKeyValue()[i], rotationNode->getCurve(2)->getKeyValue()[i]);
+								animation.mRotations[bone->id].push_back(rotation);
 							}
 						}
 
@@ -164,6 +188,19 @@ namespace Plaza {
 			const float* values = curve->getKeyValue();
 			if (curve->getKeyCount() == 2 && fabsf(values[1] - values[0]) < 1e-6) return true;
 			return false;
+		}
+
+		static glm::mat4 ofbxToGlm(const ofbx::Matrix& ofbxMat, glm::vec3 scale) {
+			glm::mat4 glmMat = glm::mat4(1.0f);
+
+			for (int row = 0; row < 4; ++row) {
+				for (int col = 0; col < 4; ++col) {
+					double v = ofbxMat.m[4 * col + row];
+					glmMat[col][row] = v;
+				}
+			}
+
+			return glmMat;
 		}
 	};
 }

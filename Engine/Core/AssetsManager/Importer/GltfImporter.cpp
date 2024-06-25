@@ -3,7 +3,7 @@
 #include "ThirdParty/tinyobjloader/tiny_obj_loader.h"
 #include "ThirdParty/glm/gtx/hash.hpp"
 #include "Engine/Core/Renderer/Mesh.h"
-#include "ThirdParty/OpenFBX/src/ofbx.h"
+//#include "ThirdParty/OpenFBX/src/ofbx.h"
 
 
 #include <d3d11.h>

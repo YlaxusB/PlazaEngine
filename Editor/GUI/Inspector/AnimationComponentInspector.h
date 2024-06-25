@@ -16,7 +16,7 @@ namespace Plaza::Editor {
 
 				if (ImGui::Button("Load animations from FBX")) {
 					std::string path = FileDialog::OpenFileDialog(".fbx");
-					component->GetAnimation(path, index);
+					component->GetAnimation(path, VulkanRenderer::GetRenderer()->mBones, index);
 				}
 
 				for (Animation& animation : component->mAnimations) {

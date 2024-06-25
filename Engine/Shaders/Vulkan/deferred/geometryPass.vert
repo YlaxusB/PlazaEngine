@@ -29,7 +29,7 @@ layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
 layout(location = 2) out mat4 model;
 
-const int MAX_BONES = 100;
+const int MAX_BONES = 1000;
 const int MAX_BONE_INFLUENCE = 4;
 layout(std430, binding = 1) readonly buffer BoneMatrices {
 	mat4 boneMatrices[];
@@ -62,6 +62,7 @@ layout(location = 14) out vec4 TangentLightPos;
 layout(location = 15) out vec4 TangentViewPos;
 layout(location = 16) out vec4 TangentFragPos;
 layout(location = 17) out vec4 worldPos;
+layout(location = 18) out flat int affected;
 
 out gl_PerVertex {
 	vec4 gl_Position;   
@@ -72,7 +73,7 @@ void main() {
     model = mat4(instanceMatrix[0], instanceMatrix[1], instanceMatrix[2], instanceMatrix[3]);
 
     mat4 aInstanceMatrix = model;
-    fragTexCoord = vec2(0.0f, 1.0f) - inTexCoord;
+    fragTexCoord = inTexCoord;
 
     mat4 finalInstanceMatrix = model;
     FragPos = vec4(model * vec4(inPosition, 1.0));
@@ -94,9 +95,13 @@ void main() {
 
     vec4 totalPosition = vec4(0.0f);
     bool allNegative = true;
+
+    affected = 0;
     for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
     {
-          if(boneIds[i] <= 0 || boneIds[i] > 1000) 
+            if(boneIds[i] == 0)
+                affected = 1;
+          if(boneIds[i] < 0 || boneIds[i] > 1000) 
           {
             continue;
           }   

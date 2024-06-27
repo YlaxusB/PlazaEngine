@@ -12,7 +12,7 @@ namespace Plaza {
 		vec4GLM.y = quaternionUfbx.y;
 		vec4GLM.z = quaternionUfbx.z;
 		vec4GLM.w = quaternionUfbx.w;
-		return glm::quat(vec4GLM);
+		return glm::quat(quaternionUfbx.w, quaternionUfbx.x, quaternionUfbx.y, quaternionUfbx.z);
 	};
 	static glm::mat4 ConvertUfbxMatrix(ufbx_matrix const& mat4Ufbx) {
 		glm::mat4 mat4Glm;
@@ -25,6 +25,32 @@ namespace Plaza {
 		}
 		return mat4Glm;
 	}
+	static glm::mat4 ConvertUfbxMatrix2(ufbx_matrix const& mat4Ufbx) {
+		glm::mat4 inverseBindMatrix = glm::identity<glm::mat4>();//glm::mat4(1.0f);  // Identity matrix
+
+		inverseBindMatrix[0][0] = mat4Ufbx.m00;
+		inverseBindMatrix[0][1] = mat4Ufbx.m10;
+		inverseBindMatrix[0][2] = mat4Ufbx.m20;
+
+		inverseBindMatrix[1][0] = mat4Ufbx.m01;
+		inverseBindMatrix[1][1] = mat4Ufbx.m11;
+		inverseBindMatrix[1][2] = mat4Ufbx.m21;
+
+		inverseBindMatrix[2][0] = mat4Ufbx.m02;
+		inverseBindMatrix[2][1] = mat4Ufbx.m12;
+		inverseBindMatrix[2][2] = mat4Ufbx.m22;
+
+		inverseBindMatrix[3][0] = mat4Ufbx.m03;
+		inverseBindMatrix[3][1] = mat4Ufbx.m13;
+		inverseBindMatrix[3][2] = mat4Ufbx.m23;
+		return inverseBindMatrix;
+	}
+	static void CalculateParentshipOffsets(Bone* bone, glm::mat4 parentOffset) {
+		bone->mOffset = bone->mOffset * parentOffset;
+		for (uint64_t childUuid : bone->mChildren) {
+			CalculateParentshipOffsets(&VulkanRenderer::GetRenderer()->mBones.at(childUuid), bone->mOffset);
+		}
+	}
 	void Animation::Play() {
 		this->mIsPlaying = true;
 		Application->activeScene->mPlayingAnimations.clear();
@@ -36,6 +62,14 @@ namespace Plaza {
 		ufbx_load_opts opts = { };
 		opts.target_axes = ufbx_axes_right_handed_y_up,
 			opts.target_unit_meters = 1.0f;
+		opts.target_axes = {
+			.right = UFBX_COORDINATE_AXIS_POSITIVE_X,
+			.up = UFBX_COORDINATE_AXIS_POSITIVE_Y,
+			.front = UFBX_COORDINATE_AXIS_POSITIVE_Z,
+		};
+		opts.connect_broken_elements = true;
+		opts.evaluate_skinning = true;
+		//opts.use_root_transform = true;
 
 		ufbx_error error;
 		ufbx_scene* scene = ufbx_load_file(filePath.c_str(), &opts, &error);
@@ -54,7 +88,7 @@ namespace Plaza {
 
 		for (const ufbx_skin_deformer* skin : scene->skin_deformers) {
 			for (const ufbx_skin_cluster* cluster : skin->clusters) {
-				VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = (ConvertUfbxMatrix(cluster->geometry_to_bone));
+				VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = (ConvertUfbxMatrix2(cluster->geometry_to_bone));
 				if (cluster->bone_node->parent && cluster->bone_node->parent->bone) {
 					VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mParentId = cluster->bone_node->parent->bone->element_id;
 
@@ -66,10 +100,27 @@ namespace Plaza {
 				}
 			}
 		}
-
-
 		for (const ufbx_anim_stack* stack : scene->anim_stacks)
 		{
+			if (stack->time_end - stack->time_begin <= 0.0f) {
+				continue;
+			}
+			for (const ufbx_skin_deformer* skin : scene->skin_deformers) {
+				for (const ufbx_skin_cluster* cluster : skin->clusters) {
+					if (cluster->name.data == "Cluster mixamorig:Hips")
+						std::cout << "here \n";
+					VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = (ConvertUfbxMatrix2(cluster->geometry_to_bone));
+					//glm::mat4 mat = glm::mat4(1.0f);
+					//mat[3] = VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset[3];
+					//mat[3][0] *= (1.0f / cluster->bone_node->node_to_world.m00) * -1.0f;
+					//mat[3][1] *= (1.0f / cluster->bone_node->node_to_world.m11) * -1.0f;
+					//mat[3][2] *= (1.0f / cluster->bone_node->node_to_world.m22) * -1.0f;
+					//VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = mat;
+				}
+			}
+
+
+
 			ufbx_baked_anim* bake = ufbx_bake_anim(scene, stack->anim, nullptr, nullptr);
 			assert(bake != nullptr);
 			if (bake == nullptr)
@@ -77,7 +128,15 @@ namespace Plaza {
 			Animation& animation = mAnimations.emplace_back(Animation());
 			animation.mName = stack->name.data;
 
-			animation.mRootParentTransform = ConvertUfbxMatrix(scene->root_node->geometry_to_world);
+			for (ufbx_bone* bone : scene->bones) {
+				if (bone->is_root)
+					animation.mRootBone = &VulkanRenderer::GetRenderer()->mBones.at(bone->element_id);
+			}
+			if (!animation.mRootBone) {
+				animation.mRootBone = &VulkanRenderer::GetRenderer()->mBones.at(scene->bones[0]->element_id);
+			}
+			animation.mRootParentTransform = ConvertUfbxMatrix2(scene->root_node->geometry_to_world);
+			//CalculateParentshipOffsets(animation.mRootBone, glm::mat4(1.0f));
 			//animation.mRootParentTransform = glm::mat4({
 			//	animation.mRootParentTransform[0][0], 0.0f, 0.0f, 0.0f,
 			//	0.0f, animation.mRootParentTransform[0][1], 0.0f, 0.0f,
@@ -90,26 +149,21 @@ namespace Plaza {
 			{
 				ufbx_node* scene_node = scene->nodes[bake_node.typed_id];
 				// Translation:
+				//VulkanRenderer::GetRenderer()->mBones.at(scene_node->bone->element_id).mOffset = (ConvertUfbxMatrix2(scene_node->geometry_to_node));
 
 				std::map<float, glm::vec3> positions = std::map<float, glm::vec3>();
 				for (const ufbx_baked_vec3& keyframe : bake_node.translation_keys)
 				{
 					positions[keyframe.time] = glm::vec3(keyframe.value.x, keyframe.value.y, keyframe.value.z);
-					//animation.mTranslations[scene_node->bone->element_id].push_back(glm::vec3(keyframe.value.x, keyframe.value.y, keyframe.value.z));
-					//animationdata.keyframe_times.push_back((float)keyframe.time);
-					//animationdata.keyframe_data.push_back(keyframe.value.x);
-					//animationdata.keyframe_data.push_back(keyframe.value.y);
-					//animationdata.keyframe_data.push_back(keyframe.value.z);
 				}
-				
-				
+
+
 
 				// Rotation:
 				std::map<float, glm::quat> rotations = std::map<float, glm::quat>();
 				for (const ufbx_baked_quat& keyframe : bake_node.rotation_keys)
 				{
 					rotations[keyframe.time] = ConvertUfbxQuat(keyframe.value);
-					//animation.mRotations[scene_node->bone->element_id].push_back(ConvertUfbxQuat(keyframe.value));
 				}
 
 				uint64_t boneUuid = scene_node->bone->element_id;

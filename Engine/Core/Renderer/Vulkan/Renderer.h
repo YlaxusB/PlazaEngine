@@ -216,7 +216,7 @@ namespace Plaza {
 		float time = 0.0f;
 		bool increasing = true;
 		void CalculateIndividualBone(Bone* bone, glm::mat4 target, int time, uint64_t boneId);
-		void CalculateBonesParentship(Bone* bone, glm::mat4& parentTransform, float time, uint64_t boneId);
+		void CalculateBonesParentship(Bone* bone, glm::mat4 parentTransform, float time, uint64_t boneId);
 		void EarlyAnimationController();
 		void CreateVertexBuffer(vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory, VkDeviceSize bufferSize = -1);
 		void CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer, VkDeviceMemory& indicesMemoryBuffer, VkDeviceSize bufferSize = -1);

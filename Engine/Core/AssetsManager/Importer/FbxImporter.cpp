@@ -49,7 +49,7 @@ namespace Plaza {
 	Material* AssetsImporter::FbxModelMaterialLoader(const ufbx_material* ufbxMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures) {
 		Material* material = new Material();
 		material->name = ufbxMaterial->name.data;
-		
+
 		ufbx_texture* ofbxDiffuse = ufbxMaterial->pbr.base_color.texture;//getTexture(UFBX_SHADER_FBX_LAMBERT ofbx::Texture::DIFFUSE);
 		if (ofbxDiffuse) {
 			const std::string diffusePath = GetFbxTexturePath(ofbxDiffuse, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxDiffuse->getFileName()) }.filename().string();
@@ -60,7 +60,7 @@ namespace Plaza {
 			else
 				material->diffuse = AssetsManager::mTextures.at(loadedTextures.at(diffusePath));
 		}
-		
+
 		ufbx_texture* ofbxNormal = ufbxMaterial->pbr.normal_map.texture;//ufbxMaterial->getTexture(ofbx::Texture::NORMAL);
 		if (ofbxNormal) {
 			const std::string normalPath = GetFbxTexturePath(ofbxNormal, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxNormal->getFileName()) }.filename().string();
@@ -71,7 +71,7 @@ namespace Plaza {
 			else
 				material->normal = AssetsManager::mTextures.at(loadedTextures.at(normalPath));
 		}
-		
+
 		ufbx_texture* ofbxSpecular = ufbxMaterial->pbr.roughness.texture;//ofbxMaterial->getTexture(ofbx::Texture::SPECULAR);
 		if (ofbxSpecular) {
 			const std::string specularPath = GetFbxTexturePath(ofbxSpecular, materialFolderPath);;//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxSpecular->getFileName()) }.filename().string();
@@ -82,7 +82,7 @@ namespace Plaza {
 			else
 				material->roughness = AssetsManager::mTextures.at(loadedTextures.at(specularPath));
 		}
-		
+
 		ufbx_texture* ofbxReflection = ufbxMaterial->pbr.metalness.texture;//ofbxMaterial->getTexture(ofbx::Texture::REFLECTION);
 		if (ofbxReflection) {
 			const std::string reflectionPath = GetFbxTexturePath(ofbxReflection, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxReflection->getFileName()) }.filename().string();
@@ -152,7 +152,12 @@ namespace Plaza {
 	Entity* AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath) {
 		ufbx_load_opts opts = { };
 		opts.target_axes = ufbx_axes_right_handed_y_up,
-			opts.target_unit_meters = 1.0f;
+		opts.target_unit_meters = 1.0f;
+		opts.target_axes = {
+			.right = UFBX_COORDINATE_AXIS_NEGATIVE_X,
+			.up = UFBX_COORDINATE_AXIS_POSITIVE_Y,
+			.front = UFBX_COORDINATE_AXIS_POSITIVE_Z,
+		};
 
 		ufbx_error error;
 		ufbx_scene* scene = ufbx_load_file(asset.mPath.c_str(), &opts, &error);

@@ -1121,7 +1121,7 @@ namespace Plaza {
 		}
 	}
 
-	void VulkanRenderer::CalculateBonesParentship(Bone* bone, glm::mat4& parentTransform, float time, uint64_t boneId) {
+	void VulkanRenderer::CalculateBonesParentship(Bone* bone, glm::mat4 parentTransform, float time, uint64_t boneId) {
 		//glm::vec3 targetTranslation = glm::vec3(5.0f, 3.0f, 1.0f);
 		//glm::vec3 currentTranslation = glm::vec3(bone->mTransform[3]);
 		//glm::vec3 newTranslation = glm::mix(glm::vec3(0.0f), targetTranslation, time);
@@ -1135,7 +1135,7 @@ namespace Plaza {
 		//else
 		//	bone->mTransform = glm::mat4(1.0f) * bone->mLocalTransform;
 		for (uint64_t childId : bone->mChildren) {
-			if (this->mBones.find(childId) != this->mBones.end())
+			//if (this->mBones.find(childId) != this->mBones.end())
 				this->CalculateBonesParentship(&this->mBones[childId], bone->mTransform, time, childId);
 		}
 	}
@@ -1162,6 +1162,7 @@ namespace Plaza {
 		//		CalculateIndividualBone(&value, glm::mat4(2.0f), tim, key);
 		//	//CalculateBonesParentship(&value, nullptr, time);
 		//}
+
 		if (Application->activeScene->mPlayingAnimations.size() > 0) {
 			for (auto& [key, value] : this->mBones) {
 				if (value.mId != -1 && (value.mParentId == 0 || value.mId == 1)) {
@@ -1372,9 +1373,17 @@ namespace Plaza {
 					//m = glm::rotate(m, (float)-rotation.y, glm::vec3(0, 1, 0));
 					//m = glm::rotate(m, (float)-rotation.z, glm::vec3(0, 0, 1));
 					//m = glm::translate(m, glm::vec3(-position.x, -position.y, -position.z));
+					//if (value.mName == "Cluster mixamorig:LeftUpLeg")
+					//	std::cout << "here \n";
 
-					if (value.mName != "bone")
-						matrices[value.mHandlerIndex] = value.mTransform * glm::inverse(value.mOffset);
+					if (value.mName != "bone") {
+						//std::cout << value.mName << "\n";
+						//std::cout << value.mTransform[0][0] << value.mTransform[0][1] << value.mTransform[0][2] << value.mTransform[0][3] << "\n";
+						//std::cout << value.mTransform[1][0] << value.mTransform[1][1] << value.mTransform[1][2] << value.mTransform[1][3] << "\n";
+						//std::cout << value.mTransform[2][0] << value.mTransform[2][1] << value.mTransform[2][2] << value.mTransform[2][3] << "\n";
+						//std::cout << value.mTransform[3][0] << value.mTransform[3][1] << value.mTransform[3][2] << value.mTransform[3][3] << "\n";
+						matrices[value.mHandlerIndex] = (value.mTransform) * value.mOffset;
+					}
 				}
 
 

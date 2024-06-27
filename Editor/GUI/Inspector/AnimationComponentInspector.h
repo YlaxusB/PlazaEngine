@@ -26,9 +26,26 @@ namespace Plaza::Editor {
 					}
 				}
 
+				for (Animation& animation : component->mAnimations) {
+					if (ImGui::TreeNodeEx(std::string("beg" + animation.mName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+						BoneParentShipTree(animation.mRootBone);
+						ImGui::TreePop();
+					}
+				}
+
 				ImGui::PopID();
 			}
 
+		}
+	private:
+		void BoneParentShipTree(Bone* bone) {
+			if (!bone)
+				return;
+			if (ImGui::TreeNodeEx(bone->mName.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+				for(uint64_t childUuid : bone->mChildren)
+				BoneParentShipTree(&VulkanRenderer::GetRenderer()->mBones.at(childUuid));
+				ImGui::TreePop();
+			}
 		}
 	};
 }

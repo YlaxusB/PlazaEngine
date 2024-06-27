@@ -5,6 +5,7 @@ namespace Plaza {
 	public:
 		uint64_t mUuid = 0;
 		std::string mName = "";
+		Bone* mRootBone = nullptr;
 		glm::mat4 mRootParentTransform = glm::mat4(1.0f);
 		std::map<uint64_t, std::vector<float>> mTimes = std::map<uint64_t, std::vector<float>>();
 		std::map<uint64_t, std::vector<glm::vec3>> mTranslations = std::map<uint64_t, std::vector<glm::vec3 >>();

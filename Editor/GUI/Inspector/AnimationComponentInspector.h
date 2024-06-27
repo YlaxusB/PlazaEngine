@@ -21,6 +21,7 @@ namespace Plaza::Editor {
 
 				for (Animation& animation : component->mAnimations) {
 					if (ImGui::Button(std::string("Play" + animation.mName).c_str())) {
+						Application->activeScene->mPlayingAnimations.clear();
 						animation.Play();
 					}
 				}

@@ -47,54 +47,53 @@ namespace Plaza {
 		return path;
 	}
 	Material* AssetsImporter::FbxModelMaterialLoader(const ufbx_material* ufbxMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures) {
-		return Application->activeScene->DefaultMaterial();
-		//Material* material = new Material();
-		//material->name = ufbxMaterial->name;
-		//
-		//const ofbx::Texture* ofbxDiffuse = ufbxMaterial->textures//getTexture(UFBX_SHADER_FBX_LAMBERT ofbx::Texture::DIFFUSE);
-		//if (ofbxDiffuse) {
-		//	const std::string diffusePath = GetFbxTexturePath(ofbxDiffuse, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxDiffuse->getFileName()) }.filename().string();
-		//	if (ofbxDiffuse && loadedTextures.find(diffusePath) == loadedTextures.end()) {
-		//		material->diffuse = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(diffusePath, Plaza::UUID::NewUUID()));
-		//		loadedTextures.emplace(diffusePath, material->diffuse->mAssetUuid);
-		//	}
-		//	else
-		//		material->diffuse = AssetsManager::mTextures.at(loadedTextures.at(diffusePath));
-		//}
-		//
-		//const ofbx::Texture* ofbxNormal = ufbxMaterial->getTexture(ofbx::Texture::NORMAL);
-		//if (ofbxNormal) {
-		//	const std::string normalPath = GetFbxTexturePath(ofbxNormal, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxNormal->getFileName()) }.filename().string();
-		//	if (loadedTextures.find(normalPath) == loadedTextures.end()) {
-		//		material->normal = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(normalPath, Plaza::UUID::NewUUID()));
-		//		loadedTextures.emplace(normalPath, material->normal->mAssetUuid);
-		//	}
-		//	else
-		//		material->normal = AssetsManager::mTextures.at(loadedTextures.at(normalPath));
-		//}
-		//
-		//const ofbx::Texture* ofbxSpecular = ofbxMaterial->getTexture(ofbx::Texture::SPECULAR);
-		//if (ofbxSpecular) {
-		//	const std::string specularPath = GetFbxTexturePath(ofbxSpecular, materialFolderPath);;//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxSpecular->getFileName()) }.filename().string();
-		//	if (ofbxSpecular && loadedTextures.find(specularPath) == loadedTextures.end()) {
-		//		material->roughness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(specularPath, Plaza::UUID::NewUUID()));
-		//		loadedTextures.emplace(specularPath, material->roughness->mAssetUuid);
-		//	}
-		//	else
-		//		material->roughness = AssetsManager::mTextures.at(loadedTextures.at(specularPath));
-		//}
-		//
-		//const ofbx::Texture* ofbxReflection = ofbxMaterial->getTexture(ofbx::Texture::REFLECTION);
-		//if (ofbxReflection) {
-		//	const std::string reflectionPath = GetFbxTexturePath(ofbxReflection, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxReflection->getFileName()) }.filename().string();
-		//	if (ofbxReflection && loadedTextures.find(reflectionPath) == loadedTextures.end()) {
-		//		material->metalness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(reflectionPath, Plaza::UUID::NewUUID()));
-		//		loadedTextures.emplace(reflectionPath, material->metalness->mAssetUuid);
-		//	}
-		//	else
-		//		material->metalness = AssetsManager::mTextures.at(loadedTextures.at(reflectionPath));
-		//}
-		//return material;
+		Material* material = new Material();
+		material->name = ufbxMaterial->name.data;
+		
+		ufbx_texture* ofbxDiffuse = ufbxMaterial->pbr.base_color.texture;//getTexture(UFBX_SHADER_FBX_LAMBERT ofbx::Texture::DIFFUSE);
+		if (ofbxDiffuse) {
+			const std::string diffusePath = GetFbxTexturePath(ofbxDiffuse, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxDiffuse->getFileName()) }.filename().string();
+			if (ofbxDiffuse && loadedTextures.find(diffusePath) == loadedTextures.end()) {
+				material->diffuse = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(diffusePath, Plaza::UUID::NewUUID()));
+				loadedTextures.emplace(diffusePath, material->diffuse->mAssetUuid);
+			}
+			else
+				material->diffuse = AssetsManager::mTextures.at(loadedTextures.at(diffusePath));
+		}
+		
+		ufbx_texture* ofbxNormal = ufbxMaterial->pbr.normal_map.texture;//ufbxMaterial->getTexture(ofbx::Texture::NORMAL);
+		if (ofbxNormal) {
+			const std::string normalPath = GetFbxTexturePath(ofbxNormal, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxNormal->getFileName()) }.filename().string();
+			if (loadedTextures.find(normalPath) == loadedTextures.end()) {
+				material->normal = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(normalPath, Plaza::UUID::NewUUID()));
+				loadedTextures.emplace(normalPath, material->normal->mAssetUuid);
+			}
+			else
+				material->normal = AssetsManager::mTextures.at(loadedTextures.at(normalPath));
+		}
+		
+		ufbx_texture* ofbxSpecular = ufbxMaterial->pbr.roughness.texture;//ofbxMaterial->getTexture(ofbx::Texture::SPECULAR);
+		if (ofbxSpecular) {
+			const std::string specularPath = GetFbxTexturePath(ofbxSpecular, materialFolderPath);;//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxSpecular->getFileName()) }.filename().string();
+			if (ofbxSpecular && loadedTextures.find(specularPath) == loadedTextures.end()) {
+				material->roughness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(specularPath, Plaza::UUID::NewUUID()));
+				loadedTextures.emplace(specularPath, material->roughness->mAssetUuid);
+			}
+			else
+				material->roughness = AssetsManager::mTextures.at(loadedTextures.at(specularPath));
+		}
+		
+		ufbx_texture* ofbxReflection = ufbxMaterial->pbr.metalness.texture;//ofbxMaterial->getTexture(ofbx::Texture::REFLECTION);
+		if (ofbxReflection) {
+			const std::string reflectionPath = GetFbxTexturePath(ofbxReflection, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxReflection->getFileName()) }.filename().string();
+			if (ofbxReflection && loadedTextures.find(reflectionPath) == loadedTextures.end()) {
+				material->metalness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(reflectionPath, Plaza::UUID::NewUUID()));
+				loadedTextures.emplace(reflectionPath, material->metalness->mAssetUuid);
+			}
+			else
+				material->metalness = AssetsManager::mTextures.at(loadedTextures.at(reflectionPath));
+		}
+		return material;
 	}
 
 	int decodeIndex(int idx) {
@@ -129,32 +128,26 @@ namespace Plaza {
 		return glm::vec2(vec.x, vec.y);
 	}
 
-	static inline glm::quat ConvertUfbxQuat(ufbx_quat quat) {
-		return glm::quat(quat.w, quat.x, quat.y, quat.z);
-	}
+	static inline glm::quat ConvertUfbxQuat(ufbx_quat const& quaternionUfbx) {
+		glm::vec4 vec4GLM;
+		vec4GLM.x = quaternionUfbx.x;
+		vec4GLM.y = quaternionUfbx.y;
+		vec4GLM.z = quaternionUfbx.z;
+		vec4GLM.w = quaternionUfbx.w;
+		return glm::quat(vec4GLM);
+	};
 
-	static glm::mat4 ConvertUfbxMatrix(const ufbx_matrix& ufbxMat) {
-		glm::mat4 glmMat(1.0f); // Initialize to identity matrix
-
-		glmMat[0][0] = ufbxMat.m00;
-		glmMat[0][1] = ufbxMat.m10;
-		glmMat[0][2] = ufbxMat.m20;
-
-		glmMat[1][0] = ufbxMat.m01;
-		glmMat[1][1] = ufbxMat.m11;
-		glmMat[1][2] = ufbxMat.m21;
-
-		glmMat[2][0] = ufbxMat.m02;
-		glmMat[2][1] = ufbxMat.m12;
-		glmMat[2][2] = ufbxMat.m22;
-
-		// The last row is (0, 0, 0, 1) for an affine transformation matrix
-		glmMat[3][0] = ufbxMat.m03;
-		glmMat[3][1] = ufbxMat.m13;
-		glmMat[3][2] = ufbxMat.m23;
-
-		return glmMat;
-	}
+	static glm::mat4 ConvertUfbxMatrix(ufbx_matrix const& mat4Ufbx) {
+		glm::mat4 mat4Glm;
+		for (unsigned int column = 0; column < 4; ++column)
+		{
+			mat4Glm[column].x = mat4Ufbx.cols[column].x;
+			mat4Glm[column].y = mat4Ufbx.cols[column].y;
+			mat4Glm[column].z = mat4Ufbx.cols[column].z;
+			mat4Glm[column].w = column < 3 ? 0.0f : 1.0f;
+		}
+		return mat4Glm;
+	};
 
 	Entity* AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath) {
 		ufbx_load_opts opts = { };
@@ -198,26 +191,54 @@ namespace Plaza {
 
 			Mesh* finalMesh = new Mesh();
 
+			/* Material */
+			std::vector<Material*> materials = std::vector<Material*>();
+			std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
+			std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
+			for (ufbx_material* ufbxMaterial : node->materials) {
+				Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+
+				std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName;
+
+				if (loadedMaterials.find(materialOutPath) == loadedMaterials.end()) {
+					loadedMaterials.emplace(materialOutPath, material->uuid);
+					AssetsSerializer::SerializeMaterial(material, materialOutPath);
+					Application->activeScene->AddMaterial(material);
+				}
+				else
+					material = Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second);
+				materials.push_back(material);
+			}
+
+			/* Skinning */
 			ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
 			if (skin)
 			{
 				for (unsigned int i = 0; i < skin->clusters.count; ++i) {
 					ufbx_skin_cluster* cluster = skin->clusters[i];
-					finalMesh->uniqueBonesInfo.emplace(cluster->bone_node->bone->element_id, Bone{ cluster->bone_node->bone->element_id, 0, cluster->name.data, ConvertUfbxMatrix(cluster->geometry_to_world) });
+					uint64_t parentUuid = 0;
+					if (cluster->bone_node->parent)
+						parentUuid = cluster->bone_node->bone->element_id;
+					finalMesh->uniqueBonesInfo.emplace(cluster->bone_node->bone->element_id, Bone{ cluster->bone_node->bone->element_id, parentUuid, cluster->bone_node->bone->element_id, cluster->name.data, ConvertUfbxMatrix(cluster->bone_node->geometry_to_node) });
 				}
 			}
 
-			if (skin)
-			{
-				for (unsigned int i = 0; i < skin->clusters.count; ++i) {
-					ufbx_skin_cluster* cluster = skin->clusters[i];
-					if (cluster->bone_node->parent && cluster->bone_node->parent->bone && finalMesh->uniqueBonesInfo.find(cluster->bone_node->parent->bone->element_id) != finalMesh->uniqueBonesInfo.end()) {
-						finalMesh->uniqueBonesInfo[cluster->bone_node->bone->element_id].mParentId = cluster->bone_node->parent->bone->element_id;
-						finalMesh->uniqueBonesInfo[cluster->bone_node->parent->bone->element_id].mChildren.push_back(cluster->bone_node->bone->element_id);
-
-					}
-				}
-			}
+			//if (skin)
+			//{
+			//	for (unsigned int i = 0; i < skin->clusters.count; ++i) {
+			//		ufbx_skin_cluster* cluster = skin->clusters[i];
+			//		for (ufbx_node* child : cluster->bone_node->children) {
+			//			finalMesh->uniqueBonesInfo[child->bone->element_id].mParentId = cluster->bone_node->bone->element_id;
+			//			finalMesh->uniqueBonesInfo[cluster->bone_node->bone->element_id].mChildren.push_back(child->bone->element_id);
+			//
+			//		}
+			//
+			//		//if (cluster->bone_node->parent && cluster->bone_node->parent->bone && finalMesh->uniqueBonesInfo.find(cluster->bone_node->parent->bone->element_id) != finalMesh->uniqueBonesInfo.end()) {
+			//		//	finalMesh->uniqueBonesInfo[cluster->bone_node->bone->element_id].mParentId = cluster->bone_node->parent->bone->element_id;
+			//		//	finalMesh->uniqueBonesInfo[cluster->bone_node->parent->bone->element_id].mChildren.push_back(cluster->bone_node->bone->element_id);
+			//		//}
+			//	}
+			//}
 
 			uint64_t indices = 0;
 			size_t triangleIndicesCount = ufbxMesh->max_face_triangles * 3;
@@ -261,7 +282,7 @@ namespace Plaza {
 						for (uint32_t i = 0; i < num_weights; ++i)
 						{
 							ufbx_skin_weight skin_weight = skin->weights[skinVertex.weight_begin + i];
-							holder.mBones.push_back(skin_weight.cluster_index);
+							holder.mBones.push_back(skin->clusters[skin_weight.cluster_index]->bone_node->bone->element_id);
 							holder.mWeights.push_back(skin_weight.weight);
 							//(&boneindices.back().x)[i] = skin_weight.cluster_index;
 							//(&boneweights.back().x)[i] = skin_weight.weight;
@@ -327,8 +348,9 @@ namespace Plaza {
 			size_t num_vertices = ufbx_generate_indices(streams.data(), streams.size(), finalMesh->indices.data(), indices, NULL, &error);
 
 
-
-			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, Application->activeScene->DefaultMaterial());
+			if (materials.size() <= 0)
+				materials.push_back(Application->activeScene->DefaultMaterial());
+			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, materials);
 			//meshRenderer->;//material = material;//AssetsLoader::LoadMaterial(AssetsManager::GetAsset(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name + Standards::materialExtName}.string()));
 			entity->AddComponent<MeshRenderer>(meshRenderer);
 

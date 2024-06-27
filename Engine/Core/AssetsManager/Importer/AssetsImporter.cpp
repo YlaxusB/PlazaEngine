@@ -34,7 +34,7 @@ namespace Plaza {
 			mainEntity = AssetsImporter::ImportFBX(asset, std::filesystem::path{});
 			AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName});
 			Application->activeScene->RemoveEntity(mainEntity->uuid);
-			AssetsLoader::LoadPrefab(AssetsManager::NewAsset(AssetType::MODEL, outPath + Standards::modelExtName));
+			//AssetsLoader::LoadPrefab(AssetsManager::NewAsset(AssetType::MODEL, outPath + Standards::modelExtName));
 			break;
 		case AssetExtension::PNG:
 			return AssetsImporter::ImportTexture(asset, uuid);

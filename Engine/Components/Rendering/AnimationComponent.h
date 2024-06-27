@@ -1,13 +1,15 @@
 #pragma once
-//#include <ufbx.h>
+
 namespace Plaza {
 	class Animation {
 	public:
 		uint64_t mUuid = 0;
 		std::string mName = "";
+		glm::mat4 mRootParentTransform = glm::mat4(1.0f);
 		std::map<uint64_t, std::vector<float>> mTimes = std::map<uint64_t, std::vector<float>>();
 		std::map<uint64_t, std::vector<glm::vec3>> mTranslations = std::map<uint64_t, std::vector<glm::vec3 >>();
-		std::map<uint64_t, std::vector<glm::vec3>> mRotations = std::map<uint64_t, std::vector<glm::vec3>>();
+		std::map<uint64_t, std::vector<glm::quat>> mRotations = std::map<uint64_t, std::vector<glm::quat>>();
+		std::map<uint64_t, std::vector<Bone::Keyframe>> mKeyframes = std::map<uint64_t, std::vector<Bone::Keyframe>>();
 
 		void Play();
 		void Stop() {};
@@ -22,7 +24,7 @@ namespace Plaza {
 	public:
 		float mImportScale = 1.0f;//0.01f;
 		std::vector<Animation> mAnimations = std::vector<Animation>();
-		void GetAnimation(std::string filePath, std::map<uint64_t, Plaza::Bone>& bonesMap, unsigned int index = 0) {
+		void GetAnimation(std::string filePath, std::map<uint64_t, Plaza::Bone>& bonesMap, unsigned int index = 0); //{
 			//std::ofstream outfile;
 			//FILE* fp = fopen(filePath.c_str(), "rb");
 			//if (!fp) {
@@ -171,7 +173,7 @@ namespace Plaza {
 			//for (Animation& animation : mAnimations) {
 			//	std::cout << "Animation found: " << animation.mName << "\n";
 			//}
-		}
+		//}
 
 	private:
 		friend class Animation;

@@ -33,7 +33,7 @@ namespace Plaza {
 	//}
 
 	static std::string GetFbxTexturePath(const ufbx_texture* texture, const std::string& materialFolderPath) {
-		std::string path = texture->name.data;
+		std::string path = texture->filename.data;
 		if (!std::filesystem::exists(path)) {
 			path = std::filesystem::path{ materialFolderPath }.parent_path().string() + "\\" + texture->relative_filename.data;
 			if (!std::filesystem::exists(path)) {
@@ -151,13 +151,13 @@ namespace Plaza {
 
 	Entity* AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath) {
 		ufbx_load_opts opts = { };
-		opts.target_axes = ufbx_axes_right_handed_y_up,
-		opts.target_unit_meters = 1.0f;
-		opts.target_axes = {
-			.right = UFBX_COORDINATE_AXIS_NEGATIVE_X,
-			.up = UFBX_COORDINATE_AXIS_POSITIVE_Y,
-			.front = UFBX_COORDINATE_AXIS_POSITIVE_Z,
-		};
+		//opts.target_axes = ufbx_axes_right_handed_y_up,
+			opts.target_unit_meters = 1.0f;
+		//opts.target_axes = {
+		//	.right = UFBX_COORDINATE_AXIS_POSITIVE_X,
+		//	.up = UFBX_COORDINATE_AXIS_POSITIVE_Y,
+		//	.front = UFBX_COORDINATE_AXIS_POSITIVE_Z,
+		//};
 
 		ufbx_error error;
 		ufbx_scene* scene = ufbx_load_file(asset.mPath.c_str(), &opts, &error);
@@ -172,6 +172,9 @@ namespace Plaza {
 		std::unordered_map<uint64_t, Entity*> entities = std::unordered_map<uint64_t, Entity*>();
 		std::unordered_map<uint64_t, uint64_t> meshIndexEntityMap = std::unordered_map<uint64_t, uint64_t>(); // ufbx id, plaza uuid
 		std::unordered_map<uint64_t, uint64_t> entityMeshParent = std::unordered_map<uint64_t, uint64_t>(); // Entity, Parent
+
+		std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
+		std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
 
 		for (size_t i = 0; i < scene->nodes.count; ++i) {
 			ufbx_node* node = scene->nodes.data[i];
@@ -198,27 +201,26 @@ namespace Plaza {
 
 			/* Material */
 			std::vector<Material*> materials = std::vector<Material*>();
-			std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
-			std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
 			for (ufbx_material* ufbxMaterial : node->materials) {
-				Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
 
-				std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName;
-
-				if (loadedMaterials.find(materialOutPath) == loadedMaterials.end()) {
+				std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
+				bool materialIsNotLoaded = loadedMaterials.find(materialOutPath) == loadedMaterials.end();
+				if (materialIsNotLoaded) {
+					materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
+					Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
 					loadedMaterials.emplace(materialOutPath, material->uuid);
 					AssetsSerializer::SerializeMaterial(material, materialOutPath);
 					Application->activeScene->AddMaterial(material);
+					materials.push_back(material);
 				}
 				else
-					material = Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second);
-				materials.push_back(material);
+					materials.push_back(Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second));
+				//materials.push_back(material);
 			}
 
 			/* Skinning */
-			ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
-			if (skin)
-			{
+			if (ufbxMesh->skin_deformers.count > 0) {
+				ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
 				for (unsigned int i = 0; i < skin->clusters.count; ++i) {
 					ufbx_skin_cluster* cluster = skin->clusters[i];
 					uint64_t parentUuid = 0;
@@ -250,9 +252,11 @@ namespace Plaza {
 			std::vector<uint32_t> triangleIndices = std::vector<uint32_t>();
 			triangleIndices.resize(triangleIndicesCount);
 
+			int faceIndex = 0;
 			for (ufbx_face face : ufbxMesh->faces) {
 				size_t trianglesNumber = ufbx_triangulate_face(triangleIndices.data(), triangleIndicesCount, ufbxMesh, face);
-
+				uint32_t materialIndex = ufbxMesh->face_material[faceIndex];
+				faceIndex++;
 				for (size_t vertexIndex = 0; vertexIndex < trianglesNumber * 3; vertexIndex++) {
 					uint32_t index = triangleIndices[vertexIndex];
 					finalMesh->indices.push_back(index);
@@ -266,15 +270,11 @@ namespace Plaza {
 					finalMesh->normals.push_back(normal);
 					finalMesh->uvs.push_back(uv);
 
+					finalMesh->materialsIndices.push_back(materialIndex);
 					//finalMesh->materialsIndices.push_back(ufbxMesh->face_material[index]);
 
-					if (ufbxMesh->face_material.count > index)
-						finalMesh->materialsIndices.push_back(ufbxMesh->face_material[index]);
-					else
-						finalMesh->materialsIndices.push_back(0);
-					ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
-					if (skin)
-					{
+					if (ufbxMesh->skin_deformers.count > 0) {
+						ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
 						const uint32_t vertex = ufbxMesh->vertex_indices[index];
 
 
@@ -343,10 +343,10 @@ namespace Plaza {
 			{
 				streams.push_back({ finalMesh->bonesHolder.data(), finalMesh->bonesHolder.size(), sizeof(finalMesh->bonesHolder[0]) });
 			}
-			//if (!boneweights.empty())
-			//{
-			//	streams.push_back({ boneweights.data(), boneweights.size(), sizeof(boneweights[0]) });
-			//}
+			if (!finalMesh->materialsIndices.empty())
+			{
+				streams.push_back({ finalMesh->materialsIndices.data(), finalMesh->materialsIndices.size(), sizeof(finalMesh->materialsIndices[0]) });
+			}
 
 			finalMesh->indices.resize(ufbxMesh->num_triangles * 3);
 			ufbx_error error;

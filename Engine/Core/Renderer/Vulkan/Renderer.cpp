@@ -1090,89 +1090,22 @@ namespace Plaza {
 		return commandBuffer;
 	}
 
-	void VulkanRenderer::CalculateIndividualBone(Bone* bone, glm::mat4 target, int time, uint64_t boneId) {
-		//bone->mLocalTransform[3] = glm::vec4(glm::vec3(10.0f, 5.0f, 3.0f) * time, 1.0f);
-		for (auto& [key, animation] : Application->activeScene->mPlayingAnimations) {
-			glm::vec3 position = glm::vec3(0.0f);
-			glm::quat rotation = glm::quat(glm::vec3(0.0f));//bone->mRotation;//glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
-			if (animation.mTranslations[boneId].size() > time) {
-				position = animation.mTranslations[boneId][time];
-			}
-			if (animation.mRotations[boneId].size() > time) {
-				rotation = animation.mRotations[boneId][time];//glm::quat(glm::vec3(glm::eulerAngles(glm::normalize(animation.mRotations[boneId][time])) * glm::vec3(180.0f / glm::pi<float>())));//glm::quat(glm::eulerAngles(glm::normalize(animation.mRotations[boneId][time])) * glm::vec3(180.0f / glm::pi<float>())); //* (180.0f / glm::pi<float>());
-				//bone->mRotation = rotation;
-			}
-			//bone->mLocalTransform = glm::mat4(1.0f);
-			//bone->mLocalTransform[3] = glm::vec4(position, 1.0f);//glm::translate(glm::mat4(1.0f), position)
-			//bone->mLocalTransform *= glm::rotate(bone->mLocalTransform, glm::mat4_cast(rotation));
-			//glm::mat4 translate = glm::translate(glm::mat4(1.0), position);
-			//glm::mat4 rotate = glm::toMat4(rotation);
-			//glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(1.0f));
-			//bone->mLocalTransform = rotate * translate * scale;
-
-			glm::mat4 m(1);
-			m = glm::scale(m, glm::vec3(1, 1, 1));
-			m = glm::rotate(m, (float)glm::eulerAngles(rotation).x, glm::vec3(1, 0, 0));
-			m = glm::rotate(m, (float)glm::eulerAngles(rotation).y, glm::vec3(0, 1, 0));
-			m = glm::rotate(m, (float)glm::eulerAngles(rotation).z, glm::vec3(0, 0, 1));
-			m = glm::translate(m, glm::vec3(position.x, position.y, position.z));
-			bone->mLocalTransform = m;
-			//* glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
-		}
-	}
-
 	void VulkanRenderer::CalculateBonesParentship(Bone* bone, glm::mat4 parentTransform, float time, uint64_t boneId) {
-		//glm::vec3 targetTranslation = glm::vec3(5.0f, 3.0f, 1.0f);
-		//glm::vec3 currentTranslation = glm::vec3(bone->mTransform[3]);
-		//glm::vec3 newTranslation = glm::mix(glm::vec3(0.0f), targetTranslation, time);
-		//bone->mTransform[3] = glm::vec4(newTranslation, 1.0f);
-
-		//if (parentBone)
-		//float time = 1.0f;
-		if (Application->activeScene->mPlayingAnimations[0].mKeyframes[boneId].size() > 0)
-			bone->Update(Application->activeScene->mPlayingAnimations[0].mKeyframes[boneId], time);
-		bone->mTransform = parentTransform * bone->mLocalTransform; //* glm::inverse(bone->mOffset));//bone->mTransform;
-		//else
-		//	bone->mTransform = glm::mat4(1.0f) * bone->mLocalTransform;
+		if (Application->activeScene->mPlayingAnimations[0]->mKeyframes[boneId].size() > 0)
+			bone->Update(Application->activeScene->mPlayingAnimations[0]->mKeyframes[boneId], time);
+		bone->mTransform = parentTransform * bone->mLocalTransform;
 		for (uint64_t childId : bone->mChildren) {
-			//if (this->mBones.find(childId) != this->mBones.end())
-				this->CalculateBonesParentship(&this->mBones[childId], bone->mTransform, time, childId);
+			this->CalculateBonesParentship(&this->mBones[childId], bone->mTransform, time, childId);
 		}
 	}
 	static inline int tim2 = 0;
 	static inline int tim = 0;
 	void VulkanRenderer::EarlyAnimationController() {
 		PLAZA_PROFILE_SECTION("Early Animation Controller");
-		if (increasing) {
-			time += 0.01f; // Adjust the increment value as needed for smoothness
-			if (time >= 3.0f) {
-				time = 3.0f;
-				increasing = false;
-			}
+		for (auto& [key, value] : Application->activeScene->mPlayingAnimations) {
+			CalculateBonesParentship(value->mRootBone, glm::mat4(1.0f), value->mCurrentTime, value->mRootBone->mId);
 		}
-		else {
-			time -= 0.01f; // Adjust the decrement value as needed for smoothness
-			if (time <= 0.1f) {
-				time = 0.1f;
-				increasing = true;
-			}
-		}
-		//for (auto& [key, value] : this->mBones) {
-		//	if (value.mId != -1)
-		//		CalculateIndividualBone(&value, glm::mat4(2.0f), tim, key);
-		//	//CalculateBonesParentship(&value, nullptr, time);
-		//}
 
-		if (Application->activeScene->mPlayingAnimations.size() > 0) {
-			for (auto& [key, value] : this->mBones) {
-				if (value.mId != -1 && (value.mParentId == 0 || value.mId == 1)) {
-					glm::mat4 mat = glm::mat4(1.0f);
-					if (Application->activeScene->mPlayingAnimations.size() > 0)
-						mat = Application->activeScene->mPlayingAnimations[0].mRootParentTransform;
-					CalculateBonesParentship(&value, mat, time, key);
-				}
-			}
-		}
 	}
 
 	void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer,
@@ -2866,7 +2799,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-	}
+		}
 #endif
 
 		{
@@ -2944,7 +2877,7 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-}
+	}
 	void VulkanRenderer::RenderBloom() {
 	}
 	void VulkanRenderer::RenderScreenSpaceReflections() {
@@ -3527,7 +3460,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-	}
+		}
 #endif
 
 		{

@@ -346,6 +346,11 @@ void ApplicationClass::UpdateEngine() {
      // Update Filewatcher main thread
      Filewatcher::UpdateOnMainThread();
 
+     // Update Animations
+     for (auto& [key, value] : Application->activeScene->mPlayingAnimations) {
+         value->UpdateTime(Time::deltaTime);
+     }
+
      /* Update Physics */
      if (Application->runningScene) {
           PLAZA_PROFILE_SECTION("Update Physics");

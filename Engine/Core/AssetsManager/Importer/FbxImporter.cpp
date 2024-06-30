@@ -25,13 +25,6 @@ struct Vec3Hash {
 
 
 namespace Plaza {
-	//static std::string toStringView(ofbx::DataView data) {
-	//	return std::string(
-	//		(const char*)data.begin,
-	//		(const char*)data.end
-	//	);
-	//}
-
 	static std::string GetFbxTexturePath(const ufbx_texture* texture, const std::string& materialFolderPath) {
 		std::string path = texture->filename.data;
 		if (!std::filesystem::exists(path)) {
@@ -100,26 +93,6 @@ namespace Plaza {
 		return (idx < 0) ? (-idx - 1) : idx;
 	}
 
-	//static glm::mat4 ofbxToGlm(const ofbx::Matrix& ofbxMat, glm::vec3 scale) {
-	//	glm::mat4 glmMat = glm::mat4(1.0f);
-	//
-	//	//// Copy elements from ofbx::Matrix to glm::mat4
-	//	//for (int i = 0; i < 4; ++i) {
-	//	//	for (int j = 0; j < 4; ++j) {
-	//	//		glmMat[i][j] = static_cast<float>(ofbxMat.m[i * 4 + j]);
-	//	//	}
-	//	//}
-	//
-	//	for (int row = 0; row < 4; ++row) {
-	//		for (int col = 0; col < 4; ++col) {
-	//			double v = ofbxMat.m[4 * col + row];
-	//			glmMat[col][row] = v;
-	//		}
-	//	}
-	//
-	//	return glmMat;
-	//}
-
 	static inline glm::vec3 ConvertUfbxVec3(ufbx_vec3 vec) {
 		return glm::vec3(vec.x, vec.y, vec.z);
 	}
@@ -129,35 +102,39 @@ namespace Plaza {
 	}
 
 	static inline glm::quat ConvertUfbxQuat(ufbx_quat const& quaternionUfbx) {
-		glm::vec4 vec4GLM;
-		vec4GLM.x = quaternionUfbx.x;
-		vec4GLM.y = quaternionUfbx.y;
-		vec4GLM.z = quaternionUfbx.z;
-		vec4GLM.w = quaternionUfbx.w;
-		return glm::quat(vec4GLM);
+		return glm::quat(quaternionUfbx.w, quaternionUfbx.x, quaternionUfbx.y, quaternionUfbx.z);
 	};
 
 	static glm::mat4 ConvertUfbxMatrix(ufbx_matrix const& mat4Ufbx) {
-		glm::mat4 mat4Glm;
-		for (unsigned int column = 0; column < 4; ++column)
-		{
-			mat4Glm[column].x = mat4Ufbx.cols[column].x;
-			mat4Glm[column].y = mat4Ufbx.cols[column].y;
-			mat4Glm[column].z = mat4Ufbx.cols[column].z;
-			mat4Glm[column].w = column < 3 ? 0.0f : 1.0f;
-		}
-		return mat4Glm;
+		glm::mat4 inverseBindMatrix = glm::identity<glm::mat4>();
+
+		inverseBindMatrix[0][0] = mat4Ufbx.m00;
+		inverseBindMatrix[0][1] = mat4Ufbx.m10;
+		inverseBindMatrix[0][2] = mat4Ufbx.m20;
+
+		inverseBindMatrix[1][0] = mat4Ufbx.m01;
+		inverseBindMatrix[1][1] = mat4Ufbx.m11;
+		inverseBindMatrix[1][2] = mat4Ufbx.m21;
+
+		inverseBindMatrix[2][0] = mat4Ufbx.m02;
+		inverseBindMatrix[2][1] = mat4Ufbx.m12;
+		inverseBindMatrix[2][2] = mat4Ufbx.m22;
+
+		inverseBindMatrix[3][0] = mat4Ufbx.m03;
+		inverseBindMatrix[3][1] = mat4Ufbx.m13;
+		inverseBindMatrix[3][2] = mat4Ufbx.m23;
+		return inverseBindMatrix;
 	};
 
 	Entity* AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath) {
 		ufbx_load_opts opts = { };
-		//opts.target_axes = ufbx_axes_right_handed_y_up,
-			opts.target_unit_meters = 1.0f;
-		//opts.target_axes = {
-		//	.right = UFBX_COORDINATE_AXIS_POSITIVE_X,
-		//	.up = UFBX_COORDINATE_AXIS_POSITIVE_Y,
-		//	.front = UFBX_COORDINATE_AXIS_POSITIVE_Z,
-		//};
+		opts.target_axes = ufbx_axes_right_handed_y_up;
+		opts.target_unit_meters = 1.0f;
+		opts.target_axes = {
+			.right = UFBX_COORDINATE_AXIS_POSITIVE_X,
+			.up = UFBX_COORDINATE_AXIS_POSITIVE_Y,
+			.front = UFBX_COORDINATE_AXIS_POSITIVE_Z,
+		};
 
 		ufbx_error error;
 		ufbx_scene* scene = ufbx_load_file(asset.mPath.c_str(), &opts, &error);
@@ -226,26 +203,9 @@ namespace Plaza {
 					uint64_t parentUuid = 0;
 					if (cluster->bone_node->parent)
 						parentUuid = cluster->bone_node->bone->element_id;
-					finalMesh->uniqueBonesInfo.emplace(cluster->bone_node->bone->element_id, Bone{ cluster->bone_node->bone->element_id, parentUuid, cluster->bone_node->bone->element_id, cluster->name.data, ConvertUfbxMatrix(cluster->bone_node->geometry_to_node) });
+					finalMesh->uniqueBonesInfo.emplace(cluster->bone_node->bone->element_id, Bone{ cluster->bone_node->bone->element_id, parentUuid, cluster->bone_node->bone->element_id, cluster->name.data, ConvertUfbxMatrix(cluster->geometry_to_bone) });
 				}
 			}
-
-			//if (skin)
-			//{
-			//	for (unsigned int i = 0; i < skin->clusters.count; ++i) {
-			//		ufbx_skin_cluster* cluster = skin->clusters[i];
-			//		for (ufbx_node* child : cluster->bone_node->children) {
-			//			finalMesh->uniqueBonesInfo[child->bone->element_id].mParentId = cluster->bone_node->bone->element_id;
-			//			finalMesh->uniqueBonesInfo[cluster->bone_node->bone->element_id].mChildren.push_back(child->bone->element_id);
-			//
-			//		}
-			//
-			//		//if (cluster->bone_node->parent && cluster->bone_node->parent->bone && finalMesh->uniqueBonesInfo.find(cluster->bone_node->parent->bone->element_id) != finalMesh->uniqueBonesInfo.end()) {
-			//		//	finalMesh->uniqueBonesInfo[cluster->bone_node->bone->element_id].mParentId = cluster->bone_node->parent->bone->element_id;
-			//		//	finalMesh->uniqueBonesInfo[cluster->bone_node->parent->bone->element_id].mChildren.push_back(cluster->bone_node->bone->element_id);
-			//		//}
-			//	}
-			//}
 
 			uint64_t indices = 0;
 			size_t triangleIndicesCount = ufbxMesh->max_face_triangles * 3;
@@ -271,7 +231,6 @@ namespace Plaza {
 					finalMesh->uvs.push_back(uv);
 
 					finalMesh->materialsIndices.push_back(materialIndex);
-					//finalMesh->materialsIndices.push_back(ufbxMesh->face_material[index]);
 
 					if (ufbxMesh->skin_deformers.count > 0) {
 						ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
@@ -289,8 +248,6 @@ namespace Plaza {
 							ufbx_skin_weight skin_weight = skin->weights[skinVertex.weight_begin + i];
 							holder.mBones.push_back(skin->clusters[skin_weight.cluster_index]->bone_node->bone->element_id);
 							holder.mWeights.push_back(skin_weight.weight);
-							//(&boneindices.back().x)[i] = skin_weight.cluster_index;
-							//(&boneweights.back().x)[i] = skin_weight.weight;
 							totalWeight += skin_weight.weight;
 						}
 
@@ -299,31 +256,13 @@ namespace Plaza {
 						{
 							for (uint32_t i = 0; i < num_weights; ++i)
 							{
-								//(&boneweights.back().x)[i] /= totalWeight;
 								holder.mWeights[i] /= totalWeight;
 							}
 						}
 						finalMesh->bonesHolder.push_back(holder);
 					}
 
-
-
 					indices++;
-					//		if (meshTriangleMaterials)
-//			finalMesh->materialsIndices.push_back(meshTriangleMaterials[j / 3]);
-//		else
-//			finalMesh->materialsIndices.push_back(0);
-
-//		if (vertexToBoneIDs.find(j) != vertexToBoneIDs.end()) {
-//			BonesHolder holder{};
-//			for (int k = 0; k < vertexToBoneIDs[j].size(); ++k) {
-//				holder.mBones.push_back(vertexToBoneIDs[j][k]);
-//				holder.mWeights.push_back(vertexToWeights[j][k]);
-//			}
-//			if (vertexToBoneIDs[j].size() > 4)
-//				std::cout << "bones array bigger than 4 \n";
-//			finalMesh->bonesHolder.push_back(holder);
-//		}
 				}
 			}
 			vector<ufbx_vertex_stream> streams;
@@ -356,7 +295,6 @@ namespace Plaza {
 			if (materials.size() <= 0)
 				materials.push_back(Application->activeScene->DefaultMaterial());
 			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, materials);
-			//meshRenderer->;//material = material;//AssetsLoader::LoadMaterial(AssetsManager::GetAsset(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name + Standards::materialExtName}.string()));
 			entity->AddComponent<MeshRenderer>(meshRenderer);
 
 			Collider* collider = new Collider();
@@ -374,175 +312,5 @@ namespace Plaza {
 
 		ufbx_free_scene(scene);
 		return Application->activeScene->GetEntity(mainEntity->uuid);
-
-		//uint64_t verticesCount = 0;
-
-		//int meshCount = loadedScene->getMeshCount();
-
-		//// output unindexed geometry
-		//Entity* mainEntity = new Entity(loadedScene->getRoot()->name, Application->activeScene->mainSceneEntity);
-		//mainEntity->GetComponent<Transform>()->scale = glm::vec3(1.0f);
-		//std::unordered_map<ofbx::u64, uint64_t> meshIndexEntityMap = std::unordered_map<ofbx::u64, uint64_t>();
-		//std::unordered_map<uint64_t, Entity*> entities = std::unordered_map<uint64_t, Entity*>();
-		//std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
-		//std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
-		//std::unordered_map<ofbx::u64, uint64_t> materialsMap = std::unordered_map<ofbx::u64, uint64_t>();
-
-		//for (int meshIndex = 0; meshIndex < meshCount; ++meshIndex) {
-		//	const ofbx::Mesh& mesh = *loadedScene->getMesh(meshIndex);
-
-		//	std::vector<Material*> meshMaterials = std::vector<Material*>();
-
-		//	for (int materialIndex = 0; materialIndex < mesh.getMaterialCount(); ++materialIndex) {
-		//		std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + mesh.getMaterial(materialIndex)->name) + Standards::materialExtName;
-		//		bool materialIsNotLoaded = loadedMaterials.find(materialOutPath) == loadedMaterials.end();//materialsMap.find(mesh.getMaterial(materialIndex)->id) == materialsMap.end();
-		//		if (materialIsNotLoaded) {
-		//			Material* material = AssetsImporter::FbxModelMaterialLoader(mesh.getMaterial(materialIndex), std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
-		//			loadedMaterials.emplace(materialOutPath, material->uuid);
-		//			materialsMap.emplace(mesh.getMaterial(materialIndex)->id, material->mAssetUuid);
-		//			meshMaterials.push_back(material);
-
-		//			AssetsSerializer::SerializeMaterial(material, materialOutPath);
-		//			Application->activeScene->AddMaterial(material);
-		//		}
-		//	}
-
-		//	Entity* entity = new Entity(mesh.name, mainEntity, true);
-		//	const ofbx::Vec3 translation = mesh.getLocalTranslation();
-		//	const glm::vec3 rotation = glm::vec3(mesh.getLocalRotation().x, mesh.getLocalRotation().y, mesh.getLocalRotation().z) * glm::vec3(glm::pi<float>() / 180.0f);
-		//	entity->GetComponent<Transform>()->SetRelativePosition(glm::vec3(translation.x * mModelImporterScale.x, translation.y * mModelImporterScale.y, translation.z * mModelImporterScale.z));
-		//	entity->GetComponent<Transform>()->SetRelativeRotation(glm::quat(glm::vec3(rotation.x, rotation.y, rotation.z)));
-		//	entity->GetComponent<Transform>()->SetRelativeScale(glm::vec3(mesh.getLocalScaling().x, mesh.getLocalScaling().y, mesh.getLocalScaling().z));
-
-		//	entities.emplace(entity->uuid, entity);
-		//	meshIndexEntityMap.emplace(mesh.id, entity->uuid);
-		//	ofbx::Object* parent = mesh.getParent();
-		//	if (parent) {
-		//		entityMeshParent.emplace(entity->uuid, parent->id);
-		//		auto parentIt = meshIndexEntityMap.find(parent->id);
-		//		if (parentIt != meshIndexEntityMap.end()) {
-		//			//entity->ChangeParent(Application->activeScene->GetEntity(entity->GetParent().uuid), Application->activeScene->GetEntity(parentIt->second));
-		//		}
-		//	}
-		//	else {
-		//		entityMeshParent.emplace(entity->uuid, 0);
-		//	}
-		//	const ofbx::Geometry* geometry = mesh.getGeometry();
-		//	const ofbx::Vec3* positions = geometry->getVertices();
-		//	const ofbx::Vec3* normals = geometry->getNormals();
-		//	const ofbx::Vec2* uvs = geometry->getUVs();
-		//	const int* faceIndicies = geometry->getFaceIndices();
-		//	const int* meshTriangleMaterials = geometry->getMaterials();
-		//	int indexCount = geometry->getIndexCount();
-
-		//	Mesh* finalMesh = new Mesh();
-
-		//	for (int j = 0; j < indexCount; ++j) {
-		//		finalMesh->indices.push_back(decodeIndex(faceIndicies[j]));
-		//	}
-
-		//	/* TODO: FIX UNIQUE VERTICES, SO THEY ALSO DIFFER FROM NORMAL AND UV */
-		//	std::unordered_map<glm::vec3, uint32_t> uniqueVertices = std::unordered_map<glm::vec3, uint32_t>();
-		//	//int* tri_indices = new int();
-		//	int indicesOffset = 0;
-
-		//	std::unordered_map<uint64_t, std::vector<uint64_t>> vertexToBoneIDs;
-		//	std::unordered_map<uint64_t, std::vector<float>> vertexToWeights;
-
-		//	const ofbx::Skin* skin = mesh.getGeometry()->getSkin();
-		//	if (skin) {
-		//		const int clusterCount = skin->getClusterCount();
-		//		for (int j = 0; j < clusterCount; ++j) {
-		//			const ofbx::Cluster* cluster = skin->getCluster(j);
-		//			if (cluster->getIndicesCount() <= 0)
-		//				continue;
-		//			const int* indices = cluster->getIndices();
-		//			const double* weightsData = cluster->getWeights();
-		//			finalMesh->uniqueBonesInfo.emplace(cluster->getLink()->id, Bone { cluster->getLink()->id, cluster->getLink()->getParent()->id, cluster->name, (ofbxToGlm(cluster->getTransformMatrix(), mModelImporterScale)) });
-		//			for (int k = 0; k < cluster->getIndicesCount(); ++k) {
-		//				int vertexIndex = indices[k];
-		//				uint64_t boneID = cluster->getLink()->id;
-		//				float weight = static_cast<float>(weightsData[k]);
-
-		//				vertexToBoneIDs[vertexIndex].push_back(boneID);
-		//				vertexToWeights[vertexIndex].push_back(weight);
-		//			}
-		//		}
-		//	}
-
-		//	for (int j = 0; j < geometry->getVertexCount(); j++)
-		//	{
-		//		auto& v = geometry->getVertices()[j];
-		//		auto& n = geometry->getNormals()[j];
-		//		auto& t = geometry->getTangents()[j];
-		//		auto& uv = geometry->getUVs()[j];
-
-		//		Vertex vertex{};
-		//		finalMesh->vertices.push_back(glm::vec3(v.x * mModelImporterScale.x, v.y * mModelImporterScale.y, v.z * mModelImporterScale.z));
-		//		finalMesh->normals.push_back(glm::vec3(n.x, n.y, n.z));
-
-		//		//if (geometry->getTangents() != nullptr) {
-		//		//	vertex.tangent = glm::vec3(t.x, t.y, t.z);
-		//		//	vertex.bitangent = glm::cross(vertex.tangent, vertex.normal);
-		//		//}
-		//		if (geometry->getUVs() != nullptr)
-		//			finalMesh->uvs.push_back(glm::vec2(uv.x, 1.0f - uv.y));
-		//		//finalMesh->indices.push_back(geometry->getFaceIndices()[j]);
-
-		//		if (meshTriangleMaterials)
-		//			finalMesh->materialsIndices.push_back(meshTriangleMaterials[j / 3]);
-		//		else
-		//			finalMesh->materialsIndices.push_back(0);
-
-		//		if (vertexToBoneIDs.find(j) != vertexToBoneIDs.end()) {
-		//			BonesHolder holder{};
-		//			for (int k = 0; k < vertexToBoneIDs[j].size(); ++k) {
-		//				holder.mBones.push_back(vertexToBoneIDs[j][k]);
-		//				holder.mWeights.push_back(vertexToWeights[j][k]);
-		//			}
-		//			if (vertexToBoneIDs[j].size() > 4)
-		//				std::cout << "bones array bigger than 4 \n";
-		//			finalMesh->bonesHolder.push_back(holder);
-		//		}
-
-		//	}
-
-
-		//	/* Reiterate to adjust parentship */
-		//	for (int i = 0, n = loadedScene->getAnimationStackCount(); i < n; ++i) {
-		//		const ofbx::AnimationStack* stack = loadedScene->getAnimationStack(i);
-		//		for (int j = 0; stack->getLayer(j); ++j) {
-		//			const ofbx::AnimationLayer* layer = stack->getLayer(j);
-		//			for (int k = 0; layer->getCurveNode(k); ++k) {
-		//				const ofbx::AnimationCurveNode* node = layer->getCurveNode(k);
-		//				if (node->getBone())
-		//				{
-		//					const ofbx::Object* bone = node->getBone();
-		//					uint64_t parentId = bone->getParent()->id;
-
-		//					Plaza::Bone plazaBone{ bone->id, bone->name };
-		//					if (finalMesh->uniqueBonesInfo.find(parentId) != finalMesh->uniqueBonesInfo.end() && finalMesh->uniqueBonesInfo.find(bone->id) != finalMesh->uniqueBonesInfo.end()) {
-		//						finalMesh->uniqueBonesInfo[parentId].mChildren.push_back(bone->id);
-		//						finalMesh->uniqueBonesInfo[bone->id].mOffset = finalMesh->uniqueBonesInfo[parentId].mOffset * finalMesh->uniqueBonesInfo[bone->id].mOffset;
-		//					}
-		//				};
-		//			}
-		//		}
-		//	}
-
-
-		//	finalMesh->bonesHolder.resize(finalMesh->indices.size());
-
-
-		//	MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, meshMaterials);
-		//	//meshRenderer->;//material = material;//AssetsLoader::LoadMaterial(AssetsManager::GetAsset(std::filesystem::path{ Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name + Standards::materialExtName}.string()));
-		//	entity->AddComponent<MeshRenderer>(meshRenderer);
-
-		//	Collider* collider = new Collider();
-		//	ColliderShape* shape = new ColliderShape(nullptr, Plaza::ColliderShape::MESH, finalMesh->uuid);
-		//	collider->AddShape(shape);
-		//	entity->AddComponent<Collider>(collider);
-		//	verticesCount += finalMesh->vertices.size();
-		//}
 	}
 }

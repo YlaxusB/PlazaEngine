@@ -10,7 +10,7 @@ namespace Plaza::Editor {
 		static inline int index = 0;
 		AnimationComponentInspector(AnimationComponent* component) {
 			if (Utils::ComponentInspectorHeader(component, "Animation Component")) {
-				ImGui::PushID("AnimationComponentInspector");
+				//ImGui::PushID("AnimationComponentInspector");
 
 				ImGui::InputInt("Animation Index: ", &index);
 
@@ -20,10 +20,19 @@ namespace Plaza::Editor {
 				}
 
 				for (Animation& animation : component->mAnimations) {
+					//ImGui::BeginChild(std::string("Animation: " + animation.mName).c_str());
+					ImGui::PushID(std::string("Animation: " + animation.mName).c_str());
 					if (ImGui::Button(std::string("Play" + animation.mName).c_str())) {
 						Application->activeScene->mPlayingAnimations.clear();
 						animation.Play();
 					}
+					float time = animation.mCurrentTime;
+					ImGui::SliderFloat("Current Time", &time, animation.mStartTime, animation.mEndTime);
+					animation.SetTime(time);
+
+					ImGui::PopID();
+					//	ImGui::EndChild();
+					//}
 				}
 
 				for (Animation& animation : component->mAnimations) {
@@ -33,7 +42,7 @@ namespace Plaza::Editor {
 					}
 				}
 
-				ImGui::PopID();
+				//ImGui::PopID();
 			}
 
 		}
@@ -42,8 +51,8 @@ namespace Plaza::Editor {
 			if (!bone)
 				return;
 			if (ImGui::TreeNodeEx(bone->mName.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
-				for(uint64_t childUuid : bone->mChildren)
-				BoneParentShipTree(&VulkanRenderer::GetRenderer()->mBones.at(childUuid));
+				for (uint64_t childUuid : bone->mChildren)
+					BoneParentShipTree(&VulkanRenderer::GetRenderer()->mBones.at(childUuid));
 				ImGui::TreePop();
 			}
 		}

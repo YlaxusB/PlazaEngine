@@ -581,7 +581,7 @@ namespace Plaza {
 						ImGui::SameLine();
 						ImGui::Text(value->mAssetExtension.c_str());
 
-						ImGui::TreePop();
+						ImGui::TreePop(); 
 					}
 				}
 			};

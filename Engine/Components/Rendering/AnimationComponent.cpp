@@ -45,16 +45,11 @@ namespace Plaza {
 		inverseBindMatrix[3][2] = mat4Ufbx.m23;
 		return inverseBindMatrix;
 	}
-	static void CalculateParentshipOffsets(Bone* bone, glm::mat4 parentOffset) {
-		bone->mOffset = bone->mOffset * parentOffset;
-		for (uint64_t childUuid : bone->mChildren) {
-			CalculateParentshipOffsets(&VulkanRenderer::GetRenderer()->mBones.at(childUuid), bone->mOffset);
-		}
-	}
+
 	void Animation::Play() {
 		this->mIsPlaying = true;
 		Application->activeScene->mPlayingAnimations.clear();
-		Application->activeScene->mPlayingAnimations.emplace(this->mUuid, *this);
+		Application->activeScene->mPlayingAnimations.emplace(this->mUuid, this);
 	}
 
 	void AnimationComponent::GetAnimation(std::string filePath, std::map<uint64_t, Plaza::Bone>& bonesMap, unsigned int index) {
@@ -67,9 +62,6 @@ namespace Plaza {
 			.up = UFBX_COORDINATE_AXIS_POSITIVE_Y,
 			.front = UFBX_COORDINATE_AXIS_POSITIVE_Z,
 		};
-		opts.connect_broken_elements = true;
-		opts.evaluate_skinning = true;
-		//opts.use_root_transform = true;
 
 		ufbx_error error;
 		ufbx_scene* scene = ufbx_load_file(filePath.c_str(), &opts, &error);
@@ -88,7 +80,7 @@ namespace Plaza {
 
 		for (const ufbx_skin_deformer* skin : scene->skin_deformers) {
 			for (const ufbx_skin_cluster* cluster : skin->clusters) {
-				VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = (ConvertUfbxMatrix2(cluster->geometry_to_bone));
+				//VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = (ConvertUfbxMatrix2(cluster->geometry_to_bone));
 				if (cluster->bone_node->parent && cluster->bone_node->parent->bone) {
 					VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mParentId = cluster->bone_node->parent->bone->element_id;
 
@@ -105,21 +97,6 @@ namespace Plaza {
 			if (stack->time_end - stack->time_begin <= 0.0f) {
 				continue;
 			}
-			for (const ufbx_skin_deformer* skin : scene->skin_deformers) {
-				for (const ufbx_skin_cluster* cluster : skin->clusters) {
-					if (cluster->name.data == "Cluster mixamorig:Hips")
-						std::cout << "here \n";
-					VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = (ConvertUfbxMatrix2(cluster->geometry_to_bone));
-					//glm::mat4 mat = glm::mat4(1.0f);
-					//mat[3] = VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset[3];
-					//mat[3][0] *= (1.0f / cluster->bone_node->node_to_world.m00) * -1.0f;
-					//mat[3][1] *= (1.0f / cluster->bone_node->node_to_world.m11) * -1.0f;
-					//mat[3][2] *= (1.0f / cluster->bone_node->node_to_world.m22) * -1.0f;
-					//VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = mat;
-				}
-			}
-
-
 
 			ufbx_baked_anim* bake = ufbx_bake_anim(scene, stack->anim, nullptr, nullptr);
 			assert(bake != nullptr);
@@ -135,38 +112,28 @@ namespace Plaza {
 			if (!animation.mRootBone) {
 				animation.mRootBone = &VulkanRenderer::GetRenderer()->mBones.at(scene->bones[0]->element_id);
 			}
-			animation.mRootParentTransform = ConvertUfbxMatrix2(scene->root_node->geometry_to_world);
-			//CalculateParentshipOffsets(animation.mRootBone, glm::mat4(1.0f));
-			//animation.mRootParentTransform = glm::mat4({
-			//	animation.mRootParentTransform[0][0], 0.0f, 0.0f, 0.0f,
-			//	0.0f, animation.mRootParentTransform[0][1], 0.0f, 0.0f,
-			//	0.0f, 0.0f, animation.mRootParentTransform[0][2], 0.0f,
-			//	0.0f, 0.0f, 0.0f, 1.0f }
-			//);
-			//animcomponent.start = (float)bake->playback_time_begin;
-			//animcomponent.end = (float)bake->playback_time_end;
-			for (const ufbx_baked_node& bake_node : bake->nodes)
+			//animation.mRootParentTransform = ConvertUfbxMatrix2(scene->root_node->geometry_to_world);
+			animation.mStartTime = (float)bake->playback_time_begin;
+			animation.mEndTime = (float)bake->playback_time_end;
+			for (const ufbx_baked_node& bakeNode : bake->nodes)
 			{
-				ufbx_node* scene_node = scene->nodes[bake_node.typed_id];
-				// Translation:
-				//VulkanRenderer::GetRenderer()->mBones.at(scene_node->bone->element_id).mOffset = (ConvertUfbxMatrix2(scene_node->geometry_to_node));
+				ufbx_node* sceneNode = scene->nodes[bakeNode.typed_id];
 
+				// Translation:
 				std::map<float, glm::vec3> positions = std::map<float, glm::vec3>();
-				for (const ufbx_baked_vec3& keyframe : bake_node.translation_keys)
+				for (const ufbx_baked_vec3& keyframe : bakeNode.translation_keys)
 				{
 					positions[keyframe.time] = glm::vec3(keyframe.value.x, keyframe.value.y, keyframe.value.z);
 				}
 
-
-
 				// Rotation:
 				std::map<float, glm::quat> rotations = std::map<float, glm::quat>();
-				for (const ufbx_baked_quat& keyframe : bake_node.rotation_keys)
+				for (const ufbx_baked_quat& keyframe : bakeNode.rotation_keys)
 				{
 					rotations[keyframe.time] = ConvertUfbxQuat(keyframe.value);
 				}
 
-				uint64_t boneUuid = scene_node->bone->element_id;
+				uint64_t boneUuid = sceneNode->bone->element_id;
 				unsigned int maxCount = glm::max(positions.size(), rotations.size());
 				std::map<float, Bone::Keyframe> keyframes = std::map<float, Bone::Keyframe>();
 				for (const auto& [key, value] : positions) {
@@ -176,208 +143,16 @@ namespace Plaza {
 					keyframes[key].orientation = value;
 				}
 				for (const auto& [key, value] : keyframes) {
-					animation.mKeyframes[boneUuid].push_back(Bone::Keyframe{ key, ConvertUfbxVec3(ufbx_evaluate_baked_vec3(bake_node.translation_keys, key)), ConvertUfbxQuat(ufbx_evaluate_baked_quat(bake_node.rotation_keys, key)), ConvertUfbxVec3(ufbx_evaluate_baked_vec3(bake_node.scale_keys, key)) });
+					animation.mKeyframes[boneUuid].push_back(Bone::Keyframe{ key, ConvertUfbxVec3(ufbx_evaluate_baked_vec3(bakeNode.translation_keys, key)), ConvertUfbxQuat(ufbx_evaluate_baked_quat(bakeNode.rotation_keys, key)), ConvertUfbxVec3(ufbx_evaluate_baked_vec3(bakeNode.scale_keys, key)) });
 				}
 				if (animation.mKeyframes[boneUuid].size() == 0) {
 					animation.mKeyframes[boneUuid].push_back(Bone::Keyframe{ 0.0f, glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), glm::vec3(1.0f) });
 				}
-
-				// Rotation:
-				//{
-				//	Entity animDataEntity = CreateEntity();
-				//	AnimationDataComponent& animationdata = scene.animation_datas.Create(animDataEntity);
-				//	scene.Component_Attach(animDataEntity, entity);
-				//	for (const ufbx_baked_quat& keyframe : bake_node.rotation_keys)
-				//	{
-				//		animationdata.keyframe_times.push_back((float)keyframe.time);
-				//		animationdata.keyframe_data.push_back(keyframe.value.x);
-				//		animationdata.keyframe_data.push_back(keyframe.value.y);
-				//		animationdata.keyframe_data.push_back(keyframe.value.z);
-				//		animationdata.keyframe_data.push_back(keyframe.value.w);
-				//	}
-				//	AnimationComponent::AnimationChannel& channel = animcomponent.channels.emplace_back();
-				//	channel.target = target;
-				//	channel.path = AnimationComponent::AnimationChannel::Path::ROTATION;
-				//	channel.samplerIndex = (int)animcomponent.samplers.size();
-				//	AnimationComponent::AnimationSampler& sampler = animcomponent.samplers.emplace_back();
-				//	sampler.mode = AnimationComponent::AnimationSampler::Mode::LINEAR;
-				//	sampler.data = animDataEntity;
-				//}
-				//
-				//// Scale:
-				//{
-				//	Entity animDataEntity = CreateEntity();
-				//	AnimationDataComponent& animationdata = scene.animation_datas.Create(animDataEntity);
-				//	scene.Component_Attach(animDataEntity, entity);
-				//	for (const ufbx_baked_vec3& keyframe : bake_node.scale_keys)
-				//	{
-				//		animationdata.keyframe_times.push_back((float)keyframe.time);
-				//		animationdata.keyframe_data.push_back(keyframe.value.x);
-				//		animationdata.keyframe_data.push_back(keyframe.value.y);
-				//		animationdata.keyframe_data.push_back(keyframe.value.z);
-				//	}
-				//	AnimationComponent::AnimationChannel& channel = animcomponent.channels.emplace_back();
-				//	channel.target = target;
-				//	channel.path = AnimationComponent::AnimationChannel::Path::SCALE;
-				//	channel.samplerIndex = (int)animcomponent.samplers.size();
-				//	AnimationComponent::AnimationSampler& sampler = animcomponent.samplers.emplace_back();
-				//	sampler.mode = AnimationComponent::AnimationSampler::Mode::LINEAR;
-				//	sampler.data = animDataEntity;
-				//}
-
 			}
 
 			ufbx_free_baked_anim(bake);
 		}
 
 		ufbx_free_scene(scene);
-		//std::ofstream outfile;
-			//FILE* fp = fopen(filePath.c_str(), "rb");
-			//if (!fp) {
-			//	std::cout << "Failed to open: " << filePath << "\n";
-			//	return;
-			//}
-			//fseek(fp, 0, SEEK_END);
-			//long file_size = ftell(fp);
-			//fseek(fp, 0, SEEK_SET);
-			//auto* content = new ofbx::u8[file_size];
-			//fread(content, 1, file_size, fp);
-			//ofbx::IScene* scene = ofbx::load((ofbx::u8*)content, file_size, (ofbx::u64)ofbx::LoadFlags::TRIANGULATE);
-			//delete[] content;
-			//fclose(fp);
-			//
-			//int meshCount = scene->getMeshCount();
-			//std::set<uint64_t> boneIds = std::set<uint64_t>();
-			//std::vector<const ofbx::Object*> uniqueBones = std::vector<const ofbx::Object*>();
-			//
-			//for (int meshIndex = 0; meshIndex < meshCount; ++meshIndex) {
-			//	const ofbx::Mesh& mesh = *scene->getMesh(meshIndex);
-			//	const ofbx::Skin* skin = mesh.getGeometry()->getSkin();
-			//	if (skin) {
-			//		const int clusterCount = skin->getClusterCount();
-			//		for (int j = 0; j < clusterCount; ++j) {
-			//			const ofbx::Cluster* cluster = skin->getCluster(j);
-			//			if (cluster->getIndicesCount() <= 0)
-			//				continue;
-			//			const int* indices = cluster->getIndices();
-			//			const double* weightsData = cluster->getWeights();
-			//
-			//			if (boneIds.find(cluster->getLink()->id) == boneIds.end())
-			//				uniqueBones.push_back(cluster->getLink());
-			//
-			//			boneIds.emplace(cluster->getLink()->id);
-			//
-			//			bonesMap[cluster->getLink()->id].mOffset = glm::inverse(ofbxToGlm(cluster->getTransformLinkMatrix(), glm::vec3(1.0f)));
-			//			//finalMesh->uniqueBonesInfo.emplace(cluster->getLink()->id, Bone { cluster->getLink()->id, cluster->getLink()->getParent()->id, cluster->name });
-			//		}
-			//	}
-			//}
-			//for (int i = 0; i < scene->getAnimationStackCount(); ++i) {
-			//	Animation& animation = mAnimations.emplace_back(Animation());
-			//
-			//	const ofbx::AnimationStack* animationStack = (ofbx::AnimationStack*)scene->getAnimationStack(i);
-			//	const ofbx::TakeInfo* takeInfo = scene->getTakeInfo(animationStack->name);
-			//	if (takeInfo) {
-			//		if (takeInfo->name.begin != takeInfo->name.end) {
-			//			animation.mName = DataViewToString(takeInfo->name);
-			//		}
-			//		if (animation.mName.empty() && takeInfo->filename.begin != takeInfo->filename.end) {
-			//			animation.mName = DataViewToString(takeInfo->filename);
-			//		}
-			//		if (animation.mName.empty()) animation.mName = "anim";
-			//
-			//	}
-			//	else {
-			//		animation.mName = "";
-			//	}
-			//
-			//	/*
-			//	const ofbx::AnimationStack* stack = loadedScene->getAnimationStack(i);
-			//	for (int j = 0; stack->getLayer(j); ++j) {
-			//		const ofbx::AnimationLayer* layer = stack->getLayer(j);
-			//		for (int k = 0; layer->getCurveNode(k); ++k) {
-			//			const ofbx::AnimationCurveNode* node = layer->getCurveNode(k);
-			//			if (node->getBone())
-			//			{
-			//				const ofbx::Object* bone = node->getBone();
-			//				uint64_t parentId = bone->getParent()->id;
-			//
-			//				Plaza::Bone plazaBone{ bone->id, bone->name };
-			//				if (finalMesh->uniqueBonesInfo.find(parentId) != finalMesh->uniqueBonesInfo.end()) {
-			//					finalMesh->uniqueBonesInfo[parentId].mChildren.push_back(bone->id);
-			//					finalMesh->uniqueBonesInfo[bone->id].mOffset = finalMesh->uniqueBonesInfo[parentId].mOffset * finalMesh->uniqueBonesInfo[bone->id].mOffset;
-			//				}
-			//			};
-			//		}
-			//	}
-			//	*/
-			//
-			//	for (int i = 0; animationStack->getLayer(i); ++i) {
-			//		const ofbx::AnimationLayer* layer = animationStack->getLayer(i);
-			//
-			//		//if (!layer || !layer->getCurveNode(0)) {
-			//		//	mAnimations.pop_back();
-			//		//	continue;
-			//		//}
-			//		std::map<uint64_t, glm::vec3> translations = std::map<uint64_t, glm::vec3>();
-			//		std::map<uint64_t, glm::quat>  rotations = std::map<uint64_t, glm::quat>();
-			//
-			//		for (const ofbx::Object* bone : uniqueBones) {
-			//			//for (int k = 0; layer->getCurveNode(k); ++k) {
-			//			const ofbx::AnimationCurveNode* translationNode = layer->getCurveNode(*bone, "Lcl Translation");
-			//			const ofbx::AnimationCurveNode* rotationNode = layer->getCurveNode(*bone, "Lcl Rotation");
-			//
-			//			size_t vectorsSize = 0;
-			//			if (translationNode) {
-			//				vectorsSize = translationNode->getCurve(0)->getKeyCount();
-			//				for (size_t i = 0; i < vectorsSize; ++i) {
-			//					animation.mTimes[bone->id].push_back(ofbx::fbxTimeToSeconds(translationNode->getCurve(0)->getKeyTime()[i]));
-			//				}
-			//			}
-			//			else if (rotationNode) {
-			//				vectorsSize = rotationNode->getCurve(0)->getKeyCount();
-			//				for (size_t i = 0; i < vectorsSize; ++i) {
-			//					animation.mTimes[bone->id].push_back(ofbx::fbxTimeToSeconds(rotationNode->getCurve(0)->getKeyTime()[i]));
-			//				}
-			//			}
-			//
-			//
-			//
-			//			if (translationNode) {
-			//				for (size_t i = 0; i < vectorsSize; ++i) {
-			//					animation.mTranslations[bone->id].push_back(glm::vec3(translationNode->getCurve(0)->getKeyValue()[i] * mImportScale, translationNode->getCurve(1)->getKeyValue()[i] * mImportScale, translationNode->getCurve(2)->getKeyValue()[i] * mImportScale));
-			//				}
-			//			}
-			//
-			//			if (rotationNode) {
-			//				for (size_t i = 0; i < vectorsSize; ++i) {
-			//					glm::vec3 rotation = glm::vec3(rotationNode->getCurve(0)->getKeyValue()[i], rotationNode->getCurve(1)->getKeyValue()[i], rotationNode->getCurve(2)->getKeyValue()[i]);
-			//					animation.mRotations[bone->id].push_back(rotation);
-			//				}
-			//			}
-			//
-			//
-			//		}
-			//		//}
-			//	}
-			//	//anim_layer->getCurveNode(bone)
-			//
-			//
-			//		//bool data_found = false;
-			//		//for (int k = 0; anim_layer->getCurveNode(k); ++k) {
-			//		//	const ofbx::AnimationCurveNode* node = anim_layer->getCurveNode(k);
-			//		//	//node->
-			//		//	////if (node->getBone() == "Lcl Translation" || node->getBoneLinkProperty() == "Lcl Rotation") {
-			//		//	//	if (!isConstCurve(node->getCurve(0)) || !isConstCurve(node->getCurve(1)) || !isConstCurve(node->getCurve(2))) {
-			//		//	//		data_found = true;
-			//		//	//		break;
-			//		//	//	}
-			//		//	//}
-			//		//}
-			//}
-			//
-			//for (Animation& animation : mAnimations) {
-			//	std::cout << "Animation found: " << animation.mName << "\n";
-			//}
 	}
 }

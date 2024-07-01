@@ -13,6 +13,8 @@ namespace Plaza {
 		void Terminate() override;
 		
 		VulkanTexture mDeferredEndTexture;
+		VulkanPlazaPipeline mDeferredEndPassRenderer;
+		const VkFormat mDeferredEndTextureFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
 	private:
 		struct LightSorterPushConstants {
 			glm::mat4 view;
@@ -35,10 +37,8 @@ namespace Plaza {
 		void InitializeBuffers();
 		
 	private:
-		VkFormat mDeferredEndTextureFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
 
 		VulkanComputeShaders mLightSorterComputeShaders;
-		VulkanPlazaPipeline mDeferredEndPassRenderer;
 		VulkanShaders* mDeferredPass = nullptr;
 
 		std::vector<VkBuffer> mLightsBuffer;

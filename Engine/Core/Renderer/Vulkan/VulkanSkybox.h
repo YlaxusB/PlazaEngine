@@ -8,6 +8,9 @@ namespace Plaza {
 		struct PushConstants {
 			glm::mat4 projection;
 			glm::mat4 view;
+			float skyboxIntensity;
+			float gamma;
+			float exposure;
 		} pushData;
 		VulkanMesh* mSkyboxMesh = nullptr;
 		std::vector<std::string> mSkyboxPaths = std::vector<std::string>(6);
@@ -24,6 +27,7 @@ namespace Plaza {
 		void Terminate() override;
 
 	private:
+		glm::vec2 mScreenSize;
 		VkBuffer mStagingBuffer;
 		VkDeviceMemory mStagingBufferMemory;
 

@@ -31,6 +31,7 @@ namespace Plaza {
 		float exposure = 4.5f;
 		float gamma = 2.0f;
 		glm::vec3 sunColor = glm::vec3(1.0f);
+		float mSkyboxIntensity = 1.0f;
 
 		RendererAPI api;
 		Shadows* mShadows;

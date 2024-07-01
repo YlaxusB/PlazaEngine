@@ -38,7 +38,7 @@ vec3 RRTAndODTFit(vec3 v)
 
 void main() 
 {
-    vec4 x = pushConstants.exposure * texture(samplerTexture, inUV);
+    vec4 x = pushConstants.exposure * vec4(pow(texture(samplerTexture, inUV).xyz, vec3(1.0f / pushConstants.gamma)), 1.0f);//texture(samplerTexture, inUV);
     vec3 color = ACESInputMat * x.rgb;
          color = RRTAndODTFit(color);
          color = ACESOutputMat * color;

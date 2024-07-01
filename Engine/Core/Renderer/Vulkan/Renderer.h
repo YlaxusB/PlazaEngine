@@ -458,6 +458,7 @@ vec3 viewPos;
 			return attributeDescriptions;
 		}
 
+		friend class VulkanSkybox;
 		friend class VulkanMesh;
 		friend class VulkanTexture;
 		friend class VulkanGuiRenderer;

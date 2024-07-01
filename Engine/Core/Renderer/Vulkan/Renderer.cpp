@@ -736,7 +736,7 @@ namespace Plaza {
 		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
 		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
@@ -1293,28 +1293,8 @@ namespace Plaza {
 				std::vector<glm::mat4> matrices = std::vector<glm::mat4>();
 				matrices.resize(this->mBones.size() + 5);
 				for (const auto& [key, value] : mBones) {
-					//glm::mat4 off = value.mOffset;
-					//glm::vec3 scale, position, skew;
-					//glm::quat orientation;
-					//glm::vec4 perspective;
-					//glm::decompose(value.mOffset, scale, orientation, position, skew, perspective);
-					//
-					//glm::vec3 rotation = glm::eulerAngles(orientation);
-					//glm::mat4 m(1);
-					//m = glm::scale(m, glm::vec3(0.01f));
-					//m = glm::rotate(m, (float)-rotation.x, glm::vec3(1, 0, 0));
-					//m = glm::rotate(m, (float)-rotation.y, glm::vec3(0, 1, 0));
-					//m = glm::rotate(m, (float)-rotation.z, glm::vec3(0, 0, 1));
-					//m = glm::translate(m, glm::vec3(-position.x, -position.y, -position.z));
-					//if (value.mName == "Cluster mixamorig:LeftUpLeg")
-					//	std::cout << "here \n";
 
 					if (value.mName != "bone") {
-						//std::cout << value.mName << "\n";
-						//std::cout << value.mTransform[0][0] << value.mTransform[0][1] << value.mTransform[0][2] << value.mTransform[0][3] << "\n";
-						//std::cout << value.mTransform[1][0] << value.mTransform[1][1] << value.mTransform[1][2] << value.mTransform[1][3] << "\n";
-						//std::cout << value.mTransform[2][0] << value.mTransform[2][1] << value.mTransform[2][2] << value.mTransform[2][3] << "\n";
-						//std::cout << value.mTransform[3][0] << value.mTransform[3][1] << value.mTransform[3][2] << value.mTransform[3][3] << "\n";
 						matrices[value.mHandlerIndex] = (value.mTransform) * value.mOffset;
 					}
 				}
@@ -1376,6 +1356,9 @@ namespace Plaza {
 			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
 			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
+			vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+			vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+			this->mSkybox->DrawSkybox();
 			//vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
 			//vkCmdBindVertexBuffers(commandBuffer, 3, 1, &mMainInstanceMaterialOffsetsBuffers[mCurrentFrame], offsets);
 			//vkCmdBindVertexBuffers(commandBuffer, 4, 1, &mMainInstanceRenderGroupOffsetsBuffers[mCurrentFrame], offsets);
@@ -1383,8 +1366,6 @@ namespace Plaza {
 		}
 
 		// Render the scene with textures and sampling the shadow map
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mGeometryPassRenderer.mShaders->mPipeline);
 		{
@@ -1413,7 +1394,7 @@ namespace Plaza {
 		this->mLighting->DrawDeferredPass();
 
 		// vkCmdBeginRenderPass(commandBuffer, &renderPassInfo,
-		// VK_SUBPASS_CONTENTS_INLINE); this->mSkybox->DrawSkybox();
+		// VK_SUBPASS_CONTENTS_INLINE); 
 		// vkCmdEndRenderPass(commandBuffer);
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
@@ -2275,8 +2256,8 @@ namespace Plaza {
 
 	void VulkanRenderer::CreateDepthResources() {
 		VkFormat depthFormat = VK_FORMAT_D32_SFLOAT_S8_UINT; // FindDepthFormat();
-		CreateImage(mSwapChainExtent.width,
-			mSwapChainExtent.height,
+		CreateImage(Application->appSizes->sceneSize.x,
+			Application->appSizes->sceneSize.y,
 			depthFormat,
 			VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,

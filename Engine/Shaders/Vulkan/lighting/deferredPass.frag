@@ -11,6 +11,7 @@ layout(push_constant) uniform PushConstants {
     mat4 view;
     mat4 projection;
     int lightCount;
+    vec4 ambientLightColor;
 } pushConstants;
 
 layout(location = 0) out vec4 FragColor;
@@ -21,6 +22,7 @@ struct LightStruct {
     float radius;
     vec3 position;
     float intensity;
+    float cutoff;
 };
 
 struct Cluster{
@@ -195,11 +197,12 @@ void main()
 		        float dist = length(L);
 
 		        L = normalize(L);
-		        float atten = light.radius / (pow(dist, 3.0) + 1.0);
+		        float atten = light.radius / (pow(dist, light.cutoff) + 1.0);
 
 		        vec3 N = normalize(Normal);
 		        float NdotL = max(0.0, dot(N, L));
-		        vec3 diff = light.color * Diffuse * NdotL * atten;
+                vec3 lightColor = light.color * light.intensity;
+		        vec3 diff = min(lightColor * Diffuse * NdotL * atten, lightColor);
                 //lighting += (diffuse + specular); //* attenuation;
                 lighting += diff;
             }

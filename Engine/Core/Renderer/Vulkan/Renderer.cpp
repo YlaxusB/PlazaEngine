@@ -1743,6 +1743,7 @@ namespace Plaza {
 		ubo.directionalLightColor.a = 1.0f;
 		ubo.ambientLightColor = glm::vec4(this->mLighting->ambientLightColor * this->mLighting->ambientLightIntensity);
 		ubo.ambientLightColor.a = 1.0f;
+		ubo.gamma = this->gamma;
 
 		VulkanShadows::ShadowsUniformBuffer ub{};
 		for (int i = 0; i < this->mShadows->mCascades.size(); ++i) {
@@ -2520,28 +2521,8 @@ namespace Plaza {
 		InitSwapChain();
 		std::cout << "CreateCommandPool \n";
 		CreateCommandPool();
-		std::cout << "Initializing Shadows \n";
-		this->mShadows->Init();
-		std::cout << "Initializing image views \n";
-		CreateImageViews(VK_IMAGE_LAYOUT_UNDEFINED);
-		std::cout << "CreateRenderPass \n";
-		CreateSwapchainRenderPass();
-		CreateRenderPass();
-		std::cout << "CreateDescriptorSetLayout \n";
-		CreateDescriptorSetLayout();
-		std::cout << "CreateGraphicsPipeline \n";
-		CreateGraphicsPipeline();
-		std::cout << "CreateDepthResources \n";
-		CreateDepthResources();
-		std::cout << "CreateFramebuffers \n";
-		CreateFramebuffers();
-		std::cout << "CreateTextureImage \n";
-		//	CreateTextureImage();
-		std::cout << "CreateTextureImageView \n";
-		// CreateTextureImageView();
-		std::cout << "CreateTextureSampler \n";
-		CreateTextureSampler();
-		std::cout << "Create CreateUniformBuffers \n";
+
+		/* Initialize buffers */
 
 		CreateBuffer(1024 * 1024 * 8 * sizeof(Vertex),
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -2599,16 +2580,36 @@ namespace Plaza {
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 				mMainInstanceRenderGroupOffsetsBuffers[i],
 				mMainInstanceRenderGroupOffsetsBufferMemories[i]);
-
-
-
-
 			CreateBuffer(1024 * 16 * sizeof(glm::mat4),
 				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 				mBoneMatricesBuffers[i],
 				mBoneMatricesBufferMemories[i]);
 		}
+
+		std::cout << "Initializing Shadows \n";
+		this->mShadows->Init();
+		std::cout << "Initializing image views \n";
+		CreateImageViews(VK_IMAGE_LAYOUT_UNDEFINED);
+		std::cout << "CreateRenderPass \n";
+		CreateSwapchainRenderPass();
+		CreateRenderPass();
+		std::cout << "CreateDescriptorSetLayout \n";
+		CreateDescriptorSetLayout();
+		std::cout << "CreateGraphicsPipeline \n";
+		CreateGraphicsPipeline();
+		std::cout << "CreateDepthResources \n";
+		CreateDepthResources();
+		std::cout << "CreateFramebuffers \n";
+		CreateFramebuffers();
+		std::cout << "CreateTextureImage \n";
+		//	CreateTextureImage();
+		std::cout << "CreateTextureImageView \n";
+		// CreateTextureImageView();
+		std::cout << "CreateTextureSampler \n";
+		CreateTextureSampler();
+		std::cout << "Create CreateUniformBuffers \n";
+
 		// CreateVertexBuffer({glm::vec3(0.0f)}, mMainVertexBuffer,
 		// mMainVertexBufferMemory, 1024 * 1024 * 8 * sizeof(Vertex));
 		// CreateIndexBuffer({ 0 }, mMainIndexBuffer, mMainIndexBufferMemory, 1024 *

@@ -305,7 +305,7 @@ layout(binding = 4) uniform sampler2D depthMap;
           this->mLights.clear();
           for (const auto& [key, value] : Application->activeScene->lightComponents) {
                glm::vec3 position = Application->activeScene->transformComponents.at(key).GetWorldPosition();
-               this->mLights.push_back(LightStruct{ value.color, value.radius, position, value.intensity });
+               this->mLights.push_back(LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff });
           }
 
           void* data;
@@ -387,6 +387,7 @@ layout(binding = 4) uniform sampler2D depthMap;
           deferredPassPushConstants.projection = Application->activeCamera->GetProjectionMatrix();
           deferredPassPushConstants.view = Application->activeCamera->GetViewMatrix();
           deferredPassPushConstants.viewPos = Application->activeCamera->Position;
+          deferredPassPushConstants.ambientLightColor = this->ambientLightColor * this->ambientLightIntensity;
           vkCmdPushConstants(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, this->mDeferredEndPassRenderer.mShaders->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(DeferredPassPushConstants), &deferredPassPushConstants);
           mDeferredEndPassRenderer.DrawFullScreenRectangle();
 

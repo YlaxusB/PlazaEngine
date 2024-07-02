@@ -5,6 +5,7 @@ struct LightStruct {
     float radius;
     vec3 position;
     float intensity;
+    float cutoff;
 };
 
 
@@ -144,7 +145,7 @@ void main() {
 
             float distance = 0.0;
             for (uint j = 0; j < 6; j++) {
-                distance = dot(position, frustumPlanes[j]) + radius;
+                distance = dot(position, frustumPlanes[j]) + pow(radius, radius);
                 if (distance <= 0.0) {
                     break;
                 }

@@ -4,11 +4,12 @@
 namespace Plaza {
 	class Lighting {
 	public:
-		struct alignas(16) LightStruct {
+		struct alignas(4) LightStruct {
 			glm::vec3 color;
 			float radius;
 			glm::vec3 position;
 			float intensity;
+			float cutoff;
 		};
 
 		struct alignas(16) Tile {

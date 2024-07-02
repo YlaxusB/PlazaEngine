@@ -13,6 +13,7 @@ layout(binding = 0) uniform UniformBufferObject {
     vec4 directionalLightColor;
     vec4 ambientLightColor;
     bool showCascadeLevels;
+    float gamma;
 } ubo;
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
@@ -96,11 +97,8 @@ void main() {
     vec4 totalPosition = vec4(0.0f);
     bool allNegative = true;
 
-    affected = 0;
     for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
     {
-            if(boneIds[i] == 0)
-                affected = 1;
           if(boneIds[i] < 0 || boneIds[i] > 1000) 
           {
             continue;
@@ -111,7 +109,7 @@ void main() {
           }
           if(boneIds[i] >= MAX_BONES) 
           {
-              totalPosition = vec4(inPosition,1.0f);
+              totalPosition = vec4(inPosition, 1.0f);
               break;
           }
           vec4 localPosition = boneMatrices[boneIds[i]] * vec4(inPosition,1.0f);

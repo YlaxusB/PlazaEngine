@@ -52,6 +52,7 @@ namespace Plaza {
 			alignas(16) glm::vec4 directionalLightColor;
 			alignas(16) glm::vec4 ambientLightColor;
 			bool showCascadeLevels;
+			float gamma;
 		};
 
 		void Init() override;
@@ -458,6 +459,7 @@ vec3 viewPos;
 			return attributeDescriptions;
 		}
 
+		friend class VulkanShadows;
 		friend class VulkanSkybox;
 		friend class VulkanMesh;
 		friend class VulkanTexture;

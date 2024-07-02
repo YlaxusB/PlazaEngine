@@ -31,6 +31,7 @@ namespace Plaza {
 			glm::mat4 view;
 			glm::mat4 projection;
 			int lightCount;
+			glm::vec4 ambientLightColor;
 		};
 
 		void InitializeDescriptorSets();

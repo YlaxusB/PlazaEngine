@@ -39,6 +39,7 @@ layout(binding = 0) uniform UniformBufferObject {
     vec4 directionalLightColor;
     vec4 ambientLightColor;
     bool showCascadeLevels;
+    float gamma;
 } ubo;
 
 layout(location = 10) in flat uint materialIndex;
@@ -177,11 +178,11 @@ void main() {
     {
         color = vec4(materials[materialIndex].color.xyz, 1.0f) * materials[materialIndex].intensity;
     }
-        color.xyz = pow(color.xyz, vec3(2.2f));
 
     //color *= vec4((vec3(1.0f) - ShadowCalculation(FragPos.xyz) + 0.25f).xyz, 1.0f);
 
     color = color * 1;
+    //color.xyz = pow(color, vec3(1.0f / ubo.gamma))
 
     vec3 lightColor = ubo.directionalLightColor.xyz * 255;//vec3(1.0f, 0.85f, 0.85f) * 255;
     // ambient

@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "VulkanShadows.h"
+#include "VulkanPlazaInitializator.h"
 #include <bitset>
 
 namespace Plaza {
@@ -29,7 +30,7 @@ namespace Plaza {
 		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 		uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
 
-		std::array<VkDescriptorSetLayoutBinding, 1> bindings = { uboLayoutBinding };
+		std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, plvk::descriptorSetLayoutBinding(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_VERTEX_BIT) };
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -96,14 +97,13 @@ namespace Plaza {
 				cascadeImageInfo.imageView = this->mShadowDepthImageViews[i];
 				cascadeImageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
-				std::array<VkWriteDescriptorSet, 1> writeDescriptorSets{};
-				writeDescriptorSets[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-				writeDescriptorSets[0].dstSet = this->mCascades[j].mDescriptorSets[i];
-				writeDescriptorSets[0].dstBinding = 0;
-				writeDescriptorSets[0].dstArrayElement = 0;
-				writeDescriptorSets[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-				writeDescriptorSets[0].descriptorCount = 1;
-				writeDescriptorSets[0].pBufferInfo = &bufferInfo;
+				std::vector<VkWriteDescriptorSet> writeDescriptorSets{};
+				writeDescriptorSets.push_back(plvk::writeDescriptorSet(this->mCascades[j].mDescriptorSets[i], 0, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, nullptr, &bufferInfo));
+
+				VkDescriptorBufferInfo bonesBufferInfo = plvk::descriptorBufferInfo(VulkanRenderer::GetRenderer()->mBoneMatricesBuffers[i], 0, 1024 * 16 * sizeof(glm::mat4));
+				writeDescriptorSets.push_back(plvk::writeDescriptorSet(this->mCascades[j].mDescriptorSets[i], 1, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bonesBufferInfo));
+
+
 				vkUpdateDescriptorSets(device, static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, NULL);
 			}
 		}

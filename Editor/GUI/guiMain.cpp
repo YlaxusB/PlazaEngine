@@ -30,6 +30,7 @@
 #include <ThirdParty/imgui/imgui_impl_opengl3.h>
 #include "Engine/Core/AssetsManager/AssetsManager.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
+#include "Editor/DragDrop/DropFileScene.h"
 
 ////   #include "ThirdParty/imgui/imgui_impl_vulkan.h"
 //#include "Engine/Application/Application.h" //
@@ -297,12 +298,13 @@ namespace Plaza {
 					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(scenePayloadName.c_str())) {
 						if (payload->DataSize == sizeof(Editor::File)) {
 							File* file = *static_cast<File**>(payload->Data);
+							DropFileScene::Drop(file);
 							//if (file->extension == Standards::modelExtName) {
-							if (file->extension == Standards::modelExtName) {
-								//file->directory, file->name
-
-								ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID(file->directory), file->directory);
-							}
+							//if (file->extension == Standards::modelExtName) {
+							//	//file->directory, file->name
+							//
+							//	ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID(file->directory), file->directory);
+							//}
 							delete(file);
 						}
 					}
@@ -397,13 +399,11 @@ namespace Plaza {
 				if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(scenePayloadName.c_str())) {
 					if (payload->DataSize == sizeof(Editor::File)) {
 						File* file = *static_cast<File**>(payload->Data);
+						DropFileScene::Drop(file);
 						//if (file->extension == Standards::modelExtName) {
-						if (file->extension == Standards::modelExtName) {
-							//file->directory, file->name
-
-							AssetsLoader::LoadAsset(AssetsManager::GetAsset(file->directory));
-							//ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID(file->directory), file->directory);
-						}
+						//if (file->extension == Standards::modelExtName) {
+						//	AssetsLoader::LoadAsset(AssetsManager::GetAsset(file->directory));
+						//}
 						delete(file);
 					}
 				}

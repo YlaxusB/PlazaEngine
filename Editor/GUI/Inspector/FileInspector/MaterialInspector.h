@@ -62,6 +62,9 @@ namespace Plaza::Editor {
 			ImGui::DragFloat("Metalness: ", &material->metalnessFloat, 0.0f, 1.0f);
 			ImGui::DragFloat("Diffuse Intensity: ", &material->intensity, 0.0f, 100.0f);
 
+			ImGui::InputFloat("Flip X", &material->flip.x);
+			ImGui::InputFloat("Flip Y", &material->flip.y);
+
 			//if (Application->activeScene->materials.find(material->uuid) != Application->activeScene->materials.end()) {
 			//	Application->activeScene->materials.at(material->uuid) = std::make_shared<Material>(*new Material(*material));
 			//}

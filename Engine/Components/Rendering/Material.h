@@ -20,6 +20,7 @@ namespace Plaza {
 		Texture* aoMap = new Texture("aoMap");
 		float shininess = 3.0f;
 		float intensity = 1.0f;
+		glm::vec2 flip = glm::vec2(1.0f);
 
 		float metalnessFloat = 0.0f;
 		float roughnessFloat = 0.5f;

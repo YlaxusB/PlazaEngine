@@ -1669,7 +1669,7 @@ namespace Plaza {
 		materialsArrayBinding.descriptorCount = 1;
 		materialsArrayBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 		materialsArrayBinding.pImmutableSamplers = nullptr;
-		materialsArrayBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		materialsArrayBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
 		std::array<VkDescriptorSetLayoutBinding, 4> bindings = {
 			uboLayoutBinding,
@@ -2405,7 +2405,7 @@ namespace Plaza {
 		static const uint32_t maxBindlessResources = 16536;
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(20, maxBindlessResources, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(9, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
-		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(19, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
+		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(19, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_VERTEX_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_VERTEX_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(2, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_VERTEX_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(3, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_VERTEX_BIT));
@@ -3567,6 +3567,8 @@ namespace Plaza {
 		materialData.normalIndex = material->normal->mIndexHandle;
 		materialData.roughnessFloat = material->roughnessFloat;
 		materialData.roughnessIndex = material->roughness->mIndexHandle;
+		materialData.flipX = material->flip.x;
+		materialData.flipY = material->flip.y;
 
 		material->mIndexHandle = this->mUploadedMaterials.size();
 		this->mUploadedMaterials.push_back(materialData);
@@ -3603,6 +3605,8 @@ namespace Plaza {
 			materialData.normalIndex = value->normal->mIndexHandle;
 			materialData.roughnessFloat = value->roughnessFloat;
 			materialData.roughnessIndex = value->roughness->mIndexHandle;
+			materialData.flipX = value->flip.x;
+			materialData.flipY = value->flip.y;
 
 			value.get()->mIndexHandle = materialDataVector.size();
 			value->mIndexHandle = materialDataVector.size();

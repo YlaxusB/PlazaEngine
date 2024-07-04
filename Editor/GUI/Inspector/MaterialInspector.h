@@ -92,6 +92,8 @@ namespace Plaza::Editor {
 						ImGui::Text("Y: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.minVector.y).c_str());
 						ImGui::Text("Z: "); ImGui::SameLine(); ImGui::Text(std::to_string(entity->GetComponent<MeshRenderer>()->renderGroup->mesh->mBoundingBox.minVector.z).c_str());
 
+						ImGui::InputFloat("Flip X", &material->flip.x);
+						ImGui::InputFloat("Flip Y", &material->flip.y);
 						index++;
 					}
 				}

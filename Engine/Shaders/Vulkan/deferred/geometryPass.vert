@@ -30,6 +30,22 @@ layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
 layout(location = 2) out mat4 model;
 
+struct MaterialData{
+    vec4 color;
+    float intensity;
+    int diffuseIndex;
+    int normalIndex;
+    int roughnessIndex;
+	int metalnessIndex;
+    float roughnessFloat;
+    float metalnessFloat;
+    float flipX;
+    float flipY;
+};
+layout (std430, set = 0, binding = 19) buffer MaterialsBuffer {
+    MaterialData materials[];
+};
+
 const int MAX_BONES = 1000;
 const int MAX_BONE_INFLUENCE = 4;
 layout(std430, binding = 1) readonly buffer BoneMatrices {
@@ -55,7 +71,7 @@ layout(std430, binding = 3) readonly buffer RenderGroupMaterialsOffsetsBuffer {
 //layout(location = 18) in uint mat;
 layout(binding = 20) uniform sampler2D textures[];
 
-layout(location = 10) out uint materialIndex;
+layout(location = 20) out MaterialData material;
 layout(location = 11) out vec4 FragPos;
 layout(location = 12) out vec4 Normal;
 layout(location = 13) out vec2 TexCoords;
@@ -74,7 +90,6 @@ void main() {
     model = mat4(instanceMatrix[0], instanceMatrix[1], instanceMatrix[2], instanceMatrix[3]);
 
     mat4 aInstanceMatrix = model;
-    fragTexCoord = inTexCoord;
 
     mat4 finalInstanceMatrix = model;
     FragPos = vec4(model * vec4(inPosition, 1.0));
@@ -124,8 +139,9 @@ void main() {
 
     worldPos.xyz = vec3(finalModel);
     gl_Position = ubo.projection * ubo.view * finalModel;
-    if(vertexMaterialIndex < 16536)
-        materialIndex = renderGroupMaterialsOffsets[vertexMaterialIndex + renderGroupOffsets[gl_InstanceIndex]];//meshRendererMaterials[vertexMaterialIndex];//22;
-    else
-        materialIndex = 0;
+
+    uint materialIndex = renderGroupMaterialsOffsets[vertexMaterialIndex + renderGroupOffsets[gl_InstanceIndex]];//meshRendererMaterials[vertexMaterialIndex];//22;
+
+    fragTexCoord = vec2(materials[materialIndex].flipX, materials[materialIndex].flipY) - inTexCoord;
+    material = materials[materialIndex];
 }

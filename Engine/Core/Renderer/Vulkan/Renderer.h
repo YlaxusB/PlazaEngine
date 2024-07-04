@@ -179,6 +179,8 @@ namespace Plaza {
 			int metalnessIndex = -1;
 			float roughnessFloat = 0.5f;
 			float metalnessFloat = 0.5f;
+			float flipX = 1.0f;
+			float flipY = 1.0f;
 		};
 
 		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";

@@ -266,7 +266,12 @@ namespace Plaza {
 #ifdef GAME_MODE
 		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str());
 #else
-		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll").c_str());
+		const std::string dllPath = Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll";
+		const std::string copyDllPath = Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll";
+		if (!std::filesystem::exists(copyDllPath) && std::filesystem::exists(dllPath)) {
+			std::filesystem::copy(std::filesystem::path{ dllPath }, std::filesystem::path{ copyDllPath });
+		}
+		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, copyDllPath.c_str());
 #endif
 		if (!Mono::mScriptAssembly) {
 			// Handle assembly loading error

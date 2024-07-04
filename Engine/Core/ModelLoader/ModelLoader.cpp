@@ -277,7 +277,7 @@ namespace Plaza {
 				parentObject = modelMainObject;
 			}
 			else {
-				parentObject = Application->activeScene->gameObjects.front().get();
+	//			parentObject = Application->activeScene->gameObjects.front().get();
 			}
 			Entity* childObject = new Entity(childName, parentObject);
 			MeshRenderer* childMeshRenderer = new MeshRenderer(&nodeMesh);

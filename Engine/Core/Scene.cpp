@@ -13,6 +13,7 @@
 
 namespace Plaza {
 	Scene* Scene::Copy(Scene* newScene, Scene* copyScene) {
+		newScene = new Scene(*copyScene);
 		newScene->mainSceneEntity = new Entity(*copyScene->mainSceneEntity);
 		for (auto& gameObj : copyScene->entities) {
 			Entity* newObj = new Entity(gameObj.second);
@@ -55,25 +56,27 @@ namespace Plaza {
 			//newScene->gameObjects.push_back(std::make_unique<Entity>(newObj.get()));
 			//delete(newObj);
 		}
-		newScene->transformComponents = ComponentMultiMap<uint64_t, Transform>(copyScene->transformComponents);
-		newScene->cameraComponents = ComponentMultiMap<uint64_t, Camera>(copyScene->cameraComponents);
-		newScene->meshRendererComponents = ComponentMultiMap<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
-		newScene->csScriptComponents = ComponentMultiMap<uint64_t, CsScriptComponent>(copyScene->csScriptComponents);
-		newScene->UITextRendererComponents = ComponentMultiMap<uint64_t, Plaza::Drawing::UI::TextRenderer>(copyScene->UITextRendererComponents);
-		newScene->audioSourceComponents = ComponentMultiMap<uint64_t, AudioSource>(copyScene->audioSourceComponents);
-		newScene->audioListenerComponents = ComponentMultiMap<uint64_t, AudioListener>(copyScene->audioListenerComponents);
-		newScene->lightComponents = ComponentMultiMap<uint64_t, Light>(copyScene->lightComponents);
-		newScene->characterControllerComponents = ComponentMultiMap<uint64_t, CharacterController>(copyScene->characterControllerComponents);
-		newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
-
-		//newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
-		newScene->materials = std::unordered_map<uint64_t, std::shared_ptr<Material>>(copyScene->materials);
-		newScene->materialsNames = std::unordered_map<std::string, uint64_t>(copyScene->materialsNames);
-
-		newScene->renderGroups = std::unordered_map<uint64_t, RenderGroup*>();
-		newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, std::vector<uint64_t>>, uint64_t, PairHash>();
-		newScene->renderGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>(); 
-		newScene->renderGroupsFindMapWithMaterialUuid = std::unordered_map<std::vector<uint64_t>, uint64_t, VectorHash, VectorEqual<uint64_t>>();
+		newScene->rigidBodyComponents.clear();
+		newScene->colliderComponents.clear();
+		//newScene->transformComponents = ComponentMultiMap<uint64_t, Transform>(copyScene->transformComponents);
+		//newScene->cameraComponents = ComponentMultiMap<uint64_t, Camera>(copyScene->cameraComponents);
+		//newScene->meshRendererComponents = ComponentMultiMap<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
+		//newScene->csScriptComponents = ComponentMultiMap<uint64_t, CsScriptComponent>(copyScene->csScriptComponents);
+		//newScene->UITextRendererComponents = ComponentMultiMap<uint64_t, Plaza::Drawing::UI::TextRenderer>(copyScene->UITextRendererComponents);
+		//newScene->audioSourceComponents = ComponentMultiMap<uint64_t, AudioSource>(copyScene->audioSourceComponents);
+		//newScene->audioListenerComponents = ComponentMultiMap<uint64_t, AudioListener>(copyScene->audioListenerComponents);
+		//newScene->lightComponents = ComponentMultiMap<uint64_t, Light>(copyScene->lightComponents);
+		//newScene->characterControllerComponents = ComponentMultiMap<uint64_t, CharacterController>(copyScene->characterControllerComponents);
+		//newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
+		//
+		////newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
+		//newScene->materials = std::unordered_map<uint64_t, std::shared_ptr<Material>>(copyScene->materials);
+		//newScene->materialsNames = std::unordered_map<std::string, uint64_t>(copyScene->materialsNames);
+		//
+		//newScene->renderGroups = std::unordered_map<uint64_t, RenderGroup*>();
+		//newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, std::vector<uint64_t>>, uint64_t, PairHash>();
+		//newScene->renderGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>(); 
+		//newScene->renderGroupsFindMapWithMaterialUuid = std::unordered_map<std::vector<uint64_t>, uint64_t, VectorHash, VectorEqual<uint64_t>>();
 
 		for (auto& [key, value] : newScene->meshRendererComponents) {
 			if (value.mMaterials.size() > 0 && value.mesh) {
@@ -102,12 +105,12 @@ namespace Plaza {
 
 		//newScene->colliderComponents = std::unordered_map<uint64_t, Collider>(copyScene->colliderComponents);
 		//newScene->rigidBodyComponents = std::unordered_map<uint64_t, RigidBody>(copyScene->rigidBodyComponents);
-		for (auto& gameObj : copyScene->gameObjects) {
-			if (gameObj->parentUuid != 0 && copyScene->entities.find(gameObj->parentUuid) != copyScene->entities.end())
-				Application->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->entities.find(gameObj->parentUuid)->second.uuid;
-			else if (gameObj->parentUuid == 0)
-				Application->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->mainSceneEntity->uuid;
-		}
+		//for (auto& gameObj : copyScene->gameObjects) {
+		//	if (gameObj->parentUuid != 0 && copyScene->entities.find(gameObj->parentUuid) != copyScene->entities.end())
+		//		Application->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->entities.find(gameObj->parentUuid)->second.uuid;
+		//	else if (gameObj->parentUuid == 0)
+		//		Application->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->mainSceneEntity->uuid;
+		//}
 
 		for (auto& [key, value] : copyScene->rigidBodyComponents) {
 			RigidBody* rigidBody = new RigidBody(value);
@@ -287,7 +290,7 @@ namespace Plaza {
 		for (uint64_t child : children) {
 			if (Application->activeScene->entities.find(child) != Application->activeScene->entities.end())
 				Application->activeScene->RemoveEntity(child);
-				//Application->activeScene->entities.at(child).~Entity();
+			//Application->activeScene->entities.at(child).~Entity();
 		}
 		if (entity->HasComponent<Transform>())
 			entity->RemoveComponent<Transform>();

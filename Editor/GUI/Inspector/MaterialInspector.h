@@ -33,7 +33,7 @@ namespace Plaza::Editor {
 					//Material& material = *(entity->GetComponent<MeshRenderer>()->materials[0]);
 					if (meshRenderer->mesh && meshRenderer->renderGroup) {
 						glm::vec4& diffuse = material->diffuse->rgba;
-						glm::vec4& specular = material->specular->rgba;
+//						glm::vec4& specular = material->specular->rgba;
 						float shininess = material->shininess;
 
 						//  ImGui::Text("Mesh VAO: ");
@@ -64,8 +64,8 @@ namespace Plaza::Editor {
 						ImGui::SliderFloat4("Diffuse", &diffuse.x, 0, 1.0f);
 
 
-						ImGui::SetNextItemWidth(225);
-						ImGui::SliderFloat4("Specular", &specular.x, 0, 1.0f);
+						//ImGui::SetNextItemWidth(225);
+						//ImGui::SliderFloat4("Specular", &specular.x, 0, 1.0f);
 
 						ImGui::SetNextItemWidth(225);
 						ImGui::DragFloat("Shininess", &shininess, 0.01f, 0.0f, 10.0f);

@@ -14,5 +14,10 @@ namespace Plaza {
 		bool hasMovedInThisFrame = false;
 
 		std::chrono::system_clock::time_point lastMoveTime;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<Component>(this));
+		}
 	};
 }

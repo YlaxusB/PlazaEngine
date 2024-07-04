@@ -60,6 +60,10 @@ namespace Plaza {
 
 		void UpdatePhysics();
 
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<Component>(this), relativePosition, rotation, scale);
+		}
 	private:
 		/* Matrices calculation cache */
 		glm::mat4 lastLocalMatrix = glm::mat4(-1.0f);

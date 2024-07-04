@@ -14,8 +14,8 @@ namespace Plaza {
 	public:
 		uint64_t uuid;
 		uint64_t parentUuid;
-		uint64_t prefabUuid;
-		uint64_t equivalentPrefabUuid;
+		uint64_t prefabUuid; // The uuid of the prefab it belongs to
+		uint64_t equivalentPrefabUuid; // The uuid of the entity in the prefab it belongs to
 		uint64_t equivalentPrefabParentUuid;
 		bool isPrefab = false;
 		std::vector<uint64_t> childrenUuid;
@@ -120,6 +120,11 @@ namespace Plaza {
 		void Rename(std::string newName);
 
 		static uint64_t Instantiate(uint64_t uuid);
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(uuid, parentUuid, prefabUuid, equivalentPrefabUuid, childrenUuid, name);
+		}
 
 	private:
 		Scene* mScene = nullptr;

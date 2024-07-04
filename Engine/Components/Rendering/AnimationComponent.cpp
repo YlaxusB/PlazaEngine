@@ -52,6 +52,15 @@ namespace Plaza {
 		Application->activeScene->mPlayingAnimations.emplace(this->mUuid, this);
 	}
 
+	Bone* Animation::GetRootBone() {
+		if (!mRootBone && VulkanRenderer::GetRenderer()->mBones.find(mRootBoneUuid) != VulkanRenderer::GetRenderer()->mBones.end()) {
+			mRootBone = &VulkanRenderer::GetRenderer()->mBones.at(mRootBoneUuid);
+		}
+		else
+			return nullptr;
+		return mRootBone;
+	}
+
 	void AnimationComponent::GetAnimation(std::string filePath, std::map<uint64_t, Plaza::Bone>& bonesMap, unsigned int index) {
 		this->mAnimations.clear();
 		ufbx_load_opts opts = { };
@@ -107,10 +116,10 @@ namespace Plaza {
 
 			for (ufbx_bone* bone : scene->bones) {
 				if (bone->is_root)
-					animation.mRootBone = &VulkanRenderer::GetRenderer()->mBones.at(bone->element_id);
+					animation.SetRootBone(&VulkanRenderer::GetRenderer()->mBones.at(bone->element_id));
 			}
-			if (!animation.mRootBone) {
-				animation.mRootBone = &VulkanRenderer::GetRenderer()->mBones.at(scene->bones[0]->element_id);
+			if (!animation.GetRootBone()) {
+				animation.SetRootBone(&VulkanRenderer::GetRenderer()->mBones.at(scene->bones[0]->element_id));
 			}
 			//animation.mRootParentTransform = ConvertUfbxMatrix2(scene->root_node->geometry_to_world);
 			animation.mStartTime = (float)bake->playback_time_begin;

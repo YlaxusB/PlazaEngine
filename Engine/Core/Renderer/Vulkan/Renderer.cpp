@@ -1103,7 +1103,7 @@ namespace Plaza {
 	void VulkanRenderer::EarlyAnimationController() {
 		PLAZA_PROFILE_SECTION("Early Animation Controller");
 		for (auto& [key, value] : Application->activeScene->mPlayingAnimations) {
-			CalculateBonesParentship(value->mRootBone, glm::mat4(1.0f), value->mCurrentTime, value->mRootBone->mId);
+			CalculateBonesParentship(value->GetRootBone(), glm::mat4(1.0f), value->mCurrentTime, value->GetRootBone()->mId);
 		}
 
 	}
@@ -1194,36 +1194,36 @@ namespace Plaza {
 			mTotalInstances = 0;
 			mIndirectDrawCount = 0;
 			unsigned int lastRendergroupMaterialsCount = 0;
-			for (const auto& [key, value] : Application->activeScene->renderGroups) {
-				const size_t& materialsCount = value->materials.size();
-				const size_t& instanceCount = value->instanceModelMatrices.size();
+			for (auto& [key, value] : Application->activeScene->renderGroups) {
+				const size_t& materialsCount = value.materials.size();
+				const size_t& instanceCount = value.instanceModelMatrices.size();
 				allMaterialsCount += materialsCount;
 
 				VkDrawIndexedIndirectCommand indirectCommand{};
-				indirectCommand.firstIndex = value->mesh->indicesOffset;
-				indirectCommand.vertexOffset = value->mesh->verticesOffset;
+				indirectCommand.firstIndex = value.mesh->indicesOffset;
+				indirectCommand.vertexOffset = value.mesh->verticesOffset;
 				indirectCommand.firstInstance = mTotalInstances;
-				indirectCommand.indexCount = value->mesh->indicesCount; // indices.size();
+				indirectCommand.indexCount = value.mesh->indicesCount; // indices.size();
 				indirectCommand.instanceCount = instanceCount;
 
 				this->mIndirectCommands.push_back(indirectCommand);
-				value->mesh->instanceOffset = mTotalInstances;
+				value.mesh->instanceOffset = mTotalInstances;
 
 				for (unsigned int i = 0; i < instanceCount; ++i) {
-					this->mInstanceModelMatrices.push_back(value->instanceModelMatrices[i]);
-					this->mInstanceModelMaterialOffsets.push_back(value->instanceMaterialOffsets);
+					this->mInstanceModelMatrices.push_back(value.instanceModelMatrices[i]);
+					this->mInstanceModelMaterialOffsets.push_back(value.instanceMaterialOffsets);
 					//this->mInstanceModelMaterialsIndex.push_back(value->instanceMaterialIndices[i]);
 					renderGroupOffsets.push_back(allMaterialsCount - materialsCount);
 					mTotalInstances++; //= value->instanceModelMatrices.size();
 				}
 
 				for (unsigned int i = 0; i < materialsCount; ++i) {
-					renderGroupMaterialsOffsets.push_back(value->materials[i]->mIndexHandle);
+					renderGroupMaterialsOffsets.push_back(value.materials[i]->mIndexHandle);
 				}
 
 				mIndirectDrawCount++;
-				value->instanceModelMatrices.clear();
-				value->instanceMaterialIndices.clear();
+				value.instanceModelMatrices.clear();
+				value.instanceMaterialIndices.clear();
 				lastRendergroupMaterialsCount = materialsCount;
 
 			}

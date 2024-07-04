@@ -46,6 +46,27 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 		Input::isAnyKeyPressed = true;
 	if (Application->focusedMenu == "Editor") {
 
+		const std::string sceneOutput = "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\FPS\\Assets\\Scenes\\cerealScene.plzscn";
+		if (key == GLFW_KEY_I && action == GLFW_PRESS) {
+			std::ofstream os(sceneOutput, std::ios::binary);
+			cereal::BinaryOutputArchive archive(os);
+			archive(*Application->activeScene);
+			os.close();
+		}
+		if (key == GLFW_KEY_O && action == GLFW_PRESS) {
+			Application->mThreadsManager->mFrameEndThread->AddToQueue([sceneOutput]() {
+				std::ifstream is(sceneOutput, std::ios::binary);
+				cereal::BinaryInputArchive archive(is);
+				Scene* obj = new Scene();
+				archive(*obj);
+				obj->mainSceneEntity = obj->GetEntity(Application->activeScene->mainSceneEntity->uuid);
+				//obj.RegisterMaps();
+				Application->editorScene = obj;
+				Application->activeScene = Application->editorScene;
+				});
+		}
+
+
 		if (key == GLFW_KEY_F && action == GLFW_PRESS) {
 			if (Editor::selectedGameObject) {
 				uint64_t newUuid = Entity::Instantiate(Editor::selectedGameObject->uuid);
@@ -123,16 +144,16 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 			//}
 		}
 
-		if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
-			if (RenderGroup::renderMode == GL_TRIANGLES) {
-				RenderGroup::renderMode = GL_POINTS;
-				glPolygonMode(GL_FRONT_AND_BACK, RenderGroup::renderMode);
-			}
-			else {
-				RenderGroup::renderMode = GL_TRIANGLES;
-				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-			}
-		}
+		//if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
+		//	if (RenderGroup::renderMode == GL_TRIANGLES) {
+		//		RenderGroup::renderMode = GL_POINTS;
+		//		glPolygonMode(GL_FRONT_AND_BACK, RenderGroup::renderMode);
+		//	}
+		//	else {
+		//		RenderGroup::renderMode = GL_TRIANGLES;
+		//		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		//	}
+		//}
 	}
 
 	if (Application->focusedMenu == "Editor" || Application->focusedMenu == "Hierarchy") {

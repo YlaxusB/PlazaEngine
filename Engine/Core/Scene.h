@@ -131,7 +131,7 @@ namespace Plaza {
 		std::unordered_map<uint64_t, shared_ptr<Material>> materials;
 		std::unordered_map<std::string, uint64_t> materialsNames;
 
-		std::unordered_map<uint64_t, RenderGroup*> renderGroups;
+		std::unordered_map<uint64_t, RenderGroup> renderGroups;
 		std::unordered_map<std::pair<uint64_t, std::vector<uint64_t>>, uint64_t, PairHash> renderGroupsFindMap;
 		std::unordered_map<uint64_t, uint64_t> renderGroupsFindMapWithMeshUuid;
 		std::unordered_map<std::vector<uint64_t>, uint64_t, VectorHash, VectorEqual<uint64_t>> renderGroupsFindMapWithMaterialUuid;
@@ -142,7 +142,7 @@ namespace Plaza {
 			bool foundNewRenderGroup = this->renderGroupsFindMap.find(std::pair<uint64_t, std::vector<uint64_t>>(newMesh->uuid, Material::GetMaterialsUuids(newMaterials))) != this->renderGroupsFindMap.end();
 			if (foundNewRenderGroup) {
 				uint64_t uuid = this->renderGroupsFindMap.at(std::pair<uint64_t, std::vector<uint64_t>>(newMesh->uuid, Material::GetMaterialsUuids(newMaterials)));
-				RenderGroup* renderGroup = this->renderGroups.at(uuid);
+				RenderGroup* renderGroup = &this->renderGroups.at(uuid);
 				//renderGroup->mCount++;
 				//if (resizeBuffer && renderGroup->mBufferSize < renderGroup->mCount)
 				//	renderGroup->ResizeInstanceBuffer(0);
@@ -150,13 +150,13 @@ namespace Plaza {
 			}
 			else if (!foundNewRenderGroup)
 			{
-				RenderGroup* newRenderGroup = new RenderGroup(newMesh, newMaterials);
-				newRenderGroup->mCount++;
-				this->renderGroups.emplace(newRenderGroup->uuid, newRenderGroup);
-				this->renderGroupsFindMapWithMeshUuid.emplace(newRenderGroup->mesh->uuid, newRenderGroup->uuid);
+				RenderGroup newRenderGroup = RenderGroup(newMesh, newMaterials);
+				newRenderGroup.mCount++;
+				this->renderGroups.emplace(newRenderGroup.uuid, newRenderGroup);
+				this->renderGroupsFindMapWithMeshUuid.emplace(newRenderGroup.mesh->uuid, newRenderGroup.uuid);
 				//;;this->renderGroupsFindMapWithMaterialUuid.emplace(newRenderGroup->material->uuid, newRenderGroup->uuid);
 				//;;this->renderGroupsFindMap.emplace(std::make_pair(newRenderGroup->mesh->uuid, newRenderGroup->material->uuid), newRenderGroup->uuid);
-				return newRenderGroup;
+				return &this->renderGroups.at(newRenderGroup.uuid);
 			}
 		}
 
@@ -167,7 +167,7 @@ namespace Plaza {
 		RenderGroup* GetRenderGroupWithUuids(uint64_t meshUuid, std::vector<uint64_t> materialsUuid) {
 			const auto& renderGroupIt = renderGroupsFindMap.find(std::make_pair(meshUuid, materialsUuid));
 			if (renderGroupIt != this->renderGroupsFindMap.end())
-				return renderGroups.at(renderGroupIt->second);
+				return &renderGroups.at(renderGroupIt->second);
 			return nullptr;
 		}
 
@@ -181,7 +181,7 @@ namespace Plaza {
 		void RemoveRenderGroup(uint64_t uuid) {
 			if (this->renderGroups.find(uuid) != this->renderGroups.end())
 			{
-				RenderGroup* renderGroup = this->renderGroups.at(uuid);
+				RenderGroup* renderGroup = &this->renderGroups.at(uuid);
 				EraseFoundMap(this->renderGroups, renderGroup->uuid);
 				if (renderGroup->mesh)
 					EraseFoundMap(this->renderGroupsFindMapWithMeshUuid, renderGroup->mesh->uuid);
@@ -285,5 +285,69 @@ namespace Plaza {
 				return { this->DefaultMaterial() };
 			return materials;
 		}
+
+		template <class Archive>
+		void save(Archive& archive) const {
+			archive(mAssetUuid, entities, transformComponents, cameraComponents, meshRendererComponents,
+				rigidBodyComponents, colliderComponents, csScriptComponents, UITextRendererComponents, audioSourceComponents,
+				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents);
+			/*
+						archive(mAssetUuid, entities, transformComponents, cameraComponents, meshRendererComponents,
+				rigidBodyComponents, colliderComponents, csScriptComponents, UITextRendererComponents, audioSourceComponents,
+				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents, materials,
+				materialsNames, renderGroups, renderGroupsFindMap, renderGroupsFindMapWithMeshUuid, renderGroupsFindMapWithMaterialUuid,
+				entitiesNames);
+			*/
+		}
+
+
+		template <class Archive>
+		void load(Archive& archive) {
+			archive(mAssetUuid, entities, transformComponents, cameraComponents, meshRendererComponents,
+				rigidBodyComponents, colliderComponents, csScriptComponents, UITextRendererComponents, audioSourceComponents,
+				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents);
+		}
+
+		/*
+
+				bool mIsDeleting = false;
+
+		uint64_t mAssetUuid = 0;
+		std::string filePath = "mainScene.plzscn";
+
+		std::unordered_map<std::variant<uint64_t, std::string>, Entity*> gameObjectsMap;
+
+		Entity* mainSceneEntity;
+
+		std::map<uint64_t, Animation*> mPlayingAnimations = std::map<uint64_t, Animation*>();
+
+		std::unordered_map<uint64_t, Entity> entities;
+		ComponentMultiMap<uint64_t, Transform> transformComponents;
+		ComponentMultiMap<uint64_t, Camera> cameraComponents;
+		ComponentMultiMap<uint64_t, MeshRenderer> meshRendererComponents;
+		ComponentMultiMap<uint64_t, RigidBody> rigidBodyComponents;
+		ComponentMultiMap<uint64_t, Collider> colliderComponents;
+		ComponentMultiMap<uint64_t, CsScriptComponent> csScriptComponents;
+		ComponentMultiMap<uint64_t, Plaza::Drawing::UI::TextRenderer> UITextRendererComponents;
+		ComponentMultiMap<uint64_t, AudioSource> audioSourceComponents;
+		ComponentMultiMap<uint64_t, AudioListener> audioListenerComponents;
+		ComponentMultiMap<uint64_t, Light> lightComponents;
+		ComponentMultiMap<uint64_t, CharacterController> characterControllerComponents;
+		ComponentMultiMap<uint64_t, AnimationComponent> animationComponentComponents;
+
+		std::unordered_map<std::string, void*> componentsMap;
+
+		std::vector<MeshRenderer*> meshRenderers;
+		std::unordered_map<uint64_t, shared_ptr<Material>> materials;
+		std::unordered_map<std::string, uint64_t> materialsNames;
+
+		std::unordered_map<uint64_t, RenderGroup*> renderGroups;
+		std::unordered_map<std::pair<uint64_t, std::vector<uint64_t>>, uint64_t, PairHash> renderGroupsFindMap;
+		std::unordered_map<uint64_t, uint64_t> renderGroupsFindMapWithMeshUuid;
+		std::unordered_map<std::vector<uint64_t>, uint64_t, VectorHash, VectorEqual<uint64_t>> renderGroupsFindMapWithMaterialUuid;
+
+		std::unordered_map<std::string, std::unordered_set<uint64_t>> entitiesNames;
+
+		*/
 	};
 }

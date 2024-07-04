@@ -84,8 +84,8 @@ namespace Plaza::Editor {
 					if (diffuseMaps.size() > 0 && diffuseMaps[0]->GetTextureID() != 0)
 						convertedMaterial.diffuse = diffuseMaps[0];
 
-					if (specularMaps.size() > 0)
-						convertedMaterial.specular = specularMaps[0];
+					//if (specularMaps.size() > 0)
+					//	convertedMaterial.specular = specularMaps[0];
 
 					if (normalMaps.size() > 0)
 						convertedMaterial.normal = normalMaps[0];
@@ -95,8 +95,8 @@ namespace Plaza::Editor {
 
 					if (!convertedMaterial.diffuse->path.empty())
 						convertedMaterial.diffuse->path = std::filesystem::path(convertedMaterial.diffuse->path).filename().string();
-					if (!convertedMaterial.specular->path.empty())
-						convertedMaterial.specular->path = std::filesystem::path(convertedMaterial.specular->path).filename().string();
+					//if (!convertedMaterial.specular->path.empty())
+					//	convertedMaterial.specular->path = std::filesystem::path(convertedMaterial.specular->path).filename().string();
 					if (!convertedMaterial.normal->path.empty())
 						convertedMaterial.normal->path = std::filesystem::path(convertedMaterial.normal->path).filename().string();
 					if (!convertedMaterial.height->path.empty())

@@ -7,5 +7,10 @@ namespace Plaza {
 		glm::vec3 mOrientation;
 		int volume = 100;
 		void UpdateListener();
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<Component>(this), mPosition, mOrientation, volume);
+		}
 	};
 }

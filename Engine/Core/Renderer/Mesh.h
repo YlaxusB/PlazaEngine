@@ -71,6 +71,11 @@ namespace Plaza {
 			glm::vec3 position;
 			glm::quat orientation;
 			glm::vec3 scale;
+
+			template <class Archive>
+			void serialize(Archive& archive) {
+				archive(time, position, orientation, scale);
+			}
 		};
 
 		float GetScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTime)

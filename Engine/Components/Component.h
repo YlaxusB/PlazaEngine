@@ -18,5 +18,10 @@ namespace Plaza {
 		Component() {
 			this->componentUuid = Plaza::UUID::NewUUID();
 		}
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(uuid);
+		}
 	};
 }

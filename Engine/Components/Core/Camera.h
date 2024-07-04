@@ -122,6 +122,11 @@ namespace Plaza {
 
 			UpdateFrustum();
 		}
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<Component>(this), isEditorCamera, Position, Front, Up, Right, WorldUp, Yaw, Pitch, MovementSpeed, MovementSpeedTemporaryBoost, MouseSensitivity, Zoom, nearPlane, farPlane, aspectRatio);
+		}
 	private:
 		// calculates the front vector from the Camera's (updated) Euler Angles
 		void updateCameraVectors();

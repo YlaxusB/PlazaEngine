@@ -38,5 +38,10 @@ namespace Plaza {
 		~AudioSource() override {
 			//this->Stop();
 		}
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<Component>(this), mPosition, mSourcePath, mSource, mLoop, mSpatial, mPitch, mGain);
+		}
 	};
 }

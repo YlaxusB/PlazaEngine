@@ -12,7 +12,7 @@ namespace Plaza {
 			out << YAML::Key << "Material" << YAML::Value << std::filesystem::path{ filePath }.stem().string();
 		out << YAML::Key << "Uuid" << YAML::Value << material->uuid;
 		ComponentSerializer::TextureSerializer::Serialize(out, *material->diffuse);
-		ComponentSerializer::TextureSerializer::Serialize(out, *material->specular);
+//		ComponentSerializer::TextureSerializer::Serialize(out, *material->specular);
 		ComponentSerializer::TextureSerializer::Serialize(out, *material->height);
 		ComponentSerializer::TextureSerializer::Serialize(out, *material->normal);
 		out << YAML::Key << "Shininess" << YAML::Value << material->shininess;
@@ -37,9 +37,9 @@ namespace Plaza {
 				if (data["diffuse"]) {
 					material->diffuse = ComponentSerializer::TextureSerializer::DeSerialize(data["diffuse"]);
 				}
-				if (data["specular"]) {
-					material->specular = ComponentSerializer::TextureSerializer::DeSerialize(data["specular"]);
-				}
+				//if (data["specular"]) {
+				//	material->specular = ComponentSerializer::TextureSerializer::DeSerialize(data["specular"]);
+				//}
 				if (data["normal"]) {
 					material->normal = ComponentSerializer::TextureSerializer::DeSerialize(data["normal"]);
 				}

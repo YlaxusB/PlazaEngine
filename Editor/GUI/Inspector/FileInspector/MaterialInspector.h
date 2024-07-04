@@ -38,7 +38,7 @@ namespace Plaza::Editor {
 			ImGui::Text(file->directory.c_str());
 
 			ImGui::ColorPicker4("Diffuse", &material->diffuse->rgba.x);
-			ImGui::ColorPicker4("Specular", &material->specular->rgba.x);
+//			ImGui::ColorPicker4("Specular", &material->specular->rgba.x);
 			if (ImGui::Button("Difusse Texture")) {
 				material->diffuse = LoadTextureButton();
 				//    material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");

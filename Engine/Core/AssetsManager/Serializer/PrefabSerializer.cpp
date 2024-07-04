@@ -63,103 +63,16 @@ namespace Plaza {
 
 		std::ofstream os(outPath.string(), std::ios::binary);
 		cereal::BinaryOutputArchive archive(os);
-		Serp ser{ serializablePrefab };
-		archive(ser);
+		archive(serializablePrefab);
 		os.close();
 
-		// serializablePrefab.serialize(archive);
-
-
-	// Deserialize from binary
-
-		{
-			Serp loadedPrefab;
-			std::ifstream is(outPath.string(), std::ios::binary);
-			cereal::BinaryInputArchive archive2(is);
-			archive2(loadedPrefab);
-			std::cout << loadedPrefab.data.assetUuid << "\n";
-		}
-
-		//std::ofstream file(outPath.string(), std::ios::binary);
-		//if (!file.is_open()) {
-		//	std::cerr << "Error: Failed to open file for writing: " << outPath.string() << std::endl;
-		//	return;
+		//{
+		//	Serp loadedPrefab;
+		//	std::ifstream is(outPath.string(), std::ios::binary);
+		//	cereal::BinaryInputArchive archive2(is);
+		//	archive2(loadedPrefab);
+		//	std::cout << loadedPrefab.data.assetUuid << "\n";
 		//}
-		/*
-		// Write asset UUID
-		file.write(reinterpret_cast<const char*>(&serializablePrefab.assetUuid), sizeof(serializablePrefab.assetUuid));
 
-		// Write name length and name
-		uint32_t nameLength = static_cast<uint32_t>(serializablePrefab.name.length());
-		file.write(reinterpret_cast<const char*>(&nameLength), sizeof(nameLength));
-		file.write(serializablePrefab.name.c_str(), nameLength);
-
-		// Write entities count
-		file.write(reinterpret_cast<const char*>(&serializablePrefab.entitiesCount), sizeof(serializablePrefab.entitiesCount));
-
-		// Write entities
-		for (const auto& entity : serializablePrefab.entities) {
-			uint32_t entityNameLength = static_cast<uint32_t>(entity.name.length());
-			file.write(reinterpret_cast<const char*>(&entityNameLength), sizeof(entityNameLength));
-			file.write(entity.name.c_str(), entityNameLength);
-
-			// Write entity UUID
-			file.write(reinterpret_cast<const char*>(&entity.entityUuid), sizeof(entity.entityUuid));
-			// Write parent UUID
-			file.write(reinterpret_cast<const char*>(&entity.parentUuid), sizeof(entity.parentUuid));
-			// Write children count
-			file.write(reinterpret_cast<const char*>(&entity.childrenCount), sizeof(entity.childrenCount));
-			// Write children UUIDs
-			for (const auto& childUuid : entity.childrenUuid) {
-				file.write(reinterpret_cast<const char*>(&childUuid), sizeof(childUuid));
-			}
-			// Write components count
-			file.write(reinterpret_cast<const char*>(&entity.componentsCount), sizeof(entity.componentsCount));
-			// Write components
-			for (auto& component : entity.components) {
-				auto componentType = component.second.type().name();
-
-				file.write(reinterpret_cast<const char*>(&component.first), sizeof(SerializableComponentType));
-				if (componentType == typeid(SerializableTransform*).name())
-				{
-					SerializableTransform* transform = std::any_cast<SerializableTransform*>(component.second);
-					file.write(reinterpret_cast<const char*>(&transform->uuid), sizeof(transform->uuid));
-					file.write(reinterpret_cast<const char*>(&transform->type), sizeof(transform->type));
-					file.write(reinterpret_cast<const char*>(&transform->position), sizeof(transform->position));
-					file.write(reinterpret_cast<const char*>(&transform->rotation), sizeof(transform->rotation));
-					file.write(reinterpret_cast<const char*>(&transform->scale), sizeof(transform->scale));
-				}
-				else if (componentType == typeid(SerializableMeshRenderer*).name())
-				{
-					SerializableMeshRenderer* meshRenderer = std::any_cast<SerializableMeshRenderer*>(component.second);
-					ComponentsSerializer::SerializeMeshRenderer(meshRenderer, file);
-				}
-				else if (componentType == typeid(SerializableCollider*).name())
-				{
-					SerializableCollider* collider = std::any_cast<SerializableCollider*>(component.second);
-					ComponentsSerializer::SerializeCollider(collider, file);
-				}
-
-			}
-		}
-		*/
-
-		//file.close();
-
-		//// Write serializablePrefab to the file
-		//outfile.write(reinterpret_cast<const char*>(&serializablePrefab), sizeof(serializablePrefab));
-		//if (!outfile) {
-		//	std::cerr << "Error writing data to file!" << std::endl;
-		//	return;
-		//}
-		//
-		//// Write entities count to the file
-		//outfile.write(reinterpret_cast<const char*>(&entityCount), sizeof(entityCount));
-		//if (!outfile) {
-		//	std::cerr << "Error writing entities count to file!" << std::endl;
-		//	return;
-		//}
-		//
-		//outfile.close();
 	}
 }

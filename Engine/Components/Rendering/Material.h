@@ -11,9 +11,9 @@ namespace Plaza {
 		std::string filePath;
 		std::string name = "";
 		Texture* diffuse = new Texture("diffuse");
-		Texture* albedo = new Texture("albedo");
+		//Texture* albedo = new Texture("albedo");
 		Texture* normal = new Texture("normal");
-		Texture* specular = new Texture("specular");
+		//Texture* specular = new Texture("specular");
 		Texture* height = new Texture("height");
 		Texture* metalness = new Texture("metalness");
 		Texture* roughness = new Texture("roughness");
@@ -27,9 +27,9 @@ namespace Plaza {
 
 		void LoadTextures(std::string relativePath = "") {
 			diffuse->Load(relativePath);
-			albedo->Load(relativePath);
+			//albedo->Load(relativePath);
 			normal->Load(relativePath);
-			specular->Load(relativePath);
+			//specular->Load(relativePath);
 			height->Load(relativePath);
 			metalness->Load(relativePath);
 			roughness->Load(relativePath);
@@ -51,9 +51,9 @@ namespace Plaza {
 			metalnessFloat = other.metalnessFloat;
 			roughnessFloat = other.roughnessFloat;
 			diffuse = other.diffuse;
-			albedo = other.albedo;
+			//albedo = other.albedo;
 			normal = other.normal;
-			specular = other.specular;
+			//specular = other.specular;
 			height = other.height;
 			if (this != &other) { // self-assignment check
 				Component::operator=(other); // if Component is a base class, invoke its copy assignment operator
@@ -67,23 +67,11 @@ namespace Plaza {
 			}
 			return *this;
 		}
-		//Material(const Material& other) {
-		//	//diffuse = new Texture();
-		//	//this->uuid = other.uuid;
-		//	//filePath = other.filePath;
-		//	//name = other.name;
-		//	//shininess = other.shininess;
-		//	//diffuse = other.diffuse;
-		//	//albedo = other.albedo;
-		//	//normal = other.normal;
-		//	//specular = other.specular;
-		//	//height = other.height;
-		//}
 
 		bool SameAs(Material& other) {
 			return (
 				this->diffuse->SameAs(*other.diffuse) &&
-				this->specular->SameAs(*other.specular) &&
+				//this->specular->SameAs(*other.specular) &&
 				this->normal->SameAs(*other.normal) &&
 				this->height->SameAs(*other.height) &&
 				this->shininess == other.shininess
@@ -95,6 +83,12 @@ namespace Plaza {
 				materialsUuid.push_back(material->uuid);
 			}
 			return materialsUuid;
+		}
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			// TODO: SERIALIZE MATERIALS
+			//archive(mAssetUuid, name, diffuse, normal, height, metalness, roughness, aoMap, shininess, intensity, flip);
 		}
 	};
 

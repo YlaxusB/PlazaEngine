@@ -11,7 +11,7 @@ namespace Plaza {
 	Material DefaultMaterial() {
 		Material material;
 		material.diffuse->rgba = glm::vec4(0.7f, 0.7f, 0.7f, 1.0f);
-		material.specular->rgba = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
+//		material.specular->rgba = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
 		material.shininess = 3.0f;
 		return material;
 	}

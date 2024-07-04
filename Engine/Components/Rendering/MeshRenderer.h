@@ -126,5 +126,23 @@ namespace Plaza {
 
 		void ChangeMaterial(Material* newMaterial, unsigned int index = 0);
 		void ChangeMesh(Mesh* newMesh);
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			if (mesh)
+				mMeshUuid = mesh->uuid;
+			UpdateMaterialsUuids();
+			archive(cereal::base_class<Component>(this), castShadows, mMeshUuid, mMaterialsUuids);
+		}
+	private:
+		uint64_t mMeshUuid = 0;
+		std::vector<uint64_t> mMaterialsUuids = std::vector<uint64_t>();
+		std::vector<uint64_t> UpdateMaterialsUuids() {
+			mMaterialsUuids.clear();
+			for (Material* material : mMaterials) {
+				mMaterialsUuids.push_back(material->mAssetUuid);
+			}
+			return mMaterialsUuids;
+		}
 	};
 }

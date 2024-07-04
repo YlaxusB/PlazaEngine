@@ -120,48 +120,48 @@ namespace Plaza {
 	}
 
 	Entity::~Entity() {
-		if (!Application->runningScene) {
-			std::vector<uint64_t> children = this->childrenUuid;
-			for (uint64_t child : children) {
-				if (Application->activeScene->entities.find(child) != Application->activeScene->entities.end())
-					Application->activeScene->entities.at(child).~Entity();
-			}
-			if (this->HasComponent<Transform>())
-				this->RemoveComponent<Transform>();
-			if (this->HasComponent<MeshRenderer>())
-				this->RemoveComponent<MeshRenderer>();
-			if (this->HasComponent<Collider>())
-				this->RemoveComponent<Collider>();
-			if (this->HasComponent<RigidBody>())
-				this->RemoveComponent<RigidBody>();
-			if (this->HasComponent<Camera>())
-				this->RemoveComponent<Camera>();
-			if (this->HasComponent<CsScriptComponent>())
-				this->RemoveComponent<CsScriptComponent>();
-			if (this->HasComponent<Plaza::Drawing::UI::TextRenderer>())
-				this->RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
-			if (this->HasComponent<AudioSource>())
-				this->RemoveComponent<AudioSource>();
-			if (this->HasComponent<AudioListener>())
-				this->RemoveComponent<AudioListener>();
-			if (this->HasComponent<Light>())
-				this->RemoveComponent<Light>();
-			if (this->HasComponent<AnimationComponent>())
-				this->RemoveComponent<AnimationComponent>();
-
-			if (Editor::selectedGameObject && Editor::selectedGameObject->uuid == this->uuid)
-				Editor::selectedGameObject = nullptr;
-
-			this->GetParent().childrenUuid.erase(std::remove(this->GetParent().childrenUuid.begin(), this->GetParent().childrenUuid.end(), this->uuid), this->GetParent().childrenUuid.end());
-			if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
-				Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
-
-			if (Application->activeScene->entities.find(this->uuid) != Application->activeScene->entities.end())
-				Application->activeScene->entities.extract(this->uuid);
-			//Application->activeScene->entities.erase(std::remove(Application->activeScene->entities.begin(), Application->activeScene->entities.end(), this->uuid), Application->activeScene->entities.end());
-			//Application->activeScene->entities.
-			//Application->activeScene->entities.erase(Application->activeScene->entities.find(this->uuid));
-		}
+		//if (!Application->runningScene) {
+		//	std::vector<uint64_t> children = this->childrenUuid;
+		//	for (uint64_t child : children) {
+		//		if (Application->activeScene->entities.find(child) != Application->activeScene->entities.end())
+		//			Application->activeScene->entities.at(child).~Entity();
+		//	}
+		//	if (this->HasComponent<Transform>())
+		//		this->RemoveComponent<Transform>();
+		//	if (this->HasComponent<MeshRenderer>())
+		//		this->RemoveComponent<MeshRenderer>();
+		//	if (this->HasComponent<Collider>())
+		//		this->RemoveComponent<Collider>();
+		//	if (this->HasComponent<RigidBody>())
+		//		this->RemoveComponent<RigidBody>();
+		//	if (this->HasComponent<Camera>())
+		//		this->RemoveComponent<Camera>();
+		//	if (this->HasComponent<CsScriptComponent>())
+		//		this->RemoveComponent<CsScriptComponent>();
+		//	if (this->HasComponent<Plaza::Drawing::UI::TextRenderer>())
+		//		this->RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
+		//	if (this->HasComponent<AudioSource>())
+		//		this->RemoveComponent<AudioSource>();
+		//	if (this->HasComponent<AudioListener>())
+		//		this->RemoveComponent<AudioListener>();
+		//	if (this->HasComponent<Light>())
+		//		this->RemoveComponent<Light>();
+		//	if (this->HasComponent<AnimationComponent>())
+		//		this->RemoveComponent<AnimationComponent>();
+		//
+		//	if (Editor::selectedGameObject && Editor::selectedGameObject->uuid == this->uuid)
+		//		Editor::selectedGameObject = nullptr;
+		//
+		//	this->GetParent().childrenUuid.erase(std::remove(this->GetParent().childrenUuid.begin(), this->GetParent().childrenUuid.end(), this->uuid), this->GetParent().childrenUuid.end());
+		//	if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
+		//		Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
+		//
+		//	if (Application->activeScene->entities.find(this->uuid) != Application->activeScene->entities.end())
+		//		Application->activeScene->entities.extract(this->uuid);
+		//	//Application->activeScene->entities.erase(std::remove(Application->activeScene->entities.begin(), Application->activeScene->entities.end(), this->uuid), Application->activeScene->entities.end());
+		//	//Application->activeScene->entities.
+		//	//Application->activeScene->entities.erase(Application->activeScene->entities.find(this->uuid));
+		//}
 	}
 
 	void Entity::Delete() {

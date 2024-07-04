@@ -16,7 +16,7 @@ namespace Plaza {
 
 		auto renderGroupIt = Application->activeScene->renderGroupsFindMap.find(std::make_pair(this->mesh->uuid, Material::GetMaterialsUuids(this->mMaterials)));
 		if (renderGroupIt != Application->activeScene->renderGroupsFindMap.end()) {
-			this->renderGroup = Application->activeScene->renderGroups.at(renderGroupIt->second);
+			this->renderGroup = &Application->activeScene->renderGroups.at(renderGroupIt->second);
 		}
 		else {
 			RenderGroup* renderGroup = Application->activeScene->AddRenderGroup(this->mesh, this->mMaterials);//new RenderGroup(this->mesh, this->mMaterials);
@@ -27,7 +27,7 @@ namespace Plaza {
 			uint64_t meshUuid = this->mesh->uuid;
 			//uint64_t materialUuid = this->material->uuid;
 			//Application->activeScene->renderGroupsFindMap.emplace(std::make_pair(meshUuid, materialUuid), renderGroupUuid);
-			this->renderGroup = Application->activeScene->renderGroups.at(renderGroupUuid);
+			this->renderGroup = &Application->activeScene->renderGroups.at(renderGroupUuid);
 		}
 		if (addToScene)
 			Application->activeScene->meshRenderers.emplace_back(this);

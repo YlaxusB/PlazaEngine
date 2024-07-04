@@ -160,7 +160,7 @@ namespace Plaza {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		for (auto [renderGroupUuid, renderGroup] : Application->activeScene->renderGroups) {
-			if (renderGroup->instanceModelMatrices.size() > 0) {
+			if (renderGroup.instanceModelMatrices.size() > 0) {
 				//[] renderGroup->DrawInstanced(shader);
 			}
 		}
@@ -174,7 +174,7 @@ namespace Plaza {
 	void OpenGLRenderer::RenderShadowMap(Shader& shader) {
 		shader.use();
 		for (auto [renderGroupUuid, renderGroup] : Application->activeScene->renderGroups) {
-			if (renderGroup->instanceModelMatrices.size() > 0) {
+			if (renderGroup.instanceModelMatrices.size() > 0) {
 				//renderGroup->DrawInstanced(shader);
 				//[] renderGroup->DrawInstancedToShadowMap(shader);
 			}

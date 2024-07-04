@@ -61,6 +61,7 @@ namespace Plaza {
 		void ChangeMesh(Mesh* mesh);
 		static bool SceneHasRenderGroup(Mesh* mesh, Material* material);
 		static bool SceneHasRenderGroup(RenderGroup* renderGroup);
+
 		//bool SceneHasRenderGroupWithMaterial(Material* material);
 
 
@@ -189,6 +190,8 @@ namespace Plaza {
 		//		instanceModelMatrices.clear();
 		//	}
 		//}
+
+
 	};
 }
 

@@ -58,5 +58,10 @@ namespace Plaza {
 
 		void UpdatePose();
 		void UpdatePose(Transform* transform);
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<Component>(this), mDynamic);
+		}
 	};
 }

@@ -86,5 +86,10 @@ namespace Plaza {
 			//mono_domain_set(Mono::mAppDomain, false);
 		}
 		~CsScriptComponent();
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<Component>(this), scriptPath);
+		}
 	};
 }

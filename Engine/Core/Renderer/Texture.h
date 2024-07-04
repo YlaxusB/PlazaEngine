@@ -52,6 +52,11 @@ namespace Plaza {
 		}
 
 		~Texture() = default;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(mAssetUuid, type, rgba);
+		}
 	};
 }
 

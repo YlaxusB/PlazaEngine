@@ -37,7 +37,7 @@ namespace Plaza::Editor {
 
 				for (Animation& animation : component->mAnimations) {
 					if (ImGui::TreeNodeEx(std::string("beg" + animation.mName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
-						BoneParentShipTree(animation.mRootBone);
+						BoneParentShipTree(animation.GetRootBone());
 						ImGui::TreePop();
 					}
 				}

@@ -313,4 +313,110 @@ namespace Plaza {
 		ufbx_free_scene(scene);
 		return Application->activeScene->GetEntity(mainEntity->uuid);
 	}
+
+	std::vector<Animation> AssetsImporter::ImportAnimationFBX(std::string filePath) {
+		std::vector<Animation> animations = std::vector<Animation>();
+
+		ufbx_load_opts opts = { };
+		opts.target_axes = ufbx_axes_right_handed_y_up,
+			opts.target_unit_meters = 1.0f;
+		opts.target_axes = {
+			.right = UFBX_COORDINATE_AXIS_POSITIVE_X,
+			.up = UFBX_COORDINATE_AXIS_POSITIVE_Y,
+			.front = UFBX_COORDINATE_AXIS_POSITIVE_Z,
+		};
+
+		ufbx_error error;
+		ufbx_scene* scene = ufbx_load_file(filePath.c_str(), &opts, &error);
+
+		if (!scene) {
+			fprintf(stderr, "Failed to load scene: %s\n", error.description.data);
+			return animations;
+		}
+		//int meshCount = scene->meshes.count;
+		//std::set<uint64_t> boneIds = std::set<uint64_t>();
+		//std::vector<ufbx_bone*> uniqueBones = std::vector<ufbx_bone*>();
+
+		//for (auto& [key, value] : VulkanRenderer::GetRenderer()->mBones) {
+		//	value.mChildren.clear();
+		//}
+		//
+		//for (const ufbx_skin_deformer* skin : scene->skin_deformers) {
+		//	for (const ufbx_skin_cluster* cluster : skin->clusters) {
+		//		//VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = (ConvertUfbxMatrix2(cluster->geometry_to_bone));
+		//		if (cluster->bone_node->parent && cluster->bone_node->parent->bone) {
+		//			VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mParentId = cluster->bone_node->parent->bone->element_id;
+		//
+		//			std::vector<uint64_t>& childrenVector = VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->parent->bone->element_id).mChildren;
+		//
+		//			if (std::find(childrenVector.begin(), childrenVector.end(), cluster->bone_node->bone->element_id) == childrenVector.end()) {
+		//				childrenVector.push_back(cluster->bone_node->bone->element_id);
+		//			}
+		//		}
+		//	}
+		//}
+		for (const ufbx_anim_stack* stack : scene->anim_stacks)
+		{
+			if (stack->time_end - stack->time_begin <= 0.0f) {
+				continue;
+			}
+
+			ufbx_baked_anim* bake = ufbx_bake_anim(scene, stack->anim, nullptr, nullptr);
+			assert(bake != nullptr);
+			if (bake == nullptr)
+				continue;
+			Animation& animation = animations.emplace_back(Animation());
+			animation.mName = stack->name.data;
+
+			for (ufbx_bone* bone : scene->bones) {
+				if (bone->is_root)
+					animation.SetRootBone(&VulkanRenderer::GetRenderer()->mBones.at(bone->element_id));
+			}
+			if (!animation.GetRootBone()) {
+				animation.SetRootBone(&VulkanRenderer::GetRenderer()->mBones.at(scene->bones[0]->element_id));
+			}
+			//animation.mRootParentTransform = ConvertUfbxMatrix2(scene->root_node->geometry_to_world);
+			animation.mStartTime = (float)bake->playback_time_begin;
+			animation.mEndTime = (float)bake->playback_time_end;
+			for (const ufbx_baked_node& bakeNode : bake->nodes)
+			{
+				ufbx_node* sceneNode = scene->nodes[bakeNode.typed_id];
+
+				// Translation:
+				std::map<float, glm::vec3> positions = std::map<float, glm::vec3>();
+				for (const ufbx_baked_vec3& keyframe : bakeNode.translation_keys)
+				{
+					positions[keyframe.time] = glm::vec3(keyframe.value.x, keyframe.value.y, keyframe.value.z);
+				}
+
+				// Rotation:
+				std::map<float, glm::quat> rotations = std::map<float, glm::quat>();
+				for (const ufbx_baked_quat& keyframe : bakeNode.rotation_keys)
+				{
+					rotations[keyframe.time] = ConvertUfbxQuat(keyframe.value);
+				}
+
+				uint64_t boneUuid = sceneNode->bone->element_id;
+				unsigned int maxCount = glm::max(positions.size(), rotations.size());
+				std::map<float, Bone::Keyframe> keyframes = std::map<float, Bone::Keyframe>();
+				for (const auto& [key, value] : positions) {
+					keyframes[key].position = value;
+				}
+				for (const auto& [key, value] : rotations) {
+					keyframes[key].orientation = value;
+				}
+				for (const auto& [key, value] : keyframes) {
+					animation.mKeyframes[boneUuid].push_back(Bone::Keyframe{ key, ConvertUfbxVec3(ufbx_evaluate_baked_vec3(bakeNode.translation_keys, key)), ConvertUfbxQuat(ufbx_evaluate_baked_quat(bakeNode.rotation_keys, key)), ConvertUfbxVec3(ufbx_evaluate_baked_vec3(bakeNode.scale_keys, key)) });
+				}
+				if (animation.mKeyframes[boneUuid].size() == 0) {
+					animation.mKeyframes[boneUuid].push_back(Bone::Keyframe{ 0.0f, glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), glm::vec3(1.0f) });
+				}
+			}
+
+			ufbx_free_baked_anim(bake);
+		}
+
+		ufbx_free_scene(scene);
+		return animations;
+	}
 }

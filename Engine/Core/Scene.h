@@ -29,6 +29,7 @@
 #include "Engine/Components/Rendering/AnimationComponent.h"
 
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
+//#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 
 using namespace std;
 namespace Plaza {
@@ -108,6 +109,7 @@ namespace Plaza {
 		std::unordered_map<std::variant<uint64_t, std::string>, Entity*> gameObjectsMap;
 
 		Entity* mainSceneEntity;
+		uint64_t mainSceneEntityUuid;
 
 		std::map<uint64_t, Animation*> mPlayingAnimations = std::map<uint64_t, Animation*>();
 
@@ -194,6 +196,8 @@ namespace Plaza {
 
 		Scene();
 		Scene(Scene& other) = default;
+
+		void RecalculateAddedComponents();
 
 		//unordered_map<uint64_t, Transform*> meshRenderersComponents;
 
@@ -290,7 +294,7 @@ namespace Plaza {
 		void save(Archive& archive) const {
 			archive(mAssetUuid, entities, transformComponents, cameraComponents, meshRendererComponents,
 				rigidBodyComponents, colliderComponents, csScriptComponents, UITextRendererComponents, audioSourceComponents,
-				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents);
+				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents, mainSceneEntity->uuid);
 			/*
 						archive(mAssetUuid, entities, transformComponents, cameraComponents, meshRendererComponents,
 				rigidBodyComponents, colliderComponents, csScriptComponents, UITextRendererComponents, audioSourceComponents,
@@ -305,7 +309,7 @@ namespace Plaza {
 		void load(Archive& archive) {
 			archive(mAssetUuid, entities, transformComponents, cameraComponents, meshRendererComponents,
 				rigidBodyComponents, colliderComponents, csScriptComponents, UITextRendererComponents, audioSourceComponents,
-				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents);
+				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents, mainSceneEntityUuid);
 		}
 
 		/*

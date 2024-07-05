@@ -276,7 +276,7 @@ void main() {
 
     kD = 1.0f - F;
     kD *= 1.0f - metallic;
-    FinalColor = (kD * dif2 + spec2) * ((ubo.directionalLightColor.xyz * shadow) + ubo.ambientLightColor.xyz);//(max(nDotL, amb.x / 2) * (amb + (ubo.directionalLightColor.xyz * shadow)));
+    FinalColor = (kD * dif2 + kS * SpecBRDF) * ((ubo.directionalLightColor.xyz * shadow) + ubo.ambientLightColor.xyz);//(max(nDotL, amb.x / 2) * (amb + (ubo.directionalLightColor.xyz * shadow)));
     //vec3 fog = vec3(0.7f, 0.7f, 0.0f) * pow(distance(FragPos, ubo.viewPos) / 15000.0f, 0.5f);
     //FinalColor *= vec3(1.0f) - fog;
 

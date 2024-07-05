@@ -48,10 +48,11 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 
 		const std::string sceneOutput = "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\FPS\\Assets\\Scenes\\cerealScene.plzscn";
 		if (key == GLFW_KEY_I && action == GLFW_PRESS) {
-			std::ofstream os(sceneOutput, std::ios::binary);
-			cereal::BinaryOutputArchive archive(os);
-			archive(*Application->activeScene);
-			os.close();
+			Editor::Gui::OpenAssetImporterContext("asd");
+			//std::ofstream os(sceneOutput, std::ios::binary);
+			//cereal::BinaryOutputArchive archive(os);
+			//archive(*Application->activeScene);
+			//os.close();
 		}
 		if (key == GLFW_KEY_O && action == GLFW_PRESS) {
 			Application->mThreadsManager->mFrameEndThread->AddToQueue([sceneOutput]() {
@@ -59,10 +60,12 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 				cereal::BinaryInputArchive archive(is);
 				Scene* obj = new Scene();
 				archive(*obj);
+				is.close();
 				obj->mainSceneEntity = obj->GetEntity(Application->activeScene->mainSceneEntity->uuid);
-				//obj.RegisterMaps();
+				
 				Application->editorScene = obj;
 				Application->activeScene = Application->editorScene;
+				Application->activeScene->RecalculateAddedComponents();
 				});
 		}
 

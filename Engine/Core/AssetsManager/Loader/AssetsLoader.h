@@ -27,6 +27,8 @@ namespace Plaza {
 				AssetsLoader::LoadPrefab(asset);
 			else if (asset->mAssetExtension == Standards::materialExtName)
 				AssetsLoader::LoadMaterial(asset);
+			else if (asset->mAssetExtension == Standards::animationExtName)
+				AssetsLoader::LoadAnimation(asset);
 		}
 		static void LoadMetadata(Asset* asset) {
 			Asset metadataContent = Metadata::DeSerializeMetadata(asset->mPath.string());
@@ -55,7 +57,8 @@ namespace Plaza {
 			AssetsManager::mTextures.emplace(asset->mAssetUuid, texture);
 			return texture;
 		}
-		static Material* LoadMaterial(Asset* asset);
+		static Material* LoadMaterial(Asset* asset, Scene* scene = nullptr);
 		static void LoadModel(Asset* asset) {};
+		static Animation& LoadAnimation(Asset* asset, Scene* scene = nullptr);
 	};
 }

@@ -32,6 +32,7 @@ namespace Plaza {
 		static inline std::unordered_map<uint64_t, Texture*> mTextures = std::unordered_map<uint64_t, Texture*>();
 		static inline std::unordered_map<uint64_t, LoadedModel*> mLoadedModels = std::unordered_map<uint64_t, LoadedModel*>();
 		static inline std::unordered_map<uint64_t, Mesh*> mLoadedMeshes = std::unordered_map<uint64_t, Mesh*>();
+		static inline std::unordered_map<uint64_t, Animation> mLoadedAnimations = std::unordered_map<uint64_t, Animation>();
 
 		static inline std::unordered_map<AssetType, std::unordered_set<uint64_t>> mTypeMap = std::unordered_map<AssetType, std::unordered_set<uint64_t>>();
 
@@ -54,6 +55,7 @@ namespace Plaza {
 				AssetsManager::mAssetTypeByExtension.emplace(".dds", AssetType::TEXTURE);
 				AssetsManager::mAssetTypeByExtension.emplace(".tga", AssetType::TEXTURE);
 				AssetsManager::mAssetTypeByExtension.emplace(Standards::sceneExtName, AssetType::SCENE);
+				AssetsManager::mAssetTypeByExtension.emplace(Standards::animationExtName, AssetType::ANIMATION);
 				AssetsManager::mAssetTypeByExtension.emplace("", AssetType::NONE);
 
 				Texture* defaultTexture = new Texture();
@@ -138,6 +140,18 @@ namespace Plaza {
 
 		static bool HasMesh(uint64_t uuid) {
 			return  mLoadedMeshes.find(uuid) != mLoadedMeshes.end();
+		}
+
+		static Animation& AddAnimation(Animation animation) {
+			AssetsManager::mLoadedAnimations.emplace(animation.mUuid, animation);
+			return mLoadedAnimations.at(animation.mUuid);
+		}
+
+		static Animation* GetAnimation(uint64_t uuid) {
+			const auto& it = mLoadedAnimations.find(uuid);
+			if (it != mLoadedAnimations.end())
+				return &mLoadedAnimations.at(uuid);
+			return nullptr;
 		}
 
 		static Asset* LoadFileAsAsset(std::filesystem::path path) {

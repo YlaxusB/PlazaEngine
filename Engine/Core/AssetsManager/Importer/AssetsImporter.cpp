@@ -32,7 +32,7 @@ namespace Plaza {
 			break;
 		case AssetExtension::FBX:
 			mainEntity = AssetsImporter::ImportFBX(asset, std::filesystem::path{});
-			AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName});
+			AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName });
 			Application->activeScene->RemoveEntity(mainEntity->uuid);
 			//AssetsLoader::LoadPrefab(AssetsManager::NewAsset(AssetType::MODEL, outPath + Standards::modelExtName));
 			break;
@@ -60,8 +60,34 @@ namespace Plaza {
 
 	}
 
+	void AssetsImporter::ImportAnimation(std::filesystem::path filePath, std::filesystem::path outFolder) {
+		if (!std::filesystem::exists(filePath))
+			return;
+
+		std::string extension = filePath.extension().string();
+		if (AssetsImporter::mExtensionMapping.find(extension) == AssetsImporter::mExtensionMapping.end())
+			return;
+
+		AssetImported asset = AssetImported({ extension, filePath.string()});
+
+		std::vector<Animation> loadedAnimations = std::vector<Animation>();
+
+		switch (AssetsImporter::mExtensionMapping.at(extension)) {
+		case AssetExtension::FBX:
+			loadedAnimations = AssetsImporter::ImportAnimationFBX(asset.mPath);
+			break;
+		}
+
+		for (Animation& animation : loadedAnimations) {
+			std::string animationOutPath = Editor::Utils::Filesystem::GetUnrepeatedName(outFolder.string() + animation.mName + Standards::animationExtName);
+			AssetsSerializer::SerializeAnimation(animation, animationOutPath);
+			AssetsManager::NewAsset(AssetType::ANIMATION, animationOutPath);
+			AssetsManager::AddAnimation(animation);
+		}
+	}
+
 	std::string AssetsImporter::ImportTexture(AssetImported importedAsset, uint64_t uuid) {
-		std::string outPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + std::filesystem::path{importedAsset.mPath}.filename().string();
+		std::string outPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + std::filesystem::path{ importedAsset.mPath }.filename().string();
 		outPath = Editor::Utils::Filesystem::GetUnrepeatedPath(outPath);
 
 		std::filesystem::copy(importedAsset.mPath, outPath);

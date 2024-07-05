@@ -34,6 +34,8 @@ namespace Plaza {
 		static Entity* ImportFBX(AssetImported asset, std::filesystem::path outPath);
 		static Entity* ImportGLTF(AssetImported asset, std::filesystem::path outPath);
 		static std::string ImportTexture(AssetImported asset, uint64_t uuid = 0);
+		static void ImportAnimation(std::filesystem::path filePath, std::filesystem::path outFolder);
+		static std::vector<Animation> ImportAnimationFBX(std::string filePath);
 	private:
 		static inline const std::unordered_map<std::string, AssetExtension> mExtensionMapping = {
 			{".obj", OBJ},

@@ -10,6 +10,7 @@ namespace Plaza {
 		SCRIPT,
 		DLL,
 		MESH,
+		ANIMATION,
 		UNKNOWN,
 	};
 }

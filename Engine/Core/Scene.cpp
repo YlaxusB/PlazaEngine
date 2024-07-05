@@ -10,6 +10,7 @@
 #include "Editor/Filewatcher.h"
 #include "Engine/Core/Physics.h"
 #include <mutex>
+#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 
 namespace Plaza {
 	Scene* Scene::Copy(Scene* newScene, Scene* copyScene) {
@@ -341,5 +342,19 @@ namespace Plaza {
 
 	Material* Scene::DefaultMaterial() {
 		return Application->activeScene->materials.at(0).get();
+	}
+
+	void Scene::RecalculateAddedComponents() {
+		for (auto& [key, value] : AssetsManager::mAssets) {
+			if (value->mAssetExtension == Standards::materialExtName) {
+				AssetsLoader::LoadMaterial(value, this);
+			}
+		}
+		for (auto& [key, value] : meshRendererComponents) {
+			value.mesh = AssetsManager::GetMesh(value.mMeshUuid);
+			value.renderGroup = this->AddRenderGroup(AssetsManager::GetMesh(value.mMeshUuid), this->GetMaterialsVector(value.mMaterialsUuids));
+		}
+		this->mainSceneEntity = this->GetEntity(this->mainSceneEntityUuid);
+		this->mainSceneEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 	}
 }

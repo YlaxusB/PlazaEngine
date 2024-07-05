@@ -1,7 +1,7 @@
 #include "AssetsLoader.h"
 
 namespace Plaza {
-	Material* AssetsLoader::LoadMaterial(Asset* asset) {
+	Material* AssetsLoader::LoadMaterial(Asset* asset, Scene* scene) {
 		Material* material = new Material();
 
 		std::ifstream file(asset->mPath, std::ios::binary);
@@ -26,25 +26,10 @@ namespace Plaza {
 
 		file.close();
 
-		//material->diffuse->mIndexHandle = AssetsManager::GetTexture(material->diffuse->mAssetUuid)->mIndexHandle;
-		//material->normal->mIndexHandle = AssetsManager::GetTexture(material->normal->mAssetUuid)->mIndexHandle;
-		//material->roughness->mIndexHandle = AssetsManager::GetTexture(material->roughness->mAssetUuid)->mIndexHandle;
-		//material->metalness->mIndexHandle = AssetsManager::GetTexture(material->metalness->mAssetUuid)->mIndexHandle;
-		/*
-		file.write(reinterpret_cast<const char*>(&material->mAssetUuid), sizeof(material->mAssetUuid));
-		Plaza::Utils::SaveStringAsBinary(file, material->name);
-		file.write(reinterpret_cast<const char*>(&material->diffuse->rgba), sizeof(material->diffuse->rgba));
-		file.write(reinterpret_cast<const char*>(&material->diffuse->mAssetUuid), sizeof(material->diffuse->mAssetUuid));
-		file.write(reinterpret_cast<const char*>(&material->normal->mAssetUuid), sizeof(material->normal->mAssetUuid));
-		file.write(reinterpret_cast<const char*>(&material->roughness->mAssetUuid), sizeof(material->roughness->mAssetUuid));
-		file.write(reinterpret_cast<const char*>(&material->roughnessFloat), sizeof(material->roughnessFloat));
-		file.write(reinterpret_cast<const char*>(&material->metalness->mAssetUuid), sizeof(material->metalness->mAssetUuid));
-		file.write(reinterpret_cast<const char*>(&material->metalnessFloat), sizeof(material->metalnessFloat));
-		file.write(reinterpret_cast<const char*>(&material->intensity), sizeof(material->intensity));
-		file.write(reinterpret_cast<const char*>(&material->shininess), sizeof(material->shininess));
-		*/
-
-		Application->activeScene->AddMaterial(material);
+		if (!scene)
+			Application->activeScene->AddMaterial(material);
+		else
+			scene->AddMaterial(material);
 		return material;
 	}
 }

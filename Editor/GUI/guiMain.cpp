@@ -65,6 +65,7 @@ namespace Plaza {
 			PLAZA_PROFILE_SECTION("ImGui Update");
 			ImGuiIO& io = ImGui::GetIO();
 			io.DeltaTime = Time::deltaTime;
+			io.DisplaySize = ImVec2(Application->appSizes->appSize.x, Application->appSizes->appSize.y);
 			Gui::setupDockspace(Application->Window->glfwWindow, Application->textureColorbuffer, Application->activeCamera);
 			if (Application->mRenderer->api == RendererAPI::OpenGL)
 			{
@@ -207,6 +208,15 @@ namespace Plaza {
 			if (canUpdateContent) {
 				//    Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 				canUpdateContent = false;
+			}
+
+			if (ImGui::Begin("Asset Importer", &isAssetImporterOpen)) {
+				ImGui::Text("hgloelghre");
+				ImGui::Text("hgloelghre");
+				ImGui::Text("hgloelghre");
+				ImGui::Text("hgloelghre");
+				ImGui::Text("hgloelghre");
+				ImGui::End();
 			}
 		}
 
@@ -598,7 +608,10 @@ namespace Plaza {
 			ImGui::End();
 		}
 
-
+		void Gui::OpenAssetImporterContext(std::string filePath) {
+			isAssetImporterOpen = true;
+			mAssetToImportPath = filePath;
+		}
 
 		// Update appSizes
 		void Gui::UpdateSizes() {

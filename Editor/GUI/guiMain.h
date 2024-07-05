@@ -58,6 +58,11 @@ namespace Plaza {
 			static ImTextureID playPauseButtonImageId;
 
 			static void UpdateSizes();
+
+			static void OpenAssetImporterContext(std::string fileToImport);
+		private:
+			static inline bool isAssetImporterOpen = false;
+			static inline std::string mAssetToImportPath = "";
 		};
 	}
 }

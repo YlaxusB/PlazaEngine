@@ -10,5 +10,6 @@ namespace Plaza {
 		static inline string modelExtName = engineExtName + "mod";
 		static inline string scriptConfigExtName = engineExtName + "scp";
 		static inline string metadataExtName = engineExtName + "meta";
+		static inline string animationExtName = engineExtName + "anim";
 	};
 }

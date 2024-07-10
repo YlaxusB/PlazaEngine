@@ -5,7 +5,7 @@ public:
 #pragma region Hierarchy
 	ImVec4 backgroundColor = ImVec4(0.18f, 0.18f, 0.18f, 1.0f);
 	ImVec4 hierarchyBackgroundColor = ImVec4(0.18f, 0.18f, 0.18f, 1.0f);
-	ImVec4 CollapsingHeaderBackgroundColor = ImVec4(0.36f, 0.36f, 0.36f, 1.0f);
+	ImVec4 CollapsingHeaderBackgroundColor = ImVec4(0.10f, 0.10f, 0.10f, 1.0f);
 	ImVec4 tabActiveColor = ImVec4(0.0f, 117.0f / 255.0f, 255.0f / 255.0f, 1.0f);
 
 #pragma region TreeNode

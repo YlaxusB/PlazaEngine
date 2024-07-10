@@ -9,7 +9,7 @@ void InsertAfter(Plaza::Entity* payloadObj, Plaza::Entity* currentObj);
 
 
 namespace Plaza::Editor {
-	void Gui::Hierarchy::Item::HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax) {
+	void HierarchyWindow::Item::HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax) {
 		if (entity.parentUuid && ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadName.c_str())) {
 				payloadDrop(&entity, currentObj, treeNodeMin, treeNodeMax, payload);

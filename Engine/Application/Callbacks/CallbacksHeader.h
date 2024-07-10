@@ -1,9 +1,17 @@
 #pragma once
 //#include "Engine/Core/PreCompiledHeaders.h"
 //#include "Engine/Application/Application.h"
+#include "Editor/GUI/GuiWindow.h"
 namespace Plaza {
     class ApplicationClass::Callbacks {
     public:
+
+		struct CallbackFunction {
+			std::function<void(int key, int scancode, int action, int mods)> function;
+			Editor::GuiLayer layerToExecute;
+			Editor::GuiState layerStateToExecute = Editor::GuiState::FOCUSED;
+		};
+
 		static bool rightClickPressed;
 		static bool mouseFirstCallback;
 		static bool firstMouse;
@@ -18,5 +26,13 @@ namespace Plaza {
 		static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 		static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 		static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+		static void AddFunctionToKeyCallback(CallbackFunction callbackFunction) {
+			sOnKeyPressFunctions.push_back(callbackFunction);
+		}
+
+	private:
+		static inline std::vector<CallbackFunction> sOnKeyPressFunctions = std::vector<CallbackFunction>();
+		static inline std::vector<CallbackFunction> sOnKeyEventFunctions = std::vector<CallbackFunction>();
     };
 }

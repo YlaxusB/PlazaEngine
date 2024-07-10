@@ -8,10 +8,63 @@
 #include "Editor/GUI/Popups/NewEntityPopup.h"
 #include "Engine/Core/Scripting/Mono.h"
 #include "Engine/Core/RenderGroup.h"
+#include "Engine/Application/Callbacks/CallbacksHeader.h"
+
 namespace Plaza::Editor {
-	bool Gui::Hierarchy::Item::firstFocus = false;
+	void HierarchyWindow::Init() {
+		auto onKeyPressLambda = [this](int key, int scancode, int action, int mods) {
+			this->OnKeyPress(key, scancode, action, mods);
+			};
+		ApplicationClass::Callbacks::AddFunctionToKeyCallback({ onKeyPressLambda, GuiLayer::ASSETS_IMPORTER });
+	}
+
+	void HierarchyWindow::Update() {
+		PLAZA_PROFILE_SECTION("Begin Hierarchy");
+		ApplicationSizes& appSizes = *Application->appSizes;
+		ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+		Entity* selectedGameObject = Editor::selectedGameObject;
+		//ImGui::SetNextWindowPos(ImVec2(0, 0));
+		ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoFocusOnAppearing | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_HorizontalScrollbar | ImGuiScrollFlags_NoScrollParent;
+
+		//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
+		ImGui::SetNextWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y));
+		ImGui::Begin("Hierarchy", &Gui::isHierarchyOpen, sceneWindowFlags);
+		if (ImGui::IsWindowFocused())
+			Application->focusedMenu = "Hierarchy";
+		if (ImGui::IsWindowHovered()) {
+			Application->hoveredMenu = "Hierarchy";
+		}
+
+		appSizes.hierarchySize.x = ImGui::GetWindowSize().x;
+		HierarchyPopup::Update();
+
+		if (Editor::selectedGameObject)
+			Editor::selectedFiles.clear();
+
+		// Create the main collapser
+		ImGui::SetCursorPosX(0);
+
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+		HierarchyWindow::Item(Application->activeScene->entities[Application->activeScene->mainSceneEntity->uuid], selectedGameObject);
+		ImGui::PopStyleVar();
+		ImGui::PopStyleVar();
+
+
+		//Gui::curHierarchySize = ImGui::glmVec2(ImGui::GetWindowSize());
+		ImGui::End();
+	}
+
+	void HierarchyWindow::OnKeyPress(int key, int scancode, int action, int mods) {
+		if (key == GLFW_KEY_C && GLFW_PRESS && mods == GLFW_MOD_CONTROL) {
+			std::cout << "coopy \n";
+		}
+	}
+
+
+	bool HierarchyWindow::Item::firstFocus = false;
 	float inputTextWidth = 0;
-	Gui::Hierarchy::Item::Item(Entity& entity, Entity*& selectedGameObject) : currentObj(entity), selectedGameObject(*selectedGameObject) {
+	HierarchyWindow::Item::Item(Entity& entity, Entity*& selectedGameObject) : currentObj(entity), selectedGameObject(*selectedGameObject) {
 		const float height = 9.0f;
 		// Push the entity id, to prevent it to collpases all the treenodes with same id
 		ImGui::PushID(entity.uuid);
@@ -50,13 +103,14 @@ namespace Plaza::Editor {
 
 		if (!entity.changingName) {
 			if (entity.childrenUuid.size() > 0) {
-				treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen);
+				treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanFullWidth);
 			}
 			else {
 
 				//ImGui::Selectable(entity->name.c_str(), ImGuiTreeNodeFlags_Framed);
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetTreeNodeToLabelSpacing());
-				treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf);
+				//ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+				treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanFullWidth);
 			}
 		}
 		else {
@@ -128,11 +182,11 @@ namespace Plaza::Editor {
 				ImGui::EndDragDropSource();
 			}
 
-			Hierarchy::Item::HierarchyDragDrop(entity, &currentObj, treeNodeMin, treeNodeMax);
+			HierarchyWindow::Item::HierarchyDragDrop(entity, &currentObj, treeNodeMin, treeNodeMax);
 		}
 		bool treePop = !entity.changingName && !nameChanged;
 		if (ImGui::IsItemHovered() || ImGui::IsPopupOpen("ItemPopup")) {
-			Gui::Hierarchy::Item::ItemPopup(entity);
+			HierarchyWindow::Item::ItemPopup(entity);
 		}
 
 		if (ImGui::IsPopupOpen("ItemPopup")) {
@@ -143,7 +197,7 @@ namespace Plaza::Editor {
 		{
 			for (uint64_t child : entity.childrenUuid)
 			{
-				Gui::Hierarchy::Item(Application->activeScene->entities[child], selectedGameObject);
+				HierarchyWindow::Item(Application->activeScene->entities[child], selectedGameObject);
 			}
 			if (treePop)
 				ImGui::TreePop();
@@ -154,7 +208,7 @@ namespace Plaza::Editor {
 		ImGui::PopID();
 	};
 
-	void Gui::Hierarchy::Item::ItemPopup(Entity& entity) {
+	void HierarchyWindow::Item::ItemPopup(Entity& entity) {
 		if (ImGui::BeginPopupContextWindow("ItemPopup"))
 		{
 			if (ImGui::BeginMenu("Add Component"))
@@ -223,7 +277,7 @@ namespace Plaza::Editor {
 				if (ImGui::MenuItem("Rename")) {
 					entity.changingName = true;
 					Application->activeScene->entities.at(entity.uuid).changingName = true;
-					Gui::Hierarchy::Item::firstFocus = true;
+					HierarchyWindow::Item::firstFocus = true;
 				}
 
 				if (ImGui::BeginMenu("Script"))

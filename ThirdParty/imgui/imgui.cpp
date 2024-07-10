@@ -2036,7 +2036,7 @@ ImGuiID ImHashStr(const char* data_p, size_t data_size, ImGuiID seed)
 	}
 	else
 	{
-       		while (unsigned char c = *data++)
+		while (unsigned char c = *data++)
 		{
 			if (c == '#' && data[0] == '#' && data[1] == '#')
 				crc = seed;
@@ -10174,7 +10174,7 @@ bool ImGui::ItemAdd(const ImRect& bb, ImGuiID id, const ImRect* nav_bb_arg, ImGu
 	if (IsMouseHoveringRect(bb.Min, bb.Max))
 		g.LastItemData.StatusFlags |= ImGuiItemStatusFlags_HoveredRect;
 	return true;
-	}
+}
 
 // Gets back to previous line and continue with horizontal layout
 //      offset_from_start_x == 0 : follow right after previous item
@@ -11599,9 +11599,9 @@ static bool ImGui::NavScoreItem(ImGuiNavItemData* result)
 			draw_list->AddRect(cand.Min, cand.Max, IM_COL32(255, 255, 0, 200));
 			draw_list->AddRectFilled(cand.Max - ImVec2(4, 4), cand.Max + CalcTextSize(buf) + ImVec2(4, 4), IM_COL32(40, 0, 0, 200));
 			draw_list->AddText(cand.Max, ~0U, buf);
-}
+		}
 		if (debug_tty) { IMGUI_DEBUG_LOG_NAV("id 0x%08X\n%s\n", g.LastItemData.ID, buf); }
-}
+	}
 #endif
 
 	// Is it in the quadrant we're interested in moving to?
@@ -12177,7 +12177,7 @@ static void ImGui::NavUpdate()
 		//if (1) { ImU32 col = (!debug_window->Hidden) ? IM_COL32(255,0,255,255) : IM_COL32(255,0,0,255); ImVec2 p = NavCalcPreferredRefPos(); char buf[32]; ImFormatString(buf, 32, "%d", g.NavLayer); draw_list->AddCircleFilled(p, 3.0f, col); draw_list->AddText(NULL, 13.0f, p + ImVec2(8,-4), col, buf); }
 	}
 #endif
-	}
+}
 
 void ImGui::NavInitRequestApplyResult()
 {
@@ -15215,7 +15215,7 @@ void ImGui::DockContextNewFrameUpdateUndocking(ImGuiContext* ctx)
 				{
 					DockBuilderRemoveNodeChildNodes(node->ID);
 					//dc->WantFullRebuild = true;
-}
+				}
 
 	// Process full rebuild
 #if 0
@@ -19006,7 +19006,7 @@ static void SetPlatformImeDataFn_DefaultImpl(ImGuiViewport* viewport, ImGuiPlatf
 		::ImmSetCandidateWindow(himc, &candidate_form);
 		::ImmReleaseContext(hwnd, himc);
 	}
-	}
+}
 
 #else
 
@@ -19717,7 +19717,7 @@ void ImGui::ShowMetricsWindow(bool* p_open)
 			Unindent();
 		}
 		TreePop();
-}
+	}
 
 	if (TreeNode("Internal state"))
 	{

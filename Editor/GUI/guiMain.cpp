@@ -127,6 +127,15 @@ namespace Plaza {
 			colors[ImGuiCol_Tab] = ImVec4(0.295f, 0.295f, 0.295f, 1.0f);
 			colors[ImGuiCol_TitleBgActive] = ImVec4(0.255f, 0.255f, 0.255f, 1.0f);
 			colors[ImGuiCol_TabUnfocused] = ImVec4(0.10f, 0.10f, 0.10f, 1.0f);
+			colors[ImGuiCol_FrameBg] = ImVec4(0.30f, 0.30f, 0.30f, 1.0f);
+			colors[ImGuiCol_Button] = ImVec4(0.30f, 0.30f, 0.30f, 1.0f);
+
+			ImGui::GetStyle().FrameRounding = 0.0f;
+			ImGui::GetStyle().TabRounding = 0.0f;
+			ImGui::GetStyle().WindowPadding = ImVec2(0.0f, 0.0f);
+			ImGui::GetStyle().FramePadding = ImVec2(2.0f, 2.0f);
+			//ImGui::GetStyle().FrameBorderSize = 2.0f;
+			ImGui::GetStyle().WindowMenuButtonPosition = ImGuiDir_::ImGuiDir_Right;
 #pragma endregion
 
 			ImGui::GetStyle().ScrollbarSize = 9.0f;
@@ -181,8 +190,8 @@ namespace Plaza {
 			ImGui::DockSpace(dockspace_id, ImVec2(0, 0), dockspace_flags);
 			Gui::MainMenuBar::Begin();
 
-			Gui::beginHierarchyView(gameFrameBuffer);
-
+			//Gui::beginHierarchyView(gameFrameBuffer);
+			Application->mEditor->mGui.mHierarchy.Update();
 
 			Gui::beginScene(gameFrameBuffer, *Application->activeCamera);
 
@@ -210,14 +219,15 @@ namespace Plaza {
 				canUpdateContent = false;
 			}
 
-			if (ImGui::Begin("Asset Importer", &isAssetImporterOpen)) {
-				ImGui::Text("hgloelghre");
-				ImGui::Text("hgloelghre");
-				ImGui::Text("hgloelghre");
-				ImGui::Text("hgloelghre");
-				ImGui::Text("hgloelghre");
-				ImGui::End();
-			}
+			//if (isAssetImporterOpen) {
+			//	Gui::AssetsImporter::Update();
+			//}
+
+			Application->mEditor->mGui.mAssetsImporter.Update();
+
+			//if (ImGui::Begin("Asset Importer", &isAssetImporterOpen)) {
+			//	ImGui::End();
+			//}
 		}
 
 
@@ -451,7 +461,7 @@ namespace Plaza {
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-			Editor::Gui::Hierarchy::Item(Application->activeScene->entities[Application->activeScene->mainSceneEntity->uuid], selectedGameObject);
+			HierarchyWindow::Item(Application->activeScene->entities[Application->activeScene->mainSceneEntity->uuid], selectedGameObject);
 			ImGui::PopStyleVar();
 			ImGui::PopStyleVar();
 
@@ -531,7 +541,7 @@ namespace Plaza {
 			ImVec2 uv1(1, mFlipY ? 1 : 0); // top-right corner
 			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 
-			Gui::imageSize = ImVec2(200 * (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), 200); 
+			Gui::imageSize = ImVec2(200 * (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), 200);
 			ImGui::Checkbox("Show All Images", &mImageInspectorShowAllImages);
 			ImGui::Checkbox("Show image in editor view", &mShowSelectedImageInEditorView);
 			ImGui::Checkbox("Flip Y", &mFlipY);
@@ -591,7 +601,7 @@ namespace Plaza {
 						ImGui::SameLine();
 						ImGui::Text(value->mAssetExtension.c_str());
 
-						ImGui::TreePop(); 
+						ImGui::TreePop();
 					}
 				}
 			};

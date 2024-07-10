@@ -9,7 +9,7 @@ namespace Plaza::Editor {
 		Entity* obj = new Entity(name, parent, addToScene);
 		obj->changingName = true;
 		Application->activeScene->entities.at(obj->uuid).changingName = true;
-		Gui::Hierarchy::Item::firstFocus = true;
+		HierarchyWindow::Item::firstFocus = true;
 		obj->GetComponent<Transform>()->UpdateChildrenTransform();
 		MeshRenderer* meshRenderer = new MeshRenderer(mesh, Scene::DefaultMaterial());
 		meshRenderer->instanced = true;

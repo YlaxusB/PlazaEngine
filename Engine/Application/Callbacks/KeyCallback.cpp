@@ -10,6 +10,7 @@
 #include "Editor/DefaultAssets/DefaultAssets.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "Engine/Core/Input/Input.h"
+#include "Editor/GUI/guiMain.h"
 using namespace Plaza;
 uint64_t lastUuid;
 
@@ -42,6 +43,13 @@ Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true
 	return obj;
 }
 void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	for (CallbackFunction callbackFunction : sOnKeyPressFunctions) {
+		bool guiFocusedLayerIsFunctionLayerToExecuteAndLayerStateIsFocusedOrUnkown = Editor::Gui::sFocusedLayer == callbackFunction.layerToExecute;
+		bool guiFocusedLayerIsFunctionLayerToExecuteAndLayerStateIsFocused = Editor::Gui::sFocusedLayer == callbackFunction.layerToExecute;
+		if (guiFocusedLayerIsFunctionLayerToExecuteAndLayerStateIsFocusedOrUnkown)
+			callbackFunction.function;
+	}
+
 	if (Application->focusedMenu == "Scene")
 		Input::isAnyKeyPressed = true;
 	if (Application->focusedMenu == "Editor") {
@@ -62,7 +70,7 @@ void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int s
 				archive(*obj);
 				is.close();
 				obj->mainSceneEntity = obj->GetEntity(Application->activeScene->mainSceneEntity->uuid);
-				
+
 				Application->editorScene = obj;
 				Application->activeScene = Application->editorScene;
 				Application->activeScene->RecalculateAddedComponents();

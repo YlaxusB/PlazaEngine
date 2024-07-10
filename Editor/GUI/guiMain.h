@@ -9,6 +9,10 @@
 #include "Engine/Components/Core/Entity.h"
 //#include "Engine/Application/Application.h"
 
+#include "Editor/GUI/GuiWindow.h"
+#include "Editor/GUI/Hierarchy/Hierarchy.h"
+#include "Editor/GUI/AssetsImporterWindow/AssetsImporterWindow.h"
+
 namespace ImGuizmoHelper {
 	static bool IsDrawing;
 }
@@ -60,6 +64,12 @@ namespace Plaza {
 			static void UpdateSizes();
 
 			static void OpenAssetImporterContext(std::string fileToImport);
+
+			static inline GuiLayer sFocusedLayer = GuiLayer::SCENE;
+			static inline std::vector<GuiWindow> mGuiWindows = std::vector<GuiWindow>();
+
+			HierarchyWindow mHierarchy = HierarchyWindow(GuiLayer::HIERARCHY, true);
+			AssetsImporterWindow mAssetsImporter = AssetsImporterWindow(GuiLayer::ASSETS_IMPORTER, false);
 		private:
 			static inline bool isAssetImporterOpen = false;
 			static inline std::string mAssetToImportPath = "";

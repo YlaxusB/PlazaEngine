@@ -3,6 +3,7 @@
 namespace Plaza::Editor::Utils {
 	static bool ComponentInspectorHeader(Component* component, std::string name, ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen) {
 		ImGui::PushID(("ComponentInspectorHeader" + name).c_str());
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
 		bool header;
 		bool deleted = false;
 		if (component) {
@@ -26,6 +27,7 @@ namespace Plaza::Editor::Utils {
 			header = ImGui::CollapsingHeader(name.c_str(), flags);
 
 		ImGui::PopID();
+		ImGui::PopStyleVar();
 		return header;
 	}
 }

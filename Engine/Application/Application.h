@@ -23,6 +23,7 @@
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
 #include "Engine/Core/AssetsManager/AssetsManager.h"
 #include "Engine/Threads/ThreadManager.h"
+#include "Editor/Editor.h"
 
 namespace Plaza {
 	class Camera;
@@ -122,6 +123,7 @@ namespace Plaza {
 
 		EngineClass* engine = new EngineClass();
 		WindowClass* Window;
+		Editor::EditorClass* mEditor = new Editor::EditorClass();
 		class Callbacks;
 
 		// MUST REVIEW

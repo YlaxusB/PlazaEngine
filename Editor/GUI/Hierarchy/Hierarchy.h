@@ -5,9 +5,20 @@
 #include "Editor/GUI/guiMain.h"
 #include "Editor/GUI/Style/EditorStyle.h"
 namespace Plaza::Editor {
-	class Gui::Hierarchy {
+	class HierarchyWindow : public GuiWindow {
 	public:
-		class Item { // Item consists of a Treenode and a selectable
+		HierarchyWindow(GuiLayer layer, bool startOpen = true) : GuiWindow(layer, startOpen) {
+			
+		}
+
+		void Init() override;
+		void Update() override;
+
+	private:
+		void OnKeyPress(int key, int scancode, int action, int mods) override;
+
+	public:
+		class Item {
 		public:
 			Entity& currentObj;
 			Entity& selectedGameObject;
@@ -20,4 +31,19 @@ namespace Plaza::Editor {
 			static void ItemPopup(Entity& entity);
 		};
 	};
+	//class Gui::Hierarchy {
+	//public:
+	//	class Item { // Item consists of a Treenode and a selectable
+	//	public:
+	//		Entity& currentObj;
+	//		Entity& selectedGameObject;
+	//		std::string payloadName = "TreeNodeItemPayload";
+	//		static bool firstFocus;
+	//
+	//		Item(Entity& entity, Entity*& selectedGameObject);
+	//		void HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax);
+	//
+	//		static void ItemPopup(Entity& entity);
+	//	};
+	//};
 }

@@ -1,4 +1,6 @@
 #pragma once
+#include "Editor/GUI/GuiWindow.h"
+#include "Engine/Core/AssetsManager/Importer/AssetsImporter.h"
 
 namespace Plaza {
 	namespace Editor {
@@ -8,6 +10,7 @@ namespace Plaza {
 				
 			}
 
+
 			void Init() override;
 			void Update() override;
 
@@ -16,10 +19,18 @@ namespace Plaza {
 				outPath = mFileToImportOut;
 				this->SetOpen(true);
 			}
+
 		private:
+			Plaza::AssetsImporterSettings settings{};
+
 			std::string mFileToImport = "";
 			std::string mFileToImportOut = "";
+			//AssetsImporterSettings mSettings{};
 			void OnKeyPress(int key, int scancode, int action, int mods) override;
+
+			void ModelImporterMenu();
+			void TextureImporterMenu();
+
 		};
 	}
 }

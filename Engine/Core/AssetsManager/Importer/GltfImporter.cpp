@@ -22,7 +22,7 @@ struct Vec3Hash {
 
 namespace Plaza {
 
-	Entity* AssetsImporter::ImportGLTF(AssetImported asset, std::filesystem::path outPath) {
+	Entity* AssetsImporter::ImportGLTF(AssetImported asset, std::filesystem::path outPath, AssetsImporterSettings settings) {
 		return nullptr;
 		//FILE* fileOpen = fopen(asset.mPath.c_str(), "rb");
 

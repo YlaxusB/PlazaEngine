@@ -2,6 +2,84 @@
 #include <string>
 #include <ThirdParty/glm/glm.hpp>
 namespace Plaza::Editor::Utils {
+	struct GuiTable {
+		ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
+		std::string tableName = "";
+		std::vector<std::string> names = std::vector<std::string>();
+		std::vector<std::any> values = std::vector<std::any>();
+
+		uint64_t tableUuid = Plaza::UUID::NewUUID();
+	};
+	static void ShowTable(GuiTable& table, unsigned int columnsCount = 2) {
+		if (table.tableName.empty())
+			table.tableName = table.tableUuid;
+
+		ImGui::BeginTable(table.tableName.c_str(), columnsCount, table.flags);
+
+		for (size_t i = 0; i < table.names.size(); ++i) {
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::Text(table.names[i].c_str());
+			ImGui::TableNextColumn();
+			std::any_cast<std::function<void()>>(table.values[i])();
+		}
+
+		ImGui::EndTable();
+	}
+	static void AddTableValue(GuiTable& table, std::string name, std::function<void()> func) {
+		table.names.push_back(name);
+		table.values.push_back(func);
+	}
+
+	static void AddTableCheckbox(std::string name, bool* value, std::function<void(bool*) > callback = nullptr) {
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::Text(name.c_str());
+		ImGui::TableNextColumn();
+		if (ImGui::Checkbox(std::string("##" + name).c_str(), value))
+			if (callback)
+				callback(value);
+	}
+
+	static void AddTableVector4(std::string name, glm::vec4* value, float speed = 1.0f, float min = 0.0f, float max = 0.0f, const char* format = "%.3f", ImGuiSliderFlags flags = ImGuiSliderFlags_None, std::function<void(glm::vec4*) > callback = nullptr) {
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::Text(name.c_str());
+		ImGui::TableNextColumn();
+		if (ImGui::DragFloat4(std::string("##" + name).c_str(), &value->x, speed, min, max, format, flags))
+			if (callback)
+				callback(value);
+	}
+
+	static void AddTableVector3(std::string name, glm::vec3* value, float speed = 1.0f, float min = 0.0f, float max = 0.0f, const char* format = "%.3f", ImGuiSliderFlags flags = ImGuiSliderFlags_None, std::function<void(glm::vec3*) > callback = nullptr) {
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::Text(name.c_str());
+		ImGui::TableNextColumn();
+		if (ImGui::DragFloat3(std::string("##" + name).c_str(), &value->x, speed, min, max, format, flags))
+			if (callback)
+				callback(value);
+	}
+
+	static void AddTableVector2(std::string name, glm::vec2* value, float speed = 1.0f, float min = 0.0f, float max = 0.0f, const char* format = "%.3f", ImGuiSliderFlags flags = ImGuiSliderFlags_None, std::function<void(glm::vec2*) > callback = nullptr) {
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::Text(name.c_str());
+		ImGui::TableNextColumn();
+		if (ImGui::DragFloat2(std::string("##" + name).c_str(), &value->x, speed, min, max, format, flags))
+			if (callback)
+				callback(value);
+	}
+
+	static void AddTableFloat(std::string name, float* value, float speed = 1.0f, float min = 0.0f, float max = 0.0f, const char* format = "%.3f", ImGuiSliderFlags flags = ImGuiSliderFlags_None, std::function<void(float*) > callback = nullptr) {
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::Text(name.c_str());
+		ImGui::TableNextColumn();
+		if (ImGui::DragFloat(std::string("##" + name).c_str(), value, speed, min, max, format, flags))
+			if (callback)
+				callback(value);
+	}
 
 	static float GetMinimumSpeed(float value, float divider, float min) {
 		float dividedValue = glm::abs(value) / (divider * 10);

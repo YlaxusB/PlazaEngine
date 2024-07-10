@@ -53,11 +53,10 @@ namespace Plaza {
 	}
 
 	Bone* Animation::GetRootBone() {
+		std::map<uint64_t, Bone> mBones = VulkanRenderer::GetRenderer()->mBones;
 		if (!mRootBone && VulkanRenderer::GetRenderer()->mBones.find(mRootBoneUuid) != VulkanRenderer::GetRenderer()->mBones.end()) {
 			mRootBone = &VulkanRenderer::GetRenderer()->mBones.at(mRootBoneUuid);
 		}
-		else
-			return nullptr;
 		return mRootBone;
 	}
 

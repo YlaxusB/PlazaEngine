@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/Core/Renderer/Mesh.h"
 
 namespace Plaza {
 	class Animation {
@@ -21,19 +22,33 @@ namespace Plaza {
 		void SetTime(float time) { this->mCurrentTime = time; }
 		bool GetState() { return mIsPlaying; };
 
+		uint64_t mRootBoneUuid;
 		Bone* GetRootBone();
 		void SetRootBone(Bone* newRootBone) {
 			this->mRootBone = newRootBone;
 			this->mRootBoneUuid = newRootBone->mId;
 		}
 
-		template <class Archive>
-		void serialize(Archive& archive) {
-			archive(mUuid, mName, mStartTime, mEndTime, mCurrentTime, mAnimationSpeed, mKeyframes);
+		void SetRootBoneUuid(uint64_t uuid) {
+			this->mRootBoneUuid = uuid;
 		}
+
+		template <class Archive>
+		void save(Archive& archive) const {
+			archive(mUuid, mName, mStartTime, mEndTime, mCurrentTime, mAnimationSpeed, mKeyframes, mRootBoneUuid);
+		}
+
+		template <class Archive>
+		void load(Archive& archive) {
+			archive(mUuid, mName, mStartTime, mEndTime, mCurrentTime, mAnimationSpeed, mKeyframes, mRootBoneUuid);
+		}
+
+		//template <class Archive>
+		//void serialize(Archive& archive) {
+		//	archive(mUuid, mName, mStartTime, mEndTime, mCurrentTime, mAnimationSpeed, mKeyframes, mRootBoneUuid);
+		//}
 	private:
 		Bone* mRootBone = nullptr;
-		uint64_t mRootBoneUuid;
 		bool mIsPlaying = false;
 		std::vector<int64_t> mBonesIds = std::vector<int64_t>();
 	};
@@ -43,6 +58,9 @@ namespace Plaza {
 		float mImportScale = 1.0f;//0.01f;
 		std::vector<Animation> mAnimations = std::vector<Animation>();
 		void GetAnimation(std::string filePath, std::map<uint64_t, Plaza::Bone>& bonesMap, unsigned int index = 0);
+		void AddAnimation(Animation animation) {
+			mAnimations.push_back(animation);
+		}
 
 		template <class Archive>
 		void serialize(Archive& archive) {

@@ -7,7 +7,8 @@ namespace Plaza {
 		static inline const std::unordered_set<std::string> mSupportedLoadFormats = {
 			Standards::metadataExtName,
 			Standards::modelExtName,
-			Standards::materialExtName
+			Standards::materialExtName,
+			Standards::animationExtName
 		};
 
 		static inline const std::unordered_set<std::string> mSupportedTextureLoadFormats = {

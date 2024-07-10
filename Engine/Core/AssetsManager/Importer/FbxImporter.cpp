@@ -126,7 +126,7 @@ namespace Plaza {
 		return inverseBindMatrix;
 	};
 
-	Entity* AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath) {
+	Entity* AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath, AssetsImporterSettings settings) {
 		ufbx_load_opts opts = { };
 		opts.target_axes = ufbx_axes_right_handed_y_up;
 		opts.target_unit_meters = 1.0f;
@@ -178,23 +178,27 @@ namespace Plaza {
 
 			/* Material */
 			std::vector<Material*> materials = std::vector<Material*>();
-			for (ufbx_material* ufbxMaterial : node->materials) {
 
-				std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
-				bool materialIsNotLoaded = loadedMaterials.find(materialOutPath) == loadedMaterials.end();
-				if (materialIsNotLoaded) {
-					materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
-					Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
-					loadedMaterials.emplace(materialOutPath, material->uuid);
-					AssetsSerializer::SerializeMaterial(material, materialOutPath);
-					Application->activeScene->AddMaterial(material);
-					materials.push_back(material);
+			if (settings.mImportMaterials) {
+				for (ufbx_material* ufbxMaterial : node->materials) {
+
+					std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
+					bool materialIsNotLoaded = loadedMaterials.find(materialOutPath) == loadedMaterials.end();
+					if (materialIsNotLoaded) {
+						materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
+						Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+						loadedMaterials.emplace(materialOutPath, material->uuid);
+						AssetsSerializer::SerializeMaterial(material, materialOutPath);
+						Application->activeScene->AddMaterial(material);
+						materials.push_back(material);
+					}
+					else
+						materials.push_back(Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second));
+					//materials.push_back(material);
 				}
-				else
-					materials.push_back(Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second));
-				//materials.push_back(material);
 			}
-
+			else
+				materials.push_back(Application->activeScene->DefaultMaterial());
 			/* Skinning */
 			if (ufbxMesh->skin_deformers.count > 0) {
 				ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
@@ -314,7 +318,7 @@ namespace Plaza {
 		return Application->activeScene->GetEntity(mainEntity->uuid);
 	}
 
-	std::vector<Animation> AssetsImporter::ImportAnimationFBX(std::string filePath) {
+	std::vector<Animation> AssetsImporter::ImportAnimationFBX(std::string filePath, AssetsImporterSettings settings) {
 		std::vector<Animation> animations = std::vector<Animation>();
 
 		ufbx_load_opts opts = { };
@@ -337,24 +341,24 @@ namespace Plaza {
 		//std::set<uint64_t> boneIds = std::set<uint64_t>();
 		//std::vector<ufbx_bone*> uniqueBones = std::vector<ufbx_bone*>();
 
-		//for (auto& [key, value] : VulkanRenderer::GetRenderer()->mBones) {
-		//	value.mChildren.clear();
-		//}
-		//
-		//for (const ufbx_skin_deformer* skin : scene->skin_deformers) {
-		//	for (const ufbx_skin_cluster* cluster : skin->clusters) {
-		//		//VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = (ConvertUfbxMatrix2(cluster->geometry_to_bone));
-		//		if (cluster->bone_node->parent && cluster->bone_node->parent->bone) {
-		//			VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mParentId = cluster->bone_node->parent->bone->element_id;
-		//
-		//			std::vector<uint64_t>& childrenVector = VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->parent->bone->element_id).mChildren;
-		//
-		//			if (std::find(childrenVector.begin(), childrenVector.end(), cluster->bone_node->bone->element_id) == childrenVector.end()) {
-		//				childrenVector.push_back(cluster->bone_node->bone->element_id);
-		//			}
-		//		}
-		//	}
-		//}
+		for (auto& [key, value] : VulkanRenderer::GetRenderer()->mBones) {
+			value.mChildren.clear();
+		}
+		
+		for (const ufbx_skin_deformer* skin : scene->skin_deformers) {
+			for (const ufbx_skin_cluster* cluster : skin->clusters) {
+				//VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = (ConvertUfbxMatrix2(cluster->geometry_to_bone));
+				if (cluster->bone_node->parent && cluster->bone_node->parent->bone) {
+					VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mParentId = cluster->bone_node->parent->bone->element_id;
+		
+					std::vector<uint64_t>& childrenVector = VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->parent->bone->element_id).mChildren;
+		
+					if (std::find(childrenVector.begin(), childrenVector.end(), cluster->bone_node->bone->element_id) == childrenVector.end()) {
+						childrenVector.push_back(cluster->bone_node->bone->element_id);
+					}
+				}
+			}
+		}
 		for (const ufbx_anim_stack* stack : scene->anim_stacks)
 		{
 			if (stack->time_end - stack->time_begin <= 0.0f) {
@@ -373,7 +377,10 @@ namespace Plaza {
 					animation.SetRootBone(&VulkanRenderer::GetRenderer()->mBones.at(bone->element_id));
 			}
 			if (!animation.GetRootBone()) {
-				animation.SetRootBone(&VulkanRenderer::GetRenderer()->mBones.at(scene->bones[0]->element_id));
+				if (VulkanRenderer::GetRenderer()->mBones.find(scene->bones[0]->element_id) != VulkanRenderer::GetRenderer()->mBones.end())
+					animation.SetRootBone(&VulkanRenderer::GetRenderer()->mBones.at(scene->bones[0]->element_id));
+				else
+					animation.SetRootBoneUuid(scene->bones[0]->element_id);
 			}
 			//animation.mRootParentTransform = ConvertUfbxMatrix2(scene->root_node->geometry_to_world);
 			animation.mStartTime = (float)bake->playback_time_begin;

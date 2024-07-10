@@ -7,7 +7,7 @@
 #include "Engine/Core/AssetsManager/Metadata/Metadata.h"
 
 namespace Plaza {
-	std::string AssetsImporter::ImportAsset(std::string path, uint64_t uuid) {
+	std::string AssetsImporter::ImportAsset(std::string path, uint64_t uuid, AssetsImporterSettings settings) {
 		std::filesystem::path filePath = std::filesystem::path{ path };
 		if (!std::filesystem::exists(filePath))
 			return "";
@@ -25,15 +25,21 @@ namespace Plaza {
 		Entity* mainEntity;
 		switch (AssetsImporter::mExtensionMapping.at(extension)) {
 		case AssetExtension::OBJ:
-			mainEntity = AssetsImporter::ImportOBJ(asset, std::filesystem::path{});
-			AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName });
-			Application->activeScene->RemoveEntity(mainEntity->uuid);
-			AssetsLoader::LoadPrefab(AssetsManager::NewAsset(AssetType::MODEL, outPath + Standards::modelExtName));
+			if (settings.mImportModel) {
+				mainEntity = AssetsImporter::ImportOBJ(asset, std::filesystem::path{});
+				AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName });
+				Application->activeScene->RemoveEntity(mainEntity->uuid);
+				AssetsLoader::LoadPrefab(AssetsManager::NewAsset(AssetType::MODEL, outPath + Standards::modelExtName));
+			}
 			break;
 		case AssetExtension::FBX:
-			mainEntity = AssetsImporter::ImportFBX(asset, std::filesystem::path{});
-			AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName });
-			Application->activeScene->RemoveEntity(mainEntity->uuid);
+			if (settings.mImportModel) {
+				mainEntity = AssetsImporter::ImportFBX(asset, std::filesystem::path{});
+				AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName });
+				Application->activeScene->RemoveEntity(mainEntity->uuid);
+			}
+			if (settings.mImportAnimations)
+				ImportAnimation(path, outDirectory);
 			//AssetsLoader::LoadPrefab(AssetsManager::NewAsset(AssetType::MODEL, outPath + Standards::modelExtName));
 			break;
 		case AssetExtension::PNG:
@@ -60,7 +66,7 @@ namespace Plaza {
 
 	}
 
-	void AssetsImporter::ImportAnimation(std::filesystem::path filePath, std::filesystem::path outFolder) {
+	void AssetsImporter::ImportAnimation(std::filesystem::path filePath, std::filesystem::path outFolder, AssetsImporterSettings settings) {
 		if (!std::filesystem::exists(filePath))
 			return;
 
@@ -68,7 +74,7 @@ namespace Plaza {
 		if (AssetsImporter::mExtensionMapping.find(extension) == AssetsImporter::mExtensionMapping.end())
 			return;
 
-		AssetImported asset = AssetImported({ extension, filePath.string()});
+		AssetImported asset = AssetImported({ extension, filePath.string() });
 
 		std::vector<Animation> loadedAnimations = std::vector<Animation>();
 
@@ -79,7 +85,7 @@ namespace Plaza {
 		}
 
 		for (Animation& animation : loadedAnimations) {
-			std::string animationOutPath = Editor::Utils::Filesystem::GetUnrepeatedName(outFolder.string() + animation.mName + Standards::animationExtName);
+			std::string animationOutPath = Editor::Utils::Filesystem::GetUnrepeatedPath(outFolder.string() + "\\" + animation.mName + Standards::animationExtName);
 			AssetsSerializer::SerializeAnimation(animation, animationOutPath);
 			AssetsManager::NewAsset(AssetType::ANIMATION, animationOutPath);
 			AssetsManager::AddAnimation(animation);

@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "AssetsImporterWindow.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
+#include "Editor/GUI/Utils/DataVisualizer.h"
 
 namespace Plaza {
 	namespace Editor {
@@ -11,20 +12,20 @@ namespace Plaza {
 			ApplicationClass::Callbacks::AddFunctionToKeyCallback({ onKeyPressLambda, GuiLayer::ASSETS_IMPORTER });
 		}
 		void AssetsImporterWindow::Update() {
-			bool t = true;
-			ImGui::ShowDebugLogWindow();
-			//ImGui::ShowFontAtlas();
-			//ImGui::StyleColorsDark();
-			ImGui::ShowFontSelector("selec");
-			ImGui::ShowMetricsWindow();
-			ImGui::ShowStackToolWindow();
-			ImGui::ShowStyleEditor();
-			ImGui::ShowUserGuide();
-
 			if (!this->IsOpen())
 				return;
+
 			ImGui::OpenPopup("Assets Importer");
+
 			if (ImGui::BeginPopupModal("Assets Importer", NULL, ImGuiWindowFlags_MenuBar)) {
+
+				this->ModelImporterMenu();
+
+				if (ImGui::Button("Import")) {
+					this->SetOpen(false);
+					ImGui::CloseCurrentPopup();
+					AssetsImporter::ImportAsset(mFileToImport, 0, settings);
+				}
 				if (ImGui::Button("Cancel")) {
 					this->SetOpen(false);
 					ImGui::CloseCurrentPopup();
@@ -32,6 +33,36 @@ namespace Plaza {
 				ImGui::EndPopup();
 			}
 
+		}
+
+		void AssetsImporterWindow::ModelImporterMenu() {
+			Utils::GuiTable table{};
+			if (table.tableName.empty())
+				table.tableName = table.tableUuid;
+
+			ImGui::BeginTable("Importer Menu", 2, table.flags); 
+			Utils::AddTableCheckbox("Import Model", &settings.mImportModel);
+			Utils::AddTableCheckbox("Import Textures", &settings.mImportTextures);
+			Utils::AddTableCheckbox("Import Materials", &settings.mImportMaterials);
+			Utils::AddTableCheckbox("Import Animations", &settings.mImportAnimations);
+			Utils::AddTableVector2("Flip Textures", &settings.mFlipTextures);
+			ImGui::EndTable();
+			//Utils::AddTableValue(table, "Import Model", )
+			//AddTableValue(table, "Import Model", [&, table]() {
+			//	ImGui::Checkbox("##", &mSettings.importModel);
+			//	});
+			//AddTableValue(table, "Import Animations", [&, table]() {
+			//	ImGui::Checkbox("##", &mSettings.importAnimations);
+			//	});
+			//Utils::ShowTable(table);
+			//ImGui::EndTable();
+			//ImGui::TableNextRow();
+			//ImGui::TableNextColumn();
+			//ImGui::Text("Import Model");
+			//ImGui::Text("Import Animations");
+			//ImGui::TableNextColumn();
+			//ImGui::Checkbox("", &mSettings.importModel);
+			//ImGui::Checkbox("", &mSettings.importAnimations);
 		}
 
 		void AssetsImporterWindow::OnKeyPress(int key, int scancode, int action, int mods) {

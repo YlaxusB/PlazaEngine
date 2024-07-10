@@ -65,7 +65,7 @@ namespace Plaza {
 		return material;
 	}
 
-	Entity* AssetsImporter::ImportOBJ(AssetImported asset, std::filesystem::path outPath) {
+	Entity* AssetsImporter::ImportOBJ(AssetImported asset, std::filesystem::path outPath, AssetsImporterSettings settings) {
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;

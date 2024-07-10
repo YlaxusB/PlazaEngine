@@ -14,6 +14,22 @@ namespace Plaza::Editor {
 
 				ImGui::InputInt("Animation Index: ", &index);
 
+				if (ImGui::Button("Add Animation")) {
+					ImGui::OpenPopup("Select Animation Popup");
+				}
+
+				if (ImGui::BeginPopup("Select Animation Popup")) {
+					for (int i = 0; i < AssetsManager::mLoadedAnimations.size(); ++i) {
+						if (ImGui::Selectable(AssetsManager::mLoadedAnimations[i].mName.c_str())) {
+							if (!AssetsManager::mLoadedAnimations[i].GetRootBone())
+								if (VulkanRenderer::GetRenderer()->mBones.find(AssetsManager::mLoadedAnimations[i].mRootBoneUuid) != VulkanRenderer::GetRenderer()->mBones.end())
+									AssetsManager::mLoadedAnimations[i].SetRootBone(&VulkanRenderer::GetRenderer()->mBones.at(AssetsManager::mLoadedAnimations[i].mRootBoneUuid));
+							component->AddAnimation(AssetsManager::mLoadedAnimations[i]);
+						}
+					}
+					ImGui::EndPopup();
+				}
+
 				if (ImGui::Button("Load animations from FBX")) {
 					std::string path = FileDialog::OpenFileDialog(".fbx");
 					component->GetAnimation(path, VulkanRenderer::GetRenderer()->mBones, index);

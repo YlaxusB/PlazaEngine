@@ -1103,7 +1103,8 @@ namespace Plaza {
 	void VulkanRenderer::EarlyAnimationController() {
 		PLAZA_PROFILE_SECTION("Early Animation Controller");
 		for (auto& [key, value] : Application->activeScene->mPlayingAnimations) {
-			CalculateBonesParentship(value->GetRootBone(), glm::mat4(1.0f), value->mCurrentTime, value->GetRootBone()->mId);
+			if (value->GetRootBone())
+				CalculateBonesParentship(value->GetRootBone(), glm::mat4(1.0f), value->mCurrentTime, value->GetRootBone()->mId);
 		}
 
 	}
@@ -2781,7 +2782,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-		}
+	}
 #endif
 
 		{
@@ -2859,7 +2860,7 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-	}
+}
 	void VulkanRenderer::RenderBloom() {
 	}
 	void VulkanRenderer::RenderScreenSpaceReflections() {
@@ -3442,7 +3443,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-		}
+	}
 #endif
 
 		{

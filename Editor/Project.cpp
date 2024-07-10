@@ -77,7 +77,7 @@ namespace Plaza::Editor {
 				}
 				else if (AssetsLoader::mSupportedLoadFormats.find(extension) != AssetsLoader::mSupportedLoadFormats.end()) {
 					Asset* asset = AssetsManager::LoadBinaryFileAsAsset(entry.path());
-					if (extension == ".plzmat")
+					if (extension == ".plzmat" || extension == Standards::animationExtName)
 					{
 						AssetsLoader::LoadAsset(asset);
 						//AssetsManager::AddAsset(asset);
@@ -90,6 +90,14 @@ namespace Plaza::Editor {
 						AssetsManager::NewAsset(uuid, AssetType::MODEL, entry.path().string());
 						//AssetsManager::LoadMetadataAsAsset(entry.path());
 						//AssetsLoader::LoadPrefabToMemory(asset);
+					}
+					else if (extension == Standards::animationExtName) {
+						std::ifstream binaryFile(entry.path(), std::ios::binary);
+						uint64_t uuid = 0;
+						binaryFile.read(reinterpret_cast<char*>(&uuid), sizeof(uint64_t));
+						binaryFile.close();
+						Asset* asset = AssetsManager::NewAsset(uuid, AssetType::ANIMATION, entry.path().string());
+						AssetsLoader::LoadAnimation(asset);
 					}
 				}
 

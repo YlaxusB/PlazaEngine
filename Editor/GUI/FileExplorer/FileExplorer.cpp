@@ -44,27 +44,42 @@ namespace Plaza {
 
 				FileExplorer::breakFilesLoop = false;
 
+				ImVec2 clipStart = ImGui::GetCursorScreenPos();
+				ImVec2 clipEnd = ImVec2(clipStart.x + ImGui::GetWindowWidth(), clipStart.y + ImGui::GetWindowHeight());
+
+				currentColumn = -1;
+				int lastColumn = -1;
+				lastY = 0.0f;
+
+				float padding = 5.0f;
+				float fileExplorerX = glm::max((float)ImGui::GetWindowSize().x, 75.0f + padding);
+				ImVec2 fileSize = ImVec2(75 + padding, 75 + padding);
+
+				float horizontalItemsPerColumn = glm::floor((float)(fileExplorerX / fileSize.x));
+				int horizontalItemsPerRow = glm::floor(fileExplorerX / fileSize.x);
 				ImGui::BeginGroup();
 				// Create all the icons
-				unsigned int index = 0;
-				for (const auto& file : files) {
-					if (file->name != "")
-						FileExplorer::DrawFile(file.get());
+				ImGuiListClipper clipper;
+				int totalRows = glm::ceil(files.size() / horizontalItemsPerRow);
+				clipper.Begin(totalRows + 1);
+				clipper.ItemsHeight = fileSize.y;
 
-					if (FileExplorer::breakFilesLoop)
-					{
-						FileExplorer::breakFilesLoop = false;
-						break;
+				while (clipper.Step()) {
+					for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
+						ImGui::BeginGroup();
+						for (int column = 0; column < horizontalItemsPerRow; ++column) {
+							int fileIndex = row * horizontalItemsPerRow + column;
+							if (fileIndex < files.size()) {
+								FileExplorer::DrawFile(files[fileIndex].get());
+								ImGui::SameLine();
+								if (FileExplorer::breakFilesLoop) {
+									FileExplorer::breakFilesLoop = false;
+									break;
+								}
+							}
+						}
+						ImGui::EndGroup();
 					}
-					// Show back button
-					//if (index == 0) {
-					//	// Back Button Click
-					//	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0) && filesystem::path{ currentDirectory }.parent_path().string().starts_with(Application->activeProject->directory)) {
-					//		Editor::Gui::FileExplorer::currentDirectory = filesystem::path{ currentDirectory }.parent_path().string();
-					//		Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
-					//	}
-					//}
-					index++;
 				}
 
 				Popup::FileExplorerPopup::Update();
@@ -115,6 +130,11 @@ namespace Plaza {
 			windowFlags |= ImGuiWindowFlags_NoScrollbar;
 
 			if (ImGui::BeginChild(ImGui::GetID(file->name.c_str()), ImVec2(75, 75), false, windowFlags)) {
+				if (lastY != ImGui::GetCursorPosY()) {
+					lastY = ImGui::GetCursorPosY();
+					currentColumn++;
+				}
+
 				if (ImGui::IsWindowFocused())
 					Application->focusedMenu = "File Explorer";
 				if (ImGui::IsWindowHovered())

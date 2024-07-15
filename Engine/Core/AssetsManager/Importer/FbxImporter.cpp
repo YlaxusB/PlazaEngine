@@ -144,7 +144,7 @@ namespace Plaza {
 			return nullptr;
 		}
 
-		Entity* mainEntity = new Entity(scene->root_node->name.data, Application->activeScene->mainSceneEntity);
+		Entity* mainEntity = new Entity(std::filesystem::path{ asset.mPath }.stem().string(), Application->activeScene->mainSceneEntity);
 
 		std::unordered_map<uint64_t, Entity*> entities = std::unordered_map<uint64_t, Entity*>();
 		std::unordered_map<uint64_t, uint64_t> meshIndexEntityMap = std::unordered_map<uint64_t, uint64_t>(); // ufbx id, plaza uuid
@@ -160,7 +160,9 @@ namespace Plaza {
 				continue;
 			ufbx_transform& transform = node->local_transform;
 
-			Entity* entity = new Entity(ufbxMesh->name.data, mainEntity, true);
+			std::string name = node->name.data;
+
+			Entity* entity = new Entity(name, mainEntity, true);
 			entity->GetComponent<Transform>()->SetRelativePosition(ConvertUfbxVec3(transform.translation));
 			entity->GetComponent<Transform>()->SetRelativeRotation(ConvertUfbxQuat(transform.rotation));
 			entity->GetComponent<Transform>()->SetRelativeScale(ConvertUfbxVec3(transform.scale));
@@ -187,6 +189,7 @@ namespace Plaza {
 					if (materialIsNotLoaded) {
 						materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
 						Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+						material->flip = settings.mFlipTextures;
 						loadedMaterials.emplace(materialOutPath, material->uuid);
 						AssetsSerializer::SerializeMaterial(material, materialOutPath);
 						Application->activeScene->AddMaterial(material);
@@ -344,15 +347,15 @@ namespace Plaza {
 		for (auto& [key, value] : VulkanRenderer::GetRenderer()->mBones) {
 			value.mChildren.clear();
 		}
-		
+
 		for (const ufbx_skin_deformer* skin : scene->skin_deformers) {
 			for (const ufbx_skin_cluster* cluster : skin->clusters) {
 				//VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = (ConvertUfbxMatrix2(cluster->geometry_to_bone));
 				if (cluster->bone_node->parent && cluster->bone_node->parent->bone) {
 					VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mParentId = cluster->bone_node->parent->bone->element_id;
-		
+
 					std::vector<uint64_t>& childrenVector = VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->parent->bone->element_id).mChildren;
-		
+
 					if (std::find(childrenVector.begin(), childrenVector.end(), cluster->bone_node->bone->element_id) == childrenVector.end()) {
 						childrenVector.push_back(cluster->bone_node->bone->element_id);
 					}

@@ -5,6 +5,8 @@ namespace Plaza {
 	namespace Editor {
 		class Gui::FileExplorer {
 		public:
+			static inline int currentColumn = -1;
+			static inline float lastY = 0.0f;
 			static inline bool breakFilesLoop = false;
 			static std::vector<std::unique_ptr<File>> files;
 			static std::string currentDirectory;

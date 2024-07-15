@@ -144,7 +144,7 @@ layout(binding = 4) uniform sampler2D depthMap;
                VkDescriptorImageInfo imageInfo{};
                imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
                imageInfo.imageView = VulkanRenderer::GetRenderer()->mDepthImageView;
-               imageInfo.sampler = VulkanRenderer::GetRenderer()->mTextureSampler;
+               imageInfo.sampler = VulkanRenderer::GetRenderer()->mImGuiTextureSampler;
                this->mLightSorterComputeShaders.mDescriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                this->mLightSorterComputeShaders.mDescriptorWrites[3].dstSet = this->mLightSorterComputeShaders.mComputeDescriptorSets[i];
                this->mLightSorterComputeShaders.mDescriptorWrites[3].dstBinding = 3;
@@ -178,7 +178,7 @@ layout(binding = 4) uniform sampler2D depthMap;
           mDeferredEndTexture.CreateImageView(form, VK_IMAGE_ASPECT_COLOR_BIT);
           //mDeferredEndTexture.InitDescriptorSetLayout();
 
-          VulkanRenderer::GetRenderer()->AddTrackerToImage(mDeferredEndTexture.mImageView, "Deferred End Texture", VulkanRenderer::GetRenderer()->mTextureSampler, mDeferredEndTexture.GetLayout());
+          VulkanRenderer::GetRenderer()->AddTrackerToImage(mDeferredEndTexture.mImageView, "Deferred End Texture", VulkanRenderer::GetRenderer()->mImGuiTextureSampler, mDeferredEndTexture.GetLayout());
 
           VkDescriptorSetLayoutBinding positionLayoutBinding = plvk::descriptorSetLayoutBinding(0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
           VkDescriptorSetLayoutBinding normalLayoutBinding = plvk::descriptorSetLayoutBinding(1, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -277,10 +277,10 @@ layout(binding = 4) uniform sampler2D depthMap;
                     throw std::runtime_error("failed to allocate descriptor sets!");
                }
 
-               VkDescriptorImageInfo geometryPositionInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredPositionTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
-               VkDescriptorImageInfo geometryNormalInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredNormalTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
-               VkDescriptorImageInfo geometryDiffuseInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredDiffuseTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
-               VkDescriptorImageInfo geometryOthersInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredOthersTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
+               VkDescriptorImageInfo geometryPositionInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredPositionTexture.mImageView, VulkanRenderer::GetRenderer()->mImGuiTextureSampler);
+               VkDescriptorImageInfo geometryNormalInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredNormalTexture.mImageView, VulkanRenderer::GetRenderer()->mImGuiTextureSampler);
+               VkDescriptorImageInfo geometryDiffuseInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredDiffuseTexture.mImageView, VulkanRenderer::GetRenderer()->mImGuiTextureSampler);
+               VkDescriptorImageInfo geometryOthersInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mDeferredOthersTexture.mImageView, VulkanRenderer::GetRenderer()->mImGuiTextureSampler);
 
                VkDescriptorBufferInfo lightsBufferInfo = plvk::descriptorBufferInfo(this->mLightsBuffer[i], 0, 1024 * 1024 * sizeof(LightStruct));
                VkDescriptorBufferInfo tilesBufferInfo = plvk::descriptorBufferInfo(this->mTilesBuffer[i], 0, 1024 * 1024 * sizeof(Tile));

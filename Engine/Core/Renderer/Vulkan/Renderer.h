@@ -139,6 +139,7 @@ namespace Plaza {
 
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
 		void CopyImage(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
+		VkSampler mImGuiTextureSampler;
 		VkSampler mTextureSampler;
 		std::vector<VkFence> mComputeInFlightFences;
 

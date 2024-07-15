@@ -585,25 +585,33 @@ namespace Plaza {
 			// Adjust padding and margin sizes
 			style.WindowPadding = ImVec2(0.0f, 0.0f);  // Change window padding
 			if (ImGui::Begin("Assets Viewer", &Gui::isSceneOpen, windowFlags)) {
-				for (auto& [key, value] : AssetsManager::mAssets) {
-					if (ImGui::TreeNodeEx(value->mPath.filename().string().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+				int itemsCount = AssetsManager::mAssets.size();
+				ImGuiListClipper clipper;
+				clipper.Begin(itemsCount);
+				while (clipper.Step()) {
+					for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
+						auto& [key, value] = *std::next(std::begin(AssetsManager::mAssets), i);
+
+						if (ImGui::TreeNodeEx(value->mPath.filename().string().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+							ImGui::Text("Uuid: ");
+							ImGui::SameLine();
+							ImGui::Text(std::to_string(value->mAssetUuid).c_str());
+
+							ImGui::Text("Path: ");
+							ImGui::SameLine();
+							ImGui::Text(value->mPath.string().c_str());
+
+							ImGui::Text("Extension: ");
+							ImGui::SameLine();
+							ImGui::Text(value->mAssetExtension.c_str());
 
 
-						ImGui::Text("Uuid: ");
-						ImGui::SameLine();
-						ImGui::Text(std::to_string(value->mAssetUuid).c_str());
-
-						ImGui::Text("Path: ");
-						ImGui::SameLine();
-						ImGui::Text(value->mPath.string().c_str());
-
-						ImGui::Text("Extension: ");
-						ImGui::SameLine();
-						ImGui::Text(value->mAssetExtension.c_str());
-
-						ImGui::TreePop();
+							ImGui::TreePop();
+						}
 					}
 				}
+
+				clipper.End();
 			};
 			if (ImGui::IsWindowFocused())
 			{

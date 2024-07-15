@@ -1189,44 +1189,51 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("Create Indirect Commands");
 			this->mIndirectCommands.clear();
+			//this->mIndirectCommands.resize(Application->activeScene->renderGroups.size());
 			this->mInstanceModelMatrices.clear();
+			///this->mInstanceModelMatrices.resize(Application->activeScene->renderGroups.size());
 			this->mInstanceModelMaterialsIndex.clear();
 			this->mInstanceModelMaterialsIndex.push_back(0);
+			this->mInstanceModelMaterialOffsets.clear();
+			//this->mInstanceModelMaterialOffsets.resize(Application->activeScene->renderGroups.size());
 			mTotalInstances = 0;
 			mIndirectDrawCount = 0;
 			unsigned int lastRendergroupMaterialsCount = 0;
-			for (auto& [key, value] : Application->activeScene->renderGroups) {
-				const size_t& materialsCount = value.materials.size();
-				const size_t& instanceCount = value.instanceModelMatrices.size();
-				allMaterialsCount += materialsCount;
+			{
+				for (auto& [key, value] : Application->activeScene->renderGroups) {
+					const size_t& materialsCount = value.materials.size();
+					const size_t& instanceCount = value.instanceModelMatrices.size();
+					allMaterialsCount += materialsCount;
 
-				VkDrawIndexedIndirectCommand indirectCommand{};
-				indirectCommand.firstIndex = value.mesh->indicesOffset;
-				indirectCommand.vertexOffset = value.mesh->verticesOffset;
-				indirectCommand.firstInstance = mTotalInstances;
-				indirectCommand.indexCount = value.mesh->indicesCount; // indices.size();
-				indirectCommand.instanceCount = instanceCount;
+					VkDrawIndexedIndirectCommand indirectCommand{};
+					indirectCommand.firstIndex = value.mesh->indicesOffset;
+					indirectCommand.vertexOffset = value.mesh->verticesOffset;
+					indirectCommand.firstInstance = mTotalInstances;
+					indirectCommand.indexCount = value.mesh->indicesCount; // indices.size();
+					indirectCommand.instanceCount = instanceCount;
 
-				this->mIndirectCommands.push_back(indirectCommand);
-				value.mesh->instanceOffset = mTotalInstances;
+					this->mIndirectCommands.push_back(indirectCommand);
+					value.mesh->instanceOffset = mTotalInstances;
 
-				for (unsigned int i = 0; i < instanceCount; ++i) {
-					this->mInstanceModelMatrices.push_back(value.instanceModelMatrices[i]);
-					this->mInstanceModelMaterialOffsets.push_back(value.instanceMaterialOffsets);
-					//this->mInstanceModelMaterialsIndex.push_back(value->instanceMaterialIndices[i]);
-					renderGroupOffsets.push_back(allMaterialsCount - materialsCount);
-					mTotalInstances++; //= value->instanceModelMatrices.size();
+					for (unsigned int i = 0; i < instanceCount; ++i) {
+						this->mInstanceModelMatrices.push_back(value.instanceModelMatrices[i]);
+						renderGroupOffsets.push_back(allMaterialsCount - materialsCount);
+						this->mInstanceModelMaterialOffsets.push_back(value.instanceMaterialOffsets);
+						//this->mInstanceModelMaterialsIndex.push_back(value->instanceMaterialIndices[i]);
+
+						mTotalInstances++; //= value->instanceModelMatrices.size();
+					}
+
+					for (unsigned int i = 0; i < materialsCount; ++i) {
+						renderGroupMaterialsOffsets.push_back(value.materials[i]->mIndexHandle);
+					}
+
+					mIndirectDrawCount++;
+					value.instanceModelMatrices.clear();
+					value.instanceMaterialIndices.clear();
+					lastRendergroupMaterialsCount = materialsCount;
+
 				}
-
-				for (unsigned int i = 0; i < materialsCount; ++i) {
-					renderGroupMaterialsOffsets.push_back(value.materials[i]->mIndexHandle);
-				}
-
-				mIndirectDrawCount++;
-				value.instanceModelMatrices.clear();
-				value.instanceMaterialIndices.clear();
-				lastRendergroupMaterialsCount = materialsCount;
-
 			}
 		}
 
@@ -1472,8 +1479,8 @@ namespace Plaza {
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
-		}
 	}
+}
 
 	void VulkanRenderer::CleanupSwapChain() {
 		vkDestroyImageView(mDevice, mDepthImageView, nullptr);
@@ -1841,7 +1848,7 @@ namespace Plaza {
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			imageInfo.imageView = mTextureImageView;
-			imageInfo.sampler = mTextureSampler;
+			imageInfo.sampler = mImGuiTextureSampler;
 
 			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
@@ -1889,7 +1896,7 @@ namespace Plaza {
 		samplerInfo.mipLodBias = 0.0f;
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = 0.0f;
-		if (vkCreateSampler(mDevice, &samplerInfo, nullptr, &mTextureSampler) != VK_SUCCESS) {
+		if (vkCreateSampler(mDevice, &samplerInfo, nullptr, &mImGuiTextureSampler) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture sampler!");
 		}
 	}
@@ -2219,6 +2226,27 @@ namespace Plaza {
 		samplerInfo.mipLodBias = 0.0f;
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = 0.0f;
+		if (vkCreateSampler(mDevice, &samplerInfo, nullptr, &mImGuiTextureSampler) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create texture sampler!");
+		}
+
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.magFilter = VK_FILTER_LINEAR;
+		samplerInfo.minFilter = VK_FILTER_LINEAR;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.anisotropyEnable = VK_TRUE;
+
+		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		samplerInfo.unnormalizedCoordinates = VK_FALSE;
+		samplerInfo.compareEnable = VK_FALSE;
+		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerInfo.mipLodBias = 0.0f;
+		samplerInfo.minLod = 0.0f;
+		samplerInfo.maxLod = 64.0f;
 		if (vkCreateSampler(mDevice, &samplerInfo, nullptr, &mTextureSampler) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture sampler!");
 		}
@@ -2282,7 +2310,7 @@ namespace Plaza {
 			VK_IMAGE_ASPECT_COLOR_BIT);
 		this->AddTrackerToImage(this->mDeferredPositionTexture.mImageView,
 			"Deferred Position",
-			this->mTextureSampler,
+			this->mImGuiTextureSampler,
 			this->mDeferredPositionTexture.GetLayout());
 
 		this->mDeferredNormalTexture.CreateTextureImage(
@@ -2296,7 +2324,7 @@ namespace Plaza {
 			VK_IMAGE_ASPECT_COLOR_BIT);
 		this->AddTrackerToImage(this->mDeferredNormalTexture.mImageView,
 			"Deferred Normal",
-			this->mTextureSampler,
+			this->mImGuiTextureSampler,
 			this->mDeferredNormalTexture.GetLayout());
 
 		this->mDeferredDiffuseTexture.CreateTextureImage(
@@ -2310,7 +2338,7 @@ namespace Plaza {
 			VK_IMAGE_ASPECT_COLOR_BIT);
 		this->AddTrackerToImage(this->mDeferredDiffuseTexture.mImageView,
 			"Deferred Diffuse",
-			this->mTextureSampler,
+			this->mImGuiTextureSampler,
 			this->mDeferredDiffuseTexture.GetLayout());
 
 		this->mDeferredOthersTexture.CreateTextureImage(
@@ -2324,7 +2352,7 @@ namespace Plaza {
 			VK_IMAGE_ASPECT_COLOR_BIT);
 		this->AddTrackerToImage(this->mDeferredOthersTexture.mImageView,
 			"Deferred Others",
-			this->mTextureSampler,
+			this->mImGuiTextureSampler,
 			this->mDeferredOthersTexture.GetLayout());
 
 		// Render Pass
@@ -2705,7 +2733,7 @@ namespace Plaza {
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 			imageInfo.imageView = this->mBloom.mTexture1->mImageView;
-			imageInfo.sampler = mTextureSampler;
+			imageInfo.sampler = mImGuiTextureSampler;
 
 			std::array<VkWriteDescriptorSet, 1> descriptorWrites{};
 
@@ -2877,7 +2905,7 @@ namespace Plaza {
 		/* Clean Renderer */
 		CleanupSwapChain();
 
-		vkDestroySampler(mDevice, mTextureSampler, nullptr);
+		vkDestroySampler(mDevice, mImGuiTextureSampler, nullptr);
 		vkDestroyImageView(mDevice, mTextureImageView, nullptr);
 		vkDestroyImage(mDevice, mTextureImage, nullptr);
 		vkFreeMemory(mDevice, mTextureImageMemory, nullptr);
@@ -2976,7 +3004,7 @@ namespace Plaza {
 		// this->mShadows->mCascades[2].mImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 		////TODO: FIX VALIDATION ERROR
 		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(
-			mTextureSampler,
+			mImGuiTextureSampler,
 			this->mFinalSceneImageView,
 			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); // TODO: FIX VALIDATION ERROR
 		// mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler,
@@ -3380,7 +3408,7 @@ namespace Plaza {
 
 	void VulkanRenderer::ChangeFinalDescriptorImageView(VkImageView newImageView) {
 		this->mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(
-			this->mTextureSampler,
+			this->mImGuiTextureSampler,
 			newImageView,
 			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); // TODO: FIX VALIDATION ERROR
 		UpdateUniformBuffer(mCurrentFrame);
@@ -3663,4 +3691,4 @@ namespace Plaza {
 		VulkanRenderer::GetGeometryPassDescriptorSet(unsigned int frame) {
 		return this->mGeometryPassRenderer.mShaders->mDescriptorSets[frame];
 	}
-} // namespace Plaza
+	} // namespace Plaza

@@ -221,7 +221,7 @@ namespace Plaza {
 		}
 
 		static void SerializeMaterial(Material* material, std::filesystem::path outPath);
-		static void SerializePrefab(Entity* mainEntity, std::filesystem::path outPath);
+		static SerializablePrefab SerializePrefab(Entity* mainEntity, std::filesystem::path outPath);
 		static void SerializeMesh(Mesh* mesh, std::filesystem::path outPath);
 		static void SerializeAnimation(Animation& animation, std::filesystem::path outPath);
 	};

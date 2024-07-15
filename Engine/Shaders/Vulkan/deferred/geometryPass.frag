@@ -263,7 +263,7 @@ void main() {
     float shadow = (1 - ShadowCalculation(FragPos.xyz)) * 2;
     vec3 amb = ubo.ambientLightColor.xyz;//vec3(0.72f);
 
-    float specularIntensity = 13.0f;
+    float specularIntensity = 1.0f;
 
 
     gOthers = vec4(SpecBRDF * specularIntensity, 1.0f);
@@ -274,8 +274,8 @@ void main() {
     vec3 dif2 = color.xyz;
     vec3 spec2 = vec3(0.0f);
 
-    kD = 1.0f - F;
-    kD *= 1.0f - metallic;
+    //kD = 1.0f - F;
+    //kD *= 1.0f - metallic;
     FinalColor = (kD * dif2 + kS * SpecBRDF) * ((ubo.directionalLightColor.xyz * shadow) + ubo.ambientLightColor.xyz);//(max(nDotL, amb.x / 2) * (amb + (ubo.directionalLightColor.xyz * shadow)));
     //vec3 fog = vec3(0.7f, 0.7f, 0.0f) * pow(distance(FragPos, ubo.viewPos) / 15000.0f, 0.5f);
     //FinalColor *= vec3(1.0f) - fog;

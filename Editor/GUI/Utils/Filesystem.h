@@ -80,7 +80,8 @@ namespace Plaza::Editor::Utils {
 			filesystem::path path(fullPath);
 			if (filesystem::exists(path)) {
 				std::filesystem::remove_all(path);
-				Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+				Gui::canUpdateContent = true;
+				//Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 			}
 		}
 

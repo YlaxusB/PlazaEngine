@@ -2782,7 +2782,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-	}
+		}
 #endif
 
 		{
@@ -2860,7 +2860,7 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-}
+	}
 	void VulkanRenderer::RenderBloom() {
 	}
 	void VulkanRenderer::RenderScreenSpaceReflections() {
@@ -3046,8 +3046,7 @@ namespace Plaza {
 		vkBindImageMemory(mDevice, image, imageMemory, 0);
 	}
 
-	Texture*
-		VulkanRenderer::LoadTexture(std::string path, uint64_t uuid) {
+	Texture* VulkanRenderer::LoadTexture(std::string path, uint64_t uuid) {
 		VulkanTexture* texture = new VulkanTexture();
 		if (AssetsManager::TextureExists(uuid))
 			return AssetsManager::GetTexture(uuid);
@@ -3056,15 +3055,18 @@ namespace Plaza {
 		texture->path = path;
 		if (std::filesystem::exists(path)) {
 			VkFormat form = VK_FORMAT_R8G8B8A8_SRGB;
-			texture->CreateTextureImage(mDevice, path, form, true);
-			texture->CreateTextureSampler();
+			bool textureCreated = texture->CreateTextureImage(mDevice, path, form, true);
+			if (!textureCreated) {
+				return texture;
+			}
+
+			//texture->CreateTextureSampler();
 			texture->CreateImageView(form, VK_IMAGE_ASPECT_COLOR_BIT);
 			texture->InitDescriptorSetLayout();
 		}
 		return texture;
 	}
-	Texture*
-		VulkanRenderer::LoadImGuiTexture(std::string path) {
+	Texture* VulkanRenderer::LoadImGuiTexture(std::string path) {
 		VulkanTexture* texture = new VulkanTexture();
 		VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
 		texture->CreateTextureImage(mDevice, path, format, false);
@@ -3443,7 +3445,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-	}
+		}
 #endif
 
 		{
@@ -3582,12 +3584,12 @@ namespace Plaza {
 			memcpy(data, this->mUploadedMaterials.data(), static_cast<size_t>(size));
 			vkUnmapMemory(mDevice, this->mMaterialBufferMemories[mCurrentFrame]);
 
-			VkDescriptorBufferInfo bufferInfo1 = plvk::descriptorBufferInfo(this->mMaterialBuffers[i], 0, VK_WHOLE_SIZE);
+			VkDescriptorBufferInfo bufferInfo1 = plvk::descriptorBufferInfo(this->mMaterialBuffers[i], 0, sizeof(MaterialData));
 			VkWriteDescriptorSet materialDescriptorWrite = plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame], 19, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bufferInfo1);
-			VkDescriptorBufferInfo bufferInfo2 = plvk::descriptorBufferInfo(this->mMainInstanceMaterialOffsetsBuffers[i], 0, VK_WHOLE_SIZE);
-			VkWriteDescriptorSet renderGroupMaterialsDescriptorWrite = plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame], 3, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bufferInfo2);
-			VkDescriptorBufferInfo bufferInfo3 = plvk::descriptorBufferInfo(this->mMainInstanceMaterialOffsetsBuffers[i], 0, VK_WHOLE_SIZE);
-			VkWriteDescriptorSet renderGroupMaterialsOffsetDescriptorWrite = plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame], 4, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bufferInfo3);
+			//VkDescriptorBufferInfo bufferInfo2 = plvk::descriptorBufferInfo(this->mMainInstanceMaterialOffsetsBuffers[i], 0, VK_WHOLE_SIZE);
+			//VkWriteDescriptorSet renderGroupMaterialsDescriptorWrite = plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame], 3, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bufferInfo2);
+			//VkDescriptorBufferInfo bufferInfo3 = plvk::descriptorBufferInfo(this->mMainInstanceMaterialOffsetsBuffers[i], 0, VK_WHOLE_SIZE);
+			//VkWriteDescriptorSet renderGroupMaterialsOffsetDescriptorWrite = plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame], 4, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bufferInfo3);
 
 			vkUpdateDescriptorSets(mDevice, 1, &materialDescriptorWrite, 0, nullptr);
 		}

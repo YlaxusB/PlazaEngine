@@ -52,8 +52,12 @@ namespace Plaza::Editor {
 				break;
 			};
 			//Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
-			Gui::canUpdateContent = true;
-			Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+
+			Filewatcher::AddToMainThread([]() {
+				Gui::canUpdateContent = true;
+				Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+				});
+
 			});
 	}
 

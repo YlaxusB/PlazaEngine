@@ -111,7 +111,7 @@ namespace Plaza {
 		delete[] tempRow;
 	}
 
-	void VulkanTexture::CreateTextureImage(VkDevice& device, std::string path, VkFormat& format, bool generateMipMaps) {
+	bool VulkanTexture::CreateTextureImage(VkDevice& device, std::string path, VkFormat& format, bool generateMipMaps) {
 		this->SetFormat(format);
 
 		bool isDDS = std::filesystem::path{ path }.extension() == ".dds";
@@ -209,29 +209,35 @@ namespace Plaza {
 		allocInfo.allocationSize = memRequirements.size;
 		allocInfo.memoryTypeIndex = VulkanRenderer::GetRenderer()->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-		if (vkAllocateMemory(device, &allocInfo, nullptr, &mImageMemory) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate image memory!");
+		VkResult result = vkAllocateMemory(device, &allocInfo, nullptr, &mImageMemory);
+		if (result != VK_SUCCESS) {
+			VkPhysicalDeviceMemoryProperties memoryProperties2;
+			vkGetPhysicalDeviceMemoryProperties(VulkanRenderer::GetRenderer()->mPhysicalDevice, &memoryProperties2);
+			std::cout << result << "\n";
+			vkDestroyBuffer(device, mStagingBuffer, nullptr);
+			vkFreeMemory(device, mStagingBufferMemory, nullptr);
+			return false;
+			//throw std::runtime_error("failed to allocate image memory!");
 		}
+		else {
 
-		vkBindImageMemory(device, mImage, mImageMemory, 0);
+			vkBindImageMemory(device, mImage, mImageMemory, 0);
 
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1U, 1, this->mMipLevels);
-		VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-		//TODO: FIX VALIDATION ERROR WHEN GENERATING MIP MAP
-		if (generateMipMaps)
-			GenerateMipmaps(this->mImage, texWidth, texHeight, this->mMipLevels, imageFormat);
-		else
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1U, 1, this->mMipLevels);
-		mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-		vkDestroyBuffer(device, mStagingBuffer, nullptr);
-		vkFreeMemory(device, mStagingBufferMemory, nullptr);
-
-
-
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1U, 1, this->mMipLevels);
+			VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+			//TODO: FIX VALIDATION ERROR WHEN GENERATING MIP MAP
+			if (generateMipMaps)
+				GenerateMipmaps(this->mImage, texWidth, texHeight, this->mMipLevels, imageFormat);
+			else
+				VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1U, 1, this->mMipLevels);
+			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			vkDestroyBuffer(device, mStagingBuffer, nullptr);
+			vkFreeMemory(device, mStagingBufferMemory, nullptr);
+		}
+		return true;
 	}
 
-	void VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps, VkImageUsageFlags usageFlags) {
+	bool VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps, VkImageUsageFlags usageFlags) {
 		this->SetFormat(format);
 		if (!generateMipMaps)
 			this->mMipLevels = 1;
@@ -296,6 +302,7 @@ namespace Plaza {
 
 		vkDestroyBuffer(device, mStagingBuffer, nullptr);
 		vkFreeMemory(device, mStagingBufferMemory, nullptr);
+		return true;
 	}
 
 	void VulkanTexture::Load(std::string path) {
@@ -392,7 +399,7 @@ namespace Plaza {
 		VkDescriptorImageInfo imageInfo{};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imageInfo.imageView = mImageView;
-		imageInfo.sampler = mSampler;
+		imageInfo.sampler = VulkanRenderer::GetRenderer()->mTextureSampler;
 
 		for (size_t i = 0; i < Application->mRenderer->mMaxFramesInFlight; i++) {
 			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};

@@ -222,7 +222,9 @@ namespace Plaza {
 			int faceIndex = 0;
 			for (ufbx_face face : ufbxMesh->faces) {
 				size_t trianglesNumber = ufbx_triangulate_face(triangleIndices.data(), triangleIndicesCount, ufbxMesh, face);
-				uint32_t materialIndex = ufbxMesh->face_material[faceIndex];
+				uint32_t materialIndex = 0;//ufbxMesh->face_material[faceIndex];
+				if (ufbxMesh->face_material.count > faceIndex)
+					materialIndex = ufbxMesh->face_material[faceIndex];
 				faceIndex++;
 				for (size_t vertexIndex = 0; vertexIndex < trianglesNumber * 3; vertexIndex++) {
 					uint32_t index = triangleIndices[vertexIndex];

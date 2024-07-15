@@ -173,7 +173,7 @@ layout(binding = 4) uniform sampler2D depthMap;
 
           /* Initialize Deferred Pass */
           VkFormat form = VK_FORMAT_R32G32B32A32_SFLOAT;
-          mDeferredEndTexture.CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, form, this->mScreenSize.x, this->mScreenSize.y, false, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+          mDeferredEndTexture.CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, form, this->mScreenSize.x, this->mScreenSize.y, false, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
           mDeferredEndTexture.CreateTextureSampler();
           mDeferredEndTexture.CreateImageView(form, VK_IMAGE_ASPECT_COLOR_BIT);
           //mDeferredEndTexture.InitDescriptorSetLayout();

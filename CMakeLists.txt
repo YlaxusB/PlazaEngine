@@ -114,7 +114,7 @@ set(IMGUI_SOURCES
 
 add_executable(PlazaEngine "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}" "Editor/GUI/GuiWindow.h")
 
-add_executable(PlazaShippingGame "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}" "Editor/GUI/GuiWindow.h" )
+add_executable(PlazaShippingGame "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}" "Editor/GUI/GuiWindow.h")
 
 #    if (WIN32)
 #        # /ENTRY:mainCRTStartup keeps the same "main" function instead of requiring "WinMain"

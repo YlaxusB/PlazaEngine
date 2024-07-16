@@ -101,7 +101,7 @@ namespace Plaza {
 		Texture* LoadImGuiTexture(std::string path) override;
 
 		bool mFramebufferResized = false;
-		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkDeviceSize allocationSize = 0);
 		VkFormat FindDepthFormat();
 
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);

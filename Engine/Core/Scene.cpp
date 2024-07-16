@@ -357,4 +357,8 @@ namespace Plaza {
 		this->mainSceneEntity = this->GetEntity(this->mainSceneEntityUuid);
 		this->mainSceneEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 	}
+
+	Scene* Scene::GetActiveScene() {
+		return Application->activeScene;
+	}
 }

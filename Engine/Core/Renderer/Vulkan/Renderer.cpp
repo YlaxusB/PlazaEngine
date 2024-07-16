@@ -1516,14 +1516,17 @@ namespace Plaza {
 		CreateFramebuffers();
 	}
 
-	uint32_t
-		VulkanRenderer::FindMemoryType(uint32_t typeFilter,
-			VkMemoryPropertyFlags properties) {
+	uint32_t VulkanRenderer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkDeviceSize allocationSize) {
 		VkPhysicalDeviceMemoryProperties memProperties;
 		vkGetPhysicalDeviceMemoryProperties(mPhysicalDevice, &memProperties);
+
 		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-				return i;
+				// Check if the corresponding heap has enough memory
+				uint32_t heapIndex = memProperties.memoryTypes[i].heapIndex;
+				if (memProperties.memoryHeaps[heapIndex].size >= allocationSize) {
+					return i;
+				}
 			}
 		}
 
@@ -1551,7 +1554,7 @@ namespace Plaza {
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties, size);
 
 		if (vkAllocateMemory(mDevice, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate buffer memory!");
@@ -2552,13 +2555,12 @@ namespace Plaza {
 		CreateCommandPool();
 
 		/* Initialize buffers */
-
-		CreateBuffer(1024 * 1024 * 8 * sizeof(Vertex),
+		CreateBuffer(1024 * 1024 * 16 * sizeof(Vertex),
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 			mMainVertexBuffer,
 			mMainVertexBufferMemory);
-		CreateBuffer(1024 * 1024 * 8 * sizeof(unsigned int),
+		CreateBuffer(1024 * 1024 * 16 * sizeof(unsigned int),
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 			mMainIndexBuffer,
@@ -2578,7 +2580,7 @@ namespace Plaza {
 		mMaterialBuffers.resize(mMaxFramesInFlight);
 		mMaterialBufferMemories.resize(mMaxFramesInFlight);
 		for (unsigned int i = 0; i < mMaxFramesInFlight; ++i) {
-			CreateBuffer(1024 * 1024 * sizeof(VkDrawIndexedIndirectCommand),
+			CreateBuffer(1024 * 256 * sizeof(VkDrawIndexedIndirectCommand),
 				VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 				mIndirectBuffers[i],

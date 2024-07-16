@@ -312,6 +312,7 @@ namespace Plaza {
 				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents, mainSceneEntityUuid);
 		}
 
+		static Scene* GetActiveScene();
 		/*
 
 				bool mIsDeleting = false;

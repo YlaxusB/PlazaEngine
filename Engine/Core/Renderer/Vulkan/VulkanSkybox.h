@@ -12,9 +12,15 @@ namespace Plaza {
 			float gamma;
 			float exposure;
 		} pushData;
+
+		struct ConverterUbo {
+			glm::mat4 viewMatrix;
+			glm::mat4 projectionMatrix = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+		};
+
 		VulkanMesh* mSkyboxMesh = nullptr;
 		std::vector<std::string> mSkyboxPaths = std::vector<std::string>(6);
-		VkFormat mSkyboxFormat = VK_FORMAT_R8G8B8A8_UNORM;//VK_FORMAT_B8G8R8A8_UNORM;
+		VkFormat mSkyboxFormat = VK_FORMAT_R32G32B32A32_SFLOAT;//VK_FORMAT_B8G8R8A8_UNORM;
 
 		VulkanPlazaPipeline* mSkyboxPostEffect = nullptr;
 		std::vector<VkFramebuffer> mFramebuffers = std::vector<VkFramebuffer>();

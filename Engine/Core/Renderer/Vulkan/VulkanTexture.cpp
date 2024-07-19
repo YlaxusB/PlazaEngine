@@ -237,26 +237,26 @@ namespace Plaza {
 		return true;
 	}
 
-	bool VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps, VkImageUsageFlags usageFlags) {
+	bool VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps, VkImageUsageFlags usageFlags, VkImageType imageType, VkImageTiling tiling, VkImageLayout initialLayout, unsigned int layers, VkImageUsageFlags flags, bool transition, VkSharingMode sharingMode) {
 		this->SetFormat(format);
 		if (!generateMipMaps)
 			this->mMipLevels = 1;
 
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.imageType = imageType;
 		imageInfo.extent.width = width;
 		imageInfo.extent.height = height;
 		imageInfo.extent.depth = 1;
 		imageInfo.mipLevels = this->mMipLevels;
-		imageInfo.arrayLayers = 1;
+		imageInfo.arrayLayers = layers;
 		imageInfo.format = format;
-		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.tiling = tiling;
+		imageInfo.initialLayout = initialLayout;
 		imageInfo.usage = usageFlags; //VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		//imageInfo.flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
+		imageInfo.sharingMode = sharingMode;
+		imageInfo.flags = flags;
 
 		if (vkCreateImage(device, &imageInfo, nullptr, &mImage) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create image!");
@@ -264,15 +264,6 @@ namespace Plaza {
 
 		VkMemoryRequirements memRequirements;
 		vkGetImageMemoryRequirements(device, mImage, &memRequirements);
-		//
-		//uint64_t imageSize = width * height * 4;
-		//VulkanRenderer::GetRenderer()->CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mStagingBuffer, mStagingBufferMemory);
-		//
-		//stbi_uc* pixels = new stbi_uc();
-		//void* data;
-		//vkMapMemory(device, mStagingBufferMemory, 0, imageSize, 0, &data);
-		//memcpy(data, pixels, static_cast<size_t>(imageSize));
-		//vkUnmapMemory(device, mStagingBufferMemory);
 
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -284,8 +275,11 @@ namespace Plaza {
 		}
 		vkBindImageMemory(device, mImage, mImageMemory, 0);
 
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 1, this->mMipLevels);
-		mLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		if (transition) {
+
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, layers, this->mMipLevels);
+			mLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		}
 		//VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(width), static_cast<uint32_t>(height));
 		//VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 1, this->mMipLevels);
 
@@ -294,14 +288,18 @@ namespace Plaza {
 		if (generateMipMaps)
 		{
 			GenerateMipmaps(this->mImage, width, height, this->mMipLevels, format);
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, 1, this->mMipLevels);
+			if (transition) {
+				VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, layers, this->mMipLevels);
+				mLayout = VK_IMAGE_LAYOUT_GENERAL;
+			}
 		}
-		else
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, 1, this->mMipLevels);
-		mLayout = VK_IMAGE_LAYOUT_GENERAL;
+		else if (transition) {
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, layers, this->mMipLevels);
+			mLayout = VK_IMAGE_LAYOUT_GENERAL;
+		}
 
-		vkDestroyBuffer(device, mStagingBuffer, nullptr);
-		vkFreeMemory(device, mStagingBufferMemory, nullptr);
+		//vkDestroyBuffer(device, mStagingBuffer, nullptr);
+		//vkFreeMemory(device, mStagingBufferMemory, nullptr);
 		return true;
 	}
 

@@ -2,10 +2,15 @@
 
 layout(location = 0) out vec3 WorldPos;
 
-layout(set = 0, binding = 0) uniform UBO {
-    mat4 viewMatrix;
-    mat4 projectionMatrix;
-} ubo;
+
+layout(push_constant) uniform PushConstants{
+    mat4 mvp;
+    bool first;
+    float deltaPhi;
+	float deltaTheta;
+    float roughness;
+    uint numSamples;
+} pushConstants;
 
 vec3 positions[36] = vec3[](
     // Front face
@@ -40,5 +45,5 @@ out gl_PerVertex {
 void main() {
     vec3 pos = positions[gl_VertexIndex];
     WorldPos = pos;
-    gl_Position = ubo.viewMatrix * vec4(pos, 1.0);
+    gl_Position = pushConstants.mvp * vec4(pos, 1.0);
 }

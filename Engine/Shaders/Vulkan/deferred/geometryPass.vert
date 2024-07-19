@@ -142,6 +142,6 @@ void main() {
 
     uint materialIndex = renderGroupMaterialsOffsets[vertexMaterialIndex + renderGroupOffsets[gl_InstanceIndex]];//meshRendererMaterials[vertexMaterialIndex];//22;
 
-    fragTexCoord = vec2(materials[materialIndex].flipX, materials[materialIndex].flipY) - inTexCoord;
+    fragTexCoord = inTexCoord;//vec2(materials[materialIndex].flipX, materials[materialIndex].flipY) - inTexCoord;
     material = materials[materialIndex];
 }

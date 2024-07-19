@@ -4,7 +4,6 @@
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanGuiRenderer.h"
-#include "Engine/Core/Renderer/Vulkan/VulkanSkybox.h"
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
@@ -1479,8 +1478,8 @@ namespace Plaza {
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
+		}
 	}
-}
 
 	void VulkanRenderer::CleanupSwapChain() {
 		vkDestroyImageView(mDevice, mDepthImageView, nullptr);
@@ -2302,61 +2301,21 @@ namespace Plaza {
 
 	void VulkanRenderer::InitializeGeometryPassRenderer() {
 		VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		this->mDeferredPositionTexture.CreateTextureImage(
-			this->mDevice,
-			VK_FORMAT_R32G32B32A32_SFLOAT,
-			Application->appSizes->sceneSize.x,
-			Application->appSizes->sceneSize.y,
-			false,
-			imageUsageFlags);
-		this->mDeferredPositionTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT,
-			VK_IMAGE_ASPECT_COLOR_BIT);
-		this->AddTrackerToImage(this->mDeferredPositionTexture.mImageView,
-			"Deferred Position",
-			this->mImGuiTextureSampler,
-			this->mDeferredPositionTexture.GetLayout());
+		this->mDeferredPositionTexture.CreateTextureImage(this->mDevice,VK_FORMAT_R32G32B32A32_SFLOAT,Application->appSizes->sceneSize.x,Application->appSizes->sceneSize.y,false,imageUsageFlags);
+		this->mDeferredPositionTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT,VK_IMAGE_ASPECT_COLOR_BIT);
+		this->AddTrackerToImage(this->mDeferredPositionTexture.mImageView, "Deferred Position", this->mImGuiTextureSampler, this->mDeferredPositionTexture.GetLayout());
 
-		this->mDeferredNormalTexture.CreateTextureImage(
-			this->mDevice,
-			VK_FORMAT_R32G32B32A32_SFLOAT,
-			Application->appSizes->sceneSize.x,
-			Application->appSizes->sceneSize.y,
-			false,
-			imageUsageFlags);
-		this->mDeferredNormalTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT,
-			VK_IMAGE_ASPECT_COLOR_BIT);
-		this->AddTrackerToImage(this->mDeferredNormalTexture.mImageView,
-			"Deferred Normal",
-			this->mImGuiTextureSampler,
-			this->mDeferredNormalTexture.GetLayout());
+		this->mDeferredNormalTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, false, imageUsageFlags);
+		this->mDeferredNormalTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
+		this->AddTrackerToImage(this->mDeferredNormalTexture.mImageView, "Deferred Normal", this->mImGuiTextureSampler, this->mDeferredNormalTexture.GetLayout());
 
-		this->mDeferredDiffuseTexture.CreateTextureImage(
-			this->mDevice,
-			VK_FORMAT_R32G32B32A32_SFLOAT,
-			Application->appSizes->sceneSize.x,
-			Application->appSizes->sceneSize.y,
-			false,
-			imageUsageFlags);
-		this->mDeferredDiffuseTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT,
-			VK_IMAGE_ASPECT_COLOR_BIT);
-		this->AddTrackerToImage(this->mDeferredDiffuseTexture.mImageView,
-			"Deferred Diffuse",
-			this->mImGuiTextureSampler,
-			this->mDeferredDiffuseTexture.GetLayout());
+		this->mDeferredDiffuseTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, false, imageUsageFlags);
+		this->mDeferredDiffuseTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
+		this->AddTrackerToImage(this->mDeferredDiffuseTexture.mImageView, "Deferred Diffuse", this->mImGuiTextureSampler, this->mDeferredDiffuseTexture.GetLayout());
 
-		this->mDeferredOthersTexture.CreateTextureImage(
-			this->mDevice,
-			VK_FORMAT_R32G32B32A32_SFLOAT,
-			Application->appSizes->sceneSize.x,
-			Application->appSizes->sceneSize.y,
-			false,
-			imageUsageFlags);
-		this->mDeferredOthersTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT,
-			VK_IMAGE_ASPECT_COLOR_BIT);
-		this->AddTrackerToImage(this->mDeferredOthersTexture.mImageView,
-			"Deferred Others",
-			this->mImGuiTextureSampler,
-			this->mDeferredOthersTexture.GetLayout());
+		this->mDeferredOthersTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, false, imageUsageFlags);
+		this->mDeferredOthersTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
+		this->AddTrackerToImage(this->mDeferredOthersTexture.mImageView, "Deferred Others", this->mImGuiTextureSampler, this->mDeferredOthersTexture.GetLayout());
 
 		// Render Pass
 		std::vector<VkAttachmentReference> colorReferences;
@@ -2436,6 +2395,8 @@ namespace Plaza {
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nullptr, VK_SHADER_STAGE_ALL));
 		static const uint32_t maxBindlessResources = 16536;
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(20, maxBindlessResources, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
+		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(7, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
+		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(8, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(9, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(19, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_VERTEX_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr, VK_SHADER_STAGE_VERTEX_BIT));
@@ -2444,7 +2405,7 @@ namespace Plaza {
 
 		VkDescriptorBindingFlags bindlessFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
 		VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT,	nullptr };
-		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0, 0, 0, 0, 0 };
+		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0, 0, 0, 0, 0, 0, 0 };
 		extendedInfo.pBindingFlags = bindingFlags;
 		extendedInfo.bindingCount = static_cast<uint32_t>(descriptorSets.size());
 
@@ -3084,7 +3045,7 @@ namespace Plaza {
 			texture->mAssetUuid = uuid;
 		texture->path = path;
 		if (std::filesystem::exists(path)) {
-			VkFormat form = VK_FORMAT_R8G8B8A8_SRGB;
+			VkFormat form = VK_FORMAT_R8G8B8A8_UNORM;
 			bool textureCreated = texture->CreateTextureImage(mDevice, path, form, true);
 			if (!textureCreated) {
 				return texture;
@@ -3101,7 +3062,7 @@ namespace Plaza {
 		VkFormat format = VK_FORMAT_R8G8B8A8_SRGB;
 		texture->CreateTextureImage(mDevice, path, format, false);
 		texture->CreateTextureSampler();
-		texture->CreateImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
+		texture->CreateImageView(format, VK_IMAGE_ASPECT_COLOR_BIT);
 		texture->mDescriptorSet = ImGui_ImplVulkan_AddTexture(texture->mSampler,
 			texture->mImageView,
 			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

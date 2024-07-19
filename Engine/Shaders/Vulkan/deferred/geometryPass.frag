@@ -15,7 +15,8 @@ struct MaterialData{
     float flipY;
 };
 
-layout(binding = 1) uniform sampler2D texSampler;
+layout(binding = 7) uniform samplerCube prefilterMap;
+layout(binding = 8) uniform samplerCube irradianceMap;
 layout(binding = 9) uniform sampler2DArray shadowsDepthMap;
 //layout(location = 10) in flat int materialIndex;
 //layout (std430, set = 0, binding = 19) buffer MaterialsBuffer {
@@ -60,7 +61,7 @@ layout (location = 2) out vec4 gDiffuse;
 layout (location = 3) out vec4 gOthers;
 
 const float PI = 3.14159265359;
-float ao = 0;
+float ao = 1.0f;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -167,136 +168,103 @@ float ggxDistribution(float nDotH, float roughness)
     return ggxdistrib;
 }
 
+vec3 getNormalFromMap(vec3 tangentNormal)
+{
+    //vec3 tangentNormal = texture(normalMap, TexCoords).xyz * 2.0 - 1.0;
+
+    vec3 Q1  = dFdx(worldPos.xyz);
+    vec3 Q2  = dFdy(worldPos.xyz);
+    vec2 st1 = dFdx(TexCoords);
+    vec2 st2 = dFdy(TexCoords);
+
+    vec3 N   = normalize(Normal.xyz);
+    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    return normalize(TBN * tangentNormal);
+}
+
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+} 
+
 void main() {
     //MaterialData material = materials[materialIndex];
-    vec4 color;
-    if(material.diffuseIndex > -1)
-    { 
-        color = texture(textures[material.diffuseIndex], fragTexCoord);
-        if(color.w <= 0.1f)
+    vec3 albedo;
+    if(material.diffuseIndex > -1) { 
+        vec4 textureColor = texture(textures[material.diffuseIndex], fragTexCoord);
+        if(textureColor.w <= 0.1f)
             discard;
-        color.xyz *= material.intensity;
+        albedo = textureColor.xyz;
+        albedo.xyz *= material.intensity;
     }
-    else
-    {
-        color = vec4(material.color.xyz, 1.0f) * material.intensity;
+    else {
+        albedo = material.color.xyz * material.intensity;
     }
 
-    //color *= vec4((vec3(1.0f) - ShadowCalculation(FragPos.xyz) + 0.25f).xyz, 1.0f);
-
-    color = color * 1;
-    //color.xyz = pow(color, vec3(1.0f / ubo.gamma))
-
-    vec3 lightColor = ubo.directionalLightColor.xyz * 255;//vec3(1.0f, 0.85f, 0.85f) * 255;
-    // ambient
-    vec3 ambient = 1.32 * (lightColor / 1);
-    // diffuse
+    vec3 N = normalize(Normal).xyz;
+    if(material.normalIndex > -1) {
+        N = getNormalFromMap(texture(textures[material.normalIndex], fragTexCoord).xyz);
+    }
 
     float metallic = material.metalnessFloat;
     float roughness = material.roughnessFloat;
 
-    if(material.metalnessIndex > -1)
-    {
+    if(material.metalnessIndex > -1) {
         metallic =  texture(textures[material.metalnessIndex], fragTexCoord).r;//pow(texture(textures[pushConstants.metalnessIndex], fragTexCoord) / 1, vec4(1/ 2.2)).r * 1;
     }
 
-    if(material.roughnessIndex > -1)
-    {
+    if(material.roughnessIndex > -1) {
         roughness = texture(textures[material.roughnessIndex], fragTexCoord).r;// pow(texture(textures[pushConstants.roughnessIndex], fragTexCoord) / 1, vec4(1/ 2.2)).r * 1;
     }
 
-    //metallic = texture(texture_metalness, fs_in.TexCoords).r / 255;//pow(texture(texture_metalness, fs_in.TexCoords), vec4(2.2)).r;
-    //roughness = texture(texture_metalness, fs_in.TexCoords).r / 255;//pow(texture(texture_roughness, fs_in.TexCoords) / 1, vec4(2.2)).r;
-    //metallic *= 2;
-    //metallic = 0.5 * 1;
-    //roughness = 0.3f * 1;
-    vec3 normal;
-    vec3 lightDir;
-    float diff;
-    vec3 diffuse;
-    vec3 viewDir;
+    vec3 V = normalize(ubo.viewPos - worldPos).xyz;
+    vec3 R = reflect(-V, N); 
 
-    bool usingNormal = false;
-    if(usingNormal){
-        normal = texture(textures[material.normalIndex], fragTexCoord).rgb;
-        normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space
-        //lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
-        diff = max(dot(ubo.lightDirection.xyz, normal), 0.0);
-        viewDir = normalize(TangentViewPos.xyz - TangentFragPos.xyz);
-    } else {
-        normal = normalize(Normal.xyz);
-        //lightDir = normalize(lightPos - fs_in.FragPos);
-        diff = max(dot(ubo.lightDirection.xyz, normal), 0.0);
-        viewDir = normalize(ubo.viewPos.xyz - FragPos.xyz);
-    }
+    vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
+    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
 
-    vec3 l = normalize(ubo.lightDirection.xyz);
-    vec3 n = normal;
-    vec3 v = normalize(ubo.viewPos.xyz - worldPos.xyz);
-    vec3 h = normalize(v + l);
+    vec3 kD = 1.0 - F;
+    kD *= 1.0 - metallic;	
 
-    float nDotH = max(dot(n, h), 0.0);
-    float vDotH = max(dot(v, h), 0.0);
-    float nDotL = max(dot(n, l), 0.0);
-    float nDotV = max(dot(n, v), 0.0);
+    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 diffuse = irradiance * albedo.xyz;
 
-    vec3  F0 = mix (vec3 (0.04), color.xyz, metallic);
-    vec3 F = fresnelSchlick(vDotH, F0);   
+    const float MAX_REFLECTION_LOD = 9.0;
+    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
+    vec2 brdf  = vec2(0.25f, 0.25f);//texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    vec3 kS = F;
-    vec3 kD = 1.0 - kS;
+    float ambientOcclusion = 1.0f;
+    vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
 
-    vec3 SpecBRDF_nom  = ggxDistribution(nDotH, roughness) *
-                         F *
-                         geomSmith(nDotL, roughness) *
-                         geomSmith(nDotV, roughness);
+    vec3 color = ambient; //+ Lo;
 
-    float SpecBRDF_denom = 4.0 * nDotV * nDotL + 0.0001;
-
-    vec3 SpecBRDF = SpecBRDF_nom / SpecBRDF_denom;
-
-    vec3 fLambert = vec3(0.0);
-    fLambert = color.xyz * 1;
-
-    vec3 DiffuseBRDF = kD * fLambert / PI;
+    vec3 FinalColor = color;
 
     float shadow = (1 - ShadowCalculation(FragPos.xyz)) * 2;
-    vec3 amb = ubo.ambientLightColor.xyz;//vec3(0.72f);
-
-    float specularIntensity = 1.0f;
-
-
-    gOthers = vec4(SpecBRDF * specularIntensity, 1.0f);
-    gOthers.z = metallic;
-
-    vec3 FinalColor = (kD * color.xyz + kS * SpecBRDF) * (max(nDotL, amb.x / 2) * (amb + (ubo.directionalLightColor.xyz * shadow)));
-
-    vec3 dif2 = color.xyz;
-    vec3 spec2 = vec3(0.0f);
-
-    //kD = 1.0f - F;
-    //kD *= 1.0f - metallic;
-    FinalColor = (kD * dif2 + kS * SpecBRDF) * ((ubo.directionalLightColor.xyz * shadow) + ubo.ambientLightColor.xyz);//(max(nDotL, amb.x / 2) * (amb + (ubo.directionalLightColor.xyz * shadow)));
-    //vec3 fog = vec3(0.7f, 0.7f, 0.0f) * pow(distance(FragPos, ubo.viewPos) / 15000.0f, 0.5f);
-    //FinalColor *= vec3(1.0f) - fog;
-
     /* Geometry */
-      gPosition = vec4(FragPos);
-      gDiffuse = vec4(FinalColor, 1.0f);
+    gOthers.xyz = vec3(1.0f);
+    gOthers.z = metallic;
+    gPosition = vec4(worldPos);//vec4(FragPos);
+    gDiffuse = vec4(FinalColor, 1.0f);
 
-      if(usingNormal)
-      {
-          vec3 T = normalize(TangentLightPos - TangentFragPos).xyz;
-          vec3 B = cross(normal, T);
-          mat3 TBN = mat3(T, B, normal);
-          vec3 normalB = normalize(TBN * normal);
-          // Transform normal to world space
-          //normalB = normalize((view * model * vec4(normal, 0.0)).xyz);
-          vec3 normalWorld = normalize((ubo.view * model * vec4(normalB, 1.0f)).xyz);
-          gNormal = vec4(normalWorld, 1.0f);
-      }
-      else
-          gNormal = vec4(normalize(normal), 1.0f);
+    //if(usingNormal)
+    //{
+    //    vec3 T = normalize(TangentLightPos - TangentFragPos).xyz;
+    //    vec3 B = cross(normal, T);
+    //    mat3 TBN = mat3(T, B, normal);
+    //    vec3 normalB = normalize(TBN * normal);
+    //    // Transform normal to world space
+    //    //normalB = normalize((view * model * vec4(normal, 0.0)).xyz);
+    //    vec3 normalWorld = normalize((ubo.view * model * vec4(normalB, 1.0f)).xyz);
+    //    gNormal = vec4(normalWorld, 1.0f);
+    //  }
+    //  else
+          gNormal = vec4(N, 1.0f);
 
     //if(affected == 1)
     //    gDiffuse = vec4(1.0f, 0.0f, 0.0f, 1.0f);

@@ -9,6 +9,7 @@
 
 #include "VulkanTexture.h"
 #include "VulkanShadows.h"
+#include "VulkanSkybox.h"
 #include "VulkanLighting.h"
 #include "VulkanPicking.h"
 #include "VulkanComputeShaders.h"
@@ -148,6 +149,7 @@ namespace Plaza {
 
 		RendererAPI api = RendererAPI::Vulkan;
 		VulkanShadows* mShadows;
+		VulkanSkybox* mSkybox;
 		VulkanLighting* mLighting;
 		VulkanBloom mBloom;
 		VkDevice mDevice = VK_NULL_HANDLE;

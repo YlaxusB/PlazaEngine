@@ -17,10 +17,31 @@ layout(push_constant) uniform PushConstants{
     uint numSamples;
 } pushConstants;
 
+vec3 Uncharted2Tonemap(vec3 color)
+{
+	float A = 0.15;
+	float B = 0.50;
+	float C = 0.10;
+	float D = 0.20;
+	float E = 0.02;
+	float F = 0.30;
+	float W = 11.2;
+	return ((color*(A*color+C*B)+D*E)/(color*(A*color+B)+D*F))-E/F;
+}
+
 const vec2 invAtan = vec2(0.1591, 0.3183); // 1/(2 * PI) and 1/PI
 
 void main() {
     vec3 dir = normalize(WorldPos);
     vec2 uv = vec2(atan(dir.z, dir.x) * invAtan.x + 0.5, asin(dir.y) * invAtan.y + 0.5);
-    FragColor = texture(equirectangularMap, uv);
+
+	vec3 color = texture(equirectangularMap, uv).rgb;
+
+	// Tone mapping
+	color = Uncharted2Tonemap(color * 4.5);
+	color = color * (1.0f / Uncharted2Tonemap(vec3(11.2f)));	
+	// Gamma correction
+	color = pow(color, vec3(1.0f / 2.2));
+	
+	FragColor = vec4(color, 1.0);
 }

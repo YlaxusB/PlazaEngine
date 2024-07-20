@@ -2301,8 +2301,8 @@ namespace Plaza {
 
 	void VulkanRenderer::InitializeGeometryPassRenderer() {
 		VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		this->mDeferredPositionTexture.CreateTextureImage(this->mDevice,VK_FORMAT_R32G32B32A32_SFLOAT,Application->appSizes->sceneSize.x,Application->appSizes->sceneSize.y,false,imageUsageFlags);
-		this->mDeferredPositionTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT,VK_IMAGE_ASPECT_COLOR_BIT);
+		this->mDeferredPositionTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, false, imageUsageFlags);
+		this->mDeferredPositionTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
 		this->AddTrackerToImage(this->mDeferredPositionTexture.mImageView, "Deferred Position", this->mImGuiTextureSampler, this->mDeferredPositionTexture.GetLayout());
 
 		this->mDeferredNormalTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, false, imageUsageFlags);
@@ -2395,6 +2395,7 @@ namespace Plaza {
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nullptr, VK_SHADER_STAGE_ALL));
 		static const uint32_t maxBindlessResources = 16536;
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(20, maxBindlessResources, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
+		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(6, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(7, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(8, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
 		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(9, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
@@ -2405,7 +2406,7 @@ namespace Plaza {
 
 		VkDescriptorBindingFlags bindlessFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
 		VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT,	nullptr };
-		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0, 0, 0, 0, 0, 0, 0 };
+		VkDescriptorBindingFlagsEXT bindingFlags[] = { 0, bindlessFlags, 0, 0, 0, 0, 0, 0, 0, 0 };
 		extendedInfo.pBindingFlags = bindingFlags;
 		extendedInfo.bindingCount = static_cast<uint32_t>(descriptorSets.size());
 
@@ -2578,6 +2579,7 @@ namespace Plaza {
 				mBoneMatricesBuffers[i],
 				mBoneMatricesBufferMemories[i]);
 		}
+
 
 		std::cout << "Initializing Shadows \n";
 		this->mShadows->Init();
@@ -3541,12 +3543,14 @@ namespace Plaza {
 		VkSampler textureSampler,
 		VkImageLayout layout) {
 #ifdef EDITOR_MODE
-		VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(
-			textureSampler == VK_NULL_HANDLE ? this->mTextureSampler : textureSampler,
-			imageView,
-			layout);
-		this->mTrackedImages.push_back(TrackedImage{
-			ImTextureID(imguiDescriptorSet), std::chrono::system_clock::now(), name
+		Application->mThreadsManager->mFrameRendererAfterFenceThread->AddToQueue([imageView, name, textureSampler, layout]() {
+			VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(
+				textureSampler == VK_NULL_HANDLE ? VulkanRenderer::GetRenderer()->mTextureSampler : textureSampler,
+				imageView,
+				layout);
+			VulkanRenderer::GetRenderer()->mTrackedImages.push_back(TrackedImage{
+				ImTextureID(imguiDescriptorSet), std::chrono::system_clock::now(), name
+				});
 			});
 #endif
 	}
@@ -3654,4 +3658,4 @@ namespace Plaza {
 		VulkanRenderer::GetGeometryPassDescriptorSet(unsigned int frame) {
 		return this->mGeometryPassRenderer.mShaders->mDescriptorSets[frame];
 	}
-	} // namespace Plaza
+} // namespace Plaza

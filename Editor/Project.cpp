@@ -65,44 +65,48 @@ namespace Plaza::Editor {
 
 		std::map<std::string, Script> scripts = std::map<std::string, Script>();
 		/* Iterate over all files and subfolders of the project folder to load assets */
-		for (const auto& entry : filesystem::recursive_directory_iterator(Application->activeProject->directory)) {
-			const std::string extension = entry.path().extension().string();
-			if (entry.is_regular_file() && extension != "")
+		for (auto entry = filesystem::recursive_directory_iterator(Application->activeProject->directory, filesystem::directory_options::skip_permission_denied); entry != filesystem::end(entry); ++entry) {
+			if (entry->is_directory() && entry->path().filename().string().ends_with(".ignore")) {
+				entry.disable_recursion_pending();
+			}
+
+			const std::string extension = entry->path().extension().string();
+			if (entry->is_regular_file() && extension != "")
 			{
 				if (extension == Standards::metadataExtName) {
-					Asset* asset = AssetsManager::LoadMetadataAsAsset(entry.path());
+					Asset* asset = AssetsManager::LoadMetadataAsAsset(entry->path());
 					if (AssetsLoader::mSupportedTextureLoadFormats.find(asset->mAssetExtension) != AssetsLoader::mSupportedTextureLoadFormats.end()) {
 						AssetsManager::mTextures.emplace(asset->mAssetUuid, Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid));
 					}
 				}
 				else if (AssetsLoader::mSupportedLoadFormats.find(extension) != AssetsLoader::mSupportedLoadFormats.end()) {
-					Asset* asset = AssetsManager::LoadBinaryFileAsAsset(entry.path());
+					Asset* asset = AssetsManager::LoadBinaryFileAsAsset(entry->path());
 					if (extension == ".plzmat" || extension == Standards::animationExtName)
 					{
 						AssetsLoader::LoadAsset(asset);
 						//AssetsManager::AddAsset(asset);
 					}
 					else if (extension == ".plzmod") {
-						std::ifstream binaryFile(entry.path(), std::ios::binary);
+						std::ifstream binaryFile(entry->path(), std::ios::binary);
 						uint64_t uuid = 0;
 						binaryFile.read(reinterpret_cast<char*>(&uuid), sizeof(uint64_t));
 						binaryFile.close();
-						AssetsManager::NewAsset(uuid, AssetType::MODEL, entry.path().string());
+						AssetsManager::NewAsset(uuid, AssetType::MODEL, entry->path().string());
 						//AssetsManager::LoadMetadataAsAsset(entry.path());
 						//AssetsLoader::LoadPrefabToMemory(asset);
 					}
 					else if (extension == Standards::animationExtName) {
-						std::ifstream binaryFile(entry.path(), std::ios::binary);
+						std::ifstream binaryFile(entry->path(), std::ios::binary);
 						uint64_t uuid = 0;
 						binaryFile.read(reinterpret_cast<char*>(&uuid), sizeof(uint64_t));
 						binaryFile.close();
-						Asset* asset = AssetsManager::NewAsset(uuid, AssetType::ANIMATION, entry.path().string());
+						Asset* asset = AssetsManager::NewAsset(uuid, AssetType::ANIMATION, entry->path().string());
 						AssetsLoader::LoadAnimation(asset);
 					}
 				}
 
-				if (entry.is_regular_file() && entry.path().extension() == ".cs") {
-					scripts.emplace(entry.path().string(), Script());
+				if (entry->is_regular_file() && entry->path().extension() == ".cs") {
+					scripts.emplace(entry->path().string(), Script());
 				}
 			}
 		}

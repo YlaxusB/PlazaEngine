@@ -51,6 +51,10 @@ namespace Plaza {
 			return 0;
 		}
 
+		virtual void Destroy() {
+			return;
+		}
+
 		~Texture() = default;
 
 		template <class Archive>

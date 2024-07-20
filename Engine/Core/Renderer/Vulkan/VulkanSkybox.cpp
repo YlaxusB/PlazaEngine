@@ -6,24 +6,24 @@
 
 namespace Plaza {
 	void VulkanSkybox::InitializeImageSampler() {
-		VkSamplerCreateInfo samplerInfo{};
-		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		samplerInfo.magFilter = VK_FILTER_LINEAR;
-		samplerInfo.minFilter = VK_FILTER_LINEAR;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		VkPhysicalDeviceProperties properties{};
-		vkGetPhysicalDeviceProperties(VulkanRenderer::GetRenderer()->mPhysicalDevice, &properties);
-		samplerInfo.unnormalizedCoordinates = VK_FALSE;
-		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		samplerInfo.mipLodBias = 0.0f;
-		samplerInfo.minLod = 0.0f;
-		samplerInfo.maxLod = 0.0f;
-		samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
-		if (vkCreateSampler(VulkanRenderer::GetRenderer()->mDevice, &samplerInfo, nullptr, &this->mSkyboxSampler) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create texture sampler!");
-		}
+		//VkSamplerCreateInfo samplerInfo{};
+		//samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		//samplerInfo.magFilter = VK_FILTER_LINEAR;
+		//samplerInfo.minFilter = VK_FILTER_LINEAR;
+		//samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		//samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		//samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		//VkPhysicalDeviceProperties properties{};
+		//vkGetPhysicalDeviceProperties(VulkanRenderer::GetRenderer()->mPhysicalDevice, &properties);
+		//samplerInfo.unnormalizedCoordinates = VK_FALSE;
+		//samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		//samplerInfo.mipLodBias = 0.0f;
+		//samplerInfo.minLod = 0.0f;
+		//samplerInfo.maxLod = 0.0f;
+		//samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+		//if (vkCreateSampler(VulkanRenderer::GetRenderer()->mDevice, &samplerInfo, nullptr, &mSkyboxTexture->mSampler) != VK_SUCCESS) {
+		//	throw std::runtime_error("failed to create texture sampler!");
+		//}
 	}
 
 	void VulkanSkybox::InitializeIrradiance() {
@@ -52,10 +52,10 @@ namespace Plaza {
 
 		/* Initialize Irradiance texture */
 		mIrradianceTexture = new VulkanTexture();
-		mIrradianceTexture->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, mSkyboxFormat, 32, 32, true, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
-			VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_LAYOUT_UNDEFINED, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, false, VK_SHARING_MODE_EXCLUSIVE);
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(mIrradianceTexture->mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6, mIrradianceTexture->mMipLevels);
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(mIrradianceTexture->mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6, mIrradianceTexture->mMipLevels);
+		mIrradianceTexture->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, mSkyboxFormat, mIrradianceSize, mIrradianceSize, false, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+			VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_LAYOUT_UNDEFINED, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, true, VK_SHARING_MODE_EXCLUSIVE, true);
+		//VulkanRenderer::GetRenderer()->TransitionImageLayout(mIrradianceTexture->mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6, mIrradianceTexture->mMipLevels);
+		//VulkanRenderer::GetRenderer()->TransitionImageLayout(mIrradianceTexture->mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6, mIrradianceTexture->mMipLevels);
 		mIrradianceTexture->CreateImageView(mSkyboxFormat, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_CUBE, 6);
 
 		VkPushConstantRange pushConstantRange = {};
@@ -84,7 +84,7 @@ namespace Plaza {
 		irradianceSamplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 		irradianceSamplerInfo.mipLodBias = 0.0f;
 		irradianceSamplerInfo.minLod = 0.0f;
-		irradianceSamplerInfo.maxLod = 0.0f;
+		irradianceSamplerInfo.maxLod = mIrradianceTexture->mMipLevels;
 		//irradianceSamplerInfo.compareOp = VK_COMPARE_OP_NEVER;
 		if (vkCreateSampler(VulkanRenderer::GetRenderer()->mDevice, &irradianceSamplerInfo, nullptr, &mIrradianceTexture->mSampler) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture sampler!");
@@ -98,7 +98,7 @@ namespace Plaza {
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 		VkAttachmentReference colorAttachmentRef{};
@@ -170,7 +170,7 @@ namespace Plaza {
 			irradianceGeneratorPipeline.mShaders->mRenderPass,
 			depthStencilState);
 
-		VkDescriptorImageInfo skyboxSamplerInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mSkyboxImageViews[0], mIrradianceTexture->mSampler);
+		VkDescriptorImageInfo skyboxSamplerInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mSkyboxTexture->mImageView, mIrradianceTexture->mSampler);
 		std::vector<VkWriteDescriptorSet> descriptorWrites = std::vector<VkWriteDescriptorSet>();
 		descriptorWrites.push_back(plvk::writeDescriptorSet(irradianceGeneratorDescriptorSet, 2, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &skyboxSamplerInfo));
 
@@ -184,6 +184,21 @@ namespace Plaza {
 		converterPushConstants.deltaPhi = (2.0f * float(3.14159265358979323846)) / 180.0f;
 		converterPushConstants.deltaTheta = (0.5f * float(3.14159265358979323846)) / 64.0f;
 
+
+		std::vector<glm::mat4> mats = {
+			// POSITIVE_X
+			glm::rotate(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+			// NEGATIVE_X
+			glm::rotate(glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+			// POSITIVE_Y
+			glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+			// NEGATIVE_Y
+			glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+			// POSITIVE_Z
+			glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+			// NEGATIVE_Z
+			glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+		};
 		for (uint32_t i = 0; i < 6; i++) {
 			VkImageViewCreateInfo layerImageViewCreateInfo = {};
 			layerImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -205,22 +220,21 @@ namespace Plaza {
 			framebufferInfo.renderPass = irradianceGeneratorPipeline.mShaders->mRenderPass;
 			framebufferInfo.attachmentCount = frameBufferAttachments.size();
 			framebufferInfo.pAttachments = frameBufferAttachments.data();
-			framebufferInfo.width = 32;//Application->appSizes->sceneSize.x;
-			framebufferInfo.height = 32;//Application->appSizes->sceneSize.y;
+			framebufferInfo.width = mIrradianceSize;
+			framebufferInfo.height = mIrradianceSize;
 			framebufferInfo.layers = 1;
 
-			VkFramebuffer framebuffer; //= frameBuffers[i];
+			VkFramebuffer framebuffer;
 			if (vkCreateFramebuffer(VulkanRenderer::GetRenderer()->mDevice, &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create framebuffer!");
 			}
 
-			// Begin render pass
 			VkRenderPassBeginInfo renderPassInfo = {};
 			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			renderPassInfo.renderPass = irradianceGeneratorPipeline.mShaders->mRenderPass;
 			renderPassInfo.framebuffer = framebuffer;
 			renderPassInfo.renderArea.offset = { 0, 0 };
-			renderPassInfo.renderArea.extent = { 32, 32 };
+			renderPassInfo.renderArea.extent = { mIrradianceSize, mIrradianceSize };
 
 			VkClearValue clearColor = { 0.3f, 0.3f, 0.3f, 1.0f };
 			renderPassInfo.clearValueCount = 1;
@@ -228,28 +242,27 @@ namespace Plaza {
 
 			vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-			// Bind pipeline, descriptor sets, etc.
 			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, irradianceGeneratorPipeline.mShaders->mPipeline);
 
 			VkRect2D scissor = {};
-			scissor.offset = { 0, 0 };  // Set appropriate offset
-			scissor.extent = { 32, 32 };  // Set appropriate extent
+			scissor.offset = { 0, 0 };  
+			scissor.extent = { mIrradianceSize, mIrradianceSize };  
 
 			vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 			VkViewport viewport{};
 			viewport.x = 0.0f;
 			viewport.y = 0.0f;
-			viewport.width = 32;
-			viewport.height = -32;
-			viewport.y = 32;
+			viewport.width = mIrradianceSize;
+			viewport.height = mIrradianceSize;
+			viewport.y = 0;
 			viewport.minDepth = 0.0f;
 			viewport.maxDepth = 1.0f;
 
 			vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, irradianceGeneratorPipeline.mShaders->mPipelineLayout, 0, 1, &irradianceGeneratorDescriptorSet, 0, nullptr);
-			converterPushConstants.mvp = glm::perspective((float)(glm::pi<double>() / 2.0), 1.0f, 0.1f, 512.0f) * matrices[i];
+			converterPushConstants.mvp = glm::perspective((float)(glm::pi<double>() / 2.0), 1.0f, 0.1f, 512.0f) * mats[i];
 			vkCmdPushConstants(commandBuffer, irradianceGeneratorPipeline.mShaders->mPipelineLayout, VK_SHADER_STAGE_ALL, 0, sizeof(ConverterPushConstants), &converterPushConstants);
 			vkCmdDraw(commandBuffer, 36, 1, 0, 0);
 
@@ -257,79 +270,53 @@ namespace Plaza {
 		}
 
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
+
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(mIrradianceTexture->mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6, mIrradianceTexture->mMipLevels);
+		mIrradianceTexture->GenerateMipmaps(mIrradianceTexture->mImage, mIrradianceTexture->mWidth, mIrradianceTexture->mHeight, mIrradianceTexture->mMipLevels, mIrradianceTexture->GetFormat(), 6);
 	}
 
 	void VulkanSkybox::InitializeImageView() {
-		const uint32_t mipCount = 9;
 		const uint32_t faceSize = 512;
-		VkImageCreateInfo imageInfo = {};
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.extent.width = faceSize;
-		imageInfo.extent.height = faceSize;
-		imageInfo.extent.depth = 1;
-		imageInfo.mipLevels = mipCount;
-		imageInfo.arrayLayers = 6;
-		imageInfo.format = mSkyboxFormat;
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-		imageInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-
-		if (vkCreateImage(VulkanRenderer::GetRenderer()->mDevice, &imageInfo, nullptr, &this->mSkyboxImage) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create depth image!");
-		}
-
-		// Allocate memory and bind image
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(VulkanRenderer::GetRenderer()->mDevice, this->mSkyboxImage, &memRequirements);
-
-		VkMemoryAllocateInfo allocInfo = {};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = VulkanRenderer::GetRenderer()->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-		VkDeviceMemory mSkyboxMemory;
-		if (vkAllocateMemory(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, nullptr, &mSkyboxMemory) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to allocate depth image memory!");
-		}
-
-		vkBindImageMemory(VulkanRenderer::GetRenderer()->mDevice, this->mSkyboxImage, mSkyboxMemory, 0);
+		mSkyboxTexture = new VulkanTexture();
+		mSkyboxTexture->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, mSkyboxFormat, faceSize, faceSize, false, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+			VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_LAYOUT_UNDEFINED, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, true, VK_SHARING_MODE_EXCLUSIVE, true);
+		mSkyboxTexture->CreateImageView(mSkyboxFormat, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_CUBE, 6);
+		mSkyboxTexture->CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_MIPMAP_MODE_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE);
 
 		int texWidth, texHeight, texChannels;
 		float* pixels = stbi_loadf(mSkyboxPaths[0].c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 		uint32_t imageSize = texWidth * texHeight * 4 * 4;
 
-		VulkanRenderer::GetRenderer()->CreateBuffer(faceSize * faceSize * 4 * 6 * 4, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mStagingBuffer, mStagingBufferMemory);
-		void* data;
-		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mStagingBufferMemory, 0, faceSize * faceSize, 0, &data);
-		memcpy(data, pixels, static_cast<size_t>(faceSize * faceSize));
-		vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, mStagingBufferMemory);
+		VulkanTexture mTemporaryEquirectangularTexture = VulkanTexture();
+		//mTemporaryEquirectangularTexture.CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, mSkyboxPaths[0], mSkyboxFormat, false);
+		//mTemporaryEquirectangularTexture.CreateImageView(mSkyboxFormat, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D, 1);
 
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mSkyboxImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6, mipCount);
-		//VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, this->mSkyboxImage, faceSize, faceSize, 0, 6);
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mSkyboxImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6, mipCount);
-
-		vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, mStagingBuffer, nullptr);
-		vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, mStagingBufferMemory, nullptr);
-
-		VkImage temporaryImage;
-		VkImageView temporaryImageView;
 		VkBuffer temporaryStagingBuffer;
 		VkDeviceMemory temporaryStagingBufferMemory;
 		{
 			/* Temporary loaded equirectangular skybox*/
+			VkImageCreateInfo imageInfo = {};
+			imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+			imageInfo.imageType = VK_IMAGE_TYPE_2D;
+			imageInfo.extent.width = faceSize;
+			imageInfo.extent.height = faceSize;
+			imageInfo.extent.depth = 1;
+			imageInfo.mipLevels = 1;
+			imageInfo.format = mSkyboxFormat;
+			imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+			imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+			imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 			imageInfo.extent.width = texWidth;
 			imageInfo.extent.height = texHeight;
 			imageInfo.arrayLayers = 1;
 			imageInfo.flags = 0;
 			imageInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			if (vkCreateImage(VulkanRenderer::GetRenderer()->mDevice, &imageInfo, nullptr, &temporaryImage) != VK_SUCCESS) {
+			if (vkCreateImage(VulkanRenderer::GetRenderer()->mDevice, &imageInfo, nullptr, &mTemporaryEquirectangularTexture.mImage) != VK_SUCCESS) {
 				throw std::runtime_error("Failed to create depth image!");
 			}
 			VkMemoryRequirements memRequirements;
-			vkGetImageMemoryRequirements(VulkanRenderer::GetRenderer()->mDevice, temporaryImage, &memRequirements);
+			vkGetImageMemoryRequirements(VulkanRenderer::GetRenderer()->mDevice, mTemporaryEquirectangularTexture.mImage, &memRequirements);
 			VkMemoryAllocateInfo allocInfo = {};
 			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 			allocInfo.allocationSize = memRequirements.size;
@@ -338,7 +325,7 @@ namespace Plaza {
 			if (vkAllocateMemory(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, nullptr, &temporaryMemory) != VK_SUCCESS) {
 				throw std::runtime_error("Failed to allocate depth image memory!");
 			}
-			vkBindImageMemory(VulkanRenderer::GetRenderer()->mDevice, temporaryImage, temporaryMemory, 0);
+			vkBindImageMemory(VulkanRenderer::GetRenderer()->mDevice, mTemporaryEquirectangularTexture.mImage, temporaryMemory, 0);
 
 			VulkanRenderer::GetRenderer()->CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, temporaryStagingBuffer, temporaryStagingBufferMemory);
 
@@ -347,16 +334,16 @@ namespace Plaza {
 			memcpy(data, pixels, static_cast<size_t>(imageSize));
 			vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, temporaryStagingBufferMemory);
 
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(temporaryImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-			VulkanRenderer::GetRenderer()->CopyBufferToImage(temporaryStagingBuffer, temporaryImage, texWidth, texHeight, 0, 1);
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(temporaryImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mTemporaryEquirectangularTexture.mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 1);
+			VulkanRenderer::GetRenderer()->CopyBufferToImage(temporaryStagingBuffer, mTemporaryEquirectangularTexture.mImage, texWidth, texHeight, 0, 1);
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mTemporaryEquirectangularTexture.mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 
 			vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, temporaryStagingBuffer, nullptr);
 			vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, temporaryStagingBufferMemory, nullptr);
 
 			VkImageViewCreateInfo viewInfo{};
 			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			viewInfo.image = temporaryImage;
+			viewInfo.image = mTemporaryEquirectangularTexture.mImage;
 			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 			viewInfo.format = this->mSkyboxFormat;
 			viewInfo.subresourceRange = {};
@@ -366,7 +353,7 @@ namespace Plaza {
 			viewInfo.subresourceRange.baseArrayLayer = 0;
 			viewInfo.subresourceRange.layerCount = 1;
 
-			if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &temporaryImageView) != VK_SUCCESS) {
+			if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &mTemporaryEquirectangularTexture.mImageView) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create texture image view!");
 			}
 		}
@@ -376,24 +363,24 @@ namespace Plaza {
 		//renderer.TransitionImageLayout(this->mShadowDepthImage, mDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT, 9);
 		//renderer.TransitionImageLayout(this->mShadowDepthImage, mDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_DEPTH_BIT, 9);
 
-		this->mSkyboxImageViews.resize(Application->mRenderer->mMaxFramesInFlight);
-		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
-			VkImageViewCreateInfo viewInfo{};
-			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			viewInfo.image = this->mSkyboxImage;
-			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
-			viewInfo.format = this->mSkyboxFormat;
-			viewInfo.subresourceRange = {};
-			viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			viewInfo.subresourceRange.baseMipLevel = 0;
-			viewInfo.subresourceRange.levelCount = 1;
-			viewInfo.subresourceRange.baseArrayLayer = 0;
-			viewInfo.subresourceRange.layerCount = 6;
-
-			if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &this->mSkyboxImageViews[i]) != VK_SUCCESS) {
-				throw std::runtime_error("failed to create texture image view!");
-			}
-		}
+		//this->mSkyboxImageViews.resize(Application->mRenderer->mMaxFramesInFlight);
+		//for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		//	VkImageViewCreateInfo viewInfo{};
+		//	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		//	viewInfo.image = this->mSkyboxImage;
+		//	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+		//	viewInfo.format = this->mSkyboxFormat;
+		//	viewInfo.subresourceRange = {};
+		//	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		//	viewInfo.subresourceRange.baseMipLevel = 0;
+		//	viewInfo.subresourceRange.levelCount = mipCount;
+		//	viewInfo.subresourceRange.baseArrayLayer = 0;
+		//	viewInfo.subresourceRange.layerCount = 6;
+		//
+		//	if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &this->mSkyboxImageViews[i]) != VK_SUCCESS) {
+		//		throw std::runtime_error("failed to create texture image view!");
+		//	}
+		//}
 
 		/* Convert from equirectangular to cubemap */
 		VkDescriptorSetLayout converterDescriptorSetLayout{};
@@ -431,7 +418,7 @@ namespace Plaza {
 
 
 		std::vector<VkWriteDescriptorSet> descriptorWrites = std::vector<VkWriteDescriptorSet>();
-		VkDescriptorImageInfo samplerInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, temporaryImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
+		VkDescriptorImageInfo samplerInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mTemporaryEquirectangularTexture.mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
 		descriptorWrites.push_back(plvk::writeDescriptorSet(converterDescriptorSet, 1, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &samplerInfo));
 
 		//VkDescriptorImageInfo skyboxSamplerInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, view2, VulkanRenderer::GetRenderer()->mTextureSampler);
@@ -461,7 +448,7 @@ namespace Plaza {
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 		VkAttachmentReference colorAttachmentRef{};
@@ -538,7 +525,7 @@ namespace Plaza {
 		ConverterPushConstants converterPushConstants{};
 		converterPushConstants.first = true;
 
-		VulkanRenderer::GetRenderer()->AddTrackerToImage(mSkyboxImageViews[0], "Skybox", this->mSkyboxSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		VulkanRenderer::GetRenderer()->AddTrackerToImage(mSkyboxTexture->mImageView, "Skybox", mSkyboxTexture->mSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		//std::vector<glm::mat4> matrices = {
 		//	// POSITIVE_X
@@ -561,7 +548,7 @@ namespace Plaza {
 		for (uint32_t i = 0; i < 6; i++) {
 			VkImageViewCreateInfo layerImageViewCreateInfo = {};
 			layerImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			layerImageViewCreateInfo.image = mSkyboxImage;
+			layerImageViewCreateInfo.image = mSkyboxTexture->mImage;
 			layerImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 			layerImageViewCreateInfo.format = mSkyboxFormat;
 			layerImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -637,6 +624,9 @@ namespace Plaza {
 
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(mSkyboxTexture->mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, mSkyboxTexture->mLayerCount, mSkyboxTexture->mMipLevels);
+		mSkyboxTexture->GenerateMipmaps(mSkyboxTexture->mImage, mSkyboxTexture->mWidth, mSkyboxTexture->mHeight, mSkyboxTexture->mMipLevels, mSkyboxTexture->GetFormat(), mSkyboxTexture->mLayerCount);
+
 		//VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, this->mSkyboxImage, faceSize, faceSize, 0, 6);
 
 		//VulkanRenderer::GetRenderer()->TransitionImageLayout(this->mSkyboxImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6, mipCount);
@@ -652,10 +642,11 @@ namespace Plaza {
 
 		//vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, temporaryStagingBuffer, nullptr);
 		//vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, temporaryStagingBufferMemory, nullptr);
-		vkDestroyImage(VulkanRenderer::GetRenderer()->mDevice, temporaryImage, nullptr);
-		vkDestroyImageView(VulkanRenderer::GetRenderer()->mDevice, temporaryImageView, nullptr);
+		//vkDestroyImage(VulkanRenderer::GetRenderer()->mDevice, mTemporaryEquirectangularTexture.mImage, nullptr);
+		//vkDestroyImageView(VulkanRenderer::GetRenderer()->mDevice, temporaryImageView, nullptr);
 		//vkDestroySampler(VulkanRenderer::GetRenderer()->mDevice, irrandianceGeneratorSampler, nullptr);
 
+		mTemporaryEquirectangularTexture.Destroy();
 
 		//for (unsigned int i = 0; i < 6; ++i) {
 
@@ -734,8 +725,14 @@ namespace Plaza {
 	}
 
 	void VulkanSkybox::GeneratePreFilteredEnvironment() {
-		const uint32_t numMips = 9;
 		glm::vec2 size = glm::vec2(512, 512);
+
+		mPreFilteredTexture = new VulkanTexture();
+		mPreFilteredTexture->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, mSkyboxFormat, size.x, size.y, false, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+			VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_LAYOUT_UNDEFINED, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, false, VK_SHARING_MODE_EXCLUSIVE, true);
+		mPreFilteredTexture->CreateImageView(mSkyboxFormat, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_CUBE, 6);
+		mPreFilteredTexture->CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_MIPMAP_MODE_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE);
+		const uint32_t numMips = mPreFilteredTexture->mMipLevels;
 
 		VkDescriptorSetLayout descriptorsetLayout{};
 		VkDescriptorSetLayoutBinding skyboxLayoutBinding = plvk::descriptorSetLayoutBinding(0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -763,7 +760,7 @@ namespace Plaza {
 		}
 
 		std::vector<VkWriteDescriptorSet> descriptorWrites = std::vector<VkWriteDescriptorSet>();
-		VkDescriptorImageInfo samplerInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->mSkyboxImageViews[0], VulkanRenderer::GetRenderer()->mTextureSampler);
+		VkDescriptorImageInfo samplerInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mSkyboxTexture->mImageView, VulkanRenderer::GetRenderer()->mTextureSampler);
 		descriptorWrites.push_back(plvk::writeDescriptorSet(descriptorset, 0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &samplerInfo));
 
 		vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
@@ -789,7 +786,7 @@ namespace Plaza {
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
 		VkAttachmentReference colorAttachmentRef{};
@@ -866,16 +863,32 @@ namespace Plaza {
 
 		ConverterPushConstants pushBlock{};
 
+		std::vector<glm::mat4> mats = {
+			// POSITIVE_X
+			glm::rotate(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+			// NEGATIVE_X
+			glm::rotate(glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+			// POSITIVE_Y
+			glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+			// NEGATIVE_Y
+			glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+			// POSITIVE_Z
+			glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+			// NEGATIVE_Z
+			glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+		};
+
 		for (uint32_t m = 0; m < numMips; m++) {
 			pushBlock.roughness = (float)m / (float)(numMips - 1);
 			for (uint32_t f = 0; f < 6; f++) {
+				glm::vec2 currentSize = glm::vec2(size.x * std::pow(0.5f, m), size.y * std::pow(0.5f, m));
 				VkImageViewCreateInfo layerImageViewCreateInfo = {};
 				layerImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 				layerImageViewCreateInfo.image = mPreFilteredTexture->mImage;
 				layerImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 				layerImageViewCreateInfo.format = mSkyboxFormat;
 				layerImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				layerImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+				layerImageViewCreateInfo.subresourceRange.baseMipLevel = m;
 				layerImageViewCreateInfo.subresourceRange.levelCount = 1;
 				layerImageViewCreateInfo.subresourceRange.baseArrayLayer = f; // Target specific layer
 				layerImageViewCreateInfo.subresourceRange.layerCount = 1;
@@ -889,8 +902,8 @@ namespace Plaza {
 				framebufferInfo.renderPass = pipeline.mShaders->mRenderPass;
 				framebufferInfo.attachmentCount = frameBufferAttachments.size();
 				framebufferInfo.pAttachments = frameBufferAttachments.data();
-				framebufferInfo.width = size.x;//Application->appSizes->sceneSize.x;
-				framebufferInfo.height = size.y;//Application->appSizes->sceneSize.y;
+				framebufferInfo.width = currentSize.x;//Application->appSizes->sceneSize.x;
+				framebufferInfo.height = currentSize.y;//Application->appSizes->sceneSize.y;
 				framebufferInfo.layers = 1;
 
 				VkFramebuffer framebuffer; //= frameBuffers[i];
@@ -904,7 +917,7 @@ namespace Plaza {
 				renderPassInfo.renderPass = pipeline.mShaders->mRenderPass;
 				renderPassInfo.framebuffer = framebuffer;
 				renderPassInfo.renderArea.offset = { 0, 0 };
-				renderPassInfo.renderArea.extent = { static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y) };
+				renderPassInfo.renderArea.extent = { static_cast<uint32_t>(currentSize.x), static_cast<uint32_t>(currentSize.y) };
 
 				VkClearValue clearColor = { 0.3f, 0.3f, 0.3f, 1.0f };
 				renderPassInfo.clearValueCount = 1;
@@ -912,16 +925,16 @@ namespace Plaza {
 
 				VkRect2D scissor = {};
 				scissor.offset = { 0, 0 };
-				scissor.extent = { static_cast<uint32_t>(size.x), static_cast<uint32_t>(size.y) };
+				scissor.extent = { static_cast<uint32_t>(currentSize.x), static_cast<uint32_t>(currentSize.y) };
 
 				vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 				VkViewport viewport{};
 				viewport.x = 0.0f;
 				viewport.y = 0.0f;
-				viewport.width = size.x;
-				viewport.height = -(float)(size.y);
-				viewport.y = size.y;
+				viewport.width = currentSize.x;
+				viewport.height = (float)(currentSize.y);
+				viewport.y = 0;//currentSize.y;
 				viewport.minDepth = 0.0f;
 				viewport.maxDepth = 1.0f;
 
@@ -930,63 +943,19 @@ namespace Plaza {
 				// Render scene from cube face's point of view
 				vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-				// Update shader push constant block
-				pushBlock.mvp = glm::perspective((float)(glm::pi<double>() / 2.0), 1.0f, 0.1f, 512.0f) * matrices[f];
-
 				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.mShaders->mPipeline);
 
 				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.mShaders->mPipelineLayout, 0, 1, &descriptorset, 0, nullptr);
-				pushBlock.mvp = glm::perspective((float)(glm::pi<double>() / 2.0), 1.0f, 0.1f, 512.0f) * matrices[f];
+				pushBlock.mvp = glm::perspective((float)(glm::pi<double>() / 2.0), 1.0f, 0.1f, 512.0f) * mats[f];
 				vkCmdPushConstants(commandBuffer, pipeline.mShaders->mPipelineLayout, VK_SHADER_STAGE_ALL, 0, sizeof(ConverterPushConstants), &pushBlock);
 				vkCmdDraw(commandBuffer, 36, 1, 0, 0);
 
 				vkCmdEndRenderPass(commandBuffer);
-
-				//vks::tools::setImageLayout(
-				//	cmdBuf,
-				//	offscreen.image,
-				//	VK_IMAGE_ASPECT_COLOR_BIT,
-				//	VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-				//	VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-
-				//// Copy region for transfer from framebuffer to cube face
-				//VkImageCopy copyRegion = {};
-				//
-				//copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				//copyRegion.srcSubresource.baseArrayLayer = 0;
-				//copyRegion.srcSubresource.mipLevel = 0;
-				//copyRegion.srcSubresource.layerCount = 1;
-				//copyRegion.srcOffset = { 0, 0, 0 };
-				//
-				//copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				//copyRegion.dstSubresource.baseArrayLayer = f;
-				//copyRegion.dstSubresource.mipLevel = m;
-				//copyRegion.dstSubresource.layerCount = 1;
-				//copyRegion.dstOffset = { 0, 0, 0 };
-				//
-				//copyRegion.extent.width = static_cast<uint32_t>(viewport.width);
-				//copyRegion.extent.height = static_cast<uint32_t>(viewport.height);
-				//copyRegion.extent.depth = 1;
-
-				//vkCmdCopyImage(
-				//	cmdBuf,
-				//	offscreen.image,
-				//	VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-				//	mPreFilteredTexture->mImage,
-				//	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-				//	1,
-				//	&copyRegion);
-
-				// Transform framebuffer color attachment back
-				//vks::tools::setImageLayout(
-				//	cmdBuf,
-				//	offscreen.image,
-				//	VK_IMAGE_ASPECT_COLOR_BIT,
-				//	VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-				//	VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 			}
 		}
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
+
+		VulkanRenderer::GetRenderer()->AddTrackerToImage(mPreFilteredTexture->mImageView, "Pre Filtered Texture", VulkanRenderer::GetRenderer()->mTextureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 
 	void VulkanSkybox::InitializeDescriptorPool() {
@@ -1031,7 +1000,7 @@ namespace Plaza {
 			}
 			std::vector<VkWriteDescriptorSet> descriptorWrites = std::vector<VkWriteDescriptorSet>();
 
-			VkDescriptorImageInfo skyboxInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->mSkyboxImageViews[i], this->mSkyboxSampler);
+			VkDescriptorImageInfo skyboxInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mSkyboxTexture->mImageView, mSkyboxTexture->mSampler);
 			//VkDescriptorImageInfo skyboxInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mIrradianceTexture->mImageView, mIrradianceTexture->mSampler);
 			descriptorWrites.push_back(plvk::writeDescriptorSet(mDescriptorSets[i], 5, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &skyboxInfo));
 
@@ -1040,64 +1009,6 @@ namespace Plaza {
 	}
 
 	void VulkanSkybox::InitializeRenderPass() {
-		//VkAttachmentDescription colorAttachment{};
-		//colorAttachment.format = this->mSkyboxFormat;
-		//colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		//colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		//colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		//colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		//colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-		//colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		//colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		//
-		//VkAttachmentReference colorAttachmentRef{};
-		//colorAttachmentRef.attachment = 0;
-		//colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		//
-		//VkAttachmentDescription depthAttachment{};
-		//depthAttachment.format = VulkanRenderer::GetRenderer()->FindDepthFormat();
-		//depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		//depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		//depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		//depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		//depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		//depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		//depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		//
-		//VkAttachmentReference depthAttachmentRef{};
-		//depthAttachmentRef.attachment = 1;
-		//depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		//
-		//VkSubpassDescription subpass{};
-		//subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		//subpass.colorAttachmentCount = 1;
-		//subpass.pColorAttachments = &colorAttachmentRef;
-		//subpass.pDepthStencilAttachment = &depthAttachmentRef;
-		//
-		//VkSubpassDependency dependency{};
-		//dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		//dependency.dstSubpass = 0;
-		//dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		//dependency.srcAccessMask = 0;
-		//dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		//dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		//dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		//dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		//dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-		//
-		//std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
-		//VkRenderPassCreateInfo renderPassInfo{};
-		//renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		//renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-		//renderPassInfo.pAttachments = attachments.data();
-		//renderPassInfo.subpassCount = 1;
-		//renderPassInfo.pSubpasses = &subpass;
-		//renderPassInfo.dependencyCount = 1;
-		//renderPassInfo.pDependencies = &dependency;
-		//
-		//if (vkCreateRenderPass(VulkanRenderer::GetRenderer()->mDevice, &renderPassInfo, nullptr, &this->mSkyboxPostEffect->mRenderPass) != VK_SUCCESS) {
-		//	throw std::runtime_error("failed to create render pass!");
-		//}
 		/* Render pass */
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = VulkanRenderer::GetRenderer()->mLighting->mDeferredEndTextureFormat;
@@ -1159,6 +1070,171 @@ namespace Plaza {
 		}
 	}
 
+	void VulkanSkybox::InitializeBRDF() {
+		mBRDFLUTTexture = new VulkanTexture();
+		mBRDFLUTTexture->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, VK_FORMAT_R16G16_SFLOAT, mBrdfSize, mBrdfSize, false, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+			VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_LAYOUT_UNDEFINED, 1, 0, true, VK_SHARING_MODE_EXCLUSIVE, false);
+		mBRDFLUTTexture->CreateImageView(VK_FORMAT_R16G16_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D, 1);
+		mBRDFLUTTexture->CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_MIPMAP_MODE_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE);
+
+		VulkanPlazaPipeline pipeline = VulkanPlazaPipeline();
+
+		// Render pass
+		VkAttachmentDescription colorAttachment{};
+		colorAttachment.format = mBRDFLUTTexture->GetFormat();
+		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		VkAttachmentReference colorAttachmentRef{};
+		colorAttachmentRef.attachment = 0;
+		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = 1;
+		subpass.pColorAttachments = &colorAttachmentRef;
+
+		VkSubpassDependency dependency{};
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.dstSubpass = 0;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.srcAccessMask = 0;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+		std::array<VkAttachmentDescription, 1> attachments = { colorAttachment };
+		VkRenderPassCreateInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		renderPassInfo.pAttachments = attachments.data();
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = 1;
+		renderPassInfo.pDependencies = &dependency;
+
+		if (vkCreateRenderPass(VulkanRenderer::GetRenderer()->mDevice, &renderPassInfo, nullptr, &pipeline.mShaders->mRenderPass) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create render pass!");
+		}
+
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutInfo.setLayoutCount = 0;
+		pipelineLayoutInfo.pushConstantRangeCount = 0;
+
+		VkPipelineDepthStencilStateCreateInfo depthStencil{};
+		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		depthStencil.depthTestEnable = VK_TRUE;
+		depthStencil.depthWriteEnable = VK_FALSE;
+		depthStencil.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
+		depthStencil.depthBoundsTestEnable = VK_FALSE;
+		depthStencil.stencilTestEnable = VK_FALSE;
+		pipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.vert");
+		pipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.frag");
+		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
+		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		vertexInputInfo.vertexBindingDescriptionCount = 0;
+		vertexInputInfo.pVertexBindingDescriptions = nullptr;
+		vertexInputInfo.vertexAttributeDescriptionCount = 0;
+		vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = plvk::pipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_FALSE);
+		VkPipelineRasterizationStateCreateInfo rasterizationState = plvk::pipelineRasterizationStateCreateInfo(VK_FALSE, VK_FALSE, VK_POLYGON_MODE_FILL, 1.0f, VK_FALSE, 0.0f, 0.0f, 0.0f, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+		VkPipelineColorBlendAttachmentState blendAttachmentState = plvk::pipelineColorBlendAttachmentState(VK_TRUE);
+		std::vector<VkPipelineColorBlendAttachmentState> blendAttachments{ blendAttachmentState };
+		VkPipelineColorBlendStateCreateInfo colorBlendState = plvk::pipelineColorBlendStateCreateInfo(1, blendAttachments.data());
+		VkPipelineDepthStencilStateCreateInfo depthStencilState = plvk::pipelineDepthStencilStateCreateInfo(VK_FALSE, VK_FALSE, VK_COMPARE_OP_LESS_OR_EQUAL);
+		VkPipelineViewportStateCreateInfo viewportState = plvk::pipelineViewportStateCreateInfo(1, 1);
+		VkPipelineMultisampleStateCreateInfo multisampleState = plvk::pipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
+		std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+		VkPipelineDynamicStateCreateInfo dynamicState = plvk::pipelineDynamicStateCreateInfo(dynamicStateEnables);
+		pipeline.mShaders->InitializeFull(VulkanRenderer::GetRenderer()->mDevice, pipelineLayoutInfo, true, mBrdfSize, mBrdfSize, {},
+			vertexInputInfo,
+			inputAssemblyState,
+			viewportState,
+			rasterizationState,
+			multisampleState,
+			colorBlendState,
+			dynamicState,
+			pipeline.mShaders->mRenderPass,
+			depthStencilState);
+
+		VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
+
+		VkImageViewCreateInfo layerImageViewCreateInfo = {};
+		layerImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		layerImageViewCreateInfo.image = mBRDFLUTTexture->mImage;
+		layerImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		layerImageViewCreateInfo.format = mBRDFLUTTexture->GetFormat();
+		layerImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		layerImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+		layerImageViewCreateInfo.subresourceRange.levelCount = 1;
+		layerImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+		layerImageViewCreateInfo.subresourceRange.layerCount = 1;
+
+		VkImageView layerImageView;
+		vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &layerImageViewCreateInfo, nullptr, &layerImageView);
+
+		std::vector<VkImageView> frameBufferAttachments{ layerImageView };
+		VkFramebufferCreateInfo framebufferInfo{};
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = pipeline.mShaders->mRenderPass;
+		framebufferInfo.attachmentCount = frameBufferAttachments.size();
+		framebufferInfo.pAttachments = frameBufferAttachments.data();
+		framebufferInfo.width = mBrdfSize;
+		framebufferInfo.height = mBrdfSize;
+		framebufferInfo.layers = 1;
+
+		VkFramebuffer framebuffer; //= frameBuffers[i];
+		if (vkCreateFramebuffer(VulkanRenderer::GetRenderer()->mDevice, &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create framebuffer!");
+		}
+
+		// Begin render pass
+		VkRenderPassBeginInfo beginRenderPassInfo = {};
+		beginRenderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		beginRenderPassInfo.renderPass = pipeline.mShaders->mRenderPass;
+		beginRenderPassInfo.framebuffer = framebuffer;
+		beginRenderPassInfo.renderArea.offset = { 0, 0 };
+		beginRenderPassInfo.renderArea.extent = { static_cast<uint32_t>(mBrdfSize), static_cast<uint32_t>(mBrdfSize) };
+
+		VkClearValue clearColor = { 0.3f, 0.3f, 0.3f, 1.0f };
+		beginRenderPassInfo.clearValueCount = 1;
+		beginRenderPassInfo.pClearValues = &clearColor;
+
+		VkRect2D scissor = {};
+		scissor.offset = { 0, 0 };
+		scissor.extent = { static_cast<uint32_t>(mBrdfSize), static_cast<uint32_t>(mBrdfSize) };
+
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = mBrdfSize;
+		viewport.height = -static_cast<int32_t>(mBrdfSize);
+		viewport.y = mBrdfSize;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+		vkCmdBeginRenderPass(commandBuffer, &beginRenderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.mShaders->mPipeline);
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
+		vkCmdEndRenderPass(commandBuffer);
+
+
+		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
+	}
+
 	void VulkanSkybox::Init() {
 		this->mSkyboxPostEffect = new VulkanPlazaPipeline();
 
@@ -1178,13 +1254,15 @@ namespace Plaza {
 		this->mSkyboxPaths[4] = shadersPath + "front.jpg";
 		this->mSkyboxPaths[5] = shadersPath + "back.jpg";
 
-		this->mSkyboxPaths[0] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\" + "newport_loft.hdr";
+		this->mSkyboxPaths[0] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\" + "autumn_field_4k.hdr";
 
 		this->mResolution = glm::vec2(4096);//Application->appSizes->sceneSize;
 		this->InitializeImageSampler();
 		this->InitializeImageView();
 		this->InitializeDescriptorPool();
 		this->InitializeDescriptorSets();
+
+		InitializeBRDF();
 		//this->InitializeRenderPass();
 
 		//this->mFramebuffers.resize(Application->mRenderer->mMaxFramesInFlight);
@@ -1270,7 +1348,9 @@ namespace Plaza {
 		/* Update deferred irradiance binding */
 		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
 			std::vector<VkWriteDescriptorSet> descriptorWrites = std::vector<VkWriteDescriptorSet>();
-			VkDescriptorImageInfo preFilterInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mSkybox->mSkyboxImageViews[0], VulkanRenderer::GetRenderer()->mSkybox->mIrradianceTexture->mSampler);
+			VkDescriptorImageInfo brdfInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mSkybox->mBRDFLUTTexture->mImageView, VulkanRenderer::GetRenderer()->mSkybox->mBRDFLUTTexture->mSampler);
+			descriptorWrites.push_back(plvk::writeDescriptorSet(VulkanRenderer::GetRenderer()->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 6, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &brdfInfo));
+			VkDescriptorImageInfo preFilterInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mSkybox->mPreFilteredTexture->mImageView, VulkanRenderer::GetRenderer()->mSkybox->mPreFilteredTexture->mSampler);
 			descriptorWrites.push_back(plvk::writeDescriptorSet(VulkanRenderer::GetRenderer()->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 7, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &preFilterInfo));
 			VkDescriptorImageInfo irradianceInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mSkybox->mIrradianceTexture->mImageView, VulkanRenderer::GetRenderer()->mSkybox->mIrradianceTexture->mSampler);
 			descriptorWrites.push_back(plvk::writeDescriptorSet(VulkanRenderer::GetRenderer()->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 8, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &irradianceInfo));

@@ -8,5 +8,8 @@ namespace Plaza {
 		void Load(std::string relativePath = "") override;
 		unsigned int GetTextureID() override;
 		ImTextureID GetImGuiTextureID() override;
+		void Destroy() override {
+			// TODO: IMPLEMENT TEXTURE DESTROY
+		}
 	};
 }

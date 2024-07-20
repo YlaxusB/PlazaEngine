@@ -36,17 +36,19 @@ namespace Plaza {
 		void DrawSkybox() override;
 		void Terminate() override;
 
+		VulkanTexture* mSkyboxTexture = nullptr;
 		VulkanTexture* mIrradianceTexture = nullptr;
 		VulkanTexture* mPreFilteredTexture = nullptr;
+		VulkanTexture* mBRDFLUTTexture = nullptr;
 	private:
+		const uint32_t mIrradianceSize = 64;
+		const uint32_t mBrdfSize = 512;
+
 		glm::vec2 mScreenSize;
 		VkBuffer mStagingBuffer;
 		VkDeviceMemory mStagingBufferMemory;
 
 		VkDescriptorPool mDescriptorPool = VK_NULL_HANDLE;
-		VkSampler mSkyboxSampler = VK_NULL_HANDLE;
-		VkImage mSkyboxImage = VK_NULL_HANDLE;
-		std::vector<VkImageView> mSkyboxImageViews = std::vector<VkImageView>();
 		void InitializeImageSampler();
 		void InitializeImageView();
 		void InitializeDescriptorPool();
@@ -55,6 +57,7 @@ namespace Plaza {
 		void GenerateSkyboxMipmaps(VkCommandBuffer commandBuffer, VkImage image, int32_t width, int32_t height, uint32_t mipLevels);
 		void GeneratePreFilteredEnvironment();
 		void InitializeIrradiance();
+		void InitializeBRDF();
 		void UpdateAndPushConstants(VkCommandBuffer commandBuffer);
 
 		const std::vector<glm::mat4> matrices = {

@@ -233,7 +233,9 @@ namespace Plaza {
 
 					glm::vec3 position = ConvertUfbxVec3(ufbxMesh->vertex_position[index]);
 					glm::vec3 normal = ConvertUfbxVec3(ufbxMesh->vertex_normal[index]);
-					glm::vec2 uv = ConvertUfbxVec2(ufbxMesh->vertex_uv[index]);
+					glm::vec2 uv;
+					if (ufbxMesh->vertex_uv.exists)
+						uv = ConvertUfbxVec2(ufbxMesh->vertex_uv[index]);
 
 					finalMesh->vertices.push_back(position * mModelImporterScale);
 					finalMesh->normals.push_back(normal);

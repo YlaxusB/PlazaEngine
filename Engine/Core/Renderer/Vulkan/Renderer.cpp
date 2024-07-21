@@ -1231,7 +1231,6 @@ namespace Plaza {
 					value.instanceModelMatrices.clear();
 					value.instanceMaterialIndices.clear();
 					lastRendergroupMaterialsCount = materialsCount;
-
 				}
 			}
 		}
@@ -1295,6 +1294,7 @@ namespace Plaza {
 			}
 
 			{
+				PLAZA_PROFILE_SECTION("Animation Controller");
 				this->EarlyAnimationController();
 				std::unordered_set<int> matricesIds = std::unordered_set<int>();
 				std::vector<glm::mat4> matrices = std::vector<glm::mat4>();
@@ -1314,13 +1314,16 @@ namespace Plaza {
 				vkUnmapMemory(mDevice, this->mBoneMatricesBufferMemories[mCurrentFrame]);
 			}
 
-			VkDeviceSize offsets[1] = { 0 };
-			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
-			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
-			//vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
-			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+			{
+				PLAZA_PROFILE_SECTION("Bind Vertex and Index buffers");
+				VkDeviceSize offsets[1] = { 0 };
+				vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
+				vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
+				//vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
+				vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+				vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+			}
 
 			// for (const auto& [key, value] : Application->activeScene->renderGroups) {
 			//	//	this->DrawRenderGroupShadowDepthMapInstanced(value, 0);
@@ -1396,10 +1399,12 @@ namespace Plaza {
 		renderPassInfo.framebuffer = mDeferredFramebuffer;
 
 		/* Tiled Lighting */
-		this->mLighting->GetLights();
-		this->mLighting->UpdateTiles();
-		this->mLighting->DrawDeferredPass();
-
+		{
+			PLAZA_PROFILE_SECTION("Deferred Lighting");
+			this->mLighting->GetLights();
+			this->mLighting->UpdateTiles();
+			this->mLighting->DrawDeferredPass();
+		}
 		// vkCmdBeginRenderPass(commandBuffer, &renderPassInfo,
 		// VK_SUBPASS_CONTENTS_INLINE); 
 		// vkCmdEndRenderPass(commandBuffer);
@@ -2112,6 +2117,20 @@ namespace Plaza {
 			sourceStage = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_GENERAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+			barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
 		else {
 			throw std::invalid_argument("unsupported layout transition!");
 		}
@@ -2279,9 +2298,9 @@ namespace Plaza {
 
 	VkFormat
 		VulkanRenderer::FindDepthFormat() {
-		return FindSupportedFormat({ VK_FORMAT_D32_SFLOAT,
+		return FindSupportedFormat({ VK_FORMAT_D24_UNORM_S8_UINT,
 								 VK_FORMAT_D32_SFLOAT_S8_UINT,
-								 VK_FORMAT_D24_UNORM_S8_UINT },
+								 VK_FORMAT_D32_SFLOAT },
 			VK_IMAGE_TILING_OPTIMAL,
 			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 	}
@@ -2522,7 +2541,7 @@ namespace Plaza {
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 			mMainVertexBuffer,
 			mMainVertexBufferMemory);
-		CreateBuffer(1024 * 1024 * 16 * sizeof(unsigned int),
+		CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int),
 			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 			mMainIndexBuffer,

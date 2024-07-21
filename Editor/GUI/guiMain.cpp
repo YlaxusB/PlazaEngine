@@ -31,6 +31,7 @@
 #include "Engine/Core/AssetsManager/AssetsManager.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Editor/DragDrop/DropFileScene.h"
+#include "Editor/EditorTools/TerrainEditorTool.h"
 
 ////   #include "ThirdParty/imgui/imgui_impl_vulkan.h"
 //#include "Engine/Application/Application.h" //
@@ -224,6 +225,8 @@ namespace Plaza {
 			//}
 
 			Application->mEditor->mGui.mAssetsImporter.Update();
+
+			TerrainEditorTool::UpdateGui();
 
 			//if (ImGui::Begin("Asset Importer", &isAssetImporterOpen)) {
 			//	ImGui::End();

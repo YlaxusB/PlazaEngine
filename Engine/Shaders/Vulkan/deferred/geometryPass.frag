@@ -278,7 +278,7 @@ void main() {
     gOthers.z = metallic;
     gPosition = vec4(worldPos);
     gDiffuse = vec4(FinalColor, 1.0f);
-    gNormal = vec4(N.xyz, 1.0f);
+    gNormal = vec4(Normal.xyz, 1.0f);
 
 }
 

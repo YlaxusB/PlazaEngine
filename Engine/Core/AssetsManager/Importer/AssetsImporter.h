@@ -20,7 +20,8 @@ namespace Plaza {
 		JPG,
 		JPEG,
 		DDS,
-		TGA
+		TGA,
+		PSD
 	};
 	struct AssetImported {
 		std::string mExtension;
@@ -54,7 +55,8 @@ namespace Plaza {
 			{".jpg", JPG},
 			{".jpeg", JPEG},
 			{".dds", DDS},
-			{".tga", TGA}
+			{".tga", TGA},
+			{".psd", PSD}
 		};
 
 		static Material* FbxModelMaterialLoader(const ufbx_material* ufbxMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures);

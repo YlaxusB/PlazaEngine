@@ -30,6 +30,13 @@ namespace Plaza::Editor {
 		ApplicationSizes& appSizes = *Application->appSizes;
 		// Setup imguizmo
 		ImGuizmo::SetOrthographic(false);
+		ImGuizmo::GetStyle().HatchedAxisLineThickness = 8.0f;
+		ImGuizmo::GetStyle().RotationLineThickness = 6.0f;
+		ImGuizmo::GetStyle().RotationOuterLineThickness = 4.0f;
+		ImGuizmo::GetStyle().ScaleLineCircleSize = 8.0f;
+		ImGuizmo::GetStyle().ScaleLineThickness = 6.0f;
+		ImGuizmo::GetStyle().TranslationLineArrowSize = 10.0f;
+		ImGuizmo::GetStyle().TranslationLineThickness = 6.0f;
 		ImGuizmo::SetDrawlist();
 		ImVec2 windowSize = ImGui::GetWindowSize();
 		ImVec2 windowPos = ImGui::GetWindowPos();

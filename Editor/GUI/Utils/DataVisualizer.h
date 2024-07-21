@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <ThirdParty/glm/glm.hpp>
+#include "Engine/Core/UUID.h"
+
 namespace Plaza::Editor::Utils {
 	struct GuiTable {
 		ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg;
@@ -77,6 +79,16 @@ namespace Plaza::Editor::Utils {
 		ImGui::Text(name.c_str());
 		ImGui::TableNextColumn();
 		if (ImGui::DragFloat(std::string("##" + name).c_str(), value, speed, min, max, format, flags))
+			if (callback)
+				callback(value);
+	}
+
+	static void AddTableInt(std::string name, int* value, float speed = 1.0f, float min = 0.0f, float max = 0.0f, const char* format = "%d", ImGuiSliderFlags flags = ImGuiSliderFlags_None, std::function<void(int*) > callback = nullptr) {
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::Text(name.c_str());
+		ImGui::TableNextColumn();
+		if (ImGui::DragInt(std::string("##" + name).c_str(), value, speed, min, max, format, flags))
 			if (callback)
 				callback(value);
 	}

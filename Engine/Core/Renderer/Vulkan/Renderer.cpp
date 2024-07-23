@@ -1,4 +1,6 @@
 // #include "Engine/Core/PreCompiledHeaders.h"
+#define VMA_IMPLEMENTATION
+#include "ThirdParty/include/VulkanMemoryAllocator/vk_mem_alloc.h"
 #include "Renderer.h"
 
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
@@ -1317,10 +1319,10 @@ namespace Plaza {
 			{
 				PLAZA_PROFILE_SECTION("Bind Vertex and Index buffers");
 				VkDeviceSize offsets[1] = { 0 };
-				vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
+				vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer->GetBuffer(), offsets);
 				vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
 				//vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
-				vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+				vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 				vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 			}
@@ -1363,8 +1365,8 @@ namespace Plaza {
 			descriptorSets.push_back(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame]);
 
 			VkDeviceSize offsets[1] = { 0 };
-			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
-			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer, offsets);
+			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer->GetBuffer(), offsets);
 			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
 			vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 			vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
@@ -1411,7 +1413,7 @@ namespace Plaza {
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		this->mBloom.Draw();
+		//this->mBloom.Draw();
 		/* ----------------- this->mGuiRenderer->RenderText(nullptr) -----------------
 		 */
 		;
@@ -1537,11 +1539,7 @@ namespace Plaza {
 		throw std::runtime_error("failed to find suitable memory type!");
 	}
 
-	void VulkanRenderer::CreateBuffer(VkDeviceSize size,
-		VkBufferUsageFlags usage,
-		VkMemoryPropertyFlags properties,
-		VkBuffer& buffer,
-		VkDeviceMemory& bufferMemory) {
+	void VulkanRenderer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferInfo.size = size;
@@ -1551,20 +1549,26 @@ namespace Plaza {
 		if (vkCreateBuffer(mDevice, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create buffer!");
 		}
-
+		
 		VkMemoryRequirements memRequirements;
 		vkGetBufferMemoryRequirements(mDevice, buffer, &memRequirements);
-
+		
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
 		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties, size);
-
+		
 		if (vkAllocateMemory(mDevice, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate buffer memory!");
 		}
 
 		vkBindBufferMemory(mDevice, buffer, bufferMemory, 0);
+
+		//VmaAllocationCreateInfo allocInfo = {};
+		//allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+		//
+		//VmaAllocation allocation;
+		//vmaCreateBuffer(mVmaAllocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr);
 	}
 
 	void VulkanRenderer::CopyBuffer(VkBuffer srcBuffer,
@@ -2535,17 +2539,27 @@ namespace Plaza {
 		std::cout << "CreateCommandPool \n";
 		CreateCommandPool();
 
+		// VMA Allocator
+		VmaAllocatorCreateInfo allocatorInfo = {};
+		allocatorInfo.physicalDevice = mPhysicalDevice;
+		allocatorInfo.device = mDevice;
+		allocatorInfo.instance = mVulkanInstance;
+		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
+		vmaCreateAllocator(&allocatorInfo, &mVmaAllocator);
+
 		/* Initialize buffers */
-		CreateBuffer(1024 * 1024 * 16 * sizeof(Vertex),
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			mMainVertexBuffer,
-			mMainVertexBufferMemory);
-		CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int),
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-			mMainIndexBuffer,
-			mMainIndexBufferMemory);
+		mMainVertexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
+		mMainIndexBuffer->CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
+		//CreateBuffer(1024 * 1024 * 16 * sizeof(Vertex),
+		//	VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		//	VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		//	mMainVertexBuffer,
+		//	mMainVertexBufferMemory);
+		//CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int),
+		//	VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+		//	VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		//	mMainIndexBuffer,
+		//	mMainIndexBufferMemory);
 		mIndirectBuffers.resize(mMaxFramesInFlight);
 		mIndirectBufferMemories.resize(mMaxFramesInFlight);
 		mMainInstanceMatrixBuffers.resize(mMaxFramesInFlight);
@@ -2911,11 +2925,13 @@ namespace Plaza {
 		}
 		vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
 
-		vkDestroyBuffer(mDevice, mIndexBuffer, nullptr);
-		vkFreeMemory(mDevice, mIndexBufferMemory, nullptr);
-
-		vkDestroyBuffer(mDevice, mVertexBuffer, nullptr);
-		vkFreeMemory(mDevice, mVertexBufferMemory, nullptr);
+		mMainVertexBuffer->Destroy();
+		mMainIndexBuffer->Destroy();
+		//vkDestroyBuffer(mDevice, mIndexBuffer, nullptr);
+		//vkFreeMemory(mDevice, mIndexBufferMemory, nullptr);
+		//
+		//vkDestroyBuffer(mDevice, mVertexBuffer, nullptr);
+		//vkFreeMemory(mDevice, mVertexBufferMemory, nullptr);
 
 		vkDestroyInstance(mVulkanInstance, nullptr);
 		vkDestroyDevice(mDevice, nullptr);
@@ -3210,7 +3226,7 @@ namespace Plaza {
 		vkUnmapMemory(mDevice, stagingBufferMemory);
 
 		CopyBuffer(stagingBuffer,
-			mMainVertexBuffer,
+			mMainVertexBuffer->GetBuffer(),
 			newDataSize,
 			mBufferTotalVertices * sizeof(Vertex));
 
@@ -3229,11 +3245,16 @@ namespace Plaza {
 
 		VkBuffer indexStagingBuffer;
 		VkDeviceMemory indexStagingBufferMemory;
-		CreateBuffer(newDataSize,
+		CreateBuffer(indicesDataSize,
 			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 			indexStagingBuffer,
 			indexStagingBufferMemory);
+		//PlBuffer indexStagingBuffer;
+		//indexStagingBuffer.CreateBuffer(newDataSize, )
+		//vmaMapMemory(indexStagingBuffer.GetVmaAllocator(), indexStagingBuffer.GetAllocation(), &data2);
+		//memcpy(data2, indices.data(), static_cast<size_t>(indicesDataSize));
+		//vmaUnmapMemory(indexStagingBuffer.GetVmaAllocator(), indexStagingBuffer.GetAllocation());
 
 		void* data2;
 		vkMapMemory(mDevice, indexStagingBufferMemory, 0, indicesDataSize, 0, &data2);
@@ -3241,7 +3262,7 @@ namespace Plaza {
 		vkUnmapMemory(mDevice, indexStagingBufferMemory);
 
 		CopyBuffer(indexStagingBuffer,
-			mMainIndexBuffer,
+			mMainIndexBuffer->GetBuffer(),
 			indicesDataSize,
 			mBufferTotalIndices * sizeof(unsigned int));
 
@@ -3259,11 +3280,6 @@ namespace Plaza {
 		this->mIndirectCommands.push_back(indirectCommand);
 		mTotalInstances++;
 		mIndirectDrawCount++;
-		// Create instance buffer
-		// VkDeviceSize bufferSize = 16 * sizeof(glm::mat4);
-		// this->CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		// VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		// vulkMesh.mInstanceBuffer, vulkMesh.mInstanceBufferMemory);
 		return vulkMesh;
 	}
 
@@ -3677,4 +3693,4 @@ namespace Plaza {
 		VulkanRenderer::GetGeometryPassDescriptorSet(unsigned int frame) {
 		return this->mGeometryPassRenderer.mShaders->mDescriptorSets[frame];
 	}
-} // namespace Plaza
+			} // namespace Plaza

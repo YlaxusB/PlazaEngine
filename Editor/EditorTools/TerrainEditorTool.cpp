@@ -8,10 +8,14 @@ namespace Plaza {
 		Mesh* TerrainEditorTool::CreateHeightMapTerrain(unsigned int x, unsigned int y, unsigned int z) {
 			std::vector<glm::vec3> vertices = std::vector<glm::vec3>();
 			std::vector<unsigned int> indices = std::vector<unsigned int>();//x * z * 3
+			std::vector<glm::vec3> normals = std::vector<glm::vec3>();
+			std::vector<glm::vec2> uvs = std::vector<glm::vec2>();
 
 			for (unsigned int i = 0; i < x; ++i) {
 				for (unsigned int j = 0; j < z; ++j) {
 					vertices.push_back(glm::vec3(i, 1.0f, j));
+					normals.push_back(glm::vec3(0.0f, 1.0f, 0.0f));
+					uvs.push_back(glm::vec2(0.5f, 0.5f));
 				}
 			}
 
@@ -35,7 +39,7 @@ namespace Plaza {
 				}
 			}
 
-			Mesh* mesh = &Application->mRenderer->CreateNewMesh(vertices, {}, { glm::vec2(0.0f, 0.0f) }, {}, {}, indices, { 0 }, false, {}, {});
+			Mesh* mesh = &Application->mRenderer->CreateNewMesh(vertices, normals, uvs, {}, {}, indices, { 0 }, false, {}, {});
 			return mesh;
 		}
 		void TerrainEditorTool::CreateTerrain(unsigned int x, unsigned int y, unsigned int z) {

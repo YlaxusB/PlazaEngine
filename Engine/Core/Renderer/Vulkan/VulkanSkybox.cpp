@@ -1000,7 +1000,7 @@ namespace Plaza {
 			}
 			std::vector<VkWriteDescriptorSet> descriptorWrites = std::vector<VkWriteDescriptorSet>();
 
-			VkDescriptorImageInfo skyboxInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mSkyboxTexture->mImageView, mSkyboxTexture->mSampler);
+			VkDescriptorImageInfo skyboxInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mPreFilteredTexture->mImageView, mPreFilteredTexture->mSampler);
 			//VkDescriptorImageInfo skyboxInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mIrradianceTexture->mImageView, mIrradianceTexture->mSampler);
 			descriptorWrites.push_back(plvk::writeDescriptorSet(mDescriptorSets[i], 5, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &skyboxInfo));
 

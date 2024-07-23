@@ -37,7 +37,7 @@ void SimplifyMesh(std::vector<Plaza::Vertex>& vertices, std::vector<unsigned int
 		// Collapse the edge
 		vertices[indices[collapseIndex]] = CombineVertices(vertices[indices[collapseIndex]],
 			vertices[indices[collapseIndex + 1]]);
-		vertices[indices[collapseIndex + 1]].isValid = false; // Mark vertex as invalid
+		//vertices[indices[collapseIndex + 1]].isValid = false; // Mark vertex as invalid
 
 		// Update indices to remove the collapsed triangle
 		indices.erase(indices.begin() + collapseIndex, indices.begin() + collapseIndex + 3);
@@ -45,7 +45,7 @@ void SimplifyMesh(std::vector<Plaza::Vertex>& vertices, std::vector<unsigned int
 
 	// Remove invalid vertices
 	vertices.erase(std::remove_if(vertices.begin(), vertices.end(),
-		[](const Plaza::Vertex& vertex) { return !vertex.isValid; }),
+		[](const Plaza::Vertex& vertex) { return false; }),
 		vertices.end());
 }
 

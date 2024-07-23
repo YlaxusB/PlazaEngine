@@ -409,7 +409,8 @@ namespace Plaza {
 				{
 					rotations[keyframe.time] = ConvertUfbxQuat(keyframe.value);
 				}
-
+				if (!sceneNode->bone)
+					continue;
 				uint64_t boneUuid = sceneNode->bone->element_id;
 				unsigned int maxCount = glm::max(positions.size(), rotations.size());
 				std::map<float, Bone::Keyframe> keyframes = std::map<float, Bone::Keyframe>();

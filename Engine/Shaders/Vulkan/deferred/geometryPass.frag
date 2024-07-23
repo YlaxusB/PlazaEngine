@@ -252,7 +252,7 @@ void main() {
     vec3 kD = 1.0 - F;
     kD *= 1.0 - metallic;
 
-    vec3 L = -normalize(ubo.lightDirection.xyz); // Directional light direction
+    vec3 L = normalize(ubo.lightDirection.xyz); // Directional light direction
 
     vec3 Lo = specularContribution(L, V, N, F0, metallic, roughness, albedo);
 

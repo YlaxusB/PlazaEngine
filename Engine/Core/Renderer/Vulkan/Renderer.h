@@ -15,6 +15,9 @@
 #include "VulkanComputeShaders.h"
 #include "VulkanBloom.h"
 
+#include "ThirdParty/include/VulkanMemoryAllocator/vk_mem_alloc.h"
+#include "VulkanPlazaWrapper.h"
+
 namespace Plaza {
 	struct SwapChainSupportDetails {
 		VkSurfaceCapabilitiesKHR capabilities;
@@ -165,6 +168,8 @@ namespace Plaza {
 		VulkanTexture mDeferredNormalTexture;
 		VulkanTexture mDeferredDiffuseTexture;
 		VulkanTexture mDeferredOthersTexture;
+
+		VmaAllocator mVmaAllocator;
 	private:
 		struct SwapChainPushConstant {
 			float exposure = 1.2f;
@@ -266,11 +271,10 @@ namespace Plaza {
 		void InitComputeSemaphores();
 		void InitComputeInFlightFences();
 
-
-		VkBuffer mVertexBuffer;
-		VkDeviceMemory mVertexBufferMemory;
-		VkBuffer mIndexBuffer;
-		VkDeviceMemory mIndexBufferMemory;
+		//VkBuffer mVertexBuffer;
+		//VkDeviceMemory mVertexBufferMemory;
+		//VkBuffer mIndexBuffer;
+		//VkDeviceMemory mIndexBufferMemory;
 		VkDescriptorSetLayout mDescriptorSetLayout;
 		std::vector<VkDescriptorSet> mDescriptorSets;
 		std::vector<VkDescriptorSet> mSwapPassDescriptorSets;
@@ -287,10 +291,12 @@ namespace Plaza {
 
 		VkBuffer mMainIndirectCommandsBuffer = VK_NULL_HANDLE;
 		VkDeviceMemory mMainIndirectCommandsBufferMemory = VK_NULL_HANDLE;
-		VkBuffer mMainVertexBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory mMainVertexBufferMemory = VK_NULL_HANDLE;
-		VkBuffer mMainIndexBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory mMainIndexBufferMemory = VK_NULL_HANDLE;
+		PlBuffer* mMainVertexBuffer = new PlBuffer();
+		PlBuffer* mMainIndexBuffer = new PlBuffer();
+		//VkBuffer mMainVertexBuffer = VK_NULL_HANDLE;
+		//VkDeviceMemory mMainVertexBufferMemory = VK_NULL_HANDLE;
+		//VkBuffer mMainIndexBuffer = VK_NULL_HANDLE;
+		//VkDeviceMemory mMainIndexBufferMemory = VK_NULL_HANDLE;
 
 		std::vector<VkBuffer> mMainInstanceMatrixBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mMainInstanceMatrixBufferMemories = std::vector<VkDeviceMemory>();

@@ -24,12 +24,11 @@ namespace Plaza {
 		unsigned int materialIndex = -1;
 		std::array<int, MAX_BONE_INFLUENCE> boneIds;
 		std::array<float, MAX_BONE_INFLUENCE> weights;
-		bool isValid;
 
 		~Vertex() = default;
 
 		Vertex(const glm::vec3& pos)
-			: position(pos), normal(0.0f), texCoords(0.0f), tangent(0.0f), bitangent(0.0f), isValid(true) {
+			: position(pos), normal(0.0f), texCoords(0.0f), tangent(0.0f), bitangent(0.0f) {
 			for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
 				boneIds[i] = -1;
 				weights[i] = 0.0f;
@@ -37,11 +36,11 @@ namespace Plaza {
 		}
 
 		Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const glm::vec3& bitan, const unsigned int& materialIndex = 0, const std::array<int, MAX_BONE_INFLUENCE> boneIds = std::array<int, MAX_BONE_INFLUENCE>(), const std::array<float, MAX_BONE_INFLUENCE> weights = std::array<float, MAX_BONE_INFLUENCE>())
-			: position(pos), normal(norm), texCoords(tex), tangent(tan), bitangent(bitan), materialIndex(materialIndex), isValid(true), boneIds(boneIds), weights(weights) {
+			: position(pos), normal(norm), texCoords(tex), tangent(tan), bitangent(bitan), materialIndex(materialIndex), boneIds(boneIds), weights(weights) {
 		}
 
 		Vertex()
-			: position(0.0f), normal(0.0f), texCoords(0.0f), tangent(0.0f), bitangent(0.0f), isValid(true) {
+			: position(0.0f), normal(0.0f), texCoords(0.0f), tangent(0.0f), bitangent(0.0f) {
 			for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
 				boneIds[i] = -1;
 				weights[i] = 0.0f;

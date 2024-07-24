@@ -103,7 +103,11 @@ namespace Plaza::Editor {
           };
 
           //new Mesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
-          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices, { 0 }, false);
+
+          std::vector<glm::vec3> tangents;
+          std::vector<glm::vec3> bitangents;
+          std::vector<unsigned int> materials{ 0 };
+          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(positions, normals, texCoords, tangents, bitangents, indices, materials, false);
           newMesh->meshId = cubeUuid;
           newMesh->uuid = cubeUuid;
           AssetsManager::AddMesh(newMesh);
@@ -140,8 +144,8 @@ namespace Plaza::Editor {
                     vertices.push_back(glm::vec3(x, y, z));
                     normals.push_back(glm::normalize(glm::vec3(x, y, z)));
                     uvs.push_back(glm::vec2(sliceRatio, stackRatio));
-                    tangents.push_back(glm::vec3(0.0f));
-                    bitangents.push_back(glm::vec3(0.0f));
+                    //tangents.push_back(glm::vec3(0.0f));
+                    //bitangents.push_back(glm::vec3(0.0f));
 
                     //vertices.push_back(Vertex(position, normal, texCoords, tangent, bitangent));
                }
@@ -167,7 +171,8 @@ namespace Plaza::Editor {
                }
           }
 
-          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, uvs, vector<glm::vec3>(), vector<glm::vec3>(), indices, { 0 }, false);
+          std::vector<unsigned int> materials{ 0 };
+          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, bitangents, indices, materials, false);
           newMesh->meshId = sphereUuid;
           newMesh->uuid = sphereUuid;
           AssetsManager::AddMesh(newMesh);
@@ -200,7 +205,10 @@ namespace Plaza::Editor {
 	          glm::vec2(0, 1)
           };
 
-          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices, { 0 }, false);
+          std::vector<glm::vec3> tangents;
+          std::vector<glm::vec3> bitangents;
+          std::vector<unsigned int> materials{ 0 };
+          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, texCoords, tangents, bitangents, indices, materials, false);
           newMesh->meshId = planeUuid;
           newMesh->uuid = planeUuid;
           AssetsManager::AddMesh(newMesh);

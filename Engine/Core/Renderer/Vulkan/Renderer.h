@@ -87,16 +87,17 @@ namespace Plaza {
 		VulkanShadows* GetShadows() override;
 
 		Mesh& CreateNewMesh(
-			vector<glm::vec3> vertices,
-			vector<glm::vec3> normals,
-			vector<glm::vec2> uvs,
-			vector<glm::vec3> tangent,
-			vector<glm::vec3> bitangent,
-			vector<unsigned int> indices,
-			vector<unsigned int> materialsIndices,
+			vector<glm::vec3>& vertices,
+			vector<glm::vec3>& normals,
+			vector<glm::vec2>& uvs,
+			vector<glm::vec3>& tangent,
+			vector<glm::vec3>& bitangent,
+			vector<unsigned int>& indices,
+			vector<unsigned int>& materialsIndices,
 			bool usingNormal,
 			vector<BonesHolder> bonesHolder = vector<BonesHolder>(),
 			vector<Bone> uniqueBonesInfo = vector<Bone>()) override;
+		void UpdateMeshVertices(Mesh& mesh);
 		void DeleteMesh(Mesh& mesh) override;
 		Mesh* RestartMesh(Mesh* mesh);
 		void DrawRenderGroupInstanced(RenderGroup* renderGroup);

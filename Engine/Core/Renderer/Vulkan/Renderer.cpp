@@ -3150,13 +3150,13 @@ namespace Plaza {
 	}
 	static int bonesIndex = 0;
 	Mesh& VulkanRenderer::CreateNewMesh(
-		vector<glm::vec3> vertices,
-		vector<glm::vec3> normals,
-		vector<glm::vec2> uvs,
-		vector<glm::vec3> tangent,
-		vector<glm::vec3> bitangent,
-		vector<unsigned int> indices,
-		vector<unsigned int> materialsIndices,
+		vector<glm::vec3>& vertices,
+		vector<glm::vec3>& normals,
+		vector<glm::vec2>& uvs,
+		vector<glm::vec3>& tangent,
+		vector<glm::vec3>& bitangent,
+		vector<unsigned int>& indices,
+		vector<unsigned int>& materialsIndices,
 		bool usingNormal,
 		vector<BonesHolder> bonesHolder,
 		vector<Bone> uniqueBonesInfo) {
@@ -3453,12 +3453,57 @@ namespace Plaza {
 			mesh->tangent,
 			mesh->bitangent,
 			mesh->indices,
-			{ 0 },
+			mesh->materialsIndices,
 			false);
 		newMesh = newMesh;
 		newMesh->uuid = oldUuid;
 		delete (mesh);
 		return newMesh;
+	}
+
+	void VulkanRenderer::UpdateMeshVertices(Mesh& mesh) {
+		vector<Vertex> convertedVertices;
+		convertedVertices.reserve(mesh.vertices.size());
+
+		for (unsigned int i = 0; i < mesh.vertices.size(); i++) {
+			mesh.CalculateVertexInBoundingBox(mesh.vertices[i]);
+
+			Vertex vertex{
+				mesh.vertices[i],
+				(mesh.normals.size() > i) ? mesh.normals[i] : glm::vec3(1.0f),
+				(mesh.uvs.size() > i) ? mesh.uvs[i] : glm::vec2(0.0f),
+				(mesh.tangent.size() > i) ? mesh.tangent[i] : glm::vec3(0.0f),
+				(mesh.bitangent.size() > i) ? mesh.bitangent[i] : glm::vec3(0.0f),
+				(mesh.materialsIndices.size() > i) ? mesh.materialsIndices[i] : 0,
+				(mesh.bonesHolder.size() > i && mesh.bonesHolder[i].mBones.size() > 0) ? this->GetBoneIds(mesh.bonesHolder[i].mBones) : std::array<int, MAX_BONE_INFLUENCE>{-1, -1, -1, -1},
+				(mesh.bonesHolder.size() > i && mesh.bonesHolder[i].mBones.size() > 0) ? mesh.bonesHolder[i].GetBoneWeights() : std::array<float, MAX_BONE_INFLUENCE>{0, 0, 0, 0} };
+
+			convertedVertices.push_back(vertex);
+		}
+
+		// Add vertices to the big vertex buffer
+		VkDeviceSize newDataSize = sizeof(Vertex) * convertedVertices.size();
+
+		VkBuffer stagingBuffer;
+		VkDeviceMemory stagingBufferMemory;
+		CreateBuffer(newDataSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			stagingBuffer,
+			stagingBufferMemory);
+
+		void* data;
+		vkMapMemory(mDevice, stagingBufferMemory, 0, newDataSize, 0, &data);
+		memcpy(data, convertedVertices.data(), static_cast<size_t>(newDataSize));
+		vkUnmapMemory(mDevice, stagingBufferMemory);
+
+		CopyBuffer(stagingBuffer,
+			mMainVertexBuffer->GetBuffer(),
+			newDataSize,
+			mesh.verticesOffset * sizeof(Vertex));
+
+		vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+		vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
 	}
 
 	void VulkanRenderer::UpdateProjectManager() {

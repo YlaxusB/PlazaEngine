@@ -67,6 +67,9 @@ namespace Plaza {
 			bool mCaptureExclusive = true;
 			bool mEditTerrain = false;
 
+			void RaiseTool(Mesh* mesh, uint32_t nearestVertexIndex);
+			void SmoothTool(Mesh* mesh, uint32_t nearestVertexIndex);
+
 			enum class TerrainType {
 				HEIGHTMAP,
 				MARCHING_CUBE,
@@ -76,6 +79,11 @@ namespace Plaza {
 				int x = 100;
 				int y = 100;
 				int z = 100;
+				int radius = 5;
+				float intensity = 0.2f;
+				bool raiseTool = true;
+				bool smoothTool = false;
+				int repeatInterval = 10;
 				TerrainType mType = TerrainType::HEIGHTMAP;
 			};
 

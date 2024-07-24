@@ -56,13 +56,13 @@ namespace Plaza {
 		virtual Shadows* GetShadows() = 0;
 
 		virtual Mesh& CreateNewMesh(
-			vector<glm::vec3> vertices,
-			vector<glm::vec3> normals,
-			vector<glm::vec2> uvs,
-			vector<glm::vec3> tangent,
-			vector<glm::vec3> bitangent,
-			vector<unsigned int> indices,
-			vector<unsigned int> materialsIndices,
+			vector<glm::vec3>& vertices,
+			vector<glm::vec3>& normals,
+			vector<glm::vec2>& uvs,
+			vector<glm::vec3>& tangent,
+			vector<glm::vec3>& bitangent,
+			vector<unsigned int>& indices,
+			vector<unsigned int>& materialsIndices,
 			bool usingNormal,
 			vector<BonesHolder> boneIds = vector<BonesHolder>(),
 			vector<Bone>  uniqueBonesInfo = vector<Bone>()) = 0;

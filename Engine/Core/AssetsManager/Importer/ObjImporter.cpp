@@ -148,8 +148,10 @@ namespace Plaza {
 						material = Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second);
 				}
 
-
-				Mesh& mesh = Application->mRenderer->CreateNewMesh(vertices, normals, uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), indices, { 0 }, false);// new Mesh();
+				std::vector<glm::vec3> tangents;
+				std::vector<glm::vec3> bitangents;
+				std::vector<unsigned int> materials{ 0 };
+				Mesh& mesh = Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, bitangents, indices, materials, false);// new Mesh();
 				MeshRenderer* meshRenderer = new MeshRenderer(&mesh, material);
 				meshRenderer->mMaterials.push_back(material);
 				newEntity->AddComponent<MeshRenderer>(meshRenderer);

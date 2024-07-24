@@ -9,7 +9,7 @@
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Editor/GUI/AssetsImporterWindow/AssetsImporterWindow.h"
 using Plaza::Editor::Gui;
-void Plaza::ApplicationClass::Callbacks::dropCallback(GLFWwindow* window, int count, const char** paths) {
+void Plaza::Callbacks::dropCallback(GLFWwindow* window, int count, const char** paths) {
 	for (unsigned int i = 0; i < count; i++) {
 
 		vector<string> supportedFormats = ModelLoader::supportedFormats;

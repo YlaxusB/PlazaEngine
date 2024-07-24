@@ -56,13 +56,17 @@ namespace Plaza {
 			return value;
 		}
 
-		static class TerrainEditorTool : public EditorTool {
+		class TerrainEditorTool : public EditorTool {
 		public:
-			static void CreateTerrain(unsigned int x, unsigned int y, unsigned int z);
-			static void UpdateGui();
-			void OnMouseClick();
-			void OnKeyPress();
+			void CreateTerrain(unsigned int x, unsigned int y, unsigned int z);
+			void UpdateGui() override;
+			void OnMouseClick(int button, int action, int mods) override;
+			void OnKeyPress(int key, int scancode, int action, int mods) override;
 		private:
+			uint64_t mLastTerrainUuid;
+			bool mCaptureExclusive = true;
+			bool mEditTerrain = false;
+
 			enum class TerrainType {
 				HEIGHTMAP,
 				MARCHING_CUBE,
@@ -75,9 +79,9 @@ namespace Plaza {
 				TerrainType mType = TerrainType::HEIGHTMAP;
 			};
 
-			static inline TerrainEditorSettings sSettings{};
+			TerrainEditorSettings mSettings{};
 
-			static Mesh* CreateHeightMapTerrain(unsigned int x, unsigned int y, unsigned int z);
+			Mesh* CreateHeightMapTerrain(unsigned int x, unsigned int y, unsigned int z);
 
 			static const inline int sEdgeTable[256] = {
 0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,

@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "CallbacksHeader.h"
-void Plaza::ApplicationClass::Callbacks::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
+void Plaza::Callbacks::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
 	if (Application->mRenderer->api == RendererAPI::OpenGL)
 	{
 		glViewport(0, 0, width, height);

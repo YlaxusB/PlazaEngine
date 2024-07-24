@@ -82,12 +82,12 @@ namespace Plaza {
 			return nullptr;
 		}
 		//  Set callbacks
-		glfwSetFramebufferSizeCallback(window, ApplicationClass::Callbacks::framebufferSizeCallback);
-		glfwSetCursorPosCallback(window, ApplicationClass::Callbacks::mouseCallback);
-		glfwSetScrollCallback(window, ApplicationClass::Callbacks::scrollCallback);
-		glfwSetMouseButtonCallback(window, ApplicationClass::Callbacks::mouseButtonCallback);
-		glfwSetDropCallback(window, ApplicationClass::Callbacks::dropCallback);
-		glfwSetKeyCallback(window, ApplicationClass::Callbacks::keyCallback);
+		glfwSetFramebufferSizeCallback(window, Callbacks::framebufferSizeCallback);
+		glfwSetCursorPosCallback(window, Callbacks::mouseCallback);
+		glfwSetScrollCallback(window, Callbacks::scrollCallback);
+		glfwSetMouseButtonCallback(window, Callbacks::mouseButtonCallback);
+		glfwSetDropCallback(window, Callbacks::dropCallback);
+		glfwSetKeyCallback(window, Callbacks::keyCallback);
 
 
 #ifdef EDITOR_MODE

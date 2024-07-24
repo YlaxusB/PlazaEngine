@@ -45,8 +45,9 @@ namespace Plaza {
 		void TerrainEditorTool::CreateTerrain(unsigned int x, unsigned int y, unsigned int z) {
 			Scene* scene = Scene::GetActiveScene();
 			Entity* entity = new Entity("Terrain", scene->mainSceneEntity);
+			mLastTerrainUuid = entity->uuid;
 
-			Mesh* mesh = TerrainEditorTool::CreateHeightMapTerrain(x, y, z);
+			Mesh* mesh = this->CreateHeightMapTerrain(x, y, z);
 			AssetsManager::AddMesh(mesh);
 
 			MeshRenderer* meshRenderer = new MeshRenderer(mesh, { scene->DefaultMaterial() }, false);
@@ -74,12 +75,12 @@ namespace Plaza {
 			style.WindowPadding = ImVec2(0.0f, 0.0f);  // Change window padding
 			if (ImGui::Begin("Terrain Tool", &Gui::isSceneOpen, windowFlags)) {
 				ImGui::BeginTable("Terrain Editor Tool Settings", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
-				Utils::AddTableInt("X", &sSettings.x);
-				Utils::AddTableInt("Y", &sSettings.y);
-				Utils::AddTableInt("Z", &sSettings.z);
+				Utils::AddTableInt("X", &mSettings.x);
+				Utils::AddTableInt("Y", &mSettings.y);
+				Utils::AddTableInt("Z", &mSettings.z);
 				ImGui::EndTable();
 				if (ImGui::Button("Create Terrain")) {
-					TerrainEditorTool::CreateTerrain(sSettings.x, sSettings.y, sSettings.z);
+					TerrainEditorTool::CreateTerrain(mSettings.x, mSettings.y, mSettings.z);
 				}
 			};
 			if (ImGui::IsWindowFocused())
@@ -92,14 +93,51 @@ namespace Plaza {
 			if (ImGui::IsWindowHovered())
 				Application->hoveredMenu = "TerrainEditorTool";
 
+			if (ImGui::Checkbox("Edit Terrain", &mEditTerrain)) {
+				this->CaptureMouseClick(mEditTerrain);
+			}
+
+			if (glfwGetMouseButton(Application->Window->glfwWindow, 0) == GLFW_PRESS)
+				OnMouseClick(GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, 0);
+
 			ImGui::End();
 		}
 
-		void TerrainEditorTool::OnMouseClick() {
+		void TerrainEditorTool::OnMouseClick(int button, int action, int mods) {
+			if (Application->focusedMenu != "Editor") //!Gui::sFocusedLayer == GuiLayer::SCENE || 
+				return;
+
+			if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+				Application->mThreadsManager->mFrameRendererAfterGeometry->AddToQueue([&]() {
+					float xposGame = Callbacks::lastX - Application->appSizes->hierarchySize.x;
+					float yposGame = Callbacks::lastY - Application->appSizes->sceneImageStart.y;
+					yposGame = Application->appSizes->sceneSize.y - (Callbacks::lastY - Application->appSizes->sceneImageStart.y - 35);
+					glm::vec4 clickPosition = VulkanRenderer::GetRenderer()->mDeferredPositionTexture.ReadTexture(glm::vec2(xposGame, yposGame), 4);
+					clickPosition.w = 1.0f;
+
+					Entity* entity = Scene::GetActiveScene()->GetEntity(mLastTerrainUuid);
+					if (!entity)
+						return;
+
+					glm::vec4 localPosition = glm::inverse(entity->GetComponent<Transform>()->GetTransform()) * clickPosition;
+
+					Mesh* mesh = entity->GetComponent<MeshRenderer>()->mesh;
+
+					uint32_t nearestVertexIndex = (glm::round<int>(localPosition.x) * mSettings.x) + (glm::round<int>(localPosition.z));//(mSettings.x / localPosition.x) * (mSettings.z / localPosition.z);
+
+					if (mesh->vertices.size() > nearestVertexIndex) {
+						mesh->vertices[nearestVertexIndex].y += 10.0f;
+						entity->GetComponent<MeshRenderer>()->ChangeMesh(VulkanRenderer::GetRenderer()->RestartMesh(mesh));
+					}
+
+					std::cout << "Clicked at: " << "X: " << localPosition.x << " Y: " << localPosition.y << " Z: " << localPosition.z << "\n";
+					std::cout << "Nearest Index: " << nearestVertexIndex << "\n";
+					});
+			}
 
 		}
 
-		void TerrainEditorTool::OnKeyPress() {
+		void TerrainEditorTool::OnKeyPress(int key, int scancode, int action, int mods) {
 
 		}
 	}

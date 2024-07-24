@@ -9,6 +9,7 @@ namespace Plaza {
 		Thread* mFrameRendererStartThread = new Thread();
 		Thread* mFrameRendererBeforeFenceThread = new Thread();
 		Thread* mFrameRendererAfterFenceThread = new Thread();
+		Thread* mFrameRendererAfterGeometry = new Thread();
 		void Init(){
 
 		}

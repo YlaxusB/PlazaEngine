@@ -138,6 +138,6 @@ namespace Plaza {
 	}
 
 	void VulkanMesh::Restart() {
-		
+		VulkanRenderer::GetRenderer()->RestartMesh(this);
 	}
 }

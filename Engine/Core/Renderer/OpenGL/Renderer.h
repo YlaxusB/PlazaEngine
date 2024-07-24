@@ -102,7 +102,7 @@ namespace Plaza {
 			bool usingNormal,
 			vector<BonesHolder> bonesHolder = vector<BonesHolder>(),
 			vector<Bone>  uniqueBonesInfo = vector<Bone>()) override;
-
+		void DeleteMesh(Mesh& mesh) override {};
 		Mesh* RestartMesh(Mesh* mesh) override;
 		void DrawRenderGroupInstanced(RenderGroup* renderGroup) override;
 		Texture* LoadTexture(std::string path, uint64_t uuid = 0) override;

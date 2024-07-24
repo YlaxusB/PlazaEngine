@@ -137,6 +137,57 @@ int GetIndex(vec2 screenPos, vec2 clusterCount)
     return int(((currentClusterPosition.y * (clusterCount.x)) + (currentClusterPosition.x)));
 }
 
+const float PI = 3.14159265359;
+
+float D_GGX(float dotNH, float roughness)
+{
+    float alpha = roughness * roughness;
+    float alpha2 = alpha * alpha;
+    float denom = dotNH * dotNH * (alpha2 - 1.0) + 1.0;
+    return (alpha2)/(PI * denom*denom); 
+}
+
+float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
+{
+    float r = (roughness + 1.0);
+    float k = (r*r) / 8.0;
+    float GL = dotNL / (dotNL * (1.0 - k) + k);
+    float GV = dotNV / (dotNV * (1.0 - k) + k);
+    return GL * GV;
+}
+
+vec3 F_Schlick(float cosTheta, vec3 F0)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 F_SchlickR(float cosTheta, vec3 F0, float roughness)
+{
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+
+vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness, vec3 materialColor)
+{
+    vec3 H = normalize (V + L);
+    float dotNH = clamp(dot(N, H), 0.0, 1.0);
+    float dotNV = clamp(dot(N, V), 0.0, 1.0);
+    float dotNL = clamp(dot(N, L), 0.0, 1.0);
+
+    vec3 color = vec3(0.0);
+
+    if (dotNL > 0.0) {
+        float D = D_GGX(dotNH, roughness); 
+        float G = G_SchlicksmithGGX(dotNL, dotNV, roughness);
+        vec3 F = F_Schlick(dotNV, F0);		
+        vec3 spec = D * F * G / (4.0 * dotNL * dotNV + 0.001);		
+        vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);			
+        color += (kD * materialColor / PI + spec) * dotNL;
+    }
+
+    return color;
+}
+
 #define MAX_POINT_LIGHT_PER_TILE 2048
 //#define SHOW_HEATMAP
 
@@ -163,6 +214,11 @@ void main()
 
         vec3 viewDir  = normalize(pushConstants.viewPos - FragPos);
 
+        vec3 F0 = vec3(0.04); 
+        F0 = mix(F0, Diffuse, metalness);
+
+        vec3 V = normalize(pushConstants.viewPos.xyz - (FragPos.xyz));
+
         for (int i = 0; i < MAX_POINT_LIGHT_PER_TILE && clusters[clusterIndex].lightsIndex[i] != -1; ++i)
         {
 
@@ -172,39 +228,26 @@ void main()
 
             // calculate distance between light source and current fragment
             float distance = length(lightPosition - FragPos);
-            //if(distance < radius * radius)
-            //if(distance < light.radius)
+
             if(distance < light.radius)
             {
-                //vec3 lightColor = light.color;
-                //// diffuse
-                //vec3 lightDir = normalize(lightPosition - FragPos);
-                //vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * (lightColor * light.intensity);
-                //// specular
-                //vec3 halfwayDir = normalize(lightDir + viewDir);  
-                //float spec = pow(max(dot(Normal, halfwayDir), 0.0), 16.0);
-                //vec3 specular = (lightColor * light.intensity) * spec * Specular;
-                //// attenuation
-                //float constant = 1.0f;
-                //float quadratic = 1.8f;
-                //float linear = 0.7f;
-                //float attenuation = 1.0 / (1.0 + linear * distance + quadratic * distance * distance);
-                //attenuation *= (light.radius / 1);
-                //diffuse *= attenuation;
-                //specular *= attenuation;
 
-                vec3 L = lightPosition.xyz - FragPos;
+                vec3 L = normalize(-lightPosition.xyz - FragPos); // Directional light direction
+
+
+                //vec3 L = lightPosition.xyz - FragPos;
 		        float dist = length(L);
-
+                
 		        L = normalize(L);
 		        float atten = light.radius / (pow(dist, light.cutoff) + 1.0);
-
+                
 		        vec3 N = normalize(Normal);
 		        float NdotL = max(0.0, dot(N, L));
                 vec3 lightColor = light.color * light.intensity;
 		        vec3 diff = min(lightColor * Diffuse * NdotL * atten, lightColor);
-                //lighting += (diffuse + specular); //* attenuation;
-                lighting += diff;
+                //float atten = light.radius / (pow(dist, light.cutoff) + 1.0);
+                vec3 Lo = specularContribution(L, V, Normal, F0, metalness, roughness, diff);
+                lighting += diff + Lo * atten;
             }
         }    
      }

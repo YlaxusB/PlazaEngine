@@ -51,6 +51,7 @@ namespace Plaza {
 		//this->renderGroup->ChangeMaterial(newMaterial);
 	}
 	void MeshRenderer::ChangeMesh(Mesh* newMesh) {
-
+		this->mesh = newMesh;
+		this->renderGroup = Application->activeScene->AddRenderGroup(new RenderGroup(newMesh, this->mMaterials));
 	}
 }

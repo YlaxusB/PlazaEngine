@@ -146,6 +146,8 @@ namespace Plaza {
 
 			// Load Icons
 			playPauseButtonImageId = Utils::LoadImageToImGuiTexture(std::string(Application->editorPath + "\\Images\\Other\\playPauseButton.png").c_str());
+
+			sEditorTools.emplace(EditorTool::ToolType::TERRAIN_EDITOR, std::make_unique<TerrainEditorTool>());
 		}
 
 		void Gui::Delete() {
@@ -226,7 +228,9 @@ namespace Plaza {
 
 			Application->mEditor->mGui.mAssetsImporter.Update();
 
-			TerrainEditorTool::UpdateGui();
+			for (auto& editorTool : Gui::sEditorTools) {
+				editorTool.second->UpdateGui();
+			}
 
 			//if (ImGui::Begin("Asset Importer", &isAssetImporterOpen)) {
 			//	ImGui::End();

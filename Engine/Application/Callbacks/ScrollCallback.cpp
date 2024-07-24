@@ -2,7 +2,7 @@
 #include "CallbacksHeader.h"
 #include "Engine/Core/Time.h"
 #include "Engine/Utils/glmUtils.h"
-void Plaza::ApplicationClass::Callbacks::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+void Plaza::Callbacks::scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	double mousePosX = 0;
 	double mousePosY = 0;

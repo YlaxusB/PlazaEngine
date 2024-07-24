@@ -12,6 +12,7 @@
 #include "Editor/GUI/GuiWindow.h"
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 #include "Editor/GUI/AssetsImporterWindow/AssetsImporterWindow.h"
+#include "Editor/EditorTools/EditorTool.h"
 
 namespace ImGuizmoHelper {
 	static bool IsDrawing;
@@ -70,6 +71,10 @@ namespace Plaza {
 
 			HierarchyWindow mHierarchy = HierarchyWindow(GuiLayer::HIERARCHY, true);
 			AssetsImporterWindow mAssetsImporter = AssetsImporterWindow(GuiLayer::ASSETS_IMPORTER, false);
+
+			static inline std::map<EditorTool::ToolType, std::unique_ptr<EditorTool>> sEditorTools;
+			//static inline EditorTool::ToolType sEditorToolCaptureMouseClick;
+			//static inline EditorTool::ToolType sEditorToolCaptureKeyPress;
 		private:
 			static inline bool isAssetImporterOpen = false;
 			static inline std::string mAssetToImportPath = "";

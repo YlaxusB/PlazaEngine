@@ -275,11 +275,13 @@ void main() {
 
     /* Geometry */
     gOthers.xyz = vec3(specular);
-    gOthers.z = metallic;
+    gOthers.y = metallic;
+    gOthers.z = roughness;
     gPosition = vec4(worldPos);
     gDiffuse = vec4(FinalColor, 1.0f);
-    gNormal = vec4(Normal.xyz, 1.0f);
-
+    if(material.normalIndex > -1)
+        N = -N;
+    gNormal = vec4(N.xyz, 1.0f);
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)

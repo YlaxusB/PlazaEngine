@@ -15,7 +15,7 @@ namespace Plaza::Editor {
 		auto onKeyPressLambda = [this](int key, int scancode, int action, int mods) {
 			this->OnKeyPress(key, scancode, action, mods);
 			};
-		ApplicationClass::Callbacks::AddFunctionToKeyCallback({ onKeyPressLambda, GuiLayer::ASSETS_IMPORTER });
+		Callbacks::AddFunctionToKeyCallback({ onKeyPressLambda, GuiLayer::ASSETS_IMPORTER });
 	}
 
 	void HierarchyWindow::Update() {

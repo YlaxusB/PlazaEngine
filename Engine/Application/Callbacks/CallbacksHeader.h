@@ -3,14 +3,14 @@
 //#include "Engine/Application/Application.h"
 #include "Editor/GUI/GuiWindow.h"
 namespace Plaza {
-    class ApplicationClass::Callbacks {
-    public:
+	struct CallbackFunction {
+		std::function<void(int key, int scancode, int action, int mods)> function;
+		Editor::GuiLayer layerToExecute;
+		Editor::GuiState layerStateToExecute = Editor::GuiState::FOCUSED;
+	};
+	class Callbacks {
+	public:
 
-		struct CallbackFunction {
-			std::function<void(int key, int scancode, int action, int mods)> function;
-			Editor::GuiLayer layerToExecute;
-			Editor::GuiState layerStateToExecute = Editor::GuiState::FOCUSED;
-		};
 
 		static bool rightClickPressed;
 		static bool mouseFirstCallback;
@@ -19,7 +19,7 @@ namespace Plaza {
 		static float lastX;
 		static float lastY;
 
-        static void mouseCallback(GLFWwindow* window, double xposIn, double yposIn);
+		static void mouseCallback(GLFWwindow* window, double xposIn, double yposIn);
 		static void dropCallback(GLFWwindow* window, int count, const char** paths);
 		static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 		static void processInput(GLFWwindow* window);
@@ -31,8 +31,13 @@ namespace Plaza {
 			sOnKeyPressFunctions.push_back(callbackFunction);
 		}
 
+		static void AddFunctionToMouseCallback(CallbackFunction callbackFunction) {
+			sOnMouseFunctions.push_back(callbackFunction);
+		}
+
 	private:
 		static inline std::vector<CallbackFunction> sOnKeyPressFunctions = std::vector<CallbackFunction>();
 		static inline std::vector<CallbackFunction> sOnKeyEventFunctions = std::vector<CallbackFunction>();
-    };
+		static inline std::vector<CallbackFunction> sOnMouseFunctions = std::vector<CallbackFunction>();
+	};
 }

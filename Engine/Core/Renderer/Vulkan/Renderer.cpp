@@ -1123,6 +1123,8 @@ namespace Plaza {
 		}
 		mActiveCommandBuffer = &commandBuffer;
 
+		//TransitionTextureLayout(mDeferredPositionTexture, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1U, 1U, 1U, false);
+
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.renderPass = this->mShadows->mRenderPass;
@@ -1333,7 +1335,7 @@ namespace Plaza {
 
 			vkCmdEndRenderPass(commandBuffer);
 		}
-
+		//TransitionTextureLayout(mDeferredPositionTexture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1U, 1U, 1U, false);
 		// this->mPicking->DrawSelectedObjectsUuid();
 
 		// vkCmdEndRenderPass(commandBuffer);
@@ -1400,6 +1402,8 @@ namespace Plaza {
 		renderPassInfo.renderPass = mDeferredRenderPass;
 		renderPassInfo.framebuffer = mDeferredFramebuffer;
 
+		Application->mThreadsManager->mFrameRendererAfterGeometry->Update();
+
 		/* Tiled Lighting */
 		{
 			PLAZA_PROFILE_SECTION("Deferred Lighting");
@@ -1413,7 +1417,7 @@ namespace Plaza {
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		//this->mBloom.Draw();
+		this->mBloom.Draw();
 		/* ----------------- this->mGuiRenderer->RenderText(nullptr) -----------------
 		 */
 		;
@@ -1549,15 +1553,15 @@ namespace Plaza {
 		if (vkCreateBuffer(mDevice, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create buffer!");
 		}
-		
+
 		VkMemoryRequirements memRequirements;
 		vkGetBufferMemoryRequirements(mDevice, buffer, &memRequirements);
-		
+
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
 		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties, size);
-		
+
 		if (vkAllocateMemory(mDevice, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate buffer memory!");
 		}
@@ -2004,8 +2008,14 @@ namespace Plaza {
 		VkImageLayout newLayout,
 		VkImageAspectFlags aspectMask,
 		unsigned int layerCount,
-		unsigned int mipCount) {
-		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+		unsigned int mipCount,
+		bool forceSynchronization) {
+
+		VkCommandBuffer commandBuffer;
+		if (forceSynchronization)
+			commandBuffer = BeginSingleTimeCommands();
+		else
+			commandBuffer = *mActiveCommandBuffer;
 
 		VkImageMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -2135,8 +2145,22 @@ namespace Plaza {
 			sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		}
+		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+			barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		}
 		else {
-			throw std::invalid_argument("unsupported layout transition!");
+			assert("unsupported layout transition!");
 		}
 
 		vkCmdPipelineBarrier(commandBuffer,
@@ -2150,21 +2174,24 @@ namespace Plaza {
 			1,
 			&barrier);
 
-		EndSingleTimeCommands(commandBuffer);
+		if (forceSynchronization)
+			EndSingleTimeCommands(commandBuffer);
 	}
 
 	void VulkanRenderer::TransitionTextureLayout(VulkanTexture& texture,
 		VkImageLayout newLayout,
 		VkImageAspectFlags aspectMask,
 		unsigned int layerCount,
-		unsigned int mipCount) {
+		unsigned int mipCount,
+		bool forceSynchronization) {
 		this->TransitionImageLayout(texture.mImage,
 			texture.GetFormat(),
 			texture.mLayout,
 			newLayout,
 			aspectMask,
 			layerCount,
-			mipCount);
+			mipCount,
+			forceSynchronization);
 		texture.mLayout = newLayout;
 	}
 
@@ -2796,7 +2823,7 @@ namespace Plaza {
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
-		}
+	}
 
 		{
 			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
@@ -2886,7 +2913,7 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-	}
+}
 	void VulkanRenderer::RenderBloom() {
 	}
 	void VulkanRenderer::RenderScreenSpaceReflections() {
@@ -3283,6 +3310,10 @@ namespace Plaza {
 		return vulkMesh;
 	}
 
+	void VulkanRenderer::DeleteMesh(Mesh& mesh) {
+
+	}
+
 	void VulkanRenderer::DrawRenderGroupShadowDepthMapInstanced(
 		RenderGroup* renderGroup,
 		unsigned int cascadeIndex) {
@@ -3461,7 +3492,7 @@ namespace Plaza {
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
-		}
+	}
 
 		{
 			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
@@ -3693,4 +3724,4 @@ namespace Plaza {
 		VulkanRenderer::GetGeometryPassDescriptorSet(unsigned int frame) {
 		return this->mGeometryPassRenderer.mShaders->mDescriptorSets[frame];
 	}
-			} // namespace Plaza
+		} // namespace Plaza

@@ -46,6 +46,8 @@ namespace Plaza {
 		void Destroy() override {
 			// TODO: IMPLEMENT TEXTURE DESTROY
 		}
+
+		glm::vec4 ReadTexture(glm::vec2 pos, unsigned int bytesPerPixel = 4);
 	private:
 		VkFormat mFormat;
 		VkBuffer mStagingBuffer;

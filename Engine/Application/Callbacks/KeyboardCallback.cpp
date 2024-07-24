@@ -6,7 +6,7 @@
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "Engine/Core/Physics.h"
 
-void ApplicationClass::Callbacks::processInput(GLFWwindow* window) {
+void Callbacks::processInput(GLFWwindow* window) {
 	if (Application->focusedMenu == "Editor") {
 		ApplicationSizes& appSizes = *Application->appSizes;
 		ApplicationSizes& lastAppSizes = *Application->lastAppSizes;

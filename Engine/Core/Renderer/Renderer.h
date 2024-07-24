@@ -66,6 +66,7 @@ namespace Plaza {
 			bool usingNormal,
 			vector<BonesHolder> boneIds = vector<BonesHolder>(),
 			vector<Bone>  uniqueBonesInfo = vector<Bone>()) = 0;
+		virtual void DeleteMesh(Mesh& mesh) = 0;
 		virtual Mesh* RestartMesh(Mesh* mesh) = 0;
 		virtual void DrawRenderGroupInstanced(RenderGroup* renderGroup) = 0;
 

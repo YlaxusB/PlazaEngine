@@ -124,7 +124,6 @@ namespace Plaza {
 		EngineClass* engine = new EngineClass();
 		WindowClass* Window;
 		Editor::EditorClass* mEditor = new Editor::EditorClass();
-		class Callbacks;
 
 		// MUST REVIEW
 		static void updateBuffers(GLuint textureColorBuffer, GLuint rbo);

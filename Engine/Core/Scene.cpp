@@ -131,7 +131,7 @@ namespace Plaza {
 		Material* defaultMaterial = new Material();
 		defaultMaterial->uuid = 0;
 		defaultMaterial->diffuse->rgba = glm::vec4(0.5f);
-//		defaultMaterial->specular->rgba = glm::vec4(1.0f);
+		//		defaultMaterial->specular->rgba = glm::vec4(1.0f);
 		defaultMaterial->shininess = 3.0f;
 		defaultMaterial->name = "Default Material";
 		defaultMaterial->uuid = 0;
@@ -328,7 +328,7 @@ namespace Plaza {
 		auto it = Application->activeScene->entities.find(uuid);
 		if (it != Application->activeScene->entities.end())
 			return &it->second;
-
+		return nullptr;
 	}
 	Entity* Scene::GetEntityByName(std::string name) {
 		if (Application->activeScene->entitiesNames.find(name) != Application->activeScene->entitiesNames.end()) {

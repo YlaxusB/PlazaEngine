@@ -7,7 +7,17 @@
 using namespace Plaza::Editor;
 using namespace Plaza;
 
-void ApplicationClass::Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+	for (CallbackFunction callbackFunction : sOnMouseFunctions) {
+		bool isLayerFocused = Editor::Gui::sFocusedLayer == callbackFunction.layerToExecute;
+		if (isLayerFocused)
+			callbackFunction.function;
+	}
+
+	for (auto& tool : Editor::Gui::sEditorTools) {
+		tool.second->OnMouseClick(button, action, mods);
+	}
+
 	//if (Application->hoveredMenu != "File Explorer" && Application->hoveredMenu != "Inspector")
 	//	Editor::selectedFiles.clear();
 	if (Application->hoveredMenu == "Editor" && Application->focusedMenu != "Scene") {

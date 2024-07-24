@@ -42,12 +42,15 @@ Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true
 
 	return obj;
 }
-void ApplicationClass::Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	for (CallbackFunction callbackFunction : sOnKeyPressFunctions) {
-		bool guiFocusedLayerIsFunctionLayerToExecuteAndLayerStateIsFocusedOrUnkown = Editor::Gui::sFocusedLayer == callbackFunction.layerToExecute;
-		bool guiFocusedLayerIsFunctionLayerToExecuteAndLayerStateIsFocused = Editor::Gui::sFocusedLayer == callbackFunction.layerToExecute;
-		if (guiFocusedLayerIsFunctionLayerToExecuteAndLayerStateIsFocusedOrUnkown)
+		bool isLayerFocused = Editor::Gui::sFocusedLayer == callbackFunction.layerToExecute;
+		if (isLayerFocused)
 			callbackFunction.function;
+	}
+
+	for (auto& tool : Editor::Gui::sEditorTools) {
+		tool.second->OnKeyPress(key, scancode, action, mods);
 	}
 
 	if (Application->focusedMenu == "Scene")

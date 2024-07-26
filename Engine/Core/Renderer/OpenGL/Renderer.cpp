@@ -361,8 +361,8 @@ namespace Plaza {
 		return (ImTextureID)Application->textureColorbuffer;
 	}
 
-	Mesh& OpenGLRenderer::CreateNewMesh(vector<glm::vec3>& vertices, vector<glm::vec3>& normals, vector<glm::vec2>& uvs, vector<glm::vec3>& tangent, vector<glm::vec3>& bitangent, vector<unsigned int>& indices, vector<unsigned int>& materialsIndices, bool usingNormal, vector<BonesHolder> bonesHolder, vector<Bone>  uniqueBonesInfo) {
-		return *new OpenGLMesh(vertices, normals, uvs, tangent, bitangent, indices, usingNormal);
+	Mesh& OpenGLRenderer::CreateNewMesh(vector<glm::vec3>& vertices, vector<glm::vec3>& normals, vector<glm::vec2>& uvs, vector<glm::vec3>& tangent, vector<unsigned int>& indices, vector<unsigned int>& materialsIndices, bool usingNormal, vector<BonesHolder> bonesHolder, vector<Bone>  uniqueBonesInfo) {
+		return *new OpenGLMesh(vertices, normals, uvs, tangent, indices, usingNormal);
 	}
 
 	Texture* OpenGLRenderer::LoadTexture(std::string path, uint64_t uuid) {

@@ -12,6 +12,7 @@
 #include "Editor/GUI/GuiWindow.h"
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 #include "Editor/GUI/AssetsImporterWindow/AssetsImporterWindow.h"
+#include "Editor/GUI/Console/Console.h"
 #include "Editor/EditorTools/EditorTool.h"
 
 namespace ImGuizmoHelper {
@@ -71,6 +72,7 @@ namespace Plaza {
 
 			HierarchyWindow mHierarchy = HierarchyWindow(GuiLayer::HIERARCHY, true);
 			AssetsImporterWindow mAssetsImporter = AssetsImporterWindow(GuiLayer::ASSETS_IMPORTER, false);
+			Console* mConsole = new Console(GuiLayer::CONSOLE, false);
 
 			static inline std::map<EditorTool::ToolType, std::unique_ptr<EditorTool>> sEditorTools;
 			//static inline EditorTool::ToolType sEditorToolCaptureMouseClick;

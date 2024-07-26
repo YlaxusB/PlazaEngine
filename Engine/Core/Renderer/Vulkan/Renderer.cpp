@@ -1168,7 +1168,7 @@ namespace Plaza {
 			UpdateMaterials();
 		}
 
-		{
+		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Group Instances");
 			for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
 				const auto& transformIt = Application->activeScene->transformComponents.find(key);
@@ -1189,6 +1189,7 @@ namespace Plaza {
 		unsigned int allMaterialsCount = 0;
 		std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
 		std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
+		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances)
 		{
 			PLAZA_PROFILE_SECTION("Create Indirect Commands");
 			this->mIndirectCommands.clear();
@@ -1252,7 +1253,7 @@ namespace Plaza {
 			this->mShadows->UpdateAndPushConstants(commandBuffer, 0);
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[0].mDescriptorSets[mCurrentFrame], 0, nullptr);
 
-			{
+			if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 				PLAZA_PROFILE_SECTION("Copy Indirect Data");
 				VkDeviceSize bufferSize = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
 				void* data;
@@ -1261,7 +1262,7 @@ namespace Plaza {
 				vkUnmapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame]);
 			}
 
-			{
+			if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 				PLAZA_PROFILE_SECTION("Copy Data");
 				VkDeviceSize bufferSize = sizeof(glm::mat4) * mInstanceModelMatrices.size();
 				void* data;
@@ -1270,7 +1271,7 @@ namespace Plaza {
 				vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame]);
 			}
 
-			{
+			if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 				PLAZA_PROFILE_SECTION("Bind the instance's materials");
 				VkDeviceSize bufferSize = sizeof(unsigned int) * mInstanceModelMaterialsIndex.size();
 				void* data;
@@ -1279,7 +1280,7 @@ namespace Plaza {
 				vkUnmapMemory(this->mDevice, mMainInstanceMaterialBufferMemories[mCurrentFrame]);
 			}
 
-			{
+			if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 				PLAZA_PROFILE_SECTION("Bind the instance material offsets");
 				VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupMaterialsOffsets.size());
 				void* data;
@@ -1288,7 +1289,7 @@ namespace Plaza {
 				vkUnmapMemory(this->mDevice, mMainInstanceMaterialOffsetsBufferMemories[mCurrentFrame]);
 			}
 
-			{
+			if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 				PLAZA_PROFILE_SECTION("Bind the instance material offsets 2");
 				VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupOffsets.size());
 				void* data;
@@ -2796,8 +2797,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("Wait Fences");
 			Application->mThreadsManager->mFrameRendererBeforeFenceThread->Update();
-			vkWaitForFences(
-				mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+			vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
 			// vkWaitForFences(mDevice, 1, &mComputeInFlightFences[mCurrentFrame],
 			// VK_TRUE, UINT64_MAX);
 			Application->mThreadsManager->mFrameRendererAfterFenceThread->Update();
@@ -3154,7 +3154,6 @@ namespace Plaza {
 		vector<glm::vec3>& normals,
 		vector<glm::vec2>& uvs,
 		vector<glm::vec3>& tangent,
-		vector<glm::vec3>& bitangent,
 		vector<unsigned int>& indices,
 		vector<unsigned int>& materialsIndices,
 		bool usingNormal,
@@ -3164,7 +3163,6 @@ namespace Plaza {
 			normals,
 			uvs,
 			tangent,
-			bitangent,
 			indices,
 			usingNormal,
 			bonesHolder);
@@ -3209,7 +3207,6 @@ namespace Plaza {
 				(normals.size() > i) ? normals[i] : glm::vec3(1.0f),
 				(uvs.size() > i) ? uvs[i] : glm::vec2(0.0f),
 				(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f),
-				(bitangent.size() > i) ? bitangent[i] : glm::vec3(0.0f),
 				(materialsIndices.size() > i) ? materialsIndices[i] : 0,
 				(bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0) ? this->GetBoneIds(bonesHolder[i].mBones) : std::array<int, MAX_BONE_INFLUENCE>{-1, -1, -1, -1},
 				(bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0) ? bonesHolder[i].GetBoneWeights() : std::array<float, MAX_BONE_INFLUENCE>{0, 0, 0, 0} };
@@ -3451,7 +3448,6 @@ namespace Plaza {
 			mesh->normals,
 			mesh->uvs,
 			mesh->tangent,
-			mesh->bitangent,
 			mesh->indices,
 			mesh->materialsIndices,
 			false);
@@ -3473,7 +3469,6 @@ namespace Plaza {
 				(mesh.normals.size() > i) ? mesh.normals[i] : glm::vec3(1.0f),
 				(mesh.uvs.size() > i) ? mesh.uvs[i] : glm::vec2(0.0f),
 				(mesh.tangent.size() > i) ? mesh.tangent[i] : glm::vec3(0.0f),
-				(mesh.bitangent.size() > i) ? mesh.bitangent[i] : glm::vec3(0.0f),
 				(mesh.materialsIndices.size() > i) ? mesh.materialsIndices[i] : 0,
 				(mesh.bonesHolder.size() > i && mesh.bonesHolder[i].mBones.size() > 0) ? this->GetBoneIds(mesh.bonesHolder[i].mBones) : std::array<int, MAX_BONE_INFLUENCE>{-1, -1, -1, -1},
 				(mesh.bonesHolder.size() > i && mesh.bonesHolder[i].mBones.size() > 0) ? mesh.bonesHolder[i].GetBoneWeights() : std::array<float, MAX_BONE_INFLUENCE>{0, 0, 0, 0} };

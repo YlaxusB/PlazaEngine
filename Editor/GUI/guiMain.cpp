@@ -209,6 +209,7 @@ namespace Plaza {
 			//ImGui::ShowDemoWindow();
 
 			FileExplorer::UpdateGui();
+			Application->mEditor->mGui.mConsole->Update();
 			ImGui::End();
 
 
@@ -227,6 +228,7 @@ namespace Plaza {
 			//}
 
 			Application->mEditor->mGui.mAssetsImporter.Update();
+
 
 			for (auto& editorTool : Gui::sEditorTools) {
 				editorTool.second->UpdateGui();

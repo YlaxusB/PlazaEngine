@@ -240,13 +240,14 @@ namespace Plaza {
 					finalMesh->vertices.push_back(position * mModelImporterScale);
 					finalMesh->normals.push_back(normal);
 					finalMesh->uvs.push_back(uv);
+					if (ufbxMesh->vertex_tangent.exists)
+						finalMesh->tangent.push_back(ConvertUfbxVec3(ufbxMesh->vertex_tangent[index]));
 
 					finalMesh->materialsIndices.push_back(materialIndex);
 
 					if (ufbxMesh->skin_deformers.count > 0) {
 						ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
 						const uint32_t vertex = ufbxMesh->vertex_indices[index];
-
 
 						ufbx_skin_vertex skinVertex = skin->vertices[vertex];
 						uint32_t num_weights = skinVertex.num_weights;

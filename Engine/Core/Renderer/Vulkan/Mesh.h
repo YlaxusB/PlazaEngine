@@ -17,13 +17,12 @@ namespace Plaza {
 		~VulkanMesh();
 
 		VulkanMesh(const VulkanMesh&) = default;
-		VulkanMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices) {
+		VulkanMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<unsigned int> indices) {
 			this->vertices = vertices;
 			this->indices = indices;
 			this->normals = normals;
 			this->uvs = uvs;
 			this->tangent = tangent;
-			this->bitangent = bitangent;
 			this->uuid = Plaza::UUID::NewUUID();
 			if (this->meshId == 0)
 				this->meshId = Plaza::UUID::NewUUID();
@@ -44,13 +43,12 @@ namespace Plaza {
 		//	//setupMesh();
 		//}
 
-		VulkanMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, bool usingNormal, vector<BonesHolder> bonesHolder = vector<BonesHolder>()) {
+		VulkanMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<unsigned int> indices, bool usingNormal, vector<BonesHolder> bonesHolder = vector<BonesHolder>()) {
 			this->vertices = vertices;
 			this->indices = indices;
 			this->normals = normals;
 			this->uvs = uvs;
 			this->tangent = tangent;
-			this->bitangent = bitangent;
 			this->indices = indices;
 			this->bonesHolder = bonesHolder;
 			this->usingNormal = usingNormal;

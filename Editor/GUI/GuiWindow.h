@@ -9,7 +9,8 @@ namespace Plaza {
 			EDITOR,
 			INSPECTOR,
 			FILE_EXPLORER,
-			ASSETS_IMPORTER
+			ASSETS_IMPORTER,
+			CONSOLE
 		};
 
 		enum class GuiState {

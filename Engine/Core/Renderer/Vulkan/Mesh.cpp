@@ -16,7 +16,6 @@ namespace Plaza {
 					(normals.size() > i) ? normals[i] : glm::vec3(0.0f),
 					(uvs.size() > i) ? uvs[i] : glm::vec2(0.0f),
 					(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f),
-					(bitangent.size() > i) ? bitangent[i] : glm::vec3(0.0f)
 					});
 			}
 			GetVulkanRenderer().CreateVertexBuffer(convertedVertices, mVertexBuffer, mVertexBufferMemory);
@@ -127,8 +126,7 @@ namespace Plaza {
 				vertices[i],
 				(normals.size() > i) ? normals[i] : glm::vec3(0.0f),
 				(uvs.size() > i) ? uvs[i] : glm::vec2(0.0f),
-				(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f),
-				(bitangent.size() > i) ? bitangent[i] : glm::vec3(0.0f)
+				(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f)
 				});
 		}
 

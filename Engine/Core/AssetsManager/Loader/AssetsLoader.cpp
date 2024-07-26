@@ -199,8 +199,7 @@ namespace Plaza {
 
 					SerializableMesh* deserializedMesh = &deserializedMeshRenderer.serializedMesh;
 					std::vector<glm::vec3> tangents;
-					std::vector<glm::vec3> bitangents;
-					Mesh* mesh = &Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, tangents, bitangents, deserializedMesh->indices, deserializedMesh->materialsIndices, false, deserializedMesh->bonesHolders, deserializedMesh->uniqueBones);
+					Mesh* mesh = &Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, tangents, deserializedMesh->indices, deserializedMesh->materialsIndices, false, deserializedMesh->bonesHolders, deserializedMesh->uniqueBones);
 
 					/* TEMPORARY: TODO: FIX THE UNIQUE BONES */
 					for (int i = 0; i < deserializedMesh->uniqueBones.size(); ++i) {

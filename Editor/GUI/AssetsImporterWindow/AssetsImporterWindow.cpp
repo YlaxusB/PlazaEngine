@@ -32,7 +32,6 @@ namespace Plaza {
 				}
 				ImGui::EndPopup();
 			}
-
 		}
 
 		void AssetsImporterWindow::ModelImporterMenu() {

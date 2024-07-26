@@ -105,9 +105,8 @@ namespace Plaza::Editor {
           //new Mesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
 
           std::vector<glm::vec3> tangents;
-          std::vector<glm::vec3> bitangents;
           std::vector<unsigned int> materials{ 0 };
-          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(positions, normals, texCoords, tangents, bitangents, indices, materials, false);
+          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(positions, normals, texCoords, tangents, indices, materials, false);
           newMesh->meshId = cubeUuid;
           newMesh->uuid = cubeUuid;
           AssetsManager::AddMesh(newMesh);
@@ -172,7 +171,7 @@ namespace Plaza::Editor {
           }
 
           std::vector<unsigned int> materials{ 0 };
-          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, bitangents, indices, materials, false);
+          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);
           newMesh->meshId = sphereUuid;
           newMesh->uuid = sphereUuid;
           AssetsManager::AddMesh(newMesh);
@@ -206,9 +205,8 @@ namespace Plaza::Editor {
           };
 
           std::vector<glm::vec3> tangents;
-          std::vector<glm::vec3> bitangents;
           std::vector<unsigned int> materials{ 0 };
-          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, texCoords, tangents, bitangents, indices, materials, false);
+          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, texCoords, tangents, indices, materials, false);
           newMesh->meshId = planeUuid;
           newMesh->uuid = planeUuid;
           AssetsManager::AddMesh(newMesh);
@@ -228,8 +226,8 @@ namespace Plaza::Editor {
                float x = glm::cos((slices / i)) * radius;
                float z = glm::sin((slices / i)) * radius;
                float y = 0;
-               vertices.push_back(Vertex(glm::vec3(x, y, z), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)));
-               vertices.push_back(Vertex(glm::vec3(x, y + height, z), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f), glm::vec3(0.0f), glm::vec3(0.0f)));
+               vertices.push_back(Vertex(glm::vec3(x, y, z), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f), glm::vec3(0.0f)));
+               vertices.push_back(Vertex(glm::vec3(x, y + height, z), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f), glm::vec3(0.0f)));
           }
 
           for (unsigned int i = 0; i < slices; i += 2) {

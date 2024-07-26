@@ -394,22 +394,22 @@ namespace Plaza {
 
 			std::array<VkVertexInputAttributeDescription, 4> instanceAttributeDescriptions = {};
 			instanceAttributeDescriptions[0].binding = 1;
-			instanceAttributeDescriptions[0].location = 5;
+			instanceAttributeDescriptions[0].location = 4;
 			instanceAttributeDescriptions[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 			instanceAttributeDescriptions[0].offset = 0;
 
 			instanceAttributeDescriptions[1].binding = 1;
-			instanceAttributeDescriptions[1].location = 6;
+			instanceAttributeDescriptions[1].location = 5;
 			instanceAttributeDescriptions[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 			instanceAttributeDescriptions[1].offset = sizeof(float) * 4;
 
 			instanceAttributeDescriptions[2].binding = 1;
-			instanceAttributeDescriptions[2].location = 7;
+			instanceAttributeDescriptions[2].location = 6;
 			instanceAttributeDescriptions[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 			instanceAttributeDescriptions[2].offset = sizeof(float) * 8;
 
 			instanceAttributeDescriptions[3].binding = 1;
-			instanceAttributeDescriptions[3].location = 8;
+			instanceAttributeDescriptions[3].location = 7;
 			instanceAttributeDescriptions[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 			instanceAttributeDescriptions[3].offset = sizeof(float) * 12;
 			bindingDescriptions[1] = instanceBindingDescription;

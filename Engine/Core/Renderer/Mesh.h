@@ -20,7 +20,6 @@ namespace Plaza {
 		glm::vec3 normal;
 		glm::vec2 texCoords;
 		glm::vec3 tangent;
-		glm::vec3 bitangent;
 		unsigned int materialIndex = -1;
 		std::array<int, MAX_BONE_INFLUENCE> boneIds;
 		std::array<float, MAX_BONE_INFLUENCE> weights;
@@ -28,19 +27,19 @@ namespace Plaza {
 		~Vertex() = default;
 
 		Vertex(const glm::vec3& pos)
-			: position(pos), normal(0.0f), texCoords(0.0f), tangent(0.0f), bitangent(0.0f) {
+			: position(pos), normal(0.0f), texCoords(0.0f), tangent(0.0f) {
 			for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
 				boneIds[i] = -1;
 				weights[i] = 0.0f;
 			}
 		}
 
-		Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const glm::vec3& bitan, const unsigned int& materialIndex = 0, const std::array<int, MAX_BONE_INFLUENCE> boneIds = std::array<int, MAX_BONE_INFLUENCE>(), const std::array<float, MAX_BONE_INFLUENCE> weights = std::array<float, MAX_BONE_INFLUENCE>())
-			: position(pos), normal(norm), texCoords(tex), tangent(tan), bitangent(bitan), materialIndex(materialIndex), boneIds(boneIds), weights(weights) {
+		Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const unsigned int materialIndex = 0, const std::array<int, MAX_BONE_INFLUENCE> boneIds = std::array<int, MAX_BONE_INFLUENCE>(), const std::array<float, MAX_BONE_INFLUENCE> weights = std::array<float, MAX_BONE_INFLUENCE>())
+			: position(pos), normal(norm), texCoords(tex), tangent(tan), materialIndex(materialIndex), boneIds(boneIds), weights(weights) {
 		}
 
 		Vertex()
-			: position(0.0f), normal(0.0f), texCoords(0.0f), tangent(0.0f), bitangent(0.0f) {
+			: position(0.0f), normal(0.0f), texCoords(0.0f), tangent(0.0f) {
 			for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
 				boneIds[i] = -1;
 				weights[i] = 0.0f;
@@ -230,7 +229,6 @@ namespace Plaza {
 		vector<glm::vec3> normals = vector<glm::vec3>();
 		vector<glm::vec2> uvs = vector<glm::vec2>();
 		vector<glm::vec3> tangent = vector<glm::vec3>();
-		vector<glm::vec3> bitangent = vector<glm::vec3>();
 		vector<unsigned int> materialsIndices = vector<unsigned int>();
 		vector<BonesHolder> bonesHolder;
 		map<uint64_t, Bone> uniqueBonesInfo = map<uint64_t, Bone>();

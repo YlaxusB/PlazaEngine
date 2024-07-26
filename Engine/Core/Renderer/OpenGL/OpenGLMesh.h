@@ -30,13 +30,12 @@ namespace Plaza {
 		};
 
 		OpenGLMesh(const OpenGLMesh&) = default;
-		OpenGLMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices) {
+		OpenGLMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<unsigned int> indices) {
 			this->vertices = vertices;
 			this->indices = indices;
 			this->normals = normals;
 			this->uvs = uvs;
 			this->tangent = tangent;
-			this->bitangent = bitangent;
 			this->uuid = Plaza::UUID::NewUUID();
 			if (this->meshId == 0)
 				this->meshId = Plaza::UUID::NewUUID();
@@ -57,13 +56,12 @@ namespace Plaza {
 		//	setupMesh();
 		//}
 
-		OpenGLMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<glm::vec3> bitangent, vector<unsigned int> indices, bool usingNormal) {
+		OpenGLMesh(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, vector<glm::vec3> tangent, vector<unsigned int> indices, bool usingNormal) {
 			this->vertices = vertices;
 			this->indices = indices;
 			this->normals = normals;
 			this->uvs = uvs;
 			this->tangent = tangent;
-			this->bitangent = bitangent;
 			this->indices = indices;
 			this->usingNormal = usingNormal;
 			this->uuid = Plaza::UUID::NewUUID();
@@ -119,9 +117,9 @@ namespace Plaza {
 					glEnableVertexAttribArray(3);
 					glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
 
-					// vertex bitangent
-					glEnableVertexAttribArray(4);
-					glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+					//// vertex bitangent
+					//glEnableVertexAttribArray(4);
+					//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
 
 					// Update normals and UVs
 					glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -195,8 +193,8 @@ namespace Plaza {
 			glEnableVertexAttribArray(3);
 			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
 			// vertex bitangent
-			glEnableVertexAttribArray(4);
-			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
+			//glEnableVertexAttribArray(4);
+			//glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
 
 
 			// Generate instanced array

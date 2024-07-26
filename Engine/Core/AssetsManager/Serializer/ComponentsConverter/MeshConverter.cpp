@@ -10,6 +10,8 @@ namespace Plaza {
 		serializedMesh.vertices = mesh->vertices;
 		serializedMesh.normalsCount = mesh->normals.size();
 		serializedMesh.normals = mesh->normals;
+		serializedMesh.tangentCount = mesh->tangent.size();
+		serializedMesh.tangent = mesh->tangent;
 		serializedMesh.uvsCount = mesh->uvs.size();
 		serializedMesh.uvs = mesh->uvs;
 		serializedMesh.indicesCount = mesh->indices.size();

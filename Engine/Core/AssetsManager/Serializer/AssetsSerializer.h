@@ -64,6 +64,8 @@ namespace Plaza {
 		std::vector<glm::vec3> normals;
 		uint64_t uvsCount;
 		std::vector<glm::vec2> uvs;
+		uint64_t tangentCount;
+		std::vector<glm::vec3> tangent;
 		uint64_t indicesCount;
 		std::vector<unsigned int> indices;
 		std::vector<unsigned int> materialsIndices;
@@ -75,7 +77,7 @@ namespace Plaza {
 		template <class Archive>
 		void serialize(Archive& archive) {
 			archive(assetUuid, assetType, materialAssetUuid, verticesCount, vertices,
-				normalsCount, normals, uvsCount, uvs, indicesCount, indices, materialsIndices,
+				normalsCount, normals, uvsCount, uvs, tangentCount, tangent, indicesCount, indices, materialsIndices,
 				bonesHoldersCount, bonesHolders, uniqueBonesCount, uniqueBones);
 		}
 	};

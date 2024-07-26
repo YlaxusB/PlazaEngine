@@ -6,7 +6,7 @@
 // Move the operator<< function definition here
 YAML::Emitter& operator <<(YAML::Emitter& out, const Vertex& v) {
 	out << YAML::Flow;
-	out << YAML::BeginSeq << v.position.x << v.position.y << v.position.z << v.normal.x << v.normal.y << v.normal.z << v.texCoords.x << v.texCoords.y << v.tangent.x << v.tangent.y << v.tangent.z << v.bitangent.x << v.bitangent.y << v.bitangent.z << YAML::EndSeq;
+	out << YAML::BeginSeq << v.position.x << v.position.y << v.position.z << v.normal.x << v.normal.y << v.normal.z << v.texCoords.x << v.texCoords.y << v.tangent.x << v.tangent.y << v.tangent.z << YAML::EndSeq;
 	return out;
 }
 

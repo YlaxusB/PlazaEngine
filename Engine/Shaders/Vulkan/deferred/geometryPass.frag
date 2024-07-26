@@ -47,12 +47,10 @@ layout(binding = 0) uniform UniformBufferObject {
 } ubo;
 
 layout(location = 20) in flat MaterialData material;
-layout(location = 11) in vec4 FragPos;
-layout(location = 12) in vec4 Normal;
+layout(location = 10) in vec3 FragPos;
+layout(location = 11) in vec3 inNormal;
+layout(location = 12) in vec3 Tangent;
 layout(location = 13) in vec2 TexCoords;
-layout(location = 14) in vec4 TangentLightPos;
-layout(location = 15) in vec4 TangentViewPos;
-layout(location = 16) in vec4 TangentFragPos;
 layout(location = 17) in vec4 worldPos;
 layout(location = 18) in flat int affected;
 
@@ -69,7 +67,7 @@ float GeometrySchlickGGX(float NdotV, float roughness);
 float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness);
 vec3 fresnelSchlick(float cosTheta, vec3 F0);
 
-float ShadowCalculation(vec3 fragPosWorldSpace)
+float ShadowCalculation(vec3 fragPosWorldSpace, vec3 Normal)
 {
     // select cascade layer
     vec4 fragPosViewSpace = ubo.view * vec4(fragPosWorldSpace, 1.0);
@@ -99,15 +97,7 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
         return 0.0f;
     }
     // calculate bias (based on depth map resolution and slope)
-    vec3 normale;
-    bool usingNormal = false;
-    if(usingNormal){
-        normale = texture(textures[material.normalIndex], TexCoords).rgb;
-        normale = normalize(normale * 2.0 - 1.0);  // this normal is in tangent space
-    } else {
-        normale = normalize(Normal.xyz);
-    }
-    float bias = max(0.0005 * (1.0 - dot(normale, ubo.lightDirection.xyz)), 0.00005);
+    float bias = max(0.0005 * (1.0 - dot(Normal, ubo.lightDirection.xyz)), 0.00005);
     const float biasModifier = 0.5f;
     if (layer == ubo.cascadeCount)
     {
@@ -117,6 +107,7 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
     {
         bias *= 1 / ((ubo.cascadePlaneDistances[layer].x) * biasModifier);
     }
+    bias = 0.0005;
     float distanceToCamera = distance(ubo.viewPos.xyz, projCoords.xyz);
     
     bias = 0.0001;
@@ -158,15 +149,15 @@ float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
     return GL * GV;
 }
 
-vec3 getNormalFromMap(vec3 tangentNormal)
+vec3 getNormalFromMap()
 {
-    vec3 N = normalize(Normal.xyz);
-    vec3 T = normalize(vec3(0.0, 1.0, 0.0));
-    vec3 B = normalize(cross(N, T));
-    T = normalize(cross(B, N));
+	vec3 tangentNormal = texture(textures[material.normalIndex], fragTexCoord).xyz * 2.0 - 1.0;
 
-    mat3 TBN = mat3(T, B, N);
-    return normalize(TBN * tangentNormal);
+	vec3 N = normalize(inNormal);
+	vec3 T = normalize(Tangent.xyz);
+	vec3 B = normalize(cross(N, T));
+	mat3 TBN = mat3(T, B, N);
+	return normalize(TBN * tangentNormal);
 }
 
 vec3 F_Schlick(float cosTheta, vec3 F0)
@@ -225,9 +216,9 @@ void main() {
         albedo = material.color.xyz * material.intensity;
     }
 
-    vec3 N = normalize(Normal.xyz);
+    vec3 N = normalize(inNormal.xyz);
     if(material.normalIndex > -1) {
-        N = getNormalFromMap(texture(textures[material.normalIndex], fragTexCoord).xyz * 2.0 - 1.0);
+        N = getNormalFromMap();//texture(textures[material.normalIndex], fragTexCoord).xyz * 2.0 - 1.0
     }
 
     float metallic = material.metalnessFloat;
@@ -269,7 +260,7 @@ void main() {
     vec3 ambient = (kD * diffuse) + specular * ambientOcclusion;
 
     vec3 color = ambient + Lo; //+ ubo.directionalLightColor.xyz; // Directional Light
-    color *= max(vec3(1.0 - ShadowCalculation(FragPos.xyz)), + ubo.ambientLightColor.xyz); //+ ubo.ambientLightColor.xyz); // Shadow
+    color *= max(vec3(1.0 - ShadowCalculation(FragPos.xyz, N)), ubo.ambientLightColor.xyz); //+ ubo.ambientLightColor.xyz); // Shadow
 
     vec3 FinalColor = color;
 

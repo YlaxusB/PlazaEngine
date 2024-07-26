@@ -149,9 +149,8 @@ namespace Plaza {
 				}
 
 				std::vector<glm::vec3> tangents;
-				std::vector<glm::vec3> bitangents;
 				std::vector<unsigned int> materials{ 0 };
-				Mesh& mesh = Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, bitangents, indices, materials, false);// new Mesh();
+				Mesh& mesh = Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);// new Mesh();
 				MeshRenderer* meshRenderer = new MeshRenderer(&mesh, material);
 				meshRenderer->mMaterials.push_back(material);
 				newEntity->AddComponent<MeshRenderer>(meshRenderer);

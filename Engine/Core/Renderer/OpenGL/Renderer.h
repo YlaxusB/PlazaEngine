@@ -96,7 +96,6 @@ namespace Plaza {
 			vector<glm::vec3>& normals,
 			vector<glm::vec2>& uvs,
 			vector<glm::vec3>& tangent,
-			vector<glm::vec3>& bitangent,
 			vector<unsigned int>& indices,
 			vector<unsigned int>& materialsIndices,
 			bool usingNormal,

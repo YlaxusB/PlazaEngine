@@ -91,7 +91,6 @@ namespace Plaza {
 			vector<glm::vec3>& normals,
 			vector<glm::vec2>& uvs,
 			vector<glm::vec3>& tangent,
-			vector<glm::vec3>& bitangent,
 			vector<unsigned int>& indices,
 			vector<unsigned int>& materialsIndices,
 			bool usingNormal,
@@ -397,8 +396,8 @@ vec3 viewPos;
 			return bindingDescriptions;
 		}
 
-		static std::array<VkVertexInputAttributeDescription, 12> VertexGetAttributeDescriptions() {
-			std::array<VkVertexInputAttributeDescription, 12> attributeDescriptions{};
+		static std::array<VkVertexInputAttributeDescription, 11> VertexGetAttributeDescriptions() {
+			std::array<VkVertexInputAttributeDescription, 11> attributeDescriptions{};
 			attributeDescriptions[0].binding = 0;
 			attributeDescriptions[0].location = 0;
 			attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
@@ -419,56 +418,41 @@ vec3 viewPos;
 			attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
 			attributeDescriptions[3].offset = offsetof(Vertex, tangent);
 
-			attributeDescriptions[4].binding = 0;
+			attributeDescriptions[4].binding = 1;
 			attributeDescriptions[4].location = 4;
-			attributeDescriptions[4].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributeDescriptions[4].offset = offsetof(Vertex, bitangent);
+			attributeDescriptions[4].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			attributeDescriptions[4].offset = 0;
 
 			attributeDescriptions[5].binding = 1;
 			attributeDescriptions[5].location = 5;
 			attributeDescriptions[5].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			attributeDescriptions[5].offset = 0;
+			attributeDescriptions[5].offset = sizeof(float) * 4;
 
 			attributeDescriptions[6].binding = 1;
 			attributeDescriptions[6].location = 6;
 			attributeDescriptions[6].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			attributeDescriptions[6].offset = sizeof(float) * 4;
+			attributeDescriptions[6].offset = sizeof(float) * 8;
 
 			attributeDescriptions[7].binding = 1;
 			attributeDescriptions[7].location = 7;
 			attributeDescriptions[7].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			attributeDescriptions[7].offset = sizeof(float) * 8;
+			attributeDescriptions[7].offset = sizeof(float) * 12;
 
-			attributeDescriptions[8].binding = 1;
+			attributeDescriptions[8].binding = 0;
 			attributeDescriptions[8].location = 8;
-			attributeDescriptions[8].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			attributeDescriptions[8].offset = sizeof(float) * 12;
-
-			attributeDescriptions[8].binding = 1;
-			attributeDescriptions[8].location = 8;
-			attributeDescriptions[8].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			attributeDescriptions[8].offset = sizeof(float) * 12;
+			attributeDescriptions[8].format = VK_FORMAT_R32G32B32A32_SINT;
+			attributeDescriptions[8].offset = offsetof(Vertex, boneIds);
 
 			attributeDescriptions[9].binding = 0;
 			attributeDescriptions[9].location = 9;
-			attributeDescriptions[9].format = VK_FORMAT_R32G32B32A32_SINT;
-			attributeDescriptions[9].offset = offsetof(Vertex, boneIds);
-
-			attributeDescriptions[10].binding = 0;
-			attributeDescriptions[10].location = 10;
-			attributeDescriptions[10].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			attributeDescriptions[10].offset = offsetof(Vertex, weights);
-
-			//attributeDescriptions[11].binding = 2;
-			//attributeDescriptions[11].location = 18;
-			//attributeDescriptions[11].format = VK_FORMAT_R32_UINT;
-			//attributeDescriptions[11].offset = sizeof(unsigned int);
+			attributeDescriptions[9].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+			attributeDescriptions[9].offset = offsetof(Vertex, weights);
 
 			// Material
-			attributeDescriptions[11].binding = 0;
-			attributeDescriptions[11].location = 11;
-			attributeDescriptions[11].format = VK_FORMAT_R32_UINT;
-			attributeDescriptions[11].offset = offsetof(Vertex, materialIndex);
+			attributeDescriptions[10].binding = 0;
+			attributeDescriptions[10].location = 10;
+			attributeDescriptions[10].format = VK_FORMAT_R32_UINT;
+			attributeDescriptions[10].offset = offsetof(Vertex, materialIndex);
 			return attributeDescriptions;
 		}
 

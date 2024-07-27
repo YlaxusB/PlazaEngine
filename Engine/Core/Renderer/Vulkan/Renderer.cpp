@@ -2544,6 +2544,8 @@ namespace Plaza {
 		this->mSkybox = new VulkanSkybox();
 		this->mPicking = new VulkanPicking();
 		this->mGuiRenderer = new VulkanGuiRenderer();
+		this->mRenderGraph = new VulkanRenderGraph();
+		this->mRenderGraph->BuildDefaultRenderGraph();
 
 		VulkanShadersCompiler::mDefaultOutDirectory = Application->exeDirectory + "\\CompiledShaders\\";
 		VulkanShadersCompiler::mGlslcExePath = "C:\\VulkanSDK\\1.3.268.0\\Bin\\glslc.exe";
@@ -2781,6 +2783,25 @@ namespace Plaza {
 		VkSemaphoreCreateInfo semaphoreInfo = {};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &semaphore);
+
+		this->InitializeRenderGraph(mRenderGraph);
+		mRenderGraph->Compile();
+	}
+
+	void VulkanRenderer::InitializeRenderGraph(PlazaRenderGraph* renderGraph) {
+		renderGraph->AddRenderPassCallback("Deferred Geometry Pass", [&](PlazaRenderGraph*, PlazaRenderPass*) {
+			VkCommandBuffer commandBuffer = *mActiveCommandBuffer;
+			VkDeviceSize offsets[1] = { 0 };
+			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer->GetBuffer(), offsets);
+			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
+			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+			});
+
+		for (auto& [passName, pass] : renderGraph->mPasses) {
+			std::cout << pass->mName << "\n";
+		}
 	}
 
 	void VulkanRenderer::InitShaders(std::string shadersFolder) {
@@ -2823,7 +2844,7 @@ namespace Plaza {
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
-	}
+		}
 
 		{
 			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
@@ -2846,7 +2867,11 @@ namespace Plaza {
 			// vkResetFences(mDevice, 1, &mComputeInFlightFences[mCurrentFrame]);
 			// vkResetCommandBuffer(mComputeCommandBuffers[mCurrentFrame], 0);
 
-			RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
+			mActiveCommandBuffer = &mCommandBuffers[mCurrentFrame];
+			mRenderGraph->UpdateCommandBuffer(mCommandBuffers[mCurrentFrame]);
+			mRenderGraph->Execute(mCurrentFrame);
+
+			//RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
 		}
 
 		VkSemaphore waitSemaphores[] = { mImageAvailableSemaphores[mCurrentFrame] };
@@ -2913,7 +2938,7 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-}
+	}
 	void VulkanRenderer::RenderBloom() {
 	}
 	void VulkanRenderer::RenderScreenSpaceReflections() {
@@ -3532,7 +3557,7 @@ namespace Plaza {
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
-	}
+		}
 
 		{
 			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
@@ -3764,4 +3789,4 @@ namespace Plaza {
 		VulkanRenderer::GetGeometryPassDescriptorSet(unsigned int frame) {
 		return this->mGeometryPassRenderer.mShaders->mDescriptorSets[frame];
 	}
-		} // namespace Plaza
+} // namespace Plaza

@@ -7,6 +7,7 @@
 #include "Skybox.h"
 #include "Picking.h"
 #include "GuiRenderer.h"
+#include "RenderGraph.h"
 
 namespace Plaza {
 
@@ -39,9 +40,11 @@ namespace Plaza {
 		Skybox* mSkybox;
 		Picking* mPicking;
 		GuiRenderer* mGuiRenderer;
+		PlazaRenderGraph* mRenderGraph;
 		const unsigned int mMaxFramesInFlight = 2;
 
 		virtual void Init() = 0;
+		virtual void InitializeRenderGraph(PlazaRenderGraph* renderGraph) = 0;
 		virtual void UpdateProjectManager() = 0;
 		virtual void InitShaders(std::string shadersFolder) = 0;
 		virtual void AddInstancesToRender() = 0;

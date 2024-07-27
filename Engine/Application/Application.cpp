@@ -338,8 +338,6 @@ void ApplicationClass::UpdateEngine() {
      if (Application->mRenderer->api == RendererAPI::OpenGL)
           glEnable(GL_BLEND);
 
-     // Update Camera Position and Rotation
-     Application->activeCamera->Update();
      // Update Audio Listener
      Audio::UpdateListener();
 
@@ -363,6 +361,9 @@ void ApplicationClass::UpdateEngine() {
           PLAZA_PROFILE_SECTION("Mono Update");
           Mono::Update();
      }
+
+     // Update Camera Position and Rotation
+     Application->activeCamera->Update();
 
      /* Update lights buffer */
 //	if (Application->mRenderer->api == RendererAPI::OpenGL)

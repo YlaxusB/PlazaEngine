@@ -7,6 +7,7 @@
 #include "Mesh.h"
 #include "Engine/Core/Renderer/Mesh.h"
 
+#include "VulkanRenderGraph.h"
 #include "VulkanTexture.h"
 #include "VulkanShadows.h"
 #include "VulkanSkybox.h"
@@ -60,6 +61,7 @@ namespace Plaza {
 		};
 
 		void Init() override;
+		void InitializeRenderGraph(PlazaRenderGraph* renderGraph) override;
 		void UpdateProjectManager() override;
 		void InitShaders(std::string shadersFolder) override;
 		void AddInstancesToRender() override;
@@ -121,6 +123,8 @@ namespace Plaza {
 		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel = 0, unsigned int arrayLayerCount = 1);
 		VkCommandBuffer* mActiveCommandBuffer;
 
+		VulkanRenderGraph* mRenderGraph;
+
 		void ChangeFinalDescriptorImageView(VkImageView newImageView);
 		VkFormat mFinalDeferredFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
 		VkFormat mSwapChainImageFormat;
@@ -150,6 +154,10 @@ namespace Plaza {
 
 		static VulkanRenderer* GetRenderer();
 
+		std::vector<VkImage> mSwapChainImages;
+		std::vector<VkImageView> mSwapChainImageViews;
+		std::vector<VkFramebuffer> mSwapChainFramebuffers;
+
 
 		RendererAPI api = RendererAPI::Vulkan;
 		VulkanShadows* mShadows;
@@ -171,6 +179,10 @@ namespace Plaza {
 		VulkanTexture mDeferredOthersTexture;
 
 		VmaAllocator mVmaAllocator;
+
+		VkDescriptorSet mFinalSceneDescriptorSet;
+		VkPipelineLayout mPipelineLayout;
+		VkPipeline mGraphicsPipeline;
 	private:
 		struct SwapChainPushConstant {
 			float exposure = 1.2f;
@@ -249,16 +261,12 @@ namespace Plaza {
 		VkDeviceMemory mTextureImageMemory;
 		VkImageView mTextureImageView;
 
-
-		VkDescriptorSet mFinalSceneDescriptorSet;
 		VkInstance mVulkanInstance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT mDebugMessenger = VK_NULL_HANDLE;
 		VkQueue mPresentQueue = VK_NULL_HANDLE;
 		VkSurfaceKHR mSurface = VK_NULL_HANDLE;
 		VkSwapchainKHR mSwapChain;
 
-		VkPipeline mGraphicsPipeline;
-		VkPipelineLayout mPipelineLayout;
 		VkCommandPool mCommandPool;
 		std::vector<VkCommandBuffer> mCommandBuffers;
 		std::vector<VkCommandBuffer> mComputeCommandBuffers;
@@ -283,10 +291,6 @@ namespace Plaza {
 		std::vector<VkBuffer> mUniformBuffers;
 		std::vector<VkDeviceMemory> mUniformBuffersMemory;
 		std::vector<void*> mUniformBuffersMapped;
-
-		std::vector<VkImage> mSwapChainImages;
-		std::vector<VkImageView> mSwapChainImageViews;
-		std::vector<VkFramebuffer> mSwapChainFramebuffers;
 
 		VkDescriptorSet mMainSceneDescriptorSet;
 

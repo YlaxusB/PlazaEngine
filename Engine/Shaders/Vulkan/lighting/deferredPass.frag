@@ -199,9 +199,9 @@ void main()
     vec3 lighting  = vec3(0.0f);//Diffuse * 0.1; // hard-coded ambient component
 
 
+        vec3 FragPos = texture(gPosition, TexCoords).rgb;
     if(pushConstants.lightCount > 0)
     {
-        vec3 FragPos = texture(gPosition, TexCoords).rgb;
         vec3 Normal = texture(gNormal, TexCoords).rgb;
         float Specular = texture(gOthers, TexCoords).x;
         float metalness = texture(gOthers, TexCoords).y;
@@ -289,6 +289,10 @@ void main()
 //
 //#else
     color = Diffuse + lighting;
+    //const float maxFogDistance = 2000.0f;
+    //float fogDensity = 1.0f / maxFogDistance;
+    //float fogFactor = exp(-fogDensity * length(pushConstants.viewPos - FragPos));
+    //color = mix(vec3(0.5f, 0.8f, 1.0f) * 1.0f, color, fogFactor);
 //#endif
 
 

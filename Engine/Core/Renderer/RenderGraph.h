@@ -121,7 +121,7 @@ namespace Plaza {
 				->AddOutputResource(std::make_shared<PlazaTextureBinding>("SceneTexture", 0, 0, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1));
 		}
 
-		virtual void Execute(uint8_t currentFrame) {};
+		virtual void Execute(uint8_t imageIndex, uint8_t currentFrame) {};
 		void ExecuteRenderPasses() {
 			for (auto& [key, value] : mPasses) {
 				value->mCallback;
@@ -135,6 +135,8 @@ namespace Plaza {
 				}
 			}
 		}
+
+		virtual bool BindPass(std::string passName) {};
 
 		PlazaRenderPass* AddRenderPass(std::string name, int stage) {
 			mPasses.emplace(name, std::make_shared<PlazaRenderPass>(name, stage));

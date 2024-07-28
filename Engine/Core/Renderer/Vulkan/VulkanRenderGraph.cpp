@@ -9,45 +9,60 @@ namespace Plaza {
 
 	}
 
-	void VulkanRenderGraph::Execute(uint8_t currentFrame) {
+	bool VulkanRenderGraph::BindPass(std::string passName) {
+		if (mPasses.find(passName) == mPasses.end())
+			return false;
+		VulkanRenderPass* renderPass = mPasses.at(passName).get();
+
+		VkRenderPassBeginInfo renderPassBeginInfo = plvk::renderPassBeginInfo(renderPass->m);
+		vkCmdBeginRenderPass(*mCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+	}
+
+	void VulkanRenderGraph::Execute(uint8_t imageIndex, uint8_t currentFrame) {
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 		beginInfo.pInheritanceInfo = nullptr;
 
-		if (vkBeginCommandBuffer(mCommandBuffer, &beginInfo) != VK_SUCCESS) {
+		VkCommandBuffer commandBuffer = *mCommandBuffer;
+
+
+		if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
 			throw std::runtime_error("failed to begin recording command buffer!");
 		}
+		VulkanRenderer::GetRenderer()->mActiveCommandBuffer = &commandBuffer;
+		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mSwapChainImages[currentFrame], VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
 		for (auto& [key, value] : mPasses) {
 			value->Execute();
 		}
 
 		/* Render ImGui if in Editor build */
+#ifdef EDITOR_MODE
 		std::array<VkClearValue, 1> clearValues{};
 		clearValues[0].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
-		VkRenderPassBeginInfo renderPassInfo = plvk::renderPassBeginInfo(VulkanRenderer::GetRenderer()->mSwapChainFramebuffers[currentFrame], VulkanRenderer::GetRenderer()->mSwapchainRenderPass,
+		VkRenderPassBeginInfo renderPassInfo = plvk::renderPassBeginInfo(VulkanRenderer::GetRenderer()->mSwapchainRenderPass, VulkanRenderer::GetRenderer()->mSwapChainFramebuffers[imageIndex],
 			VulkanRenderer::GetRenderer()->mSwapChainExtent.width, VulkanRenderer::GetRenderer()->mSwapChainExtent.height, 0, 0, 1, clearValues.data());
 
-		vkCmdBeginRenderPass(mCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 		//vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanRenderer::GetRenderer()->mGraphicsPipeline);
 
 		VkViewport viewport = plvk::viewport(0.0f, 0.0f, VulkanRenderer::GetRenderer()->mSwapChainExtent.width, VulkanRenderer::GetRenderer()->mSwapChainExtent.height);
-		vkCmdSetViewport(mCommandBuffer, 0, 1, &viewport);
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		VkRect2D scissor = plvk::rect2D(0, 0, VulkanRenderer::GetRenderer()->mSwapChainExtent.width, VulkanRenderer::GetRenderer()->mSwapChainExtent.height);
-		vkCmdSetScissor(mCommandBuffer, 0, 1, &scissor);
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		//vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, VulkanRenderer::GetRenderer()->mPipelineLayout, 0, 1, &VulkanRenderer::GetRenderer()->mFinalSceneDescriptorSet, 0, nullptr);
 
 		{
 			PLAZA_PROFILE_SECTION("Render ImGui");
-			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), mCommandBuffer);
+			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 		}
 
-		vkCmdEndRenderPass(mCommandBuffer);
+		vkCmdEndRenderPass(commandBuffer);
+#endif
 
-
-		if (vkEndCommandBuffer(mCommandBuffer) != VK_SUCCESS) {
+		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
 		}
 	}

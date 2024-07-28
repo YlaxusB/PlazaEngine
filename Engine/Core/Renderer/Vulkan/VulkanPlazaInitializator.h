@@ -375,8 +375,8 @@ namespace Plaza {
 		}
 
 		static VkRenderPassBeginInfo renderPassBeginInfo(
-			VkFramebuffer frameBuffer,
 			VkRenderPass renderPass,
+			VkFramebuffer frameBuffer,
 			uint32_t renderAreaX,
 			uint32_t renderAreaY,
 			uint32_t offsetX,
@@ -386,8 +386,8 @@ namespace Plaza {
 		) {
 			VkRenderPassBeginInfo renderPassInfo{};
 			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			renderPassInfo.framebuffer = frameBuffer;
 			renderPassInfo.renderPass = renderPass;
+			renderPassInfo.framebuffer = frameBuffer;
 			renderPassInfo.renderArea.extent.width = renderAreaX;
 			renderPassInfo.renderArea.extent.height = renderAreaY;
 			renderPassInfo.renderArea.offset.x = offsetX;

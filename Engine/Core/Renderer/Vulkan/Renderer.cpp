@@ -533,6 +533,8 @@ namespace Plaza {
 		for (size_t i = 0; i < mSwapChainImages.size(); i++) {
 			mSwapChainImageViews[i] = CreateImageView(
 				mSwapChainImages[i], mSwapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+			TransitionImageLayout(mSwapChainImages[i], mSwapChainImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
 		}
 
 		VkImageCreateInfo imageCreateInfo = {};
@@ -1110,8 +1112,7 @@ namespace Plaza {
 
 	}
 
-	void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer,
-		uint32_t imageIndex) {
+	void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
 		PLAZA_PROFILE_SECTION("Record Command Buffer");
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -2789,14 +2790,23 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::InitializeRenderGraph(PlazaRenderGraph* renderGraph) {
-		renderGraph->AddRenderPassCallback("Deferred Geometry Pass", [&](PlazaRenderGraph*, PlazaRenderPass*) {
+		renderGraph->AddRenderPassCallback("Deferred Geometry Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+			VulkanRenderGraph* renderGraph = (VulkanRenderGraph*)renderGraph;
+			VulkanRenderPass* renderPass = (VulkanRenderPass*)plazaRenderPass;
 			VkCommandBuffer commandBuffer = *mActiveCommandBuffer;
+
 			VkDeviceSize offsets[1] = { 0 };
 			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer->GetBuffer(), offsets);
 			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
 			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+			renderGraph->BindPass("Deferred Geometry Pass");
+
+			for (const auto& pipeline : renderPass->mPipelines) {
+				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->mShaders->mPipeline);
+				vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+			}
+
 			});
 
 		for (auto& [passName, pass] : renderGraph->mPasses) {
@@ -2869,7 +2879,7 @@ namespace Plaza {
 
 			mActiveCommandBuffer = &mCommandBuffers[mCurrentFrame];
 			mRenderGraph->UpdateCommandBuffer(mCommandBuffers[mCurrentFrame]);
-			mRenderGraph->Execute(mCurrentFrame);
+			mRenderGraph->Execute(imageIndex, mCurrentFrame);
 
 			//RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
 		}
@@ -2938,7 +2948,7 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-	}
+		}
 	void VulkanRenderer::RenderBloom() {
 	}
 	void VulkanRenderer::RenderScreenSpaceReflections() {
@@ -3667,7 +3677,7 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-	}
+		}
 
 	void VulkanRenderer::AddTrackerToImage(VkImageView imageView,
 		std::string name,
@@ -3789,4 +3799,4 @@ namespace Plaza {
 		VulkanRenderer::GetGeometryPassDescriptorSet(unsigned int frame) {
 		return this->mGeometryPassRenderer.mShaders->mDescriptorSets[frame];
 	}
-} // namespace Plaza
+			} // namespace Plaza

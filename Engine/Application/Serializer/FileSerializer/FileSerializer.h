@@ -9,7 +9,7 @@ namespace Plaza {
 
 	class ModelFileSerializer {
 	public:
-		static void Serialize(const std::string filePath, Model* model);
-		static Model* DeSerialize(const std::string filePath);
+		//static void Serialize(const std::string filePath, Model* model);
+		//static Model* DeSerialize(const std::string filePath);
 	};
 }

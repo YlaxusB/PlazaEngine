@@ -1,10 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Physics.h"
 #include <ThirdParty/PhysX/physx/include/cooking/Pxc.h>
-#include <ThirdParty/PhysX/physx/include/characterkinematic/PxController.h>
-#include <ThirdParty/PhysX/physx/include/characterkinematic/PxControllerManager.h>
-#include <ThirdParty/PhysX/physx/include/characterkinematic/PxControllerBehavior.h>
-#include <ThirdParty/PhysX/physx/include/characterkinematic/PxBoxController.h>
 using namespace physx;
 namespace Plaza {
      class CollisionCallback : public physx::PxSimulationEventCallback {
@@ -107,7 +103,6 @@ namespace Plaza {
      physx::PxScene* Physics::m_scene = NULL;
      physx::PxMaterial* Physics::m_material = NULL;
      physx::PxPvd* Physics::m_pvd = NULL;
-     physx::PxControllerManager* Physics::m_controllerManager = NULL;
 
      physx::PxMaterial* Physics::defaultMaterial = nullptr;
 
@@ -233,15 +228,11 @@ namespace Plaza {
           //m_scene->setSimulationEventCallback(&collisionCallback);
           Physics::defaultMaterial = Physics::m_physics->createMaterial(0.0f, 1.0f, 0.0f); /* TODO: MAKE DYNAMIC MATERIALS AND SET RESTITUTION ON DEFAULT MATERIAL TO 0.5 AGAIN*/
 
-          Physics::m_controllerManager = PxCreateControllerManager(*Physics::m_scene);
           std::cout << "Physics Initialized" << std::endl;
      }
 
      void Physics::Update() {
           PLAZA_PROFILE_SECTION("Update");
-          for (auto& [key, value] : Application->runtimeScene->characterControllerComponents) {
-               value.Update();
-          }
           for (auto& [key, value] : Application->runtimeScene->rigidBodyComponents) {
                value.Update();
           }

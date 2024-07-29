@@ -14,8 +14,8 @@ namespace Plaza {
 			return false;
 		VulkanRenderPass* renderPass = mPasses.at(passName).get();
 
-		VkRenderPassBeginInfo renderPassBeginInfo = plvk::renderPassBeginInfo(renderPass->m);
-		vkCmdBeginRenderPass(*mCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+		//VkRenderPassBeginInfo renderPassBeginInfo = plvk::renderPassBeginInfo(renderPass->m);
+		//vkCmdBeginRenderPass(*mCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}
 
 	void VulkanRenderGraph::Execute(uint8_t imageIndex, uint8_t currentFrame) {

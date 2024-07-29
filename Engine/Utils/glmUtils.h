@@ -4,9 +4,6 @@
 
 #include "ThirdParty/glm/glm.hpp"
 #include "ThirdParty/glm/gtc/matrix_transform.hpp"
-#include "ThirdParty/assimp/include/assimp/Importer.hpp"
-#include "ThirdParty/assimp/include/assimp/scene.h"
-#include "ThirdParty/assimp/include/assimp/postprocess.h"
 
 #include <string>
 #include <fstream>

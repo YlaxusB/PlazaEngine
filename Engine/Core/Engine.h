@@ -1,9 +1,9 @@
 #pragma once
-#include "Engine/Core/ModelLoader/Model.h"
+//#include "Engine/Core/ModelLoader/Model.h"
 namespace Plaza {
 	class EngineClass {
 	public:
-		static std::unordered_map<uint64_t, std::unique_ptr<Model>> models;
+		//static std::unordered_map<uint64_t, std::unique_ptr<Model>> models;
 	};
 }
-inline std::unordered_map<uint64_t, std::unique_ptr<Model>> EngineClass::models = std::unordered_map<uint64_t, std::unique_ptr<Model>>();
+// inline std::unordered_map<uint64_t, std::unique_ptr<Model>> EngineClass::models = std::unordered_map<uint64_t, std::unique_ptr<Model>>();

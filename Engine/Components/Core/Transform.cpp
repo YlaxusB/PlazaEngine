@@ -223,11 +223,6 @@ namespace Plaza {
 			it->second.UpdateShapeScale(this->GetWorldScale());
 			it->second.UpdatePose(this);
 		}
-
-		auto characterControllerIt = Application->activeScene->characterControllerComponents.find(this->uuid);
-		if (characterControllerIt != Application->activeScene->characterControllerComponents.end() && !characterControllerIt->second.hasMovedInThisFrame) {
-			characterControllerIt->second.mCharacterController->setPosition(physx::PxExtendedVec3(this->GetWorldPosition().x, this->GetWorldPosition().y, this->GetWorldPosition().z));
-		}
 	}
 
 	void Transform::Rotate(glm::vec3 vector) {

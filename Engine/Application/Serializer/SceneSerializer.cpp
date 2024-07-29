@@ -3,7 +3,6 @@
 
 #include "Engine/Core/Engine.h"
 #include "Editor/Settings/EditorSettings.h"
-#include "Engine/Core/ModelLoader/ModelLoader.h"
 
 #include "Engine/Application/Serializer/Components/TransformSerializer.h"
 #include "Engine/Application/Serializer/Components/MeshRendererSerializer.h"
@@ -67,20 +66,20 @@ namespace Plaza {
 		}
 	}
 
-	void SerializeModels(YAML::Emitter& out, Model* model) {
-		out << YAML::BeginMap;
-		out << YAML::Key << "Model" << YAML::Value << model->uuid;
-		out << YAML::Key << "Name" << YAML::Value << model->modelName;
-		std::string modelPath = model->modelPlazaPath;
-		if (modelPath.starts_with(Application->projectPath))
-			modelPath = modelPath.substr(Application->projectPath.length(), modelPath.length() - Application->projectPath.length() + 2);
-		if (modelPath.starts_with("\\"))
-			modelPath = modelPath.substr(1, modelPath.length() - 1);
-		out << YAML::Key << "ModelPath" << YAML::Value << modelPath;
-		out << YAML::Key << "ObjectPath" << YAML::Value << model->modelObjectPath;
-		out << YAML::Key << "TexturesPath" << YAML::Value << model->texturesPaths;
-		out << YAML::EndMap;
-	}
+	//void SerializeModels(YAML::Emitter& out, Model* model) {
+	//	out << YAML::BeginMap;
+	//	out << YAML::Key << "Model" << YAML::Value << model->uuid;
+	//	out << YAML::Key << "Name" << YAML::Value << model->modelName;
+	//	std::string modelPath = model->modelPlazaPath;
+	//	if (modelPath.starts_with(Application->projectPath))
+	//		modelPath = modelPath.substr(Application->projectPath.length(), modelPath.length() - Application->projectPath.length() + 2);
+	//	if (modelPath.starts_with("\\"))
+	//		modelPath = modelPath.substr(1, modelPath.length() - 1);
+	//	out << YAML::Key << "ModelPath" << YAML::Value << modelPath;
+	//	out << YAML::Key << "ObjectPath" << YAML::Value << model->modelObjectPath;
+	//	out << YAML::Key << "TexturesPath" << YAML::Value << model->texturesPaths;
+	//	out << YAML::EndMap;
+	//}
 
 	void SerializeScene(YAML::Emitter& out, Entity* sceneEntity) {
 		out << YAML::Key << "Uuid" << YAML::Value << sceneEntity->uuid;
@@ -187,15 +186,15 @@ namespace Plaza {
 			}
 		}
 
-		std::cout << "Loading meshes \n";
-		for (auto& [key, modelPath] : models) {
-			auto meshIt = meshes.find(key);
-			if (meshIt != meshes.end()) {
-				std::cout << "Loading model: " << modelPath << "\n";
-				if (std::filesystem::exists(modelPath))
-					ModelLoader::LoadImportedModelToMemory(modelPath, meshIt->second);
-			}
-		}
+		//std::cout << "Loading meshes \n";
+		//for (auto& [key, modelPath] : models) {
+		//	auto meshIt = meshes.find(key);
+		//	if (meshIt != meshes.end()) {
+		//		std::cout << "Loading model: " << modelPath << "\n";
+		//		if (std::filesystem::exists(modelPath))
+		//			ModelLoader::LoadImportedModelToMemory(modelPath, meshIt->second);
+		//	}
+		//}
 
 
 		std::cout << "Loading entities \n";

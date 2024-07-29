@@ -8,7 +8,6 @@ namespace Plaza {
 		static physx::PxTolerancesScale m_toleranceScale;
 		static physx::PxFoundation* m_foundation;
 		static physx::PxPhysics* m_physics;
-		static physx::PxControllerManager* m_controllerManager;
 
 		static physx::PxMaterial* defaultMaterial;
 

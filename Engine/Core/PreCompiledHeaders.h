@@ -22,8 +22,6 @@
 
 #include <ThirdParty/imgui/ImGuizmo.h>
 #include "ThirdParty/yaml-cpp/include/yaml-cpp/yaml.h"
-#include "ThirdParty/assimp/include/assimp/Importer.hpp"
-#include "ThirdParty/assimp/include/assimp/postprocess.h"
 #include "ThirdParty/Json/json.hpp" // Include the nlohmann/json library
 #include "Engine/Utils/binaryUtils.h"
 #include "Engine/Utils/yamlUtils.h"

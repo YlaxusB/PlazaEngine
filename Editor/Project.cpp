@@ -11,7 +11,6 @@
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
-#include "Engine/Core/ModelLoader/ModelLoader.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 
 namespace Plaza::Editor {

@@ -136,7 +136,7 @@ namespace Plaza {
 			}
 		}
 
-		virtual bool BindPass(std::string passName) {};
+		virtual bool BindPass(std::string passName) { return false;  };
 
 		PlazaRenderPass* AddRenderPass(std::string name, int stage) {
 			mPasses.emplace(name, std::make_shared<PlazaRenderPass>(name, stage));

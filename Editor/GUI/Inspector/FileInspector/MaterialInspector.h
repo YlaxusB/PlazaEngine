@@ -3,7 +3,6 @@
 #include "Engine/Components/Rendering/Material.h"
 #include "Editor/GUI/Utils/Utils.h"
 #include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
-#include "Engine/Core/ModelLoader/ModelLoader.h"
 #include "Engine/Core/Renderer/Renderer.h"
 namespace Plaza::Editor {
 	static class MaterialFileInspector {

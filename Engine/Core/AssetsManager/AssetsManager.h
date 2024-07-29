@@ -14,10 +14,6 @@ namespace Plaza {
 
 	};
 
-	class AssetsModelListStructure : public std::vector<Model*> {
-
-	};
-
 	struct LoadedModel {
 		uint64_t uuid;
 		SerializablePrefab mSerializablePrefab;
@@ -35,8 +31,6 @@ namespace Plaza {
 		static inline std::unordered_map<uint64_t, Animation> mLoadedAnimations = std::unordered_map<uint64_t, Animation>();
 
 		static inline std::unordered_map<AssetType, std::unordered_set<uint64_t>> mTypeMap = std::unordered_map<AssetType, std::unordered_set<uint64_t>>();
-
-		static inline AssetsModelListStructure mMemoryModels = AssetsModelListStructure();
 
 		static void Init() {
 			mTypeMap = []() {
@@ -108,9 +102,6 @@ namespace Plaza {
 			AssetsManager::mAssets.emplace(asset->mAssetUuid, asset);
 			AssetsManager::mTypeMap.find(mAssetTypeByExtension.at(asset->mAssetExtension))->second.emplace(asset->mAssetUuid);
 			AssetsManager::mAssetsUuidByPath.emplace(asset->mPath, asset->mAssetUuid);
-		}
-		static void AddModel(Model* model) {
-			AssetsManager::mMemoryModels.push_back(model);
 		}
 
 		static Texture* GetTexture(uint64_t uuid) {

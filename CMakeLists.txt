@@ -20,12 +20,16 @@ endif()
 set(TARGET_BUILD_PLATFORM "windows")
 set(PLATFORM "Windows")
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 project(PlazaEngine)
 #set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.39.33519/bin/Hostx64/x64/cl.exe")
+
+add_definitions(-D_ITERATOR_DEBUG_LEVEL=2)
+#set(CMAKE_CXX_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.39.33519/bin/Hostx64/x64/cl.exe")
 #set(CMAKE_GENERATOR "Visual Studio 17 2022" CACHE OFF "" FORCE)
 
 include(FindVulkan)
@@ -59,41 +63,33 @@ set(CMAKE_CURRENT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/assimp/")
 
 set(ENABLE_BOOST_WORKAROUND ON)
 set(BUILD_STATIC_LIB ON)
-set(BUILD_ASSIMP_TOOLS  ON)
 set(ASSIMP_BUILD_STATIC_LIB ON)
 set(GLM_FORCE_DEPTH_ZERO_TO_ONE ON)
 
-add_subdirectory("ThirdParty/assimp/")
 add_subdirectory("ThirdParty/AL/")
 add_subdirectory("ThirdParty/DirectXTex/")
 add_subdirectory("ThirdParty/freetype/")
 add_subdirectory("ThirdParty/GLFW/")
-#add_subdirectory("ThirdParty/mono/")
 add_subdirectory("ThirdParty/Tracy/")
 add_subdirectory("ThirdParty/yaml-cpp/")
-#add_subdirectory("ThirdParty/ufbx/")
+#add_subdirectory("ThirdParty/Physx/physx/compiler/public/")
 include("ThirdParty/PhysX/physx/compiler/vc17win64/cmake_install.cmake")
-#add_subdirectory("ThirdParty/PhysX/physx/compiler/public/")
-#add_subdirectory("ThirdParty/PhysX/physx/bin/win.x86_64.vc143.mt/debug/")
-#add_subdirectory(libs)
+#include("ThirdParty/PhysX/physx/compiler/vc17win64/cmake_install.cmake")
 
-#include("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/compiler/public/CMakeLists.txt")
+#add_subdirectory("ThirdParty/PhysX/physx/compiler/vc17win64/")
+#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/mono/")
+#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/")
+#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/")
+#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/bin/win.x86_64.vc143.mt/release/")
+#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/")
 
-#include_directories("${PHYSX_SDK_PATH}/include")
-#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/PhysX/physx/bin/win.x86_64.vc143.mt/debug")
-#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/PhysX/physx/compiler/public")
-#set(PHYSX_BIN_FILES "${CMAKE_CURRENT_SOURCE_DIR}/PhysX/physx/bin/win.x86_64.vc143.mt/debug")
-set(PHYSX_SLN_PHYSXDEVICE_PATH "${PHYSX_BIN_FILES}")
-#add_executable(PlazaEngine "Engine/Application/EntryPoint.cpp")
+#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Physx/physx/bin/win.x86_64.vc143.mt/debug/")
+link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/lib/Debug/")
 
+#set(PHYSX_SLN_PHYSXDEVICE_PATH "${PHYSX_BIN_FILES}")
 
-
-#file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Editor/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Renderer/stb_font_consolas_24_latin1.inl")
 file(GLOB_RECURSE MY_SOURCES2 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.cpp")
-
-#file(GLOB_RECURSE IMGUI_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/*.cpp")
-#file(GLOB_RECURSE IMGUI_SOURCES2 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/*.h")
 
 set(IMGUI_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/imgui.cpp"
@@ -106,41 +102,14 @@ set(IMGUI_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/imgui_impl_vulkan.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/imgui_tables.cpp"
 )
-#set(CMAKE_CXX_FLAGS_EDITOR "${CMAKE_CXX_FLAGS} -DEDITOR_MODE")
-#set(CMAKE_CXX_FLAGS_GAME "${CMAKE_CXX_FLAGS} -DGAME_MODE")
 
 add_executable(PlazaEngine "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}" "Editor/GUI/GuiWindow.h")
 
 add_executable(PlazaShippingGame "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}" "Editor/GUI/GuiWindow.h")
 
-#    if (WIN32)
-#        # /ENTRY:mainCRTStartup keeps the same "main" function instead of requiring "WinMain"
-#        set(SUBSYSTEM_LINKER_OPTIONS "/SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
-#    else()
-#        set(SUBSYSTEM_LINKER_OPTIONS "-mwindows")
-#    endif()
-#    
-#    target_link_options(TargetName PRIVATE ${SUBSYSTEM_LINKER_OPTIONS})
+target_compile_definitions(PlazaEngine PRIVATE EDITOR_MODE)
 
-
-#set_target_properties(PlazaShippingGame PROPERTIES WIN32_EXECUTABLE TRUE)
-
-#get_target_property(EXE_NAME PlazaEngine TYPE)
-#message("NAME")
-#message(EXE_NAME)
-#if(EXE_NAME STREQUAL "PlazaEngine.exe")
-    target_compile_definitions(PlazaEngine PRIVATE EDITOR_MODE)
-#else()
-    target_compile_definitions(PlazaShippingGame PRIVATE GAME_MODE)
-#endif()
-
-
-#add_compile_definitions(PlazaEngine PUBLIC ${CMAKE_CXX_FLAGS_EDITOR})
-#add_compile_definitions(PlazaShippingGame PUBLIC ${CMAKE_CXX_FLAGS_GAME})
-
-
-#target_include_directories(PlazaEngine PRIVATE "${PHYSX_ROOT_DIR}/include" PRIVATE "${PHYSX_ROOT_DIR}/source/physxextensions/src")
-#target_compile_definitions(PlazaEngine PRIVATE ${SNIPPET_COMPILE_DEFS})
+target_compile_definitions(PlazaShippingGame PRIVATE GAME_MODE)
 
 target_compile_options(PlazaEngine PRIVATE /WX-)
 target_compile_options(PlazaShippingGame PRIVATE /WX-)
@@ -180,7 +149,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /C2220")  # Add the specific warning cod
 include_directories("./")
 #include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/AL/include/AL")
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/assimp/include/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/cereal/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/DirectXTex/DirectXTex/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/filesystem/")
@@ -194,7 +162,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Json/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/minimp3/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/include/")
-#include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/include/")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/include/")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/premake/")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/stb/")
@@ -208,10 +176,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/yaml/include/yaml-cp
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/")
 #include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/OpenFBX/src/")
 
-link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/mono/")
-link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/")
-link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/")
-link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/bin/win.x86_64.vc143.mt/release/")
+
 
 #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/compiler/public")
 
@@ -230,29 +195,21 @@ set(PHYSX_LIBS
 )
 
 set(OPENAL_DLL "${BUILD_DIR}/ThirdParty/AL/OpenAL32d.dll")
-set(ASSIMP_DLL "${BUILD_DIR}/ThirdParty/assimp/bin/assimp-vc143-mtd.dll")
 set(FREETYPE_DLL "${BUILD_DIR}/ThirdParty/freetype/freetyped.dll")
 set(GLFW_DLL "${BUILD_DIR}/ThirdParty/GLFW/src/glfw3d.dll")
 set(TRACY_DLL "${BUILD_DIR}/ThirdParty/Tracy/TracyClientd.dll")
 set(YAML_DLL "${BUILD_DIR}/ThirdParty/yaml/yaml-cppd.dll")
 
-set(PHYSX_DLL_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release")
+#set(PHYSX_DLL_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release")
+set(PHYSX_DLL_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/dll")
 
 set(PHYSX_DLLS 
-"${PHYSX_DLL_FOLDER}/PhysX_64.dll"
-"${PHYSX_DLL_FOLDER}/PhysXCooking_64.dll"
-"${PHYSX_DLL_FOLDER}/PhysXCommon_64.dll"
-"${PHYSX_DLL_FOLDER}/PhysXFoundation_64.dll"
-"${PHYSX_DLL_FOLDER}/PhysXCharacterKinematic_static_64.dll"
+#"PhysX_64.dll"
+"PhysXCooking_64.dll"
+"PhysXCommon_64.dll"
+"PhysXFoundation_64.dll"
 )
-
-set_target_properties(assimp PROPERTIES
-                      MAP_IMPORTED_CONFIG_DEBUG Release
-                      MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
-                      MAP_IMPORTED_CONFIG_MINSIZEREL Release
-                      )
-link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/")
-link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Physx/physx/bin/win.x86_64.vc143.mt/debug/")
+link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 target_include_directories(PlazaEngine PUBLIC "lib/")
 target_include_directories(PlazaShippingGame PUBLIC "lib/")
@@ -262,54 +219,19 @@ if(MSVC)
 endif()
 
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper DirectXTex
-    PhysX_64
-    PhysXCommon_64
-    PhysXFoundation_64
-    PhysXCharacterKinematic_static_64
-    PhysXExtensions_static_64
-
-"${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
+target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp mono-2.0-sgen MonoPosixHelper DirectXTex
+    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysX_64.lib"
+    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXCommon_64.lib"
+    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXFoundation_64.lib"
+    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXCooking_64.lib"
+    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXExtensions_static_64.lib"
+ "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 target_include_directories(PlazaShippingGame PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp assimp mono-2.0-sgen MonoPosixHelper DirectXTex
-    PhysX_64
-    PhysXCommon_64
-    PhysXFoundation_64
-    PhysXCharacterKinematic_static_64
-    PhysXExtensions_static_64
-"${PHYSX_LIBS}" "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
-
-#    add_custom_target(CopyDLLs ALL
-#        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/
-#        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#            ${OPENAL_DLL}
-#            ${ASSIMP_DLL}
-#            ${FREETYPE_DLL}
-#            ${GLFW_DLL}
-#            ${TRACY_DLL}
-#            ${YAML_DLL}
-#            ${PHYSX_DLLS}
-#            ${CMAKE_BINARY_DIR}/
-#        COMMENT "Copying DLLs to the build directory"
-#    )
-#add_dependencies(PlazaEngine CopyDLLs) 
-# Set the path to the extracted PhysX SDK
-
-
-#if(MSVC)
-#endif()
-
-# Add a dependency to your executable
-#add_dependencies(PlazaEngine CopyDLLs)
-
-# Add PhysX includes to your project
-#include_directories(${PHYSX_SDK_PATH}/include)
-
-# Add PhysX libraries to link against
-#link_directories(${PHYSX_SDK_PATH}/bin/win.x86_64.vc143.mt/checked)
-
-#target_include_directories(PlazaEngine)
-#target_include_directories(PlazaEngine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/PhysX/physx")
-#target_include_directories(PlazaEngine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Physx/physx/include")
-#target_link_libraries(PlazaEngine PRIVATE imgui)
+target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp mono-2.0-sgen MonoPosixHelper DirectXTex
+    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysX_64.lib"
+    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXCommon_64.lib"
+    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXFoundation_64.lib"
+    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXCooking_64.lib"
+    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXExtensions_static_64.lib"
+ "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)

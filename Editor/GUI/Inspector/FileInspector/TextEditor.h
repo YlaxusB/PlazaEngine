@@ -3,7 +3,6 @@
 #include "Engine/Components/Core/Model.h"
 #include "Editor/GUI/Utils/Utils.h"
 #include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
-#include "Engine/Core/ModelLoader/ModelLoader.h"
 namespace Plaza::Editor {
 	static class TextEditor {
 	public:

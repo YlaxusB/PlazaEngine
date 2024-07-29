@@ -1,8 +1,4 @@
 #pragma once
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include <assimp/vector3.h>
 //#include "ThirdParty/OpenFBX/src/ofbx.h"
 //#define UFBX_STATIC
 #include "ThirdParty/ufbx/ufbx/ufbx.h"

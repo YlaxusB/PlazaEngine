@@ -20,8 +20,8 @@ endif()
 set(TARGET_BUILD_PLATFORM "windows")
 set(PLATFORM "Windows")
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 project(PlazaEngine)
 #set(CMAKE_CXX_COMPILER g++)
@@ -30,7 +30,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_definitions(-D_ITERATOR_DEBUG_LEVEL=2)
 #set(CMAKE_CXX_COMPILER "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.39.33519/bin/Hostx64/x64/cl.exe")
-#set(CMAKE_GENERATOR "Visual Studio 17 2022" CACHE OFF "" FORCE)
 
 include(FindVulkan)
 if(NOT VULKAN_FOUND)
@@ -38,19 +37,10 @@ if(NOT VULKAN_FOUND)
 endif()
 find_package(Vulkan REQUIRED)
 
-set(PX_BUILDSNIPPETS OFF CACHE BOOL "Generate the snippets")
-set(PX_BUILDPUBLICSAMPLES OFF CACHE BOOL "Generate the samples projects")
-#set(PX_GENERATE_STATIC_LIBRARIES ON CACHE BOOL "Generate static libraries")
 set(PLATFORM_CMAKELISTS "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt")
-set(PHYSX_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx")
-set(PHYSX_SDK_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx")
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
-set(PX_OUTPUT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/out")
-set(PX_OUTPUT_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/out")
-
-set(PHYSX_SDK_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx")
-set(PHYSX_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/source")
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FS")
 add_compile_definitions(_DEBUG)
@@ -72,21 +62,9 @@ add_subdirectory("ThirdParty/freetype/")
 add_subdirectory("ThirdParty/GLFW/")
 add_subdirectory("ThirdParty/Tracy/")
 add_subdirectory("ThirdParty/yaml-cpp/")
-#add_subdirectory("ThirdParty/Physx/physx/compiler/public/")
 include("ThirdParty/PhysX/physx/compiler/vc17win64/cmake_install.cmake")
-#include("ThirdParty/PhysX/physx/compiler/vc17win64/cmake_install.cmake")
 
-#add_subdirectory("ThirdParty/PhysX/physx/compiler/vc17win64/")
-#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/mono/")
-#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/../lib/")
-#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/")
-#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/bin/win.x86_64.vc143.mt/release/")
-#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib/")
-
-#link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Physx/physx/bin/win.x86_64.vc143.mt/debug/")
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/lib/Debug/")
-
-#set(PHYSX_SLN_PHYSXDEVICE_PATH "${PHYSX_BIN_FILES}")
 
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Editor/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Renderer/stb_font_consolas_24_latin1.inl")
 file(GLOB_RECURSE MY_SOURCES2 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.cpp")

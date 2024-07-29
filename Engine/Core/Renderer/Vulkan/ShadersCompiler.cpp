@@ -5,6 +5,8 @@ namespace Plaza {
 	std::string VulkanShadersCompiler::mGlslcExePath = "";
     std::string VulkanShadersCompiler::mDefaultOutDirectory = "";
     std::string VulkanShadersCompiler::Compile(std::string shadersPath, std::string outDirectory) {
+        if (!std::filesystem::exists(std::filesystem::path{ outDirectory }))
+            std::filesystem::create_directory(outDirectory);
         std::string shadersName = std::filesystem::path{ shadersPath }.filename().string();
 
 #ifdef EDITOR_MODE

@@ -7,9 +7,6 @@
 [submodule "ThirdParty/freetype"]
 	path = ThirdParty/freetype
 	url = https://github.com/freetype/freetype.git
-[submodule "ThirdParty/assimp"]
-	path = ThirdParty/assimp
-	url = https://github.com/assimp/assimp.git
 [submodule "ThirdParty/GLFW"]
 	path = ThirdParty/GLFW
 	url = https://github.com/glfw/glfw.git

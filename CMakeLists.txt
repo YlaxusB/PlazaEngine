@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.24)
 
 
 #set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:MultiThreaded>$<$<CONFIG:GameRelease>:MultiThreaded>")
@@ -8,9 +8,13 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX-")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG /MDd /ZI /Ob0 /Od /RTC1")
 endif()
-
+add_compile_definitions(_DEBUG)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /O2")
+set(BUILD_STATIC_LIB ON)
 
+if(MSVC)
+    add_compile_definitions(_ITERATOR_DEBUG_LEVEL=2)
+endif()
 
 # Set default build type to Release if not specified
 if(NOT CMAKE_BUILD_TYPE)
@@ -23,7 +27,7 @@ set(PLATFORM "Windows")
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-project(PlazaEngine)
+project(PlazaEngineProject)
 #set(CMAKE_CXX_COMPILER g++)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -37,15 +41,11 @@ if(NOT VULKAN_FOUND)
 endif()
 find_package(Vulkan REQUIRED)
 
-option(PX_BUILDSNIPPETS FALSE)
-option(PX_BUILDPVDRUNTIME FALSE)
-option(PX_GENERATE_STATIC_LIBRARIES TRUE)
-option(NV_USE_STATIC_WINCRT TRUE)
-option(NV_USE_DEBUG_WINCRT TRUE)
-option(PX_FLOAT_POINT_PRECISE_MATH FALSE)
-#include(PhysXSdk)
-#find_package(PhysXSdk)
-#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/source/compiler/cmake/windows")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-D_DEBUG)
+else()
+    add_definitions(-DNDEBUG)
+endif()
 
 set(PLATFORM_CMAKELISTS "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt")
 
@@ -72,7 +72,27 @@ add_subdirectory("ThirdParty/freetype/")
 add_subdirectory("ThirdParty/GLFW/")
 add_subdirectory("ThirdParty/Tracy/")
 add_subdirectory("ThirdParty/yaml-cpp/")
-include("ThirdParty/PhysX/physx/compiler/vc17win64/cmake_install.cmake")
+
+set(PLAZA_ITERATOR_LEVEL 2)
+
+set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug")
+set(PHYSX_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx")
+set(PX_OUTPUT_LIB_DIR "${BUILD_DIR}/libs")
+set(PX_OUTPUT_BIN_DIR "${BUILD_DIR}/bin")
+
+OPTION(COPY_EXTERNAL_DLLS "Control the copying of external DLLs" OFF) # PhysX external dlls
+option(PX_BUILDSNIPPETS "Generate the snippets" OFF)
+option(PX_BUILDPVDRUNTIME "Generate the OmniPVD project" ON)
+option(PX_GENERATE_STATIC_LIBRARIES "Generate static libraries" ON)
+option(NV_USE_STATIC_WINCRT "Use the statically linked windows CRT" ON)
+option(NV_USE_DEBUG_WINCRT "Use the debug version of the CRT" ON)
+option(PX_FLOAT_POINT_PRECISE_MATH "Float point precise math" OFF)
+#include("${PHYSX_ROOT_DIR}/compiler/public/CMakeLists.txt")
+OPTION(PX_BUILDSNIPPETS "Generate the snippets" OFF)
+OPTION(PX_BUILDPVDRUNTIME "Generate the OmniPVD project" OFF)
+OPTION(PX_CMAKE_SUPPRESS_REGENERATION "Disable zero_check projects" OFF)
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/compiler/public/CMakeLists.txt")
 
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/lib/Debug/")
 
@@ -95,6 +115,12 @@ add_executable(PlazaEngine "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engin
 
 add_executable(PlazaShippingGame "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}" "Editor/GUI/GuiWindow.h")
 
+#add_dependencies(PlazaEngine PhysX5Solution)
+#add_dependencies(PlazaShippingGame PhysX5Solution)
+
+target_compile_definitions(PlazaEngine PRIVATE PX_PHYSX_STATIC_LIB)
+target_compile_definitions(PlazaShippingGame PRIVATE PX_PHYSX_STATIC_LIB)
+
 target_compile_definitions(PlazaEngine PRIVATE EDITOR_MODE)
 
 target_compile_definitions(PlazaShippingGame PRIVATE GAME_MODE)
@@ -116,17 +142,6 @@ endif()
 #Physx
 
 #add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/Physx/physx/source/compiler/cmake/")
-set( PHYSX_LIBRARIES
-	PhysX
-	PhysXExtensions
-	PhysXPvdSDK
-	PhysXVehicle
-	PhysXCharacterKinematic
-	PhysXCooking
-	PhysXCommon
-	PhysXFoundation
-	# SnippetUtils
-)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244")  # Add the specific warning code you want to suppress
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /C2220")  # Add the specific warning code you want to suppress
@@ -170,19 +185,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/")
 
 #C:\Users\Giovane\Desktop\Workspace\Plaza\ThirdParty\PhysX\physx\bin\win.x86_64.vc143.mt\release
 
-set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug")
-
-#set(PHYSX_LIBS 
-#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysX_64.lib"
-#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCooking_64.lib"
-#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCommon_64.lib"
-##"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXExtensions_static_64.lib"
-#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXFoundation_64.lib"
-#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PVDRuntime_64.lib"
-#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCharacterKinematic_static_64.lib"
-#)
-
-set(OPENAL_DLL "${BUILD_DIR}/ThirdParty/AL/OpenAL32d.dll")
+set(OPENAL_DLL "${BUILD_DIR}/ThirdParty/AL/OpenAL32.dll")
 set(FREETYPE_DLL "${BUILD_DIR}/ThirdParty/freetype/freetyped.dll")
 set(GLFW_DLL "${BUILD_DIR}/ThirdParty/GLFW/src/glfw3d.dll")
 set(TRACY_DLL "${BUILD_DIR}/ThirdParty/Tracy/TracyClientd.dll")
@@ -192,34 +195,56 @@ set(YAML_DLL "${BUILD_DIR}/ThirdParty/yaml/yaml-cppd.dll")
 set(PHYSX_DLL_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/dll")
 
 set(PHYSX_DLLS 
-#"PhysX_64.dll"
 "PhysXCooking_64.dll"
 "PhysXCommon_64.dll"
 "PhysXFoundation_64.dll"
 )
+
+set(PHYSX_LIBS
+    #"${CMAKE_CURRENT_SOURCE_DIR}/lib/PhysX_64.lib"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/lib/PhysXCommon_64.lib"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/lib/PhysXFoundation_64.lib"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/lib/PhysXCooking_64.lib"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/lib/PhysXExtensions_static_64.lib"
+    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/debug/PhysX_static.lib"
+    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/debug/PhysXExtensions_static.lib"
+    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/debug/PhysXCooking_static.lib"
+    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/debug/PhysXCommon_static.lib"
+    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/debug/PhysXFoundation_static.lib"
+    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/debug/PhysXPvdSDK_static.lib"
+)
+
+set(PHYSX_DLLS
+    "${CMAKE_CURRENT_SOURCE_DIR}/dll/PhysX_64.dll"
+    "${CMAKE_CURRENT_SOURCE_DIR}/dll/PhysXCommon_64.dll"
+    "${CMAKE_CURRENT_SOURCE_DIR}/dll/PhysXFoundation_64.dll"
+    "${CMAKE_CURRENT_SOURCE_DIR}/dll/PhysXCooking_64.dll"
+)
+
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 target_include_directories(PlazaEngine PUBLIC "lib/")
 target_include_directories(PlazaShippingGame PUBLIC "lib/")
 
-if(MSVC)
-    add_compile_definitions(_ITERATOR_DEBUG_LEVEL=2)  # Disable iterator debugging
-endif()
+add_dependencies(PlazaEngine PhysX)
+add_dependencies(PlazaShippingGame PhysX)
 
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp mono-2.0-sgen MonoPosixHelper DirectXTex
-    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysX_64.lib"
-    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXCommon_64.lib"
-    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXFoundation_64.lib"
-    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXCooking_64.lib"
-    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXExtensions_static_64.lib"
- "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
+target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient yaml-cpp mono-2.0-sgen MonoPosixHelper DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 target_include_directories(PlazaShippingGame PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp mono-2.0-sgen MonoPosixHelper DirectXTex
-    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysX_64.lib"
-    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXCommon_64.lib"
-    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXFoundation_64.lib"
-    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXCooking_64.lib"
-    "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug/PhysXExtensions_static_64.lib"
- "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
+target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient yaml-cpp mono-2.0-sgen MonoPosixHelper DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
+
+#add_custom_command(TARGET PlazaEngine POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#    ${PHYSX_LIBS}
+#    ${PHYSX_DLLS}
+#    ${OPENAL_DLL}
+#    $<TARGET_FILE_DIR:PlazaEngine>)
+#
+#add_custom_command(TARGET PlazaShippingGame POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#    ${PHYSX_LIBS}
+#    ${PHYSX_DLLS}
+#    ${OPENAL_DLL}
+#    $<TARGET_FILE_DIR:PlazaShippingGame>)

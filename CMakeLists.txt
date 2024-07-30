@@ -37,6 +37,16 @@ if(NOT VULKAN_FOUND)
 endif()
 find_package(Vulkan REQUIRED)
 
+option(PX_BUILDSNIPPETS FALSE)
+option(PX_BUILDPVDRUNTIME FALSE)
+option(PX_GENERATE_STATIC_LIBRARIES TRUE)
+option(NV_USE_STATIC_WINCRT TRUE)
+option(NV_USE_DEBUG_WINCRT TRUE)
+option(PX_FLOAT_POINT_PRECISE_MATH FALSE)
+#include(PhysXSdk)
+#find_package(PhysXSdk)
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/source/compiler/cmake/windows")
+
 set(PLATFORM_CMAKELISTS "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt")
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
@@ -162,15 +172,15 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/")
 
 set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-Debug")
 
-set(PHYSX_LIBS 
-"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysX_64.lib"
-"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCooking_64.lib"
-"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCommon_64.lib"
-#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXExtensions_static_64.lib"
-"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXFoundation_64.lib"
-"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PVDRuntime_64.lib"
-"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCharacterKinematic_static_64.lib"
-)
+#set(PHYSX_LIBS 
+#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysX_64.lib"
+#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCooking_64.lib"
+#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCommon_64.lib"
+##"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXExtensions_static_64.lib"
+#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXFoundation_64.lib"
+#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PVDRuntime_64.lib"
+#"${CMAKE_CURRENT_SOURCE_DIR}/out/install/x64-Debug/bin/win.x86_64.vc143.mt/release/PhysXCharacterKinematic_static_64.lib"
+#)
 
 set(OPENAL_DLL "${BUILD_DIR}/ThirdParty/AL/OpenAL32d.dll")
 set(FREETYPE_DLL "${BUILD_DIR}/ThirdParty/freetype/freetyped.dll")

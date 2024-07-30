@@ -18,7 +18,7 @@
 	url = https://github.com/kcat/openal-soft.git
 [submodule "ThirdParty/PhysX"]
 	path = ThirdParty/PhysX
-	url = https://github.com/NVIDIA-Omniverse/PhysX.git
+	url = https://github.com/YlaxusB/PhysXPlaza.git
 [submodule "ThirdParty/OpenFBX"]
 	path = ThirdParty/OpenFBX
 	url = https://github.com/nem0/OpenFBX.git

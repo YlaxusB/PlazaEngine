@@ -1,4 +1,5 @@
 #pragma once
+#define AL_LIBTYPE_STATIC
 #include <ThirdParty/AL/include/AL/al.h>
 #include <ThirdParty/AL/include/AL/alc.h>
 #include <ThirdParty/AL/include/AL/alext.h>

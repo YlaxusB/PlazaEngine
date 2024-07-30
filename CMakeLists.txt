@@ -54,18 +54,16 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FS")
 add_compile_definitions(_DEBUG)
+add_definitions(-DLIBTYPE=STATIC)
 add_compile_definitions(IMGUI_DEFINE_MATH_OPERATORS)
 option(PHYSX_BUILD_TYPE "debug")
 set(CMAKE_BUILD_TYPE Debug)
 
-set(CMAKE_CURRENT_LIST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/assimp/")
-set(CMAKE_CURRENT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/assimp/")
-
 set(ENABLE_BOOST_WORKAROUND ON)
 set(BUILD_STATIC_LIB ON)
-set(ASSIMP_BUILD_STATIC_LIB ON)
 set(GLM_FORCE_DEPTH_ZERO_TO_ONE ON)
 
+set(LIBTYPE STATIC)
 add_subdirectory("ThirdParty/AL/")
 add_subdirectory("ThirdParty/DirectXTex/")
 add_subdirectory("ThirdParty/freetype/")

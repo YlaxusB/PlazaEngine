@@ -3,7 +3,7 @@
 3D Game Engine made with C++, supports OpenGL and Vulkan.
 
 ## Build Instructions
-Clone the repository with git clone https://github.com/YlaxusB/PlazaEngine.git --recursive  
+Clone the repository with: `git clone https://github.com/YlaxusB/PlazaEngine.git --recursive`  
 Open the Repository folder with Visual Studio
 
 ## Features

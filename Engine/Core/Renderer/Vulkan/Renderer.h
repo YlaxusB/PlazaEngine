@@ -233,6 +233,8 @@ namespace Plaza {
 		void CreateCommandBuffers();
 		void CreateImGuiTextureSampler();
 
+		void UpdatePreRenderData();
+
 		void CleanupSwapChain();
 		void RecreateSwapChain();
 

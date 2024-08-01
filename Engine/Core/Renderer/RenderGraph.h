@@ -45,7 +45,7 @@ namespace Plaza {
 			mBinding = binding;
 		}
 
-		PlazaBufferType mType;
+		PlazaBufferType mType = PL_BUFFER_UNIFORM_BUFFER;
 		uint64_t mStride = 0;
 		uint64_t mBufferSize = 0;
 		uint64_t mItemCount = 0;
@@ -64,11 +64,11 @@ namespace Plaza {
 			mBinding = binding;
 		}
 
-		PlazaTextureType mType;
-		PlazaTextureFormat mFormat;
-		glm::vec3 mResolution;
-		uint8_t mMipCount;
-		uint16_t mLayersCount;
+		PlazaTextureType mType = PL_TYPE_2D;
+		PlazaTextureFormat mFormat = PL_FORMAT_R8G8B8A8_SFLOAT;
+		glm::vec3 mResolution = glm::vec3(1, 1, 1);
+		uint8_t mMipCount = 1;
+		uint16_t mLayersCount = 1;
 
 		virtual void Compile() {};
 		virtual void Destroy() {};
@@ -79,14 +79,15 @@ namespace Plaza {
 	public:
 		PlazaRenderPass(std::string name, int stage) : mName(name), mStage(stage) {}
 
-		std::string mName;
-		int mStage;
-		std::shared_ptr<PlazaPipeline> mPipelines;
-		std::map<std::string, shared_ptr<PlazaShadersBinding>> mInputBindings;
-		std::map<std::string, shared_ptr<PlazaShadersBinding>> mOutputBindings;
-		std::function<void(PlazaRenderGraph*, PlazaRenderPass*)> mCallback;
+		std::string mName = "";
+		int mStage = 0;
+		std::vector<std::shared_ptr<PlazaPipeline>> mPipelines = std::vector<std::shared_ptr<PlazaPipeline>>();
+		std::map<std::string, shared_ptr<PlazaShadersBinding>> mInputBindings = std::map<std::string, shared_ptr<PlazaShadersBinding>>();
+		std::map<std::string, shared_ptr<PlazaShadersBinding>> mOutputBindings = std::map<std::string, shared_ptr<PlazaShadersBinding>>();
+		std::function<void(PlazaRenderGraph*, PlazaRenderPass*)> mCallback = [](PlazaRenderGraph*, PlazaRenderPass*) {};
 
-		virtual void Execute() {};
+		virtual void Execute(PlazaRenderGraph* renderGraph) { mCallback(renderGraph, this); };
+		virtual void BindRenderPass() {};
 
 		void SetRecordingCallback(std::function<void(PlazaRenderGraph*, PlazaRenderPass*)> callback) {
 			mCallback = callback;
@@ -105,15 +106,15 @@ namespace Plaza {
 
 	class PlazaRenderGraph {
 	public:
-		void BuildDefaultRenderGraph() {
-			this->AddRenderPass("Deferred Geometry Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT)
+		virtual void BuildDefaultRenderGraph() {
+			this->AddRenderPass(std::make_shared<PlazaRenderPass>("Deferred Geometry Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT))
 				->AddInputResource(std::make_shared<PlazaBufferBinding>("UniformBufferObject", 0, 0, PlazaBufferType::PL_BUFFER_UNIFORM_BUFFER))
 				->AddOutputResource(std::make_shared<PlazaTextureBinding>("GPosition", 0, 0, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1))
 				->AddOutputResource(std::make_shared<PlazaTextureBinding>("GDiffuse", 1, 0, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1))
 				->AddOutputResource(std::make_shared<PlazaTextureBinding>("GNormal", 2, 0, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1))
 				->AddOutputResource(std::make_shared<PlazaTextureBinding>("GOthers", 3, 0, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1));
 
-			this->AddRenderPass("Deferred Lighting Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT)
+			this->AddRenderPass(std::make_shared<PlazaRenderPass>("Deferred Lighting Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT))
 				->AddInputResource(std::make_shared<PlazaTextureBinding>("GPosition", 0, 0, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1))
 				->AddInputResource(std::make_shared<PlazaTextureBinding>("GDiffuse", 0, 1, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1))
 				->AddInputResource(std::make_shared<PlazaTextureBinding>("GNormal", 0, 2, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1))
@@ -136,11 +137,11 @@ namespace Plaza {
 			}
 		}
 
-		virtual bool BindPass(std::string passName) { return false;  };
+		virtual bool BindPass(std::string passName) { return false; };
 
-		PlazaRenderPass* AddRenderPass(std::string name, int stage) {
-			mPasses.emplace(name, std::make_shared<PlazaRenderPass>(name, stage));
-			return mPasses[name].get();
+		PlazaRenderPass* AddRenderPass(std::shared_ptr<PlazaRenderPass> newRenderPass) {
+			mPasses.emplace(newRenderPass->mName, newRenderPass);
+			return mPasses[newRenderPass->mName].get();
 		}
 
 		void AddRenderPassCallback(std::string passName, std::function<void(PlazaRenderGraph*, PlazaRenderPass*)> callback) {
@@ -148,7 +149,7 @@ namespace Plaza {
 				mPasses[passName]->SetRecordingCallback(callback);
 		}
 
-		std::map<std::string, std::shared_ptr<PlazaRenderPass>> mPasses;
-		std::map <std::string, std::shared_ptr<PlazaShadersBinding>> mShadersBindings;
+		std::map<std::string, std::shared_ptr<PlazaRenderPass>> mPasses = std::map<std::string, std::shared_ptr<PlazaRenderPass>>();
+		std::map <std::string, std::shared_ptr<PlazaShadersBinding>> mShadersBindings = std::map <std::string, std::shared_ptr<PlazaShadersBinding>>();
 	};
 }

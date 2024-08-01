@@ -5,17 +5,24 @@
 #include "ThirdParty/imgui/imgui_impl_vulkan.h"
 
 namespace Plaza {
-	void VulkanRenderPass::Execute() {
-
+	void VulkanRenderPass::BindRenderPass() {
+		std::array<VkClearValue, 5> clearValues{};
+		clearValues[0].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+		clearValues[1].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+		clearValues[2].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+		clearValues[3].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+		clearValues[4].depthStencil = { 1.0f, 0 };
+		VkRenderPassBeginInfo renderPassInfo = plvk::renderPassBeginInfo(this->mRenderPass, this->mFrameBuffer,
+			Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 0, 0, clearValues.size(), clearValues.data());
+		vkCmdBeginRenderPass(mCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 	}
 
 	bool VulkanRenderGraph::BindPass(std::string passName) {
 		if (mPasses.find(passName) == mPasses.end())
 			return false;
-		VulkanRenderPass* renderPass = mPasses.at(passName).get();
+		VulkanRenderPass* renderPass = this->GetRenderPass(passName);
 
-		//VkRenderPassBeginInfo renderPassBeginInfo = plvk::renderPassBeginInfo(renderPass->m);
-		//vkCmdBeginRenderPass(*mCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+		renderPass->BindRenderPass();
 	}
 
 	void VulkanRenderGraph::Execute(uint8_t imageIndex, uint8_t currentFrame) {
@@ -34,7 +41,8 @@ namespace Plaza {
 		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mSwapChainImages[currentFrame], VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
 		for (auto& [key, value] : mPasses) {
-			value->Execute();
+			this->GetRenderPass(key)->UpdateCommandBuffer(commandBuffer);
+			this->GetRenderPass(key)->Execute(this);
 		}
 
 		/* Render ImGui if in Editor build */

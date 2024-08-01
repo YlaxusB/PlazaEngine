@@ -1494,6 +1494,75 @@ namespace Plaza {
 		}
 	}
 
+	void VulkanRenderer::UpdatePreRenderData() {
+		UpdateMaterials();
+		PLAZA_PROFILE_SECTION("Group Instances");
+		for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
+			const auto& transformIt = Application->activeScene->transformComponents.find(key);
+			if (transformIt != Application->activeScene->transformComponents.end() && value.renderGroup) {
+				// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
+				// mInstanceModelMatrices.push_back(transform.modelMatrix);
+
+				value.renderGroup->AddInstance(transformIt->second.modelMatrix);
+				Time::addInstanceCalls++;
+
+				bool continueLoop = true;
+
+				// value.renderGroup->AddCascadeInstance(transform.modelMatrix, 0);
+			}
+		}
+
+		this->mIndirectCommands.clear();
+		//this->mIndirectCommands.resize(Application->activeScene->renderGroups.size());
+		this->mInstanceModelMatrices.clear();
+		///this->mInstanceModelMatrices.resize(Application->activeScene->renderGroups.size());
+		this->mInstanceModelMaterialsIndex.clear();
+		this->mInstanceModelMaterialsIndex.push_back(0);
+		this->mInstanceModelMaterialOffsets.clear();
+		//this->mInstanceModelMaterialOffsets.resize(Application->activeScene->renderGroups.size());
+		mTotalInstances = 0;
+		mIndirectDrawCount = 0;
+		unsigned int lastRendergroupMaterialsCount = 0;
+		unsigned int allMaterialsCount = 0;
+		std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
+		std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
+		{
+			for (auto& [key, value] : Application->activeScene->renderGroups) {
+				const size_t& materialsCount = value.materials.size();
+				const size_t& instanceCount = value.instanceModelMatrices.size();
+				allMaterialsCount += materialsCount;
+
+				VkDrawIndexedIndirectCommand indirectCommand{};
+				indirectCommand.firstIndex = value.mesh->indicesOffset;
+				indirectCommand.vertexOffset = value.mesh->verticesOffset;
+				indirectCommand.firstInstance = mTotalInstances;
+				indirectCommand.indexCount = value.mesh->indicesCount; // indices.size();
+				indirectCommand.instanceCount = instanceCount;
+
+				this->mIndirectCommands.push_back(indirectCommand);
+				value.mesh->instanceOffset = mTotalInstances;
+
+				for (unsigned int i = 0; i < instanceCount; ++i) {
+					this->mInstanceModelMatrices.push_back(value.instanceModelMatrices[i]);
+					renderGroupOffsets.push_back(allMaterialsCount - materialsCount);
+					this->mInstanceModelMaterialOffsets.push_back(value.instanceMaterialOffsets);
+					//this->mInstanceModelMaterialsIndex.push_back(value->instanceMaterialIndices[i]);
+
+					mTotalInstances++; //= value->instanceModelMatrices.size();
+				}
+
+				for (unsigned int i = 0; i < materialsCount; ++i) {
+					renderGroupMaterialsOffsets.push_back(value.materials[i]->mIndexHandle);
+				}
+
+				mIndirectDrawCount++;
+				value.instanceModelMatrices.clear();
+				value.instanceMaterialIndices.clear();
+				lastRendergroupMaterialsCount = materialsCount;
+			}
+		}
+	}
+
 	void VulkanRenderer::CleanupSwapChain() {
 		vkDestroyImageView(mDevice, mDepthImageView, nullptr);
 		vkDestroyImage(mDevice, mDepthImage, nullptr);
@@ -2790,8 +2859,11 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::InitializeRenderGraph(PlazaRenderGraph* renderGraph) {
-		renderGraph->AddRenderPassCallback("Deferred Geometry Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-			VulkanRenderGraph* renderGraph = (VulkanRenderGraph*)renderGraph;
+		static_cast<VulkanRenderGraph*>(renderGraph)->GetRenderPass("Deferred Geometry Pass")->mPipelines.push_back(std::shared_ptr<VulkanPlazaPipeline>(&mGeometryPassRenderer));
+		static_cast<VulkanRenderGraph*>(renderGraph)->GetRenderPass("Deferred Geometry Pass")->mRenderPass = mGeometryPassRenderer.mRenderPass;
+		static_cast<VulkanRenderGraph*>(renderGraph)->GetRenderPass("Deferred Geometry Pass")->mFrameBuffer = mGeometryPassRenderer.mFramebuffer;
+		static_cast<VulkanRenderGraph*>(renderGraph)->AddRenderPassCallback("Deferred Geometry Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+			VulkanRenderGraph* renderGraph = static_cast<VulkanRenderGraph*>(plazaRenderGraph);
 			VulkanRenderPass* renderPass = (VulkanRenderPass*)plazaRenderPass;
 			VkCommandBuffer commandBuffer = *mActiveCommandBuffer;
 
@@ -2802,8 +2874,14 @@ namespace Plaza {
 
 			renderGraph->BindPass("Deferred Geometry Pass");
 
+			VkViewport viewport = plvk::viewport(0.0f, 0.0f, VulkanRenderer::GetRenderer()->mSwapChainExtent.width, VulkanRenderer::GetRenderer()->mSwapChainExtent.height);
+			vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+			VkRect2D scissor = plvk::rect2D(0, 0, VulkanRenderer::GetRenderer()->mSwapChainExtent.width, VulkanRenderer::GetRenderer()->mSwapChainExtent.height);
+			vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
 			for (const auto& pipeline : renderPass->mPipelines) {
-				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->mShaders->mPipeline);
+				VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
+				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
 				vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 			}
 
@@ -2879,6 +2957,7 @@ namespace Plaza {
 
 			mActiveCommandBuffer = &mCommandBuffers[mCurrentFrame];
 			mRenderGraph->UpdateCommandBuffer(mCommandBuffers[mCurrentFrame]);
+			UpdatePreRenderData();
 			mRenderGraph->Execute(imageIndex, mCurrentFrame);
 
 			//RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);

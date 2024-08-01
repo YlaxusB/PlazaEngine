@@ -2,6 +2,10 @@
 # PlazaEngine
 3D Game Engine made with C++, supports OpenGL and Vulkan.
 
+## Build Instructions
+Clone the repository with: `git clone https://github.com/YlaxusB/PlazaEngine.git --recursive`  
+Open the Repository folder with Visual Studio
+
 ## Features
 
 ### Cascaded Shadow Mapping
@@ -14,7 +18,7 @@ Based on Unity and Unreal 4 implementaiton
 Using Nvidia's Physx 5.2.0
 
 # Assets
-The Engine have an asset importer, that gets models outside the engine and converts it to the engine's format, and an asset loader, that loads the converted model file into the scene. Imported assets are stored in files inside the project, loaded assets are stored in memory, managed by the Assets Manager.  
+The Engine has an asset importer which gets models outside the engine and converts it to the engine's format. It also has an asset loader which loads the converted model file into the scene. Imported assets are stored in files inside the project and loaded assets are stored in memory, managed by the Assets Manager.   
 Below are the supported Formats:
 ### Models:
 .obj .fbx

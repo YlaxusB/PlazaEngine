@@ -2,7 +2,7 @@
 #include "Renderer.h"
 
 namespace Plaza{
-	VmaAllocator PlBuffer::GetVmaAllocator() {
+	VmaAllocator PlVkBuffer::GetVmaAllocator() {
 			return VulkanRenderer::GetRenderer()->mVmaAllocator;
 	}
 }

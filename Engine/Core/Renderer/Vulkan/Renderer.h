@@ -298,8 +298,8 @@ namespace Plaza {
 
 		VkBuffer mMainIndirectCommandsBuffer = VK_NULL_HANDLE;
 		VkDeviceMemory mMainIndirectCommandsBufferMemory = VK_NULL_HANDLE;
-		PlBuffer* mMainVertexBuffer = new PlBuffer();
-		PlBuffer* mMainIndexBuffer = new PlBuffer();
+		PlVkBuffer* mMainVertexBuffer = new PlVkBuffer();
+		PlVkBuffer* mMainIndexBuffer = new PlVkBuffer();
 		//VkBuffer mMainVertexBuffer = VK_NULL_HANDLE;
 		//VkDeviceMemory mMainVertexBufferMemory = VK_NULL_HANDLE;
 		//VkBuffer mMainIndexBuffer = VK_NULL_HANDLE;

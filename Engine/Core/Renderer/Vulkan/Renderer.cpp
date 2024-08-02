@@ -2879,9 +2879,11 @@ namespace Plaza {
 			VkRect2D scissor = plvk::rect2D(0, 0, VulkanRenderer::GetRenderer()->mSwapChainExtent.width, VulkanRenderer::GetRenderer()->mSwapChainExtent.height);
 			vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
+
 			for (const auto& pipeline : renderPass->mPipelines) {
 				VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
 				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
+				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &renderPass->mDescriptorSets[mCurrentFrame], 0, nullptr);
 				vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 			}
 
@@ -3027,7 +3029,7 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-		}
+	}
 	void VulkanRenderer::RenderBloom() {
 	}
 	void VulkanRenderer::RenderScreenSpaceReflections() {
@@ -3756,7 +3758,7 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-		}
+	}
 
 	void VulkanRenderer::AddTrackerToImage(VkImageView imageView,
 		std::string name,
@@ -3878,4 +3880,4 @@ namespace Plaza {
 		VulkanRenderer::GetGeometryPassDescriptorSet(unsigned int frame) {
 		return this->mGeometryPassRenderer.mShaders->mDescriptorSets[frame];
 	}
-			} // namespace Plaza
+} // namespace Plaza

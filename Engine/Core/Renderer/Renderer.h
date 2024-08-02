@@ -42,6 +42,7 @@ namespace Plaza {
 		GuiRenderer* mGuiRenderer;
 		PlazaRenderGraph* mRenderGraph;
 		const unsigned int mMaxFramesInFlight = 2;
+		const uint64_t mMaxBindlessTextures = 16536;
 
 		virtual void Init() = 0;
 		virtual void InitializeRenderGraph(PlazaRenderGraph* renderGraph) = 0;

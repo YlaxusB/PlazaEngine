@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Plaza {
-	class PlBuffer {
+	class PlVkBuffer {
 	public:
 		VmaAllocator GetVmaAllocator();
 

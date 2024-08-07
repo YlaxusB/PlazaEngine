@@ -36,23 +36,7 @@ namespace Plaza {
 				this->mDepthValuesBufferMemory[i]);
 		}
 	}
-	/*
 
-layout(binding = 1) buffer ClusterBuffer {
-	Cluster clusters[];
-};
-
-layout(binding = 2) buffer OutputBuffer {
-	vec3 result[];
-};
-
-layout(binding = 3) buffer DepthTileBuffer {
-	vec2 tileDepthStats[];
-};
-
-layout(binding = 4) uniform sampler2D depthMap;
-
-	*/
 	void VulkanLighting::InitializeDescriptorSets() {
 		/* Descriptor Sets Layout */
 		std::array<VkDescriptorSetLayoutBinding, 4> layoutBindings{};

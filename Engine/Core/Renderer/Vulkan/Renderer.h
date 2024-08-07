@@ -79,6 +79,12 @@ namespace Plaza {
 		void UpdateGUI() override;
 		ImTextureID GetFrameImage() override;
 
+		void UploadBindlessTexture(VulkanTexture* texture);
+		void UpdateInstancesData();
+
+		VkRenderPass CreateRenderPass(VkAttachmentDescription* attachmentDescs, uint32_t attachmentsCount, VkSubpassDescription* subpasses, uint32_t subpassesCount, VkSubpassDependency* dependencies, uint32_t dependenciesCount);
+		VkFramebuffer CreateFramebuffer(VkRenderPass& renderPass, glm::vec2 size, VkImageView* pAttachmentsData, uint32_t attachmentsCount, uint32_t layers);
+
 		void AddTrackerToImage(
 			VkImageView imageView,
 			std::string name = "",
@@ -183,13 +189,7 @@ namespace Plaza {
 		VkDescriptorSet mFinalSceneDescriptorSet;
 		VkPipelineLayout mPipelineLayout;
 		VkPipeline mGraphicsPipeline;
-	private:
-		struct SwapChainPushConstant {
-			float exposure = 1.2f;
-			float gamma = 2.6f;
-		};
 
-		VkDescriptorSetLayout mSwapchainDescriptorSetLayout = VK_NULL_HANDLE;
 
 		struct alignas(16) MaterialData {
 			glm::vec4 color = glm::vec4(1.0f);
@@ -203,6 +203,13 @@ namespace Plaza {
 			float flipX = 1.0f;
 			float flipY = 1.0f;
 		};
+	private:
+		struct SwapChainPushConstant {
+			float exposure = 1.2f;
+			float gamma = 2.6f;
+		};
+
+		VkDescriptorSetLayout mSwapchainDescriptorSetLayout = VK_NULL_HANDLE;
 
 		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";
 		const std::string TEXTURE_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.png";

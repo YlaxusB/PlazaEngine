@@ -16,7 +16,6 @@
 #include "Engine/Editor/Outline/Outline.h"
 #include "Engine/Editor/Editor.h"
 
-
 #include <cstdlib> // Include the appropriate header for _dupenv_s
 
 //#include "ThirdParty/Tracy/tracy/TracyC.h"

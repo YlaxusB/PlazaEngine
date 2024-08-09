@@ -44,6 +44,34 @@ namespace Plaza {
 		return convertedType;
 	}
 
+	static VkImageViewType PlViewTypeToVkImageViewType(PlazaViewType type) {
+		VkImageViewType convertedType = VK_IMAGE_VIEW_TYPE_1D;
+		switch (type) {
+		case PL_VIEW_TYPE_1D:
+			convertedType = VK_IMAGE_VIEW_TYPE_1D;
+			break;
+		case PL_VIEW_TYPE_2D:
+			convertedType = VK_IMAGE_VIEW_TYPE_2D;
+			break;
+		case PL_VIEW_TYPE_3D:
+			convertedType = VK_IMAGE_VIEW_TYPE_3D;
+			break;
+		case PL_VIEW_TYPE_CUBE:
+			convertedType = VK_IMAGE_VIEW_TYPE_CUBE;
+			break;
+		case PL_VIEW_TYPE_1D_ARRAY:
+			convertedType = VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+			break;
+		case PL_VIEW_TYPE_2D_ARRAY:
+			convertedType = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+			break;
+		case PL_VIEW_TYPE_CUBE_ARRAY:
+			convertedType = VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+			break;
+		}
+		return convertedType;
+	}
+
 	static VkFormat PlImageFormatToVkFormat(PlazaTextureFormat format) {
 		VkFormat convertedFormat = VK_FORMAT_R8G8B8_UNORM;
 		switch (format) {
@@ -72,25 +100,25 @@ namespace Plaza {
 	static VkImageUsageFlags PlImageUsageToVkImageUsage(PlazaImageUsage imageUsage) {
 		VkImageUsageFlags convertedUsage = 0;
 		if (imageUsage & PL_IMAGE_USAGE_TRANSFER_SRC) {
-			convertedUsage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+			convertedUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 		}
 		if (imageUsage & PL_IMAGE_USAGE_TRANSFER_DST) {
-			convertedUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+			convertedUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 		}
 		if (imageUsage & PL_IMAGE_USAGE_SAMPLED) {
-			convertedUsage = VK_IMAGE_USAGE_SAMPLED_BIT;
+			convertedUsage |= VK_IMAGE_USAGE_SAMPLED_BIT;
 		}
 		if (imageUsage & PL_IMAGE_USAGE_STORAGE) {
-			convertedUsage = VK_IMAGE_USAGE_STORAGE_BIT;
+			convertedUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
 		}
 		if (imageUsage & PL_IMAGE_USAGE_COLOR_ATTACHMENT) {
-			convertedUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			convertedUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		}
 		if (imageUsage & PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT) {
-			convertedUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			convertedUsage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		}
 		if (imageUsage & PL_IMAGE_USAGE_INPUT_ATTACHMENT) {
-			convertedUsage = VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+			convertedUsage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 		}
 		return convertedUsage;
 	}
@@ -225,8 +253,10 @@ namespace Plaza {
 
 	class VulkanTextureBinding : public PlazaTextureBinding {
 	public:
-		VulkanTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlazaBufferType bufferType, PlazaImageUsage imageUsage, PlazaRenderStage renderStage, PlazaTextureType type, PlazaTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name)
-			: PlazaTextureBinding(descriptorCount, location, binding, bufferType, imageUsage, renderStage, type, format, resolution, mipCount, layersCount, name) {};
+		VulkanTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlazaBufferType bufferType, PlazaRenderStage renderStage, PlazaImageLayout initialLayout, std::shared_ptr<Texture> texture)
+			: PlazaTextureBinding(descriptorCount, location, binding, bufferType, renderStage, initialLayout, texture) {
+			mName = texture->mName;
+		};
 		virtual void Compile() override;
 		virtual void Destroy() override;
 
@@ -238,15 +268,20 @@ namespace Plaza {
 			if (mTexture == nullptr)
 				return VkDescriptorImageInfo{};
 
-			return plvk::descriptorImageInfo(mTexture.get()->GetLayout(), mTexture.get()->mImageView, mTexture.get()->mSampler);
+			return plvk::descriptorImageInfo(GetTexture()->GetLayout(), GetTexture()->mImageView, GetTexture()->mSampler);
 		}
 
 		VkWriteDescriptorSet GetDescriptorWrite(VkDescriptorSet& descriptorSet, VkDescriptorImageInfo* imageInfo) {
 			return plvk::writeDescriptorSet(descriptorSet, this->mBinding, 0, PlBufferTypeToVkDescriptorType(mBufferType), mMaxBindlessResources > 0 ? 1 : mDescriptorCount, imageInfo, nullptr);
 		}
 
-		std::shared_ptr<VulkanTexture> mTexture = nullptr;
+		VulkanTexture* GetTexture() {
+			return static_cast<VulkanTexture*>(mTexture.get());
+		}
+
+		//std::shared_ptr<VulkanTexture> mTexture = nullptr;
 	private:
+
 	};
 
 	class VulkanRenderPass : public PlazaRenderPass {

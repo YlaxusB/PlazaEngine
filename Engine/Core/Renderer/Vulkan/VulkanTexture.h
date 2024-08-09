@@ -6,16 +6,21 @@ namespace Plaza {
 	class VulkanTexture : public Texture {
 	public:
 		VkDescriptorSet GetDescriptorSet() override;
-		VkDescriptorSet mDescriptorSet;
+
+		VulkanTexture() {}
+		VulkanTexture(uint64_t descriptorCount, PlazaImageUsage imageUsage, PlazaTextureType imageType, PlazaViewType viewType, PlazaTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name)
+			: Texture(descriptorCount, imageUsage, imageType, viewType, format, resolution, mipCount, layersCount, name) {
+
+		}
+
+		VkDescriptorSet mDescriptorSet = VK_NULL_HANDLE;
 		static int mLastBindingIndex;
-
 		uint16_t mMipLevels = 8;
-
-		VkDescriptorSetLayout mDescriptorSetLayout;
-		VkImage mImage;
-		VkDeviceMemory mImageMemory;
-		VkImageView mImageView;
-		VkSampler mSampler;
+		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
+		VkImage mImage = VK_NULL_HANDLE;
+		VkDeviceMemory mImageMemory = VK_NULL_HANDLE;
+		VkImageView mImageView = VK_NULL_HANDLE;
+		VkSampler mSampler = VK_NULL_HANDLE;
 
 		VkImageView CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D, unsigned int layerCount = 1, unsigned int baseMipLevel = 0);
 		void CreateTextureSampler(VkSamplerAddressMode adressMode = VK_SAMPLER_ADDRESS_MODE_REPEAT, VkSamplerMipmapMode mipMapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR, VkFilter magFilter = VK_FILTER_LINEAR, VkFilter minFilter = VK_FILTER_LINEAR, VkBorderColor boderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK);

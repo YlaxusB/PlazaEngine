@@ -2897,9 +2897,9 @@ namespace Plaza {
 
 			renderGraph->BindPass("Deferred Geometry Pass");
 
-			VkViewport viewport = plvk::viewport(0.0f, 0.0f, VulkanRenderer::GetRenderer()->mSwapChainExtent.width, VulkanRenderer::GetRenderer()->mSwapChainExtent.height);
+			VkViewport viewport = plvk::viewport(0.0f, Application->appSizes->sceneSize.y, Application->appSizes->sceneSize.x, -static_cast<float>(Application->appSizes->sceneSize.y));
 			vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-			VkRect2D scissor = plvk::rect2D(0, 0, VulkanRenderer::GetRenderer()->mSwapChainExtent.width, VulkanRenderer::GetRenderer()->mSwapChainExtent.height);
+			VkRect2D scissor = plvk::rect2D(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
 			vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 
@@ -4064,19 +4064,19 @@ namespace Plaza {
 			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
 		}
 
-		//if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
-		//	PLAZA_PROFILE_SECTION("Bind the instance material offsets");
-		//	PlVkBuffer* buffer = mRenderGraph->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("renderGroupMaterialsOffsetsBuffer")->mBuffer.get();
-		//	VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupMaterialsOffsets.size());
-		//	void* data;
-		//	vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
-		//	memcpy(data, renderGroupMaterialsOffsets.data(), sizeof(uint32_t) * renderGroupMaterialsOffsets.size());
-		//	vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
-		//}
+		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+			PLAZA_PROFILE_SECTION("Bind the instance material offsets");
+			PlVkBuffer* buffer = mRenderGraph->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("renderGroupMaterialsOffsetsBuffer")->mBuffer.get();
+			VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupMaterialsOffsets.size());
+			void* data;
+			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
+			memcpy(data, renderGroupMaterialsOffsets.data(), sizeof(uint32_t) * renderGroupMaterialsOffsets.size());
+			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+		}
 
 		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Bind the instance material offsets 2");
-			PlVkBuffer* buffer = mRenderGraph->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("renderGroupMaterialsOffsetsBuffer")->mBuffer.get();
+			PlVkBuffer* buffer = mRenderGraph->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("renderGroupOffsetsBuffer")->mBuffer.get();
 			VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupOffsets.size());
 			void* data;
 			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);

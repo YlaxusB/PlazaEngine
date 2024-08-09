@@ -28,6 +28,7 @@ namespace Plaza {
 
 	class VulkanRenderer : public Renderer {
 	public:
+		VulkanRenderer() = default;
 		std::array<int, MAX_BONE_INFLUENCE> GetBoneIds(std::vector<uint64_t>& bones);
 
 		std::map<uint64_t, Bone> mBones = std::map<uint64_t, Bone>();

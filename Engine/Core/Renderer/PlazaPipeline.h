@@ -1,8 +1,17 @@
 #pragma once
+#include "PushConstants.h"
 
 namespace Plaza {
 	class PlazaPipeline {
 	public:
+		std::vector<PlPushConstants> mPushConstants = std::vector<PlPushConstants>();
+		template <typename T>
+		void UpdatePushConstants(unsigned int index, const T& data) {
+			if (mPushConstants[index].mData == nullptr)
+				mPushConstants[index].mData = new T();
+			memcpy(mPushConstants[index].mData, &data, sizeof(T));
+		}
+
 		PlazaPipeline() = default;
 		virtual void Init(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) {};
 		virtual void InitializeShaders(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) {};

@@ -49,7 +49,7 @@ namespace Plaza {
 			PL_TOPOLOGY_TRIANGLE_LIST,
 			false,
 			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(false) , pl::pipelineColorBlendAttachmentState(true)  ,pl::pipelineColorBlendAttachmentState(true)  ,pl::pipelineColorBlendAttachmentState(true) }),
+			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) , pl::pipelineColorBlendAttachmentState(true)  ,pl::pipelineColorBlendAttachmentState(true)  ,pl::pipelineColorBlendAttachmentState(true) }),
 			pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
 			pl::pipelineViewportStateCreateInfo(1, 1),
 			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
@@ -77,7 +77,7 @@ namespace Plaza {
 			->SetMemoryUsage<VulkanBufferBinding>(PL_MEMORY_USAGE_CPU_TO_GPU);
 		this->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("boneMatrices")
 			->SetBufferUsage<VulkanBufferBinding>(PL_BUFFER_USAGE_STORAGE_BUFFER)
-			->SetMemoryUsage<VulkanBufferBinding>(PL_MEMORY_USAGE_AUTO);
+			->SetMemoryUsage<VulkanBufferBinding>(PL_MEMORY_USAGE_CPU_TO_GPU);
 
 		// --------------- TEMPORARY
 		//std::shared_ptr<VulkanTextureBinding> preFilterMap = std::make_shared<VulkanTextureBinding>(1, 0, 7, PL_BUFFER_COMBINED_IMAGE_SAMPLER, static_cast<PlazaImageUsage>(inImageUsageFlags), PL_STAGE_FRAGMENT, PL_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(512, 512, 1), 1, 1, "prefilterMap");
@@ -103,15 +103,61 @@ namespace Plaza {
 
 		this->GetRenderPass("Deferred Geometry Pass")->mInputBindings.at("TexturesBuffer")->mMaxBindlessResources = VulkanRenderer::GetRenderer()->mMaxBindlessTextures;
 
-		//uint64_t descriptorCount, uint8_t location, uint8_t binding, PlazaBufferType bufferType, PlazaRenderStage renderStage, PlazaImageLayout initialLayout, std::shared_ptr<Texture> texture
-		//uint64_t descriptorCount, PlazaImageUsage imageUsage, PlazaTextureType type, PlazaTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name
+		/*
+		layout (std430, binding = 4) buffer LightsBuffer {
+    LightStruct lights[];
+};
 
-		//this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Lighting Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_FULL_SCREEN_QUAD))
-		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GPosition")))
-		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GDiffuse")))
-		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GNormal")))
-		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GOthers")))
-		//	->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, this->GetSharedTexture("SceneTexture")));
+layout (std430, binding = 5) buffer ClusterBuffer {
+    Cluster[] clusters;
+};
+		*/
+
+		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Lighting Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_FULL_SCREEN_QUAD))
+			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 4, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, 1024 * 32, sizeof(Lighting::LightStruct), 2, "LightsBuffer"))
+			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 5, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, 1024 * 32, sizeof(Lighting::Tile), 2, "ClusterBuffer"))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GPosition")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GDiffuse")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GNormal")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GOthers")))
+			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, this->GetSharedTexture("SceneTexture")));
+
+		this->GetRenderPass("Deferred Lighting Pass")->GetInputResource<VulkanBufferBinding>("LightsBuffer")
+			->SetBufferUsage<VulkanBufferBinding>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST)
+			->SetMemoryUsage<VulkanBufferBinding>(PL_MEMORY_USAGE_CPU_TO_GPU);
+		this->GetRenderPass("Deferred Lighting Pass")->GetInputResource<VulkanBufferBinding>("ClusterBuffer")
+			->SetBufferUsage<VulkanBufferBinding>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST)
+			->SetMemoryUsage<VulkanBufferBinding>(PL_MEMORY_USAGE_CPU_TO_GPU);
+
+
+		struct DeferredLightingPassConstants {
+			glm::vec3 viewPos;
+			float time;
+			glm::mat4 view;
+			glm::mat4 projection;
+			int lightCount;
+			glm::vec4 ambientLightColor;
+		};
+		this->GetRenderPass("Deferred Lighting Pass")->AddPipeline(pl::pipelineCreateInfo(
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.vert"), "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.frag"), "main") },
+			VertexGetBindingDescription(),
+			VertexGetAttributeDescriptions(),
+			PL_TOPOLOGY_TRIANGLE_LIST,
+			false,
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) }),
+			pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
+			pl::pipelineViewportStateCreateInfo(1, 1),
+			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
+			{ pl::pushConstantRange(PL_STAGE_FRAGMENT, 0, sizeof(DeferredLightingPassConstants)) }
+		));
+
+		this->AddRenderPassCallback("Deferred Lighting Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+			plazaRenderPass->mPipelines[0]->UpdatePushConstants<DeferredLightingPassConstants>(0, DeferredLightingPassConstants(Application->activeCamera->Position, 0.0f, Application->activeCamera->GetViewMatrix(),
+				Application->activeCamera->GetProjectionMatrix(), VulkanRenderer::GetRenderer()->mLighting->mLights.size(), VulkanRenderer::GetRenderer()->mLighting->ambientLightColor * VulkanRenderer::GetRenderer()->mLighting->ambientLightIntensity));
+			});
 
 		//->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, static_cast<PlazaImageUsage>(inImageUsageFlags), PL_STAGE_FRAGMENT, PL_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "SceneTexture"));
 	}
@@ -120,16 +166,15 @@ namespace Plaza {
 		std::shared_ptr<VulkanPlazaPipeline> pipeline = std::make_shared<VulkanPlazaPipeline>();
 		pipeline->mRenderPass = this->mRenderPass;
 		pipeline->mFramebuffer = this->mFrameBuffer;
-		pipeline->mShaders->mDescriptorSetLayout = this->mDescriptorSetLayout;
+		pipeline->mShaders->mDescriptorSetLayout = mDescriptorSetLayout;
+		pipeline->mShaders->mDescriptorSets = mDescriptorSets;
 
 		std::vector<VkPushConstantRange> pushConstants{};
 		for (PlPushConstantRange range : createInfo.pushConstants) {
 			pushConstants.push_back(plvk::pushConstantRange(PlRenderStageToVkShaderStage(range.stageFlags), range.offset, range.size));
+			pipeline->mPushConstants.push_back(PlPushConstants(range.stageFlags, range.offset, range.size));
 		}
-		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = plvk::pipelineLayoutCreateInfo(1, &mDescriptorSetLayout, pushConstants.size(), pushConstants.data());
-
-		pipeline->mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert");
-		pipeline->mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag");
+		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = plvk::pipelineLayoutCreateInfo(1, &pipeline->mShaders->mDescriptorSetLayout, pushConstants.size(), pushConstants.data());
 
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
 		for (size_t i = 0; i < createInfo.shaderStages.size(); ++i) {
@@ -146,11 +191,11 @@ namespace Plaza {
 			shaderStages.push_back(shaderStage);
 		}
 
-		//auto bindingsArray = VertexGetBindingDescription();
-		//auto attributesArray = VertexGetAttributeDescriptions();
-		std::vector<VkVertexInputBindingDescription> bindings{};
+		auto bindingsArray = PlazaRenderGraph::VertexGetBindingDescription();
+		auto attributesArray = PlazaRenderGraph::VertexGetAttributeDescriptions();
+		std::vector<VkVertexInputBindingDescription> bindings = std::vector<VkVertexInputBindingDescription>();
 
-		for (PlVertexInputBindingDescription description : createInfo.vertexBindingDescriptions) {
+		for (const PlVertexInputBindingDescription& description : createInfo.vertexBindingDescriptions) {
 			VkVertexInputBindingDescription binding{};
 			binding.binding = description.binding;
 			binding.stride = description.stride;
@@ -158,8 +203,8 @@ namespace Plaza {
 			bindings.push_back(binding);
 		}
 
-		std::vector<VkVertexInputAttributeDescription> attributes{};
-		for (PlVertexInputAttributeDescription description : createInfo.vertexAttributeDescriptions) {
+		std::vector<VkVertexInputAttributeDescription> attributes = std::vector<VkVertexInputAttributeDescription>();
+		for (const PlVertexInputAttributeDescription& description : createInfo.vertexAttributeDescriptions) {
 			VkVertexInputAttributeDescription attribute{};
 			attribute.location = description.location;
 			attribute.binding = description.binding;
@@ -171,7 +216,7 @@ namespace Plaza {
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = plvk::pipelineInputAssemblyStateCreateInfo(PlTopologyToVkTopology(createInfo.topology), createInfo.primitiveRestartEnable);
 		VkPipelineRasterizationStateCreateInfo rasterizationState = plvk::pipelineRasterizationStateCreateInfo(createInfo.rasterization.depthClampEnable, createInfo.rasterization.rasterizerDiscardEnable, PlPolygonModeToVkPolygonMode(createInfo.rasterization.polygonMode), createInfo.rasterization.lineWidth, createInfo.rasterization.depthBiasEnable, createInfo.rasterization.depthBiasConstantFactor, createInfo.rasterization.depthBiasClamp, createInfo.rasterization.depthBiasSlopeFactor, PlCullModeToVkCullMode(createInfo.rasterization.cullMode), PlFrontFaceToVkFrontFace(createInfo.rasterization.frontFace));
 		std::vector<VkPipelineColorBlendAttachmentState> blendAttachments{};
-		for (PlPipelineColorBlendAttachmentState attachment : createInfo.colorBlendState.attachments) {
+		for (const PlPipelineColorBlendAttachmentState& attachment : createInfo.colorBlendState.attachments) {
 			blendAttachments.push_back(plvk::pipelineColorBlendAttachmentState(attachment.blendEnable,
 				PlBlendFactorToVkBlendFactor(attachment.srcColorBlendFactor),
 				PlBlendFactorToVkBlendFactor(attachment.dstColorBlendFactor),
@@ -375,7 +420,7 @@ namespace Plaza {
 				switch (value->mBindingType) {
 				case PL_BINDING_BUFFER: {
 					VulkanBufferBinding* bufferBinding = static_cast<VulkanBufferBinding*>(value.get());
-					VkDescriptorBufferInfo bufferInfo = bufferBinding->GetBufferInfo(Application->mRenderer->mCurrentFrame);
+					VkDescriptorBufferInfo bufferInfo = bufferBinding->GetBufferInfo(i);
 					bufferInfos.push_back(new VkDescriptorBufferInfo(bufferInfo));
 					descriptorWrites.push_back(bufferBinding->GetDescriptorWrite(mDescriptorSets[i], bufferInfos[bufferInfos.size() - 1]));
 					break;
@@ -517,6 +562,11 @@ namespace Plaza {
 			VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
 			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+
+			for (const PlPushConstants& pushConstant : vulkanPipeline->mPushConstants) {
+				vkCmdPushConstants(commandBuffer, vulkanPipeline->mShaders->mPipelineLayout, PlRenderStageToVkShaderStage(pushConstant.mStage), pushConstant.mOffset, pushConstant.mStride, pushConstant.mData);
+			}
+
 			vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 		}
 

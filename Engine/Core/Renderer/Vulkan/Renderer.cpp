@@ -2772,10 +2772,6 @@ namespace Plaza {
 		InitSyncStructures();
 		CreateImGuiTextureSampler();
 
-#ifdef EDITOR_MODE
-		Editor::Gui::Init(Application->Window->glfwWindow);
-#endif
-
 		this->InitializeGeometryPassRenderer();
 
 		VkFormatProperties vkFormatProperties;
@@ -2880,6 +2876,10 @@ namespace Plaza {
 		this->mRenderGraph->BuildDefaultRenderGraph();
 		this->InitializeRenderGraph(mRenderGraph);
 		mRenderGraph->Compile();
+
+#ifdef EDITOR_MODE
+		Editor::Gui::Init(Application->Window->glfwWindow);
+#endif
 	}
 
 	void VulkanRenderer::InitializeRenderGraph(PlazaRenderGraph* renderGraph) {
@@ -2987,6 +2987,8 @@ namespace Plaza {
 			mActiveCommandBuffer = &mCommandBuffers[mCurrentFrame];
 			mRenderGraph->UpdateCommandBuffer(mCommandBuffers[mCurrentFrame]);
 			//UpdatePreRenderData();
+			//static_cast<VulkanPlazaPipeline*>(mRenderGraph->GetRenderPass("Deferred Geometry Pass")->mPipelines[0].get())->mShaders->mPipeline = mGeometryPassRenderer.mShaders->mPipeline;
+			//static_cast<VulkanPlazaPipeline*>(mRenderGraph->GetRenderPass("Deferred Geometry Pass")->mPipelines[0].get())->mShaders->mPipelineLayout = mGeometryPassRenderer.mShaders->mPipelineLayout;
 			mRenderGraph->Execute(imageIndex, mCurrentFrame);
 
 			//RecordCommandBuffer(mCommandBuffers[mCurrentFrame], imageIndex);
@@ -3169,14 +3171,19 @@ namespace Plaza {
 
 		ImGui_ImplVulkan_SetMinImageCount(mMaxFramesInFlight);
 
+		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(
+			mImGuiTextureSampler,
+			mRenderGraph->GetTexture<VulkanTexture>("SceneTexture")->mImageView,
+			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); // TODO: FIX VALIDATION ERROR
+
 		//		mFinalSceneDescriptorSet =
 		// ImGui_ImplVulkan_AddTexture(mTextureSampler,
 		// this->mShadows->mCascades[2].mImageView, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 		////TODO: FIX VALIDATION ERROR
-		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(
-			mImGuiTextureSampler,
-			this->mFinalSceneImageView,
-			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); // TODO: FIX VALIDATION ERROR
+		////////////////////////////mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(
+		////////////////////////////	mImGuiTextureSampler,
+		////////////////////////////	this->mFinalSceneImageView,
+		////////////////////////////	VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); // TODO: FIX VALIDATION ERROR
 		// mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler,
 		// ((VulkanPicking*)(this->mPicking))->mPickingTextureImageView,
 		// VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR
@@ -3702,7 +3709,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-	}
+		}
 #endif
 
 		{
@@ -3800,7 +3807,7 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-}
+	}
 
 	void VulkanRenderer::AddTrackerToImage(VkImageView imageView,
 		std::string name,
@@ -4126,4 +4133,4 @@ namespace Plaza {
 		memcpy(data, &ubo, bufferSize);
 		vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
 	}
-	} // namespace Plaza
+} // namespace Plaza

@@ -267,16 +267,15 @@ namespace Plaza {
 		std::vector<VkVertexInputBindingDescription> vertexInputBindings,
 		std::vector<VkVertexInputAttributeDescription> vertexInputAttributes
 	) {
-		auto vertShaderCode = ReadFile(mVertexShaderPath);
-		auto fragShaderCode = ReadFile(mFragmentShaderPath);
+
 		//auto geomShaderCode = readFile(mGeometryShaderPath);
 
-		vertShaderModule = CreateShaderModule(vertShaderCode, device);
-		fragShaderModule = CreateShaderModule(fragShaderCode, device);
 		//VkShaderModule geomShaderModule = createShaderModule(geomShaderCode, device);
 
 		if (!mVertexShaderPath.empty())
 		{
+			auto vertShaderCode = ReadFile(mVertexShaderPath);
+			vertShaderModule = CreateShaderModule(vertShaderCode, device);
 			VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 			vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -287,6 +286,8 @@ namespace Plaza {
 
 		if (!mFragmentShaderPath.empty())
 		{
+			auto fragShaderCode = ReadFile(mFragmentShaderPath);
+			fragShaderModule = CreateShaderModule(fragShaderCode, device);
 			VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
 			fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -421,7 +422,7 @@ namespace Plaza {
 			mVertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
 			mVertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 		}
-		else if(!useVertexInputInfo && vertexInputBindings.size() == 0)
+		else if (!useVertexInputInfo && vertexInputBindings.size() == 0)
 		{
 			mVertexInputInfo.vertexBindingDescriptionCount = 0;
 			mVertexInputInfo.vertexAttributeDescriptionCount = 0;

@@ -388,7 +388,7 @@ vec3 viewPos;
 			std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
 			std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
 		};
-
+	public:
 		static std::array<VkVertexInputBindingDescription, 2> VertexGetBindingDescription() {
 			std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {};
 			bindingDescriptions[0].binding = 0;

@@ -256,10 +256,10 @@ namespace Plaza {
 			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(1, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)));
 			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(2, 0, PL_FORMAT_R32G32_SFLOAT, offsetof(Vertex, texCoords)));
 			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(3, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, tangent)));
-			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(4, 0, PL_FORMAT_R32G32B32A32_SFLOAT, 0));
-			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(5, 0, PL_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 4));
-			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(6, 0, PL_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 8));
-			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(7, 0, PL_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 12));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(4, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(6, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(7, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12));
 			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(8, 0, PL_FORMAT_R32G32B32A32_SINT, offsetof(Vertex, boneIds)));
 			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(9, 0, PL_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, weights)));
 			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(10, 0, PL_FORMAT_R32_UINT, offsetof(Vertex, materialIndex)));

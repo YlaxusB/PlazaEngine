@@ -191,6 +191,22 @@ namespace Plaza {
 		VkPipelineLayout mPipelineLayout;
 		VkPipeline mGraphicsPipeline;
 
+		VkBuffer mMainIndirectCommandsBuffer = VK_NULL_HANDLE;
+		VkDeviceMemory mMainIndirectCommandsBufferMemory = VK_NULL_HANDLE;
+		PlVkBuffer* mMainVertexBuffer = new PlVkBuffer();
+		PlVkBuffer* mMainIndexBuffer = new PlVkBuffer();
+
+		uint64_t mBufferTotalVertices = 0;
+		uint64_t mBufferTotalIndices = 0;
+		uint64_t mIndirectDrawCount = 0;
+		uint64_t mTotalInstances = 0;
+		std::vector<VkDrawIndexedIndirectCommand> mIndirectCommands = std::vector<VkDrawIndexedIndirectCommand>();
+
+		std::vector<VkBuffer> mIndirectBuffers = std::vector<VkBuffer>();
+		std::vector<VkDeviceMemory> mIndirectBufferMemories = std::vector<VkDeviceMemory>();
+
+		std::vector<VkBuffer> mMainInstanceMatrixBuffers = std::vector<VkBuffer>();
+		std::vector<VkDeviceMemory> mMainInstanceMatrixBufferMemories = std::vector<VkDeviceMemory>();
 
 		struct alignas(16) MaterialData {
 			glm::vec4 color = glm::vec4(1.0f);
@@ -304,17 +320,10 @@ namespace Plaza {
 
 		VkDescriptorSet mMainSceneDescriptorSet;
 
-		VkBuffer mMainIndirectCommandsBuffer = VK_NULL_HANDLE;
-		VkDeviceMemory mMainIndirectCommandsBufferMemory = VK_NULL_HANDLE;
-		PlVkBuffer* mMainVertexBuffer = new PlVkBuffer();
-		PlVkBuffer* mMainIndexBuffer = new PlVkBuffer();
 		//VkBuffer mMainVertexBuffer = VK_NULL_HANDLE;
 		//VkDeviceMemory mMainVertexBufferMemory = VK_NULL_HANDLE;
 		//VkBuffer mMainIndexBuffer = VK_NULL_HANDLE;
 		//VkDeviceMemory mMainIndexBufferMemory = VK_NULL_HANDLE;
-
-		std::vector<VkBuffer> mMainInstanceMatrixBuffers = std::vector<VkBuffer>();
-		std::vector<VkDeviceMemory> mMainInstanceMatrixBufferMemories = std::vector<VkDeviceMemory>();
 
 		std::vector<VkBuffer> mMainInstanceMaterialBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mMainInstanceMaterialBufferMemories = std::vector<VkDeviceMemory>();
@@ -335,15 +344,6 @@ namespace Plaza {
 		std::unordered_map<uint64_t, unsigned int> mMaterialsHandles = std::unordered_map<uint64_t, unsigned int>();
 		std::vector<VkBuffer> mMaterialBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mMaterialBufferMemories = std::vector<VkDeviceMemory>();
-
-		uint64_t mBufferTotalVertices = 0;
-		uint64_t mBufferTotalIndices = 0;
-		uint64_t mIndirectDrawCount = 0;
-		uint64_t mTotalInstances = 0;
-		std::vector<VkDrawIndexedIndirectCommand> mIndirectCommands = std::vector<VkDrawIndexedIndirectCommand>();
-
-		std::vector<VkBuffer> mIndirectBuffers = std::vector<VkBuffer>();
-		std::vector<VkDeviceMemory> mIndirectBufferMemories = std::vector<VkDeviceMemory>();
 
 		// ImGui variables
 		VkDescriptorPool mImguiDescriptorPool;
@@ -402,11 +402,6 @@ vec3 viewPos;
 
 			bindingDescriptions[1] = instanceBindingDescription;
 
-			//VkVertexInputBindingDescription materialBindingDescription = {};
-			//materialBindingDescription.binding = 2;
-			//materialBindingDescription.stride = 64 * sizeof(unsigned int);
-			//materialBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
-			//bindingDescriptions[2] = materialBindingDescription;
 			return bindingDescriptions;
 		}
 

@@ -544,12 +544,12 @@ namespace Plaza {
 	}
 
 	using std::min;
-	glm::mat4 VulkanShadows::GetLightSpaceMatrix(const float nearPlane, const float farPlane)
+	glm::mat4 VulkanShadows::GetLightSpaceMatrix(const float nearPlane, const float farPlane, const float ratio, const glm::mat4& viewMatrix)
 	{
 		const auto proj = glm::perspective(
-			glm::radians(Application->activeCamera->Zoom), (float)Application->appSizes->sceneSize.x / (float)Application->appSizes->sceneSize.y, nearPlane,
+			glm::radians(Application->activeCamera->Zoom), ratio, nearPlane,
 			farPlane);
-		const auto corners = Application->activeCamera->getFrustumCornersWorldSpace(proj, Application->activeCamera->GetViewMatrix());
+		const auto corners = Application->activeCamera->getFrustumCornersWorldSpace(proj, viewMatrix);
 
 		glm::vec3 center = glm::vec3(0, 0, 0);
 		for (const auto& v : corners)
@@ -604,30 +604,37 @@ namespace Plaza {
 	}
 	std::vector<glm::mat4> VulkanShadows::GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels, VulkanShadows::ShadowsUniformBuffer& ubo)
 	{
-		std::vector<glm::mat4> ret;
+		PLAZA_PROFILE_SECTION("GetLightSpaceMatrices");
+		std::vector<glm::mat4> ret = std::vector<glm::mat4>();
+		ret.resize(shadowCascadeLevels.size() + 1);
+		float ratio = (float)Application->appSizes->sceneSize.x / (float)Application->appSizes->sceneSize.y;
+		const glm::mat4 viewMatrix = Application->activeCamera->GetViewMatrix();
 		for (size_t i = 0; i < shadowCascadeLevels.size() + 1; ++i)
 		{
 			if (i == 0)
 			{
-				ret.push_back(GetLightSpaceMatrix(Application->editorCamera->nearPlane - 1.0f, shadowCascadeLevels[i]));
+				ret[i] = GetLightSpaceMatrix(Application->editorCamera->nearPlane - 1.0f, shadowCascadeLevels[i], ratio, viewMatrix);
 			}
 			else if (i < shadowCascadeLevels.size())
 			{
-				ret.push_back(GetLightSpaceMatrix(shadowCascadeLevels[i - 1] - 1.0f, shadowCascadeLevels[i]));
+				ret[i] = GetLightSpaceMatrix(shadowCascadeLevels[i - 1] - 1.0f, shadowCascadeLevels[i], ratio, viewMatrix);
 			}
 		}
 		return ret;
 	}
 
 	void VulkanShadows::UpdateUniformBuffer(unsigned int frameIndex) {
+		PLAZA_PROFILE_SECTION("Update Shadows Uniform Buffers");
 		//memcpy(&this->mUbo, GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo).data(), sizeof(this->mUbo));//this->mUbo.lightSpaceMatrices = GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo).data();
 		this->mUbo.resize(Application->mRenderer->mMaxFramesInFlight);
 		std::vector<glm::mat4> mats = GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo[frameIndex]);
 		for (int i = 0; i < 9; ++i) {
 			this->mUbo[frameIndex].lightSpaceMatrices[i] = mats[i];
 		}
-
-		memcpy(mUniformBuffersMapped[frameIndex], &this->mUbo[frameIndex], sizeof(this->mUbo[frameIndex]));
+		{
+			PLAZA_PROFILE_SECTION("memcpy");
+			//memcpy(mUniformBuffersMapped[frameIndex], &this->mUbo[frameIndex], sizeof(this->mUbo[frameIndex]));
+		}
 	}
 
 	void VulkanShadows::UpdateAndPushConstants(VkCommandBuffer commandBuffer, unsigned int cascadeIndex) {

@@ -4,8 +4,8 @@
 
 namespace Plaza {
 	void VulkanRenderGraph::BuildDefaultRenderGraph() {
-		PlazaImageUsage inImageUsageFlags = static_cast<PlazaImageUsage>(PL_IMAGE_USAGE_COLOR_ATTACHMENT | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC);
-		PlazaImageUsage outImageUsageFlags = static_cast<PlazaImageUsage>(PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_COLOR_ATTACHMENT);
+		PlImageUsage inImageUsageFlags = static_cast<PlImageUsage>(PL_IMAGE_USAGE_COLOR_ATTACHMENT | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC);
+		PlImageUsage outImageUsageFlags = static_cast<PlImageUsage>(PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_COLOR_ATTACHMENT);
 
 		this->AddTexture(make_shared<VulkanTexture>(VulkanRenderer::GetRenderer()->mMaxBindlessTextures, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(1, 1, 1), 1, 1, "TexturesBuffer"));
 		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "samplerBRDFLUT"));
@@ -16,13 +16,16 @@ namespace Plaza {
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "GDiffuse"));
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "GNormal"));
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "GOthers"));
-		this->AddTexture(make_shared<VulkanTexture>(1, static_cast<PlazaImageUsage>(PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT | PL_IMAGE_USAGE_SAMPLED), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "SceneDepth"));
+		this->AddTexture(make_shared<VulkanTexture>(1, static_cast<PlImageUsage>(PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT | PL_IMAGE_USAGE_SAMPLED), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "SceneDepth"));
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "SceneTexture"));
 
 		//uint64_t descriptorCount, PlazaImageUsage imageUsage, PlazaTextureType imageType, PlazaViewType viewType, PlazaTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name
 
-		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Geometry Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT))
-			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 0, PlazaBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_ALL, 1, sizeof(VulkanRenderer::UniformBufferObject), 2, "UniformBufferObject"))
+		//this->AddRenderPass(std::make_shared<VulkanRenderPass>("Shadow Mapping Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_INDIRECT_BUFFER))
+		//	->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 0, PlazaBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_ALL, 1, sizeof(VulkanRenderer::UniformBufferObject), 2, "UniformBufferObject"))
+
+		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Geometry Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_INDIRECT_BUFFER))
+			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 0, PlBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_ALL, 1, sizeof(VulkanRenderer::UniformBufferObject), 2, "UniformBufferObject"))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(VulkanRenderer::GetRenderer()->mMaxBindlessTextures, 0, 20, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("TexturesBuffer")))
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 19, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, 1024 * 16, sizeof(VulkanRenderer::MaterialData), 2, "materialsBuffer"))
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 1, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, 1024 * 16, sizeof(glm::mat4), 2, "boneMatrices"))
@@ -37,6 +40,25 @@ namespace Plaza {
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 2, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, this->GetSharedTexture("GDiffuse")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 3, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, this->GetSharedTexture("GOthers")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 4, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, this->GetSharedTexture("SceneDepth")));
+
+		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert"), "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag"), "main") },
+			VertexGetBindingDescription(),
+			VertexGetAttributeDescriptions(),
+			PL_TOPOLOGY_TRIANGLE_LIST,
+			false,
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(false) , pl::pipelineColorBlendAttachmentState(true)  ,pl::pipelineColorBlendAttachmentState(true)  ,pl::pipelineColorBlendAttachmentState(true) }),
+			pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
+			pl::pipelineViewportStateCreateInfo(1, 1),
+			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
+			{}
+		));
+
+
+		//this->GetRenderPass("Deferred Geometry Pass")->AddPipeline();
 
 
 		//uint64_t descriptorCount, uint8_t location, uint8_t binding, PlazaBufferType bufferType, PlazaRenderStage renderStage, PlazaImageLayout initialLayout,
@@ -55,7 +77,7 @@ namespace Plaza {
 			->SetMemoryUsage<VulkanBufferBinding>(PL_MEMORY_USAGE_CPU_TO_GPU);
 		this->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("boneMatrices")
 			->SetBufferUsage<VulkanBufferBinding>(PL_BUFFER_USAGE_STORAGE_BUFFER)
-			->SetMemoryUsage<VulkanBufferBinding>(PL_MEMORY_USAGE_CPU_TO_GPU);
+			->SetMemoryUsage<VulkanBufferBinding>(PL_MEMORY_USAGE_AUTO);
 
 		// --------------- TEMPORARY
 		//std::shared_ptr<VulkanTextureBinding> preFilterMap = std::make_shared<VulkanTextureBinding>(1, 0, 7, PL_BUFFER_COMBINED_IMAGE_SAMPLER, static_cast<PlazaImageUsage>(inImageUsageFlags), PL_STAGE_FRAGMENT, PL_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(512, 512, 1), 1, 1, "prefilterMap");
@@ -84,14 +106,116 @@ namespace Plaza {
 		//uint64_t descriptorCount, uint8_t location, uint8_t binding, PlazaBufferType bufferType, PlazaRenderStage renderStage, PlazaImageLayout initialLayout, std::shared_ptr<Texture> texture
 		//uint64_t descriptorCount, PlazaImageUsage imageUsage, PlazaTextureType type, PlazaTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name
 
-		//this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Lighting Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT))
-		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture ("GPosition")))
-		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture ("GDiffuse")))
-		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture ("GNormal")))
-		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture ("GOthers")))
+		//this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Lighting Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_FULL_SCREEN_QUAD))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GPosition")))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GDiffuse")))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GNormal")))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GOthers")))
 		//	->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, this->GetSharedTexture("SceneTexture")));
 
-			//->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, static_cast<PlazaImageUsage>(inImageUsageFlags), PL_STAGE_FRAGMENT, PL_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "SceneTexture"));
+		//->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, static_cast<PlazaImageUsage>(inImageUsageFlags), PL_STAGE_FRAGMENT, PL_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "SceneTexture"));
+	}
+
+	void VulkanRenderPass::CompilePipeline(PlPipelineCreateInfo createInfo) {
+		std::shared_ptr<VulkanPlazaPipeline> pipeline = std::make_shared<VulkanPlazaPipeline>();
+		pipeline->mRenderPass = this->mRenderPass;
+		pipeline->mFramebuffer = this->mFrameBuffer;
+		pipeline->mShaders->mDescriptorSetLayout = this->mDescriptorSetLayout;
+
+		std::vector<VkPushConstantRange> pushConstants{};
+		for (PlPushConstantRange range : createInfo.pushConstants) {
+			pushConstants.push_back(plvk::pushConstantRange(PlRenderStageToVkShaderStage(range.stageFlags), range.offset, range.size));
+		}
+		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = plvk::pipelineLayoutCreateInfo(1, &mDescriptorSetLayout, pushConstants.size(), pushConstants.data());
+
+		pipeline->mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert");
+		pipeline->mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag");
+
+		std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
+		for (size_t i = 0; i < createInfo.shaderStages.size(); ++i) {
+			const PlPipelineShaderStageCreateInfo& stage = createInfo.shaderStages[i];
+
+			VkPipelineShaderStageCreateInfo shaderStage = {};
+			shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+			shaderStage.stage = static_cast<VkShaderStageFlagBits>(PlRenderStageToVkShaderStage(stage.stage));
+			shaderStage.pName = createInfo.shaderStages[i].name.c_str();
+
+			auto shaderCode = VulkanShaders::ReadFile(stage.shadersPath.c_str());
+			shaderStage.module = VulkanShaders::CreateShaderModule(shaderCode, VulkanRenderer::GetRenderer()->mDevice);
+
+			shaderStages.push_back(shaderStage);
+		}
+
+		//auto bindingsArray = VertexGetBindingDescription();
+		//auto attributesArray = VertexGetAttributeDescriptions();
+		std::vector<VkVertexInputBindingDescription> bindings{};
+
+		for (PlVertexInputBindingDescription description : createInfo.vertexBindingDescriptions) {
+			VkVertexInputBindingDescription binding{};
+			binding.binding = description.binding;
+			binding.stride = description.stride;
+			binding.inputRate = PlVertexInputRateToVkVertexInputRate(description.inputRate);
+			bindings.push_back(binding);
+		}
+
+		std::vector<VkVertexInputAttributeDescription> attributes{};
+		for (PlVertexInputAttributeDescription description : createInfo.vertexAttributeDescriptions) {
+			VkVertexInputAttributeDescription attribute{};
+			attribute.location = description.location;
+			attribute.binding = description.binding;
+			attribute.format = PlImageFormatToVkFormat(description.format);
+			attribute.offset = description.offset;
+			attributes.push_back(attribute);
+		}
+		VkPipelineVertexInputStateCreateInfo vertexInputInfo = plvk::pipelineVertexInputStateCreateInfo(bindings, attributes);
+		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = plvk::pipelineInputAssemblyStateCreateInfo(PlTopologyToVkTopology(createInfo.topology), createInfo.primitiveRestartEnable);
+		VkPipelineRasterizationStateCreateInfo rasterizationState = plvk::pipelineRasterizationStateCreateInfo(createInfo.rasterization.depthClampEnable, createInfo.rasterization.rasterizerDiscardEnable, PlPolygonModeToVkPolygonMode(createInfo.rasterization.polygonMode), createInfo.rasterization.lineWidth, createInfo.rasterization.depthBiasEnable, createInfo.rasterization.depthBiasConstantFactor, createInfo.rasterization.depthBiasClamp, createInfo.rasterization.depthBiasSlopeFactor, PlCullModeToVkCullMode(createInfo.rasterization.cullMode), PlFrontFaceToVkFrontFace(createInfo.rasterization.frontFace));
+		std::vector<VkPipelineColorBlendAttachmentState> blendAttachments{};
+		for (PlPipelineColorBlendAttachmentState attachment : createInfo.colorBlendState.attachments) {
+			blendAttachments.push_back(plvk::pipelineColorBlendAttachmentState(attachment.blendEnable,
+				PlBlendFactorToVkBlendFactor(attachment.srcColorBlendFactor),
+				PlBlendFactorToVkBlendFactor(attachment.dstColorBlendFactor),
+				PlBlendOpToVkBlendOp(attachment.colorBlendOp),
+				PlBlendFactorToVkBlendFactor(attachment.srcAlphaBlendFactor),
+				PlBlendFactorToVkBlendFactor(attachment.dstAlphaBlendFactor),
+				PlBlendOpToVkBlendOp(attachment.alphaBlendOp),
+				attachment.colorWriteMask));
+		}
+		VkPipelineColorBlendStateCreateInfo colorBlendState = plvk::pipelineColorBlendStateCreateInfo(blendAttachments.size(), blendAttachments.data(), createInfo.colorBlendState.logicOpEnable, PlLogicOpToVkLogicOp(createInfo.colorBlendState.logicOp), std::vector<float>(std::begin(createInfo.colorBlendState.blendConstants), std::end(createInfo.colorBlendState.blendConstants)));
+		VkPipelineDepthStencilStateCreateInfo depthStencilState = plvk::pipelineDepthStencilStateCreateInfo(createInfo.depthStencilState.depthTestEnable, createInfo.depthStencilState.depthWriteEnable, PlCompareOpToVkCompareOp(createInfo.depthStencilState.depthCompareOp), createInfo.depthStencilState.depthBoundsTestEnable, createInfo.depthStencilState.stencilTestEnable);
+		VkPipelineViewportStateCreateInfo viewportState = plvk::pipelineViewportStateCreateInfo(createInfo.viewPortState.viewportCount, createInfo.viewPortState.scissorsCount);
+		VkPipelineMultisampleStateCreateInfo multisampleState = plvk::pipelineMultisampleStateCreateInfo(PlSampleCountToVkSampleCount(createInfo.multiSampleState.rasterizationSamples), createInfo.multiSampleState.sampleShadingEnable);
+		std::vector<VkDynamicState> dynamicStates{};
+		for (PlDynamicState state : createInfo.dynamicStates) {
+			dynamicStates.push_back(PlDynamicStateToVkDynamicState(state));
+		}
+		VkPipelineDynamicStateCreateInfo dynamicState = plvk::pipelineDynamicStateCreateInfo(dynamicStates);
+		pipeline->mShaders->InitializeFull(
+			VulkanRenderer::GetRenderer()->mDevice,
+			pipelineLayoutCreateInfo,
+			true,
+			Application->appSizes->sceneSize.x,
+			Application->appSizes->sceneSize.y,
+			shaderStages,
+			vertexInputInfo,
+			inputAssemblyState,
+			viewportState,
+			rasterizationState,
+			multisampleState,
+			colorBlendState,
+			dynamicState,
+			mRenderPass,
+			depthStencilState
+		);
+		mPipelines.push_back(pipeline);
+	}
+
+	void VulkanRenderGraph::CreatePipeline(PlPipelineCreateInfo createInfo) {
+
+	}
+
+	void VulkanRenderGraph::AddPipeline() {
+
 	}
 
 	void VulkanBufferBinding::Compile() {
@@ -233,7 +357,7 @@ namespace Plaza {
 		};
 		static const uint32_t maxBindlessResources = 16536;
 		std::vector<uint32_t> maxBinding(Application->mRenderer->mMaxFramesInFlight,
-			maxBindlessResources - 1);
+			Application->mRenderer->mMaxBindlessTextures - 1);
 		countInfo.descriptorSetCount = Application->mRenderer->mMaxFramesInFlight;
 		countInfo.pDescriptorCounts = maxBinding.data();
 		//allocInfo.pNext = &countInfo;
@@ -245,15 +369,6 @@ namespace Plaza {
 		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
 			std::vector<VkWriteDescriptorSet> descriptorWrites{};
 
-			/*
-						if (mType == PL_BUFFER_PUSH_CONSTANTS)
-				return {};
-
-			VkDescriptorBufferInfo bufferInfo = plvk::descriptorBufferInfo(mBuffer, 0, mStride);
-			return plvk::writeDescriptorSet(descriptorSet, this->mBinding, 0, PlBufferTypeToVkDescriptorType(mType), mDescriptorCount, nullptr, &bufferInfo);
-			VkDescriptorImageInfo imageInfo = plvk::descriptorImageInfo(mTexture.get()->GetLayout(), mTexture.get()->mImageView, mTexture.get()->mSampler);
-			return plvk::writeDescriptorSet(descriptorSet, this->mBinding, 0, PlBufferTypeToVkDescriptorType(mBufferType), mDescriptorCount, &imageInfo, nullptr);
-			*/
 			std::vector<VkDescriptorBufferInfo*> bufferInfos{};
 			std::vector<VkDescriptorImageInfo*> imageInfos{};
 			for (const auto& [key, value] : mInputBindings) {
@@ -284,6 +399,10 @@ namespace Plaza {
 				descriptorWrites.data(),
 				0,
 				nullptr);
+		}
+
+		for (PlPipelineCreateInfo createInfo : mPipelinesCreateInfo) {
+			this->CompilePipeline(createInfo);
 		}
 	}
 
@@ -355,5 +474,52 @@ namespace Plaza {
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
 		}
+	}
+
+	void VulkanRenderPass::RenderIndirectBuffer(PlazaRenderGraph* plazaRenderGraph) {
+		VulkanRenderGraph* renderGraph = static_cast<VulkanRenderGraph*>(plazaRenderGraph);
+		VkCommandBuffer commandBuffer = *VulkanRenderer::GetRenderer()->mActiveCommandBuffer;
+
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VulkanRenderer::GetRenderer()->mMainVertexBuffer->GetBuffer(), offsets);
+		vkCmdBindVertexBuffers(commandBuffer, 1, 1, &VulkanRenderer::GetRenderer()->mMainInstanceMatrixBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], offsets);
+		vkCmdBindIndexBuffer(commandBuffer, VulkanRenderer::GetRenderer()->mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+
+		renderGraph->BindPass(this->mName);
+
+		VkViewport viewport = plvk::viewport(0.0f, Application->appSizes->sceneSize.y, Application->appSizes->sceneSize.x, -static_cast<float>(Application->appSizes->sceneSize.y));
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		VkRect2D scissor = plvk::rect2D(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		for (const auto& pipeline : mPipelines) {
+			VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
+			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+			vkCmdDrawIndexedIndirect(commandBuffer, VulkanRenderer::GetRenderer()->mIndirectBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, VulkanRenderer::GetRenderer()->mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+		}
+
+		vkCmdEndRenderPass(commandBuffer);
+	}
+
+	void VulkanRenderPass::RenderFullScreenQuad(PlazaRenderGraph* plazaRenderGraph) {
+		VulkanRenderGraph* renderGraph = static_cast<VulkanRenderGraph*>(plazaRenderGraph);
+		VkCommandBuffer commandBuffer = *VulkanRenderer::GetRenderer()->mActiveCommandBuffer;
+
+		renderGraph->BindPass(this->mName);
+
+		VkViewport viewport = plvk::viewport(0.0f, Application->appSizes->sceneSize.y, Application->appSizes->sceneSize.x, -static_cast<float>(Application->appSizes->sceneSize.y));
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		VkRect2D scissor = plvk::rect2D(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		for (const auto& pipeline : mPipelines) {
+			VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
+			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+			vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		}
+
+		vkCmdEndRenderPass(commandBuffer);
 	}
 }

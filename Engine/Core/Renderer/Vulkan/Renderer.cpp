@@ -1,4 +1,5 @@
 // #include "Engine/Core/PreCompiledHeaders.h"
+
 #define VMA_IMPLEMENTATION
 #include "ThirdParty/include/VulkanMemoryAllocator/vk_mem_alloc.h"
 #include "Renderer.h"
@@ -2592,7 +2593,6 @@ namespace Plaza {
 			dynamicState,
 			this->mGeometryPassRenderer.mRenderPass,
 			depthStencilState
-			// this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout,
 		);
 
 		VkDescriptorSetAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
@@ -2670,8 +2670,9 @@ namespace Plaza {
 		vmaCreateAllocator(&allocatorInfo, &mVmaAllocator);
 
 		/* Initialize buffers */
-		mMainVertexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
-		mMainIndexBuffer->CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
+		mMainVertexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);		 		//mMainVertexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
+		mMainIndexBuffer->CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);	 		//mMainIndexBuffer->CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
+
 		//CreateBuffer(1024 * 1024 * 16 * sizeof(Vertex),
 		//	VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 		//	VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -2882,37 +2883,37 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::InitializeRenderGraph(PlazaRenderGraph* renderGraph) {
-		static_cast<VulkanRenderGraph*>(renderGraph)->GetRenderPass("Deferred Geometry Pass")->mPipelines.push_back(std::shared_ptr<VulkanPlazaPipeline>(&mGeometryPassRenderer));
-		static_cast<VulkanRenderGraph*>(renderGraph)->GetRenderPass("Deferred Geometry Pass")->mRenderPass = mGeometryPassRenderer.mRenderPass;
-		static_cast<VulkanRenderGraph*>(renderGraph)->GetRenderPass("Deferred Geometry Pass")->mFrameBuffer = mGeometryPassRenderer.mFramebuffer;
-		static_cast<VulkanRenderGraph*>(renderGraph)->AddRenderPassCallback("Deferred Geometry Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-			VulkanRenderGraph* renderGraph = static_cast<VulkanRenderGraph*>(plazaRenderGraph);
-			VulkanRenderPass* renderPass = (VulkanRenderPass*)plazaRenderPass;
-			VkCommandBuffer commandBuffer = *mActiveCommandBuffer;
-
-			VkDeviceSize offsets[1] = { 0 };
-			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer->GetBuffer(), offsets);
-			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
-			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-			renderGraph->BindPass("Deferred Geometry Pass");
-
-			VkViewport viewport = plvk::viewport(0.0f, Application->appSizes->sceneSize.y, Application->appSizes->sceneSize.x, -static_cast<float>(Application->appSizes->sceneSize.y));
-			vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-			VkRect2D scissor = plvk::rect2D(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
-			vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-
-
-			for (const auto& pipeline : renderPass->mPipelines) {
-				VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
-				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
-				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &renderPass->mDescriptorSets[mCurrentFrame], 0, nullptr);
-				vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
-			}
-
-			vkCmdEndRenderPass(commandBuffer);
-			});
+		//static_cast<VulkanRenderGraph*>(renderGraph)->GetRenderPass("Deferred Geometry Pass")->mPipelines.push_back(std::shared_ptr<VulkanPlazaPipeline>(&mGeometryPassRenderer));
+		//static_cast<VulkanRenderGraph*>(renderGraph)->GetRenderPass("Deferred Geometry Pass")->mRenderPass = mGeometryPassRenderer.mRenderPass;
+		//static_cast<VulkanRenderGraph*>(renderGraph)->GetRenderPass("Deferred Geometry Pass")->mFrameBuffer = mGeometryPassRenderer.mFramebuffer;
+		//static_cast<VulkanRenderGraph*>(renderGraph)->AddRenderPassCallback("Deferred Geometry Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+		//	VulkanRenderGraph* renderGraph = static_cast<VulkanRenderGraph*>(plazaRenderGraph);
+		//	VulkanRenderPass* renderPass = (VulkanRenderPass*)plazaRenderPass;
+		//	VkCommandBuffer commandBuffer = *mActiveCommandBuffer;
+		//
+		//	VkDeviceSize offsets[1] = { 0 };
+		//	vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer->GetBuffer(), offsets);
+		//	vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
+		//	vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+		//
+		//	renderGraph->BindPass("Deferred Geometry Pass");
+		//
+		//	VkViewport viewport = plvk::viewport(0.0f, Application->appSizes->sceneSize.y, Application->appSizes->sceneSize.x, -static_cast<float>(Application->appSizes->sceneSize.y));
+		//	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		//	VkRect2D scissor = plvk::rect2D(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+		//	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+		//
+		//
+		//
+		//	for (const auto& pipeline : renderPass->mPipelines) {
+		//		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
+		//		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
+		//		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &renderPass->mDescriptorSets[mCurrentFrame], 0, nullptr);
+		//		vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+		//	}
+		//
+		//	vkCmdEndRenderPass(commandBuffer);
+		//	});
 
 		for (auto& [passName, pass] : renderGraph->mPasses) {
 			std::cout << pass->mName << "\n";

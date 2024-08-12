@@ -8,7 +8,7 @@ namespace Plaza {
 		VkDescriptorSet GetDescriptorSet() override;
 
 		VulkanTexture() {}
-		VulkanTexture(uint64_t descriptorCount, PlazaImageUsage imageUsage, PlazaTextureType imageType, PlazaViewType viewType, PlazaTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name)
+		VulkanTexture(uint64_t descriptorCount, PlImageUsage imageUsage, PlTextureType imageType, PlViewType viewType, PlTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name)
 			: Texture(descriptorCount, imageUsage, imageType, viewType, format, resolution, mipCount, layersCount, name) {
 
 		}

@@ -13,16 +13,16 @@ namespace Plaza {
 		int mIndexHandle = -1;
 
 		uint64_t mDescriptorCount = 1;
-		PlazaTextureType mTextureType = PL_TYPE_2D;
-		PlazaViewType mViewType = PL_VIEW_TYPE_2D;
-		PlazaTextureFormat mFormat = PL_FORMAT_R8G8B8A8_UNORM;
-		PlazaImageUsage mImageUsage = PL_IMAGE_USAGE_COLOR_ATTACHMENT;
+		PlTextureType mTextureType = PL_TYPE_2D;
+		PlViewType mViewType = PL_VIEW_TYPE_2D;
+		PlTextureFormat mFormat = PL_FORMAT_R8G8B8A8_UNORM;
+		PlImageUsage mImageUsage = PL_IMAGE_USAGE_COLOR_ATTACHMENT;
 		glm::vec3 mResolution = glm::vec3(1, 1, 1);
 		uint8_t mMipCount = 1;
 		uint16_t mLayersCount = 1;
 		std::string mName = "";
 
-		Texture(uint64_t descriptorCount, PlazaImageUsage imageUsage, PlazaTextureType imageType, PlazaViewType viewType, PlazaTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name)
+		Texture(uint64_t descriptorCount, PlImageUsage imageUsage, PlTextureType imageType, PlViewType viewType, PlTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name)
 			: mDescriptorCount(descriptorCount), mImageUsage(imageUsage), mTextureType(imageType), mViewType(viewType), mFormat(format), mResolution(resolution), mMipCount(mipCount), mLayersCount(layersCount), mName(name) {
 		}
 

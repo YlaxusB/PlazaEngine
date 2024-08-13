@@ -563,12 +563,14 @@ namespace Plaza {
 		virtual void CompilePipeline(PlPipelineCreateInfo createInfo) override;
 
 		VulkanRenderPass* AddInputResource(std::shared_ptr<PlazaShadersBinding> resource) {
-			mInputBindings.emplace(resource->mName, resource);
+			mInputBindings.push_back(resource);
+			mInputBindingNames.emplace(resource->mName, resource);
 			return this;
 		}
 
 		VulkanRenderPass* AddOutputResource(std::shared_ptr<PlazaShadersBinding> resource) {
-			mOutputBindings.emplace(resource->mName, resource);
+			mOutputBindings.push_back(resource);
+			mOutputBindingNames.emplace(resource->mName, resource);
 			return this;
 		}
 

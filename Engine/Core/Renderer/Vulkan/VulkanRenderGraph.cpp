@@ -101,7 +101,7 @@ namespace Plaza {
 		//this->GetRenderPass("Deferred Geometry Pass")->AddInputResource(irradianceMap);
 		// --------------- TEMPORARY
 
-		this->GetRenderPass("Deferred Geometry Pass")->mInputBindings.at("TexturesBuffer")->mMaxBindlessResources = VulkanRenderer::GetRenderer()->mMaxBindlessTextures;
+		this->GetRenderPass("Deferred Geometry Pass")->GetInputResource<PlazaShadersBinding>("TexturesBuffer")->mMaxBindlessResources = VulkanRenderer::GetRenderer()->mMaxBindlessTextures;
 
 		/*
 		layout (std430, binding = 4) buffer LightsBuffer {
@@ -114,12 +114,12 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 		*/
 
 		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Lighting Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_FULL_SCREEN_QUAD))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GPosition")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GNormal")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GDiffuse")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GOthers")))
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 4, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, 1024 * 32, sizeof(Lighting::LightStruct), 2, "LightsBuffer"))
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 5, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, 1024 * 32, sizeof(Lighting::Tile), 2, "ClusterBuffer"))
-			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GPosition")))
-			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GDiffuse")))
-			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GNormal")))
-			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GOthers")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, this->GetSharedTexture("SceneTexture")));
 
 		this->GetRenderPass("Deferred Lighting Pass")->GetInputResource<VulkanBufferBinding>("LightsBuffer")
@@ -303,10 +303,11 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 		std::vector<VkSubpassDescription> subPasses{};
 		std::vector<VkSubpassDependency> dependencies{};
 		std::vector<VkAttachmentDescription> attachmentDescs{};
+		std::vector<uint32_t> locations{};
 		std::vector<VkAttachmentReference> colorReferences;
 		VkAttachmentReference depthReference = {};
 
-		for (const auto& [key, value] : mOutputBindings) {
+		for (const auto& value : mOutputBindings) {
 			VulkanTextureBinding* binding = static_cast<VulkanTextureBinding*>(value.get());
 
 			VkImageLayout finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -323,6 +324,7 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 					finalLayout));//binding->mTexture->GetLayout()));
 
 			frameBufferAttachments.push_back(binding->GetTexture()->mImageView);
+			locations.push_back(binding->mLocation);
 
 			if (binding->GetTexture()->mImageUsage & PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT) {
 				depthReference.attachment = binding->mLocation;
@@ -332,6 +334,14 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 			colorReferences.push_back({ binding->mLocation, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL });
 
 			biggestSize = glm::max(biggestSize, glm::vec2(binding->mTexture->mResolution));
+		}
+
+		// Sort the attachments to make location 0 image view be in index 0
+		std::vector<VkAttachmentDescription> temporaryAttachmentDescs = attachmentDescs;
+		std::vector<VkImageView> temporaryFrameBufferAttachments = frameBufferAttachments;
+		for (unsigned int i = 0; i < locations.size(); ++i) {
+			attachmentDescs[i] = temporaryAttachmentDescs[locations[i]];
+			frameBufferAttachments[i] = temporaryFrameBufferAttachments[locations[i]];
 		}
 
 		VkSubpassDescription subpass = {};
@@ -367,7 +377,7 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 
 		VkDescriptorBindingFlags bindlessFlags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
 		std::vector<VkDescriptorBindingFlagsEXT> bindingFlags = std::vector<VkDescriptorBindingFlagsEXT>();
-		for (const auto& [key, value] : mInputBindings) {
+		for (const auto& value : mInputBindings) {
 			switch (value->mBindingType) {
 			case PL_BINDING_BUFFER:
 				descriptorSets.push_back(static_cast<VulkanBufferBinding*>(value.get())->GetDescriptorLayout());
@@ -416,7 +426,7 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 
 			std::vector<VkDescriptorBufferInfo*> bufferInfos{};
 			std::vector<VkDescriptorImageInfo*> imageInfos{};
-			for (const auto& [key, value] : mInputBindings) {
+			for (const auto& value : mInputBindings) {
 				switch (value->mBindingType) {
 				case PL_BINDING_BUFFER: {
 					VulkanBufferBinding* bufferBinding = static_cast<VulkanBufferBinding*>(value.get());

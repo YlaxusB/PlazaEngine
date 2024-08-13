@@ -103,10 +103,14 @@ namespace Plaza {
 		int mStage = 0;
 		PlRenderMethod mRenderMethod = PL_RENDER_FULL_SCREEN_QUAD;
 
-		std::vector<std::shared_ptr<PlazaPipeline>> mPipelines = std::vector<std::shared_ptr<PlazaPipeline>>();
+		std::vector<std::shared_ptr<PlazaPipeline>> mPipelines = std::vector<std::shared_ptr<PlazaPipeline>>(); 
 		std::vector<PlPipelineCreateInfo> mPipelinesCreateInfo = std::vector<PlPipelineCreateInfo>();
-		std::map<std::string, shared_ptr<PlazaShadersBinding>> mInputBindings = std::map<std::string, shared_ptr<PlazaShadersBinding>>();
-		std::map<std::string, shared_ptr<PlazaShadersBinding>> mOutputBindings = std::map<std::string, shared_ptr<PlazaShadersBinding>>();
+
+		std::vector<shared_ptr<PlazaShadersBinding>> mInputBindings = std::vector<shared_ptr<PlazaShadersBinding>>();
+		std::map<std::string, shared_ptr<PlazaShadersBinding>> mInputBindingNames = std::map<std::string, shared_ptr<PlazaShadersBinding>>();
+		std::vector<shared_ptr<PlazaShadersBinding>> mOutputBindings = std::vector<shared_ptr<PlazaShadersBinding>>();
+		std::map<std::string, shared_ptr<PlazaShadersBinding>> mOutputBindingNames = std::map<std::string, shared_ptr<PlazaShadersBinding>>();
+
 		std::function<void(PlazaRenderGraph*, PlazaRenderPass*)> mCallback = [](PlazaRenderGraph*, PlazaRenderPass*) {};
 
 		virtual void Compile() {};
@@ -136,19 +140,21 @@ namespace Plaza {
 		}
 
 		PlazaRenderPass* AddInputResource(std::shared_ptr<PlazaShadersBinding> resource) {
-			mInputBindings.emplace(resource->mName, resource);
+			mInputBindings.push_back(resource);
+			mInputBindingNames.emplace(resource->mName, resource);
 			return this;
 		}
 
 		PlazaRenderPass* AddOutputResource(std::shared_ptr<PlazaShadersBinding> resource) {
-			mOutputBindings.emplace(resource->mName, resource);
+			mOutputBindings.push_back(resource);
+			mOutputBindingNames.emplace(resource->mName, resource);
 			return this;
 		}
 
 		template<typename T>
 		T* GetInputResource(std::string name) {
-			assert(mInputBindings.find(name) != mInputBindings.end());
-			return dynamic_cast<T*>(mInputBindings.at(name).get());
+			assert(mInputBindingNames.find(name) != mInputBindingNames.end());
+			return dynamic_cast<T*>(mInputBindingNames.at(name).get());
 		}
 
 	private:
@@ -190,17 +196,17 @@ namespace Plaza {
 		void Compile() {
 			for (auto& [passName, pass] : mPasses) {
 
-				for (auto& [bindingName, binding] : pass->mInputBindings) {
-					if (mCompiledBindings.find(bindingName) == mCompiledBindings.end()) {
+				for (auto& binding : pass->mInputBindings) {
+					if (mCompiledBindings.find(binding->mName) == mCompiledBindings.end()) {
 						binding->Compile();
-						mCompiledBindings.insert(bindingName);
+						mCompiledBindings.insert(binding->mName);
 					}
 				}
 
-				for (auto& [bindingName, binding] : pass->mOutputBindings) {
-					if (mCompiledBindings.find(bindingName) == mCompiledBindings.end()) {
+				for (auto& binding : pass->mOutputBindings) {
+					if (mCompiledBindings.find(binding->mName) == mCompiledBindings.end()) {
 						binding->Compile();
-						mCompiledBindings.insert(bindingName);
+						mCompiledBindings.insert(binding->mName);
 					}
 				}
 

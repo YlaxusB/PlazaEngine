@@ -100,11 +100,15 @@ namespace Plaza {
 		PlazaRenderPass(std::string name, int stage, PlRenderMethod renderMethod) : mName(name), mStage(stage), mRenderMethod(renderMethod) {}
 
 		std::string mName = "";
+		int16_t mExecutionIndex = 0;
 		int mStage = 0;
 		PlRenderMethod mRenderMethod = PL_RENDER_FULL_SCREEN_QUAD;
 
-		std::vector<std::shared_ptr<PlazaPipeline>> mPipelines = std::vector<std::shared_ptr<PlazaPipeline>>(); 
+		std::vector<std::shared_ptr<PlazaPipeline>> mPipelines = std::vector<std::shared_ptr<PlazaPipeline>>();
 		std::vector<PlPipelineCreateInfo> mPipelinesCreateInfo = std::vector<PlPipelineCreateInfo>();
+
+		std::map<std::string, std::shared_ptr<PlazaRenderPass>> mDependencies = std::map<std::string, std::shared_ptr<PlazaRenderPass>>();
+		std::map<std::string, std::shared_ptr<PlazaRenderPass>> mDependents = std::map<std::string, std::shared_ptr<PlazaRenderPass>>();
 
 		std::vector<shared_ptr<PlazaShadersBinding>> mInputBindings = std::vector<shared_ptr<PlazaShadersBinding>>();
 		std::map<std::string, shared_ptr<PlazaShadersBinding>> mInputBindingNames = std::map<std::string, shared_ptr<PlazaShadersBinding>>();
@@ -113,7 +117,7 @@ namespace Plaza {
 
 		std::function<void(PlazaRenderGraph*, PlazaRenderPass*)> mCallback = [](PlazaRenderGraph*, PlazaRenderPass*) {};
 
-		virtual void Compile() {};
+		virtual void Compile(PlazaRenderGraph* renderGraph) {};
 		virtual void Execute(PlazaRenderGraph* renderGraph) {
 			mCallback(renderGraph, this);
 			switch (mRenderMethod) {
@@ -153,11 +157,27 @@ namespace Plaza {
 
 		template<typename T>
 		T* GetInputResource(std::string name) {
-			assert(mInputBindingNames.find(name) != mInputBindingNames.end());
+			if (mInputBindingNames.find(name) == mInputBindingNames.end())
+				return nullptr;
 			return dynamic_cast<T*>(mInputBindingNames.at(name).get());
 		}
 
+		template<typename T>
+		T* GetOutputResource(std::string name) {
+			if (mOutputBindingNames.find(name) == mOutputBindingNames.end())
+				return nullptr;
+			return dynamic_cast<T*>(mOutputBindingNames.at(name).get());
+		}
+
 	private:
+	};
+
+	struct BindingModifiers {
+		BindingModifiers() {};
+		BindingModifiers(shared_ptr<PlazaShadersBinding> bind) : binding(bind) {};
+		std::vector<std::string> writePasses = std::vector<std::string>();
+		std::vector<std::string> readPasses = std::vector<std::string>();
+		shared_ptr<PlazaShadersBinding> binding = nullptr;
 	};
 
 	class PlazaRenderGraph {
@@ -188,13 +208,14 @@ namespace Plaza {
 		}
 
 		virtual void Execute(uint8_t imageIndex, uint8_t currentFrame) {};
+		virtual void OrderPasses() {};
 		void ExecuteRenderPasses() {
 			for (auto& [key, value] : mPasses) {
 				value->mCallback;
 			}
 		}
 		void Compile() {
-			for (auto& [passName, pass] : mPasses) {
+			for (auto& pass : mOrderedPasses) {
 
 				for (auto& binding : pass->mInputBindings) {
 					if (mCompiledBindings.find(binding->mName) == mCompiledBindings.end()) {
@@ -210,13 +231,14 @@ namespace Plaza {
 					}
 				}
 
-				pass->Compile();
+				pass->Compile(this);
 			}
 		}
 
 		virtual bool BindPass(std::string passName) { return false; };
 
 		PlazaRenderPass* AddRenderPass(std::shared_ptr<PlazaRenderPass> newRenderPass) {
+			mOrderedPasses.push_back(newRenderPass);
 			mPasses.emplace(newRenderPass->mName, newRenderPass);
 			return mPasses[newRenderPass->mName].get();
 		}
@@ -236,6 +258,12 @@ namespace Plaza {
 			return dynamic_cast<T*>(mTextures.at(name).get());
 		}
 
+		std::shared_ptr<PlazaRenderPass> GetSharedRenderPass(std::string name) {
+			if (mPasses.find(name) != mPasses.end())
+				return mPasses.find(name)->second;
+			return nullptr;
+		}
+
 		virtual void AddPipeline() {};
 		virtual void CreatePipeline(PlPipelineCreateInfo createInfo) {};
 
@@ -248,6 +276,11 @@ namespace Plaza {
 		std::map<std::string, std::shared_ptr<PlazaRenderPass>> mPasses = std::map<std::string, std::shared_ptr<PlazaRenderPass>>();
 		std::map<std::string, std::shared_ptr<PlazaShadersBinding>> mShadersBindings = std::map<std::string, std::shared_ptr<PlazaShadersBinding>>();
 		std::set<std::string> mCompiledBindings = std::set<std::string>();
+
+		std::vector<std::shared_ptr<PlazaRenderPass>> mOrderedPasses = std::vector<std::shared_ptr<PlazaRenderPass>>();
+		std::vector<std::vector<std::shared_ptr<PlazaShadersBinding>>> mOrderedReadBindings = std::vector<std::vector<std::shared_ptr<PlazaShadersBinding>>>();
+		std::vector<std::vector<std::shared_ptr<PlazaShadersBinding>>> mOrderedWriteBindings = std::vector<std::vector<std::shared_ptr<PlazaShadersBinding>>>();
+
 
 		static std::vector<PlVertexInputBindingDescription> VertexGetBindingDescription() {
 			std::vector<PlVertexInputBindingDescription> bindingDescriptions{};

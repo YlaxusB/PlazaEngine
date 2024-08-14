@@ -22,6 +22,8 @@ namespace Plaza {
 		uint16_t mLayersCount = 1;
 		std::string mName = "";
 
+		std::vector<PlImageLayout> mFutureLayouts = std::vector<PlImageLayout>();
+
 		Texture(uint64_t descriptorCount, PlImageUsage imageUsage, PlTextureType imageType, PlViewType viewType, PlTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name)
 			: mDescriptorCount(descriptorCount), mImageUsage(imageUsage), mTextureType(imageType), mViewType(viewType), mFormat(format), mResolution(resolution), mMipCount(mipCount), mLayersCount(layersCount), mName(name) {
 		}

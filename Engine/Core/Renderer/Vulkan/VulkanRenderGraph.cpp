@@ -19,6 +19,11 @@ namespace Plaza {
 		this->AddTexture(make_shared<VulkanTexture>(1, static_cast<PlImageUsage>(PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT | PL_IMAGE_USAGE_SAMPLED), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "SceneDepth"));
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "SceneTexture"));
 
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "MidTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "UselessTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "DependedTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "BigTexture"));
+
 		//uint64_t descriptorCount, PlazaImageUsage imageUsage, PlazaTextureType imageType, PlazaViewType viewType, PlazaTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name
 
 		//this->AddRenderPass(std::make_shared<VulkanRenderPass>("Shadow Mapping Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_INDIRECT_BUFFER))
@@ -105,13 +110,38 @@ namespace Plaza {
 
 		/*
 		layout (std430, binding = 4) buffer LightsBuffer {
-    LightStruct lights[];
+	LightStruct lights[];
 };
 
 layout (std430, binding = 5) buffer ClusterBuffer {
-    Cluster[] clusters;
+	Cluster[] clusters;
 };
 		*/
+
+		//this->AddRenderPass(std::make_shared<VulkanRenderPass>("Mid Second Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_FULL_SCREEN_QUAD))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("MidTexture")))
+		//	->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, this->GetSharedTexture("UselessTexture")));
+		//
+		//this->AddRenderPass(std::make_shared<VulkanRenderPass>("Biggest Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_FULL_SCREEN_QUAD))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GPosition")))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("UselessTexture")))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("DependedTexture")))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("MidTexture")))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 4, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GNormal")))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 5, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GDiffuse")))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 6, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GOthers")))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 6, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("SceneTexture")))
+		//	->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, this->GetSharedTexture("BigTexture")));
+		//
+		//this->AddRenderPass(std::make_shared<VulkanRenderPass>("Depends on Both Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_FULL_SCREEN_QUAD))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GPosition")))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("MidTexture")))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("UselessTexture")))
+		//	->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, this->GetSharedTexture("DependedTexture")));
+		//
+		//this->AddRenderPass(std::make_shared<VulkanRenderPass>("Mid First Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_FULL_SCREEN_QUAD))
+		//	->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GPosition")))
+		//	->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, this->GetSharedTexture("MidTexture")));
 
 		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Lighting Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_FULL_SCREEN_QUAD))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GPosition")))
@@ -145,7 +175,7 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
 			false,
-			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
 			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) }),
 			pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
 			pl::pipelineViewportStateCreateInfo(1, 1),
@@ -159,6 +189,7 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 				Application->activeCamera->GetProjectionMatrix(), VulkanRenderer::GetRenderer()->mLighting->mLights.size(), VulkanRenderer::GetRenderer()->mLighting->ambientLightColor * VulkanRenderer::GetRenderer()->mLighting->ambientLightIntensity));
 			});
 
+		this->OrderPasses();
 		//->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, static_cast<PlazaImageUsage>(inImageUsageFlags), PL_STAGE_FRAGMENT, PL_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "SceneTexture"));
 	}
 
@@ -263,6 +294,73 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 
 	}
 
+	bool compareRenderPasses(const std::shared_ptr<PlazaRenderPass>& a, const std::shared_ptr<PlazaRenderPass>& b) {
+		return a->mExecutionIndex < b->mExecutionIndex;
+	}
+
+	void OrderPassDependencies(int16_t  currentIndex, std::shared_ptr<PlazaRenderPass> pass, std::set<std::string>& alreadyOrderedPasses) {
+		alreadyOrderedPasses.emplace(pass->mName);
+		pass->mExecutionIndex = currentIndex;//pass->mExecutionIndex > currentIndex ? pass->mExecutionIndex : currentIndex;
+		for (const auto& dependent : pass->mDependents) {
+			OrderPassDependencies(currentIndex + 1, dependent.second, alreadyOrderedPasses);
+			//dependency.second->mExecutionIndex = currentIndex;
+		}
+	}
+
+	void VulkanRenderGraph::OrderPasses() {
+		std::map<std::string, BindingModifiers> bindingsModifiers = std::map<std::string, BindingModifiers>();
+
+		for (const auto& pass : mOrderedPasses) {
+			for (const auto& resource : pass->mInputBindings) {
+				if (bindingsModifiers.find(resource->mName) == bindingsModifiers.end())
+					bindingsModifiers.emplace(resource->mName, BindingModifiers(resource));
+				bindingsModifiers[resource->mName].readPasses.push_back(pass->mName);
+			}
+			for (const auto& resource : pass->mOutputBindings) {
+				if (bindingsModifiers.find(resource->mName) == bindingsModifiers.end())
+					bindingsModifiers.emplace(resource->mName, BindingModifiers(resource));
+				bindingsModifiers[resource->mName].writePasses.push_back(pass->mName);
+			}
+		}
+
+		for (int i = mOrderedPasses.size() - 1; i >= 0; i--) {
+			for (const auto& resource : mOrderedPasses[i]->mInputBindings) {
+				BindingModifiers binding = bindingsModifiers[resource->mName];
+				for (const std::string& name : binding.writePasses)
+					mOrderedPasses[i]->mDependencies.emplace(name, this->GetSharedRenderPass(name));
+			}
+
+			for (const auto& resource : mOrderedPasses[i]->mOutputBindings) {
+				BindingModifiers binding = bindingsModifiers[resource->mName];
+				for (const std::string& name : binding.readPasses)
+					mOrderedPasses[i]->mDependents.emplace(name, this->GetSharedRenderPass(name));
+			}
+		}
+
+		std::set<std::string> alreadyOrderedPasses = std::set<std::string>();
+
+		//for (int i = mOrderedPasses.size() - 1; i >= 0; i--) {
+		//	int16_t currentIndex = i;
+		//	if (alreadyOrderedPasses.find(mOrderedPasses[i]->mName) != alreadyOrderedPasses.end())
+		//		continue;
+		//	mOrderedPasses[currentIndex]->mExecutionIndex = i == mOrderedPasses.size() - 1 ? i : mOrderedPasses[i + 1]->mExecutionIndex - 1;
+		//	OrderPassDependencies(mOrderedPasses[currentIndex]->mExecutionIndex, mOrderedPasses[mOrderedPasses[currentIndex]->mExecutionIndex], alreadyOrderedPasses);
+		//}
+		for (int i = 0; i < mOrderedPasses.size(); ++i) {
+			if (alreadyOrderedPasses.find(mOrderedPasses[i]->mName) != alreadyOrderedPasses.end() || mOrderedPasses[i]->mDependents.size() == 0)
+				continue;
+			mOrderedPasses[i]->mExecutionIndex = 0; //== mOrderedPasses.size() - 1 ? i : mOrderedPasses[i + 1]->mExecutionIndex - 1;
+			OrderPassDependencies(0, mOrderedPasses[mOrderedPasses[i]->mExecutionIndex], alreadyOrderedPasses);
+		}
+
+		//std::sort(mOrderedPasses.begin(), mOrderedPasses.end(), compareByAge);
+
+		std::sort(mOrderedPasses.begin(), mOrderedPasses.end(), compareRenderPasses);
+		for (unsigned int i = 0; i < mOrderedPasses.size(); ++i) {
+			mOrderedPasses[i]->mExecutionIndex = i;
+		}
+	}
+
 	void VulkanBufferBinding::Compile() {
 		mBuffer = std::make_shared<PlVkBuffer>();
 		mBuffer->CreateBuffer(mMaxItems * mStride, PlBufferUsageToVkBufferUsage(this->GetBufferUsage()), PlMemoryUsageToVmaMemoryUsage(this->GetMemoryUsage()), 0, Application->mRenderer->mMaxFramesInFlight);
@@ -296,7 +394,7 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 
 	}
 
-	void VulkanRenderPass::Compile() {
+	void VulkanRenderPass::Compile(PlazaRenderGraph* renderGraph) {
 		glm::vec2 biggestSize = glm::vec2(0.0f);
 		std::vector<VkImageView> frameBufferAttachments{};
 		// Render Pass
@@ -312,16 +410,26 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 
 			VkImageLayout finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			if (value->mName == "SceneDepth")
-				finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; //VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL
+
+			VulkanTextureBinding* currentPassBinding = renderGraph->mOrderedPasses[glm::max(mExecutionIndex - 1, 0)]->GetInputResource<VulkanTextureBinding>(binding->GetTexture()->mName);
+			VkImageLayout currentLayout = mExecutionIndex == 0 || currentPassBinding == nullptr ? VK_IMAGE_LAYOUT_UNDEFINED : PlImageLayoutToVkImageLayout(currentPassBinding->mInitialLayout); //PlImageLayoutToVkImageLayout(binding->GetTexture()->mFutureLayouts[mExecutionIndex - 1]);
+			VulkanTextureBinding* nextPassBinding = renderGraph->mOrderedPasses[mExecutionIndex]->GetOutputResource<VulkanTextureBinding>(binding->GetTexture()->mName);
+			VkImageLayout nextLayout = nextPassBinding ? PlImageLayoutToVkImageLayout(nextPassBinding->mInitialLayout) : finalLayout; //PlImageLayoutToVkImageLayout(binding->GetTexture()->mFutureLayouts[mExecutionIndex]);
+
+			VkAttachmentLoadOp loadOp = currentLayout == VK_IMAGE_LAYOUT_UNDEFINED ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
+			VkAttachmentStoreOp storeOp = nextLayout == VK_IMAGE_LAYOUT_UNDEFINED ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
+			VkAttachmentLoadOp loadStencilOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+			VkAttachmentStoreOp storeStencilOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachmentDescs.push_back(
 				plvk::attachmentDescription(PlImageFormatToVkFormat(binding->mTexture->mFormat),
 					VK_SAMPLE_COUNT_1_BIT,
-					VK_ATTACHMENT_LOAD_OP_CLEAR,
-					VK_ATTACHMENT_STORE_OP_STORE,
-					VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-					VK_ATTACHMENT_STORE_OP_DONT_CARE,
-					VK_IMAGE_LAYOUT_UNDEFINED,
-					finalLayout));//binding->mTexture->GetLayout()));
+					loadOp,
+					storeOp,
+					loadStencilOp,
+					storeStencilOp,
+					currentLayout,
+					nextLayout));//finalLayout));//binding->mTexture->GetLayout()));
 
 			frameBufferAttachments.push_back(binding->GetTexture()->mImageView);
 			locations.push_back(binding->mLocation);
@@ -496,9 +604,9 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 		VulkanRenderer::GetRenderer()->mActiveCommandBuffer = &commandBuffer;
 		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mSwapChainImages[currentFrame], VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-		for (auto& [key, value] : mPasses) {
-			this->GetRenderPass(key)->UpdateCommandBuffer(commandBuffer);
-			this->GetRenderPass(key)->Execute(this);
+		for (const auto& value : mOrderedPasses) {
+			this->GetRenderPass(value->mName)->UpdateCommandBuffer(commandBuffer);
+			this->GetRenderPass(value->mName)->Execute(this);
 		}
 
 		/* Render ImGui if in Editor build */
@@ -528,8 +636,8 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
-		}
 	}
+}
 
 	void VulkanRenderPass::RenderIndirectBuffer(PlazaRenderGraph* plazaRenderGraph) {
 		VulkanRenderGraph* renderGraph = static_cast<VulkanRenderGraph*>(plazaRenderGraph);
@@ -563,7 +671,7 @@ layout (std430, binding = 5) buffer ClusterBuffer {
 
 		renderGraph->BindPass(this->mName);
 
-		VkViewport viewport = plvk::viewport(0.0f, Application->appSizes->sceneSize.y, Application->appSizes->sceneSize.x, -static_cast<float>(Application->appSizes->sceneSize.y));
+		VkViewport viewport = plvk::viewport(0.0f, 0.0f, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		VkRect2D scissor = plvk::rect2D(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);

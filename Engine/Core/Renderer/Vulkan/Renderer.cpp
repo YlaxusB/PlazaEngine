@@ -3013,9 +3013,7 @@ namespace Plaza {
 			submitInfo.signalSemaphoreCount = 1;
 			submitInfo.pSignalSemaphores = signalSemaphores;
 			PLAZA_PROFILE_SECTION("Queue");
-			if (vkQueueSubmit(
-				mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame])
-				!= VK_SUCCESS) {
+			if (vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to submit draw command buffer!");
 			}
 		}
@@ -4133,4 +4131,4 @@ namespace Plaza {
 		memcpy(data, &ubo, bufferSize);
 		vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
 	}
-} // namespace Plaza
+			} // namespace Plaza

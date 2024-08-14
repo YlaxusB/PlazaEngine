@@ -492,6 +492,35 @@ namespace Plaza {
 		}
 	}
 
+	static VkImageLayout PlImageLayoutToVkImageLayout(PlImageLayout layout) {
+		switch (layout) {
+		case PL_IMAGE_LAYOUT_UNDEFINED: return VK_IMAGE_LAYOUT_UNDEFINED;
+		case PL_IMAGE_LAYOUT_GENERAL: return VK_IMAGE_LAYOUT_GENERAL;
+		case PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		case PL_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		case PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+		case PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL: return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		case PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL: return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+		case PL_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL: return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		case PL_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL: return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL;
+		case PL_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL: return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL;
+		case PL_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL: return VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+		case PL_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL: return VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+		case PL_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL: return VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+		case PL_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL: return VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;
+		case PL_IMAGE_LAYOUT_READ_ONLY_OPTIMAL: return VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
+		case PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL: return VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL;
+		case PL_IMAGE_LAYOUT_PRESENT_SRC_KHR: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		case PL_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR: return VK_IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR;
+		case PL_IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR: return VK_IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR;
+		case PL_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR: return VK_IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR;
+		case PL_IMAGE_LAYOUT_SHARED_PRESENT_KHR: return VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR;
+		case PL_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT: return VK_IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT;
+		case PL_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR: return VK_IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR;
+		default: return VK_IMAGE_LAYOUT_UNDEFINED;
+		}
+	}
+
 	class VulkanBufferBinding : public PlazaBufferBinding {
 	public:
 		VulkanBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage, uint64_t maxItems, uint16_t stride, uint8_t bufferCount, const std::string& name)
@@ -556,7 +585,7 @@ namespace Plaza {
 		VulkanRenderPass(std::string name, int stage, PlRenderMethod renderMethod) : PlazaRenderPass(name, stage, renderMethod) {}
 		//std::vector<std::shared_ptr<VulkanPlazaPipeline>> mPipelines = std::vector<std::shared_ptr<VulkanPlazaPipeline>>();
 
-		virtual void Compile() override;
+		virtual void Compile(PlazaRenderGraph* renderGraph) override;
 		virtual void BindRenderPass() override;
 		virtual void RenderIndirectBuffer(PlazaRenderGraph* plazaRenderGraph) override;
 		virtual void RenderFullScreenQuad(PlazaRenderGraph* plazaRenderGraph) override;
@@ -590,6 +619,7 @@ namespace Plaza {
 	class VulkanRenderGraph : public PlazaRenderGraph {
 	public:
 		void Execute(uint8_t imageIndex, uint8_t currentFrame) override;
+		void OrderPasses() override;
 		bool BindPass(std::string passName) override;
 		//void Compile() override;
 

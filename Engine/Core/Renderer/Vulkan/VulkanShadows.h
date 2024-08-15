@@ -74,6 +74,6 @@ namespace Plaza {
 
 
 		glm::mat4 GetLightSpaceMatrix(const float nearPlane, const float farPlane, const float ratio, const glm::mat4& viewMatrix);
-		std::vector<glm::mat4> GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels, VulkanShadows::ShadowsUniformBuffer& ubo);
+		std::vector<glm::mat4> GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels);
 	};
 }

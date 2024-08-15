@@ -122,7 +122,8 @@ namespace Plaza {
 
 	enum PlRenderMethod {
 		PL_RENDER_INDIRECT_BUFFER = 0,
-		PL_RENDER_FULL_SCREEN_QUAD = 1
+		PL_RENDER_INDIRECT_BUFFER_SHADOW_MAP = 1,
+		PL_RENDER_FULL_SCREEN_QUAD = 2
 	};
 
 	enum PlPrimitiveTopology {

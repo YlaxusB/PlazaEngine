@@ -602,7 +602,7 @@ namespace Plaza {
 		const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
 		return lightProjection * lightView;
 	}
-	std::vector<glm::mat4> VulkanShadows::GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels, VulkanShadows::ShadowsUniformBuffer& ubo)
+	std::vector<glm::mat4> VulkanShadows::GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels)
 	{
 		PLAZA_PROFILE_SECTION("GetLightSpaceMatrices");
 		std::vector<glm::mat4> ret = std::vector<glm::mat4>();
@@ -627,7 +627,7 @@ namespace Plaza {
 		PLAZA_PROFILE_SECTION("Update Shadows Uniform Buffers");
 		//memcpy(&this->mUbo, GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo).data(), sizeof(this->mUbo));//this->mUbo.lightSpaceMatrices = GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo).data();
 		this->mUbo.resize(Application->mRenderer->mMaxFramesInFlight);
-		std::vector<glm::mat4> mats = GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo[frameIndex]);
+		std::vector<glm::mat4> mats = GetLightSpaceMatrices(this->shadowCascadeLevels);
 		for (int i = 0; i < 9; ++i) {
 			this->mUbo[frameIndex].lightSpaceMatrices[i] = mats[i];
 		}

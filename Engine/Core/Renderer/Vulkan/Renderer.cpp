@@ -296,6 +296,7 @@ namespace Plaza {
 		physicalFeatures2.pNext = &vulkan11features;
 		VkPhysicalDeviceMultiviewFeaturesKHR multiviewFeatures = {};
 		multiviewFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR;
+		//multiviewFeatures.multiview = VK_TRUE;
 		multiviewFeatures.pNext = physicalFeatures2.pNext; // Chain it with the previous structure
 		physicalFeatures2.pNext = &multiviewFeatures;
 
@@ -806,7 +807,7 @@ namespace Plaza {
 		}
 	}
 
-	VkRenderPass VulkanRenderer::CreateRenderPass(VkAttachmentDescription* attachmentDescs, uint32_t attachmentsCount, VkSubpassDescription* subpasses, uint32_t subpassesCount, VkSubpassDependency* dependencies, uint32_t dependenciesCount) {
+	VkRenderPass VulkanRenderer::CreateRenderPass(VkAttachmentDescription* attachmentDescs, uint32_t attachmentsCount, VkSubpassDescription* subpasses, uint32_t subpassesCount, VkSubpassDependency* dependencies, uint32_t dependenciesCount, void* next) {
 		VkRenderPassCreateInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassInfo.pAttachments = attachmentDescs;
@@ -815,6 +816,7 @@ namespace Plaza {
 		renderPassInfo.pSubpasses = subpasses;
 		renderPassInfo.dependencyCount = dependenciesCount;
 		renderPassInfo.pDependencies = dependencies;
+		renderPassInfo.pNext = next;
 
 		VkRenderPass renderPass;
 		if (vkCreateRenderPass(VulkanRenderer::GetRenderer()->mDevice, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
@@ -2670,8 +2672,8 @@ namespace Plaza {
 		vmaCreateAllocator(&allocatorInfo, &mVmaAllocator);
 
 		/* Initialize buffers */
-		mMainVertexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);		 		//mMainVertexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
-		mMainIndexBuffer->CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);	 		//mMainIndexBuffer->CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
+		mMainVertexBuffer->CreateBuffer(1024 * 1024 * 8 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);		 		//mMainVertexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
+		mMainIndexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);	 		//mMainIndexBuffer->CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
 
 		//CreateBuffer(1024 * 1024 * 16 * sizeof(Vertex),
 		//	VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -2983,7 +2985,7 @@ namespace Plaza {
 			// vkResetFences(mDevice, 1, &mComputeInFlightFences[mCurrentFrame]);
 			// vkResetCommandBuffer(mComputeCommandBuffers[mCurrentFrame], 0);
 
-			VulkanRenderer::GetRenderer()->UpdateInstancesData();
+
 			mActiveCommandBuffer = &mCommandBuffers[mCurrentFrame];
 			mRenderGraph->UpdateCommandBuffer(mCommandBuffers[mCurrentFrame]);
 			//UpdatePreRenderData();
@@ -3995,7 +3997,7 @@ namespace Plaza {
 
 
 		{
-			PlVkBuffer* materialBuffer = mRenderGraph->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("materialsBuffer")->mBuffer.get();
+			PlVkBuffer* materialBuffer = mRenderGraph->GetBuffer<PlVkBuffer>("MaterialsBuffer");
 			std::vector<MaterialData> materialDataVector = std::vector<MaterialData>();
 
 			for (auto& [key, value] : Application->activeScene->materials) {
@@ -4062,7 +4064,7 @@ namespace Plaza {
 
 		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Bind the instance's materials");
-			PlVkBuffer* buffer = mRenderGraph->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("materialsBuffer")->mBuffer.get();
+			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("MaterialsBuffer");
 			VkDeviceSize bufferSize = sizeof(unsigned int) * mInstanceModelMaterialsIndex.size();
 			void* data;
 			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
@@ -4072,7 +4074,7 @@ namespace Plaza {
 
 		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Bind the instance material offsets");
-			PlVkBuffer* buffer = mRenderGraph->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("renderGroupMaterialsOffsetsBuffer")->mBuffer.get();
+			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("RenderGroupMaterialsOffsetsBuffer");
 			VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupMaterialsOffsets.size());
 			void* data;
 			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
@@ -4082,7 +4084,7 @@ namespace Plaza {
 
 		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Bind the instance material offsets 2");
-			PlVkBuffer* buffer = mRenderGraph->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("renderGroupOffsetsBuffer")->mBuffer.get();
+			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("RenderGroupOffsetsBuffer");
 			VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupOffsets.size());
 			void* data;
 			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
@@ -4091,44 +4093,44 @@ namespace Plaza {
 		}
 
 
-		UniformBufferObject ubo{};
-		ubo.projection = Application->activeCamera->GetProjectionMatrix();
-		ubo.view = Application->activeCamera->GetViewMatrix();
-		ubo.model = glm::mat4(1.0f);
-
-		ubo.cascadeCount = 9;
-		ubo.farPlane = 15000.0f;
-		ubo.nearPlane = 0.01f;
-
-		glm::vec3 lightDir = this->mShadows->mLightDirection;
-		glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
-		glm::vec3 lightPos;
-
-		ubo.lightDirection = glm::vec4(lightDir, 1.0f);
-		ubo.viewPos = glm::vec4(Application->activeCamera->Position, 1.0f);
-
-		ubo.directionalLightColor = glm::vec4(this->mLighting->directionalLightColor * this->mLighting->directionalLightIntensity);
-		ubo.directionalLightColor.a = 1.0f;
-		ubo.ambientLightColor = glm::vec4(this->mLighting->ambientLightColor * this->mLighting->ambientLightIntensity);
-		ubo.ambientLightColor.a = 1.0f;
-		ubo.gamma = this->gamma;
-
-		VulkanShadows::ShadowsUniformBuffer ub{};
-		for (int i = 0; i < this->mShadows->mCascades.size(); ++i) {
-			ubo.lightSpaceMatrices[i] = this->mShadows->mUbo[mCurrentFrame].lightSpaceMatrices[i];
-			if (i <= 8)
-				ubo.cascadePlaneDistances[i] = glm::vec4(this->mShadows->shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
-			else
-				ubo.cascadePlaneDistances[i] = glm::vec4(this->mShadows->shadowCascadeLevels[8], 1.0f, 1.0f, 1.0f);
-		}
-
-		ubo.showCascadeLevels = Application->showCascadeLevels;
-
-		PlVkBuffer* buffer = mRenderGraph->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("UniformBufferObject")->mBuffer.get();
-		VkDeviceSize bufferSize = sizeof(VulkanRenderer::UniformBufferObject);
-		void* data;
-		vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
-		memcpy(data, &ubo, bufferSize);
-		vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+		//UniformBufferObject ubo{};
+		//ubo.projection = Application->activeCamera->GetProjectionMatrix();
+		//ubo.view = Application->activeCamera->GetViewMatrix();
+		//ubo.model = glm::mat4(1.0f);
+		//
+		//ubo.cascadeCount = 9;
+		//ubo.farPlane = 15000.0f;
+		//ubo.nearPlane = 0.01f;
+		//
+		//glm::vec3 lightDir = this->mShadows->mLightDirection;
+		//glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
+		//glm::vec3 lightPos;
+		//
+		//ubo.lightDirection = glm::vec4(lightDir, 1.0f);
+		//ubo.viewPos = glm::vec4(Application->activeCamera->Position, 1.0f);
+		//
+		//ubo.directionalLightColor = glm::vec4(this->mLighting->directionalLightColor * this->mLighting->directionalLightIntensity);
+		//ubo.directionalLightColor.a = 1.0f;
+		//ubo.ambientLightColor = glm::vec4(this->mLighting->ambientLightColor * this->mLighting->ambientLightIntensity);
+		//ubo.ambientLightColor.a = 1.0f;
+		//ubo.gamma = this->gamma;
+		//
+		//VulkanShadows::ShadowsUniformBuffer ub{};
+		//for (int i = 0; i < this->mShadows->mCascades.size(); ++i) {
+		//	ubo.lightSpaceMatrices[i] = this->mShadows->mUbo[mCurrentFrame].lightSpaceMatrices[i];
+		//	if (i <= 8)
+		//		ubo.cascadePlaneDistances[i] = this->mShadows->shadowCascadeLevels[i];
+		//	else
+		//		ubo.cascadePlaneDistances[i] = this->mShadows->shadowCascadeLevels[8];
+		//}
+		//
+		//ubo.showCascadeLevels = Application->showCascadeLevels;
+		//
+		//PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("GPassUBO");//mRenderGraph->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("UniformBufferObject")->mBuffer.get();
+		//VkDeviceSize bufferSize = sizeof(VulkanRenderer::UniformBufferObject);
+		//void* data;
+		//vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
+		//memcpy(data, &ubo, bufferSize);
+		//vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
 	}
 			} // namespace Plaza

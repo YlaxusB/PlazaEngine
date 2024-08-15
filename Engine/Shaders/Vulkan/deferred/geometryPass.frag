@@ -260,7 +260,7 @@ void main() {
     vec3 ambient = (kD * diffuse) + specular * ambientOcclusion;
 
     vec3 color = ambient + Lo; //+ ubo.directionalLightColor.xyz; // Directional Light
-    color *= max(vec3(1.0 - ShadowCalculation(FragPos.xyz, N)), ubo.ambientLightColor.xyz); //+ ubo.ambientLightColor.xyz); // Shadow
+    2color *= max(vec3(1.0 - ShadowCalculation(FragPos.xyz, N)), ubo.ambientLightColor.xyz); //+ ubo.ambientLightColor.xyz); // Shadow
 
     vec3 FinalColor = color;
 

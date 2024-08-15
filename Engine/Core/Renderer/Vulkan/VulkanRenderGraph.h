@@ -5,6 +5,8 @@
 #include "VulkanPlazaInitializator.h"
 #include "VulkanTexture.h"
 #include "VulkanPlazaWrapper.h"
+#include "Engine/Core/Renderer/Buffer.h"
+
 namespace Plaza {
 	static VkDescriptorType PlBufferTypeToVkDescriptorType(PlBufferType type) {
 		VkDescriptorType convertedType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -523,27 +525,26 @@ namespace Plaza {
 
 	class VulkanBufferBinding : public PlazaBufferBinding {
 	public:
-		VulkanBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage, uint64_t maxItems, uint16_t stride, uint8_t bufferCount, const std::string& name)
-			: PlazaBufferBinding(descriptorCount, binding, type, stage, maxItems, stride, bufferCount, name) {};
+		VulkanBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage, std::shared_ptr<PlBuffer> buffer)
+			: PlazaBufferBinding(descriptorCount, binding, type, stage, buffer) {};
 		virtual void Compile() override;
 		virtual void Destroy() override;
 
 		VkDescriptorSetLayoutBinding GetDescriptorLayout() {
-			return plvk::descriptorSetLayoutBinding(mBinding, mDescriptorCount, PlBufferTypeToVkDescriptorType(mType), nullptr, PlRenderStageToVkShaderStage(mStage));
+			return plvk::descriptorSetLayoutBinding(mBinding, mDescriptorCount, PlBufferTypeToVkDescriptorType(mBuffer->mType), nullptr, PlRenderStageToVkShaderStage(mStage));
 		}
 
 		VkDescriptorBufferInfo GetBufferInfo(unsigned int currentFrame) {
-			return  plvk::descriptorBufferInfo(mBuffer->GetBuffer(currentFrame), 0, mMaxItems * mStride);
+			return  plvk::descriptorBufferInfo(static_cast<PlVkBuffer*>(mBuffer.get())->GetBuffer(currentFrame), 0, mBuffer->mMaxItems * mBuffer->mStride);
 		}
 
 		VkWriteDescriptorSet GetDescriptorWrite(VkDescriptorSet& descriptorSet, VkDescriptorBufferInfo* bufferInfo) {
-			if (mType == PL_BUFFER_PUSH_CONSTANTS)
+			if (mBuffer->mType == PL_BUFFER_PUSH_CONSTANTS)
 				return {};
 
-			return plvk::writeDescriptorSet(descriptorSet, this->mBinding, 0, PlBufferTypeToVkDescriptorType(mType), mDescriptorCount, nullptr, bufferInfo);
+			return plvk::writeDescriptorSet(descriptorSet, this->mBinding, 0, PlBufferTypeToVkDescriptorType(mBuffer->mType), mDescriptorCount, nullptr, bufferInfo);
 		}
 
-		std::shared_ptr<PlVkBuffer> mBuffer = nullptr;
 	private:
 	};
 
@@ -582,13 +583,14 @@ namespace Plaza {
 
 	class VulkanRenderPass : public PlazaRenderPass {
 	public:
-		VulkanRenderPass(std::string name, int stage, PlRenderMethod renderMethod) : PlazaRenderPass(name, stage, renderMethod) {}
+		VulkanRenderPass(std::string name, int stage, PlRenderMethod renderMethod, glm::vec2 size, bool flipViewPort) : PlazaRenderPass(name, stage, renderMethod, size, flipViewPort) {}
 		//std::vector<std::shared_ptr<VulkanPlazaPipeline>> mPipelines = std::vector<std::shared_ptr<VulkanPlazaPipeline>>();
 
 		virtual void Compile(PlazaRenderGraph* renderGraph) override;
 		virtual void BindRenderPass() override;
 		virtual void RenderIndirectBuffer(PlazaRenderGraph* plazaRenderGraph) override;
-		virtual void RenderFullScreenQuad(PlazaRenderGraph* plazaRenderGraph) override;
+		virtual void RenderIndirectBufferShadowMap(PlazaRenderGraph* plazaRenderGraph) override;
+		virtual void RenderFullScreenQuad(PlazaRenderGraph* plazaRenderGraph) override; 
 		virtual void CompilePipeline(PlPipelineCreateInfo createInfo) override;
 
 		VulkanRenderPass* AddInputResource(std::shared_ptr<PlazaShadersBinding> resource) {
@@ -614,6 +616,7 @@ namespace Plaza {
 		VkDescriptorSetLayout mDescriptorSetLayout;
 	private:
 		VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
+		std::vector<VkClearValue> mClearValues = std::vector<VkClearValue>();
 	};
 
 	class VulkanRenderGraph : public PlazaRenderGraph {
@@ -634,6 +637,8 @@ namespace Plaza {
 		}
 
 		void BuildDefaultRenderGraph() override;
+		VulkanRenderGraph* BuildSkyboxRenderGraph();
+		void RunSkyboxRenderGraph(VulkanRenderGraph* renderGraph);
 		void AddPipeline() override;
 		void CreatePipeline(PlPipelineCreateInfo createInfo) override;
 

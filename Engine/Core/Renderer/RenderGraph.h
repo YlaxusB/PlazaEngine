@@ -1,6 +1,7 @@
 #pragma once 
 #include "PlazaShaders.h"
 #include "Texture.h"
+#include "Buffer.h"
 
 namespace Plaza {
 	class PlazaShadersBinding {
@@ -19,56 +20,50 @@ namespace Plaza {
 
 	class PlazaBufferBinding : public PlazaShadersBinding {
 	public:
-		PlazaBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage, uint64_t maxItems, uint16_t stride, uint8_t bufferCount, const std::string& name)
-			: mType(type) {
-			mName = name;
+		PlazaBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage, std::shared_ptr<PlBuffer> buffer) {
 			mBinding = binding;
 			mDescriptorCount = descriptorCount;
 			mStage = stage;
 			mBindingType = PL_BINDING_BUFFER;
-			mStride = stride;
-			mMaxItems = maxItems;
-			mBufferCount = bufferCount;
+			mBuffer = buffer;
+			mName = buffer->mName;
+			//mStride = stride;
+			//mMaxItems = maxItems;
+			//mBufferCount = bufferCount;
 		}
 
-		PlBufferType mType = PL_BUFFER_UNIFORM_BUFFER;
-		uint64_t mStride = 0;
-		uint64_t mBufferSize = 0;
-		uint64_t mItemCount = 0;
-		uint64_t mMaxItems = 0;
-		uint8_t mBufferCount;
+		std::shared_ptr<PlBuffer> mBuffer = nullptr;
+
 		virtual void Compile() {};
 		virtual void Destroy() {};
 
-		template<typename T>
-		T* SetMemoryProperties(uint32_t newProperties) {
-			mMemoryProperties = static_cast<PlMemoryProperty>(newProperties);
-			return dynamic_cast<T*>(this);
-		}
-		template<typename T>
-		T* SetBufferUsage(uint32_t newUsage) {
-			mBufferUsage = static_cast<PlBufferUsage>(newUsage);
-			return dynamic_cast<T*>(this);
-		}
-		template<typename T>
-		T* SetMemoryUsage(uint32_t newUsage) {
-			mMemoryUsage = static_cast<PlMemoryUsage>(newUsage);
-			return dynamic_cast<T*>(this);
-		}
+		//template<typename T>
+		//T* SetMemoryProperties(uint32_t newProperties) {
+		//	mMemoryProperties = static_cast<PlMemoryProperty>(newProperties);
+		//	return dynamic_cast<T*>(this);
+		//}
+		//template<typename T>
+		//T* SetBufferUsage(uint32_t newUsage) {
+		//	mBufferUsage = static_cast<PlBufferUsage>(newUsage);
+		//	return dynamic_cast<T*>(this);
+		//}
+		//template<typename T>
+		//T* SetMemoryUsage(uint32_t newUsage) {
+		//	mMemoryUsage = static_cast<PlMemoryUsage>(newUsage);
+		//	return dynamic_cast<T*>(this);
+		//}
 
-		PlMemoryProperty GetMemoryProperty() {
-			return mMemoryProperties;
-		}
-		PlBufferUsage GetBufferUsage() {
-			return mBufferUsage;
-		}
-		PlMemoryUsage GetMemoryUsage() {
-			return mMemoryUsage;
-		}
+		//PlMemoryProperty GetMemoryProperty() {
+		//	return mMemoryProperties;
+		//}
+		//PlBufferUsage GetBufferUsage() {
+		//	return mBufferUsage;
+		//}
+		//PlMemoryUsage GetMemoryUsage() {
+		//	return mMemoryUsage;
+		//}
 	private:
-		PlBufferUsage mBufferUsage{};
-		PlMemoryUsage mMemoryUsage{};
-		PlMemoryProperty mMemoryProperties{};
+
 	};
 
 	class PlazaTextureBinding : public PlazaShadersBinding {
@@ -97,12 +92,15 @@ namespace Plaza {
 	class PlazaRenderGraph;
 	class PlazaRenderPass {
 	public:
-		PlazaRenderPass(std::string name, int stage, PlRenderMethod renderMethod) : mName(name), mStage(stage), mRenderMethod(renderMethod) {}
+		PlazaRenderPass(std::string name, int stage, PlRenderMethod renderMethod, glm::vec2 size, bool flipViewPort) : mName(name), mStage(stage), mRenderMethod(renderMethod), mRenderSize(size), mFlipViewPort(flipViewPort) {}
 
 		std::string mName = "";
 		int16_t mExecutionIndex = 0;
 		int mStage = 0;
 		PlRenderMethod mRenderMethod = PL_RENDER_FULL_SCREEN_QUAD;
+		uint16_t mMultiViewCount = 0;
+		glm::vec2 mRenderSize = glm::vec2(0, 0);
+		bool mFlipViewPort = true;
 
 		std::vector<std::shared_ptr<PlazaPipeline>> mPipelines = std::vector<std::shared_ptr<PlazaPipeline>>();
 		std::vector<PlPipelineCreateInfo> mPipelinesCreateInfo = std::vector<PlPipelineCreateInfo>();
@@ -127,11 +125,15 @@ namespace Plaza {
 			case PL_RENDER_INDIRECT_BUFFER:
 				this->RenderIndirectBuffer(renderGraph);
 				break;
+			case PL_RENDER_INDIRECT_BUFFER_SHADOW_MAP:
+				this->RenderIndirectBufferShadowMap(renderGraph);
+				break;
 			}
 		};
 		virtual void BindRenderPass() {};
 
 		virtual void RenderIndirectBuffer(PlazaRenderGraph* plazaRenderGraph) { };
+		virtual void RenderIndirectBufferShadowMap(PlazaRenderGraph* plazaRenderGraph) { };
 		virtual void RenderFullScreenQuad(PlazaRenderGraph* plazaRenderGraph) { };
 		virtual void CompilePipeline(PlPipelineCreateInfo createInfo) {};
 
@@ -252,10 +254,20 @@ namespace Plaza {
 			mTextures.emplace(texture->mName, texture);
 		}
 
+		void AddBuffer(std::shared_ptr<PlBuffer> buffer) {
+			mBuffers.emplace(buffer->mName, buffer);
+		}
+
 		template<typename T>
 		T* GetTexture(std::string name) {
 			assert(mTextures.find(name) != mTextures.end());
 			return dynamic_cast<T*>(mTextures.at(name).get());
+		}
+
+		template<typename T>
+		T* GetBuffer(std::string name) {
+			assert(mBuffers.find(name) != mBuffers.end());
+			return dynamic_cast<T*>(mBuffers.at(name).get());
 		}
 
 		std::shared_ptr<PlazaRenderPass> GetSharedRenderPass(std::string name) {
@@ -271,6 +283,11 @@ namespace Plaza {
 		std::shared_ptr<Texture> GetSharedTexture(std::string name) {
 			assert(mTextures.find(name) != mTextures.end());
 			return mTextures.at(name);//dynamic_cast<std::shared_ptr<T*>>(mTextures.at(name));
+		}
+
+		std::shared_ptr<PlBuffer> GetSharedBuffer(std::string name) {
+			assert(mBuffers.find(name) != mBuffers.end());
+			return mBuffers.at(name);
 		}
 
 		std::map<std::string, std::shared_ptr<PlazaRenderPass>> mPasses = std::map<std::string, std::shared_ptr<PlazaRenderPass>>();
@@ -307,6 +324,7 @@ namespace Plaza {
 
 	private:
 		std::map<std::string, std::shared_ptr<Texture>> mTextures = std::map<std::string, std::shared_ptr<Texture>>();
+		std::map<std::string, std::shared_ptr<PlBuffer>> mBuffers = std::map<std::string, std::shared_ptr<PlBuffer>>();
 
 	};
 }

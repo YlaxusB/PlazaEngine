@@ -18,11 +18,6 @@ layout (binding = 0) uniform UBO
 	mat4 lightSpaceMatrices[32];
 } ubo;
 
-layout(push_constant) uniform PushConstants {
-	vec4 position;
-	uint cascadeIndex;
-} pushConstants;
-
 out gl_PerVertex {
 	vec4 gl_Position;   
 };

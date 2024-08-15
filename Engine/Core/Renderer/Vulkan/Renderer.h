@@ -54,7 +54,7 @@ namespace Plaza {
 			alignas(16) glm::vec4 lightDirection = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 			alignas(16) glm::vec4 viewPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 			glm::mat4 lightSpaceMatrices[16] = { glm::mat4(2.0f) };
-			glm::vec4 cascadePlaneDistances[16] = { glm::vec4(1.0f) };
+			glm::vec4 cascadePlaneDistances[16] = { glm::vec4(0.0f) };
 			alignas(16) glm::vec4 directionalLightColor;
 			alignas(16) glm::vec4 ambientLightColor;
 			bool showCascadeLevels;
@@ -83,7 +83,7 @@ namespace Plaza {
 		void UploadBindlessTexture(VulkanTexture* texture);
 		void UpdateInstancesData();
 
-		VkRenderPass CreateRenderPass(VkAttachmentDescription* attachmentDescs, uint32_t attachmentsCount, VkSubpassDescription* subpasses, uint32_t subpassesCount, VkSubpassDependency* dependencies, uint32_t dependenciesCount);
+		VkRenderPass CreateRenderPass(VkAttachmentDescription* attachmentDescs, uint32_t attachmentsCount, VkSubpassDescription* subpasses, uint32_t subpassesCount, VkSubpassDependency* dependencies, uint32_t dependenciesCount, void* next = nullptr);
 		VkFramebuffer CreateFramebuffer(VkRenderPass& renderPass, glm::vec2 size, VkImageView* pAttachmentsData, uint32_t attachmentsCount, uint32_t layers);
 
 		void AddTrackerToImage(

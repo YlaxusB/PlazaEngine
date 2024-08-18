@@ -49,6 +49,7 @@ layout(binding = 0) uniform UniformBufferObject {
 layout(location = 20) in flat MaterialData material;
 layout(location = 10) in vec3 FragPos;
 layout(location = 11) in vec3 inNormal;
+layout(location = 6) in mat3 inTBN;
 layout(location = 12) in vec3 Tangent;
 layout(location = 13) in vec2 TexCoords;
 layout(location = 17) in vec4 worldPos;
@@ -152,12 +153,7 @@ float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
 vec3 getNormalFromMap()
 {
 	vec3 tangentNormal = texture(textures[material.normalIndex], fragTexCoord).xyz * 2.0 - 1.0;
-
-	vec3 N = normalize(inNormal);
-	vec3 T = normalize(Tangent.xyz);
-	vec3 B = normalize(cross(N, T));
-	mat3 TBN = mat3(T, B, N);
-	return normalize(TBN * tangentNormal);
+	return normalize(inTBN * tangentNormal);
 }
 
 vec3 F_Schlick(float cosTheta, vec3 F0)

@@ -17,4 +17,5 @@ void main()
 
 	mat4 viewMat = mat4(mat3(pushConstants.view));
 	gl_Position = pushConstants.projection * viewMat * vec4(inPos.xyz, 1.0f);
+	gl_Position.z = gl_Position.w;
 }

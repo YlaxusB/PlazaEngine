@@ -787,6 +787,8 @@ namespace Plaza {
 			depthStencil.depthCompareOp = depthCompareOp;
 			depthStencil.depthBoundsTestEnable = depthBoundsTestEnable;
 			depthStencil.stencilTestEnable = stencilTestEnable;
+			depthStencil.minDepthBounds = 0.0f;
+			depthStencil.maxDepthBounds = 1.0f;
 			return depthStencil;
 		}
 

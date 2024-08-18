@@ -77,6 +77,7 @@ layout(location = 12) out vec3 Tangent;
 layout(location = 13) out vec2 TexCoords;
 layout(location = 17) out vec4 worldPos;
 layout(location = 18) out flat int affected;
+layout(location = 6) out mat3 outTBN;
 
 out gl_PerVertex {
 	vec4 gl_Position;   
@@ -90,21 +91,8 @@ void main() {
 
     mat4 finalInstanceMatrix = model;
     FragPos = vec3(model * vec4(inPosition, 1.0));
-    //vs_out.Normal = transpose(inverse(mat3(aInstanceMatrix))) * aNormal;
 
-    //if(usingNormal){
-    //    mat3 normalMatrix = transpose(inverse(mat3(finalInstanceMatrix)));
-    //    vec3 T = normalize(normalMatrix * aTangent);
-    //    vec3 N = normalize(normalMatrix * aNormal);
-    //    T = normalize(T - dot(T, N) * N);
-    //    vec3 B = cross(N, T);
-    //    mat3 TBN = transpose(mat3(T, B, N));    
-    //    vs_out.TangentLightPos = TBN * lightPos;
-    //    vs_out.TangentViewPos  = TBN * viewPos;
-    //    vs_out.TangentFragPos  = TBN * vs_out.FragPos;
-    //} else{
-        Normal.xyz = transpose(inverse(mat3(finalInstanceMatrix))) * inNormal;
-    //}
+    Normal.xyz = transpose(inverse(mat3(finalInstanceMatrix))) * inNormal;
 
     vec4 totalPosition = vec4(0.0f);
     bool allNegative = true;
@@ -139,8 +127,14 @@ void main() {
 
     Tangent = vec3(mat3(finalInstanceMatrix) * inTangent.xyz);
 
+    vec3 N = normalize(Normal);
+	vec3 T = normalize(Tangent.xyz);
+	vec3 B = normalize(cross(N, T));
+	outTBN = mat3(T, B, N);
+
     uint materialIndex = renderGroupMaterialsOffsets[vertexMaterialIndex + renderGroupOffsets[gl_InstanceIndex]];//meshRendererMaterials[vertexMaterialIndex];//22;
 
-    fragTexCoord = inTexCoord;//vec2(materials[materialIndex].flipX, materials[materialIndex].flipY) - inTexCoord;
+    fragTexCoord = inTexCoord;
+    fragTexCoord.y = 1.0f - fragTexCoord.y;//vec2(materials[materialIndex].flipX, materials[materialIndex].flipY) - inTexCoord;
     material = materials[materialIndex];
 }

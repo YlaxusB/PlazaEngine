@@ -120,6 +120,13 @@ namespace Plaza {
 			{}
 		));
 
+		struct DeferredGeometrySkyboxPC {
+			glm::mat4 projection;
+			glm::mat4 view;
+			float skyboxIntensity;
+			float gamma;
+			float exposure;
+		};
 		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"Skybox",
 			PL_RENDER_INDIRECT_BUFFER_SPECIFIC_MESH,
@@ -129,13 +136,13 @@ namespace Plaza {
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
 			false,
-			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
 			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) , pl::pipelineColorBlendAttachmentState(true)  ,pl::pipelineColorBlendAttachmentState(true)  ,pl::pipelineColorBlendAttachmentState(true) }),
-			pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
+			pl::pipelineDepthStencilStateCreateInfo(true, false, PL_COMPARE_OP_LESS_OR_EQUAL),
 			pl::pipelineViewportStateCreateInfo(1, 1),
 			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
 			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
-			{},
+			{ pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(DeferredGeometrySkyboxPC)) },
 			{ 1 }
 		));
 
@@ -172,6 +179,9 @@ namespace Plaza {
 
 			ubo.showCascadeLevels = Application->showCascadeLevels;
 			plazaRenderGraph->GetSharedBuffer("GPassUBO")->UpdateData<VulkanRenderer::UniformBufferObject>(Application->mRenderer->mCurrentFrame, ubo);
+
+			plazaRenderPass->mPipelines[1]->UpdatePushConstants<DeferredGeometrySkyboxPC>(0, DeferredGeometrySkyboxPC(Application->activeCamera->GetProjectionMatrix(), Application->activeCamera->GetViewMatrix(),
+				VulkanRenderer::GetRenderer()->mSkyboxIntensity, VulkanRenderer::GetRenderer()->gamma, VulkanRenderer::GetRenderer()->exposure));
 			});
 
 		this->GetRenderPass("Deferred Geometry Pass")->GetInputResource<PlazaShadersBinding>("TexturesBuffer")->mMaxBindlessResources = VulkanRenderer::GetRenderer()->mMaxBindlessTextures;

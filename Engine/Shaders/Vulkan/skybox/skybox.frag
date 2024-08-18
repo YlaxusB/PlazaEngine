@@ -5,7 +5,7 @@ layout (location = 1) out vec4 gNormal;
 layout (location = 2) out vec4 gDiffuse;
 layout (location = 3) out vec4 gOthers;
 
-layout(binding = 5) uniform samplerCube skyboxSampler;
+layout(binding = 7) uniform samplerCube prefilterMap;
 
 layout(push_constant) uniform PushConstants{
     mat4 projection;
@@ -17,5 +17,5 @@ layout(push_constant) uniform PushConstants{
 
 void main() {
     //gDiffuse = vec4(pow(texture(skyboxSampler, fragTexCoord).xyz, vec3(1.0f / pushConstants.gamma)), 1.0f);
-    gDiffuse = texture(skyboxSampler, fragTexCoord);
+    gDiffuse = texture(prefilterMap, fragTexCoord);
 }

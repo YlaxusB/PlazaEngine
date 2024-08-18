@@ -126,7 +126,7 @@ namespace Plaza {
 			const auto& it = mLoadedMeshes.find(uuid);
 			if (it != mLoadedMeshes.end())
 				return mLoadedMeshes.at(uuid);
-			return new Mesh();
+			return nullptr;
 		}
 
 		static bool HasMesh(uint64_t uuid) {

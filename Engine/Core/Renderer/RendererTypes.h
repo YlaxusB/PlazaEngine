@@ -299,8 +299,9 @@ namespace Plaza {
 	enum PlRenderMethod {
 		PL_RENDER_INDIRECT_BUFFER = 0,
 		PL_RENDER_INDIRECT_BUFFER_SHADOW_MAP = 1,
-		PL_RENDER_FULL_SCREEN_QUAD = 2,
-		PL_RENDER_CUBE = 3
+		PL_RENDER_INDIRECT_BUFFER_SPECIFIC_MESH = 2,
+		PL_RENDER_FULL_SCREEN_QUAD = 3,
+		PL_RENDER_CUBE = 4
 	};
 
 	enum PlPrimitiveTopology {
@@ -668,6 +669,8 @@ namespace Plaza {
 	};
 
 	struct PlPipelineCreateInfo {
+		std::string pipelineName;
+		PlRenderMethod renderMethod;
 		std::vector<PlPipelineShaderStageCreateInfo> shaderStages;
 		std::vector<PlVertexInputBindingDescription> vertexBindingDescriptions;
 		std::vector<PlVertexInputAttributeDescription> vertexAttributeDescriptions;
@@ -680,6 +683,7 @@ namespace Plaza {
 		PlPipelineMultisampleStateCreateInfo multiSampleState;
 		std::vector<PlDynamicState> dynamicStates;
 		std::vector<PlPushConstantRange> pushConstants;
+		std::vector<uint64_t> staticMeshesUuid;
 	};
 
 #pragma region Initializators
@@ -862,6 +866,8 @@ namespace Plaza {
 		}
 
 		static PlPipelineCreateInfo pipelineCreateInfo(
+			std::string pipelineName,
+			PlRenderMethod renderMethod,
 			std::vector<PlPipelineShaderStageCreateInfo> shaderStages,
 			std::vector<PlVertexInputBindingDescription> vertexBindingDescriptions,
 			std::vector<PlVertexInputAttributeDescription> vertexAttributeDescriptions,
@@ -873,9 +879,12 @@ namespace Plaza {
 			PlPipelineViewportStateCreateInfo viewPortState,
 			PlPipelineMultisampleStateCreateInfo multiSampleState,
 			std::vector<PlDynamicState> dynamicStates,
-			std::vector<PlPushConstantRange> pushConstants) {
+			std::vector<PlPushConstantRange> pushConstants,
+			std::vector<uint64_t> staticMeshesUuid = std::vector<uint64_t>()) {
 
 			PlPipelineCreateInfo createInfo{
+				pipelineName,
+				renderMethod,
 			shaderStages,
 			 vertexBindingDescriptions,
 			 vertexAttributeDescriptions,
@@ -887,7 +896,8 @@ namespace Plaza {
 			 viewPortState,
 			 multiSampleState,
 			 dynamicStates,
-			 pushConstants
+			 pushConstants,
+			 staticMeshesUuid
 			};
 			return createInfo;
 		}

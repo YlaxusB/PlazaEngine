@@ -4096,46 +4096,5 @@ namespace Plaza {
 			memcpy(data, renderGroupOffsets.data(), sizeof(uint32_t) * renderGroupOffsets.size());
 			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
 		}
-
-
-		//UniformBufferObject ubo{};
-		//ubo.projection = Application->activeCamera->GetProjectionMatrix();
-		//ubo.view = Application->activeCamera->GetViewMatrix();
-		//ubo.model = glm::mat4(1.0f);
-		//
-		//ubo.cascadeCount = 9;
-		//ubo.farPlane = 15000.0f;
-		//ubo.nearPlane = 0.01f;
-		//
-		//glm::vec3 lightDir = this->mShadows->mLightDirection;
-		//glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
-		//glm::vec3 lightPos;
-		//
-		//ubo.lightDirection = glm::vec4(lightDir, 1.0f);
-		//ubo.viewPos = glm::vec4(Application->activeCamera->Position, 1.0f);
-		//
-		//ubo.directionalLightColor = glm::vec4(this->mLighting->directionalLightColor * this->mLighting->directionalLightIntensity);
-		//ubo.directionalLightColor.a = 1.0f;
-		//ubo.ambientLightColor = glm::vec4(this->mLighting->ambientLightColor * this->mLighting->ambientLightIntensity);
-		//ubo.ambientLightColor.a = 1.0f;
-		//ubo.gamma = this->gamma;
-		//
-		//VulkanShadows::ShadowsUniformBuffer ub{};
-		//for (int i = 0; i < this->mShadows->mCascades.size(); ++i) {
-		//	ubo.lightSpaceMatrices[i] = this->mShadows->mUbo[mCurrentFrame].lightSpaceMatrices[i];
-		//	if (i <= 8)
-		//		ubo.cascadePlaneDistances[i] = this->mShadows->shadowCascadeLevels[i];
-		//	else
-		//		ubo.cascadePlaneDistances[i] = this->mShadows->shadowCascadeLevels[8];
-		//}
-		//
-		//ubo.showCascadeLevels = Application->showCascadeLevels;
-		//
-		//PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("GPassUBO");//mRenderGraph->GetRenderPass("Deferred Geometry Pass")->GetInputResource<VulkanBufferBinding>("UniformBufferObject")->mBuffer.get();
-		//VkDeviceSize bufferSize = sizeof(VulkanRenderer::UniformBufferObject);
-		//void* data;
-		//vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
-		//memcpy(data, &ubo, bufferSize);
-		//vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
 	}
-			} // namespace Plaza
+}

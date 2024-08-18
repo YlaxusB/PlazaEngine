@@ -5,6 +5,9 @@ namespace Plaza {
 	class PlazaPipeline {
 	public:
 		std::vector<PlPushConstants> mPushConstants = std::vector<PlPushConstants>();
+		uint64_t mIndirectBufferOffset = 0;
+		uint64_t mIndirectBufferDrawCount = 1;
+
 		template <typename T>
 		void UpdatePushConstants(unsigned int index, const T& data) {
 			if (mPushConstants[index].mData == nullptr)

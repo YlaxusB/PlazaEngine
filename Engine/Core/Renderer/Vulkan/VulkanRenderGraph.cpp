@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ThirdParty/imgui/imgui.h"
 #include "ThirdParty/imgui/imgui_impl_vulkan.h"
+#include "Editor/DefaultAssets/Models/DefaultModels.h"
 
 namespace Plaza {
 	void VulkanRenderGraph::BuildDefaultRenderGraph() {
@@ -50,6 +51,8 @@ namespace Plaza {
 
 		this->GetRenderPass("Shadow Pass")->mMultiViewCount = VulkanRenderer::GetRenderer()->mShadows->mCascadeCount;
 		this->GetRenderPass("Shadow Pass")->AddPipeline(pl::pipelineCreateInfo(
+			"ShadowMapping",
+			PL_RENDER_INDIRECT_BUFFER_SHADOW_MAP,
 			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.vert"), "main"),
 				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.frag"), "main") },
 			{ pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX), pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE) },
@@ -100,6 +103,8 @@ namespace Plaza {
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 4, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, this->GetSharedTexture("SceneDepth")));
 
 		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
+			"MainShaders",
+			PL_RENDER_INDIRECT_BUFFER,
 			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert"), "main"),
 				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag"), "main") },
 			VertexGetBindingDescription(),
@@ -113,6 +118,25 @@ namespace Plaza {
 			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
 			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
 			{}
+		));
+
+		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
+			"Skybox",
+			PL_RENDER_INDIRECT_BUFFER_SPECIFIC_MESH,
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.vert"), "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.frag"), "main") },
+			VertexGetBindingDescription(),
+			VertexGetAttributeDescriptions(),
+			PL_TOPOLOGY_TRIANGLE_LIST,
+			false,
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) , pl::pipelineColorBlendAttachmentState(true)  ,pl::pipelineColorBlendAttachmentState(true)  ,pl::pipelineColorBlendAttachmentState(true) }),
+			pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
+			pl::pipelineViewportStateCreateInfo(1, 1),
+			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
+			{},
+			{ 1 }
 		));
 
 		this->AddRenderPassCallback("Deferred Geometry Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
@@ -171,6 +195,8 @@ namespace Plaza {
 			glm::vec4 ambientLightColor;
 		};
 		this->GetRenderPass("Deferred Lighting Pass")->AddPipeline(pl::pipelineCreateInfo(
+			"LightingPassShaders",
+			PL_RENDER_FULL_SCREEN_QUAD,
 			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.vert"), "main"),
 				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.frag"), "main") },
 			VertexGetBindingDescription(),
@@ -204,6 +230,8 @@ namespace Plaza {
 		static EquirectangularToCubeMapPC pushConstants{};
 
 		PlPipelineCreateInfo pipelineCreateInfo = pl::pipelineCreateInfo(
+			"EquirectangularToCubeMapShaders",
+			PL_RENDER_CUBE,
 			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert"), "main"),
 				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.frag"), "main") },
 			{ },
@@ -224,6 +252,8 @@ namespace Plaza {
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, this->GetSharedTexture("CubeMapTexture")))
 			->AddPipeline(pipelineCreateInfo);
 
+		pipelineCreateInfo.pipelineName = "BrdfGeneratorShaders";
+		pipelineCreateInfo.renderMethod = PL_RENDER_FULL_SCREEN_QUAD;
 		pipelineCreateInfo.shaderStages = {
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.vert"), "main"),
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.frag"), "main") };
@@ -232,6 +262,8 @@ namespace Plaza {
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, this->GetSharedTexture("SamplerBRDFLUT")))
 			->AddPipeline(pipelineCreateInfo);
 
+		pipelineCreateInfo.pipelineName = "IrradianceGeneratorShaders";
+		pipelineCreateInfo.renderMethod = PL_RENDER_CUBE;
 		pipelineCreateInfo.shaderStages = {
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert"), "main"),
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\irradianceGenerator.frag"), "main") };
@@ -241,6 +273,8 @@ namespace Plaza {
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, this->GetSharedTexture("IrradianceMap")))
 			->AddPipeline(pipelineCreateInfo);
 
+		pipelineCreateInfo.pipelineName = "PreFilteredGeneratorShaders";
+		pipelineCreateInfo.renderMethod = PL_RENDER_CUBE;
 		pipelineCreateInfo.shaderStages = {
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert"), "main"),
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\prefilterEnvGenerator.frag"), "main") };
@@ -483,6 +517,7 @@ namespace Plaza {
 			mRenderPass,
 			depthStencilState
 		);
+		pipeline->mCreateInfo = createInfo;
 		mPipelines.push_back(pipeline);
 	}
 
@@ -783,15 +818,31 @@ namespace Plaza {
 				nullptr);
 		}
 
-		for (PlPipelineCreateInfo createInfo : mPipelinesCreateInfo) {
+		for (PlPipelineCreateInfo& createInfo : mPipelinesCreateInfo) {
 			this->CompilePipeline(createInfo);
 		}
+	}
+
+	void VulkanRenderPass::BindMainBuffers() {
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(mCommandBuffer, 0, 1, &VulkanRenderer::GetRenderer()->mMainVertexBuffer->GetBuffer(), offsets);
+		vkCmdBindVertexBuffers(mCommandBuffer, 1, 1, &VulkanRenderer::GetRenderer()->mMainInstanceMatrixBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], offsets);
+		vkCmdBindIndexBuffer(mCommandBuffer, VulkanRenderer::GetRenderer()->mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
 	}
 
 	void VulkanRenderPass::BindRenderPass() {
 		VkRenderPassBeginInfo renderPassInfo = plvk::renderPassBeginInfo(this->mRenderPass, this->mFrameBuffer,
 			mRenderSize.x, mRenderSize.y, 0, 0, mClearValues.size(), mClearValues.data());
 		vkCmdBeginRenderPass(mCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		VkViewport viewport = plvk::viewport(0.0f, mFlipViewPort ? mRenderSize.y : 0.0f, mRenderSize.x, mFlipViewPort ? -static_cast<float>(mRenderSize.y) : mRenderSize.y);
+		vkCmdSetViewport(mCommandBuffer, 0, 1, &viewport);
+		VkRect2D scissor = plvk::rect2D(0, 0, mRenderSize.x, mRenderSize.y);
+		vkCmdSetScissor(mCommandBuffer, 0, 1, &scissor);
+	}
+
+	void VulkanRenderPass::EndRenderPass() {
+		vkCmdEndRenderPass(mCommandBuffer);
 	}
 
 	bool VulkanRenderGraph::BindPass(std::string passName) {
@@ -854,108 +905,57 @@ namespace Plaza {
 		}
 	}
 
-	void VulkanRenderPass::RenderIndirectBuffer(PlazaRenderGraph* plazaRenderGraph) {
-		VulkanRenderGraph* renderGraph = static_cast<VulkanRenderGraph*>(plazaRenderGraph);
-		VkCommandBuffer commandBuffer = mCommandBuffer;
-
-		VkDeviceSize offsets[1] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VulkanRenderer::GetRenderer()->mMainVertexBuffer->GetBuffer(), offsets);
-		vkCmdBindVertexBuffers(commandBuffer, 1, 1, &VulkanRenderer::GetRenderer()->mMainInstanceMatrixBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], offsets);
-		vkCmdBindIndexBuffer(commandBuffer, VulkanRenderer::GetRenderer()->mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-		renderGraph->BindPass(this->mName);
-
-		VkViewport viewport = plvk::viewport(0.0f, mFlipViewPort ? mRenderSize.y : 0.0f, mRenderSize.x, mFlipViewPort ? -static_cast<float>(mRenderSize.y) : mRenderSize.y);
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-		VkRect2D scissor = plvk::rect2D(0, 0, mRenderSize.x, mRenderSize.y);
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		for (const auto& pipeline : mPipelines) {
-			VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
-			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
-			vkCmdDrawIndexedIndirect(commandBuffer, VulkanRenderer::GetRenderer()->mIndirectBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, VulkanRenderer::GetRenderer()->mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+	void VulkanRenderPass::RenderIndirectBuffer(PlazaPipeline* pipeline) {
+		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
+		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
+		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+		for (const PlPushConstants& pushConstant : vulkanPipeline->mPushConstants) {
+			vkCmdPushConstants(mCommandBuffer, vulkanPipeline->mShaders->mPipelineLayout, PlRenderStageToVkShaderStage(pushConstant.mStage), pushConstant.mOffset, pushConstant.mStride, pushConstant.mData);
 		}
-
-		vkCmdEndRenderPass(commandBuffer);
+		vkCmdDrawIndexedIndirect(mCommandBuffer, VulkanRenderer::GetRenderer()->mIndirectBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], pipeline->mIndirectBufferOffset, VulkanRenderer::GetRenderer()->mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 	}
 
-	void VulkanRenderPass::RenderIndirectBufferShadowMap(PlazaRenderGraph* plazaRenderGraph) {
-		VulkanRenderGraph* renderGraph = static_cast<VulkanRenderGraph*>(plazaRenderGraph);
-		VkCommandBuffer commandBuffer = mCommandBuffer;
-
-		renderGraph->BindPass(this->mName);
-
-		VkDeviceSize offsets[1] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VulkanRenderer::GetRenderer()->mMainVertexBuffer->GetBuffer(), offsets);
-		vkCmdBindVertexBuffers(commandBuffer, 1, 1, &VulkanRenderer::GetRenderer()->mMainInstanceMatrixBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], offsets);
-		vkCmdBindIndexBuffer(commandBuffer, VulkanRenderer::GetRenderer()->mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-
-		VkViewport viewport = plvk::viewport(0.0f, mFlipViewPort ? mRenderSize.y : 0.0f, mRenderSize.x, mFlipViewPort ? -static_cast<float>(mRenderSize.y) : mRenderSize.y);
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-		VkRect2D scissor = plvk::rect2D(0, 0, mRenderSize.x, mRenderSize.y);
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		for (const auto& pipeline : mPipelines) {
-			VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
-			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
-			vkCmdDrawIndexedIndirect(commandBuffer, VulkanRenderer::GetRenderer()->mIndirectBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, VulkanRenderer::GetRenderer()->mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+	void VulkanRenderPass::RenderIndirectBufferShadowMap(PlazaPipeline* pipeline) {
+		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
+		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
+		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+		for (const PlPushConstants& pushConstant : vulkanPipeline->mPushConstants) {
+			vkCmdPushConstants(mCommandBuffer, vulkanPipeline->mShaders->mPipelineLayout, PlRenderStageToVkShaderStage(pushConstant.mStage), pushConstant.mOffset, pushConstant.mStride, pushConstant.mData);
 		}
-
-		vkCmdEndRenderPass(commandBuffer);
+		vkCmdDrawIndexedIndirect(mCommandBuffer, VulkanRenderer::GetRenderer()->mIndirectBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], pipeline->mIndirectBufferOffset, VulkanRenderer::GetRenderer()->mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 	}
 
-	void VulkanRenderPass::RenderFullScreenQuad(PlazaRenderGraph* plazaRenderGraph) {
-		VulkanRenderGraph* renderGraph = static_cast<VulkanRenderGraph*>(plazaRenderGraph);
-		VkCommandBuffer commandBuffer = mCommandBuffer;
-
-		renderGraph->BindPass(this->mName);
-
-		VkViewport viewport = plvk::viewport(0.0f, mFlipViewPort ? mRenderSize.y : 0.0f, mRenderSize.x, mFlipViewPort ? -static_cast<float>(mRenderSize.y) : mRenderSize.y);
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-		VkRect2D scissor = plvk::rect2D(0, 0, mRenderSize.x, mRenderSize.y);
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		for (const auto& pipeline : mPipelines) {
-			VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
-			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
-
-			for (const PlPushConstants& pushConstant : vulkanPipeline->mPushConstants) {
-				vkCmdPushConstants(commandBuffer, vulkanPipeline->mShaders->mPipelineLayout, PlRenderStageToVkShaderStage(pushConstant.mStage), pushConstant.mOffset, pushConstant.mStride, pushConstant.mData);
-			}
-
-			vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+	void VulkanRenderPass::RenderIndirectBufferSpecificMesh(PlazaPipeline* pipeline) {
+		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
+		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
+		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+		for (const PlPushConstants& pushConstant : pipeline->mPushConstants) {
+			vkCmdPushConstants(mCommandBuffer, vulkanPipeline->mShaders->mPipelineLayout, PlRenderStageToVkShaderStage(pushConstant.mStage), pushConstant.mOffset, pushConstant.mStride, pushConstant.mData);
 		}
-
-		vkCmdEndRenderPass(commandBuffer);
+		for (auto& meshUuid : pipeline->mCreateInfo.staticMeshesUuid) {
+			Mesh* mesh = AssetsManager::GetMesh(meshUuid);
+			if (!mesh) continue;
+			vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), 1, mesh->indicesOffset, mesh->verticesOffset, mesh->instanceOffset);
+		}
 	}
 
-	void VulkanRenderPass::RenderCube(PlazaRenderGraph* plazaRenderGraph) {
-		VulkanRenderGraph* renderGraph = static_cast<VulkanRenderGraph*>(plazaRenderGraph);
-		VkCommandBuffer commandBuffer = mCommandBuffer;
-
-		renderGraph->BindPass(this->mName);
-
-		VkViewport viewport = plvk::viewport(0.0f, mFlipViewPort ? mRenderSize.y : 0.0f, mRenderSize.x, mFlipViewPort ? -static_cast<float>(mRenderSize.y) : mRenderSize.y);
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-		VkRect2D scissor = plvk::rect2D(0, 0, mRenderSize.x, mRenderSize.y);
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		for (const auto& pipeline : mPipelines) {
-			VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
-			vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
-
-			for (const PlPushConstants& pushConstant : vulkanPipeline->mPushConstants) {
-				vkCmdPushConstants(commandBuffer, vulkanPipeline->mShaders->mPipelineLayout, PlRenderStageToVkShaderStage(pushConstant.mStage), pushConstant.mOffset, pushConstant.mStride, pushConstant.mData);
-			}
-
-			vkCmdDraw(commandBuffer, 36, 1, 0, 0);
+	void VulkanRenderPass::RenderFullScreenQuad(PlazaPipeline* pipeline) {
+		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
+		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
+		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+		for (const PlPushConstants& pushConstant : vulkanPipeline->mPushConstants) {
+			vkCmdPushConstants(mCommandBuffer, vulkanPipeline->mShaders->mPipelineLayout, PlRenderStageToVkShaderStage(pushConstant.mStage), pushConstant.mOffset, pushConstant.mStride, pushConstant.mData);
 		}
+		vkCmdDraw(mCommandBuffer, 3, 1, 0, 0);
+	}
 
-		vkCmdEndRenderPass(commandBuffer);
+	void VulkanRenderPass::RenderCube(PlazaPipeline* pipeline) {
+		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
+		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
+		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+		for (const PlPushConstants& pushConstant : vulkanPipeline->mPushConstants) {
+			vkCmdPushConstants(mCommandBuffer, vulkanPipeline->mShaders->mPipelineLayout, PlRenderStageToVkShaderStage(pushConstant.mStage), pushConstant.mOffset, pushConstant.mStride, pushConstant.mData);
+		}
+		vkCmdDraw(mCommandBuffer, 36, 1, 0, 0);
 	}
 }

@@ -741,11 +741,14 @@ namespace Plaza {
 		//std::vector<std::shared_ptr<VulkanPlazaPipeline>> mPipelines = std::vector<std::shared_ptr<VulkanPlazaPipeline>>();
 
 		virtual void Compile(PlazaRenderGraph* renderGraph) override;
+		virtual void BindMainBuffers() override;
 		virtual void BindRenderPass() override;
-		virtual void RenderIndirectBuffer(PlazaRenderGraph* plazaRenderGraph) override;
-		virtual void RenderIndirectBufferShadowMap(PlazaRenderGraph* plazaRenderGraph) override;
-		virtual void RenderFullScreenQuad(PlazaRenderGraph* plazaRenderGraph) override;
-		virtual void RenderCube(PlazaRenderGraph* plazaRenderGraph) override;
+		virtual void EndRenderPass() override; 
+		virtual void RenderIndirectBuffer(PlazaPipeline* pipeline) override;
+		virtual void RenderIndirectBufferShadowMap(PlazaPipeline* pipeline) override;
+		virtual void RenderIndirectBufferSpecificMesh(PlazaPipeline* pipeline) override;
+		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) override;
+		virtual void RenderCube(PlazaPipeline* pipeline) override;
 		virtual void CompilePipeline(PlPipelineCreateInfo createInfo) override;
 
 		VulkanRenderPass* AddInputResource(std::shared_ptr<PlazaShadersBinding> resource) {

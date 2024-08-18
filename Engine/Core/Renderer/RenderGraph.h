@@ -118,27 +118,28 @@ namespace Plaza {
 		virtual void Compile(PlazaRenderGraph* renderGraph) {};
 		virtual void Execute(PlazaRenderGraph* renderGraph) {
 			mCallback(renderGraph, this);
-			switch (mRenderMethod) {
-			case PL_RENDER_FULL_SCREEN_QUAD:
-				this->RenderFullScreenQuad(renderGraph);
-				break;
-			case PL_RENDER_INDIRECT_BUFFER:
-				this->RenderIndirectBuffer(renderGraph);
-				break;
-			case PL_RENDER_INDIRECT_BUFFER_SHADOW_MAP:
-				this->RenderIndirectBufferShadowMap(renderGraph);
-				break;
-			case PL_RENDER_CUBE:
-				this->RenderCube(renderGraph);
-				break;
+			this->BindMainBuffers();
+			this->BindRenderPass();
+			for (auto& pipeline : mPipelines) {
+				switch (pipeline->mCreateInfo.renderMethod) {
+				case PL_RENDER_FULL_SCREEN_QUAD: this->RenderFullScreenQuad(pipeline.get()); break;
+				case PL_RENDER_INDIRECT_BUFFER: this->RenderIndirectBuffer(pipeline.get()); break;
+				case PL_RENDER_INDIRECT_BUFFER_SHADOW_MAP: this->RenderIndirectBufferShadowMap(pipeline.get()); break;
+				case PL_RENDER_INDIRECT_BUFFER_SPECIFIC_MESH: this->RenderIndirectBufferSpecificMesh(pipeline.get()); break;
+				case PL_RENDER_CUBE: this->RenderCube(pipeline.get()); break;
+				}
 			}
+			this->EndRenderPass();
 		};
+		virtual void BindMainBuffers() {};
 		virtual void BindRenderPass() {};
+		virtual void EndRenderPass() {};
 
-		virtual void RenderIndirectBuffer(PlazaRenderGraph* plazaRenderGraph) { };
-		virtual void RenderIndirectBufferShadowMap(PlazaRenderGraph* plazaRenderGraph) { };
-		virtual void RenderFullScreenQuad(PlazaRenderGraph* plazaRenderGraph) { };
-		virtual void RenderCube(PlazaRenderGraph* plazaRenderGraph) { };
+		virtual void RenderIndirectBuffer(PlazaPipeline* pipeline) { };
+		virtual void RenderIndirectBufferShadowMap(PlazaPipeline* pipeline) { };
+		virtual void RenderIndirectBufferSpecificMesh(PlazaPipeline* pipeline) { };
+		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) { };
+		virtual void RenderCube(PlazaPipeline* pipeline) { };
 		virtual void CompilePipeline(PlPipelineCreateInfo createInfo) {};
 
 		void AddPipeline(PlPipelineCreateInfo createInfo) {

@@ -84,7 +84,7 @@ namespace Plaza {
 		irradianceSamplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 		irradianceSamplerInfo.mipLodBias = 0.0f;
 		irradianceSamplerInfo.minLod = 0.0f;
-		irradianceSamplerInfo.maxLod = mIrradianceTexture->mMipLevels;
+		irradianceSamplerInfo.maxLod = mIrradianceTexture->mMipCount;
 		//irradianceSamplerInfo.compareOp = VK_COMPARE_OP_NEVER;
 		if (vkCreateSampler(VulkanRenderer::GetRenderer()->mDevice, &irradianceSamplerInfo, nullptr, &mIrradianceTexture->mSampler) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture sampler!");
@@ -176,7 +176,7 @@ namespace Plaza {
 
 		vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 
-		VulkanRenderer::GetRenderer()->AddTrackerToImage(mIrradianceTexture->mImageView, "Irradiance Map", VulkanRenderer::GetRenderer()->mTextureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		//VulkanRenderer::GetRenderer()->AddTrackerToImage(mIrradianceTexture->mImageView, "Irradiance Map", VulkanRenderer::GetRenderer()->mTextureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
 		ConverterPushConstants converterPushConstants{};
@@ -271,8 +271,8 @@ namespace Plaza {
 
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(mIrradianceTexture->mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6, mIrradianceTexture->mMipLevels);
-		mIrradianceTexture->GenerateMipmaps(mIrradianceTexture->mImage, mIrradianceTexture->mWidth, mIrradianceTexture->mHeight, mIrradianceTexture->mMipLevels, mIrradianceTexture->GetFormat(), 6);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(mIrradianceTexture->mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, 6, mIrradianceTexture->mMipCount);
+		mIrradianceTexture->GenerateMipmaps(mIrradianceTexture->mImage, mIrradianceTexture->mWidth, mIrradianceTexture->mHeight, mIrradianceTexture->mMipCount, mIrradianceTexture->GetFormat(), 6);
 	}
 
 	void VulkanSkybox::InitializeImageView() {
@@ -525,7 +525,7 @@ namespace Plaza {
 		ConverterPushConstants converterPushConstants{};
 		converterPushConstants.first = true;
 
-		VulkanRenderer::GetRenderer()->AddTrackerToImage(mSkyboxTexture->mImageView, "Skybox", mSkyboxTexture->mSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		//VulkanRenderer::GetRenderer()->AddTrackerToImage(mSkyboxTexture->mImageView, "Skybox", mSkyboxTexture->mSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		//std::vector<glm::mat4> matrices = {
 		//	// POSITIVE_X
@@ -624,8 +624,8 @@ namespace Plaza {
 
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(mSkyboxTexture->mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, mSkyboxTexture->mLayerCount, mSkyboxTexture->mMipLevels);
-		mSkyboxTexture->GenerateMipmaps(mSkyboxTexture->mImage, mSkyboxTexture->mWidth, mSkyboxTexture->mHeight, mSkyboxTexture->mMipLevels, mSkyboxTexture->GetFormat(), mSkyboxTexture->mLayerCount);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(mSkyboxTexture->mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, mSkyboxTexture->mLayerCount, mSkyboxTexture->mMipCount);
+		mSkyboxTexture->GenerateMipmaps(mSkyboxTexture->mImage, mSkyboxTexture->mWidth, mSkyboxTexture->mHeight, mSkyboxTexture->mMipCount, mSkyboxTexture->GetFormat(), mSkyboxTexture->mLayerCount);
 
 		//VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, this->mSkyboxImage, faceSize, faceSize, 0, 6);
 
@@ -732,7 +732,7 @@ namespace Plaza {
 			VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_LAYOUT_UNDEFINED, 6, VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT, false, VK_SHARING_MODE_EXCLUSIVE, true);
 		mPreFilteredTexture->CreateImageView(mSkyboxFormat, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_CUBE, 6);
 		mPreFilteredTexture->CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_SAMPLER_MIPMAP_MODE_LINEAR, VK_FILTER_LINEAR, VK_FILTER_LINEAR, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE);
-		const uint32_t numMips = mPreFilteredTexture->mMipLevels;
+		const uint32_t numMips = mPreFilteredTexture->mMipCount;
 
 		VkDescriptorSetLayout descriptorsetLayout{};
 		VkDescriptorSetLayoutBinding skyboxLayoutBinding = plvk::descriptorSetLayoutBinding(0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
@@ -955,7 +955,7 @@ namespace Plaza {
 		}
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 
-		VulkanRenderer::GetRenderer()->AddTrackerToImage(mPreFilteredTexture->mImageView, "Pre Filtered Texture", VulkanRenderer::GetRenderer()->mTextureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+//		VulkanRenderer::GetRenderer()->AddTrackerToImage(mPreFilteredTexture->mImageView, "Pre Filtered Texture", VulkanRenderer::GetRenderer()->mTextureSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 
 	void VulkanSkybox::InitializeDescriptorPool() {

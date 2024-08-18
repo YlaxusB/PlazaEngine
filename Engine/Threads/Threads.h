@@ -1,4 +1,4 @@
-#pragma once
+#pragma once 
 #include <mutex>
 #include <queue>
 
@@ -13,13 +13,12 @@ namespace Plaza {
 			std::function<void()> task;
 			std::lock_guard<std::mutex> lock(mQueueMutex);
 
-			if (!mQueue.empty()) {
+			while (!mQueue.empty()) {
 				task = mQueue.front();
 				mQueue.pop();
-			}
-
-			if (task) {
-				task();
+				if (task) {
+					task();
+				}
 			}
 		}
 	private:

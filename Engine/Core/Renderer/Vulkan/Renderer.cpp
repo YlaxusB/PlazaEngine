@@ -2106,6 +2106,9 @@ namespace Plaza {
 		unsigned int mipCount,
 		bool forceSynchronization) {
 
+		if (oldLayout == newLayout)
+			oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
 		VkCommandBuffer commandBuffer;
 		if (forceSynchronization)
 			commandBuffer = BeginSingleTimeCommands();
@@ -2781,7 +2784,7 @@ namespace Plaza {
 			mPhysicalDevice, VK_FORMAT_R8G8B8_UNORM, &vkFormatProperties);
 		std::cout << "Initializing Skybox \n";
 		this->mLighting->Init();
-		this->mSkybox->Init();
+		//this->mSkybox->Init();
 		this->mPicking->Init();
 		this->mGuiRenderer->Init();
 		this->mBloom.Init();
@@ -2878,6 +2881,8 @@ namespace Plaza {
 		this->mRenderGraph->BuildDefaultRenderGraph();
 		this->InitializeRenderGraph(mRenderGraph);
 		mRenderGraph->Compile();
+
+		mRenderGraph->RunSkyboxRenderGraph(mRenderGraph->BuildSkyboxRenderGraph());
 
 #ifdef EDITOR_MODE
 		Editor::Gui::Init(Application->Window->glfwWindow);

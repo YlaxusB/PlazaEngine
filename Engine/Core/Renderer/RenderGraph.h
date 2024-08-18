@@ -128,6 +128,9 @@ namespace Plaza {
 			case PL_RENDER_INDIRECT_BUFFER_SHADOW_MAP:
 				this->RenderIndirectBufferShadowMap(renderGraph);
 				break;
+			case PL_RENDER_CUBE:
+				this->RenderCube(renderGraph);
+				break;
 			}
 		};
 		virtual void BindRenderPass() {};
@@ -135,6 +138,7 @@ namespace Plaza {
 		virtual void RenderIndirectBuffer(PlazaRenderGraph* plazaRenderGraph) { };
 		virtual void RenderIndirectBufferShadowMap(PlazaRenderGraph* plazaRenderGraph) { };
 		virtual void RenderFullScreenQuad(PlazaRenderGraph* plazaRenderGraph) { };
+		virtual void RenderCube(PlazaRenderGraph* plazaRenderGraph) { };
 		virtual void CompilePipeline(PlPipelineCreateInfo createInfo) {};
 
 		void AddPipeline(PlPipelineCreateInfo createInfo) {
@@ -326,5 +330,14 @@ namespace Plaza {
 		std::map<std::string, std::shared_ptr<Texture>> mTextures = std::map<std::string, std::shared_ptr<Texture>>();
 		std::map<std::string, std::shared_ptr<PlBuffer>> mBuffers = std::map<std::string, std::shared_ptr<PlBuffer>>();
 
+	};
+
+	struct EquirectangularToCubeMapPC {
+		glm::mat4 mvp;
+		bool first;
+		float deltaPhi = (2.0f * float(3.14159265358979323846)) / 180.0f;
+		float deltaTheta = (0.5f * float(3.14159265358979323846)) / 64.0f;
+		float roughness = 1.0f;
+		unsigned int numSamples = 32u;
 	};
 }

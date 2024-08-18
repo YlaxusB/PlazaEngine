@@ -340,10 +340,6 @@ namespace Plaza {
 		mRasterizer.lineWidth = 1.0f;
 		mRasterizer.cullMode = VK_CULL_MODE_NONE;//VK_CULL_MODE_FRONT_BIT;
 		mRasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-		if (!useVertexInputInfo)
-		{
-			mRasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-		}
 
 		mMultisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 

@@ -220,6 +220,8 @@ namespace Plaza {
 			float flipX = 1.0f;
 			float flipY = 1.0f;
 		};
+
+		VkInstance mVulkanInstance = VK_NULL_HANDLE;
 	private:
 		struct SwapChainPushConstant {
 			float exposure = 1.2f;
@@ -287,7 +289,6 @@ namespace Plaza {
 		VkDeviceMemory mTextureImageMemory;
 		VkImageView mTextureImageView;
 
-		VkInstance mVulkanInstance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT mDebugMessenger = VK_NULL_HANDLE;
 		VkQueue mPresentQueue = VK_NULL_HANDLE;
 		VkSurfaceKHR mSurface = VK_NULL_HANDLE;

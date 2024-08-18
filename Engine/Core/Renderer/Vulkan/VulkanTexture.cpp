@@ -113,7 +113,7 @@ namespace Plaza {
 		delete[] tempRow;
 	}
 
-	bool VulkanTexture::CreateTextureImage(VkDevice& device, std::string path, VkFormat& format, bool generateMipMaps) {
+	bool VulkanTexture::CreateTextureImage(VkDevice& device, std::string path, VkFormat format, bool generateMipMaps, bool isHdr, VkImageUsageFlags imageUsage) {
 		this->SetFormat(format);
 
 		bool isDDS = std::filesystem::path{ path }.extension() == ".dds";
@@ -121,6 +121,7 @@ namespace Plaza {
 
 		int texWidth, texHeight, texChannels;
 		stbi_uc* pixels = nullptr;
+		float* pixelsFloat = nullptr;
 		uint32_t pix = 0;
 		VkFormat imageFormat = format;
 		DirectX::TexMetadata metadata;
@@ -128,8 +129,13 @@ namespace Plaza {
 		VkDeviceSize imageSize;
 		if (!isDDS)
 		{
-			pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+			if (isHdr)
+				pixelsFloat = stbi_loadf(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+			else
+				pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 			imageSize = texWidth * texHeight * 4;
+			if (isHdr)
+				imageSize *= 4;
 		}
 		else {
 			generateMipMaps = false;
@@ -162,26 +168,30 @@ namespace Plaza {
 			imageSize = image2->slicePitch;
 		}
 
-
 		this->mWidth = texWidth;
 		this->mHeight = texHeight;
 
-		this->mMipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
+		this->mMipCount = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 		if (!generateMipMaps)
-			this->mMipLevels = 1;
+			this->mMipCount = 1;
 
-		if (!isDDS && !pixels) {
+		if (!isDDS && !pixels && !pixelsFloat) {
 			throw std::runtime_error("failed to load texture image!");
 		}
 		VulkanRenderer::GetRenderer()->CreateBuffer(format == VK_FORMAT_R32G32B32A32_SFLOAT ? imageSize * 4 : imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mStagingBuffer, mStagingBufferMemory);
 
 		void* data;
 		vkMapMemory(device, mStagingBufferMemory, 0, imageSize, 0, &data);
-		memcpy(data, pixels, static_cast<size_t>(imageSize));
+		if (isHdr)
+			memcpy(data, pixelsFloat, static_cast<size_t>(imageSize));
+		else
+			memcpy(data, pixels, static_cast<size_t>(imageSize));
 		vkUnmapMemory(device, mStagingBufferMemory);
 
-		if (!isDDS)
+		if (!isDDS && pixels)
 			stbi_image_free(pixels);
+		else if (!isDDS && pixelsFloat)
+			stbi_image_free(pixelsFloat);
 		else
 			scratchImage.Release();
 
@@ -193,12 +203,12 @@ namespace Plaza {
 		imageInfo.extent.width = texWidth;
 		imageInfo.extent.height = texHeight;
 		imageInfo.extent.depth = 1;
-		imageInfo.mipLevels = this->mMipLevels;
+		imageInfo.mipLevels = this->mMipCount;
 		imageInfo.arrayLayers = 1;
 		imageInfo.format = imageFormat;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		imageInfo.usage = imageUsage == VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM ? VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT : imageUsage;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
@@ -229,13 +239,13 @@ namespace Plaza {
 
 			vkBindImageMemory(device, mImage, mImageMemory, 0);
 
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1U, 1, this->mMipLevels);
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1U, 1, this->mMipCount);
 			VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
 			//TODO: FIX VALIDATION ERROR WHEN GENERATING MIP MAP
 			if (generateMipMaps)
-				GenerateMipmaps(this->mImage, texWidth, texHeight, this->mMipLevels, imageFormat, 1);
+				GenerateMipmaps(this->mImage, texWidth, texHeight, this->mMipCount, imageFormat, 1);
 			else
-				VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1U, 1, this->mMipLevels);
+				VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1U, 1, this->mMipCount);
 			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			vkDestroyBuffer(device, mStagingBuffer, nullptr);
 			vkFreeMemory(device, mStagingBufferMemory, nullptr);
@@ -247,20 +257,20 @@ namespace Plaza {
 		unsigned int layers, VkImageUsageFlags flags, bool transition, VkSharingMode sharingMode, bool calculateMips) {
 		mLayerCount = layers;
 		this->SetFormat(format);
-		this->mMipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
+		this->mMipCount = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 		if (!generateMipMaps && !calculateMips)
-			this->mMipLevels = 1;
+			this->mMipCount = 1;
 
 		this->mWidth = width;
 		this->mHeight = height;
 
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType = imageType; 
+		imageInfo.imageType = imageType;
 		imageInfo.extent.width = width;
 		imageInfo.extent.height = height;
 		imageInfo.extent.depth = 1;
-		imageInfo.mipLevels = this->mMipLevels;
+		imageInfo.mipLevels = this->mMipCount;
 		imageInfo.arrayLayers = layers;
 		imageInfo.format = format;
 		imageInfo.tiling = tiling;
@@ -289,17 +299,17 @@ namespace Plaza {
 
 		if (transition) {
 
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, layers, this->mMipLevels);
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, layers, this->mMipCount);
 			mLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		}
 
 		if (generateMipMaps)
 		{
-			GenerateMipmaps(this->mImage, width, height, this->mMipLevels, format, layers);
+			GenerateMipmaps(this->mImage, width, height, this->mMipCount, format, layers);
 			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
 		else if (transition) {
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, layers, this->mMipLevels);
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, layers, this->mMipCount);
 			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
 
@@ -330,7 +340,7 @@ namespace Plaza {
 		viewInfo.viewType = viewType;
 		viewInfo.format = format;
 		viewInfo.subresourceRange.baseMipLevel = baseMipLevel;
-		viewInfo.subresourceRange.levelCount = this->mMipLevels;
+		viewInfo.subresourceRange.levelCount = this->mMipCount;
 		viewInfo.subresourceRange.baseArrayLayer = 0;
 		viewInfo.subresourceRange.layerCount = layerCount;
 		viewInfo.subresourceRange.aspectMask = aspectFlags;
@@ -436,7 +446,7 @@ namespace Plaza {
 		samplerInfo.mipmapMode = mipMapMode;
 		samplerInfo.mipLodBias = 0.0f;
 		samplerInfo.minLod = 0.0f;
-		samplerInfo.maxLod = static_cast<float>(this->mMipLevels);
+		samplerInfo.maxLod = static_cast<float>(this->mMipCount);
 		if (vkCreateSampler(VulkanRenderer::GetRenderer()->mDevice, &samplerInfo, nullptr, &mSampler) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture sampler!");
 		}

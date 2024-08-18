@@ -227,9 +227,9 @@ namespace Plaza {
 	void VulkanBloom::Init() {
 		this->mMipCount = this->CalculateMipmapLevels(Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 16, 10);
 		this->mTexture1 = new VulkanTexture();
-		this->mTexture1->mMipLevels = this->mMipCount;
+		this->mTexture1->mMipCount = this->mMipCount;
 		this->mTexture1->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, true, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(mTexture1->mImage, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, 1, mTexture1->mMipLevels);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(mTexture1->mImage, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, 1, mTexture1->mMipCount);
 		this->mTexture1->CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_MIPMAP_MODE_NEAREST, VK_FILTER_LINEAR, VK_FILTER_LINEAR);
 		this->mTexture1->CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D);
 
@@ -318,7 +318,7 @@ namespace Plaza {
 			imageMemoryBarrier.image = this->mTexture1->mImage;
 			imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
-			imageMemoryBarrier.subresourceRange.levelCount = this->mTexture1->mMipLevels;
+			imageMemoryBarrier.subresourceRange.levelCount = this->mTexture1->mMipCount;
 			imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
 			imageMemoryBarrier.subresourceRange.layerCount = 1;
 
@@ -359,7 +359,7 @@ namespace Plaza {
 			imageMemoryBarrier.image = this->mTexture1->mImage;
 			imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
-			imageMemoryBarrier.subresourceRange.levelCount = this->mTexture1->mMipLevels;
+			imageMemoryBarrier.subresourceRange.levelCount = this->mTexture1->mMipCount;
 			imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
 			imageMemoryBarrier.subresourceRange.layerCount = 1;
 

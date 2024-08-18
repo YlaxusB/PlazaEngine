@@ -21,6 +21,8 @@ namespace Plaza {
 		uint8_t mMipCount = 1;
 		uint16_t mLayersCount = 1;
 		std::string mName = "";
+		std::string mPath = "";
+		bool mIsHdr = false;
 
 		std::vector<PlImageLayout> mFutureLayouts = std::vector<PlImageLayout>();
 

@@ -624,8 +624,8 @@ namespace Plaza {
 
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 
-		VulkanRenderer::GetRenderer()->TransitionImageLayout(mSkyboxTexture->mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, mSkyboxTexture->mLayerCount, mSkyboxTexture->mMipCount);
-		mSkyboxTexture->GenerateMipmaps(mSkyboxTexture->mImage, mSkyboxTexture->mWidth, mSkyboxTexture->mHeight, mSkyboxTexture->mMipCount, mSkyboxTexture->GetFormat(), mSkyboxTexture->mLayerCount);
+		VulkanRenderer::GetRenderer()->TransitionImageLayout(mSkyboxTexture->mImage, this->mSkyboxFormat, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, mSkyboxTexture->mLayersCount, mSkyboxTexture->mMipCount);
+		mSkyboxTexture->GenerateMipmaps(mSkyboxTexture->mImage, mSkyboxTexture->mWidth, mSkyboxTexture->mHeight, mSkyboxTexture->mMipCount, mSkyboxTexture->GetFormat(), mSkyboxTexture->mLayersCount);
 
 		//VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, this->mSkyboxImage, faceSize, faceSize, 0, 6);
 

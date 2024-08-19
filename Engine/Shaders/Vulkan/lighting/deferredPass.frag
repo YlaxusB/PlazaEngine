@@ -199,9 +199,8 @@ void main()
     vec3 lighting  = vec3(0.0f);//Diffuse * 0.1; // hard-coded ambient component
 
 
+    if(pushConstants.lightCount > 0) {
         vec3 FragPos = texture(gPosition, TexCoords).rgb;
-    if(pushConstants.lightCount > 0)
-    {
         vec3 Normal = texture(gNormal, TexCoords).rgb;
         float Specular = texture(gOthers, TexCoords).x;
         float metalness = texture(gOthers, TexCoords).y;
@@ -219,8 +218,7 @@ void main()
 
         vec3 V = normalize(pushConstants.viewPos.xyz - (FragPos.xyz));
 
-        for (int i = 0; i < MAX_POINT_LIGHT_PER_TILE && clusters[clusterIndex].lightsIndex[i] != -1; ++i)
-        {
+        for (int i = 0; i < MAX_POINT_LIGHT_PER_TILE && clusters[clusterIndex].lightsIndex[i] != -1; ++i) {
 
             LightStruct light = lights[clusters[clusterIndex].lightsIndex[i]];
             //light.color = vec3(1.0f, 0.0f, 0.0f);

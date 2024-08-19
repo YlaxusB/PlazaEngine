@@ -129,7 +129,7 @@ float ShadowCalculation(vec3 fragPosWorldSpace, vec3 Normal)
             shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
         }    
     }
-    shadow /= totalTexels;
+    shadow /= totalTexels; 
     return shadow;
 }
 
@@ -258,7 +258,24 @@ void main() {
     vec3 color = ambient + Lo; //+ ubo.directionalLightColor.xyz; // Directional Light
     color *= max(vec3(1.0 - ShadowCalculation(FragPos.xyz, N)), ubo.ambientLightColor.xyz); //+ ubo.ambientLightColor.xyz); // Shadow
 
+
     vec3 FinalColor = color;
+
+    if(ubo.showCascadeLevels) { 
+        vec4 fragPosViewSpace = ubo.view * vec4(FragPos.xyz, 1.0);
+        float depthValue = abs(fragPosViewSpace.z);
+        int layer = ubo.cascadeCount;
+        for (int i = 0; i < ubo.cascadeCount - 1; ++i)
+        {
+            if (depthValue < ubo.cascadePlaneDistances[i].x)
+            {
+                layer = i;
+                break;
+            }
+        }
+        FinalColor = vec3(1.0f - float(layer) / float(ubo.cascadeCount), 0.0f, 0.0f);
+    }
+
 
     /* Geometry */
     gOthers.xyz = vec3(specular);

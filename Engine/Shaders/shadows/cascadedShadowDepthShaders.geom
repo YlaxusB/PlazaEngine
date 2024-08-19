@@ -1,4 +1,4 @@
-'#version 460
+#version 460
 #extension GL_EXT_multiview : enable
 
 layout(triangles, invocations = 10) in;

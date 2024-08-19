@@ -255,7 +255,7 @@ namespace Plaza {
 
 	bool VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps, VkImageUsageFlags usageFlags, VkImageType imageType, VkImageTiling tiling, VkImageLayout initialLayout,
 		unsigned int layers, VkImageUsageFlags flags, bool transition, VkSharingMode sharingMode, bool calculateMips) {
-		mLayerCount = layers;
+		mLayersCount = layers;
 		this->SetFormat(format);
 		this->mMipCount = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 		if (!generateMipMaps && !calculateMips)
@@ -425,7 +425,7 @@ namespace Plaza {
 		InitDescriptorSet();
 	}
 
-	void VulkanTexture::CreateTextureSampler(VkSamplerAddressMode adressMode, VkSamplerMipmapMode mipMapMode, VkFilter magFilter, VkFilter minFilter, VkBorderColor borderColor) {
+	void VulkanTexture::CreateTextureSampler(VkSamplerAddressMode adressMode, VkSamplerMipmapMode mipMapMode, VkFilter magFilter, VkFilter minFilter, VkBorderColor borderColor, bool useAnisotropy) {
 		VkSamplerCreateInfo samplerInfo{};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerInfo.magFilter = magFilter;
@@ -438,7 +438,7 @@ namespace Plaza {
 
 		VkPhysicalDeviceProperties properties{};
 		vkGetPhysicalDeviceProperties(VulkanRenderer::GetRenderer()->mPhysicalDevice, &properties);
-		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+		samplerInfo.maxAnisotropy = useAnisotropy ? properties.limits.maxSamplerAnisotropy : 1.0f;
 		samplerInfo.borderColor = borderColor;
 		samplerInfo.unnormalizedCoordinates = VK_FALSE;
 		samplerInfo.compareEnable = VK_FALSE;
@@ -447,6 +447,7 @@ namespace Plaza {
 		samplerInfo.mipLodBias = 0.0f;
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = static_cast<float>(this->mMipCount);
+
 		if (vkCreateSampler(VulkanRenderer::GetRenderer()->mDevice, &samplerInfo, nullptr, &mSampler) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture sampler!");
 		}

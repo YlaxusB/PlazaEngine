@@ -39,7 +39,7 @@ namespace Plaza {
 		}
 
 		VkFormat GetFormat();
-		void SetFormat(VkFormat newFormat);
+		void SetFormat(PlTextureFormat newFormat);
 
 		VkImageLayout GetLayout() {
 			return this->mLayout;
@@ -52,7 +52,7 @@ namespace Plaza {
 
 		glm::vec4 ReadTexture(glm::vec2 pos, unsigned int bytesPerPixel = 4);
 	private:
-		VkFormat mFormat;
+		//VkFormat mFormat;
 		VkBuffer mStagingBuffer;
 		VkDeviceMemory mStagingBufferMemory;
 

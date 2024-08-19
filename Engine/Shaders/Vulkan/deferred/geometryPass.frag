@@ -55,10 +55,10 @@ layout(location = 13) in vec2 TexCoords;
 layout(location = 17) in vec4 worldPos;
 layout(location = 18) in flat int affected;
 
-layout (location = 0) out vec4 gPosition;
-layout (location = 1) out vec4 gNormal;
-layout (location = 2) out vec4 gDiffuse;
-layout (location = 3) out vec4 gOthers;
+//layout (location = 0) out vec4 gPosition;
+layout (location = 0) out vec2 gNormal;
+layout (location = 1) out vec4 gDiffuse;
+layout (location = 2) out vec4 gOthers;
 
 const float PI = 3.14159265359;
 float ao = 1.0f;
@@ -247,7 +247,7 @@ void main() {
     vec3 diffuse = irradiance * albedo.xyz;
 
     const float MAX_REFLECTION_LOD = 9.0;
-    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
+    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;   
     vec2 brdf  = texture(samplerBRDFLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 reflection = prefilteredReflection(R, roughness).rgb;	
     vec3 specular = reflection * (F * brdf.x + brdf.y);
@@ -255,9 +255,8 @@ void main() {
     float ambientOcclusion = 1.0f;
     vec3 ambient = (kD * diffuse) + specular * ambientOcclusion;
 
-    vec3 color = ambient + Lo; //+ ubo.directionalLightColor.xyz; // Directional Light
-    color *= max(vec3(1.0 - ShadowCalculation(FragPos.xyz, N)), ubo.ambientLightColor.xyz); //+ ubo.ambientLightColor.xyz); // Shadow
-
+    vec3 color = (ambient + Lo) * ubo.directionalLightColor.xyz;; //+ ubo.directionalLightColor.xyz; // Directional Light
+    color *=vec3(1.0 - ShadowCalculation(FragPos.xyz, N)) + ubo.ambientLightColor.xyz; //+ ubo.ambientLightColor.xyz); // Shadow
 
     vec3 FinalColor = color;
 
@@ -281,11 +280,11 @@ void main() {
     gOthers.xyz = vec3(specular);
     gOthers.y = metallic;
     gOthers.z = roughness;
-    gPosition = vec4(worldPos);
+    //gPosition = vec4(worldPos);
     gDiffuse = vec4(FinalColor, 1.0f);
     if(material.normalIndex > -1)
         N = -N;
-    gNormal = vec4(N.xyz, 1.0f);
+    gNormal = vec2(N.xy);
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)

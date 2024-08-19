@@ -114,7 +114,7 @@ namespace Plaza {
 	}
 
 	bool VulkanTexture::CreateTextureImage(VkDevice& device, std::string path, VkFormat format, bool generateMipMaps, bool isHdr, VkImageUsageFlags imageUsage) {
-		this->SetFormat(format);
+		//this->SetFormat(format);
 
 		bool isDDS = std::filesystem::path{ path }.extension() == ".dds";
 		dds::Image image;
@@ -167,6 +167,8 @@ namespace Plaza {
 
 			imageSize = image2->slicePitch;
 		}
+
+		this->SetFormat(VkFormatToPlImageFormat(format));
 
 		this->mWidth = texWidth;
 		this->mHeight = texHeight;
@@ -256,7 +258,7 @@ namespace Plaza {
 	bool VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps, VkImageUsageFlags usageFlags, VkImageType imageType, VkImageTiling tiling, VkImageLayout initialLayout,
 		unsigned int layers, VkImageUsageFlags flags, bool transition, VkSharingMode sharingMode, bool calculateMips) {
 		mLayersCount = layers;
-		this->SetFormat(format);
+		//this->SetFormat(format);
 		this->mMipCount = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 		if (!generateMipMaps && !calculateMips)
 			this->mMipCount = 1;
@@ -454,10 +456,10 @@ namespace Plaza {
 	}
 
 	VkFormat VulkanTexture::GetFormat() {
-		return this->mFormat;
+		return PlImageFormatToVkFormat(this->mFormat);
 	}
 
-	void VulkanTexture::SetFormat(VkFormat newFormat) {
+	void VulkanTexture::SetFormat(PlTextureFormat newFormat) {
 		this->mFormat = newFormat;
 	}
 

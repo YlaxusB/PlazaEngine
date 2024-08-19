@@ -1,14 +1,16 @@
 #version 450
 
-layout (binding = 0) uniform sampler2D gPosition;
-layout (binding = 1) uniform sampler2D gNormal;
-layout (binding = 2) uniform sampler2D gDiffuse;
-layout (binding = 3) uniform sampler2D gOthers;
+//layout (binding = 0) uniform sampler2D gPosition;
+layout (binding = 0) uniform sampler2D gNormal;
+layout (binding = 1) uniform sampler2D gDiffuse;
+layout (binding = 2) uniform sampler2D gOthers;
+layout (binding = 3) uniform sampler2D gSceneDepth;
 
 layout(push_constant) uniform PushConstants {
     vec3 viewPos;
     float time;
     mat4 view;
+    mat4 inverseView;
     mat4 projection;
     int lightCount;
     vec4 ambientLightColor;
@@ -200,8 +202,23 @@ void main()
 
 
     if(pushConstants.lightCount > 0) {
-        vec3 FragPos = texture(gPosition, TexCoords).rgb;
-        vec3 Normal = texture(gNormal, TexCoords).rgb;
+        // Reconstruct world-space position from depth
+        vec2 screenPos = (gl_FragCoord.xy / screenSize) * 2.0 - 1.0;
+        float depth = texture(gSceneDepth, TexCoords).r;
+        vec4 clipSpacePos = vec4(screenPos.xy, depth, 1.0);
+        vec4 viewSpacePos = pushConstants.inverseView * clipSpacePos;
+        viewSpacePos /= viewSpacePos.w;
+        vec3 FragPos = (pushConstants.inverseView * viewSpacePos).xyz;
+
+        // Reconstruct normal from 2-component packed normal
+        vec2 encodedNormal = texture(gNormal, TexCoords).xy;
+        vec3 Normal;
+        Normal.xy = encodedNormal;
+        Normal.z = sqrt(1.0 - dot(Normal.xy, Normal.xy));
+        Normal = normalize(Normal);
+
+        //vec3 FragPos = texture(gPosition, TexCoords).rgb;
+        //vec3 Normal = texture(gNormal, TexCoords).rgb;
         float Specular = texture(gOthers, TexCoords).x;
         float metalness = texture(gOthers, TexCoords).y;
         float roughness = texture(gOthers, TexCoords).z;

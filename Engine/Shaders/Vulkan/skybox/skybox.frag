@@ -1,9 +1,9 @@
 #version 450
 layout(location = 0) in vec3 fragTexCoord;
-layout (location = 0) out vec4 gPosition;
-layout (location = 1) out vec4 gNormal;
-layout (location = 2) out vec4 gDiffuse;
-layout (location = 3) out vec4 gOthers;
+//layout (location = 0) out vec4 gPosition;
+layout (location = 0) out vec4 gNormal;
+layout (location = 1) out vec4 gDiffuse;
+layout (location = 2) out vec4 gOthers;
 
 layout(binding = 7) uniform samplerCube prefilterMap;
 

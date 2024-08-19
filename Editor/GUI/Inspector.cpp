@@ -10,7 +10,7 @@
 #include "Editor/GUI/Inspector/AudioSourceInspector.h"
 #include "Editor/GUI/Inspector/CameraInspector.h"
 
-#include "Editor/GUI/Inspector/FileInspector/MaterialInspector.h"
+#include "Editor/GUI/Inspector/FileInspector/MaterialFileInspector.h"
 #include "Editor/GUI/Inspector/FileInspector/TextEditor.h"
 #include "Editor/GUI/Inspector/LightInspector.h"
 #include "Editor/GUI/Inspector/CharacterControllerInspector.h"

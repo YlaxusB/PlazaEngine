@@ -127,6 +127,7 @@ namespace Plaza {
 				case PL_RENDER_INDIRECT_BUFFER_SHADOW_MAP: this->RenderIndirectBufferShadowMap(pipeline.get()); break;
 				case PL_RENDER_INDIRECT_BUFFER_SPECIFIC_MESH: this->RenderIndirectBufferSpecificMesh(pipeline.get()); break;
 				case PL_RENDER_CUBE: this->RenderCube(pipeline.get()); break;
+				case PL_RENDER_COMPUTE: this->RunCompute(pipeline.get()); break;
 				}
 			}
 			this->EndRenderPass();
@@ -140,6 +141,7 @@ namespace Plaza {
 		virtual void RenderIndirectBufferSpecificMesh(PlazaPipeline* pipeline) { };
 		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) { };
 		virtual void RenderCube(PlazaPipeline* pipeline) { };
+		virtual void RunCompute(PlazaPipeline* pipeline) { };
 		virtual void CompilePipeline(PlPipelineCreateInfo createInfo) {};
 
 		void AddPipeline(PlPipelineCreateInfo createInfo) {

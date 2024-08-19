@@ -4,6 +4,8 @@
 #include "Editor/GUI/Utils/Utils.h"
 #include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
 #include "Engine/Core/Renderer/Renderer.h"
+#include "Engine/Application/FileDialog/FileDialog.h"
+
 namespace Plaza::Editor {
 	static class MaterialFileInspector {
 	public:
@@ -37,7 +39,7 @@ namespace Plaza::Editor {
 			ImGui::Text(file->directory.c_str());
 
 			ImGui::ColorPicker4("Diffuse", &material->diffuse->rgba.x);
-//			ImGui::ColorPicker4("Specular", &material->specular->rgba.x);
+			//			ImGui::ColorPicker4("Specular", &material->specular->rgba.x);
 			if (ImGui::Button("Difusse Texture")) {
 				material->diffuse = LoadTextureButton();
 				//    material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");

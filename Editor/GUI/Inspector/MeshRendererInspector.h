@@ -4,6 +4,7 @@
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Components/Core/Entity.h"
 #include "Editor/GUI/Utils/Utils.h"
+#include "Editor/GUI/Inspector/FileInspector/MaterialFileInspector.h"
 
 namespace Plaza::Editor {
 	static class MeshRendererInspector {
@@ -44,13 +45,17 @@ namespace Plaza::Editor {
 
 							if (ImGui::Button(asset->mPath.stem().string().c_str())) {
 								entity->GetComponent<MeshRenderer>()->ChangeMaterial(value.get());
-								//entity->GetComponent<MeshRenderer>()->material = value.get();
-								//entity->GetComponent<MeshRenderer>()->renderGroup->mesh = entity->GetComponent<MeshRenderer>()->mesh;
-								//entity->GetComponent<MeshRenderer>()->renderGroup->ChangeMaterial(value.get());
 							}
 						}
 					}
-					RenderGroup* newRenderGroup = entity->GetComponent<MeshRenderer>()->renderGroup;
+
+					for (Material* material : meshR->mMaterials) {
+						if (AssetsManager::GetAsset(material->mAssetUuid) == nullptr)
+							continue;
+						File* file = new File(material->name, AssetsManager::GetAsset(material->mAssetUuid)->mPath.string(), Standards::materialExtName);
+						Plaza::Editor::MaterialFileInspector::MaterialFileInspector(file);
+						delete(file);
+					}
 				}
 				ImGui::PopID();
 			}

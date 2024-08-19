@@ -120,7 +120,7 @@ namespace Plaza::Editor {
 
 			// --- Scale
 			if (activeOperation == ImGuizmo::SCALE)
-				transform.scale = scale / transform.GetWorldScale();//parentTransform.GetWorldScale();// = updatedScale;
+				transform.scale = scale / parentScale;//transform.GetWorldScale();//parentTransform.GetWorldScale();// = updatedScale;
 			transform.UpdateSelfAndChildrenTransform();
 
 

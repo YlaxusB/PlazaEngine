@@ -1651,6 +1651,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
+		assert(size != 0);
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferInfo.size = size;
@@ -2979,7 +2980,7 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-		}
+	}
 #endif
 
 		{
@@ -3063,7 +3064,7 @@ namespace Plaza {
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-	}
+}
 	void VulkanRenderer::RenderBloom() {
 	}
 	void VulkanRenderer::RenderScreenSpaceReflections() {
@@ -3352,6 +3353,7 @@ namespace Plaza {
 			if (this->mBones[uniqueBonesInfo[i].mId].mId > 1000)
 				std::cout << "bigger \n";
 		}
+
 		//for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
 		//	uint64_t siz = mBones.size();
 		//	uint64_t siz1 = mBones.size() + 1;

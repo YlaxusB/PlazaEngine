@@ -29,63 +29,73 @@ namespace Plaza {
 		std::string path = texture->filename.data;
 		if (!std::filesystem::exists(path)) {
 			path = std::filesystem::path{ materialFolderPath }.parent_path().string() + "\\" + texture->relative_filename.data;
-			if (!std::filesystem::exists(path)) {
+			if (!std::filesystem::exists(path) || std::filesystem::is_directory(path)) {
 				path = materialFolderPath + "\\" + std::filesystem::path{ texture->absolute_filename.data }.filename().string();
 				if (!std::filesystem::exists(path)) {
 					path = "";
 				}
 			}
 		}
-
 		return path;
 	}
+
+	static Texture* ConvertUFBXTextureToPlazaTexture(const ufbx_material_map& materialMap, const std::string& materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures) {
+		Texture* texture;
+		if (materialMap.texture_enabled) {
+			const std::string texturePath = GetFbxTexturePath(materialMap.texture, materialFolderPath);
+			if (texturePath.empty())
+				return new Texture();
+
+			if (loadedTextures.find(texturePath) == loadedTextures.end()) {
+				texture = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(texturePath, Plaza::UUID::NewUUID()));
+				loadedTextures.emplace(texturePath, texture->mAssetUuid);
+			}
+			else {
+				texture = AssetsManager::mTextures.at(loadedTextures.at(texturePath));
+			}
+		}
+		else {
+			texture = new Texture();
+			texture->rgba = glm::vec4(materialMap.value_vec4.x, materialMap.value_vec4.y, materialMap.value_vec4.z, materialMap.value_vec4.w);
+		}
+
+		return texture;
+	}
+
+	static inline bool IsMapUsed(const ufbx_material_map& map) {
+		return map.texture != nullptr;
+	}
+
 	Material* AssetsImporter::FbxModelMaterialLoader(const ufbx_material* ufbxMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures) {
 		Material* material = new Material();
 		material->name = ufbxMaterial->name.data;
 
-		ufbx_texture* ofbxDiffuse = ufbxMaterial->pbr.base_color.texture;//getTexture(UFBX_SHADER_FBX_LAMBERT ofbx::Texture::DIFFUSE);
-		if (ofbxDiffuse) {
-			const std::string diffusePath = GetFbxTexturePath(ofbxDiffuse, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxDiffuse->getFileName()) }.filename().string();
-			if (ofbxDiffuse && loadedTextures.find(diffusePath) == loadedTextures.end()) {
-				material->diffuse = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(diffusePath, Plaza::UUID::NewUUID()));
-				loadedTextures.emplace(diffusePath, material->diffuse->mAssetUuid);
-			}
-			else
-				material->diffuse = AssetsManager::mTextures.at(loadedTextures.at(diffusePath));
+		std::vector< ufbx_material_map> usedPBRMaps = std::vector< ufbx_material_map>();
+		std::vector< ufbx_material_map> usedFBXMaps = std::vector< ufbx_material_map>();
+		for (ufbx_material_map map : ufbxMaterial->pbr.maps) {
+			if (IsMapUsed(map))
+				usedPBRMaps.push_back(map);
+		}
+		for (ufbx_material_map map : ufbxMaterial->fbx.maps) {
+			if (IsMapUsed(map))
+				usedFBXMaps.push_back(map);
 		}
 
-		ufbx_texture* ofbxNormal = ufbxMaterial->pbr.normal_map.texture;//ufbxMaterial->getTexture(ofbx::Texture::NORMAL);
-		if (ofbxNormal) {
-			const std::string normalPath = GetFbxTexturePath(ofbxNormal, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxNormal->getFileName()) }.filename().string();
-			if (loadedTextures.find(normalPath) == loadedTextures.end()) {
-				material->normal = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(normalPath, Plaza::UUID::NewUUID()));
-				loadedTextures.emplace(normalPath, material->normal->mAssetUuid);
-			}
-			else
-				material->normal = AssetsManager::mTextures.at(loadedTextures.at(normalPath));
+		if (ufbxMaterial->features.pbr.enabled) {
+			material->diffuse = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->pbr.base_color, materialFolderPath, loadedTextures);
+			material->normal = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->pbr.normal_map, materialFolderPath, loadedTextures);
+			material->roughness = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->pbr.roughness, materialFolderPath, loadedTextures);
+			material->metalness = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->pbr.metalness, materialFolderPath, loadedTextures);
+		}
+		else {
+			material->diffuse = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->fbx.diffuse_color, materialFolderPath, loadedTextures);
+			material->normal = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->fbx.normal_map, materialFolderPath, loadedTextures);
+			material->roughness = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->fbx.specular_color, materialFolderPath, loadedTextures);
+			material->metalness = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->fbx.reflection_color, materialFolderPath, loadedTextures);
 		}
 
-		ufbx_texture* ofbxSpecular = ufbxMaterial->pbr.roughness.texture;//ofbxMaterial->getTexture(ofbx::Texture::SPECULAR);
-		if (ofbxSpecular) {
-			const std::string specularPath = GetFbxTexturePath(ofbxSpecular, materialFolderPath);;//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxSpecular->getFileName()) }.filename().string();
-			if (ofbxSpecular && loadedTextures.find(specularPath) == loadedTextures.end()) {
-				material->roughness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(specularPath, Plaza::UUID::NewUUID()));
-				loadedTextures.emplace(specularPath, material->roughness->mAssetUuid);
-			}
-			else
-				material->roughness = AssetsManager::mTextures.at(loadedTextures.at(specularPath));
-		}
-
-		ufbx_texture* ofbxReflection = ufbxMaterial->pbr.metalness.texture;//ofbxMaterial->getTexture(ofbx::Texture::REFLECTION);
-		if (ofbxReflection) {
-			const std::string reflectionPath = GetFbxTexturePath(ofbxReflection, materialFolderPath);//materialFolderPath + "\\" + std::filesystem::path{ toStringView(ofbxReflection->getFileName()) }.filename().string();
-			if (ofbxReflection && loadedTextures.find(reflectionPath) == loadedTextures.end()) {
-				material->metalness = AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(reflectionPath, Plaza::UUID::NewUUID()));
-				loadedTextures.emplace(reflectionPath, material->metalness->mAssetUuid);
-			}
-			else
-				material->metalness = AssetsManager::mTextures.at(loadedTextures.at(reflectionPath));
-		}
+		if (material->diffuse == nullptr || material->normal == nullptr || material->roughness == nullptr || material->metalness == nullptr)
+			material = Application->activeScene->DefaultMaterial();
 		return material;
 	}
 
@@ -189,6 +199,11 @@ namespace Plaza {
 					if (materialIsNotLoaded) {
 						materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
 						Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+						if (material->uuid == Application->activeScene->DefaultMaterial()->uuid) {
+							loadedMaterials.emplace(materialOutPath, material->uuid);
+							materials.push_back(material);
+							continue;
+						}
 						material->flip = settings.mFlipTextures;
 						loadedMaterials.emplace(materialOutPath, material->uuid);
 						AssetsSerializer::SerializeMaterial(material, materialOutPath);

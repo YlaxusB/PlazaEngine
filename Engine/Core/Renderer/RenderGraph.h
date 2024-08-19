@@ -118,8 +118,8 @@ namespace Plaza {
 		virtual void Compile(PlazaRenderGraph* renderGraph) {};
 		virtual void Execute(PlazaRenderGraph* renderGraph) {
 			mCallback(renderGraph, this);
-			this->BindMainBuffers();
 			this->BindRenderPass();
+			this->BindMainBuffers();
 			for (auto& pipeline : mPipelines) {
 				switch (pipeline->mCreateInfo.renderMethod) {
 				case PL_RENDER_FULL_SCREEN_QUAD: this->RenderFullScreenQuad(pipeline.get()); break;

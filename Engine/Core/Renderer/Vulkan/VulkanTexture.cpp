@@ -336,22 +336,23 @@ namespace Plaza {
 	VkImageView VulkanTexture::CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType, unsigned int layerCount, unsigned int baseMipLevel) {
 		if (mImageView != VK_NULL_HANDLE)
 			vkDestroyImageView(VulkanRenderer::GetRenderer()->mDevice, mImageView, nullptr);
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image = this->mImage;
-		viewInfo.viewType = viewType;
-		viewInfo.format = format;
-		viewInfo.subresourceRange.baseMipLevel = baseMipLevel;
-		viewInfo.subresourceRange.levelCount = this->mMipCount;
-		viewInfo.subresourceRange.baseArrayLayer = 0;
-		viewInfo.subresourceRange.layerCount = layerCount;
-		viewInfo.subresourceRange.aspectMask = aspectFlags;
-
-		if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &mImageView) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create texture image view!");
-		}
-
-		return mImageView;
+		mImageView = VulkanRenderer::GetRenderer()->CreateImageView(mImage, format, aspectFlags, viewType, layerCount, mMipCount, baseMipLevel);
+		//VkImageViewCreateInfo viewInfo{};
+		//viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		//viewInfo.image = this->mImage;
+		//viewInfo.viewType = viewType;
+		//viewInfo.format = format;
+		//viewInfo.subresourceRange.baseMipLevel = baseMipLevel;
+		//viewInfo.subresourceRange.levelCount = this->mMipCount;
+		//viewInfo.subresourceRange.baseArrayLayer = 0;
+		//viewInfo.subresourceRange.layerCount = layerCount;
+		//viewInfo.subresourceRange.aspectMask = aspectFlags;
+		//
+		//if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &mImageView) != VK_SUCCESS) {
+		//	throw std::runtime_error("failed to create texture image view!");
+		//}
+		//
+		//return mImageView;
 	}
 
 	VkDescriptorSet VulkanTexture::GetDescriptorSet() {

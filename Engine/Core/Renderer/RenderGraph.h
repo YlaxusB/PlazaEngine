@@ -14,7 +14,7 @@ namespace Plaza {
 		PlBindingType mBindingType;
 		uint64_t mMaxBindlessResources = 0;
 
-		virtual void Compile() {};
+		virtual void Compile(std::set<std::string>& compiledBindings) {};
 		virtual void Destroy() {};
 	};
 
@@ -68,7 +68,7 @@ namespace Plaza {
 
 	class PlazaTextureBinding : public PlazaShadersBinding {
 	public:
-		PlazaTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType, PlRenderStage renderStage, PlImageLayout initialLayout, std::shared_ptr<Texture> texture)
+		PlazaTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType, PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel, uint16_t baseLayerLevel, std::shared_ptr<Texture> texture)
 			: mBufferType(bufferType) {
 			mLocation = location;
 			mBinding = binding;
@@ -77,10 +77,14 @@ namespace Plaza {
 			mStage = renderStage;
 			mTexture = texture;
 			mInitialLayout = initialLayout;
+			mBaseMipLevel = baseMipLevel;
+			mBaseLayerLevel = baseLayerLevel;
 		}
 
 		PlBufferType mBufferType = PL_BUFFER_SAMPLER;
 		PlImageLayout mInitialLayout = PL_IMAGE_LAYOUT_UNDEFINED;
+		uint16_t mBaseMipLevel = 0;
+		uint16_t mBaseLayerLevel = 0;
 
 		virtual void Compile() {};
 		virtual void Destroy() {};
@@ -92,12 +96,12 @@ namespace Plaza {
 	class PlazaRenderGraph;
 	class PlazaRenderPass {
 	public:
-		PlazaRenderPass(std::string name, int stage, PlRenderMethod renderMethod, glm::vec2 size, bool flipViewPort) : mName(name), mStage(stage), mRenderMethod(renderMethod), mRenderSize(size), mFlipViewPort(flipViewPort) {}
+		PlazaRenderPass(std::string name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) : mName(name), mStage(stage), mRenderMethod(renderMethod), mRenderSize(size), mFlipViewPort(flipViewPort) {}
 
 		std::string mName = "";
 		int16_t mExecutionIndex = 0;
 		int mStage = 0;
-		PlRenderMethod mRenderMethod = PL_RENDER_FULL_SCREEN_QUAD;
+		PlRenderPassMode mRenderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
 		uint16_t mMultiViewCount = 0;
 		glm::vec2 mRenderSize = glm::vec2(0, 0);
 		bool mFlipViewPort = true;
@@ -122,12 +126,12 @@ namespace Plaza {
 			this->BindMainBuffers();
 			for (auto& pipeline : mPipelines) {
 				switch (pipeline->mCreateInfo.renderMethod) {
-				case PL_RENDER_FULL_SCREEN_QUAD: this->RenderFullScreenQuad(pipeline.get()); break;
-				case PL_RENDER_INDIRECT_BUFFER: this->RenderIndirectBuffer(pipeline.get()); break;
-				case PL_RENDER_INDIRECT_BUFFER_SHADOW_MAP: this->RenderIndirectBufferShadowMap(pipeline.get()); break;
-				case PL_RENDER_INDIRECT_BUFFER_SPECIFIC_MESH: this->RenderIndirectBufferSpecificMesh(pipeline.get()); break;
-				case PL_RENDER_CUBE: this->RenderCube(pipeline.get()); break;
-				case PL_RENDER_COMPUTE: this->RunCompute(pipeline.get()); break;
+				case PL_RENDER_PASS_FULL_SCREEN_QUAD: this->RenderFullScreenQuad(pipeline.get()); break;
+				case PL_RENDER_PASS_INDIRECT_BUFFER: this->RenderIndirectBuffer(pipeline.get()); break;
+				case PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP: this->RenderIndirectBufferShadowMap(pipeline.get()); break;
+				case PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH: this->RenderIndirectBufferSpecificMesh(pipeline.get()); break;
+				case PL_RENDER_PASS_CUBE: this->RenderCube(pipeline.get()); break;
+				case PL_RENDER_PASS_COMPUTE: this->RunCompute(pipeline.get()); break;
 				}
 			}
 			this->EndRenderPass();
@@ -227,17 +231,13 @@ namespace Plaza {
 			for (auto& pass : mOrderedPasses) {
 
 				for (auto& binding : pass->mInputBindings) {
-					if (mCompiledBindings.find(binding->mName) == mCompiledBindings.end()) {
-						binding->Compile();
-						mCompiledBindings.insert(binding->mName);
-					}
+					binding->Compile(mCompiledBindings);
+					mCompiledBindings.insert(binding->mName);
 				}
 
 				for (auto& binding : pass->mOutputBindings) {
-					if (mCompiledBindings.find(binding->mName) == mCompiledBindings.end()) {
-						binding->Compile();
-						mCompiledBindings.insert(binding->mName);
-					}
+					binding->Compile(mCompiledBindings);
+					mCompiledBindings.insert(binding->mName);
 				}
 
 				pass->Compile(this);

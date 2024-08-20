@@ -296,13 +296,14 @@ namespace Plaza {
 		PL_MEMORY_USAGE_AUTO_PREFER_HOST = 9,
 	};
 
-	enum PlRenderMethod {
-		PL_RENDER_INDIRECT_BUFFER = 0,
-		PL_RENDER_INDIRECT_BUFFER_SHADOW_MAP = 1,
-		PL_RENDER_INDIRECT_BUFFER_SPECIFIC_MESH = 2,
-		PL_RENDER_FULL_SCREEN_QUAD = 3,
-		PL_RENDER_CUBE = 4,
-		PL_RENDER_COMPUTE = 5
+	enum PlRenderPassMode {
+		PL_RENDER_PASS_HOLDER = 0,
+		PL_RENDER_PASS_INDIRECT_BUFFER = 1,
+		PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP = 2,
+		PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH = 3,
+		PL_RENDER_PASS_FULL_SCREEN_QUAD = 4,
+		PL_RENDER_PASS_CUBE = 5,
+		PL_RENDER_PASS_COMPUTE = 6
 	};
 
 	enum PlPrimitiveTopology {
@@ -671,7 +672,7 @@ namespace Plaza {
 
 	struct PlPipelineCreateInfo {
 		std::string pipelineName;
-		PlRenderMethod renderMethod;
+		PlRenderPassMode renderMethod;
 		std::vector<PlPipelineShaderStageCreateInfo> shaderStages;
 		std::vector<PlVertexInputBindingDescription> vertexBindingDescriptions;
 		std::vector<PlVertexInputAttributeDescription> vertexAttributeDescriptions;
@@ -870,7 +871,7 @@ namespace Plaza {
 
 		static PlPipelineCreateInfo pipelineCreateInfo(
 			std::string pipelineName,
-			PlRenderMethod renderMethod,
+			PlRenderPassMode renderMethod,
 			std::vector<PlPipelineShaderStageCreateInfo> shaderStages,
 			std::vector<PlVertexInputBindingDescription> vertexBindingDescriptions,
 			std::vector<PlVertexInputAttributeDescription> vertexAttributeDescriptions,

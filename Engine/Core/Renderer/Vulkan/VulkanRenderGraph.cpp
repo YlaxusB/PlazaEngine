@@ -7,7 +7,7 @@ namespace Plaza {
 	void VulkanRenderGraph::BuildDefaultRenderGraph() {
 		PlImageUsage inImageUsageFlags = static_cast<PlImageUsage>(PL_IMAGE_USAGE_COLOR_ATTACHMENT | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC);
 		PlImageUsage outImageUsageFlags = static_cast<PlImageUsage>(PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_COLOR_ATTACHMENT);
-		PlImageUsage depthTextureUsageFlags = static_cast<PlImageUsage>(PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC);
+		PlImageUsage depthTextureFlags = static_cast<PlImageUsage>(PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC);
 		PlImageUsage equirectangularImageUsage = static_cast<PlImageUsage>(PL_IMAGE_USAGE_COLOR_ATTACHMENT | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC);
 		const unsigned int bufferCount = Application->mRenderer->mMaxFramesInFlight;
 		const unsigned int shadowMapResolution = 2048;
@@ -15,19 +15,26 @@ namespace Plaza {
 		const unsigned int irradianceSize = 64;
 		const unsigned int brdfSize = 512;
 
-		this->AddTexture(make_shared<VulkanTexture>(VulkanRenderer::GetRenderer()->mMaxBindlessTextures, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(1, 1, 1), 1, 1, "TexturesBuffer"));
-		this->AddTexture(make_shared<VulkanTexture>(1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution, skyboxResolution, 1), 1, 1, "EquirectangularTexture"));
-		this->AddTexture(make_shared<VulkanTexture>(1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution, skyboxResolution, 1), 1, 6, "CubeMapTexture"));
-		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R16G16_SFLOAT, glm::vec3(brdfSize, brdfSize, 1), 1, 1, "SamplerBRDFLUT"));
-		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution, skyboxResolution, 1), 0, 6, "PreFilterMap"));
-		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(irradianceSize, irradianceSize, 1), 1, 6, "IrradianceMap"));
-		this->AddTexture(make_shared<VulkanTexture>(1, depthTextureUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D_ARRAY, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(shadowMapResolution, shadowMapResolution, 1), 1, VulkanRenderer::GetRenderer()->mShadows->mCascadeCount, "ShadowsDepthMap"));
+		this->AddTexture(make_shared<VulkanTexture>(VulkanRenderer::GetRenderer()->mMaxBindlessTextures, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(1, 1, 1), 1, 0, 0, "TexturesBuffer"));
+
+		this->AddTexture(make_shared<VulkanTexture>(1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution, skyboxResolution, 1), 1, 1, 0, 0, "EquirectangularTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution, skyboxResolution, 1), 1, 6, 0, 0, "CubeMapTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R16G16_SFLOAT, glm::vec3(brdfSize, brdfSize, 1), 1, 1, 0, 0, "SamplerBRDFLUT"));
+		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution, skyboxResolution, 1), 0, 6, 0, 0, "PreFilterMap"));
+		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(irradianceSize, irradianceSize, 1), 1, 6, 0, 0, "IrradianceMap"));
+
+		this->AddTexture(make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D_ARRAY, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(shadowMapResolution, shadowMapResolution, 1), 1, VulkanRenderer::GetRenderer()->mShadows->mCascadeCount, 0, 0, "ShadowsDepthMap"));
 		//this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "GPosition"));
-		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "GDiffuse"));
-		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R16G16_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "GNormal"));
-		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "GOthers"));
-		this->AddTexture(make_shared<VulkanTexture>(1, depthTextureUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "SceneDepth"));
-		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "SceneTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, 0, 0, "GDiffuse"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R16G16_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, 0, 0, "GNormal"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, 0, 0, "GOthers"));
+		this->AddTexture(make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, 0, 0, "SceneDepth"));
+
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, 0, 0, "SceneTexture"));
+
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 0, 1, 0, 0, "BloomScalableTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, 0, 0, "BloomFinalTexture"));
+
 
 		this->GetTexture<Texture>("EquirectangularTexture")->mPath = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\" + "autumn_field_4k.hdr";
 		this->GetTexture<Texture>("EquirectangularTexture")->mIsHdr = true;
@@ -44,7 +51,7 @@ namespace Plaza {
 		this->AddBuffer(std::make_shared<PlVkBuffer>(PL_BUFFER_STORAGE_BUFFER, 1024 * 32, sizeof(Lighting::LightStruct), bufferCount, static_cast<PlBufferUsage>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST), PL_MEMORY_USAGE_CPU_TO_GPU, "LightsBuffer"));
 		this->AddBuffer(std::make_shared<PlVkBuffer>(PL_BUFFER_STORAGE_BUFFER, 1024 * 32, sizeof(Lighting::Tile), bufferCount, static_cast<PlBufferUsage>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST), PL_MEMORY_USAGE_CPU_TO_GPU, "ClustersBuffer"));
 
-		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Shadow Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_INDIRECT_BUFFER_SHADOW_MAP, glm::vec2(shadowMapResolution, shadowMapResolution), true))
+		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Shadow Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP, glm::vec2(shadowMapResolution, shadowMapResolution), true))
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 0, PlBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_VERTEX, this->GetSharedBuffer("ShadowPassUBO")))
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 1, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, this->GetSharedBuffer("BoneMatricesBuffer")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, this->GetSharedTexture("ShadowsDepthMap")));
@@ -52,7 +59,7 @@ namespace Plaza {
 		this->GetRenderPass("Shadow Pass")->mMultiViewCount = VulkanRenderer::GetRenderer()->mShadows->mCascadeCount;
 		this->GetRenderPass("Shadow Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"ShadowMapping",
-			PL_RENDER_INDIRECT_BUFFER_SHADOW_MAP,
+			PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
 			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.vert"), "main"),
 				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.frag"), "main") },
 			{ pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX), pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE) },
@@ -85,9 +92,9 @@ namespace Plaza {
 
 
 		glm::vec2 gPassSize = Application->appSizes->sceneSize;
-		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Geometry Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_INDIRECT_BUFFER, glm::vec2(gPassSize.x, gPassSize.y), true))
+		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Geometry Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_INDIRECT_BUFFER, glm::vec2(gPassSize.x, gPassSize.y), true))
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 0, PlBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_ALL, this->GetSharedBuffer("GPassUBO")))
-			->AddInputResource(std::make_shared<VulkanTextureBinding>(VulkanRenderer::GetRenderer()->mMaxBindlessTextures, 0, 20, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("TexturesBuffer")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(VulkanRenderer::GetRenderer()->mMaxBindlessTextures, 0, 20, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, this->GetSharedTexture("TexturesBuffer")))
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 19, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, this->GetSharedBuffer("MaterialsBuffer")))
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 1, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, this->GetSharedBuffer("BoneMatricesBuffer")))
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 2, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, this->GetSharedBuffer("RenderGroupOffsetsBuffer")))
@@ -104,7 +111,7 @@ namespace Plaza {
 
 		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"MainShaders",
-			PL_RENDER_INDIRECT_BUFFER,
+			PL_RENDER_PASS_INDIRECT_BUFFER,
 			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert"), "main"),
 				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag"), "main") },
 			VertexGetBindingDescription(),
@@ -129,7 +136,7 @@ namespace Plaza {
 		};
 		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"Skybox",
-			PL_RENDER_INDIRECT_BUFFER_SPECIFIC_MESH,
+			PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH,
 			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.vert"), "main"),
 				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.frag"), "main") },
 			VertexGetBindingDescription(),
@@ -187,7 +194,7 @@ namespace Plaza {
 		this->GetRenderPass("Deferred Geometry Pass")->GetInputResource<PlazaShadersBinding>("TexturesBuffer")->mMaxBindlessResources = VulkanRenderer::GetRenderer()->mMaxBindlessTextures;
 
 
-		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Lighting Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_FULL_SCREEN_QUAD, gPassSize, false))
+		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Lighting Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false))
 			//->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GPosition")))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GNormal")))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("GDiffuse")))
@@ -208,7 +215,7 @@ namespace Plaza {
 		};
 		this->GetRenderPass("Deferred Lighting Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"LightingPassShaders",
-			PL_RENDER_FULL_SCREEN_QUAD,
+			PL_RENDER_PASS_FULL_SCREEN_QUAD,
 			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.vert"), "main"),
 				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.frag"), "main") },
 			VertexGetBindingDescription(),
@@ -229,6 +236,10 @@ namespace Plaza {
 				Application->activeCamera->GetProjectionMatrix(), VulkanRenderer::GetRenderer()->mLighting->mLights.size(), VulkanRenderer::GetRenderer()->mLighting->ambientLightColor * VulkanRenderer::GetRenderer()->mLighting->ambientLightIntensity));
 			});
 
+
+		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Bloom Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_HOLDER, gPassSize, false))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("BloomScalableTexture")))
+			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, this->GetSharedTexture("BloomFinalTexture")));
 		this->OrderPasses();
 	}
 
@@ -243,7 +254,7 @@ namespace Plaza {
 
 		PlPipelineCreateInfo pipelineCreateInfo = pl::pipelineCreateInfo(
 			"EquirectangularToCubeMapShaders",
-			PL_RENDER_CUBE,
+			PL_RENDER_PASS_CUBE,
 			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert"), "main"),
 				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.frag"), "main") },
 			{ },
@@ -259,39 +270,39 @@ namespace Plaza {
 			{ pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC)) }
 		);
 
-		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("EquirectangularToCubeMapPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_CUBE, glm::vec2(faceSize, faceSize), true))
+		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("EquirectangularToCubeMapPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_CUBE, glm::vec2(faceSize, faceSize), true))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("EquirectangularTexture")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, this->GetSharedTexture("CubeMapTexture")))
 			->AddPipeline(pipelineCreateInfo);
 
 		pipelineCreateInfo.pipelineName = "BrdfGeneratorShaders";
-		pipelineCreateInfo.renderMethod = PL_RENDER_FULL_SCREEN_QUAD;
+		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
 		pipelineCreateInfo.shaderStages = {
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.vert"), "main"),
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.frag"), "main") };
 		pipelineCreateInfo.pushConstants = {};
-		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("BrdfGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_FULL_SCREEN_QUAD, glm::vec2(brdfSize, brdfSize), true))
+		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("BrdfGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, glm::vec2(brdfSize, brdfSize), true))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, this->GetSharedTexture("SamplerBRDFLUT")))
 			->AddPipeline(pipelineCreateInfo);
 
 		pipelineCreateInfo.pipelineName = "IrradianceGeneratorShaders";
-		pipelineCreateInfo.renderMethod = PL_RENDER_CUBE;
+		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_CUBE;
 		pipelineCreateInfo.shaderStages = {
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert"), "main"),
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\irradianceGenerator.frag"), "main") };
 		pipelineCreateInfo.pushConstants = { pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC)) };
-		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("IrradianceGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_CUBE, glm::vec2(irradianceSize, irradianceSize), false))
+		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("IrradianceGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_CUBE, glm::vec2(irradianceSize, irradianceSize), false))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("CubeMapTexture")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, this->GetSharedTexture("IrradianceMap")))
 			->AddPipeline(pipelineCreateInfo);
 
 		pipelineCreateInfo.pipelineName = "PreFilteredGeneratorShaders";
-		pipelineCreateInfo.renderMethod = PL_RENDER_CUBE;
+		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_CUBE;
 		pipelineCreateInfo.shaderStages = {
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert"), "main"),
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\prefilterEnvGenerator.frag"), "main") };
 		pipelineCreateInfo.pushConstants = { pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC)) };
-		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("PreFilteredGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_CUBE, glm::vec2(faceSize, faceSize), false))
+		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("PreFilteredGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_CUBE, glm::vec2(faceSize, faceSize), false))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, this->GetSharedTexture("CubeMapTexture")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, this->GetSharedTexture("PreFilterMap")))
 			->AddPipeline(pipelineCreateInfo);
@@ -595,8 +606,10 @@ namespace Plaza {
 		}
 	}
 
-	void VulkanBufferBinding::Compile() {
+	void VulkanBufferBinding::Compile(std::set<std::string>& compiledBindings) {
 		//mBuffer = std::make_shared<PlVkBuffer>();
+		if (compiledBindings.find(mName) == compiledBindings.end())
+			return;
 		mBuffer->CreateBuffer(mBuffer->mMaxItems * mBuffer->mStride, PlBufferUsageToVkBufferUsage(mBuffer->mBufferUsage), PlMemoryUsageToVmaMemoryUsage(mBuffer->mMemoryUsage), 0, mBuffer->mBufferCount);
 		mBuffer->CreateMemory(0, mBuffer->mBufferCount);
 	}
@@ -604,28 +617,47 @@ namespace Plaza {
 
 	}
 
-	void VulkanTextureBinding::Compile() {
+	void VulkanTextureBinding::Compile(std::set<std::string>& compiledBindings) {
 		if (mMaxBindlessResources > 0)
 			return;
-		//mTexture = std::make_shared<VulkanTexture>();
+
+		bool viewMustBeNonDefault = mBaseMipLevel != 0 || mBaseLayerLevel != 0;
+
 		VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
-		if (this->GetTexture()->mImageUsage & PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT)
-			aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
+		if (this->GetTexture()->mImageUsage & PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT) { aspect = VK_IMAGE_ASPECT_DEPTH_BIT; };
+
+		if (viewMustBeNonDefault) {
+			mNonDefaultView = VulkanRenderer::GetRenderer()->CreateImageView(this->GetTexture()->mImage, this->GetTexture()->GetFormat(), aspect, PlViewTypeToVkImageViewType(mTexture->mViewType), mTexture->mLayersCount, mTexture->mMipCount, mBaseMipLevel);
+			return;
+		}
+
+		if (compiledBindings.find(mName) == compiledBindings.end())
+			return;
 
 		VkImageUsageFlags flags = 0;
 		if (mTexture->mViewType == PL_VIEW_TYPE_CUBE)
 			flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 		if (mTexture->mPath == "") {
-			this->GetTexture()->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, PlImageFormatToVkFormat(mTexture->mFormat), mTexture->mResolution.x, mTexture->mResolution.y, this->GetTexture()->mMipCount == 0 ? true : false,
-				PlImageUsageToVkImageUsage(mTexture->mImageUsage), PlTextureTypeToVkImageType(mTexture->mTextureType), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_LAYOUT_UNDEFINED, mTexture->mLayersCount, flags, false, VK_SHARING_MODE_EXCLUSIVE);
+			this->GetTexture()->CreateTextureImage(
+				VulkanRenderer::GetRenderer()->mDevice,
+				PlImageFormatToVkFormat(mTexture->mFormat),
+				mTexture->mResolution.x,
+				mTexture->mResolution.y,
+				this->GetTexture()->mMipCount == 0 ? true : false,
+				PlImageUsageToVkImageUsage(mTexture->mImageUsage),
+				PlTextureTypeToVkImageType(mTexture->mTextureType),
+				VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_LAYOUT_UNDEFINED,
+				mTexture->mLayersCount,
+				flags,
+				false,
+				VK_SHARING_MODE_EXCLUSIVE);
 			VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this->GetTexture(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, aspect, this->GetTexture()->mLayersCount, this->GetTexture()->mMipCount);
 		}
-		else
+		else {
 			this->GetTexture()->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, mTexture->mPath, PlImageFormatToVkFormat(mTexture->mFormat), true, mTexture->mIsHdr, PlImageUsageToVkImageUsage(mTexture->mImageUsage));
-
+		}
 
 		this->GetTexture()->CreateTextureSampler();
-
 		this->GetTexture()->CreateImageView(PlImageFormatToVkFormat(mTexture->mFormat), aspect, PlViewTypeToVkImageViewType(mTexture->mViewType), mTexture->mLayersCount, 0);
 
 		VulkanRenderer::GetRenderer()->AddTrackerToImage(this->GetTexture()->mImageView, mTexture->mName, this->GetTexture()->mSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

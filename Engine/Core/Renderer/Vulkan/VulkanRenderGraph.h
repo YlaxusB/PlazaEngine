@@ -872,7 +872,7 @@ namespace Plaza {
 	public:
 		VulkanBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage, std::shared_ptr<PlBuffer> buffer)
 			: PlazaBufferBinding(descriptorCount, binding, type, stage, buffer) {};
-		virtual void Compile() override;
+		virtual void Compile(std::set<std::string>& compiledBindings) override;
 		virtual void Destroy() override;
 
 		VkDescriptorSetLayoutBinding GetDescriptorLayout() {
@@ -895,11 +895,11 @@ namespace Plaza {
 
 	class VulkanTextureBinding : public PlazaTextureBinding {
 	public:
-		VulkanTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType, PlRenderStage renderStage, PlImageLayout initialLayout, std::shared_ptr<Texture> texture)
-			: PlazaTextureBinding(descriptorCount, location, binding, bufferType, renderStage, initialLayout, texture) {
+		VulkanTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType, PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel, uint16_t baseLayerLevel, std::shared_ptr<Texture> texture)
+			: PlazaTextureBinding(descriptorCount, location, binding, bufferType, renderStage, initialLayout, baseMipLevel, baseLayerLevel, texture) {
 			mName = texture->mName;
 		};
-		virtual void Compile() override;
+		virtual void Compile(std::set<std::string>& compiledBindings) override;
 		virtual void Destroy() override;
 
 		VkDescriptorSetLayoutBinding GetDescriptorLayout() {
@@ -921,6 +921,7 @@ namespace Plaza {
 			return static_cast<VulkanTexture*>(mTexture.get());
 		}
 
+		VkImageView mNonDefaultView = VK_NULL_HANDLE;
 		//std::shared_ptr<VulkanTexture> mTexture = nullptr;
 	private:
 
@@ -928,7 +929,7 @@ namespace Plaza {
 
 	class VulkanRenderPass : public PlazaRenderPass {
 	public:
-		VulkanRenderPass(std::string name, int stage, PlRenderMethod renderMethod, glm::vec2 size, bool flipViewPort) : PlazaRenderPass(name, stage, renderMethod, size, flipViewPort) {}
+		VulkanRenderPass(std::string name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) : PlazaRenderPass(name, stage, renderMethod, size, flipViewPort) {}
 		//std::vector<std::shared_ptr<VulkanPlazaPipeline>> mPipelines = std::vector<std::shared_ptr<VulkanPlazaPipeline>>();
 
 		virtual void Compile(PlazaRenderGraph* renderGraph) override;

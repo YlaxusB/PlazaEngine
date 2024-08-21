@@ -11,22 +11,33 @@ namespace Plaza {
 	static VkDescriptorType PlBufferTypeToVkDescriptorType(PlBufferType type) {
 		VkDescriptorType convertedType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 		switch (type) {
-		case PL_BUFFER_UNIFORM_BUFFER:
-			convertedType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			break;
-		case PL_BUFFER_STORAGE_BUFFER:
-			convertedType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-			break;
-		case PL_BUFFER_STORAGE_BUFFER_DYNAMIC:
-			convertedType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
-			break;
-		case PL_BUFFER_SAMPLER:
-			convertedType = VK_DESCRIPTOR_TYPE_SAMPLER;
-			break;
-		case PL_BUFFER_COMBINED_IMAGE_SAMPLER:
-			convertedType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			break;
+		case PL_BUFFER_PUSH_CONSTANTS: return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+		case PL_BUFFER_UNIFORM_BUFFER: return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		case PL_BUFFER_STORAGE_BUFFER: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		case PL_BUFFER_STORAGE_BUFFER_DYNAMIC: return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+		case PL_BUFFER_SAMPLER: return VK_DESCRIPTOR_TYPE_SAMPLER;
+		case PL_BUFFER_COMBINED_IMAGE_SAMPLER: return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		case PL_BUFFER_SAMPLED_IMAGE: return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+		case PL_BUFFER_STORAGE_IMAGE: return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+		case PL_BUFFER_INPUT_ATTACHMENT: return VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
 		}
+		//switch (type) {
+		//case PL_BUFFER_UNIFORM_BUFFER:
+		//	convertedType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		//	break;
+		//case PL_BUFFER_STORAGE_BUFFER:
+		//	convertedType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+		//	break;
+		//case PL_BUFFER_STORAGE_BUFFER_DYNAMIC:
+		//	convertedType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
+		//	break;
+		//case PL_BUFFER_SAMPLER:
+		//	convertedType = VK_DESCRIPTOR_TYPE_SAMPLER;
+		//	break;
+		//case PL_BUFFER_COMBINED_IMAGE_SAMPLER:
+		//	convertedType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		//	break;
+		//}
 		return convertedType;
 	}
 
@@ -473,7 +484,7 @@ namespace Plaza {
 		if (stage & PL_STAGE_ALL) newStage = VK_SHADER_STAGE_ALL;
 		if (stage & PL_STAGE_VERTEX) newStage |= VK_SHADER_STAGE_VERTEX_BIT;
 		if (stage & PL_STAGE_FRAGMENT) newStage |= VK_SHADER_STAGE_FRAGMENT_BIT;
-		if (stage & PL_STAGE_GEOMETRY) newStage |= VK_SHADER_STAGE_COMPUTE_BIT;
+		if (stage & PL_STAGE_GEOMETRY) newStage |= VK_SHADER_STAGE_GEOMETRY_BIT;
 		if (stage & PL_STAGE_COMPUTE) newStage |= VK_SHADER_STAGE_COMPUTE_BIT;
 		return newStage;
 	}
@@ -942,7 +953,14 @@ namespace Plaza {
 		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) override;
 		virtual void RunCompute(PlazaPipeline* pipeline) override;
 		virtual void RenderCube(PlazaPipeline* pipeline) override;
-		virtual void CompilePipeline(PlPipelineCreateInfo createInfo) override;
+		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
+
+		virtual std::shared_ptr<PlazaPipeline> AddPipeline(PlPipelineCreateInfo createInfo) override {
+			std::shared_ptr<VulkanPlazaPipeline> pipeline = std::make_shared<VulkanPlazaPipeline>();
+			pipeline->mCreateInfo = createInfo;
+			mPipelines.push_back(pipeline);
+			return pipeline;
+		}
 
 		VulkanRenderPass* AddInputResource(std::shared_ptr<PlazaShadersBinding> resource) {
 			mInputBindings.push_back(resource);
@@ -958,6 +976,9 @@ namespace Plaza {
 
 		inline void UpdateCommandBuffer(VkCommandBuffer& commandBuffer) {
 			mCommandBuffer = commandBuffer;
+			for (auto& renderPass : mChildPasses) {
+				static_cast<VulkanRenderPass*>(renderPass.get())->UpdateCommandBuffer(commandBuffer);
+			}
 		}
 
 		VkRenderPass mRenderPass = VK_NULL_HANDLE;
@@ -966,6 +987,7 @@ namespace Plaza {
 		std::vector<VkDescriptorSet> mDescriptorSets = std::vector<VkDescriptorSet>();
 		VkDescriptorSetLayout mDescriptorSetLayout;
 	private:
+		virtual void CompileGraphics(PlazaRenderGraph* renderGraph) override;
 		VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
 		std::vector<VkClearValue> mClearValues = std::vector<VkClearValue>();
 	};

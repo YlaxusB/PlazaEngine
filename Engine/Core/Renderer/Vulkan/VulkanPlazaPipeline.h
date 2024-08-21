@@ -1,13 +1,19 @@
 #pragma once
 #include "Engine/Core/Renderer/PlazaPipeline.h"
 #include "VulkanShaders.h"
+#include "VulkanComputeShaders.h"
 
 namespace Plaza {
 	class VulkanPlazaPipeline : public PlazaPipeline {
 	public:
+		VulkanPlazaPipeline() {};
+		VulkanPlazaPipeline(PlPipelineCreateInfo createInfo) : PlazaPipeline(createInfo) {};
+
 		VkRenderPass mRenderPass = VK_NULL_HANDLE;
 		VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
 		VulkanShaders* mShaders = new VulkanShaders();
+		VulkanComputeShaders* mComputeShaders = new VulkanComputeShaders();
+
 		void Init(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) override;
 		void InitializeShaders(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) override;
 		void InitializeRenderPass(VkAttachmentDescription* attachmentDescs, uint32_t attachmentsCount, VkSubpassDescription* subpasses, uint32_t subpassesCount, VkSubpassDependency* dependencies, uint32_t dependenciesCount);

@@ -123,7 +123,7 @@ namespace Plaza {
 		void TransitionTextureLayout(VulkanTexture& texture, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, unsigned int layerCount = 1, unsigned int mipCount = 1, bool forceSynchronization = true);
 
 		void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+		//VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D, unsigned int layerCount = 1, unsigned int mipCount = 1, unsigned int baseMipLevel = 0);
 
 		VkCommandBuffer BeginSingleTimeCommands();
@@ -156,6 +156,7 @@ namespace Plaza {
 
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
 		void CopyImage(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
+		void CopyTexture(VulkanTexture* srcTexture, VulkanTexture* dstTexture, VkCommandBuffer commandBuffer = VK_NULL_HANDLE);
 		VkSampler mImGuiTextureSampler;
 		VkSampler mTextureSampler;
 		std::vector<VkFence> mComputeInFlightFences;

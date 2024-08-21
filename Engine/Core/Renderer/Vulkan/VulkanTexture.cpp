@@ -337,6 +337,7 @@ namespace Plaza {
 		if (mImageView != VK_NULL_HANDLE)
 			vkDestroyImageView(VulkanRenderer::GetRenderer()->mDevice, mImageView, nullptr);
 		mImageView = VulkanRenderer::GetRenderer()->CreateImageView(mImage, format, aspectFlags, viewType, layerCount, mMipCount, baseMipLevel);
+		return mImageView;
 		//VkImageViewCreateInfo viewInfo{};
 		//viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		//viewInfo.image = this->mImage;

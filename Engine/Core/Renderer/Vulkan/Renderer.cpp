@@ -1713,6 +1713,45 @@ namespace Plaza {
 		EndSingleTimeCommands(commandBuffer);
 	}
 
+	void VulkanRenderer::CopyTexture(VulkanTexture* srcTexture, VulkanTexture* dstTexture, VkCommandBuffer commandBuffer) {
+		PLAZA_PROFILE_SECTION("Copy Texture");
+		VkImageSubresourceRange subresourceRange{};
+		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subresourceRange.baseMipLevel = 0;
+		subresourceRange.levelCount = 1;
+		subresourceRange.baseArrayLayer = 0;
+		subresourceRange.layerCount = 1;
+
+		VkImageCopy imageCopyRegion{};
+		imageCopyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageCopyRegion.srcSubresource.mipLevel = 0;
+		imageCopyRegion.srcSubresource.baseArrayLayer = 0;
+		imageCopyRegion.srcSubresource.layerCount = 1;
+		imageCopyRegion.srcOffset = { 0, 0, 0 };
+
+		imageCopyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageCopyRegion.dstSubresource.mipLevel = 0;
+		imageCopyRegion.dstSubresource.baseArrayLayer = 0;
+		imageCopyRegion.dstSubresource.layerCount = 1;
+		imageCopyRegion.dstOffset = { 0, 0, 0 };
+
+		imageCopyRegion.extent.width = srcTexture->mResolution.x;
+		imageCopyRegion.extent.height = srcTexture->mResolution.y;
+		imageCopyRegion.extent.depth = srcTexture->mResolution.z;
+
+		if (commandBuffer == VK_NULL_HANDLE) commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
+		{
+			PLAZA_PROFILE_SECTION("Copy");
+			vkCmdCopyImage(
+				commandBuffer,
+				srcTexture->mImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				dstTexture->mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				1, &imageCopyRegion
+			);
+		}
+		if (commandBuffer == VK_NULL_HANDLE) VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
+	}
+
 	void VulkanRenderer::CreateIndexBuffer(vector<uint32_t> indices,
 		VkBuffer& indicesBuffer,
 		VkDeviceMemory& indicesMemoryBuffer,
@@ -2346,29 +2385,29 @@ namespace Plaza {
 		EndSingleTimeCommands(commandBuffer);
 	}
 
-	VkImageView
-		VulkanRenderer::CreateImageView(VkImage image,
-			VkFormat format,
-			VkImageAspectFlags aspectFlags) {
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image = image;
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		viewInfo.format = format;
-		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		viewInfo.subresourceRange.baseMipLevel = 0;
-		viewInfo.subresourceRange.levelCount = 1;
-		viewInfo.subresourceRange.baseArrayLayer = 0;
-		viewInfo.subresourceRange.layerCount = 1;
-		viewInfo.subresourceRange.aspectMask = aspectFlags;
-
-		VkImageView imageView;
-		if (vkCreateImageView(mDevice, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create texture image view!");
-		}
-
-		return imageView;
-	}
+	//VkImageView
+	//	VulkanRenderer::CreateImageView(VkImage image,
+	//		VkFormat format,
+	//		VkImageAspectFlags aspectFlags) {
+	//	VkImageViewCreateInfo viewInfo{};
+	//	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	//	viewInfo.image = image;
+	//	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	//	viewInfo.format = format;
+	//	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	//	viewInfo.subresourceRange.baseMipLevel = 0;
+	//	viewInfo.subresourceRange.levelCount = 1;
+	//	viewInfo.subresourceRange.baseArrayLayer = 0;
+	//	viewInfo.subresourceRange.layerCount = 1;
+	//	viewInfo.subresourceRange.aspectMask = aspectFlags;
+	//
+	//	VkImageView imageView;
+	//	if (vkCreateImageView(mDevice, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+	//		throw std::runtime_error("failed to create texture image view!");
+	//	}
+	//
+	//	return imageView;
+	//}
 
 	void VulkanRenderer::CreateTextureImageView() {
 		mTextureImageView = CreateImageView(
@@ -3832,7 +3871,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-		}
+	}
 
 	void VulkanRenderer::AddTrackerToImage(VkImageView imageView,
 		std::string name,
@@ -3847,9 +3886,9 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			VulkanRenderer::GetRenderer()->mTrackedImages.push_back(TrackedImage{
 				ImTextureID(imguiDescriptorSet), std::chrono::system_clock::now(), name
 				});
-	});
+			});
 #endif
-}
+	}
 
 	void VulkanRenderer::AddMaterial(Material* material) {
 		MaterialData materialData{};

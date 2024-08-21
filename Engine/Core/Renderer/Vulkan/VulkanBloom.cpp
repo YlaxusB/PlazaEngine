@@ -283,8 +283,8 @@ namespace Plaza {
 		pushConstantRange.offset = 0; // Offset of the push constant block
 		pushConstantRange.size = sizeof(PushConstant); // Size of the push constant block
 
-		this->mComputeShadersScaleDown.Init(Application->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomDownScale.comp", 1, pushConstantRange);
-		this->mComputeShadersScaleUp.Init(Application->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomUpScale.comp", 1, pushConstantRange);
+		this->mComputeShadersScaleDown.Init(Application->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomDownScale.comp", { pushConstantRange });
+		this->mComputeShadersScaleUp.Init(Application->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomUpScale.comp", { pushConstantRange });
 	}
 
 	void VulkanBloom::UpdateUniformBuffers(glm::vec2 texelSize, unsigned int mipLevel, bool useThreshold) {
@@ -406,7 +406,7 @@ namespace Plaza {
 
 		{
 			PLAZA_PROFILE_SECTION("Transition 1");
-			 VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mLighting->mDeferredEndTexture.mImage, VulkanRenderer::GetRenderer()->mFinalDeferredFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mLighting->mDeferredEndTexture.mImage, VulkanRenderer::GetRenderer()->mFinalDeferredFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 		}
 		{
 			PLAZA_PROFILE_SECTION("Transition 2");

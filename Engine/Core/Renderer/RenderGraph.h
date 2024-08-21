@@ -104,10 +104,10 @@ namespace Plaza {
 		PlRenderPassMode mRenderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
 		uint16_t mMultiViewCount = 0;
 		glm::vec2 mRenderSize = glm::vec2(0, 0);
+		glm::vec3 mDispatchSize = glm::vec3();
 		bool mFlipViewPort = true;
 
 		std::vector<std::shared_ptr<PlazaPipeline>> mPipelines = std::vector<std::shared_ptr<PlazaPipeline>>();
-		std::vector<PlPipelineCreateInfo> mPipelinesCreateInfo = std::vector<PlPipelineCreateInfo>();
 
 		std::map<std::string, std::shared_ptr<PlazaRenderPass>> mDependencies = std::map<std::string, std::shared_ptr<PlazaRenderPass>>();
 		std::map<std::string, std::shared_ptr<PlazaRenderPass>> mDependents = std::map<std::string, std::shared_ptr<PlazaRenderPass>>();
@@ -117,24 +117,36 @@ namespace Plaza {
 		std::vector<shared_ptr<PlazaShadersBinding>> mOutputBindings = std::vector<shared_ptr<PlazaShadersBinding>>();
 		std::map<std::string, shared_ptr<PlazaShadersBinding>> mOutputBindingNames = std::map<std::string, shared_ptr<PlazaShadersBinding>>();
 
+
 		std::function<void(PlazaRenderGraph*, PlazaRenderPass*)> mCallback = [](PlazaRenderGraph*, PlazaRenderPass*) {};
 
 		virtual void Compile(PlazaRenderGraph* renderGraph) {};
 		virtual void Execute(PlazaRenderGraph* renderGraph) {
 			mCallback(renderGraph, this);
-			this->BindRenderPass();
-			this->BindMainBuffers();
-			for (auto& pipeline : mPipelines) {
-				switch (pipeline->mCreateInfo.renderMethod) {
-				case PL_RENDER_PASS_FULL_SCREEN_QUAD: this->RenderFullScreenQuad(pipeline.get()); break;
-				case PL_RENDER_PASS_INDIRECT_BUFFER: this->RenderIndirectBuffer(pipeline.get()); break;
-				case PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP: this->RenderIndirectBufferShadowMap(pipeline.get()); break;
-				case PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH: this->RenderIndirectBufferSpecificMesh(pipeline.get()); break;
-				case PL_RENDER_PASS_CUBE: this->RenderCube(pipeline.get()); break;
-				case PL_RENDER_PASS_COMPUTE: this->RunCompute(pipeline.get()); break;
+			if (mRenderMethod != PL_RENDER_PASS_HOLDER) {
+
+				if (mRenderMethod != PL_RENDER_PASS_COMPUTE) {
+					this->BindRenderPass();
+					this->BindMainBuffers();
+				}
+				for (auto& pipeline : mPipelines) {
+					switch (pipeline->mCreateInfo.renderMethod) {
+					case PL_RENDER_PASS_FULL_SCREEN_QUAD: this->RenderFullScreenQuad(pipeline.get()); break;
+					case PL_RENDER_PASS_INDIRECT_BUFFER: this->RenderIndirectBuffer(pipeline.get()); break;
+					case PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP: this->RenderIndirectBufferShadowMap(pipeline.get()); break;
+					case PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH: this->RenderIndirectBufferSpecificMesh(pipeline.get()); break;
+					case PL_RENDER_PASS_CUBE: this->RenderCube(pipeline.get()); break;
+					case PL_RENDER_PASS_COMPUTE: this->RunCompute(pipeline.get()); break;
+					}
 				}
 			}
-			this->EndRenderPass();
+
+			for (auto& renderPass : mChildPasses) {
+				renderPass->Execute(renderGraph);
+			}
+
+			if (mRenderMethod != PL_RENDER_PASS_HOLDER && mRenderMethod != PL_RENDER_PASS_COMPUTE)
+				this->EndRenderPass();
 		};
 		virtual void BindMainBuffers() {};
 		virtual void BindRenderPass() {};
@@ -146,11 +158,13 @@ namespace Plaza {
 		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) { };
 		virtual void RenderCube(PlazaPipeline* pipeline) { };
 		virtual void RunCompute(PlazaPipeline* pipeline) { };
-		virtual void CompilePipeline(PlPipelineCreateInfo createInfo) {};
+		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) {};
 
-		void AddPipeline(PlPipelineCreateInfo createInfo) {
-			mPipelinesCreateInfo.push_back(createInfo);
+		std::shared_ptr<PlazaPipeline> AddPipeline(std::shared_ptr<PlazaPipeline> pipeline) {
+			mPipelines.push_back(pipeline);
+			return pipeline;
 		};
+		virtual std::shared_ptr<PlazaPipeline> AddPipeline(PlPipelineCreateInfo createInfo) { return nullptr; };
 
 		void SetRecordingCallback(std::function<void(PlazaRenderGraph*, PlazaRenderPass*)> callback) {
 			mCallback = callback;
@@ -182,7 +196,13 @@ namespace Plaza {
 			return dynamic_cast<T*>(mOutputBindingNames.at(name).get());
 		}
 
+		PlazaRenderPass* AddChildPass(std::shared_ptr<PlazaRenderPass> pass) {
+			mChildPasses.push_back(pass);
+			return pass.get();
+		}
+		std::vector<std::shared_ptr<PlazaRenderPass>> mChildPasses = std::vector<std::shared_ptr<PlazaRenderPass>>();
 	private:
+		virtual void CompileGraphics(PlazaRenderGraph* renderGraph) { };
 	};
 
 	struct BindingModifiers {

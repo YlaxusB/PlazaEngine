@@ -37,7 +37,7 @@ namespace Plaza {
 
 		void CreateComputeDescriptorSetLayout();
 
-		void Init(std::string shadersPath, unsigned int pushConstantsCount = 0, VkPushConstantRange pushConstantRange = VkPushConstantRange{});
+		void Init(std::string shadersPath, std::vector<VkPushConstantRange> pushConstantsRange = {});
 		void RunCompute();
 		void Draw();
 		void Dispatch(int x, int y, int z, void* pushConstantData = nullptr, unsigned int pushConstantSize = 0, VkDescriptorSet descriptorSet = VK_NULL_HANDLE);
@@ -49,8 +49,8 @@ namespace Plaza {
 		std::vector<VkWriteDescriptorSet> mDescriptorWrites{};
 		std::vector<VkDescriptorSet> mComputeDescriptorSets;
 		VkPipelineLayout mComputePipelineLayout;
-	private:
 		VkPipeline mComputePipeline;
+	private:
 
 		std::vector<VkBuffer> mUniformBuffers;
 		std::vector<VkDeviceMemory> mUniformBuffersMemory;

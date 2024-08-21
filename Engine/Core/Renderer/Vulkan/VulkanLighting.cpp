@@ -153,7 +153,7 @@ namespace Plaza {
 		pushConstantRange.size = sizeof(LightSorterPushConstants);
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
-		this->mLightSorterComputeShaders.Init(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\lightSorter.comp", 1, pushConstantRange);
+		this->mLightSorterComputeShaders.Init(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\lightSorter.comp", { pushConstantRange });
 
 		/* Initialize Deferred Pass */
 		VkFormat form = VK_FORMAT_R32G32B32A32_SFLOAT;

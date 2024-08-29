@@ -104,7 +104,7 @@ namespace Plaza {
 		PlRenderPassMode mRenderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
 		uint16_t mMultiViewCount = 0;
 		glm::vec2 mRenderSize = glm::vec2(0, 0);
-		glm::vec3 mDispatchSize = glm::vec3();
+		glm::vec3 mDispatchSize = glm::vec3(0, 0, 0);
 		bool mFlipViewPort = true;
 
 		std::vector<std::shared_ptr<PlazaPipeline>> mPipelines = std::vector<std::shared_ptr<PlazaPipeline>>();
@@ -158,7 +158,10 @@ namespace Plaza {
 		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) { };
 		virtual void RenderCube(PlazaPipeline* pipeline) { };
 		virtual void RunCompute(PlazaPipeline* pipeline) { };
-		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) {};
+		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) { };
+		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) { };
+		virtual void ReCompileShaders() { };
+
 
 		std::shared_ptr<PlazaPipeline> AddPipeline(std::shared_ptr<PlazaPipeline> pipeline) {
 			mPipelines.push_back(pipeline);

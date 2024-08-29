@@ -92,8 +92,6 @@ void main() {
     mat4 finalInstanceMatrix = model;
     FragPos = vec3(model * vec4(inPosition, 1.0));
 
-    Normal.xyz = transpose(inverse(mat3(finalInstanceMatrix))) * inNormal;
-
     vec4 totalPosition = vec4(0.0f);
     bool allNegative = true;
 
@@ -125,9 +123,10 @@ void main() {
     worldPos.xyz = vec3(finalModel);
     gl_Position = ubo.projection * ubo.view * finalModel;
 
+    Normal.xyz = transpose(inverse(mat3(finalInstanceMatrix))) * inNormal;
     Tangent = vec3(mat3(finalInstanceMatrix) * inTangent.xyz);
 
-    vec3 N = normalize(Normal);
+    vec3 N = normalize(Normal.xyz);
 	vec3 T = normalize(Tangent.xyz);
 	vec3 B = normalize(cross(N, T));
 	outTBN = mat3(T, B, N);

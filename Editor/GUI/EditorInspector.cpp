@@ -5,6 +5,7 @@
 #include "Editor/Settings/EditorSettings.h"
 #include "Editor/Settings/SettingsSerializer.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanBloom.h"
+#include "Editor/GUI/Utils/DataVisualizer.h"
 
 namespace Plaza::Editor {
      void EditorInspector::Update() {
@@ -34,6 +35,21 @@ namespace Plaza::Editor {
                     if (ImGui::Button("Save Settings")) {
                          Editor::EditorSettingsSerializer::Serialize();
                     }
+               }
+
+               /* Render Graph */
+               if (Utils::ComponentInspectorHeader(nullptr, "RenderGraph", NULL)) {
+                       ImGui::BeginTable("Terrain Editor Tool Settings", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
+                   for (const auto& [key, pass] : VulkanRenderer::GetRenderer()->mRenderGraph->mPasses) {
+                       Utils::AddTableSingleString(pass->mName);
+                       bool recompile;
+                       Utils::AddTableButtonString(pass->mName, "Recompile Shaders", &recompile, 0, [pass](bool* value){
+                           if (*value) {
+                               pass->ReCompileShaders();
+                           }
+                           });
+                   }
+                       ImGui::EndTable();
                }
 
                /* Colors */

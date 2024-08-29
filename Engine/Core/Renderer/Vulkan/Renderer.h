@@ -224,6 +224,8 @@ namespace Plaza {
 		};
 
 		VkInstance mVulkanInstance = VK_NULL_HANDLE;
+
+		void WaitRendererHere();
 	private:
 		struct SwapChainPushConstant {
 			float exposure = 1.2f;
@@ -279,6 +281,7 @@ namespace Plaza {
 		void UpdateUniformBuffer(uint32_t currentImage);
 		void CreateDescriptorSetLayout();
 		void InitializeGeometryPassRenderer();
+
 
 		void CreateTextureImage();
 		VkDescriptorSet GetGeometryPassDescriptorSet(unsigned int frame);

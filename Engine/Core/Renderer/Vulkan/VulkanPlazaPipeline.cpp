@@ -57,6 +57,7 @@ namespace Plaza {
 	}
 
 	void VulkanPlazaPipeline::Terminate() {
-
+		vkDestroyPipelineLayout(VulkanRenderer::GetRenderer()->mDevice, mShaders->mPipelineLayout, nullptr);
+		vkDestroyPipeline(VulkanRenderer::GetRenderer()->mDevice, mShaders->mPipeline, nullptr);
 	}
 }

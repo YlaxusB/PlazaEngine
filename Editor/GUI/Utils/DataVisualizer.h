@@ -93,6 +93,32 @@ namespace Plaza::Editor::Utils {
 				callback(value);
 	}
 
+	static void AddTableSingleString(std::string name, ImGuiSliderFlags flags = ImGuiSliderFlags_None) {
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::Text(name.c_str());
+		ImGui::TableNextColumn();
+	}
+
+	static void AddTableButton(std::string name, bool* value, ImGuiSliderFlags flags = ImGuiSliderFlags_None, std::function<void(bool*) > callback = nullptr) {
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		if (ImGui::Button(name.c_str()))
+			if (callback)
+				callback(value);
+		ImGui::TableNextColumn();
+	}
+
+	static void AddTableButtonString(std::string name, std::string buttonName, bool* value, ImGuiSliderFlags flags = ImGuiSliderFlags_None, std::function<void(bool*) > callback = nullptr) {
+		ImGui::TableNextRow();
+		ImGui::Text(name.c_str());
+		ImGui::TableNextColumn();
+		if (ImGui::Button(std::string(buttonName + "##" + name).c_str()))
+			if (callback)
+				callback(value);
+		ImGui::TableNextColumn();
+	}
+
 	static float GetMinimumSpeed(float value, float divider, float min) {
 		float dividedValue = glm::abs(value) / (divider * 10);
 		float minimumSpeed = dividedValue > 0 ? dividedValue : min;

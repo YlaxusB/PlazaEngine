@@ -56,7 +56,7 @@ layout(location = 17) in vec4 worldPos;
 layout(location = 18) in flat int affected;
 
 //layout (location = 0) out vec4 gPosition;
-layout (location = 0) out vec2 gNormal;
+layout (location = 0) out vec4 gNormal;
 layout (location = 1) out vec4 gDiffuse;
 layout (location = 2) out vec4 gOthers;
 
@@ -150,10 +150,30 @@ float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
     return GL * GV;
 }
 
-vec3 getNormalFromMap()
-{
-	vec3 tangentNormal = texture(textures[material.normalIndex], fragTexCoord).xyz * 2.0 - 1.0;
-	return normalize(inTBN * tangentNormal);
+mat3 computeTBN(vec3 normal, vec3 tangent) {
+    vec3 bitangent = cross(normal, tangent);
+    return mat3(tangent, bitangent, normal);
+}
+
+vec3 getNormalFromMap(vec3 N) {
+    vec3 bumpNormal = texture(textures[material.normalIndex], fragTexCoord).xyz * 2.0 - 1.0;
+    //bumpNormal.y *= -1.0f;
+	vec3 tangentNormal = Tangent;
+    vec3 bitangentNormal = cross(N, tangentNormal);
+    //bitangentNormal *= -1.0f;
+    //bitangentNormal.y *= -1.0f;
+
+        mat3 TBN = mat3(tangentNormal, bitangentNormal, N);
+
+        vec3 newNormal = normalize(TBN * bumpNormal);
+        newNormal.y *= -1.0f;
+        return newNormal;
+
+	////vec3 N = normalize(inNormal);
+	//vec3 T = normalize(Tangent.xyz);
+	//vec3 B = normalize(cross(N, T));
+	//mat3 TBN = mat3(T, B, N);
+	//return normalize(TBN * tangentNormal);
 }
 
 vec3 F_Schlick(float cosTheta, vec3 F0)
@@ -166,8 +186,7 @@ vec3 F_SchlickR(float cosTheta, vec3 F0, float roughness)
 	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 prefilteredReflection(vec3 R, float roughness)
-{
+vec3 prefilteredReflection(vec3 R, float roughness) {
 	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
 	float lod = roughness * MAX_REFLECTION_LOD;
 	float lodf = floor(lod);
@@ -214,7 +233,7 @@ void main() {
 
     vec3 N = normalize(inNormal.xyz);
     if(material.normalIndex > -1) {
-        N = getNormalFromMap();//texture(textures[material.normalIndex], fragTexCoord).xyz * 2.0 - 1.0
+        N = getNormalFromMap(inNormal.xyz);
     }
 
     float metallic = material.metalnessFloat;
@@ -241,7 +260,7 @@ void main() {
 
     vec3 L = normalize(ubo.lightDirection.xyz); // Directional light direction
 
-    vec3 Lo = specularContribution(L, V, N, F0, metallic, roughness, albedo);
+    vec3 Lo = specularContribution(L, V, normalize(inNormal.xyz), F0, metallic, roughness, albedo);
 
     vec3 irradiance = texture(irradianceMap, N).rgb;
     vec3 diffuse = irradiance * albedo.xyz;
@@ -277,14 +296,12 @@ void main() {
 
 
     /* Geometry */
-    gOthers.xyz = vec3(specular);
-    gOthers.y = metallic;
-    gOthers.z = roughness;
+    gOthers.xyz = vec3(specular.x, metallic, roughness);
     //gPosition = vec4(worldPos);
     gDiffuse = vec4(FinalColor, 1.0f);
-    if(material.normalIndex > -1)
-        N = -N;
-    gNormal = vec2(N.xy);
+    //if(material.normalIndex > -1)
+    //    N = -N;
+    gNormal = vec4(N.xyz, 1.0f);
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)

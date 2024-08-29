@@ -193,6 +193,12 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float
 #define MAX_POINT_LIGHT_PER_TILE 2048
 //#define SHOW_HEATMAP
 
+float linearizeDepth(float depth) {
+    float far = 15000.0f;
+    float near = 0.01f;
+    return (-far * near / (depth * (far - near) - far));
+}
+
 void main()
 {  
     // retrieve data from gbuffer
@@ -200,84 +206,99 @@ void main()
     // then calculate lighting as usual
     vec3 lighting  = vec3(0.0f);//Diffuse * 0.1; // hard-coded ambient component
 
+    mat4 viewProjection = pushConstants.projection * pushConstants.view;
+       float depth = (texture(gSceneDepth, TexCoords).r);
+       float ndcZ = depth * 2.0f - 1.0f; 
+        vec4 ndcPosition = vec4(gl_FragCoord.xy * (1.0f / screenSize) * 2.0 - 1.0, depth, 1.0);
+        ndcPosition.y *= -1;
+        vec4 worldPosition = inverse(viewProjection) * ndcPosition;
+        worldPosition.xyz /= worldPosition.w;
+      vec3 FragPos = worldPosition.xyz;
 
-    if(pushConstants.lightCount > 0) {
+      //vec2 inv_resolution = vec2(1.0f / screenSize);
+      //vec4 clip = vec4(gl_FragCoord.xy * inv_resolution * 2.0 - 1.0, depth, 1.0);
+      //clip.y *= -1;
+      //vec4 world_w = inverse(viewProjection) * clip;
+      //
+      //FragPos.xyz = world_w.xyz / world_w.w;
+
         // Reconstruct world-space position from depth
-        vec2 screenPos = (gl_FragCoord.xy / screenSize) * 2.0 - 1.0;
-        float depth = texture(gSceneDepth, TexCoords).r;
-        vec4 clipSpacePos = vec4(screenPos.xy, depth, 1.0);
-        vec4 viewSpacePos = pushConstants.inverseView * clipSpacePos;
-        viewSpacePos /= viewSpacePos.w;
-        vec3 FragPos = (pushConstants.inverseView * viewSpacePos).xyz;
-
-        // Reconstruct normal from 2-component packed normal
-        vec2 encodedNormal = texture(gNormal, TexCoords).xy;
-        vec3 Normal;
-        Normal.xy = encodedNormal;
-        Normal.z = sqrt(1.0 - dot(Normal.xy, Normal.xy));
-        Normal = normalize(Normal);
-
-        //vec3 FragPos = texture(gPosition, TexCoords).rgb;
-        //vec3 Normal = texture(gNormal, TexCoords).rgb;
-        float Specular = texture(gOthers, TexCoords).x;
-        float metalness = texture(gOthers, TexCoords).y;
-        float roughness = texture(gOthers, TexCoords).z;
-        vec3 spe = texture(gOthers, TexCoords).xyz;
-
+       // vec2 screenPos = (gl_FragCoord.xy / vec2(1820.0f, 720.0f)) * 2.0 - 1.0;
+       // vec4 clipSpacePos =  vec4(fragCoord.xy * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);//vec4(screenPos.xy, depth, 1.0);
+       // vec4 viewSpacePos = inverse(pushConstants.projection) * clipSpacePos;
+       // viewSpacePos /= viewSpacePos.w;
+       // vec4 FragPos = (pushConstants.inverseView * viewSpacePos);
+       // FragPos = FragPos.xyz / FragPos.w;
         vec2 clusterCount = ceil(screenSize / clusterSize.xy);
         int clusterIndex = GetIndex(TexCoords, clusterCount);
         Cluster currentCluster = clusters[clusterIndex];
+    if(pushConstants.lightCount > 0 && depth != 1.0f) {
+
+       // // Reconstruct normal from 2-component packed normal
+       // vec2 encodedNormal = texture(gNormal, TexCoords).xy;
+       // vec3 Normal;
+       // Normal.xy = encodedNormal;
+       // Normal.z = sqrt(1.0 - dot(Normal.xy, Normal.xy));
+       // Normal = normalize(Normal);
+
+        //vec3 FragPos = texture(gPosition, TexCoords).rgb;
+        vec3 Normal = texture(gNormal, TexCoords).rgb;
+        const vec3 Others = texture(gOthers, TexCoords).xyz;
+        const float Specular = Others.x;//texture(gOthers, TexCoords).x;
+        const float metalness = Others.y;//texture(gOthers, TexCoords).y;
+        const float roughness = Others.z;//texture(gOthers, TexCoords).z;
+        //vec3 spe = texture(gOthers, TexCoords).xyz;
+
 
         vec3 viewDir  = normalize(pushConstants.viewPos - FragPos);
 
         vec3 F0 = vec3(0.04); 
         F0 = mix(F0, Diffuse, metalness);
 
-        vec3 V = normalize(pushConstants.viewPos.xyz - (FragPos.xyz));
+        vec3 V = normalize(pushConstants.viewPos - FragPos.xyz);
 
         for (int i = 0; i < MAX_POINT_LIGHT_PER_TILE && clusters[clusterIndex].lightsIndex[i] != -1; ++i) {
 
             LightStruct light = lights[clusters[clusterIndex].lightsIndex[i]];
-            //light.color = vec3(1.0f, 0.0f, 0.0f);
-            vec3 lightPosition = light.position.xyz;
+            vec3 lightPosition = light.position; //vec3(pushConstants.view * vec4(light.position, 1.0));
 
-            // calculate distance between light source and current fragment
+            vec3 lightDirection = normalize(lightPosition.xyz - FragPos); // Directional light direction
             float distance = length(lightPosition - FragPos);
 
-            if(distance < light.radius)
-            {
+            //if(distance < light.radius)
+            //{
+            
+            //vec3 L = lightPosition.xyz - FragPos;
+            float dist = length(lightDirection);
+            lightDirection = normalize(lightPosition.xyz - FragPos);
+            //if(dist < 25)
+            //lighting += vec3(0.3f, 1.0f, 0.0f);
+            
+           float atten = light.radius / (pow(distance, light.cutoff) + 1.0);//light.radius / (pow(dist, light.cutoff) + 1.0);
 
-                vec3 L = normalize(-lightPosition.xyz - FragPos); // Directional light direction
-
-
-                //vec3 L = lightPosition.xyz - FragPos;
-		        float dist = length(L);
-                
-		        L = normalize(L);
-		        float atten = light.radius / (pow(dist, light.cutoff) + 1.0);
-                
-		        vec3 N = normalize(Normal);
-		        float NdotL = max(0.0, dot(N, L));
-                vec3 lightColor = light.color * light.intensity;
-		        vec3 diff = min(lightColor * Diffuse * NdotL * atten, lightColor);
-                //float atten = light.radius / (pow(dist, light.cutoff) + 1.0);
-                vec3 Lo = specularContribution(L, V, Normal, F0, metalness, roughness, diff);
-                lighting += diff + Lo * atten;
-            }
+            vec3 N = normalize(Normal);
+            float NdotL = max(0.0, dot(N, lightDirection));
+            vec3 lightColor = light.color * light.intensity;
+            vec3 diff = min(lightColor * Diffuse * NdotL * atten, lightColor);
+            //float atten = light.radius / (pow(dist, light.cutoff) + 1.0);
+            vec3 Lo = specularContribution(lightDirection, V, N, F0, metalness, roughness, diff);
+           lighting += diff + Lo * atten;
+           //lighting += Normal;//FragPos;//lightColor * atten;
+           //}
         }    
      }
     //lighting += 1.0f;
     vec3 color;
 
 //#ifdef SHOW_HEATMAP
-//    vec2 co = TexCoords * screenSize;// (clusterSize.xy );//* clusterSize.xy);
-//    vec2 pos = co.xy;
-//    const float w = screenSize.x;
-//    const uint gridIndex = uint(GetGridIndex(pos));
-//    const Frustum f = frustums[gridIndex];
-//    const float halfTile = 32 / 2; // (screenSize.x);//clusterSize.x / 2 / screenSize.x);
-//    const float halfTileY = halfTile; // (screenSize.y);//clusterSize.x / 2 / screenSize.x);
-//    color = abs(f.planes[1].Normal);
+    vec2 co = TexCoords * screenSize;// (clusterSize.xy );//* clusterSize.xy);
+    vec2 pos = co.xy;
+    const float w = screenSize.x;
+    const uint gridIndex = uint(GetGridIndex(pos));
+   // const Frustum f = frustums[gridIndex];
+    const float halfTile = 32 / 2; // (screenSize.x);//clusterSize.x / 2 / screenSize.x);
+    const float halfTileY = halfTile; // (screenSize.y);//clusterSize.x / 2 / screenSize.x);
+   // color = abs(f.planes[1].Normal);
 //    if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) == gridIndex)
 //    {
 //        color = abs(f.planes[0].Normal);
@@ -291,19 +312,21 @@ void main()
 //        color = abs(f.planes[3].Normal);//abs(f.planes[3].Normal);
 //    }
 //
-//    clusterIndexXY = pos / 32;
-//    float c = (clusterIndexXY.x + clusterCount.x * clusterIndexXY.y) * 0.00001f;
-//    if(int(clusterIndexXY.x) % 2 == 0) c += 0.1f;
-//    if(int(clusterIndexXY.y) % 2 == 0) c += 0.1f;
+    //clusterIndexXY = pos / 32;
+    //float c = (clusterIndexXY.x + clusterCount.x * clusterIndexXY.y) * 0.00001f;
+    //if(int(clusterIndexXY.x) % 2 == 0) c += 0.1f;
+    //if(int(clusterIndexXY.y) % 2 == 0) c += 0.1f;
 //
-//    vec3 heatmap = HeatMap(clusterIndex, currentCluster.lightsCount).xyz;
-//    heatmap = heatmap == vec3(0.0f, 1.0f, 0.0f) ? vec3(0.0f, 0.0f, 0.5f) : heatmap;
+    vec3 heatmap = HeatMap(clusterIndex, currentCluster.lightsCount).xyz;
+    //heatmap = heatmap == vec3(0.0f, 1.0f, 0.0f) ? vec3(0.0f, 0.0f, 0.5f) : heatmap;
 //
 //
 //    color = mix(Diffuse + lighting, heatmap, 0.8f);
 //
 //#else
     color = Diffuse + lighting;
+   //color = heatmap;
+  // color = FragPos;
     //const float maxFogDistance = 2000.0f;
     //float fogDensity = 1.0f / maxFogDistance;
     //float fogFactor = exp(-fogDensity * length(pushConstants.viewPos - FragPos));

@@ -4156,5 +4156,33 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			memcpy(data, renderGroupOffsets.data(), sizeof(uint32_t) * renderGroupOffsets.size());
 			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
 		}
+
+		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("LightsBuffer");
+			VulkanRenderer::GetRenderer()->mLighting->mLights.clear();
+			for (const auto& [key, value] : Application->activeScene->lightComponents) {
+				glm::vec3 position = Application->activeScene->transformComponents.at(key).GetWorldPosition();
+				VulkanRenderer::GetRenderer()->mLighting->mLights.push_back(VulkanLighting::LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff });
+			}
+
+			void* data;
+			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
+			memcpy(data, mLighting->mLights.data(), sizeof(Lighting::LightStruct) * mLighting->mLights.size());
+			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+		}
+	}
+
+	void VulkanRenderer::WaitRendererHere() {
+		VkSubmitInfo submitInfo = {};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		VkFenceCreateInfo fenceCreateInfo = {};
+		fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fenceCreateInfo.flags = 0;
+
+		vkCreateFence(mDevice, &fenceCreateInfo, nullptr, &mInFlightFences[mCurrentFrame]);
+		vkQueueSubmit(mGraphicsQueue, 0, nullptr, mInFlightFences[mCurrentFrame]);
+		vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+		//vkDestroyFence(mDevice, mInFlightFences[mCurrentFrame], nullptr);
 	}
 }

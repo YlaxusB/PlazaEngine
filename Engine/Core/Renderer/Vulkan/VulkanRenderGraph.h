@@ -954,6 +954,8 @@ namespace Plaza {
 		virtual void RunCompute(PlazaPipeline* pipeline) override;
 		virtual void RenderCube(PlazaPipeline* pipeline) override;
 		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
+		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
+		virtual void ReCompileShaders() override;
 
 		virtual std::shared_ptr<PlazaPipeline> AddPipeline(PlPipelineCreateInfo createInfo) override {
 			std::shared_ptr<VulkanPlazaPipeline> pipeline = std::make_shared<VulkanPlazaPipeline>();
@@ -985,11 +987,14 @@ namespace Plaza {
 		VkFramebuffer mFrameBuffer = VK_NULL_HANDLE;
 
 		std::vector<VkDescriptorSet> mDescriptorSets = std::vector<VkDescriptorSet>();
-		VkDescriptorSetLayout mDescriptorSetLayout;
+		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
 	private:
 		virtual void CompileGraphics(PlazaRenderGraph* renderGraph) override;
 		VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
 		std::vector<VkClearValue> mClearValues = std::vector<VkClearValue>();
+
+		void GetBindingDescriptorSet(const shared_ptr<PlazaShadersBinding>& binding,std::vector<VkDescriptorSetLayoutBinding>& descriptorSets,std::vector<VkDescriptorBindingFlagsEXT>& bindingFlags);
+		void GetBindingWriteInfo(const shared_ptr<PlazaShadersBinding>& binding, unsigned int i, std::vector<VkWriteDescriptorSet>& descriptorWrites, std::vector<VkDescriptorBufferInfo*>& bufferInfos, std::vector<VkDescriptorImageInfo*>& imageInfos);
 	};
 
 	class VulkanRenderGraph : public PlazaRenderGraph {

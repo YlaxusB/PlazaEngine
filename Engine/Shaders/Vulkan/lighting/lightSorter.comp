@@ -6,6 +6,7 @@ struct LightStruct {
     vec3 position;
     float intensity;
     float cutoff;
+    float minRadius;
 };
 
 

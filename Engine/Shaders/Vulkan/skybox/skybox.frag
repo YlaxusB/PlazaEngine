@@ -13,6 +13,7 @@ layout(push_constant) uniform PushConstants{
 	float skyboxIntensity;
 	float gamma;
 	float exposure;
+    float useless;
 } pushConstants;
 
 void main() {

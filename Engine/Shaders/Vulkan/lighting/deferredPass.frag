@@ -10,7 +10,6 @@ layout(push_constant) uniform PushConstants {
     vec3 viewPos;
     float time;
     mat4 view;
-    mat4 inverseView;
     mat4 projection;
     int lightCount;
     vec4 ambientLightColor;
@@ -196,7 +195,7 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float
 float linearizeDepth(float depth) {
     float far = 15000.0f;
     float near = 0.01f;
-    return (-far * near / (depth * (far - near) - far));
+    return (2.0 * near * far) / (far + near - depth * (far - near));
 }
 
 void main()
@@ -208,8 +207,8 @@ void main()
 
     mat4 viewProjection = pushConstants.projection * pushConstants.view;
        float depth = (texture(gSceneDepth, TexCoords).r);
-       float ndcZ = depth * 2.0f - 1.0f; 
-        vec4 ndcPosition = vec4(gl_FragCoord.xy * (1.0f / screenSize) * 2.0 - 1.0, depth, 1.0);
+       float ndcZ = (depth) * 2.0f - 1.0f; 
+        vec4 ndcPosition = vec4(gl_FragCoord.xy * (1.0f / screenSize) * 2.0 - 1.0, (depth), 1.0);
         ndcPosition.y *= -1;
         vec4 worldPosition = inverse(viewProjection) * ndcPosition;
         worldPosition.xyz /= worldPosition.w;
@@ -283,7 +282,7 @@ void main()
             //float atten = light.radius / (pow(dist, light.cutoff) + 1.0);
             vec3 Lo = specularContribution(lightDirection, V, N, F0, metalness, roughness, diff);
            lighting += diff + Lo * atten;
-           //lighting += Normal;//FragPos;//lightColor * atten;
+           //lighting += FragPos;//FragPos;//lightColor * atten;
            //}
         }    
      }
@@ -338,6 +337,7 @@ void main()
 
 
     FragColor = vec4(color, 1.0f);
+//    FragColor = vec4(color, 1.0f);
     //FragColor = vec4(currentCluster.lightsCount / MAX_POINT_LIGHT_PER_TILE, 0.0f, 0.0f, 1.0f);
     //FragColor = vec4(int(currentClusterPosition.x) % 2 == 0 && int(currentClusterPosition.y) % 2 == 0 ? 1.0f : 0.0f, 0.0f, 0.0f, 1.0f);
     //FragColor = vec4(currentClusterPosition.x, currentClusterPosition.y, clusterIndex, 1.0f);

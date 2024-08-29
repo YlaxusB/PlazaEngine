@@ -4162,12 +4162,13 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			VulkanRenderer::GetRenderer()->mLighting->mLights.clear();
 			for (const auto& [key, value] : Application->activeScene->lightComponents) {
 				glm::vec3 position = Application->activeScene->transformComponents.at(key).GetWorldPosition();
-				VulkanRenderer::GetRenderer()->mLighting->mLights.push_back(VulkanLighting::LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff });
+				VulkanRenderer::GetRenderer()->mLighting->mLights.push_back(Lighting::LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff, 0.0f });
 			}
 
 			void* data;
+			size_t bufferSize = sizeof(Lighting::LightStruct) * mLighting->mLights.size();
 			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
-			memcpy(data, mLighting->mLights.data(), sizeof(Lighting::LightStruct) * mLighting->mLights.size());
+			memcpy(data, mLighting->mLights.data(), bufferSize);
 			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
 		}
 	}

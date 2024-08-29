@@ -163,6 +163,8 @@ namespace Plaza {
 		std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
 		std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
 
+		bool noTangent = true;
+
 		for (size_t i = 0; i < scene->nodes.count; ++i) {
 			ufbx_node* node = scene->nodes.data[i];
 			ufbx_mesh* ufbxMesh = node->mesh;
@@ -255,8 +257,10 @@ namespace Plaza {
 					finalMesh->vertices.push_back(position * mModelImporterScale);
 					finalMesh->normals.push_back(normal);
 					finalMesh->uvs.push_back(uv);
-					if (ufbxMesh->vertex_tangent.exists)
+					if (ufbxMesh->vertex_tangent.exists) {
+						noTangent = false;
 						finalMesh->tangent.push_back(ConvertUfbxVec3(ufbxMesh->vertex_tangent[index]));
+					}
 					else
 						finalMesh->tangent.push_back(glm::vec3(0.0f));
 
@@ -297,66 +301,68 @@ namespace Plaza {
 				}
 			}
 
-			// Initialize tangents and bitangents arrays
-			std::vector<glm::vec3> accumulatedTangents(finalMesh->vertices.size(), glm::vec3(0.0f));
-			std::vector<glm::vec3> accumulatedBitangents(finalMesh->vertices.size(), glm::vec3(0.0f));
+			if (noTangent) {
+				// Initialize tangents and bitangents arrays
+				std::vector<glm::vec3> accumulatedTangents(finalMesh->vertices.size(), glm::vec3(0.0f));
+				std::vector<glm::vec3> accumulatedBitangents(finalMesh->vertices.size(), glm::vec3(0.0f));
 
-			// Calculate tangents and bitangents per triangle
-			for (size_t i = 0; i < finalMesh->indices.size(); i += 3) {
-				uint32_t i0 = finalMesh->indices[i];
-				uint32_t i1 = finalMesh->indices[i + 1];
-				uint32_t i2 = finalMesh->indices[i + 2];
+				// Calculate tangents and bitangents per triangle
+				for (size_t i = 0; i < finalMesh->indices.size(); i += 3) {
+					uint32_t i0 = finalMesh->indices[i];
+					uint32_t i1 = finalMesh->indices[i + 1];
+					uint32_t i2 = finalMesh->indices[i + 2];
 
-				glm::vec3& v0 = finalMesh->vertices[i0];
-				glm::vec3& v1 = finalMesh->vertices[i1];
-				glm::vec3& v2 = finalMesh->vertices[i2];
+					glm::vec3& v0 = finalMesh->vertices[i0];
+					glm::vec3& v1 = finalMesh->vertices[i1];
+					glm::vec3& v2 = finalMesh->vertices[i2];
 
-				glm::vec2& uv0 = finalMesh->uvs[i0];
-				glm::vec2& uv1 = finalMesh->uvs[i1];
-				glm::vec2& uv2 = finalMesh->uvs[i2];
+					glm::vec2& uv0 = finalMesh->uvs[i0];
+					glm::vec2& uv1 = finalMesh->uvs[i1];
+					glm::vec2& uv2 = finalMesh->uvs[i2];
 
-				// Calculate the edges of the triangle in model space
-				glm::vec3 deltaPos1 = v1 - v0;
-				glm::vec3 deltaPos2 = v2 - v0;
+					// Calculate the edges of the triangle in model space
+					glm::vec3 deltaPos1 = v1 - v0;
+					glm::vec3 deltaPos2 = v2 - v0;
 
-				// Calculate the differences in UV coordinates
-				glm::vec2 deltaUV1 = uv1 - uv0;
-				glm::vec2 deltaUV2 = uv2 - uv0;
+					// Calculate the differences in UV coordinates
+					glm::vec2 deltaUV1 = uv1 - uv0;
+					glm::vec2 deltaUV2 = uv2 - uv0;
 
-				// Calculate the tangent and bitangent
-				float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-				glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
-				glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+					// Calculate the tangent and bitangent
+					float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+					glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+					glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
 
-				// Accumulate the tangents and bitangents for each vertex of the triangle
-				accumulatedTangents[i0] += tangent;
-				accumulatedTangents[i1] += tangent;
-				accumulatedTangents[i2] += tangent;
+					// Accumulate the tangents and bitangents for each vertex of the triangle
+					accumulatedTangents[i0] += tangent;
+					accumulatedTangents[i1] += tangent;
+					accumulatedTangents[i2] += tangent;
 
-				accumulatedBitangents[i0] += bitangent;
-				accumulatedBitangents[i1] += bitangent;
-				accumulatedBitangents[i2] += bitangent;
-			}
-
-			// Normalize and orthogonalize tangents and bitangents for each vertex
-			for (size_t i = 0; i < finalMesh->vertices.size(); ++i) {
-				glm::vec3& n = finalMesh->normals[i];
-				glm::vec3& t = accumulatedTangents[i];
-				glm::vec3& b = accumulatedBitangents[i];
-
-				// Gram-Schmidt orthogonalize the tangent
-				t = glm::normalize(t - n * glm::dot(n, t));
-
-				// Calculate handedness (flip the tangent direction if necessary)
-				if (glm::dot(glm::cross(n, t), b) < 0.0f) {
-					t = t * -1.0f;
+					accumulatedBitangents[i0] += bitangent;
+					accumulatedBitangents[i1] += bitangent;
+					accumulatedBitangents[i2] += bitangent;
 				}
 
-				// Store the final tangent in the mesh
-				finalMesh->tangent[i] = t;
-			}
+				// Normalize and orthogonalize tangents and bitangents for each vertex
+				for (size_t i = 0; i < finalMesh->vertices.size(); ++i) {
+					glm::vec3& n = finalMesh->normals[i];
+					glm::vec3& t = accumulatedTangents[i];
+					glm::vec3& b = accumulatedBitangents[i];
 
-			finalMesh->tangent = accumulatedTangents;
+					// Gram-Schmidt orthogonalize the tangent
+					t = glm::normalize(t - n * glm::dot(n, t));
+
+					// Calculate handedness (flip the tangent direction if necessary)
+					if (glm::dot(glm::cross(n, t), b) < 0.0f) {
+						t = t * -1.0f;
+					}
+
+					// Store the final tangent in the mesh
+					finalMesh->tangent[i] = t;
+				}
+
+				finalMesh->tangent = accumulatedTangents;
+			}
 
 			vector<ufbx_vertex_stream> streams;
 			if (!finalMesh->vertices.empty())

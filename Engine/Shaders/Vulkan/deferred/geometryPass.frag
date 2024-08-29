@@ -157,17 +157,22 @@ mat3 computeTBN(vec3 normal, vec3 tangent) {
 
 vec3 getNormalFromMap(vec3 N) {
     vec3 bumpNormal = texture(textures[material.normalIndex], fragTexCoord).xyz * 2.0 - 1.0;
-    //bumpNormal.y *= -1.0f;
+    //bumpNormal *= -1.0;
 	vec3 tangentNormal = Tangent;
+    tangentNormal.y *= -1.0;
     vec3 bitangentNormal = cross(N, tangentNormal);
-    //bitangentNormal *= -1.0f;
-    //bitangentNormal.y *= -1.0f;
 
-        mat3 TBN = mat3(tangentNormal, bitangentNormal, N);
-
-        vec3 newNormal = normalize(TBN * bumpNormal);
-        newNormal.y *= -1.0f;
-        return newNormal;
+    mat3 TBN = mat3(tangentNormal, bitangentNormal, N);
+    vec3 newNormal = normalize(inTBN * bumpNormal);
+    return -newNormal;
+        
+        //vec3 t0 = cross(N, vec3(1, 0, 0));
+        //if(dot(t0, t0) < 0.001)
+        //    t0 = cross(N, vec3(0, 1, 0));
+        //t0 = normalize(t0);
+        //vec3 t1 = normalize(cross(N, t0));
+        //vec3 newNormal = normalize(mat3(t0, t1, N) * bumpNormal);
+        //return newNormal;
 
 	////vec3 N = normalize(inNormal);
 	//vec3 T = normalize(Tangent.xyz);
@@ -247,7 +252,7 @@ void main() {
         roughness = texture(textures[material.roughnessIndex], fragTexCoord).r;
     }
 
-    vec3 V = normalize(ubo.viewPos.xyz - (worldPos.xyz));
+    vec3 V =  normalize(ubo.viewPos.xyz - (worldPos.xyz));
     vec3 R = reflect(-V, N); 
 
     vec3 F0 = vec3(0.04); 
@@ -260,7 +265,7 @@ void main() {
 
     vec3 L = normalize(ubo.lightDirection.xyz); // Directional light direction
 
-    vec3 Lo = specularContribution(L, V, normalize(inNormal.xyz), F0, metallic, roughness, albedo);
+    vec3 Lo = specularContribution(L, V, N, F0, metallic, roughness, albedo);
 
     vec3 irradiance = texture(irradianceMap, N).rgb;
     vec3 diffuse = irradiance * albedo.xyz;
@@ -299,8 +304,6 @@ void main() {
     gOthers.xyz = vec3(specular.x, metallic, roughness);
     //gPosition = vec4(worldPos);
     gDiffuse = vec4(FinalColor, 1.0f);
-    //if(material.normalIndex > -1)
-    //    N = -N;
     gNormal = vec4(N.xyz, 1.0f);
 }
 

@@ -15,9 +15,10 @@ namespace Plaza {
 
 		struct Tile {
 			int lightIndices[256];
-			int lightsCount = 0;
-			glm::vec3 minBounds;
-			glm::vec3 maxBounds;
+			alignas(16) glm::vec3 minBounds;
+			alignas(0) int lightsCount = 0;
+			alignas(16) glm::vec3 maxBounds;
+			alignas(0) int alignment = 0;
 		};
 
 		struct Plane {

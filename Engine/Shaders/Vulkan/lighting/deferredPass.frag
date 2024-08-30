@@ -24,13 +24,15 @@ struct LightStruct {
     vec3 position;
     float intensity;
     float cutoff;
+    float minRadius;
 };
 
 struct Cluster{
     int[256] lightsIndex;
-    int lightsCount;
     vec3 minBounds;
+    int lightsCount;
     vec3 maxBounds;
+    int alignment;
 };
 
 struct Plane
@@ -287,68 +289,12 @@ void main()
         }    
      }
     //lighting += 1.0f;
-    vec3 color;
+    vec3 color = Diffuse + lighting;
 
-//#ifdef SHOW_HEATMAP
-    vec2 co = TexCoords * screenSize;// (clusterSize.xy );//* clusterSize.xy);
-    vec2 pos = co.xy;
-    const float w = screenSize.x;
-    const uint gridIndex = uint(GetGridIndex(pos));
-   // const Frustum f = frustums[gridIndex];
-    const float halfTile = 32 / 2; // (screenSize.x);//clusterSize.x / 2 / screenSize.x);
-    const float halfTileY = halfTile; // (screenSize.y);//clusterSize.x / 2 / screenSize.x);
-   // color = abs(f.planes[1].Normal);
-//    if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) == gridIndex)
-//    {
-//        color = abs(f.planes[0].Normal);
-//    }
-//    else if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) != gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) == gridIndex)
-//    {
-//        color = abs(f.planes[2].Normal);
-//    }
-//    else if(GetGridIndex(vec2(pos.x + halfTile, pos.y)) == gridIndex && GetGridIndex(vec2(pos.x, pos.y + halfTileY)) != gridIndex)
-//    {
-//        color = abs(f.planes[3].Normal);//abs(f.planes[3].Normal);
-//    }
-//
-    //clusterIndexXY = pos / 32;
-    //float c = (clusterIndexXY.x + clusterCount.x * clusterIndexXY.y) * 0.00001f;
-    //if(int(clusterIndexXY.x) % 2 == 0) c += 0.1f;
-    //if(int(clusterIndexXY.y) % 2 == 0) c += 0.1f;
-//
+#ifdef SHOW_HEATMAP
     vec3 heatmap = HeatMap(clusterIndex, currentCluster.lightsCount).xyz;
-    //heatmap = heatmap == vec3(0.0f, 1.0f, 0.0f) ? vec3(0.0f, 0.0f, 0.5f) : heatmap;
-//
-//
-//    color = mix(Diffuse + lighting, heatmap, 0.8f);
-//
-//#else
-    color = Diffuse + lighting;
-   //color = heatmap;
-  // color = FragPos;
-    //const float maxFogDistance = 2000.0f;
-    //float fogDensity = 1.0f / maxFogDistance;
-    //float fogFactor = exp(-fogDensity * length(pushConstants.viewPos - FragPos));
-    //color = mix(vec3(0.5f, 0.8f, 1.0f) * 1.0f, color, fogFactor);
-//#endif
-
-
-
-
+    color = (color + heatmap) * 0.5f;
+#endif
 
     FragColor = vec4(color, 1.0f);
-//    FragColor = vec4(color, 1.0f);
-    //FragColor = vec4(currentCluster.lightsCount / MAX_POINT_LIGHT_PER_TILE, 0.0f, 0.0f, 1.0f);
-    //FragColor = vec4(int(currentClusterPosition.x) % 2 == 0 && int(currentClusterPosition.y) % 2 == 0 ? 1.0f : 0.0f, 0.0f, 0.0f, 1.0f);
-    //FragColor = vec4(currentClusterPosition.x, currentClusterPosition.y, clusterIndex, 1.0f);
-    //FragColor = vec4(clusterColorDebugg, clusterIndex);
-    //FragColor = vec4(clusterIndex, clusterIndex, clusterIndex, 1.0f);
-
-
-    //FragColor = vec4(0.2f) + vec4(mod(viewSpaceCoords.x, clusterSize.x), mod(viewSpaceCoords.y, clusterSize.y), 0.0f, 1.0);
-    //FragColor = vec4(attenuation, 1.0f);//vec4(Diffuse, 1.0);
-    //FragColor = vec4(pow(Diffuse, vec3(2.2f)) * vec3(1 + texture(lightTexture, TexCoords)), 1.0);
 }
-
-
-//     FragColor = vec4(Diffuse * lighting, 1.0f);

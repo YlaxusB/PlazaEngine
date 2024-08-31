@@ -155,7 +155,7 @@ void main() {
 
             float distance = 0.0;
             for (uint j = 0; j < 6; j++) {
-                distance = dot(position, frustumPlanes[j]) + radius * radius;
+                distance = dot(position, frustumPlanes[j]) + radius * max(radius, 2.0f);
                 if (distance <= 0.0) {
                     break;
                 }

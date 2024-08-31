@@ -160,7 +160,8 @@ namespace Plaza {
 		virtual void RunCompute(PlazaPipeline* pipeline) { };
 		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) { };
 		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) { };
-		virtual void ReCompileShaders() { };
+		virtual void ResetPipelineCompiledBool() { };
+		virtual void ReCompileShaders(bool resetCompiledBool) { };
 
 
 		std::shared_ptr<PlazaPipeline> AddPipeline(std::shared_ptr<PlazaPipeline> pipeline) {
@@ -252,17 +253,6 @@ namespace Plaza {
 		}
 		void Compile() {
 			for (auto& pass : mOrderedPasses) {
-
-				for (auto& binding : pass->mInputBindings) {
-					binding->Compile(mCompiledBindings);
-					mCompiledBindings.insert(binding->mName);
-				}
-
-				for (auto& binding : pass->mOutputBindings) {
-					binding->Compile(mCompiledBindings);
-					mCompiledBindings.insert(binding->mName);
-				}
-
 				pass->Compile(this);
 			}
 		}

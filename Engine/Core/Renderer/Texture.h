@@ -20,6 +20,7 @@ namespace Plaza {
 		glm::vec3 mResolution = glm::vec3(1, 1, 1);
 		uint8_t mMipCount = 1;
 		uint16_t mLayersCount = 1;
+		PlImageLayout mInitialLayout = PL_IMAGE_LAYOUT_UNDEFINED;
 		std::string mName = "";
 		std::string mPath = "";
 		bool mIsHdr = false;

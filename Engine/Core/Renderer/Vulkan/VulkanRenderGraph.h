@@ -921,7 +921,11 @@ namespace Plaza {
 			if (mTexture == nullptr)
 				return VkDescriptorImageInfo{};
 
-			return plvk::descriptorImageInfo(GetTexture()->GetLayout(), GetTexture()->mImageView, GetTexture()->mSampler);
+			bool useNonDefaultView = mBaseMipLevel != 0 || mBaseLayerLevel != 0;
+			if (useNonDefaultView)
+				return plvk::descriptorImageInfo(GetTexture()->GetLayout(), mNonDefaultView, GetTexture()->mSampler);
+			else
+				return plvk::descriptorImageInfo(GetTexture()->GetLayout(), GetTexture()->mImageView, GetTexture()->mSampler);
 		}
 
 		VkWriteDescriptorSet GetDescriptorWrite(VkDescriptorSet& descriptorSet, VkDescriptorImageInfo* imageInfo) {
@@ -955,7 +959,8 @@ namespace Plaza {
 		virtual void RenderCube(PlazaPipeline* pipeline) override;
 		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
 		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
-		virtual void ReCompileShaders() override;
+		virtual void ResetPipelineCompiledBool() override;
+		virtual void ReCompileShaders(bool resetCompiledBool) override;
 
 		virtual std::shared_ptr<PlazaPipeline> AddPipeline(PlPipelineCreateInfo createInfo) override {
 			std::shared_ptr<VulkanPlazaPipeline> pipeline = std::make_shared<VulkanPlazaPipeline>();
@@ -993,7 +998,7 @@ namespace Plaza {
 		VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
 		std::vector<VkClearValue> mClearValues = std::vector<VkClearValue>();
 
-		void GetBindingDescriptorSet(const shared_ptr<PlazaShadersBinding>& binding,std::vector<VkDescriptorSetLayoutBinding>& descriptorSets,std::vector<VkDescriptorBindingFlagsEXT>& bindingFlags);
+		void GetBindingDescriptorSet(const shared_ptr<PlazaShadersBinding>& binding, std::vector<VkDescriptorSetLayoutBinding>& descriptorSets, std::vector<VkDescriptorBindingFlagsEXT>& bindingFlags);
 		void GetBindingWriteInfo(const shared_ptr<PlazaShadersBinding>& binding, unsigned int i, std::vector<VkWriteDescriptorSet>& descriptorWrites, std::vector<VkDescriptorBufferInfo*>& bufferInfos, std::vector<VkDescriptorImageInfo*>& imageInfos);
 	};
 

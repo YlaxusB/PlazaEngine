@@ -7,7 +7,7 @@ layout(push_constant) uniform PushConstants {
     vec4 u_threshold;
     vec2 u_texel_size;
     int u_mip_level;
-    bool u_use_threshold;
+    int u_use_threshold;
 } pushConstants;
 
 const float epsilon = 1.0e-4;
@@ -108,7 +108,7 @@ void main()
          c += karis_avg((F + G + L + K) * div.y);
          c += karis_avg((G + H + M + L) * div.y);
 
-	if (pushConstants.u_use_threshold)
+	if (pushConstants.u_use_threshold == 1)
     {
       c = quadratic_threshold(c, pushConstants.u_threshold.x, pushConstants.u_threshold.yzw);
     }

@@ -3189,7 +3189,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 
 		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(
 			mImGuiTextureSampler,
-			mRenderGraph->GetTexture<VulkanTexture>("BloomTexture")->mImageView,
+			mRenderGraph->GetTexture<VulkanTexture>("FinalTexture")->mImageView,
 			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); // TODO: FIX VALIDATION ERROR
 
 		//		mFinalSceneDescriptorSet =

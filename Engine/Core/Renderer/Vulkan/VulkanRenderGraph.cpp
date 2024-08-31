@@ -36,6 +36,7 @@ namespace Plaza {
 		this->AddTexture(make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "SceneDepth"));
 
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "SceneTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "FinalTexture"));
 
 		this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 0, 1, "BloomTexture"));
 		this->GetTexture<VulkanTexture>("BloomTexture")->mInitialLayout = PL_IMAGE_LAYOUT_GENERAL;
@@ -292,15 +293,23 @@ namespace Plaza {
 			VulkanRenderer::GetRenderer()->CopyTexture(this->GetTexture<VulkanTexture>("SceneTexture"), this->GetTexture<VulkanTexture>("BloomTexture"), *mCommandBuffer);
 				});
 
-		unsigned int bloomMipCount = 5;
+		uint32_t downScaleLimit = 10;
+		uint32_t width = gPassSize.x / 2;
+		uint32_t height = gPassSize.y / 2;
+		uint8_t  bloomMipCount = 1;
+		for (uint8_t i = 0; i < 12; ++i)
+		{
+			width = width / 2;
+			height = height / 2;
+			if (width < downScaleLimit || height < downScaleLimit) break;
+			++bloomMipCount;
+		}
 		bool pingPong = true;
 		PlPipelineShaderStageCreateInfo downScaleShaders = pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomDownScale.comp"), "main");
 		PlPipelineShaderStageCreateInfo upScaleShaders = pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomUpScale.comp"), "main");
 		PlPipelineCreateInfo bloomPipelineCreateInfo = pl::pipelineCreateInfo("BloomShaders", PL_RENDER_PASS_COMPUTE, { downScaleShaders }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { pl::pushConstantRange(PL_STAGE_COMPUTE, 0, sizeof(BloomPassPC)) });
 		std::shared_ptr<PlazaPipeline> bloomDownScalePipeline = this->GetRenderPass("Bloom Pass")->AddPipeline(bloomPipelineCreateInfo);
 
-		float threshold = VulkanRenderer::GetRenderer()->mBloom.mThreshold;
-		float knee = VulkanRenderer::GetRenderer()->mBloom.mKnee;
 		glm::uvec2 mipSize = glm::uvec2(gPassSize.x / 2, gPassSize.y / 2);
 		// DownScale
 		for (unsigned int i = 0; i < bloomMipCount - 1; ++i) {
@@ -308,7 +317,9 @@ namespace Plaza {
 				->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL, i, 0, this->GetSharedTexture("BloomTexture")))
 				->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_STORAGE_IMAGE, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL, i + 1, 0, this->GetSharedTexture("BloomTexture")))
 				->AddPipeline(bloomDownScalePipeline);
-			this->GetRenderPass("Bloom Pass")->mChildPasses.back()->SetRecordingCallback([&, mipSize, threshold, knee, i](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+			this->GetRenderPass("Bloom Pass")->mChildPasses.back()->SetRecordingCallback([&, mipSize, i](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+				float threshold = VulkanRenderer::GetRenderer()->mBloom.mThreshold;
+				float knee = VulkanRenderer::GetRenderer()->mBloom.mKnee;
 				BloomPassPC constant{};
 				constant.u_texel_size = 1.0f / glm::vec2(mipSize);
 				constant.u_mip_level = i;
@@ -338,7 +349,9 @@ namespace Plaza {
 					->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_STORAGE_IMAGE, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL, i - 1, 0, this->GetSharedTexture("BloomTexture")))
 					->AddPipeline(bloomUpScalePipeline);
 			}
-			this->GetRenderPass("Bloom Pass")->mChildPasses.back()->SetRecordingCallback([&, mipSize, threshold, knee, i](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+			this->GetRenderPass("Bloom Pass")->mChildPasses.back()->SetRecordingCallback([&, mipSize, i](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+				float threshold = VulkanRenderer::GetRenderer()->mBloom.mThreshold;
+				float knee = VulkanRenderer::GetRenderer()->mBloom.mKnee;
 				BloomPassPC constant{};
 				constant.u_texel_size = 1.0f / glm::vec2(mipSize);
 				constant.u_mip_level = i;
@@ -349,6 +362,36 @@ namespace Plaza {
 				});
 		}
 
+		// Final Post Processing
+		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Final Post Processing Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_GENERAL, 0, 0, this->GetSharedTexture("BloomTexture")))
+			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("FinalTexture")));
+
+		struct FinalPostProcessingPC {
+			float exposure;
+			float gamma;
+		};
+		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(pl::pipelineCreateInfo(
+			"FinalShaders",
+			PL_RENDER_PASS_FULL_SCREEN_QUAD,
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.frag", "main") },
+			VertexGetBindingDescription(),
+			VertexGetAttributeDescriptions(),
+			PL_TOPOLOGY_TRIANGLE_LIST,
+			false,
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) }),
+			pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
+			pl::pipelineViewportStateCreateInfo(1, 1),
+			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
+			{ pl::pushConstantRange(PL_STAGE_FRAGMENT, 0, sizeof(FinalPostProcessingPC)) }
+		));
+
+		this->AddRenderPassCallback("Final Post Processing Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+			plazaRenderPass->mPipelines[0]->UpdatePushConstants<FinalPostProcessingPC>(0, FinalPostProcessingPC(VulkanRenderer::GetRenderer()->gamma, VulkanRenderer::GetRenderer()->exposure));
+			});
 
 		this->OrderPasses();
 	}

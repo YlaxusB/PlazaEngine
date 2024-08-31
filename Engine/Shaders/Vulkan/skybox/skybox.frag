@@ -17,6 +17,6 @@ layout(push_constant) uniform PushConstants{
 } pushConstants;
 
 void main() {
-    //gDiffuse = vec4(pow(texture(skyboxSampler, fragTexCoord).xyz, vec3(1.0f / pushConstants.gamma)), 1.0f);
+    //gDiffuse = vec4(pow(texture(prefilterMap, fragTexCoord).xyz, vec3(1.0f / pushConstants.gamma)), 1.0f);
     gDiffuse = texture(prefilterMap, fragTexCoord);
 }

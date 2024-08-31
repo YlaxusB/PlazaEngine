@@ -1713,7 +1713,7 @@ namespace Plaza {
 		EndSingleTimeCommands(commandBuffer);
 	}
 
-	void VulkanRenderer::CopyTexture(VulkanTexture* srcTexture, VulkanTexture* dstTexture, VkCommandBuffer commandBuffer) {
+	void VulkanRenderer::CopyTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout, VulkanTexture* dstTexture, VkImageLayout dstLayout, VkCommandBuffer commandBuffer) {
 		PLAZA_PROFILE_SECTION("Copy Texture");
 		VkImageSubresourceRange subresourceRange{};
 		subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -1739,17 +1739,17 @@ namespace Plaza {
 		imageCopyRegion.extent.height = srcTexture->mResolution.y;
 		imageCopyRegion.extent.depth = srcTexture->mResolution.z;
 
-		if (commandBuffer == VK_NULL_HANDLE) commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
+		//if (commandBuffer == VK_NULL_HANDLE) commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
 		{
 			PLAZA_PROFILE_SECTION("Copy");
 			vkCmdCopyImage(
 				commandBuffer,
-				srcTexture->mImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-				dstTexture->mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				srcTexture->mImage, srcLayout,
+				dstTexture->mImage, dstLayout,
 				1, &imageCopyRegion
 			);
 		}
-		if (commandBuffer == VK_NULL_HANDLE) VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
+		//if (commandBuffer == VK_NULL_HANDLE) VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 	}
 
 	void VulkanRenderer::CreateIndexBuffer(vector<uint32_t> indices,
@@ -2165,16 +2165,16 @@ namespace Plaza {
 		VkImageAspectFlags aspectMask,
 		unsigned int layerCount,
 		unsigned int mipCount,
-		bool forceSynchronization) {
+		bool forceSynchronization,
+		VkCommandBuffer commandBuffer) {
 
 		if (oldLayout == newLayout)
 			oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-		VkCommandBuffer commandBuffer;
 		if (forceSynchronization)
 			commandBuffer = BeginSingleTimeCommands();
 		else
-			commandBuffer = *mActiveCommandBuffer;
+			commandBuffer = commandBuffer != VK_NULL_HANDLE ? commandBuffer : *mActiveCommandBuffer;
 
 		VkImageMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -3190,7 +3190,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(
 			mImGuiTextureSampler,
 			mRenderGraph->GetTexture<VulkanTexture>("FinalTexture")->mImageView,
-			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); // TODO: FIX VALIDATION ERROR
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); 
 
 		//		mFinalSceneDescriptorSet =
 		// ImGui_ImplVulkan_AddTexture(mTextureSampler,
@@ -3199,7 +3199,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		////////////////////////////mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(
 		////////////////////////////	mImGuiTextureSampler,
 		////////////////////////////	this->mFinalSceneImageView,
-		////////////////////////////	VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); // TODO: FIX VALIDATION ERROR
+		////////////////////////////	VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 		// mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mTextureSampler,
 		// ((VulkanPicking*)(this->mPicking))->mPickingTextureImageView,
 		// VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); //TODO: FIX VALIDATION ERROR

@@ -162,7 +162,7 @@ namespace Plaza {
 			pl::pipelineViewportStateCreateInfo(1, 1),
 			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
 			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
-			{ pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(DeferredGeometrySkyboxPC)) },
+			{ pl::pushConstantRange(PL_STAGE_FRAGMENT, 0, sizeof(DeferredGeometrySkyboxPC)) },
 			{ 1 }
 		));
 
@@ -217,7 +217,7 @@ namespace Plaza {
 		};
 
 		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Light Sorter Pass", PL_STAGE_COMPUTE, PL_RENDER_PASS_COMPUTE, gPassSize, false))
-			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("SceneDepth")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("SceneDepth")))
 			->AddOutputResource(std::make_shared<VulkanBufferBinding>(1, 0, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_COMPUTE, this->GetSharedBuffer("LightsBuffer")))
 			->AddOutputResource(std::make_shared<VulkanBufferBinding>(1, 1, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_COMPUTE, this->GetSharedBuffer("ClustersBuffer")))
 			->AddOutputResource(std::make_shared<VulkanBufferBinding>(1, 8, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_COMPUTE, this->GetSharedBuffer("TilesDepthBuffer")))
@@ -290,7 +290,17 @@ namespace Plaza {
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_STORAGE_IMAGE, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("SceneTexture")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_STORAGE_IMAGE, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL, 0, 0, this->GetSharedTexture("BloomTexture")))
 			->SetRecordingCallback([&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-			VulkanRenderer::GetRenderer()->CopyTexture(this->GetTexture<VulkanTexture>("SceneTexture"), this->GetTexture<VulkanTexture>("BloomTexture"), *mCommandBuffer);
+			VulkanTexture* texture = this->GetTexture<VulkanTexture>("SceneTexture");
+
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(texture->mImage, PlImageFormatToVkFormat(texture->mFormat), PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
+				PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL), 1, 1, 1, false, *mCommandBuffer);
+
+			VulkanRenderer::GetRenderer()->CopyTexture(this->GetTexture<VulkanTexture>("SceneTexture"), PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
+				this->GetTexture<VulkanTexture>("BloomTexture"), PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_GENERAL), *mCommandBuffer);
+
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(texture->mImage, PlImageFormatToVkFormat(texture->mFormat), PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
+				PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL), 1, 1, 1, false, *mCommandBuffer);
+
 				});
 
 		uint32_t downScaleLimit = 10;

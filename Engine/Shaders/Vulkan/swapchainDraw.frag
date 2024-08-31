@@ -38,11 +38,11 @@ vec3 RRTAndODTFit(vec3 v)
 
 void main() 
 {
-    vec4 x = pushConstants.exposure * vec4(pow(texture(samplerTexture, inUV).xyz, vec3(1.0f / pushConstants.gamma)), 1.0f);//texture(samplerTexture, inUV);
+    vec4 x = pushConstants.exposure * texture(samplerTexture, inUV);
     vec3 color = ACESInputMat * x.rgb;
-         //color = RRTAndODTFit(color);
-         //color = ACESOutputMat * color;
-         //color = gammaCorrect(color);
-         //color = clamp(color, 0.0, 1.0);
+         //color = RRTAndODTFit(color); // TODO: ADD THIS AGAIN AND TWEAK
+         color = ACESOutputMat * color;
+         color = gammaCorrect(color);
+         color = clamp(color, 0.0, 1.0);
 	outFragcolor = vec4(color, 1.0f);
 }

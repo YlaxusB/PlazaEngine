@@ -230,10 +230,9 @@ void main() {
         if(textureColor.w <= 0.1f)
             discard;
         albedo = textureColor.xyz;
-        albedo.xyz *= material.intensity;
     }
     else {
-        albedo = material.color.xyz * material.intensity;
+        albedo = material.color.xyz;
     }
 
     vec3 N = normalize(inNormal.xyz);
@@ -278,12 +277,14 @@ void main() {
 
     float ambientOcclusion = 1.0f;
     vec3 ambient = (kD * diffuse) + specular * ambientOcclusion;
+    //ambient *= material.intensity;
 
-    vec3 color = (ambient + Lo) * ubo.directionalLightColor.xyz;; //+ ubo.directionalLightColor.xyz; // Directional Light
+    vec3 color = (ambient + Lo) * material.intensity * ubo.directionalLightColor.xyz; //+ ubo.directionalLightColor.xyz; // Directional Light
     color *=vec3(1.0 - ShadowCalculation(FragPos.xyz, N)) + ubo.ambientLightColor.xyz; //+ ubo.ambientLightColor.xyz); // Shadow
 
     vec3 FinalColor = color;
 
+    #ifdef SHOW_CASCADES
     if(ubo.showCascadeLevels) { 
         vec4 fragPosViewSpace = ubo.view * vec4(FragPos.xyz, 1.0);
         float depthValue = abs(fragPosViewSpace.z);
@@ -298,6 +299,7 @@ void main() {
         }
         FinalColor = vec3(1.0f - float(layer) / float(ubo.cascadeCount), 0.0f, 0.0f);
     }
+    #endif
 
 
     /* Geometry */

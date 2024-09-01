@@ -412,6 +412,23 @@ namespace Plaza {
 
 			auto attributeDescriptions = VertexGetAttributeDescriptions();
 
+			std::cout << "Start \n";
+			for (unsigned int i = 0; i < instanceAttributeDescriptions.size(); ++i) {
+				std::cout << "instanceAttributeDescriptions \n";
+				std::cout << instanceAttributeDescriptions[i].binding << "\n";
+				std::cout << instanceAttributeDescriptions[i].location << "\n";
+				std::cout << instanceAttributeDescriptions[i].format << "\n";
+				std::cout << instanceAttributeDescriptions[i].offset << "\n";
+			}
+			for (unsigned int i = 0; i < bindingDescriptions.size(); ++i) {
+				std::cout << "bindingDescriptions \n";
+				std::cout << bindingDescriptions[i].binding << "\n";
+				std::cout << bindingDescriptions[i].stride << "\n";
+				std::cout << bindingDescriptions[i].inputRate << "\n";
+			}
+
+			std::cout << "End \n";
+
 			mVertexInputInfo.vertexBindingDescriptionCount = bindingDescriptions.size();
 			mVertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
 			mVertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
@@ -476,6 +493,8 @@ namespace Plaza {
 		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->mPipeline) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create graphics pipeline!");
 		}
+
+		std::cout << "End Pipe \n";
 
 		vkDestroyShaderModule(device, fragShaderModule, nullptr);
 		vkDestroyShaderModule(device, vertShaderModule, nullptr);

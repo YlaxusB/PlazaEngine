@@ -83,7 +83,6 @@ namespace Plaza {
 	void VulkanRenderer::SetupDebugMessenger() {
 		if (!mEnableValidationLayers)
 			return;
-
 		VkDebugUtilsMessengerCreateInfoEXT createInfo;
 		PopulateDebugMessengerCreateInfo(createInfo);
 

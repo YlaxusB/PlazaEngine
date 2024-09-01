@@ -267,7 +267,6 @@ namespace Plaza {
 		std::vector<VkVertexInputBindingDescription> vertexInputBindings,
 		std::vector<VkVertexInputAttributeDescription> vertexInputAttributes
 	) {
-
 		//auto geomShaderCode = readFile(mGeometryShaderPath);
 
 		//VkShaderModule geomShaderModule = createShaderModule(geomShaderCode, device);
@@ -452,7 +451,6 @@ namespace Plaza {
 		dynamicState = dynamicState.sType == VK_STRUCTURE_TYPE_APPLICATION_INFO ? mDynamicState : dynamicState;
 		depthStencil = depthStencil.sType == VK_STRUCTURE_TYPE_APPLICATION_INFO ? mDepthStencil : depthStencil;
 
-
 		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &mPipelineLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create pipeline layout!");
 		}
@@ -478,7 +476,6 @@ namespace Plaza {
 		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->mPipeline) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create graphics pipeline!");
 		}
-
 
 		vkDestroyShaderModule(device, fragShaderModule, nullptr);
 		vkDestroyShaderModule(device, vertShaderModule, nullptr);

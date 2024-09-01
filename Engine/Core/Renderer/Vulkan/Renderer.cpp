@@ -2798,7 +2798,9 @@ namespace Plaza {
 		std::cout << "Initializing Skybox \n";
 		//this->mLighting->Init();
 		//this->mSkybox->Init();
+#ifdef EDITOR_MODE
 		this->mPicking->Init();
+#endif
 		//this->mGuiRenderer->Init();
 		//this->mBloom.Init();
 
@@ -2887,6 +2889,7 @@ namespace Plaza {
 		//		nullptr);
 		//}
 		//
+		std::cout << "Initializing Semaphores \n";
 		VkSemaphoreCreateInfo semaphoreInfo = {};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &semaphore);

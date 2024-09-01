@@ -36,7 +36,9 @@ namespace Plaza::Editor {
 		Application->activeProject->directory = projectFile.parent_path().string();
 		Application->activeProject->scriptsConfigFilePath = Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName;
 		//Application->activeProject->scripts = ScriptManagerSerializer::DeSerialize(Application->activeProject->scriptsConfigFilePath);
+		#ifdef EDITOR_MODE
 		Filewatcher::Start(Application->activeProject->directory);
+		#endif
 
 		Application->runEngine = true;
 		Application->runProjectManagerGui = false;

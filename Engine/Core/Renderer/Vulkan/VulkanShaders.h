@@ -15,10 +15,10 @@ namespace Plaza {
 		VulkanShaders() {};
 		VulkanShaders(std::string vertexPath, std::string fragmentPath, std::string geometryPath) : mVertexShaderPath(vertexPath), mFragmentShaderPath(fragmentPath), mGeometryShaderPath(geometryPath) {};
 
-		VkPipeline mPipeline;
-		VkPipelineLayout mPipelineLayout;
-		std::vector<VkDescriptorSet> mDescriptorSets;
-		VkDescriptorSetLayout mDescriptorSetLayout;
+		VkPipeline mPipeline = VK_NULL_HANDLE;
+		VkPipelineLayout mPipelineLayout = VK_NULL_HANDLE;
+		std::vector<VkDescriptorSet> mDescriptorSets = std::vector<VkDescriptorSet>();
+		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
 
 		void Init(VkDevice device, VkRenderPass renderPass, int width, int height, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo, std::vector<VkPushConstantRange> pushConstantRanges = std::vector<VkPushConstantRange>(), bool useVertexInputInfo = true);
 		void InitializeDefaultValues(VkDevice device, VkRenderPass renderPass, int width, int height, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo, std::vector<VkPushConstantRange> pushConstantRanges = std::vector<VkPushConstantRange>(), bool useVertexInputInfo = true);

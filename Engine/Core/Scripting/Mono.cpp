@@ -235,7 +235,7 @@ namespace Plaza {
 
 		// Load the PlazaScriptCore.dll assembly
 #ifdef GAME_MODE
-		Application->dllPath = Application->projectPath + "\\dll";
+		Application->dllPath = Application->projectPath + "\\Binaries";
 #endif // GAME_REL
 
 

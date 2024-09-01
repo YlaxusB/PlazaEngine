@@ -53,6 +53,26 @@
           "name": "PX_CMAKE_SUPPRESS_REGENERATION",
           "value": "True",
           "type": "BOOL"
+        },
+        {
+          "name": "PX_GENERATE_STATIC_LIBRARIES",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "USE_EDITOR",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ASSIMP_WARNINGS_AS_ERRORS",
+          "value": "False",
+          "type": "BOOL"
         }
       ]
     },

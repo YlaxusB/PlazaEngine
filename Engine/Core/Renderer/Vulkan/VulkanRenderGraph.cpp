@@ -43,8 +43,13 @@ namespace Plaza {
 
 		// this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "BloomFinalTexture"));
 
-
-		this->GetTexture<Texture>("EquirectangularTexture")->mPath = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\" + "autumn_field_4k.hdr";
+		std::string skyboxPath;
+#ifdef EDITOR_MODE
+		skyboxPath = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\";
+#else
+		skyboxPath = Application->projectPath + "\\";
+#endif
+		this->GetTexture<Texture>("EquirectangularTexture")->mPath = skyboxPath + "autumn_field_4k.hdr";
 		this->GetTexture<Texture>("EquirectangularTexture")->mIsHdr = true;
 
 		struct ShadowPassUBO {
@@ -1181,12 +1186,18 @@ namespace Plaza {
 
 		VulkanRenderer::GetRenderer()->UpdateInstancesData();
 
-		for (const auto& value : mOrderedPasses) {
-			this->GetRenderPass(value->mName)->UpdateCommandBuffer(commandBuffer);
-			for (const auto& child : value->mChildPasses) {
+		for (unsigned int i = 0; i < mOrderedPasses.size(); ++i) {
+			this->GetRenderPass(mOrderedPasses[i]->mName)->UpdateCommandBuffer(commandBuffer);
+			for (const auto& child : mOrderedPasses[i]->mChildPasses) {
 				static_cast<VulkanRenderPass*>(child.get())->UpdateCommandBuffer(commandBuffer);
 			}
-			this->GetRenderPass(value->mName)->Execute(this);
+#ifdef GAME_MODE
+			if (i == mOrderedPasses.size() - 1) {
+				static_cast<VulkanRenderPass*>(mOrderedPasses[i].get())->mFrameBuffer = VulkanRenderer::GetRenderer()->mSwapChainFramebuffers[imageIndex];
+				static_cast<VulkanRenderPass*>(mOrderedPasses[i].get())->mRenderPass = VulkanRenderer::GetRenderer()->mSwapchainRenderPass;
+			}
+#endif
+			this->GetRenderPass(mOrderedPasses[i]->mName)->Execute(this);
 		}
 
 		/* Render ImGui if in Editor build */

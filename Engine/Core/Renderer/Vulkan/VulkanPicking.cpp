@@ -193,6 +193,7 @@ namespace Plaza {
 		VulkanRenderer::GetRenderer()->CreateImage(this->mResolution.x, this->mResolution.y, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->mDepthTextureImage, imageMemory);
 		this->mDepthImageView = VulkanRenderer::GetRenderer()->CreateImageView(this->mDepthTextureImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 		this->InitializeFramebuffer();
+		std::cout << "3 \n";
 
 		this->mRenderPickingTexturePostEffects->mShaders = new VulkanShaders(pickingVertexPath, pickingFragmentPath, "");
 
@@ -234,6 +235,7 @@ namespace Plaza {
 		colorBlending.blendConstants[2] = 0.0f;
 		colorBlending.blendConstants[3] = 0.0f;
 
+		std::cout << "0 \n";
 		this->mRenderPickingTexturePostEffects->mShaders->InitializeFull(
 			VulkanRenderer::GetRenderer()->mDevice,
 			this->mPipelineLayoutInfo,
@@ -243,6 +245,7 @@ namespace Plaza {
 			{}, {}, {}, {}, rasterizer, {}, colorBlending, {},
 			this->mRenderPickingTexturePostEffects->mRenderPass,
 			depthStencil);
+		std::cout << "end \n";
 	}
 
 	void VulkanPicking::InitializeOutline() {

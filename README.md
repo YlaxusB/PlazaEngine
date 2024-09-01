@@ -9,13 +9,17 @@ Open the Repository folder with Visual Studio
 ## Features
 
 ### Cascaded Shadow Mapping
+CSM using PCF for soft shadows and Multiview Rendering for better performance  
 ### PBR Materials
+Physically Based Rendering with Diffuse Irradiance and Specular Image Based Lighting  
 ### Deferred Rendering
-### Clustered Deferred Lighting
+Drawing the Depth, Diffuse, Normal, and Others (Mettalic on Y, Roughness on Z) textures  
+### Tiled Deferred Lighting
+Compute Shader for sorting which lights affects each tiles, then a fullscreen pass that uses this data to light the pixels  
 ### Bloom
-Based on Unity and Unreal 4 implementaiton
+Bloom implementation used on Unity and Call of Duty: Advanced Warfare  
 ### 3D Physics
-Using Nvidia's Physx 5.2.0
+Using Nvidia's Physx 5.4.0  
 
 # Assets
 The Engine has an asset importer which gets models outside the engine and converts it to the engine's format. It also has an asset loader which loads the converted model file into the scene. Imported assets are stored in files inside the project and loaded assets are stored in memory, managed by the Assets Manager.   

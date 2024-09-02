@@ -1,6 +1,7 @@
 // #include "Engine/Core/PreCompiledHeaders.h"
 
 #define VMA_IMPLEMENTATION
+#define VMA_STATIC_VULKAN_FUNCTIONS 1
 #include "ThirdParty/include/VulkanMemoryAllocator/vk_mem_alloc.h"
 #include "Renderer.h"
 

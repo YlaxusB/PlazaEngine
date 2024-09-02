@@ -219,7 +219,7 @@ namespace Plaza {
 	}
 
 	void Mono::Init() {
-		mono_set_assemblies_path("lib/mono");
+		mono_set_assemblies_path(Application->projectPath.c_str());
 		//mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
 		if (Mono::mMonoRootDomain == nullptr)
 			Mono::mMonoRootDomain = mono_jit_init("MyScriptRuntime");

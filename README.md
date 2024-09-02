@@ -27,4 +27,9 @@ Below are the supported Formats:
 ### Models:
 .obj .fbx
 ### Textures:
-.png .jpg
+.png .jpg  
+
+# Shipping Games
+1 - Use export button inside the engine.  
+2 - Copy the "Compiled Shaders" folder from the out folder of the engine's solution and paste into the game's folder.  
+3 - Copy all DLLs inside the "Shipping DLLs" folder and paste them into the game's folder.  

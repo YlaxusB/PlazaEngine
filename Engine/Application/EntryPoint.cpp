@@ -29,6 +29,7 @@ using namespace Plaza;
 #include <codecvt>
 
 int main() {
+	std::cout << "Start \n";
 	// Buffer to hold the path to the .exe
 	wchar_t exePath3[MAX_PATH];
 

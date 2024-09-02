@@ -96,15 +96,16 @@ namespace Plaza {
 			{}
 		));
 
+			static ShadowPassUBO shadowPassUbo{};
 		this->AddRenderPassCallback("Shadow Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-			static ShadowPassUBO ubo{};
-			for (unsigned int i = 0; i < VulkanRenderer::GetRenderer()->mShadows->mCascades.size(); ++i) {
-				ubo.lightSpaceMatrices[i] = VulkanRenderer::GetRenderer()->mShadows->mUbo[Application->mRenderer->mCurrentFrame].lightSpaceMatrices[i];
+			std::vector<glm::mat4> mats = VulkanShadows::GetLightSpaceMatrices(VulkanRenderer::GetRenderer()->mShadows->shadowCascadeLevels, VulkanRenderer::GetRenderer()->mShadows->mLightDirection);
+			for (int i = 0; i < VulkanRenderer::GetRenderer()->mShadows->mCascadeCount; ++i) {
+				shadowPassUbo.lightSpaceMatrices[i] = mats[i];
 			}
-			for (unsigned int i = VulkanRenderer::GetRenderer()->mShadows->mCascades.size(); i < 32; ++i) {
-				ubo.lightSpaceMatrices[i] = glm::mat4(1.0f);
+			for (unsigned int i = VulkanRenderer::GetRenderer()->mShadows->mCascadeCount; i < 32; ++i) {
+				shadowPassUbo.lightSpaceMatrices[i] = glm::mat4(1.0f);
 			}
-			plazaRenderGraph->GetSharedBuffer("ShadowPassUBO")->UpdateData<ShadowPassUBO>(Application->mRenderer->mCurrentFrame, ubo);
+			plazaRenderGraph->GetSharedBuffer("ShadowPassUBO")->UpdateData<ShadowPassUBO>(Application->mRenderer->mCurrentFrame, shadowPassUbo);
 			});
 
 
@@ -167,7 +168,7 @@ namespace Plaza {
 			pl::pipelineViewportStateCreateInfo(1, 1),
 			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
 			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
-			{ pl::pushConstantRange(PL_STAGE_FRAGMENT, 0, sizeof(DeferredGeometrySkyboxPC)) },
+			{ pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(DeferredGeometrySkyboxPC)) },
 			{ 1 }
 		));
 
@@ -194,8 +195,8 @@ namespace Plaza {
 			ubo.ambientLightColor.a = 1.0f;
 			ubo.gamma = VulkanRenderer::GetRenderer()->gamma;
 
-			for (int i = 0; i < VulkanRenderer::GetRenderer()->mShadows->mCascades.size(); ++i) {
-				ubo.lightSpaceMatrices[i] = VulkanRenderer::GetRenderer()->mShadows->mUbo[VulkanRenderer::GetRenderer()->mCurrentFrame].lightSpaceMatrices[i];
+			for (int i = 0; i < VulkanRenderer::GetRenderer()->mShadows->mCascadeCount; ++i) {
+				ubo.lightSpaceMatrices[i] = shadowPassUbo.lightSpaceMatrices[i];
 				if (i <= 8)
 					ubo.cascadePlaneDistances[i] = glm::vec4(VulkanRenderer::GetRenderer()->mShadows->shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
 				else

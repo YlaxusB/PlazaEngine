@@ -64,6 +64,7 @@ namespace Plaza::Editor {
 		std::cout << "Mono \n";
 		Mono::Init();
 
+		std::cout << "Read Game Folder \n";
 		std::map<std::string, Script> scripts = std::map<std::string, Script>();
 		/* Iterate over all files and subfolders of the project folder to load assets */
 		for (auto entry = filesystem::recursive_directory_iterator(Application->activeProject->directory, filesystem::directory_options::skip_permission_denied); entry != filesystem::end(entry); ++entry) {

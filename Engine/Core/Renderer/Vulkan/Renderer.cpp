@@ -2965,7 +2965,7 @@ namespace Plaza {
 
 		{
 			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
-			this->mShadows->UpdateUniformBuffer(mCurrentFrame);
+			//this->mShadows->UpdateUniformBuffer(mCurrentFrame);
 			//UpdateUniformBuffer(mCurrentFrame);
 		}
 

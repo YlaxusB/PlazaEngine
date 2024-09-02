@@ -271,7 +271,8 @@ void main() {
 
     const float MAX_REFLECTION_LOD = 9.0;
     vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;   
-    vec2 brdf  = texture(samplerBRDFLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec2 brdfCoord = vec2(max(dot(N, V), 0.0), roughness);
+    vec2 brdf  = texture(samplerBRDFLUT, brdfCoord).rg;
     vec3 reflection = prefilteredReflection(R, roughness).rgb;	
     vec3 specular = reflection * (F * brdf.x + brdf.y);
 
@@ -280,7 +281,7 @@ void main() {
     //ambient *= material.intensity;
 
     vec3 color = (ambient * ubo.directionalLightColor.xyz + Lo) * material.intensity; //+ ubo.directionalLightColor.xyz; // Directional Light
-    color *=vec3(1.0 - ShadowCalculation(FragPos.xyz, N)) + ubo.ambientLightColor.xyz; //+ ubo.ambientLightColor.xyz); // Shadow
+    color *= vec3(1.0 - ShadowCalculation(FragPos.xyz, N)) + ubo.ambientLightColor.xyz; //+ ubo.ambientLightColor.xyz); // Shadow
 
     vec3 FinalColor = color;
 

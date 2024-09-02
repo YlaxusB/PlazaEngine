@@ -22,7 +22,7 @@ namespace Plaza {
 		float intensity = 1.0f;
 		glm::vec2 flip = glm::vec2(1.0f);
 
-		float metalnessFloat = 0.0f;
+		float metalnessFloat = 0.35f;
 		float roughnessFloat = 1.0f;
 
 		void LoadTextures(std::string relativePath = "") {

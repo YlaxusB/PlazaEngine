@@ -73,7 +73,7 @@ namespace Plaza {
 		void UpdateAndPushConstants(VkCommandBuffer commandBuffer, unsigned int cascadeIndex);
 
 
-		glm::mat4 GetLightSpaceMatrix(const float nearPlane, const float farPlane, const float ratio, const glm::mat4& viewMatrix);
-		std::vector<glm::mat4> GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels);
+		static glm::mat4 GetLightSpaceMatrix(const float nearPlane, const float farPlane, const float ratio, const glm::mat4& viewMatrix, const glm::vec3& lightDirection);
+		static std::vector<glm::mat4> GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels, const glm::vec3& lightDirection);
 	};
 }

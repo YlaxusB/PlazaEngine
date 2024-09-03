@@ -23,6 +23,7 @@ namespace Plaza {
 		PlImageLayout mInitialLayout = PL_IMAGE_LAYOUT_UNDEFINED;
 		std::string mName = "";
 		std::string mPath = "";
+		PlSamplerAddressMode mSamplerAddressMode = PL_SAMPLER_ADDRESS_MODE_REPEAT;
 		bool mIsHdr = false;
 
 		std::vector<PlImageLayout> mFutureLayouts = std::vector<PlImageLayout>();

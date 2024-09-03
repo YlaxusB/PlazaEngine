@@ -257,8 +257,6 @@ namespace Plaza {
 			lastMaterialIndex++;
 			this->materials.emplace(material->uuid, material);
 			this->materialsNames.emplace(material->name, material->uuid);
-			if (VulkanRenderer::GetRenderer())
-				VulkanRenderer::GetRenderer()->AddMaterial(material);
 		}
 
 		void AddMaterial(std::shared_ptr<Material> material) {

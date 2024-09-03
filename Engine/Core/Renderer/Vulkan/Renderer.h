@@ -152,7 +152,6 @@ namespace Plaza {
 		std::vector<VkFence> mInFlightFences;
 		VkImageView mDepthImageView;
 
-		void AddMaterial(Material* material);
 		void UpdateMaterials();
 
 		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);

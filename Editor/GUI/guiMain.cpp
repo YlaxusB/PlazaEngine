@@ -127,6 +127,7 @@ namespace Plaza {
 			colors[ImGuiCol_Tab] = ImVec4(0.295f, 0.295f, 0.295f, 1.0f);
 			colors[ImGuiCol_TitleBgActive] = ImVec4(0.255f, 0.255f, 0.255f, 1.0f);
 			colors[ImGuiCol_TabUnfocused] = ImVec4(0.10f, 0.10f, 0.10f, 1.0f);
+			colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.33f, 0.33f, 0.33f, 1.0f);
 			colors[ImGuiCol_FrameBg] = ImVec4(0.30f, 0.30f, 0.30f, 1.0f);
 			colors[ImGuiCol_Button] = ImVec4(0.30f, 0.30f, 0.30f, 1.0f);
 

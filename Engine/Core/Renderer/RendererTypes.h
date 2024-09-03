@@ -569,6 +569,14 @@ namespace Plaza {
 		PL_VERTEX_INPUT_RATE_MAX_ENUM = 0x7FFFFFFF
 	};
 
+	enum PlSamplerAddressMode {
+		PL_SAMPLER_ADDRESS_MODE_REPEAT = 0,
+		PL_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT = 1,
+		PL_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE = 2,
+		PL_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER = 3,
+		PL_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE = 4
+	};
+
 	struct PlPipelineRasterizationStateCreateInfo {
 		bool depthClampEnable;
 		bool rasterizerDiscardEnable;

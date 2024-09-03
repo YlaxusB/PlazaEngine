@@ -84,6 +84,7 @@ layout(push_constant) uniform PushConstants{
 void main()
 {
 	fragTexCoord.xy = inTexCoord;
+    fragTexCoord.x = fragTexCoord.x - 0.5f;
     fragTexCoord.y = 1.0f - fragTexCoord.y;
 
 	mat4 viewMat = mat4(mat3(pushConstants.view));

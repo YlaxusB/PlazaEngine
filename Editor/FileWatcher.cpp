@@ -3,11 +3,21 @@
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Editor/GUI/FileExplorer/RenamedFile.h"
+#include "Engine/Core/AssetsManager/AssetsManager.h"
+#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 namespace Plaza::Editor {
 	std::unordered_map<uint64_t, std::function<void()>> Filewatcher::mMainThreadQueue = std::unordered_map<uint64_t, std::function<void()>>();
 	std::map< filewatch::Event, std::string> Filewatcher::mQueuedEvents = std::map<filewatch::Event, std::string>();
 	std::queue<std::function<void()>> Filewatcher::taskQueue = std::queue<std::function<void()>>();
 	std::mutex Filewatcher::queueMutex = std::mutex();
+
+	struct FileWatchEvent {
+		std::string path;
+		filewatch::Event event;
+	};
+
+	static FileWatchEvent sLastFileWatchEvent{};
+
 	void Filewatcher::Start(std::string pathToWatch) {
 		filewatch::FileWatch<std::string>* watch = new filewatch::FileWatch<std::string>(pathToWatch, [pathToWatch](const std::string path, const filewatch::Event changeType) {
 			//std::cout << path << " - ";
@@ -15,17 +25,23 @@ namespace Plaza::Editor {
 			std::string finalPath = pathToWatch + "\\" + path;
 			mQueuedEvents.emplace(changeType, finalPath);
 			switch (changeType) {
-			case filewatch::Event::added: // The file was added to the directory
+			case filewatch::Event::added:
 				if (fsPath.extension() == ".cs") {
 					Application->activeProject->scripts.emplace(pathToWatch + "\\" + path, Script());
 				}
+
+				if (fsPath.extension().string().starts_with(Standards::engineExtName))
+					AssetsLoader::LoadAsset(AssetsManager::LoadFileAsAsset(finalPath));
+				else
+					AssetsImporter::ImportAsset(finalPath);
+
 				break;
-			case filewatch::Event::removed: // The file was removed from the directory
+			case filewatch::Event::removed:
 				if (fsPath.extension() == ".cs") {
 					Application->activeProject->scripts.erase(pathToWatch + "\\" + path);
 				}
 				break;
-			case filewatch::Event::modified: // The file was modified. This can be a change in the time stamp or attributes
+			case filewatch::Event::modified:
 				if (fsPath.extension() == ".cs") {
 					// TODO: For now its just recompiling the scripting but not hot reloading
 					if (Filewatcher::mMainThreadQueue.size() <= 0) {
@@ -41,16 +57,18 @@ namespace Plaza::Editor {
 				}
 				break;
 			case filewatch::Event::renamed_old: // The file was renamed and this is the old name
-				if (fsPath.extension() == ".cs") {
-					//Application->activeProject->scripts.erase(pathToWatch + "\\" + path);
-				}
+				sLastFileWatchEvent = { finalPath, changeType };
+
 				break;
 			case filewatch::Event::renamed_new: // The file was renamed and this is the new name
-				if (fsPath.extension() == ".cs") {
-					//Application->activeProject->scripts.emplace(pathToWatch + "\\" + path, Script());
+				if (AssetsManager::HasAssetPath(sLastFileWatchEvent.path)) {
+					auto it = AssetsManager::mAssetsUuidByPath.find(sLastFileWatchEvent.path);
+					AssetsManager::mAssetsUuidByPath.emplace(finalPath, it->second);
+					AssetsManager::mAssetsUuidByPath.erase(it);
 				}
 				break;
 			};
+
 			//Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 
 			Filewatcher::AddToMainThread([]() {

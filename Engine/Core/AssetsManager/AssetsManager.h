@@ -104,6 +104,10 @@ namespace Plaza {
 			AssetsManager::mAssetsUuidByPath.emplace(asset->mPath, asset->mAssetUuid);
 		}
 
+		static bool HasAssetPath(std::string& path) {
+			return AssetsManager::mAssetsUuidByPath.find(path) != AssetsManager::mAssetsUuidByPath.end();
+		}
+
 		static Texture* GetTexture(uint64_t uuid) {
 			const auto& it = mTextures.find(uuid);
 			if (it != mTextures.end())

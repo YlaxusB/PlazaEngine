@@ -100,13 +100,17 @@ namespace Plaza::Editor::Utils {
 		ImGui::TableNextColumn();
 	}
 
-	static void AddTableButton(std::string name, bool* value, ImGuiSliderFlags flags = ImGuiSliderFlags_None, std::function<void(bool*) > callback = nullptr) {
+	static bool AddTableButton(std::string name, bool* value, ImGuiSliderFlags flags = ImGuiSliderFlags_None, std::function<void(bool*) > callback = nullptr) {
 		ImGui::TableNextRow();
 		ImGui::TableNextColumn();
-		if (ImGui::Button(name.c_str()))
+		if (ImGui::Button(name.c_str())) {
 			if (callback)
 				callback(value);
+			ImGui::TableNextColumn();
+			return true;
+		}
 		ImGui::TableNextColumn();
+		return false;
 	}
 
 	static void AddTableButtonString(std::string name, std::string buttonName, bool* value, ImGuiSliderFlags flags = ImGuiSliderFlags_None, std::function<void(bool*) > callback = nullptr) {

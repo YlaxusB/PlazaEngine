@@ -3845,41 +3845,6 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 #endif
 	}
 
-	void VulkanRenderer::AddMaterial(Material* material) {
-		MaterialData materialData{};
-		materialData.color = material->diffuse->rgba;
-		materialData.diffuseIndex = material->diffuse->mIndexHandle;
-		materialData.intensity = material->intensity;
-		materialData.metalnessFloat = material->metalnessFloat;
-		materialData.metalnessIndex = material->metalness->mIndexHandle;
-		materialData.normalIndex = material->normal->mIndexHandle;
-		materialData.roughnessFloat = material->roughnessFloat;
-		materialData.roughnessIndex = material->roughness->mIndexHandle;
-		materialData.flipX = material->flip.x;
-		materialData.flipY = material->flip.y;
-
-		material->mIndexHandle = this->mUploadedMaterials.size();
-		this->mUploadedMaterials.push_back(materialData);
-
-		VkDeviceSize size = sizeof(MaterialData) * this->mUploadedMaterials.size();
-
-		for (unsigned int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
-			//void* data;
-			//vkMapMemory(mDevice, this->mMaterialBufferMemories[mCurrentFrame], 0, size, 0, &data);
-			//memcpy(data, this->mUploadedMaterials.data(), static_cast<size_t>(size));
-			//vkUnmapMemory(mDevice, this->mMaterialBufferMemories[mCurrentFrame]);
-			//
-			//VkDescriptorBufferInfo bufferInfo1 = plvk::descriptorBufferInfo(this->mMaterialBuffers[i], 0, sizeof(MaterialData));
-			//VkWriteDescriptorSet materialDescriptorWrite = plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame], 19, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bufferInfo1);
-			////VkDescriptorBufferInfo bufferInfo2 = plvk::descriptorBufferInfo(this->mMainInstanceMaterialOffsetsBuffers[i], 0, VK_WHOLE_SIZE);
-			////VkWriteDescriptorSet renderGroupMaterialsDescriptorWrite = plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame], 3, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bufferInfo2);
-			////VkDescriptorBufferInfo bufferInfo3 = plvk::descriptorBufferInfo(this->mMainInstanceMaterialOffsetsBuffers[i], 0, VK_WHOLE_SIZE);
-			////VkWriteDescriptorSet renderGroupMaterialsOffsetDescriptorWrite = plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame], 4, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bufferInfo3);
-			//
-			//vkUpdateDescriptorSets(mDevice, 1, &materialDescriptorWrite, 0, nullptr);
-		}
-	}
-
 	void VulkanRenderer::UpdateMaterials() {
 		std::vector<MaterialData> materialDataVector = std::vector<MaterialData>();
 

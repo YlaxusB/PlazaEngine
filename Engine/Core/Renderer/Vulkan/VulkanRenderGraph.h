@@ -879,6 +879,17 @@ namespace Plaza {
 		}
 	}
 
+	static VkSamplerAddressMode PlAddressModeToVkSamplerAddressMode(PlSamplerAddressMode mode) {
+		switch (mode) {
+		case PL_SAMPLER_ADDRESS_MODE_REPEAT: return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		case PL_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT: return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+		case PL_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		case PL_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER: return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+		case PL_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE: return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
+		default: return VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		}
+	}
+
 	class VulkanBufferBinding : public PlazaBufferBinding {
 	public:
 		VulkanBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage, std::shared_ptr<PlBuffer> buffer)

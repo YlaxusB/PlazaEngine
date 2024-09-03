@@ -40,7 +40,8 @@ namespace Plaza {
 
 		this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 0, 1, "BloomTexture"));
 		this->GetTexture<VulkanTexture>("BloomTexture")->mInitialLayout = PL_IMAGE_LAYOUT_GENERAL;
-
+		this->GetTexture<VulkanTexture>("BloomTexture")->mSamplerAddressMode = PL_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+		
 		// this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "BloomFinalTexture"));
 
 		std::string skyboxPath;
@@ -87,7 +88,7 @@ namespace Plaza {
 			pl::vertexInputAttributeDescription(8, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12) },
 			PL_TOPOLOGY_TRIANGLE_LIST,
 			false,
-			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_FRONT, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
 			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) }),
 			pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS),
 			pl::pipelineViewportStateCreateInfo(1, 1),
@@ -163,7 +164,7 @@ namespace Plaza {
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
 			false,
-			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_CLOCKWISE),
 			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) , pl::pipelineColorBlendAttachmentState(true)  ,pl::pipelineColorBlendAttachmentState(true) }),
 			pl::pipelineDepthStencilStateCreateInfo(true, false, PL_COMPARE_OP_LESS_OR_EQUAL),
 			pl::pipelineViewportStateCreateInfo(1, 1),
@@ -891,7 +892,7 @@ namespace Plaza {
 			VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this->GetTexture(), PlImageLayoutToVkImageLayout(mTexture->mInitialLayout), aspect, this->GetTexture()->mLayersCount, this->GetTexture()->mMipCount);
 		}
 
-		this->GetTexture()->CreateTextureSampler();
+		this->GetTexture()->CreateTextureSampler(PlAddressModeToVkSamplerAddressMode(mTexture->mSamplerAddressMode));
 		this->GetTexture()->CreateImageView(PlImageFormatToVkFormat(mTexture->mFormat), aspect, PlViewTypeToVkImageViewType(mTexture->mViewType), mTexture->mLayersCount, 0);
 
 		VulkanRenderer::GetRenderer()->AddTrackerToImage(this->GetTexture()->mImageView, mTexture->mName, this->GetTexture()->mSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

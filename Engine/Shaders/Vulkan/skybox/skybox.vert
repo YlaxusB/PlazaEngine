@@ -83,7 +83,8 @@ layout(push_constant) uniform PushConstants{
 
 void main()
 {
-	fragTexCoord = inPosition;
+	fragTexCoord.xy = inTexCoord;
+    fragTexCoord.y = 1.0f - fragTexCoord.y;
 
 	mat4 viewMat = mat4(mat3(pushConstants.view));
 	gl_Position = pushConstants.projection * viewMat * vec4(inPosition.xyz, 1.0f);

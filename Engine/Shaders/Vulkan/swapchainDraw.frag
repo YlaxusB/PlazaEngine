@@ -36,13 +36,43 @@ vec3 RRTAndODTFit(vec3 v)
     return a / b;
 }
 
+vec3 Uncharted2Tonemap(vec3 color)
+{
+	float A = 0.15;
+	float B = 0.50;
+	float C = 0.10;
+	float D = 0.20;
+	float E = 0.02;
+	float F = 0.30;
+	float W = 11.2;
+	return ((color*(A*color+C*B)+D*E)/(color*(A*color+B)+D*F))-E/F;
+}
+
+
+vec3 acesFilm(const vec3 x) {
+    const float a = 2.51;
+    const float b = 0.03;
+    const float c = 2.43;
+    const float d = 0.59;
+    const float e = 0.14;
+    return clamp((x * (a * x + b)) / (x * (c * x + d ) + e), 0.0, 1.0);
+}
+
 void main() 
 {
     vec4 x = pushConstants.exposure * texture(samplerTexture, inUV);
     vec3 color = ACESInputMat * x.rgb;
-         //color = RRTAndODTFit(color); // TODO: ADD THIS AGAIN AND TWEAK
+         color = RRTAndODTFit(color); // TODO: ADD THIS AGAIN AND TWEAK
          color = ACESOutputMat * color;
          color = gammaCorrect(color);
          color = clamp(color, 0.0, 1.0);
+
+         //color = acesFilm(texture(samplerTexture, inUV).xyz);
+    //// Tone mapping
+    //vec3 color = texture(samplerTexture, inUV).xyz;
+	//color = Uncharted2Tonemap(color * pushConstants.exposure);
+	//color = color * (1.0f / Uncharted2Tonemap(vec3(11.2f)));	
+	//// Gamma correction
+	//color = pow(color, vec3(1.0f / pushConstants.gamma));
 	outFragcolor = vec4(color, 1.0f);
 }

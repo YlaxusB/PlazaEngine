@@ -19,6 +19,7 @@ layout(binding = 6) uniform sampler2D samplerBRDFLUT;
 layout(binding = 7) uniform samplerCube prefilterMap;
 layout(binding = 8) uniform samplerCube irradianceMap;
 layout(binding = 9) uniform sampler2DArray shadowsDepthMap;
+layout(binding = 10) uniform samplerCube equirectangularMap;
 //layout(location = 10) in flat int materialIndex;
 //layout (std430, set = 0, binding = 19) buffer MaterialsBuffer {
 //    MaterialData materials[];

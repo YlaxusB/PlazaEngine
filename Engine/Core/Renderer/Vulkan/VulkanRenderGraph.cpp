@@ -121,6 +121,7 @@ namespace Plaza {
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 7, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("PreFilterMap")))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 8, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("IrradianceMap")))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 9, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("ShadowsDepthMap")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 10, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("EquirectangularTexture")))
 			//->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("GPosition")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("GNormal")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 1, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("GDiffuse")))
@@ -169,7 +170,7 @@ namespace Plaza {
 			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
 			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
 			{ pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(DeferredGeometrySkyboxPC)) },
-			{ 1 }
+			{ 2 }
 		));
 
 		this->AddRenderPassCallback("Deferred Geometry Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
@@ -406,7 +407,7 @@ namespace Plaza {
 		));
 
 		this->AddRenderPassCallback("Final Post Processing Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-			plazaRenderPass->mPipelines[0]->UpdatePushConstants<FinalPostProcessingPC>(0, FinalPostProcessingPC(VulkanRenderer::GetRenderer()->gamma, VulkanRenderer::GetRenderer()->exposure));
+			plazaRenderPass->mPipelines[0]->UpdatePushConstants<FinalPostProcessingPC>(0, FinalPostProcessingPC(VulkanRenderer::GetRenderer()->exposure, VulkanRenderer::GetRenderer()->gamma));
 			});
 
 		this->OrderPasses();
@@ -756,6 +757,7 @@ namespace Plaza {
 				for (auto& shadersStage : pipeline->mCreateInfo.shaderStages) {
 					VulkanShadersCompiler::Compile(shadersStage.shadersPath);
 				}
+				pipeline->mPushConstants.clear();
 				this->CompilePipeline(pipeline);
 			}
 			else {

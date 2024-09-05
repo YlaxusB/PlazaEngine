@@ -78,7 +78,7 @@ namespace Plaza::Editor {
 				if (extension == Standards::metadataExtName) {
 					Asset* asset = AssetsManager::LoadMetadataAsAsset(entry->path());
 					if (AssetsLoader::mSupportedTextureLoadFormats.find(asset->mAssetExtension) != AssetsLoader::mSupportedTextureLoadFormats.end()) {
-						AssetsManager::mTextures.emplace(asset->mAssetUuid, Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid));
+						AssetsManager::mTextures.emplace(asset->mAssetUuid, Application->mRenderer->LoadTexture(asset->mAssetPath.string(), asset->mAssetUuid));
 					}
 				}
 				else if (AssetsLoader::mSupportedLoadFormats.find(extension) != AssetsLoader::mSupportedLoadFormats.end()) {

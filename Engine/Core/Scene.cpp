@@ -21,7 +21,7 @@ namespace Plaza {
 			const auto& it = copyScene->transformComponents.find(gameObj.second.uuid);
 			if (it != copyScene->transformComponents.end()) {
 				Transform* transform = new Transform(*gameObj.second.GetComponent<Transform>());
-				transform->uuid = newObj->uuid;
+				transform->mUuid = newObj->uuid;
 				transform->scene = "Runtime Scene";
 				transform->scene = "Runtime Scene";
 				newObj->RemoveComponent<Transform>();
@@ -115,7 +115,7 @@ namespace Plaza {
 
 		for (auto& [key, value] : copyScene->rigidBodyComponents) {
 			RigidBody* rigidBody = new RigidBody(value);
-			rigidBody->uuid = key;
+			rigidBody->mUuid = key;
 			newScene->rigidBodyComponents.emplace(key, *rigidBody);
 		}
 
@@ -129,17 +129,17 @@ namespace Plaza {
 
 
 		Material* defaultMaterial = new Material();
-		defaultMaterial->uuid = 0;
-		defaultMaterial->diffuse->rgba = glm::vec4(1.0f);
-		defaultMaterial->shininess = 3.0f;
-		defaultMaterial->name = "Default Material";
-		defaultMaterial->uuid = 0;
+		defaultMaterial->mAssetUuid = 0;
+//		defaultMaterial->diffuse->rgba = glm::vec4(1.0f);
+//		defaultMaterial->shininess = 3.0f;
+		defaultMaterial->mAssetName = "Default Material";
+		defaultMaterial->mAssetUuid = 0;
 		this->AddMaterial(defaultMaterial);
 	}
 
 	void Scene::RemoveMeshRenderer(uint64_t uuid) {
 		auto it = std::find_if(Application->editorScene->meshRenderers.begin(), Application->editorScene->meshRenderers.end(), [uuid](MeshRenderer* meshRenderer) {
-			return meshRenderer->uuid == uuid;
+			return meshRenderer->mUuid == uuid;
 			});
 
 		if (it != Application->editorScene->meshRenderers.end()) {
@@ -193,7 +193,7 @@ namespace Plaza {
 		Application->copyingScene = false;
 		Application->runningScene = true;
 		for (auto& [key, collider] : Application->activeScene->colliderComponents) {
-			collider.UpdateShapeScale(Application->activeScene->transformComponents.at(collider.uuid).GetWorldScale());;
+			collider.UpdateShapeScale(Application->activeScene->transformComponents.at(collider.mUuid).GetWorldScale());;
 			collider.UpdatePose();
 		}
 #ifdef EDITOR_MODE

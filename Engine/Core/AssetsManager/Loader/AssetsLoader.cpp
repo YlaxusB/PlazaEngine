@@ -189,7 +189,7 @@ namespace Plaza {
 	void AssetsLoader::LoadPrefabToMemory(Asset* asset) {
 		if (!asset)
 			return;
-		SerializablePrefab deserializedPrefab = DeserializePrefab(asset->mPath.string());
+		SerializablePrefab deserializedPrefab = DeserializePrefab(asset->mAssetPath.string());
 
 		for (const SerializableEntity& deserializedEntity : deserializedPrefab.entities) {
 			for (const std::shared_ptr<SerializableComponents> component : deserializedEntity.components) {

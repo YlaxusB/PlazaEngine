@@ -5,7 +5,7 @@ namespace Plaza {
 	class CharacterController : public Component {
 	public:
 		CharacterController(uint64_t uuid = 0) {
-			this->uuid = uuid != 0 ? uuid : Plaza::UUID::NewUUID();
+			this->mUuid = uuid != 0 ? uuid : Plaza::UUID::NewUUID();
 		}
 		void Init() {};
 		void Update() {};

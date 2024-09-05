@@ -15,7 +15,7 @@ void Plaza::Callbacks::dropCallback(GLFWwindow* window, int count, const char** 
 
 		std::string path = paths[i];
 		if (fileExtension == Standards::metadataExtName)
-			path = Metadata::DeSerializeMetadata(paths[i]).mPath.string();
+			path = Metadata::DeSerializeMetadata(paths[i]).mAssetPath.string();
 
 		if (AssetsLoader::mSupportedLoadFormats.find(fileExtension) != AssetsLoader::mSupportedLoadFormats.end())
 			AssetsLoader::LoadAsset(AssetsManager::GetAsset(std::filesystem::path{ path }));

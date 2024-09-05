@@ -6,16 +6,16 @@ namespace Plaza {
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "AssetUuid" << YAML::Value << material->mAssetUuid;
-		if (!material->name.empty())
-			out << YAML::Key << "Material" << YAML::Value << material->name;
+		if (!material->mAssetName.empty())
+			out << YAML::Key << "Material" << YAML::Value << material->mAssetName;
 		else
 			out << YAML::Key << "Material" << YAML::Value << std::filesystem::path{ filePath }.stem().string();
-		out << YAML::Key << "Uuid" << YAML::Value << material->uuid;
+		out << YAML::Key << "Uuid" << YAML::Value << material->mAssetUuid;
 		ComponentSerializer::TextureSerializer::Serialize(out, *material->diffuse);
 //		ComponentSerializer::TextureSerializer::Serialize(out, *material->specular);
 		ComponentSerializer::TextureSerializer::Serialize(out, *material->height);
 		ComponentSerializer::TextureSerializer::Serialize(out, *material->normal);
-		out << YAML::Key << "Shininess" << YAML::Value << material->shininess;
+//		out << YAML::Key << "Shininess" << YAML::Value << material->shininess;
 		out << YAML::EndMap;
 		std::ofstream fout(filePath);
 		fout << out.c_str();
@@ -29,11 +29,11 @@ namespace Plaza {
 		YAML::Node data = YAML::Load(strStream.str());
 
 		Material* material = new Material();
-		material->filePath = filePath;
+		material->mAssetPath = std::filesystem::path{ filePath };
 		try {
 			if (data) {
-				material->name = data["Material"].as<std::string>();
-				material->uuid = data["AssetUuid"].as<uint64_t>();
+				material->mAssetName = data["Material"].as<std::string>();
+				material->mAssetUuid = data["AssetUuid"].as<uint64_t>();
 				if (data["diffuse"]) {
 					material->diffuse = ComponentSerializer::TextureSerializer::DeSerialize(data["diffuse"]);
 				}
@@ -43,7 +43,7 @@ namespace Plaza {
 				if (data["normal"]) {
 					material->normal = ComponentSerializer::TextureSerializer::DeSerialize(data["normal"]);
 				}
-				material->shininess = data["Shininess"].as<float>();
+//				material->shininess = data["Shininess"].as<float>();
 			}
 		}
 		catch (exception) {

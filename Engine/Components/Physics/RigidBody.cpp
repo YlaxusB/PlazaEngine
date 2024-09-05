@@ -7,7 +7,7 @@ using namespace physx;
 namespace Plaza {
 	RigidBody::RigidBody(uint64_t uuid, bool initWithPhysics, bool dynamic) {
 		if (initWithPhysics) {
-			this->uuid = uuid;
+			this->mUuid = uuid;
 			this->dynamic = dynamic;
 			Init();
 		}
@@ -20,8 +20,8 @@ namespace Plaza {
 		Collider* collider = this->GetGameObject()->GetComponent<Collider>();
 		//AddCollidersOfChildren(this->uuid);
 		if (collider) {
-			if (Application->activeScene->colliderComponents.find(this->uuid) != Application->activeScene->colliderComponents.end())
-				Application->activeScene->colliderComponents.at(this->uuid).Init(this);
+			if (Application->activeScene->colliderComponents.find(this->mUuid) != Application->activeScene->colliderComponents.end())
+				Application->activeScene->colliderComponents.at(this->mUuid).Init(this);
 			mRigidActor = collider->mRigidActor;
 			physx::PxRigidBodyExt::setMassAndUpdateInertia(*this->mRigidActor->is<physx::PxRigidDynamic>(), physx::PxReal(this->density));
 			physx::PxRigidBodyExt::updateMassAndInertia(*this->mRigidActor->is<physx::PxRigidDynamic>(), physx::PxReal(this->density));
@@ -39,7 +39,7 @@ namespace Plaza {
 	void RigidBody::AddCollidersOfChildren(uint64_t parent) {
 		for (uint64_t child : Application->activeScene->entities.at(parent).childrenUuid) {
 			if (Application->activeScene->entities.at(child).HasComponent<Collider>() && !Application->activeScene->entities.at(child).HasComponent<RigidBody>()) {
-				Collider* rigidBodyCollider = Application->activeScene->entities.at(this->uuid).GetComponent<Collider>();
+				Collider* rigidBodyCollider = Application->activeScene->entities.at(this->mUuid).GetComponent<Collider>();
 				Collider* collider = Application->activeScene->entities.at(child).GetComponent<Collider>();
 				for (ColliderShape* colliderShape : collider->mShapes) {
 					rigidBodyCollider->mShapes.push_back(colliderShape);
@@ -74,7 +74,7 @@ namespace Plaza {
 
 	void RigidBody::Update() {
 		if (canUpdate) {
-			Transform& transform = *Application->activeScene->entities.at(this->uuid).GetComponent<Transform>();
+			Transform& transform = *Application->activeScene->entities.at(this->mUuid).GetComponent<Transform>();
 			Transform& parentTransform = Application->activeScene->transformComponents.at(this->GetGameObject()->parentUuid);
 			// Convert Px to Glm
 			physx::PxTransform pxTransform = mRigidActor->getGlobalPose();
@@ -93,7 +93,7 @@ namespace Plaza {
 	}
 	void RigidBody::UpdateGlobalPose() {
 		if (this->mRigidActor) {
-			Transform& transform = *Application->activeScene->entities.at(this->uuid).GetComponent<Transform>();
+			Transform& transform = *Application->activeScene->entities.at(this->mUuid).GetComponent<Transform>();
 			physx::PxTransform* pxTransform = Physics::ConvertMat4ToPxTransform(transform.modelMatrix);
 			this->mRigidActor->setGlobalPose(*pxTransform);
 		}

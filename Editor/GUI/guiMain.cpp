@@ -601,14 +601,14 @@ namespace Plaza {
 					for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
 						auto& [key, value] = *std::next(std::begin(AssetsManager::mAssets), i);
 
-						if (ImGui::TreeNodeEx(value->mPath.filename().string().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+						if (ImGui::TreeNodeEx(value->mAssetPath.filename().string().c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
 							ImGui::Text("Uuid: ");
 							ImGui::SameLine();
 							ImGui::Text(std::to_string(value->mAssetUuid).c_str());
 
 							ImGui::Text("Path: ");
 							ImGui::SameLine();
-							ImGui::Text(value->mPath.string().c_str());
+							ImGui::Text(value->mAssetPath.string().c_str());
 
 							ImGui::Text("Extension: ");
 							ImGui::SameLine();

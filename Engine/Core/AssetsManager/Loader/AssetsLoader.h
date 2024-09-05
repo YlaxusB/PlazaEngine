@@ -32,7 +32,7 @@ namespace Plaza {
 				AssetsLoader::LoadAnimation(asset);
 		}
 		static void LoadMetadata(Asset* asset) {
-			Asset metadataContent = Metadata::DeSerializeMetadata(asset->mPath.string());
+			Asset metadataContent = Metadata::DeSerializeMetadata(asset->mAssetPath.string());
 			if (AssetsManager::mAssetTypeByExtension.find(metadataContent.mAssetExtension) == AssetsManager::mAssetTypeByExtension.end())
 				return;
 			AssetType type = AssetsManager::mAssetTypeByExtension.at(metadataContent.mAssetExtension);
@@ -53,7 +53,7 @@ namespace Plaza {
 			if (AssetsManager::mTextures.find(asset->mAssetUuid) != AssetsManager::mTextures.end())
 				return AssetsManager::mTextures.at(asset->mAssetUuid);
 
-			Texture* texture = Application->mRenderer->LoadTexture(asset->mPath.string());
+			Texture* texture = Application->mRenderer->LoadTexture(asset->mAssetPath.string());
 			texture->mAssetUuid = asset->mAssetUuid;
 			AssetsManager::mTextures.emplace(asset->mAssetUuid, texture);
 			return texture;

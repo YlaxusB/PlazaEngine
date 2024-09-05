@@ -2,7 +2,7 @@
 #include "CppScriptComponent.h"
 namespace Plaza {
 	CsScriptComponent::CsScriptComponent(uint64_t uuid) {
-		this->uuid = uuid;
+		this->mUuid = uuid;
 	}
 	void CsScriptComponent::Init(std::string csScriptPath) {
 		this->scriptPath = csScriptPath;
@@ -11,7 +11,7 @@ namespace Plaza {
 		std::string scriptName = std::filesystem::path{ csScriptPath }.stem().string();
 		MonoClass* klass = mono_class_from_name(Mono::mScriptImage, "", scriptName.c_str()); // Replace with your class name
 		if (klass != nullptr) {
-			PlazaScriptClass* script = new PlazaScriptClass(klass, "", scriptName, dllPath, this->uuid, Mono::mAppDomain);
+			PlazaScriptClass* script = new PlazaScriptClass(klass, "", scriptName, dllPath, this->mUuid, Mono::mAppDomain);
 			//script->monoObject = mono_object_new(Mono::mAppDomain, klass);
 			script->klass = klass;
 			this->scriptClasses.emplace(scriptName, script);
@@ -19,9 +19,9 @@ namespace Plaza {
 			script->onUpdateMethod = mono_class_get_method_from_name(klass, "OnUpdate", 0);
 			script->GetMethods();
 		}
-		Application->activeProject->scripts[csScriptPath].entitiesUsingThisScript.emplace(this->uuid);
+		Application->activeProject->scripts[csScriptPath].entitiesUsingThisScript.emplace(this->mUuid);
 
-		Application->activeProject->scripts[csScriptPath].entitiesUsingThisScript.emplace(this->uuid);
+		Application->activeProject->scripts[csScriptPath].entitiesUsingThisScript.emplace(this->mUuid);
 	}
 	CsScriptComponent::~CsScriptComponent() {
 		//Application->activeProject->scripts.at(scriptPath).entitiesUsingThisScript.erase(this->uuid);

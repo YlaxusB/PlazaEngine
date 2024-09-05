@@ -7,6 +7,7 @@
 
 #include "Editor/GUI/Popups/NewEntityPopup.h"
 #include "Engine/Core/Scripting/Mono.h"
+#include "Engine/Components/Rendering/Material.h"
 #include "Engine/Core/RenderGroup.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
 
@@ -224,7 +225,7 @@ namespace Plaza::Editor {
 				if (ImGui::MenuItem("Rigid Body Dynamic"))
 				{
 					RigidBody* rigidBody = new RigidBody(entity.uuid, Application->runningScene);
-					rigidBody->uuid = entity.uuid;
+					rigidBody->mUuid = entity.uuid;
 					//Collider* collider = new Collider(entity.uuid);
 					//entity.AddComponent<Collider>(collider);
 					//entity.GetComponent<Collider>()->Init();
@@ -235,7 +236,7 @@ namespace Plaza::Editor {
 				{
 					RigidBody* rigidBody = new RigidBody(entity.uuid, Application->runningScene, false);
 					rigidBody->dynamic = false;
-					rigidBody->uuid = entity.uuid;
+					rigidBody->mUuid = entity.uuid;
 					entity.AddComponent<RigidBody>(rigidBody);
 				}
 
@@ -248,7 +249,7 @@ namespace Plaza::Editor {
 				if (ImGui::MenuItem("Camera"))
 				{
 					Camera* camera = new Camera();
-					camera->uuid = entity.uuid;
+					camera->mUuid = entity.uuid;
 					entity.AddComponent<Camera>(camera);
 				}
 
@@ -256,21 +257,21 @@ namespace Plaza::Editor {
 				{
 					Plaza::Drawing::UI::TextRenderer* textRenderer = new Plaza::Drawing::UI::TextRenderer();
 					textRenderer->Init(Application->activeProject->directory + "\\font.ttf");
-					textRenderer->uuid = entity.uuid;
+					textRenderer->mUuid = entity.uuid;
 					entity.AddComponent<Plaza::Drawing::UI::TextRenderer>(textRenderer);
 				}
 
 				if (ImGui::MenuItem("Audio Source"))
 				{
 					AudioSource* audioSource = new AudioSource();
-					audioSource->uuid = entity.uuid;
+					audioSource->mUuid = entity.uuid;
 					entity.AddComponent<AudioSource>(audioSource);
 				}
 
 				if (ImGui::MenuItem("Audio Listener"))
 				{
 					AudioListener* audioListener = new AudioListener();
-					audioListener->uuid = entity.uuid;
+					audioListener->mUuid = entity.uuid;
 					entity.AddComponent<AudioListener>(audioListener);
 				}
 
@@ -303,21 +304,21 @@ namespace Plaza::Editor {
 				if (ImGui::MenuItem("Light"))
 				{
 					Light* light = new Light();
-					light->uuid = entity.uuid;
+					light->mUuid = entity.uuid;
 					entity.AddComponent<Light>(light);
 				}
 
 				if (ImGui::MenuItem("Character Controller"))
 				{
 					CharacterController* characterController = new CharacterController();
-					characterController->uuid = entity.uuid;
+					characterController->mUuid = entity.uuid;
 					entity.AddComponent<CharacterController>(characterController);
 				}
 
 				if (ImGui::MenuItem("Animation"))
 				{
 					AnimationComponent* animationComponent = new AnimationComponent();
-					animationComponent->uuid = entity.uuid;
+					animationComponent->mUuid = entity.uuid;
 					entity.AddComponent<AnimationComponent>(animationComponent);
 				}
 

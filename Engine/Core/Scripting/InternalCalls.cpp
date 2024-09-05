@@ -111,7 +111,7 @@ namespace Plaza {
 	static void AddComponent(uint64_t uuid, MonoReflectionType* componentType) {
 		if (uuid) {
 			auto* component = CreateComponentByName(uuid, componentType);
-			component->uuid = uuid;
+			component->mUuid = uuid;
 			GetComponentMap(uuid, GetSubclassName(component), component);
 			//Application->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
 		}
@@ -119,7 +119,7 @@ namespace Plaza {
 
 	static void RemoveComponent(uint64_t uuid, MonoReflectionType* componentType) {
 		auto* component = CreateComponentByName(uuid, componentType);
-		component->uuid = uuid;
+		component->mUuid = uuid;
 		RemoveComponentFromEntity(uuid, GetSubclassName(component), component);
 		//Application->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
 	}
@@ -144,7 +144,7 @@ namespace Plaza {
 	static void AddScript(uint64_t uuid, MonoReflectionType* scriptType) {
 		if (uuid) {
 			auto* script = CreateComponentByName(uuid, scriptType);
-			script->uuid = uuid;
+			script->mUuid = uuid;
 			GetComponentMap(uuid, GetSubclassName(script), script);
 			//Application->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
 		}

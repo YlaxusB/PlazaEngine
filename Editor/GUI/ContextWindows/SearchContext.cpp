@@ -26,12 +26,12 @@ namespace Plaza::Editor {
 			ImGui::BeginChild("SearchChild1");
 
 			for (const auto& [key, value] : Application->activeScene->materials) {
-				if (value->name.find(searchText) != std::string::npos) {
+				if (value->mAssetName.find(searchText) != std::string::npos) {
 					ImGui::BeginGroup();
-					ImGui::Text(value->name.c_str());
+					ImGui::Text(value->mAssetName.c_str());
 					ImGui::SameLine();
 					if (ImGui::Button(std::string("Set Material##" + std::to_string(value->mAssetUuid)).c_str())) {
-						this->ExecuteCallback(value->uuid);
+						this->ExecuteCallback(value->mAssetUuid);
 					}
 
 					ImGui::EndGroup();

@@ -52,7 +52,7 @@ void SimplifyMesh(std::vector<Plaza::Vertex>& vertices, std::vector<unsigned int
 namespace Plaza {
 
 	Collider::Collider(std::uint64_t uuid, RigidBody* rigidBody) {
-		this->uuid = uuid;
+		this->mUuid = uuid;
 		if (Application->runningScene)
 			this->Init(rigidBody);
 	}
@@ -100,7 +100,7 @@ namespace Plaza {
 
 	void Collider::InitCollider(RigidBody* rigidBody) {
 		//this->RemoveActor();
-		physx::PxTransform pxTransform = Physics::GetPxTransform(Application->activeScene->transformComponents.at(this->uuid));
+		physx::PxTransform pxTransform = Physics::GetPxTransform(Application->activeScene->transformComponents.at(this->mUuid));
 		this->mRigidActor = Physics::m_physics->createRigidDynamic(pxTransform);
 		if (this->mRigidActor == nullptr)
 			this->mRigidActor = Physics::m_physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity(1.0f)));
@@ -114,7 +114,7 @@ namespace Plaza {
 			this->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
 
 
-		this->mRigidActor->userData = reinterpret_cast<void*>(this->uuid);
+		this->mRigidActor->userData = reinterpret_cast<void*>(this->mUuid);
 		// Attach the shapes with the material to the actor
 		for (ColliderShape* shape : mShapes) {
 			//shape->mPxShape->setMaterials(&material, 1);
@@ -122,7 +122,7 @@ namespace Plaza {
 			//filterData.word0 = 0; // word0 = own ID
 			//filterData.word1 = 0;  // word1 = ID mask to filter pairs that trigger a contact callback
 			//shape->mPxShape->setSimulationFilterData(filterData);
-			shape->mPxShape->userData = reinterpret_cast<void*>(this->uuid);
+			shape->mPxShape->userData = reinterpret_cast<void*>(this->mUuid);
 			this->mRigidActor->attachShape(*shape->mPxShape);
 		}
 		Physics::m_scene->addActor(*this->mRigidActor);
@@ -346,7 +346,7 @@ namespace Plaza {
 	}
 
 	void Collider::UpdateAllShapesScale() {
-		UpdateShapeScale(Application->activeScene->transformComponents.at(this->uuid).GetWorldScale());
+		UpdateShapeScale(Application->activeScene->transformComponents.at(this->mUuid).GetWorldScale());
 	}
 
 	void Collider::UpdateShapeScale(glm::vec3 scale) {
@@ -431,8 +431,8 @@ namespace Plaza {
 
 	template <typename EnumType>
 	void Collider::SetSelfAndChildrenFlag(EnumType flag, bool value) {
-		SetFlag(&Application->activeScene->rigidBodyComponents.at(this->uuid).mRigidActor, flag, value);
-		for (uint64_t child : Application->activeScene->entities.at(this->uuid).childrenUuid) {
+		SetFlag(&Application->activeScene->rigidBodyComponents.at(this->mUuid).mRigidActor, flag, value);
+		for (uint64_t child : Application->activeScene->entities.at(this->mUuid).childrenUuid) {
 			SetFlag(&Application->activeScene->rigidBodyComponents.at(child).mRigidActor, flag, value);
 		}
 	}

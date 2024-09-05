@@ -67,7 +67,7 @@ namespace Plaza {
 					/* TODO: IMPLEMENT PROPER SCENE ASSET LOADER */
 					Asset* temporarySceneAsset = new Asset();
 					temporarySceneAsset->mAssetUuid = Application->activeScene->mAssetUuid;
-					temporarySceneAsset->mPath = Application->activeProject->directory + "\\" + Application->activeScene->filePath;
+					temporarySceneAsset->mAssetPath = std::filesystem::path{ Application->activeProject->directory + "\\" + Application->activeScene->filePath };
 					temporarySceneAsset->mAssetExtension = Standards::sceneExtName;
 					Serializer::Serialize(temporarySceneAsset);
 					ProjectSerializer::Serialize(Application->projectPath + "\\" + Application->activeProject->name + Standards::projectExtName);

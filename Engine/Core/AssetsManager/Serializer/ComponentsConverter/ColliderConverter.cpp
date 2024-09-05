@@ -12,7 +12,7 @@ namespace Plaza {
 
 	SerializableCollider* ComponentsConverter::ConvertCollider(Collider* collider) {
 		SerializableCollider* serializedCollider = new SerializableCollider();
-		serializedCollider->uuid = collider->uuid;
+		serializedCollider->uuid = collider->mUuid;
 		serializedCollider->type = SerializableComponentType::COLLIDER;
 
 		serializedCollider->shapesCount = collider->mShapes.size();

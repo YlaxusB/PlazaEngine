@@ -3,14 +3,14 @@
 
 namespace Plaza {
 	MeshRenderer::MeshRenderer(Plaza::Mesh* initialMesh, bool addToScene) {
-		this->uuid = Plaza::UUID::NewUUID();
+		this->mUuid = Plaza::UUID::NewUUID();
 		this->mesh = initialMesh;//std::make_unique<Mesh>(initialMesh);
 		if (addToScene)
 			Application->activeScene->meshRenderers.emplace_back(this);
 	}
 
 	MeshRenderer::MeshRenderer(Plaza::Mesh* initialMesh, std::vector<Material*> materials, bool addToScene) {
-		this->uuid = Plaza::UUID::NewUUID();
+		this->mUuid = Plaza::UUID::NewUUID();
 		this->mesh = initialMesh;
 		this->mMaterials = materials;
 
@@ -45,7 +45,7 @@ namespace Plaza {
 	}
 
 	void MeshRenderer::ChangeMaterial(Material* newMaterial, unsigned int index) {
-		uint64_t oldUuid = newMaterial->uuid;
+		uint64_t oldUuid = newMaterial->mAssetUuid;
 		this->mMaterials[index] = newMaterial;
 		this->renderGroup = Application->activeScene->AddRenderGroup(new RenderGroup(this->mesh, this->mMaterials));
 		//this->renderGroup->ChangeMaterial(newMaterial);

@@ -9,7 +9,7 @@ namespace Plaza {
 		uint64_t mAssetUuid = 0;
 		std::string type = "";
 		std::string path = "";
-		glm::vec4 rgba = glm::vec4(255.0f);
+		glm::vec4 rgba = glm::vec4(1.0f);
 		int mIndexHandle = -1;
 		float mIntensity = 1.0f;
 
@@ -29,6 +29,12 @@ namespace Plaza {
 
 		std::vector<PlImageLayout> mFutureLayouts = std::vector<PlImageLayout>();
 
+		Texture() {};
+		Texture(std::string type, glm::vec4 rgba = glm::vec4(1.0f), float intensity = 1.0f) {
+			this->type = type;
+			this->rgba = rgba;
+			this->mIntensity = intensity;
+		}
 		Texture(uint64_t descriptorCount, PlImageUsage imageUsage, PlTextureType imageType, PlViewType viewType, PlTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name)
 			: mDescriptorCount(descriptorCount), mImageUsage(imageUsage), mTextureType(imageType), mViewType(viewType), mFormat(format), mResolution(resolution), mMipCount(mipCount), mLayersCount(layersCount), mName(name) {
 		}
@@ -40,8 +46,6 @@ namespace Plaza {
 				this->type == other.type
 				);
 		}
-
-		Texture() = default;
 
 		virtual void Load(std::string relativePath = "") {}
 		virtual VkDescriptorSet GetDescriptorSet() {

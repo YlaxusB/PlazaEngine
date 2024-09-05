@@ -1,7 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "RenderGroup.h"
 
-
 namespace Plaza {
 	void RenderGroup::InitializeInstanceBuffer() {
 		this->mInstanceBuffers.resize(Application->mRenderer->mMaxFramesInFlight);

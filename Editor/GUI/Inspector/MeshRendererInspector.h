@@ -20,8 +20,8 @@ namespace Plaza::Editor {
 				if (ImGui::TreeNodeEx("Materials List", ImGuiTreeNodeFlags_DefaultOpen)) {
 					unsigned int index = 0;
 					for (Material* material : meshRenderer->mMaterials) {
-						ImGui::PushID(material->uuid);
-						std::string treeNodeName = std::to_string(index) + ": " + material->name;
+						ImGui::PushID(material->mAssetUuid);
+						std::string treeNodeName = std::to_string(index) + ": " + material->mAssetName;
 						index++;
 						bool treeNodeOpen = ImGui::TreeNode(treeNodeName.c_str());
 						ImGui::SameLine();
@@ -38,7 +38,7 @@ namespace Plaza::Editor {
 								ImGui::PopID();
 								continue;
 							}
-							File file = File(material->name, AssetsManager::GetAsset(material->mAssetUuid)->mPath.string(), Standards::materialExtName);
+							File file = File(material->mAssetName, AssetsManager::GetAsset(material->mAssetUuid)->mAssetPath.string(), Standards::materialExtName);
 							Plaza::Editor::MaterialFileInspector::MaterialFileInspector(&file);
 
 							ImGui::TreePop();

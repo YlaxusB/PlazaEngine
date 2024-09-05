@@ -47,12 +47,12 @@ namespace Plaza {
 
 		template<typename T>
 		T* AddComponent(T* component, bool addToComponentsList = true) {
-			component->uuid = this->uuid;
+			component->mUuid = this->uuid;
 
 			std::string className = typeid(T).name();
 			if (addToComponentsList) {
 				auto& components = *static_cast<ComponentMultiMap<uint64_t, T>*>(GetAllComponentsMaps()[className]);
-				components.emplace(component->uuid, *component);
+				components.emplace(component->mUuid, *component);
 			}
 
 			return dynamic_cast<T*>(component);

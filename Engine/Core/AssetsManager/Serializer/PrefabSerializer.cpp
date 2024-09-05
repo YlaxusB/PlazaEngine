@@ -8,7 +8,7 @@
 namespace Plaza {
 	SerializableTransform* ConvertTransform(Transform* transform) {
 		SerializableTransform* serializableTransform = new SerializableTransform();
-		serializableTransform->uuid = transform->uuid;
+		serializableTransform->uuid = transform->mUuid;
 		serializableTransform->type = SerializableComponentType::TRANSFORM;
 		serializableTransform->position = transform->relativePosition;
 		serializableTransform->rotation = transform->rotation;

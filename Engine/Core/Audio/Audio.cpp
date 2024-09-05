@@ -55,8 +55,8 @@ namespace Plaza {
 	void Audio::UpdateListener() {
 		PLAZA_PROFILE_SECTION("Update Audio");
 		if (Application->runningScene && Application->activeCamera != Application->editorCamera) {
-			if (Application->activeScene->entities.find(Application->activeCamera->uuid) != Application->activeScene->entities.end() && Application->activeScene->GetEntity(Application->activeCamera->uuid)->HasComponent<AudioListener>())
-				Application->activeScene->GetEntity(Application->activeCamera->uuid)->GetComponent<AudioListener>()->UpdateListener();
+			if (Application->activeScene->entities.find(Application->activeCamera->mUuid) != Application->activeScene->entities.end() && Application->activeScene->GetEntity(Application->activeCamera->mUuid)->HasComponent<AudioListener>())
+				Application->activeScene->GetEntity(Application->activeCamera->mUuid)->GetComponent<AudioListener>()->UpdateListener();
 		}
 		else {
 			glm::vec3 position = Application->activeCamera->Position;

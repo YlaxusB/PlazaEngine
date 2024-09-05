@@ -14,10 +14,11 @@ namespace Plaza::Editor {
 		static Material* material;
 		static File* lastFile;
 
-		Texture* LoadTextureButton() {
-			Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"));
+		Texture* LoadTextureButton(std::string outDirectory = "") {
+			Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"), {}, outDirectory);
+
 			if (asset)
-				return Application->mRenderer->LoadTexture(asset->mPath.string(), asset->mAssetUuid);
+				return Application->mRenderer->LoadTexture(asset->mAssetPath.string(), asset->mAssetUuid);
 			else
 				return AssetsManager::mTextures.find(1)->second;
 		}
@@ -42,15 +43,15 @@ namespace Plaza::Editor {
 
 			ImGui::BeginTable("MaterialFileInspectorTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
 			if (Utils::AddTableTexture("Diffuse: ", material->diffuse, ImGuiSliderFlags_None))
-				material->diffuse = LoadTextureButton();
+				material->diffuse = LoadTextureButton(std::filesystem::path{ material->mAssetPath }.parent_path().string());
 			if (Utils::AddTableTexture("Normal: ", material->normal, ImGuiSliderFlags_None))
-				material->normal = LoadTextureButton();
+				material->normal = LoadTextureButton(std::filesystem::path{ material->mAssetPath }.parent_path().string());
 			if (Utils::AddTableTexture("Roughness: ", material->roughness, ImGuiSliderFlags_None))
-				material->roughness = LoadTextureButton();
+				material->roughness = LoadTextureButton(std::filesystem::path{ material->mAssetPath }.parent_path().string());
 			if (Utils::AddTableTexture("Metalness: ", material->metalness, ImGuiSliderFlags_None))
-				material->metalness = LoadTextureButton();
+				material->metalness = LoadTextureButton(std::filesystem::path{ material->mAssetPath }.parent_path().string());
 			if (Utils::AddTableTexture("Height: ", material->height, ImGuiSliderFlags_None))
-				material->height = LoadTextureButton();
+				material->height = LoadTextureButton(std::filesystem::path{ material->mAssetPath }.parent_path().string());
 			ImGui::EndTable();
 
 			//ImGui::ColorPicker4("Diffuse", &material->diffuse->rgba.x);
@@ -85,7 +86,7 @@ namespace Plaza::Editor {
 			//	Application->activeScene->materials.at(material->uuid) = std::make_shared<Material>(*new Material(*material));
 			//}
 			if (ImGui::Button("Apply")) {
-				material->name = std::filesystem::path{ file->directory }.stem().string();
+				material->mAssetName = std::filesystem::path{ file->directory }.stem().string();
 				AssetsSerializer::SerializeMaterial(material, file->directory);
 				//MaterialFileSerializer::Serialize(file->directory, material);
 			}

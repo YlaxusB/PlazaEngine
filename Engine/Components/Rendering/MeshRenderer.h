@@ -1,10 +1,16 @@
 #pragma once
 #include "Engine/Components/Component.h"
 //#include "Engine/Components/Rendering/Mesh.h"
+//#include "Engine/Core/AssetsManager/AssetsManager.h"
+//#include "Engine/Components/Rendering/Material.h"
 #include "Engine/Core/RenderGroup.h"
 #include "Engine/Components/Core/Transform.h"
+#include "Engine/Components/Rendering/Material.h"
+
 using namespace std;
 namespace Plaza {
+	struct Asset;
+	struct Material;
 	template<typename Type>
 	class Array2D {
 	public:
@@ -121,7 +127,7 @@ namespace Plaza {
 		MeshRenderer(const MeshRenderer& other) = default;
 		~MeshRenderer();
 		MeshRenderer() {
-			uuid = Plaza::UUID::NewUUID();
+			mUuid = Plaza::UUID::NewUUID();
 		}
 
 		void ChangeMaterial(Material* newMaterial, unsigned int index = 0);

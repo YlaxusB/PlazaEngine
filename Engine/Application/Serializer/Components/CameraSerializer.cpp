@@ -4,7 +4,7 @@ namespace Plaza {
 	void ComponentSerializer::CameraSerializer::Serialize(YAML::Emitter& out, Camera& camera) {
 		out << YAML::Key << "CameraComponent" << YAML::BeginMap;
 
-		out << YAML::Key << "Uuid" << YAML::Value << camera.uuid;
+		out << YAML::Key << "Uuid" << YAML::Value << camera.mUuid;
 		out << YAML::Key << "Position" << YAML::Value << camera.Position;
 		out << YAML::Key << "FOV" << YAML::Value << camera.Zoom;
 		out << YAML::Key << "FarPlane" << YAML::Value << camera.farPlane;
@@ -19,7 +19,7 @@ namespace Plaza {
 
 	Camera* ComponentSerializer::CameraSerializer::DeSerialize(YAML::Node data) {
 		Camera* camera = new Camera();
-		camera->uuid = data["Uuid"].as<uint64_t>();
+		camera->mUuid = data["Uuid"].as<uint64_t>();
 		camera->Position = data["Position"].as<glm::vec3>();
 		camera->Zoom = data["FOV"].as<float>();
 		camera->farPlane = data["FarPlane"].as<float>();

@@ -18,7 +18,7 @@ namespace Plaza {
 
 	Material* AssetsImporter::ObjModelMaterialLoader(const tinyobj::material_t* tinyobjMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures) {
 		Material* material = new Material();
-		material->name = tinyobjMaterial->name;
+		material->mAssetName = tinyobjMaterial->name;
 
 		const std::string diffusePath = materialFolderPath + "\\" + tinyobjMaterial->diffuse_texname;
 		if (!tinyobjMaterial->diffuse_texname.empty() && loadedTextures.find(diffusePath) == loadedTextures.end())
@@ -57,7 +57,7 @@ namespace Plaza {
 			material->metalness = AssetsManager::mTextures.at(loadedTextures.at(metalnessPath));
 
 
-		material->shininess = tinyobjMaterial->shininess;
+//		material->shininess = tinyobjMaterial->shininess;
 		material->diffuse->rgba.x = tinyobjMaterial->diffuse[0];
 		material->diffuse->rgba.y = tinyobjMaterial->diffuse[1];
 		material->diffuse->rgba.z = tinyobjMaterial->diffuse[2];
@@ -138,10 +138,10 @@ namespace Plaza {
 
 					material = AssetsImporter::ObjModelMaterialLoader(&tinyobjMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
 
-					std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->name) + Standards::materialExtName;
+					std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->mAssetName) + Standards::materialExtName;
 
 					if (loadedMaterials.find(materialOutPath) == loadedMaterials.end()) {
-						loadedMaterials.emplace(materialOutPath, material->uuid);
+						loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
 						AssetsSerializer::SerializeMaterial(material, materialOutPath);
 						Application->activeScene->AddMaterial(material);
 					}

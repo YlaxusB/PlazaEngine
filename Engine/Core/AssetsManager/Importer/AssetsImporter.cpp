@@ -19,7 +19,7 @@ namespace Plaza {
 
 		AssetImported asset = AssetImported({ extension, path });
 
-		std::string outDirectory = Editor::Gui::FileExplorer::currentDirectory;
+		std::string outDirectory = settings.outDirectory.empty() ? Editor::Gui::FileExplorer::currentDirectory : settings.outDirectory;
 		std::string outPath = outDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(std::filesystem::path{ path }.stem().string());
 
 		Entity* mainEntity;

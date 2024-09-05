@@ -7,12 +7,12 @@ namespace Plaza {
 		serializedMaterial.assetUuid = material->mAssetUuid;
 		serializedMaterial.diffuseColor = material->diffuse->rgba;
 		serializedMaterial.normalUuid = material->normal->mAssetUuid;
-		serializedMaterial.roughnessFloat = material->roughnessFloat;
+//		serializedMaterial.roughnessFloat = material->roughnessFloat;
 		serializedMaterial.roughnessUuid = material->roughness->mAssetUuid;
-		serializedMaterial.metalnessFloat = material->metalnessFloat;
+//		serializedMaterial.metalnessFloat = material->metalnessFloat;
 		serializedMaterial.metalnessUuid = material->metalness->mAssetUuid;
-		serializedMaterial.intensity = material->intensity;
-		serializedMaterial.shininess = material->shininess;
+//		serializedMaterial.intensity = material->intensity;
+//		serializedMaterial.shininess = material->shininess;
 
 		return serializedMaterial;
 	}

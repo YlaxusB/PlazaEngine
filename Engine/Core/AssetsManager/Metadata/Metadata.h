@@ -11,7 +11,7 @@ namespace Plaza {
 		};
 
 		static void CreateMetadataFile(Asset* asset) {
-			Metadata::SerializeMetadata(asset->mAssetUuid, asset->mPath.string(), asset->mAssetExtension);
+			Metadata::SerializeMetadata(asset->mAssetUuid, asset->mAssetPath.string(), asset->mAssetExtension);
 		}
 
 		static void SerializeMetadata(uint64_t uuid, std::string assetPath, std::string extension) {
@@ -31,7 +31,7 @@ namespace Plaza {
 			Asset asset = Asset();
 
 			binaryFile.read(reinterpret_cast<char*>(&asset.mAssetUuid), sizeof(uint64_t));
-			asset.mPath = Plaza::Utils::ReadBinaryString(binaryFile);
+			asset.mAssetPath = std::filesystem::path{ Plaza::Utils::ReadBinaryString(binaryFile) };
 			asset.mAssetExtension = Plaza::Utils::ReadBinaryString(binaryFile);
 
 			binaryFile.close();

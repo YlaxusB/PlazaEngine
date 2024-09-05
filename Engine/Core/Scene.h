@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PLAZA_SCENE_H
+#define PLAZA_SCENE_H
 #include <vector>
 #include <variant>
 #include <unordered_map>
@@ -7,7 +8,7 @@
 //#include "Engine/Components/Core/Entity.h"
 
 
-
+#include "Engine/Components/Rendering/Material.h"
 #include "Engine/Core/RenderGroup.h"
 
 
@@ -241,13 +242,6 @@ namespace Plaza {
 			componentsMap["class Plaza::Light"] = &lightComponents;
 			componentsMap["class Plaza::CharacterController"] = &characterControllerComponents;
 			componentsMap["class Plaza::AnimationComponent"] = &animationComponentComponents;
-			//componentsMap.emplace("Camera", &cameraComponents);
-			//componentsMap.emplace("MeshRenderer", &meshRendererComponents);
-			//componentsMap.emplace("RigidBody", &rigidBodyComponents);
-			//componentsMap.emplace("Collider", &colliderComponents);
-			//componentsMap.emplace("Plaza::Drawing::UI::TextRenderer", &UITextRendererComponents);
-			//componentsMap.emplace("AudioSource", &audioSourceComponents);
-			//componentsMap.emplace("AudioListener", &audioListenerComponents);
 		}
 
 		static Material* DefaultMaterial();
@@ -255,13 +249,13 @@ namespace Plaza {
 		unsigned int lastMaterialIndex = 0;
 		void AddMaterial(Material* material) {
 			lastMaterialIndex++;
-			this->materials.emplace(material->uuid, material);
-			this->materialsNames.emplace(material->name, material->uuid);
+			this->materials.emplace(material->mAssetUuid, material);
+			this->materialsNames.emplace(material->mAssetPath.string(), material->mAssetUuid);
 		}
 
 		void AddMaterial(std::shared_ptr<Material> material) {
-			this->materials.emplace(material->uuid, material);
-			this->materialsNames.emplace(material->name, material->uuid);
+			this->materials.emplace(material->mAssetUuid, material);
+			this->materialsNames.emplace(material->mAssetPath.string(), material->mAssetUuid);
 		}
 
 		Material* GetMaterial(uint64_t uuid) {
@@ -311,46 +305,6 @@ namespace Plaza {
 		}
 
 		static Scene* GetActiveScene();
-		/*
-
-				bool mIsDeleting = false;
-
-		uint64_t mAssetUuid = 0;
-		std::string filePath = "mainScene.plzscn";
-
-		std::unordered_map<std::variant<uint64_t, std::string>, Entity*> gameObjectsMap;
-
-		Entity* mainSceneEntity;
-
-		std::map<uint64_t, Animation*> mPlayingAnimations = std::map<uint64_t, Animation*>();
-
-		std::unordered_map<uint64_t, Entity> entities;
-		ComponentMultiMap<uint64_t, Transform> transformComponents;
-		ComponentMultiMap<uint64_t, Camera> cameraComponents;
-		ComponentMultiMap<uint64_t, MeshRenderer> meshRendererComponents;
-		ComponentMultiMap<uint64_t, RigidBody> rigidBodyComponents;
-		ComponentMultiMap<uint64_t, Collider> colliderComponents;
-		ComponentMultiMap<uint64_t, CsScriptComponent> csScriptComponents;
-		ComponentMultiMap<uint64_t, Plaza::Drawing::UI::TextRenderer> UITextRendererComponents;
-		ComponentMultiMap<uint64_t, AudioSource> audioSourceComponents;
-		ComponentMultiMap<uint64_t, AudioListener> audioListenerComponents;
-		ComponentMultiMap<uint64_t, Light> lightComponents;
-		ComponentMultiMap<uint64_t, CharacterController> characterControllerComponents;
-		ComponentMultiMap<uint64_t, AnimationComponent> animationComponentComponents;
-
-		std::unordered_map<std::string, void*> componentsMap;
-
-		std::vector<MeshRenderer*> meshRenderers;
-		std::unordered_map<uint64_t, shared_ptr<Material>> materials;
-		std::unordered_map<std::string, uint64_t> materialsNames;
-
-		std::unordered_map<uint64_t, RenderGroup*> renderGroups;
-		std::unordered_map<std::pair<uint64_t, std::vector<uint64_t>>, uint64_t, PairHash> renderGroupsFindMap;
-		std::unordered_map<uint64_t, uint64_t> renderGroupsFindMapWithMeshUuid;
-		std::unordered_map<std::vector<uint64_t>, uint64_t, VectorHash, VectorEqual<uint64_t>> renderGroupsFindMapWithMaterialUuid;
-
-		std::unordered_map<std::string, std::unordered_set<uint64_t>> entitiesNames;
-
-		*/
 	};
 }
+#endif //PLAZA_SCENE_H

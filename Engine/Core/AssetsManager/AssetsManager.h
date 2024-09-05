@@ -1,14 +1,14 @@
 #pragma once
 #include "Engine/Core/AssetsManager/AssetsType.h"
+#include "Engine/Core/Standards.h"
+#include "Engine/Components/Physics/Collider.h"
+#include "Engine/Components/Rendering/MeshRenderer.h"
+#include "Engine/Components/Rendering/Material.h"
+#include "Engine/Components/Rendering/AnimationComponent.h"
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
+#include "Asset.h"
 
 namespace Plaza {
-	struct Asset {
-		uint64_t mAssetUuid = 0;
-		std::string mAssetExtension = "";
-		std::filesystem::path mPath;
-	};
-
 	class AssetsListStructure : public std::unordered_map<uint64_t, Asset*> {
 	public:
 
@@ -60,8 +60,8 @@ namespace Plaza {
 		static Asset* NewAsset(uint64_t uuid, AssetType assetType, std::string path) {
 			Asset* newAsset = new Asset();
 			newAsset->mAssetUuid = uuid;
-			newAsset->mPath = std::filesystem::path{ path };
-			newAsset->mAssetExtension = newAsset->mPath.extension().string();
+			newAsset->mAssetPath = std::filesystem::path{ path };
+			newAsset->mAssetExtension = newAsset->mAssetPath.extension().string();
 			AssetsManager::AddAsset(newAsset);
 			return newAsset;
 		}
@@ -69,7 +69,7 @@ namespace Plaza {
 			Asset* newAsset = new Asset();
 			newAsset->mAssetUuid = Plaza::UUID::NewUUID();
 			newAsset->mAssetExtension = path.extension().string();
-			newAsset->mPath = path;
+			newAsset->mAssetPath = path;
 			AssetsManager::AddAsset(newAsset);
 			return newAsset;
 		}
@@ -101,7 +101,7 @@ namespace Plaza {
 		static void AddAsset(Asset* asset) {
 			AssetsManager::mAssets.emplace(asset->mAssetUuid, asset);
 			AssetsManager::mTypeMap.find(mAssetTypeByExtension.at(asset->mAssetExtension))->second.emplace(asset->mAssetUuid);
-			AssetsManager::mAssetsUuidByPath.emplace(asset->mPath, asset->mAssetUuid);
+			AssetsManager::mAssetsUuidByPath.emplace(asset->mAssetPath, asset->mAssetUuid);
 		}
 
 		static bool HasAssetPath(std::string& path) {
@@ -218,17 +218,17 @@ namespace Plaza {
 		}
 
 		static void RemoveAssetUuidPath(uint64_t assetUuid) {
-			const auto& it = AssetsManager::mAssetsUuidByPath.find(AssetsManager::GetAsset(assetUuid)->mPath);
+			const auto& it = AssetsManager::mAssetsUuidByPath.find(AssetsManager::GetAsset(assetUuid)->mAssetPath);
 			if (it != AssetsManager::mAssetsUuidByPath.end())
 				AssetsManager::mAssetsUuidByPath.erase(it);
 		}
 
 		static void ChangeAssetPath(uint64_t assetUuid, std::string newPath) {
 			AssetsManager::RemoveAssetUuidPath(assetUuid);
-			AssetsManager::GetAsset(assetUuid)->mPath = newPath;
+			AssetsManager::GetAsset(assetUuid)->mAssetPath = newPath;
 			AssetsManager::mAssetsUuidByPath.emplace(std::filesystem::path{ newPath }, assetUuid);
 		}
 
-		static Asset* GetAssetOrImport(std::string path, uint64_t uuid = 0);
+		static Asset* GetAssetOrImport(std::string path, uint64_t uuid = 0, std::string outDirectory = "");
 	};
 }

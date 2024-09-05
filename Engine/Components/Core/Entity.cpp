@@ -72,29 +72,29 @@ namespace Plaza {
 
 		if (existingComponent) {
 			// Copy over the UUID from the existing component to the new one
-			newComponent->uuid = existingComponent->uuid;
+			newComponent->mUuid = existingComponent->mUuid;
 
 			// Replace the component in the appropriate components list
 			if constexpr (std::is_same_v<T, Transform>) {
-				Application->activeScene->transformComponents[newComponent->uuid] = *newComponent;
+				Application->activeScene->transformComponents[newComponent->mUuid] = *newComponent;
 			}
 			else if constexpr (std::is_same_v<T, MeshRenderer>) {
-				Application->activeScene->meshRendererComponents[newComponent->uuid] = *newComponent;
+				Application->activeScene->meshRendererComponents[newComponent->mUuid] = *newComponent;
 			}
 
 			// Clean up and delete the old component
 			if constexpr (std::is_base_of_v<Component, T>) {
-				if (existingComponent->uuid == this->uuid) {
-					existingComponent->uuid = UUID::NewUUID();
+				if (existingComponent->mUuid == this->uuid) {
+					existingComponent->mUuid = UUID::NewUUID();
 				}
 
 				if constexpr (std::is_base_of_v<Transform, T> || std::is_base_of_v<MeshRenderer, T>) {
-					if (existingComponent->uuid != newComponent->uuid) {
+					if (existingComponent->mUuid != newComponent->mUuid) {
 						if constexpr (std::is_base_of_v<Transform, T>) {
-							Application->activeScene->transformComponents.erase(existingComponent->uuid);
+							Application->activeScene->transformComponents.erase(existingComponent->mUuid);
 						}
 						else if constexpr (std::is_base_of_v<MeshRenderer, T>) {
-							Application->activeScene->meshRendererComponents.erase(existingComponent->uuid);
+							Application->activeScene->meshRendererComponents.erase(existingComponent->mUuid);
 						}
 					}
 				}
@@ -262,7 +262,7 @@ namespace Plaza {
 			PLAZA_PROFILE_SECTION("MeshRenderer");
 			//MeshRenderer* meshRendererToInstantiate = meshRendererIt->second;
 			MeshRenderer* newMeshRenderer = new MeshRenderer();
-			newMeshRenderer->uuid = instantiatedEntity->uuid;
+			newMeshRenderer->mUuid = instantiatedEntity->uuid;
 			newMeshRenderer->instanced = true;
 			newMeshRenderer->mesh = meshRendererIt->second.mesh;//shared_ptr<Mesh>(meshRendererToInstantiate->mesh);
 			newMeshRenderer->mMaterials = meshRendererIt->second.mMaterials;
@@ -275,7 +275,7 @@ namespace Plaza {
 			PLAZA_PROFILE_SECTION("Collider");
 			Collider* newCollider = new Collider(colliderIt->second);
 			newCollider->mShapes.clear();
-			newCollider->uuid = instantiatedEntity->uuid;
+			newCollider->mUuid = instantiatedEntity->uuid;
 			newCollider->mRigidActor = nullptr;
 			for (ColliderShape* shape : colliderIt->second.mShapes) {
 				physx::PxGeometryHolder geometry = shape->mPxShape->getGeometry();
@@ -292,7 +292,7 @@ namespace Plaza {
 		if (rigidBodyIt != Application->activeScene->rigidBodyComponents.end()) {
 			PLAZA_PROFILE_SECTION("RigidBody");
 			RigidBody* newRigidBody = new RigidBody(rigidBodyIt->second);
-			newRigidBody->uuid = instantiatedEntity->uuid;
+			newRigidBody->mUuid = instantiatedEntity->uuid;
 			instantiatedEntity->AddComponent<RigidBody>(newRigidBody);
 			instantiatedEntity->GetComponent<RigidBody>()->Init();
 		}
@@ -303,7 +303,7 @@ namespace Plaza {
 			auto range = Application->activeScene->csScriptComponents.equal_range(entityToInstantiate->uuid);
 			vector<CsScriptComponent*> scriptsToAdd = vector<CsScriptComponent*>();
 			for (auto it = range.first; it != range.second && it != Application->activeScene->csScriptComponents.end(); ++it) {
-				if (it->second.uuid == entityToInstantiate->uuid) {
+				if (it->second.mUuid == entityToInstantiate->uuid) {
 					CsScriptComponent* newScript = new CsScriptComponent(instantiatedEntity->uuid);
 					newScript->Init(it->second.scriptPath);
 
@@ -312,7 +312,7 @@ namespace Plaza {
 					//for (auto [key, value] : it->second.scriptClasses) { fields = FieldManager::GetFieldsValues(value->monoObject); };
 
 					/* Apply all fields to the instantiated entity */
-					uint64_t key = newScript->uuid;
+					uint64_t key = newScript->mUuid;
 					//for (auto [scriptClassKey, scriptClassValue] : newScript->scriptClasses) {
 					//	MonoClassField* monoField = NULL;
 					//	void* iter = NULL;
@@ -351,7 +351,7 @@ namespace Plaza {
 		if (audioSourceIt != Application->activeScene->audioSourceComponents.end()) {
 			PLAZA_PROFILE_SECTION("AudioSource");
 			AudioSource* newAudioSource = new AudioSource(audioSourceIt->second);
-			newAudioSource->uuid = instantiatedEntity->uuid;
+			newAudioSource->mUuid = instantiatedEntity->uuid;
 			newAudioSource->SetGain(audioSourceIt->second.mGain);
 			newAudioSource->SetPitch(audioSourceIt->second.mPitch);
 			newAudioSource->SetLoop(audioSourceIt->second.mLoop);
@@ -363,7 +363,7 @@ namespace Plaza {
 		if (lightIt != Application->activeScene->lightComponents.end()) {
 			PLAZA_PROFILE_SECTION("Light");
 			Light* newLight = new Light(lightIt->second);
-			newLight->uuid = instantiatedEntity->uuid;
+			newLight->mUuid = instantiatedEntity->uuid;
 			instantiatedEntity->AddComponent<Light>(newLight);
 		}
 
@@ -371,7 +371,7 @@ namespace Plaza {
 		if (characterControllerIt != Application->activeScene->characterControllerComponents.end()) {
 			PLAZA_PROFILE_SECTION("Light");
 			CharacterController* newCharacterController = new CharacterController(characterControllerIt->second);
-			newCharacterController->uuid = instantiatedEntity->uuid;
+			newCharacterController->mUuid = instantiatedEntity->uuid;
 			instantiatedEntity->AddComponent<CharacterController>(newCharacterController);
 		}
 

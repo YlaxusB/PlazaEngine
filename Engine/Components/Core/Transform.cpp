@@ -43,7 +43,7 @@ namespace Plaza {
 	glm::mat4 Transform::GetTransform(glm::vec3 position, glm::vec3 scale)
 	{
 		glm::mat4 parentMatrix;
-		if (Application->activeScene->entities.at(this->uuid).parentUuid == 0) {
+		if (Application->activeScene->entities.at(this->mUuid).parentUuid == 0) {
 			parentMatrix = glm::mat4(1.0f);
 		}
 		else {
@@ -62,7 +62,7 @@ namespace Plaza {
 
 	void Transform::UpdateWorldMatrix() {
 		PLAZA_PROFILE_SECTION("Transform: Update World Matrix");
-		uint64_t parentUuid = Application->activeScene->entities.find(this->uuid)->second.parentUuid;
+		uint64_t parentUuid = Application->activeScene->entities.find(this->mUuid)->second.parentUuid;
 		if (parentUuid && Application->activeScene->transformComponents.find(parentUuid) != Application->activeScene->transformComponents.end()) {
 			glm::mat4 parentModelMatrix = Application->activeScene->transformComponents.find(parentUuid)->second.modelMatrix;
 			if (this->lastParentModelMatrix != parentModelMatrix || this->lastLocalMatrix != this->localMatrix) {
@@ -170,8 +170,8 @@ namespace Plaza {
 	}
 
 	void Transform::UpdateChildrenTransform() {
-		if (uuid) {
-			UpdateChildrenTransform(&Application->activeScene->entities[uuid]);
+		if (mUuid) {
+			UpdateChildrenTransform(&Application->activeScene->entities[mUuid]);
 		}
 	}
 
@@ -210,7 +210,7 @@ namespace Plaza {
 	void Transform::SetRelativeScale(glm::vec3 vector) { 
 		this->scale = vector;
 		this->UpdateSelfAndChildrenTransform();
-		auto it = Application->activeScene->colliderComponents.find(this->uuid);
+		auto it = Application->activeScene->colliderComponents.find(this->mUuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
 			it->second.UpdateShapeScale(this->worldScale);
 		}
@@ -218,7 +218,7 @@ namespace Plaza {
 
 	void Transform::UpdatePhysics() {
 		PLAZA_PROFILE_SECTION("Transform: Update Physics");
-		auto it = Application->activeScene->colliderComponents.find(this->uuid);
+		auto it = Application->activeScene->colliderComponents.find(this->mUuid);
 		if (it != Application->activeScene->colliderComponents.end()) {
 			it->second.UpdateShapeScale(this->GetWorldScale());
 			it->second.UpdatePose(this);

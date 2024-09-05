@@ -24,6 +24,7 @@ namespace Plaza {
 		std::string mPath;
 	};
 	struct AssetsImporterSettings {
+		std::string outDirectory = "";
 		bool mImportModel = true;
 		bool mImportTextures = true;
 		bool mImportMaterials = true;

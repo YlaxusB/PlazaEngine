@@ -277,9 +277,9 @@ namespace Plaza {
 		VulkanPicking::PushConstants pushData{};
 		pushData.projection = Application->activeCamera->GetProjectionMatrix();
 		pushData.view = Application->activeCamera->GetViewMatrix();
-		pushData.model = Application->activeScene->GetComponent<Transform>(meshRenderer.uuid)->modelMatrix;
-		pushData.uuid1 = (uint32_t)(meshRenderer.uuid >> 32);
-		pushData.uuid2 = (uint32_t)(meshRenderer.uuid & 0xFFFFFFFF);
+		pushData.model = Application->activeScene->GetComponent<Transform>(meshRenderer.mUuid)->modelMatrix;
+		pushData.uuid1 = (uint32_t)(meshRenderer.mUuid >> 32);
+		pushData.uuid2 = (uint32_t)(meshRenderer.mUuid & 0xFFFFFFFF);
 		
 		vkCmdPushConstants(commandBuffer, this->mRenderPickingTexturePostEffects->mShaders->mPipelineLayout, VK_SHADER_STAGE_ALL, 0, sizeof(VulkanPicking::PushConstants), &pushData);
 

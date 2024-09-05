@@ -68,7 +68,7 @@ namespace Plaza {
 
 	Material* AssetsImporter::FbxModelMaterialLoader(const ufbx_material* ufbxMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures) {
 		Material* material = new Material();
-		material->name = ufbxMaterial->name.data;
+		material->mAssetName = ufbxMaterial->name.data;
 
 		std::vector< ufbx_material_map> usedPBRMaps = std::vector< ufbx_material_map>();
 		std::vector< ufbx_material_map> usedFBXMaps = std::vector< ufbx_material_map>();
@@ -201,13 +201,13 @@ namespace Plaza {
 					if (materialIsNotLoaded) {
 						materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
 						Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
-						if (material->uuid == Application->activeScene->DefaultMaterial()->uuid) {
-							loadedMaterials.emplace(materialOutPath, material->uuid);
+						if (material->mAssetUuid == Application->activeScene->DefaultMaterial()->mAssetUuid) {
+							loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
 							materials.push_back(material);
 							continue;
 						}
 						material->flip = settings.mFlipTextures;
-						loadedMaterials.emplace(materialOutPath, material->uuid);
+						loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
 						AssetsSerializer::SerializeMaterial(material, materialOutPath);
 						Application->activeScene->AddMaterial(material);
 						materials.push_back(material);

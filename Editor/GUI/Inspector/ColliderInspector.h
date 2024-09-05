@@ -54,7 +54,7 @@ namespace Plaza::Editor {
 						ImGui::CloseCurrentPopup(); // Close the context menu on right-click
 					}
 
-					Transform& transform = *Application->activeScene->entities.at(collider->uuid).GetComponent<Transform>();
+					Transform& transform = *Application->activeScene->entities.at(collider->mUuid).GetComponent<Transform>();
 					// Create a dynamic rigid body
 					glm::quat quaternion = transform.GetWorldQuaternion();
 					physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
@@ -85,22 +85,22 @@ namespace Plaza::Editor {
 					if (ImGui::MenuItem("Mesh"))
 					{
 						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {
-							collider->AddMeshShape((Mesh*)new OpenGLMesh(*(OpenGLMesh*)Application->activeScene->meshRendererComponents.at(collider->uuid).mesh));
+							collider->AddMeshShape((Mesh*)new OpenGLMesh(*(OpenGLMesh*)Application->activeScene->meshRendererComponents.at(collider->mUuid).mesh));
 							collider->Init(nullptr);
 						}
 						if (collider->GetGameObject()->HasComponent<RigidBody>()) {
-							AddChildrenMeshShape(collider, collider->uuid);
+							AddChildrenMeshShape(collider, collider->mUuid);
 
 						}
 					}
 					if (ImGui::MenuItem("Convex Mesh"))
 					{
 						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {
-							collider->AddConvexMeshShape((Mesh*)new OpenGLMesh(*(OpenGLMesh*)Application->activeScene->meshRendererComponents.at(collider->uuid).mesh));
+							collider->AddConvexMeshShape((Mesh*)new OpenGLMesh(*(OpenGLMesh*)Application->activeScene->meshRendererComponents.at(collider->mUuid).mesh));
 							collider->Init(nullptr);
 						}
 						if (collider->GetGameObject()->HasComponent<RigidBody>()) {
-							AddChildrenMeshShape(collider, collider->uuid);
+							AddChildrenMeshShape(collider, collider->mUuid);
 
 						}
 					}

@@ -96,7 +96,7 @@ namespace Plaza {
 			out << YAML::Key << "Path" << YAML::Value << script.scriptPath;
 		}
 
-		out << YAML::Key << "Uuid" << YAML::Value << script.uuid;
+		out << YAML::Key << "Uuid" << YAML::Value << script.mUuid;
 
 		out << YAML::Key << "SerializedFields" << YAML::BeginSeq;
 		for (auto& [scriptClassKey, scriptClass] : script.scriptClasses) {
@@ -186,7 +186,7 @@ namespace Plaza {
 		for (auto [scriptClassKey, scriptClassValue] : script->scriptClasses) {
 			MonoClassField* monoField = NULL;
 			void* iter = NULL;
-			uint64_t key = script->uuid;
+			uint64_t key = script->mUuid;
 
 			while ((monoField = mono_class_get_fields(mono_object_get_class(scriptClassValue->monoObject), &iter)) != NULL)
 			{

@@ -5,7 +5,7 @@ namespace Plaza {
 	void ComponentSerializer::ColliderSerializer::Serialize(YAML::Emitter& out, Collider& collider) {
 		out << YAML::Key << "ColliderComponent" << YAML::BeginMap;
 
-		out << YAML::Key << "Uuid" << YAML::Value << collider.uuid;
+		out << YAML::Key << "Uuid" << YAML::Value << collider.mUuid;
 		out << YAML::Key << "Shapes" << YAML::Value << YAML::BeginSeq;
 		if (collider.mShapes.size() == 0) {
 			std::cout << "000qweqewq \n";
@@ -24,7 +24,7 @@ namespace Plaza {
 
 	Collider* ComponentSerializer::ColliderSerializer::DeSerialize(YAML::Node data) {
 		Collider* collider = new Collider(data["Uuid"].as<uint64_t>(), nullptr);
-		Transform* transform = &Application->activeScene->transformComponents.at(collider->uuid);
+		Transform* transform = &Application->activeScene->transformComponents.at(collider->mUuid);
 		for (auto shapeDeserialized : data["Shapes"]) {
 			if (AssetsManager::HasMesh(shapeDeserialized["MeshUuid"].as<uint64_t>()) || shapeDeserialized["Shape"].as<int>() != ColliderShape::ColliderShapeEnum::MESH) {
 				if (shapeDeserialized["MeshUuid"].as<uint64_t>())

@@ -2,6 +2,8 @@
 #include "ThirdParty/PhysX/physx/include/PxPhysicsAPI.h"
 //#include <PhysX/physx/include/PxPhysicsAPI.h>
 #include "Engine/Components/Core/Transform.h"
+#include "Engine/Components/Physics/RigidBody.h"
+#include "Engine/Components/Rendering/MeshRenderer.h"
 namespace Plaza {
 
 	struct ColliderShape {
@@ -35,11 +37,11 @@ namespace Plaza {
 		~Collider() override;
 		void RemoveActor();
 		void Init(RigidBody* rigidBody);
-		void InitDynamic(RigidBody* rigidBody = nullptr);
-		void InitStatic();
+		void InitDynamic(RigidBody* rigidBody = nullptr) {};
+		void InitStatic() {};
 		void InitCollider(RigidBody* rigidBody = nullptr);
 		void RemoveCollider();
-		void Update();
+		void Update() {};
 
 		void CreateShape(ColliderShape::ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh = nullptr);
 		void AddShape(ColliderShape* shape);

@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Core/AssetsManager/AssetsType.h"
+#include "Engine/Core/AssetsManager/AssetsManager.h"
 #include <ThirdParty/cereal/cereal/archives/json.hpp>
 #include <ThirdParty/cereal/cereal/types/string.hpp>
 #include <ThirdParty/cereal/cereal/types/vector.hpp>
@@ -8,7 +9,6 @@
 #include <ThirdParty/cereal/cereal/types/map.hpp>
 #include <ThirdParty/cereal/cereal/types/polymorphic.hpp>
 #include <ThirdParty/cereal/cereal/types/utility.hpp>
-
 
 
 

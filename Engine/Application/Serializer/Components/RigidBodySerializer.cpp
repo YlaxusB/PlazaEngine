@@ -5,7 +5,7 @@ namespace Plaza {
 	void ComponentSerializer::RigidBodySerializer::Serialize(YAML::Emitter& out, RigidBody& rigidBody) {
 		out << YAML::Key << "RigidBodyComponent" << YAML::BeginMap;
 
-		out << YAML::Key << "Uuid" << YAML::Value << rigidBody.uuid;
+		out << YAML::Key << "Uuid" << YAML::Value << rigidBody.mUuid;
 		out << YAML::Key << "DynamicLockFlags" << YAML::Value << (unsigned int)rigidBody.rigidDynamicLockFlags;
 		out << YAML::Key << "ContinuousDetection" << YAML::Value << rigidBody.continuousDetection;
 

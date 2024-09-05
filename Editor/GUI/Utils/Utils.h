@@ -12,7 +12,7 @@ namespace Plaza::Editor::Utils {
 			float arrowSize = old.x + 30.0f;
 			ImGui::SetCursorPos(ImVec2(ImGui::CalcTextSize(name.c_str()).x + arrowSize, ImGui::GetCursorPos().y));
 			if (ImGui::Button("Remove Component")) {
-				Application->activeScene->entities.find(component->uuid)->second.RemoveComponent(component);
+				Application->activeScene->entities.find(component->mUuid)->second.RemoveComponent(component);
 				deleted = true;
 			}
 			ImGui::SameLine();

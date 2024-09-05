@@ -12,7 +12,7 @@ namespace Plaza {
 
 	void Camera::Update() {
 		if (!this->isEditorCamera)
-			Position = Application->activeScene->transformComponents.at(this->uuid).GetWorldPosition();
+			Position = Application->activeScene->transformComponents.at(this->mUuid).GetWorldPosition();
 		updateCameraVectors();
 		UpdateFrustum();
 	}
@@ -117,9 +117,9 @@ namespace Plaza {
 	void Camera::updateCameraVectors()
 	{
 		if (Application) {
-			auto it = Application->activeScene->transformComponents.find(this->uuid);
+			auto it = Application->activeScene->transformComponents.find(this->mUuid);
 			if (it != Application->activeScene->transformComponents.end()) {
-				Application->activeScene->transformComponents.at(this->uuid).haveCamera = true;
+				Application->activeScene->transformComponents.at(this->mUuid).haveCamera = true;
 			}
 		}
 		if (this->isEditorCamera) {
@@ -134,8 +134,8 @@ namespace Plaza {
 			Up = glm::normalize(glm::cross(Right, Front));
 		}
 		else {
-			if (this->uuid && Application && Application->activeScene->transformComponents.find(this->uuid) != Application->activeScene->transformComponents.end()) {
-				Transform* transform = &Application->activeScene->transformComponents.at(this->uuid);
+			if (this->mUuid && Application && Application->activeScene->transformComponents.find(this->mUuid) != Application->activeScene->transformComponents.end()) {
+				Transform* transform = &Application->activeScene->transformComponents.at(this->mUuid);
 				glm::mat4 transformationMatrix = transform->modelMatrix; // Assuming you have a transformation matrix
 
 				glm::vec3 cubeFront = glm::normalize(glm::vec3(transformationMatrix[0])); // Negative Z-axis

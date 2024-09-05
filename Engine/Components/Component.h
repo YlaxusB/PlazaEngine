@@ -11,17 +11,16 @@ namespace Plaza {
 	class Entity;
 	class Component {
 	public:
-		uint64_t uuid;
-		uint64_t componentUuid;
+		uint64_t mUuid;
 		Entity* GetGameObject();
 		virtual ~Component() = default;
 		Component() {
-			this->componentUuid = Plaza::UUID::NewUUID();
+			//this->componentUuid = Plaza::UUID::NewUUID();
 		}
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(uuid);
+			archive(mUuid);
 		}
 	};
 }

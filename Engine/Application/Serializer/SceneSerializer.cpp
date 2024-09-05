@@ -108,7 +108,7 @@ namespace Plaza {
 		for (auto& [key, value] : AssetsManager::mLoadedModels) {
 			out << YAML::BeginMap;
 			out << YAML::Key << "Model" << YAML::Value << value->uuid;
-			out << YAML::Key << "ModelPath" << YAML::Value << AssetsManager::GetAsset(value->uuid)->mPath.string();
+			out << YAML::Key << "ModelPath" << YAML::Value << AssetsManager::GetAsset(value->uuid)->mAssetPath.string();
 			out << YAML::EndMap;
 			//SerializeModels(out, value->uuid);
 		}
@@ -123,7 +123,7 @@ namespace Plaza {
 
 
 		out << YAML::EndMap;
-		std::ofstream fout(sceneAsset->mPath.string());
+		std::ofstream fout(sceneAsset->mAssetPath.string());
 		fout << out.c_str();
 	}
 

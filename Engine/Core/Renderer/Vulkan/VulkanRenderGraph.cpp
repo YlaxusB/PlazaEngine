@@ -714,7 +714,7 @@ namespace Plaza {
 		pipeline->mShaders->InitializeFull(
 			VulkanRenderer::GetRenderer()->mDevice,
 			pipelineLayoutCreateInfo,
-			createInfo.vertexAttributeDescriptions.size() > 0 | createInfo.vertexBindingDescriptions.size() > 0 ? true : false,
+			createInfo.vertexAttributeDescriptions.size() > 0 || createInfo.vertexBindingDescriptions.size() > 0 ? true : false,
 			mRenderSize.x,
 			mRenderSize.y,
 			shaderStages,

@@ -89,9 +89,9 @@ namespace Plaza {
 		glfwSetDropCallback(window, Callbacks::dropCallback);
 		glfwSetKeyCallback(window, Callbacks::keyCallback);
 
-
 #ifdef EDITOR_MODE
 		// glfwSwapInterval(0);
+
 #endif
 		if (Application->mRenderer->api == RendererAPI::OpenGL)
 		{

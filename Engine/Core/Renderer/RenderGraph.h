@@ -11,7 +11,7 @@ namespace Plaza {
 		PlRenderStage mStage = PL_STAGE_ALL;
 		uint8_t mLocation = 0;
 		uint8_t mBinding = 0;
-		PlBindingType mBindingType;
+		PlBindingType mBindingType = PlBindingType::PL_BINDING_UNDEFINED;
 		uint64_t mMaxBindlessResources = 0;
 
 		virtual void Compile(std::set<std::string>& compiledBindings) {};

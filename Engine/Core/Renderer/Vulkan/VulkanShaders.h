@@ -50,7 +50,7 @@ namespace Plaza {
 		VkPipelineMultisampleStateCreateInfo mMultisampling{};
 		VkPipelineColorBlendStateCreateInfo mColorBlending{};
 		VkPipelineDynamicStateCreateInfo mDynamicState{};
-		VkRenderPass mRenderPass;
+		VkRenderPass mRenderPass = VK_NULL_HANDLE;
 		VkPipelineDepthStencilStateCreateInfo mDepthStencil{};
 	private:
 	};

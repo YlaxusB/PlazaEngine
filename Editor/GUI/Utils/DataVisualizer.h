@@ -113,6 +113,25 @@ namespace Plaza::Editor::Utils {
 		return false;
 	}
 
+	static bool AddTableTexture(std::string label, Texture* texture, ImGuiSliderFlags flags = ImGuiSliderFlags_None) {
+		ImGui::PushID(texture->mAssetUuid);
+		ImGui::TableNextRow();
+
+		ImGui::TableNextColumn();
+		ImGui::Text(label.c_str());
+		ImGui::TableNextColumn();
+		ImGui::DragFloat("Intensity", &texture->mIntensity);
+		ImGui::TableNextColumn();
+		bool textureButton = ImGui::Button("Texture");
+		ImGui::TableNextColumn();
+		std::string colorPickerName = "Color ##" + std::to_string(texture->mAssetUuid);
+		ImGui::ColorEdit4(colorPickerName.c_str(), &texture->rgba.x, ImGuiColorEditFlags_NoInputs);
+		ImGui::TableNextColumn();
+		ImGui::PopID();
+
+		return textureButton;
+	}
+
 	static void AddTableButtonString(std::string name, std::string buttonName, bool* value, ImGuiSliderFlags flags = ImGuiSliderFlags_None, std::function<void(bool*) > callback = nullptr) {
 		ImGui::TableNextRow();
 		ImGui::Text(name.c_str());

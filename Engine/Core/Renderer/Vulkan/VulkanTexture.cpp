@@ -4,8 +4,6 @@
 #include "ThirdParty/DirectXTex/DirectXTex/DirectXTex.h"
 
 namespace Plaza {
-	int VulkanTexture::mLastBindingIndex = 1;
-
 	/// Takes image with VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL and outputs it with VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 	void VulkanTexture::GenerateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkFormat format, uint32_t layerCount) {
 		// Check if image format supports linear blitting

@@ -19,8 +19,8 @@ namespace Plaza {
 		COLLIDER
 	};
 	struct SerializableComponents {
-		uint64_t uuid;
-		SerializableComponentType type;
+		uint64_t uuid = 0;
+		SerializableComponentType type = SerializableComponentType::TRANSFORM;
 		virtual void sayType() = 0;
 
 		template <class Archive>
@@ -106,9 +106,9 @@ namespace Plaza {
 
 	struct SerializableCollider : public SerializableComponents {
 		void sayType() {};
-		uint64_t colliderUuid;
-		uint32_t shapesCount;
-		std::vector<SerializableColliderShape> shapes;
+		uint64_t colliderUuid = 0;
+		uint32_t shapesCount = 0;
+		std::vector<SerializableColliderShape> shapes{};
 
 		template <class Archive>
 		void serialize(Archive& archive) {

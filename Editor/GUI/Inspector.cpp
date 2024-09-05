@@ -52,7 +52,7 @@ namespace Plaza::Editor {
 			else {
 				ImGui::Text(Editor::selectedGameObject->name.c_str());
 				for (Component* component : components) {
-					CreateRespectiveInspector(component);
+					ComponentInspector::CreateRespectiveInspector(component);
 				}
 				ImGui::Text("Parent Uuid: ");
 				std::string uuidString = std::to_string(Editor::selectedGameObject->parentUuid);

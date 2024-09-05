@@ -23,7 +23,7 @@ namespace Plaza {
 		class GuiWindow {
 		public:
 			GuiWindow(GuiLayer layer, bool startOpen = true) : mLayer(layer), mIsOpen(startOpen) {
-				
+
 			}
 			virtual void Init() = 0;
 			virtual void Update() = 0;
@@ -33,8 +33,22 @@ namespace Plaza {
 			//virtual void HandleFocusedKeyEvent();
 			//virtual void HandleHoveredKeyEvent();
 
-			void IsHovered();
-			void IsFocused();
+			const bool IsHovered() { return mHovered; };
+			const bool IsFocused() { return mFocused; };
+
+			/// <summary>
+			/// Only call this after the window creation
+			/// </summary>
+			void UpdateHovered() {
+				mHovered = ImGui::IsWindowHovered() || ImGui::IsItemHovered();
+			}
+
+			/// <summary>
+			/// Only call this after the window creation
+			/// </summary>
+			void UpdateFocused() {
+				mFocused = ImGui::IsWindowFocused() || ImGui::IsItemFocused();
+			}
 
 			GuiLayer GetLayer() {
 				return mLayer;
@@ -47,10 +61,12 @@ namespace Plaza {
 			}
 
 			bool mExpanded = true;
+			bool mIsOpen = true;
 		private:
 			GuiLayer mLayer = GuiLayer::UNKNOWN;
 			GuiState mState = GuiState::UNKNOWN;
-			bool mIsOpen = true;
+			bool mHovered = false;
+			bool mFocused = false;
 		};
 	}
 }

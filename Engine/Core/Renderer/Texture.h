@@ -6,11 +6,12 @@
 namespace Plaza {
 	class Texture {
 	public:
-		uint64_t mAssetUuid;
+		uint64_t mAssetUuid = 0;
 		std::string type = "";
 		std::string path = "";
 		glm::vec4 rgba = glm::vec4(255.0f);
 		int mIndexHandle = -1;
+		float mIntensity = 1.0f;
 
 		uint64_t mDescriptorCount = 1;
 		PlTextureType mTextureType = PL_TYPE_2D;

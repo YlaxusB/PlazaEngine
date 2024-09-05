@@ -24,6 +24,6 @@ namespace Plaza {
 
 		void UpdateCommandBuffer(VkCommandBuffer commandBuffer);
 	private:
-		VkCommandBuffer mCommandBuffer;
+		VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
 	};
 }

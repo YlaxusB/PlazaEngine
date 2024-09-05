@@ -1,6 +1,6 @@
 #pragma once
 #include "Editor/GUI/Inspector/TransformInspector.h"
-#include "Editor/GUI/Inspector/MaterialInspector.h"
+
 using namespace Plaza::Editor;
 namespace Plaza::Editor {
 	class Inspector {

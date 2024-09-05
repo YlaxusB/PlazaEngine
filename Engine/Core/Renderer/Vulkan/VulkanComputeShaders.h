@@ -43,17 +43,17 @@ namespace Plaza {
 		void Dispatch(int x, int y, int z, void* pushConstantData = nullptr, unsigned int pushConstantSize = 0, VkDescriptorSet descriptorSet = VK_NULL_HANDLE);
 		void Terminate();
 
-		std::vector<VkBuffer> mShaderStorageBuffers;
-		std::vector<VkDeviceMemory> mShaderStorageBuffersMemory;
-		VkDescriptorSetLayout mComputeDescriptorSetLayout;
-		std::vector<VkWriteDescriptorSet> mDescriptorWrites{};
-		std::vector<VkDescriptorSet> mComputeDescriptorSets;
-		VkPipelineLayout mComputePipelineLayout;
-		VkPipeline mComputePipeline;
+		std::vector<VkBuffer> mShaderStorageBuffers = std::vector<VkBuffer>();
+		std::vector<VkDeviceMemory> mShaderStorageBuffersMemory = std::vector<VkDeviceMemory>();
+		VkDescriptorSetLayout mComputeDescriptorSetLayout = VK_NULL_HANDLE;
+		std::vector<VkWriteDescriptorSet> mDescriptorWrites = std::vector<VkWriteDescriptorSet>();
+		std::vector<VkDescriptorSet> mComputeDescriptorSets = std::vector<VkDescriptorSet>();
+		VkPipelineLayout mComputePipelineLayout = VK_NULL_HANDLE;
+		VkPipeline mComputePipeline = VK_NULL_HANDLE;
 	private:
 
-		std::vector<VkBuffer> mUniformBuffers;
-		std::vector<VkDeviceMemory> mUniformBuffersMemory;
-		std::vector<void*> mUniformBuffersMapped;
+		std::vector<VkBuffer> mUniformBuffers = std::vector<VkBuffer>();
+		std::vector<VkDeviceMemory> mUniformBuffersMemory = std::vector<VkDeviceMemory>();
+		std::vector<void*> mUniformBuffersMapped = std::vector<void*>();
 	};
 }

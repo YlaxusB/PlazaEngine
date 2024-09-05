@@ -14,7 +14,7 @@ namespace Plaza {
 		}
 
 		VkDescriptorSet mDescriptorSet = VK_NULL_HANDLE;
-		static int mLastBindingIndex;
+		static inline int mLastBindingIndex = 1;
 		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
 		VkImage mImage = VK_NULL_HANDLE;
 		VkDeviceMemory mImageMemory = VK_NULL_HANDLE;
@@ -53,8 +53,8 @@ namespace Plaza {
 		glm::vec4 ReadTexture(glm::vec2 pos, unsigned int bytesPerPixel = 4);
 	private:
 		//VkFormat mFormat;
-		VkBuffer mStagingBuffer;
-		VkDeviceMemory mStagingBufferMemory;
+		VkBuffer mStagingBuffer = VK_NULL_HANDLE;
+		VkDeviceMemory mStagingBufferMemory = VK_NULL_HANDLE;
 
 		void Load(std::string path) override;
 		unsigned int GetTextureID() override;

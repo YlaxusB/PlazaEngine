@@ -89,6 +89,10 @@ namespace Plaza {
 		virtual void Compile() {};
 		virtual void Destroy() {};
 
+		const TextureInfo& GetTextureInfo() {
+			return mTexture->GetTextureInfo();
+		}
+
 		std::shared_ptr<Texture> mTexture = nullptr;
 	private:
 	};
@@ -271,7 +275,7 @@ namespace Plaza {
 		}
 
 		void AddTexture(std::shared_ptr<Texture> texture) {
-			mTextures.emplace(texture->mName, texture);
+			mTextures.emplace(texture->mAssetName, texture);
 		}
 
 		void AddBuffer(std::shared_ptr<PlBuffer> buffer) {

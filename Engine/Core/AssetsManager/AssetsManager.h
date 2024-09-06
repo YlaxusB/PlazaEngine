@@ -41,20 +41,20 @@ namespace Plaza {
 				return map;
 				}();
 
-				AssetsManager::mAssetTypeByExtension.emplace(Standards::modelExtName, AssetType::MODEL);
-				AssetsManager::mAssetTypeByExtension.emplace(Standards::materialExtName, AssetType::MATERIAL);
-				AssetsManager::mAssetTypeByExtension.emplace(".png", AssetType::TEXTURE);
-				AssetsManager::mAssetTypeByExtension.emplace(".jpg", AssetType::TEXTURE);
-				AssetsManager::mAssetTypeByExtension.emplace(".jpeg", AssetType::TEXTURE);
-				AssetsManager::mAssetTypeByExtension.emplace(".dds", AssetType::TEXTURE);
-				AssetsManager::mAssetTypeByExtension.emplace(".tga", AssetType::TEXTURE);
-				AssetsManager::mAssetTypeByExtension.emplace(Standards::sceneExtName, AssetType::SCENE);
-				AssetsManager::mAssetTypeByExtension.emplace(Standards::animationExtName, AssetType::ANIMATION);
-				AssetsManager::mAssetTypeByExtension.emplace("", AssetType::NONE);
+			AssetsManager::mAssetTypeByExtension.emplace(Standards::modelExtName, AssetType::MODEL);
+			AssetsManager::mAssetTypeByExtension.emplace(Standards::materialExtName, AssetType::MATERIAL);
+			AssetsManager::mAssetTypeByExtension.emplace(".png", AssetType::TEXTURE);
+			AssetsManager::mAssetTypeByExtension.emplace(".jpg", AssetType::TEXTURE);
+			AssetsManager::mAssetTypeByExtension.emplace(".jpeg", AssetType::TEXTURE);
+			AssetsManager::mAssetTypeByExtension.emplace(".dds", AssetType::TEXTURE);
+			AssetsManager::mAssetTypeByExtension.emplace(".tga", AssetType::TEXTURE);
+			AssetsManager::mAssetTypeByExtension.emplace(Standards::sceneExtName, AssetType::SCENE);
+			AssetsManager::mAssetTypeByExtension.emplace(Standards::animationExtName, AssetType::ANIMATION);
+			AssetsManager::mAssetTypeByExtension.emplace("", AssetType::NONE);
 
-				Texture* defaultTexture = new Texture();
-				defaultTexture->mAssetUuid = 1;
-				AssetsManager::mTextures.emplace(1, defaultTexture);
+			Texture* defaultTexture = new Texture();
+			defaultTexture->mAssetUuid = 1;
+			AssetsManager::mTextures.emplace(1, defaultTexture);
 		}
 
 		static Asset* NewAsset(uint64_t uuid, AssetType assetType, std::string path) {

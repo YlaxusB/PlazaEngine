@@ -10,12 +10,12 @@ namespace Plaza {
 	struct Material : public Asset {
 	public:
 		unsigned int mIndexHandle = -1;
-		Texture* diffuse = new Texture("diffuse", glm::vec4(1.0f), 1.0f);
-		Texture* normal = new Texture("normal", glm::vec4(1.0f), 1.0f);
-		Texture* height = new Texture("height", glm::vec4(1.0f), 1.0f);
-		Texture* metalness = new Texture("metalness", glm::vec4(1.0f), 0.35f);
-		Texture* roughness = new Texture("roughness", glm::vec4(1.0f), 1.0f);
-		Texture* aoMap = new Texture("aoMap", glm::vec4(1.0f), 1.0f);
+		Texture* diffuse = new Texture(glm::vec4(1.0f), 1.0f);
+		Texture* normal = new Texture(glm::vec4(1.0f), 1.0f);
+		Texture* height = new Texture(glm::vec4(1.0f), 1.0f);
+		Texture* metalness = new Texture(glm::vec4(1.0f), 0.35f);
+		Texture* roughness = new Texture(glm::vec4(1.0f), 1.0f);
+		Texture* aoMap = new Texture(glm::vec4(1.0f), 1.0f);
 		glm::vec2 flip = glm::vec2(1.0f);
 
 		//Texture* albedo = new Texture("albedo");
@@ -68,7 +68,7 @@ namespace Plaza {
 				this->diffuse->SameAs(*other.diffuse) &&
 				//this->specular->SameAs(*other.specular) &&
 				this->normal->SameAs(*other.normal) &&
-				this->height->SameAs(*other.height) 
+				this->height->SameAs(*other.height)
 				);
 		}
 		static std::vector<uint64_t> GetMaterialsUuids(std::vector<Material*>& materials) {
@@ -81,8 +81,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			// TODO: SERIALIZE MATERIALS
-			//archive(mAssetUuid, name, diffuse, normal, height, metalness, roughness, aoMap, shininess, intensity, flip);
+			archive(mAssetUuid, mAssetName, diffuse, normal, metalness, roughness, height, aoMap, flip);
 		}
 	};
 

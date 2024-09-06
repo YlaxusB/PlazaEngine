@@ -28,7 +28,7 @@ namespace Plaza {
 
 	class VulkanRenderer : public Renderer {
 	public:
-		VulkanRenderer() = default;
+		VulkanRenderer() {};
 		std::array<int, MAX_BONE_INFLUENCE> GetBoneIds(std::vector<uint64_t>& bones);
 
 		std::map<uint64_t, Bone> mBones = std::map<uint64_t, Bone>();
@@ -80,7 +80,7 @@ namespace Plaza {
 		void UpdateGUI() override;
 		ImTextureID GetFrameImage() override;
 
-		void UploadBindlessTexture(VulkanTexture* texture);
+		void UploadBindlessTexture(VulkanTexture* texture, int index = -1);
 		void UpdateInstancesData();
 
 		VkRenderPass CreateRenderPass(VkAttachmentDescription* attachmentDescs, uint32_t attachmentsCount, VkSubpassDescription* subpasses, uint32_t subpassesCount, VkSubpassDependency* dependencies, uint32_t dependenciesCount, void* next = nullptr);

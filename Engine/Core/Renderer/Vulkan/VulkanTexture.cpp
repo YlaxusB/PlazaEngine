@@ -255,7 +255,7 @@ namespace Plaza {
 
 	bool VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps, VkImageUsageFlags usageFlags, VkImageType imageType, VkImageTiling tiling, VkImageLayout initialLayout,
 		unsigned int layers, VkImageUsageFlags flags, bool transition, VkSharingMode sharingMode, bool calculateMips) {
-		mLayersCount = layers;
+//		mLayersCount = layers;
 		//this->SetFormat(format);
 		this->mMipCount = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 		if (!generateMipMaps && !calculateMips)
@@ -456,11 +456,13 @@ namespace Plaza {
 	}
 
 	VkFormat VulkanTexture::GetFormat() {
-		return PlImageFormatToVkFormat(this->mFormat);
+		return PlImageFormatToVkFormat(this->GetTextureInfo().mFormat);
 	}
 
 	void VulkanTexture::SetFormat(PlTextureFormat newFormat) {
-		this->mFormat = newFormat;
+		TextureInfo info = this->GetTextureInfo();
+		info.mFormat = newFormat;
+		this->SetTextureInfo(info);
 	}
 
 	glm::vec4 VulkanTexture::ReadTexture(glm::vec2 pos, unsigned int bytesPerPixel, unsigned int channels, VkImageAspectFlags aspect, bool isDepth) {

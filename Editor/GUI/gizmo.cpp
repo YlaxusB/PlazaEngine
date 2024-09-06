@@ -67,11 +67,13 @@ namespace Plaza::Editor {
 			collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, false);
 		}
 
-		if (ImGuizmo::IsUsing())
+		bool isUsing = ImGuizmo::IsUsing();
+		glm::vec3 position, rotation, scale;
+		if (isUsing)
 		{
-			glm::vec3 position, rotation, scale;
 			DecomposeTransform(gizmoTransform, position, rotation, scale);
-
+		}
+		if (isUsing && !glm::isnan(position.x)) {
 			// --- Rotation
 			glm::mat4 updatedTransform = glm::inverse(parentTransform.GetTransform()) * glm::toMat4(glm::quat(rotation));
 			/*

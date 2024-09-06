@@ -3195,7 +3195,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(
 			mImGuiTextureSampler,
 			mRenderGraph->GetTexture<VulkanTexture>("FinalTexture")->mImageView,
-			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL); 
+			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 		//		mFinalSceneDescriptorSet =
 		// ImGui_ImplVulkan_AddTexture(mTextureSampler,
@@ -3278,16 +3278,16 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			return AssetsManager::GetTexture(uuid);
 		if (uuid != 0)
 			texture->mAssetUuid = uuid;
-		texture->path = path;
+		texture->mAssetPath = path;
 		if (std::filesystem::exists(path)) {
-			bool textureCreated = texture->CreateTextureImage(mDevice, path, PlImageFormatToVkFormat(texture->mFormat), true);
+			bool textureCreated = texture->CreateTextureImage(mDevice, path, PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), true);
 			if (!textureCreated) {
 				UploadBindlessTexture(texture);
 				return texture;
 			}
 
 			//texture->CreateTextureSampler();
-			texture->CreateImageView(PlImageFormatToVkFormat(texture->mFormat), VK_IMAGE_ASPECT_COLOR_BIT);
+			texture->CreateImageView(PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), VK_IMAGE_ASPECT_COLOR_BIT);
 			//texture->InitDescriptorSetLayout();
 			UploadBindlessTexture(texture);
 		}
@@ -3305,17 +3305,18 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		return texture;
 	}
 
-	void VulkanRenderer::UploadBindlessTexture(VulkanTexture* texture) {
+	void VulkanRenderer::UploadBindlessTexture(VulkanTexture* texture, int index) {
 		VkDescriptorImageInfo imageInfo{};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imageInfo.imageView = texture->mImageView;
 		imageInfo.sampler = VulkanRenderer::GetRenderer()->mTextureSampler;
 		for (size_t i = 0; i < Application->mRenderer->mMaxFramesInFlight; i++) {
-			VkWriteDescriptorSet descriptorWrite = plvk::writeDescriptorSet(VulkanRenderer::GetRenderer()->GetGeometryPassDescriptorSet(i), 20, VulkanTexture::mLastBindingIndex, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo);
+			VkWriteDescriptorSet descriptorWrite = plvk::writeDescriptorSet(VulkanRenderer::GetRenderer()->GetGeometryPassDescriptorSet(i), 20, index == -1 ? VulkanTexture::mLastBindingIndex : index, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo);
 			vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, 1, &descriptorWrite, 0, nullptr);
 		}
-		texture->mIndexHandle = VulkanTexture::mLastBindingIndex;
-		VulkanTexture::mLastBindingIndex++;
+		texture->mIndexHandle = index == -1 ? VulkanTexture::mLastBindingIndex : index;
+		if (index != -1)
+			VulkanTexture::mLastBindingIndex++;
 	}
 
 	std::array<int, MAX_BONE_INFLUENCE> VulkanRenderer::GetBoneIds(std::vector<uint64_t>& bones) {
@@ -3730,7 +3731,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-		}
+	}
 #endif
 
 		{
@@ -3828,7 +3829,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-	}
+}
 
 	void VulkanRenderer::AddTrackerToImage(VkImageView imageView,
 		std::string name,

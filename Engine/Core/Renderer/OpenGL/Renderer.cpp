@@ -368,7 +368,7 @@ namespace Plaza {
 	Texture* OpenGLRenderer::LoadTexture(std::string path, uint64_t uuid) {
 		OpenGLTexture* texture = new OpenGLTexture();
 		texture->mAssetUuid = uuid;
-		texture->path = path;
+		texture->mAssetPath = path;
 		texture->rgba = glm::vec4(INFINITY);
 		//    material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");
 		//    material->diffuse.rgba = glm::vec4(INFINITY);

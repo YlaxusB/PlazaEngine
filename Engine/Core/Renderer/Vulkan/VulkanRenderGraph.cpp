@@ -39,8 +39,10 @@ namespace Plaza {
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "FinalTexture"));
 
 		this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 0, 1, "BloomTexture"));
-		this->GetTexture<VulkanTexture>("BloomTexture")->mInitialLayout = PL_IMAGE_LAYOUT_GENERAL;
-		this->GetTexture<VulkanTexture>("BloomTexture")->mSamplerAddressMode = PL_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+		TextureInfo bloomInfo = this->GetTexture<VulkanTexture>("BloomTexture")->GetTextureInfo();
+		bloomInfo.mInitialLayout = PL_IMAGE_LAYOUT_GENERAL;
+		bloomInfo.mSamplerAddressMode = PL_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+		this->GetTexture<VulkanTexture>("BloomTexture")->SetTextureInfo(bloomInfo);
 		
 		// this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "BloomFinalTexture"));
 
@@ -50,8 +52,11 @@ namespace Plaza {
 #else
 		skyboxPath = Application->projectPath + "\\";
 #endif
-		this->GetTexture<Texture>("EquirectangularTexture")->mPath = skyboxPath + "autumn_field_4k.hdr";
-		this->GetTexture<Texture>("EquirectangularTexture")->mIsHdr = true;
+
+		TextureInfo equirectangularInfo = this->GetTexture<VulkanTexture>("EquirectangularTexture")->GetTextureInfo();
+		equirectangularInfo.mPath = skyboxPath + "autumn_field_4k.hdr";
+		equirectangularInfo.mIsHdr = true;
+		this->GetTexture<Texture>("EquirectangularTexture")->SetTextureInfo(equirectangularInfo);
 
 		struct ShadowPassUBO {
 			glm::mat4 lightSpaceMatrices[32];
@@ -301,13 +306,13 @@ namespace Plaza {
 			->SetRecordingCallback([&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
 			VulkanTexture* texture = this->GetTexture<VulkanTexture>("SceneTexture");
 
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(texture->mImage, PlImageFormatToVkFormat(texture->mFormat), PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(texture->mImage, PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
 				PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL), 1, 1, 1, false, *mCommandBuffer);
 
 			VulkanRenderer::GetRenderer()->CopyTexture(this->GetTexture<VulkanTexture>("SceneTexture"), PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
 				this->GetTexture<VulkanTexture>("BloomTexture"), PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_GENERAL), *mCommandBuffer);
 
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(texture->mImage, PlImageFormatToVkFormat(texture->mFormat), PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(texture->mImage, PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
 				PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL), 1, 1, 1, false, *mCommandBuffer);
 
 				});
@@ -855,11 +860,11 @@ namespace Plaza {
 		bool viewMustBeNonDefault = mBaseMipLevel != 0 || mBaseLayerLevel != 0;
 
 		VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
-		if (this->GetTexture()->mImageUsage & PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT) { aspect = VK_IMAGE_ASPECT_DEPTH_BIT; };
+		if (this->GetTextureInfo().mImageUsage & PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT) { aspect = VK_IMAGE_ASPECT_DEPTH_BIT; };
 
 		if (viewMustBeNonDefault) {
-			mNonDefaultView = VulkanRenderer::GetRenderer()->CreateImageView(this->GetTexture()->mImage, this->GetTexture()->GetFormat(), aspect, PlViewTypeToVkImageViewType(mTexture->mViewType),
-				mTexture->mLayersCount, 1, mBaseMipLevel);
+			mNonDefaultView = VulkanRenderer::GetRenderer()->CreateImageView(this->GetTexture()->mImage, this->GetTexture()->GetFormat(), aspect, PlViewTypeToVkImageViewType(GetTextureInfo().mViewType),
+				GetTextureInfo().mLayersCount, 1, mBaseMipLevel);
 			return;
 		}
 
@@ -867,36 +872,36 @@ namespace Plaza {
 			return;
 
 		VkImageUsageFlags flags = 0;
-		if (mTexture->mViewType == PL_VIEW_TYPE_CUBE)
+		if (GetTextureInfo().mViewType == PL_VIEW_TYPE_CUBE)
 			flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-		if (mTexture->mPath == "") {
+		if (GetTextureInfo().mPath == "") {
 			this->GetTexture()->CreateTextureImage(
 				VulkanRenderer::GetRenderer()->mDevice,
-				PlImageFormatToVkFormat(mTexture->mFormat),
+				PlImageFormatToVkFormat(GetTextureInfo().mFormat),
 				mTexture->mResolution.x,
 				mTexture->mResolution.y,
-				this->GetTexture()->mMipCount == 0 ? true : false,
-				PlImageUsageToVkImageUsage(mTexture->mImageUsage),
-				PlTextureTypeToVkImageType(mTexture->mTextureType),
+				mTexture->mMipCount == 0 ? true : false,
+				PlImageUsageToVkImageUsage(GetTextureInfo().mImageUsage),
+				PlTextureTypeToVkImageType(GetTextureInfo().mTextureType),
 				VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_LAYOUT_UNDEFINED,
-				mTexture->mLayersCount,
+				GetTextureInfo().mLayersCount,
 				flags,
 				false,
 				VK_SHARING_MODE_EXCLUSIVE);
-			VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this->GetTexture(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, aspect, this->GetTexture()->mLayersCount, this->GetTexture()->mMipCount);
+			VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this->GetTexture(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, aspect, this->GetTextureInfo().mLayersCount, this->mTexture->mMipCount);
 		}
 		else {
-			this->GetTexture()->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, mTexture->mPath, PlImageFormatToVkFormat(mTexture->mFormat), true, mTexture->mIsHdr, PlImageUsageToVkImageUsage(mTexture->mImageUsage));
+			this->GetTexture()->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, GetTextureInfo().mPath, PlImageFormatToVkFormat(GetTextureInfo().mFormat), true, GetTextureInfo().mIsHdr, PlImageUsageToVkImageUsage(GetTextureInfo().mImageUsage));
 		}
 
-		if (mTexture->mInitialLayout != PL_IMAGE_LAYOUT_UNDEFINED) {
-			VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this->GetTexture(), PlImageLayoutToVkImageLayout(mTexture->mInitialLayout), aspect, this->GetTexture()->mLayersCount, this->GetTexture()->mMipCount);
+		if (GetTextureInfo().mInitialLayout != PL_IMAGE_LAYOUT_UNDEFINED) {
+			VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this->GetTexture(), PlImageLayoutToVkImageLayout(GetTextureInfo().mInitialLayout), aspect, this->GetTexture()->GetTextureInfo().mLayersCount, this->mTexture->mMipCount);
 		}
 
-		this->GetTexture()->CreateTextureSampler(PlAddressModeToVkSamplerAddressMode(mTexture->mSamplerAddressMode));
-		this->GetTexture()->CreateImageView(PlImageFormatToVkFormat(mTexture->mFormat), aspect, PlViewTypeToVkImageViewType(mTexture->mViewType), mTexture->mLayersCount, 0);
+		this->GetTexture()->CreateTextureSampler(PlAddressModeToVkSamplerAddressMode(GetTextureInfo().mSamplerAddressMode));
+		this->GetTexture()->CreateImageView(PlImageFormatToVkFormat(GetTextureInfo().mFormat), aspect, PlViewTypeToVkImageViewType(GetTextureInfo().mViewType), GetTextureInfo().mLayersCount, 0);
 
-		VulkanRenderer::GetRenderer()->AddTrackerToImage(this->GetTexture()->mImageView, mTexture->mName, this->GetTexture()->mSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		VulkanRenderer::GetRenderer()->AddTrackerToImage(this->GetTexture()->mImageView, mTexture->mAssetName, this->GetTexture()->mSampler, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 	void VulkanTextureBinding::Destroy() {
 
@@ -922,9 +927,9 @@ namespace Plaza {
 			//if (value->mName == "SceneDepth")
 			//	finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL; //VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL
 
-			VulkanTextureBinding* currentPassBinding = renderGraph->mOrderedPasses[glm::max(mExecutionIndex - 1, 0)]->GetInputResource<VulkanTextureBinding>(binding->GetTexture()->mName);
+			VulkanTextureBinding* currentPassBinding = renderGraph->mOrderedPasses[glm::max(mExecutionIndex - 1, 0)]->GetInputResource<VulkanTextureBinding>(binding->GetTexture()->mAssetName);
 			VkImageLayout currentLayout = mExecutionIndex == 0 || currentPassBinding == nullptr ? VK_IMAGE_LAYOUT_UNDEFINED : PlImageLayoutToVkImageLayout(currentPassBinding->mInitialLayout); //PlImageLayoutToVkImageLayout(binding->GetTexture()->mFutureLayouts[mExecutionIndex - 1]);
-			VulkanTextureBinding* nextPassBinding = mExecutionIndex + 1 < renderGraph->mOrderedPasses.size() ? renderGraph->mOrderedPasses[mExecutionIndex + 1]->GetInputResource<VulkanTextureBinding>(binding->GetTexture()->mName) : nullptr;
+			VulkanTextureBinding* nextPassBinding = mExecutionIndex + 1 < renderGraph->mOrderedPasses.size() ? renderGraph->mOrderedPasses[mExecutionIndex + 1]->GetInputResource<VulkanTextureBinding>(binding->GetTexture()->mAssetName) : nullptr;
 			VkImageLayout nextLayout = nextPassBinding ? PlImageLayoutToVkImageLayout(nextPassBinding->mInitialLayout) : finalLayout; //PlImageLayoutToVkImageLayout(binding->GetTexture()->mFutureLayouts[mExecutionIndex]);
 
 			VkAttachmentLoadOp loadOp = currentLayout == VK_IMAGE_LAYOUT_UNDEFINED ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD;
@@ -932,7 +937,7 @@ namespace Plaza {
 			VkAttachmentLoadOp loadStencilOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 			VkAttachmentStoreOp storeStencilOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 			attachmentDescs.push_back(
-				plvk::attachmentDescription(PlImageFormatToVkFormat(binding->mTexture->mFormat),
+				plvk::attachmentDescription(PlImageFormatToVkFormat(binding->GetTextureInfo().mFormat),
 					VK_SAMPLE_COUNT_1_BIT,
 					loadOp,
 					storeOp,
@@ -951,7 +956,7 @@ namespace Plaza {
 				clearValue.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
 			mClearValues.push_back(clearValue);
 
-			if (binding->GetTexture()->mImageUsage & PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT) {
+			if (binding->GetTextureInfo().mImageUsage & PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT) {
 				depthReference.attachment = binding->mLocation;
 				depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 				continue;
@@ -1310,7 +1315,7 @@ namespace Plaza {
 			imageMemoryBarrier.image = this->GetInputResource<VulkanTextureBinding>("BloomTexture")->GetTexture()->mImage;
 			imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
-			imageMemoryBarrier.subresourceRange.levelCount = this->GetInputResource<VulkanTextureBinding>("BloomTexture")->GetTexture()->mMipCount;
+			imageMemoryBarrier.subresourceRange.levelCount = this->GetInputResource<VulkanTextureBinding>("BloomTexture")->mTexture->mMipCount;
 			imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
 			imageMemoryBarrier.subresourceRange.layerCount = 1;
 

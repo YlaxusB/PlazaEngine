@@ -7,7 +7,7 @@ namespace Plaza {
 	public:
 		VkDescriptorSet GetDescriptorSet() override;
 
-		VulkanTexture() {}
+		VulkanTexture() {};
 		VulkanTexture(uint64_t descriptorCount, PlImageUsage imageUsage, PlTextureType imageType, PlViewType viewType, PlTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount, const std::string& name)
 			: Texture(descriptorCount, imageUsage, imageType, viewType, format, resolution, mipCount, layersCount, name) {
 
@@ -34,7 +34,7 @@ namespace Plaza {
 		int32_t mWidth = 0;
 		int32_t mHeight = 0;
 		uint32_t CalculateMipLevels(int32_t width, int32_t height) {
-			this->mMipCount = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
+			mMipCount = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 			return mMipCount;
 		}
 

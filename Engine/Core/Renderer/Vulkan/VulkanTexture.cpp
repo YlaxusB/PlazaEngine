@@ -463,21 +463,24 @@ namespace Plaza {
 		this->mFormat = newFormat;
 	}
 
-	glm::vec4 VulkanTexture::ReadTexture(glm::vec2 pos, unsigned int bytesPerPixel) {
-		if (pos.x > mWidth || pos.x < 0 || pos.y > mHeight || pos.y < 0)
+	glm::vec4 VulkanTexture::ReadTexture(glm::vec2 pos, unsigned int bytesPerPixel, unsigned int channels, VkImageAspectFlags aspect, bool isDepth) {
+		if (pos.x >= mWidth || pos.x < 0 || pos.y >= mHeight || pos.y < 0)
 			return glm::vec4(0.0f);
-		// Create a staging buffer
+
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
-		VulkanRenderer::GetRenderer()->CreateBuffer(mWidth * mHeight * (sizeof(float) * 4 * 4), VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+		VulkanRenderer::GetRenderer()->CreateBuffer(mWidth * mHeight * bytesPerPixel,
+			VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			stagingBuffer,
+			stagingBufferMemory);
 
 		VkImageLayout oldLayout = this->GetLayout();
-		VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+		VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aspect);
 
-		// Copy image to staging buffer
 		VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
 		VkImageSubresourceLayers subResource = {};
-		subResource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		subResource.aspectMask = aspect & VK_IMAGE_ASPECT_DEPTH_BIT ? VK_IMAGE_ASPECT_DEPTH_BIT : aspect;
 		subResource.mipLevel = 0;
 		subResource.baseArrayLayer = 0;
 		subResource.layerCount = 1;
@@ -490,35 +493,40 @@ namespace Plaza {
 		region.imageOffset = { 0, 0, 0 };
 		region.imageExtent = { (unsigned int)mWidth, (unsigned int)mHeight, 1 };
 
-
 		vkCmdCopyImageToBuffer(commandBuffer, mImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, stagingBuffer, 1, &region);
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 
-		// Map staging buffer memory
 		void* data;
-		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, stagingBufferMemory, 0, mWidth * mHeight * (sizeof(float) * 4 * 4), 0, &data);
+		int64_t size = mWidth * mHeight * bytesPerPixel;
+		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, stagingBufferMemory, 0, size, 0, &data);
 
-		// Read pixel data
-		// Assuming RGBA8 format
 		float* pixelData = static_cast<float*>(data);
 		int desiredPixelX = pos.x;
 		int desiredPixelY = mHeight - pos.y;
-		int byteOffset = (desiredPixelY * mWidth + desiredPixelX) * (sizeof(float)); // RGBA8 format, 4 bytes per pixel
-		float r = pixelData[byteOffset];
-		float g = pixelData[byteOffset + 1];
-		float b = pixelData[byteOffset + 2];
-		float a = pixelData[byteOffset + 3];
+		int byteOffset = (desiredPixelY * mWidth + desiredPixelX) * bytesPerPixel;
 
-		//glm::vec4<T> rgba = glm::vec4(r, g, b, a);
+		float r = 0.0f, g = 0.0f, b = 0.0f, a = 0.0f;
+		if (isDepth) {
+			float* depthValues = reinterpret_cast<float*>(data);
+			uint8_t* stencilValues = reinterpret_cast<uint8_t*>(static_cast<char*>(data) + (mWidth * mHeight * sizeof(float)));
 
-		// Unmap staging buffer memory
+			uint32_t index = pos.y * mWidth + pos.x;
+			r = depthValues[index];
+		}
+		else {
+			if (byteOffset < size) {
+				if (channels >= 1) r = pixelData[byteOffset];
+				if (channels >= 2) g = pixelData[byteOffset + 1];
+				if (channels >= 3) b = pixelData[byteOffset + 2];
+				if (channels >= 4) a = pixelData[byteOffset + 3];
+			}
+		}
+
 		vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, stagingBufferMemory);
-
-		// Clean up
 		vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, stagingBuffer, nullptr);
 		vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, stagingBufferMemory, nullptr);
 
-		VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this, oldLayout);
+		VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this, oldLayout, aspect);
 
 		return glm::vec4(r, g, b, a);
 	}

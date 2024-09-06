@@ -1461,8 +1461,6 @@ namespace Plaza {
 		renderPassInfo.renderPass = mDeferredRenderPass;
 		renderPassInfo.framebuffer = mDeferredFramebuffer;
 
-		Application->mThreadsManager->mFrameRendererAfterGeometry->Update();
-
 		/* Tiled Lighting */
 		{
 			PLAZA_PROFILE_SECTION("Deferred Lighting");
@@ -2216,6 +2214,10 @@ namespace Plaza {
 		case VK_IMAGE_LAYOUT_GENERAL:
 			barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT;
 			sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+			break;
+		case VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL:
+			barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+			sourceStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 			break;
 		default:
 			assert("Unsupported layout transition!");

@@ -50,7 +50,7 @@ namespace Plaza {
 			// TODO: IMPLEMENT TEXTURE DESTROY
 		}
 
-		glm::vec4 ReadTexture(glm::vec2 pos, unsigned int bytesPerPixel = 4);
+		glm::vec4 ReadTexture(glm::vec2 pos, unsigned int bytesPerPixel = 4, unsigned int channels = 4, VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT, bool isDepth = false);
 	private:
 		//VkFormat mFormat;
 		VkBuffer mStagingBuffer = VK_NULL_HANDLE;

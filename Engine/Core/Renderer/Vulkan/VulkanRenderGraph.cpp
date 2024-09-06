@@ -234,6 +234,7 @@ namespace Plaza {
 				{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { pl::pushConstantRange(PL_STAGE_COMPUTE, 0, sizeof(LightSorterPC)) }));
 
 		this->AddRenderPassCallback("Light Sorter Pass", [&, gPassSize](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+			Application->mThreadsManager->mFrameRendererAfterGeometry->Update();
 			glm::vec2 clusterSize = glm::vec2(32.0f);
 			glm::vec2 clusterCount = glm::ceil(gPassSize / clusterSize);
 			VulkanLighting* lig = VulkanRenderer::GetRenderer()->mLighting;
@@ -1227,6 +1228,7 @@ namespace Plaza {
 		}
 
 		vkCmdEndRenderPass(commandBuffer);
+
 #endif
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {

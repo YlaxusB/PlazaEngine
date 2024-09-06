@@ -249,11 +249,20 @@ namespace Plaza {
 			if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mEditTerrain) {
 				Application->mThreadsManager->mFrameRendererAfterGeometry->AddToQueue([&]() {
 					float xposGame = Callbacks::lastX - Application->appSizes->hierarchySize.x;
-					float yposGame = Callbacks::lastY - Application->appSizes->sceneImageStart.y;
-					yposGame = Application->appSizes->sceneSize.y - (Callbacks::lastY - Application->appSizes->sceneImageStart.y - 35);
-					glm::vec4 clickPosition = VulkanRenderer::GetRenderer()->mDeferredPositionTexture.ReadTexture(glm::vec2(xposGame, yposGame), 4);
-					clickPosition.w = 1.0f;
+					float yposGame = Callbacks::lastY - Application->appSizes->sceneImageStart.y - 35;
+					//yposGame = Application->appSizes->sceneSize.y - (yposGame - 35);
+					VulkanRenderer::GetRenderer()->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")->mLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+					glm::vec4 clickPosition = VulkanRenderer::GetRenderer()->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")->ReadTexture(glm::vec2(xposGame, yposGame), sizeof(float) + sizeof(uint8_t), 1, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, true);
+					if (clickPosition.x == 0.0f && clickPosition.y == 0.0f && clickPosition.z == 0.0f && clickPosition.w == 0.0f)
+						return;
 
+					std::cout << "Depth: \n";
+					std::cout << "X: " << clickPosition.x << " Y: " << clickPosition.y << " Z: " << clickPosition.z << " W: " << clickPosition.w << "\n";
+
+					clickPosition = glm::vec4(Renderer::ReconstructWorldPositionFromDepth(glm::vec2(xposGame, yposGame), Application->appSizes->sceneSize, clickPosition.x, Application->activeCamera), 1.0f);
+
+					std::cout << "World: \n";
+					std::cout << "X: " << clickPosition.x << " Y: " << clickPosition.y << " Z: " << clickPosition.z << " W: " << clickPosition.w << "\n";
 					Entity* entity = Scene::GetActiveScene()->GetEntity(mLastTerrainUuid);
 					if (!entity)
 						return;
@@ -263,6 +272,8 @@ namespace Plaza {
 					Mesh* mesh = entity->GetComponent<MeshRenderer>()->mesh;
 
 					uint32_t nearestVertexIndex = (glm::round<int>(localPosition.x) * mSettings.x) + (glm::round<int>(localPosition.z));//(mSettings.x / localPosition.x) * (mSettings.z / localPosition.z);
+					if (nearestVertexIndex > mesh->vertices.size() - 1)
+						return;
 
 					if (mSettings.raiseTool)
 						RaiseTool(mesh, nearestVertexIndex);

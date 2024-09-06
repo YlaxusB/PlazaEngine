@@ -88,6 +88,25 @@ namespace Plaza {
 			return new Texture();
 		}
 
+		static glm::vec3 ReconstructWorldPositionFromDepth(glm::vec2 screenPosition, glm::vec2 screenSize, float depth, Camera* camera) {
+			glm::mat4 viewProjection = camera->GetProjectionMatrix() * camera->GetViewMatrix();
+			float ndcZ = depth * 2.0f - 1.0f;
+			glm::vec4 ndcPosition = glm::vec4(screenPosition * (1.0f / screenSize) * 2.0f - 1.0f, depth, 1.0f);
+			ndcPosition.y *= -1.0f;
+			glm::vec4 worldPosition = glm::inverse(viewProjection) * ndcPosition;
+			return glm::vec3(worldPosition) / worldPosition.w;
+			/*
+mat4 viewProjection = pushConstants.projection * pushConstants.view;
+float depth = (texture(gSceneDepth, TexCoords).r);
+float ndcZ = (depth) * 2.0f - 1.0f;
+ vec4 ndcPosition = vec4(gl_FragCoord.xy * (1.0f / screenSize) * 2.0 - 1.0, (depth), 1.0);
+ ndcPosition.y *= -1;
+ vec4 worldPosition = inverse(viewProjection) * ndcPosition;
+ worldPosition.xyz /= worldPosition.w;
+vec3 FragPos = worldPosition.xyz;
+			  */
+		}
+
 		virtual void CopyLastFramebufferToFinalDrawBuffer() = 0;
 	};
 }

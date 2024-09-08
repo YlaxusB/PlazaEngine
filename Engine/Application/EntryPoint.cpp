@@ -12,7 +12,6 @@ ApplicationClass* Plaza::Application = new Plaza::ApplicationClass();
 
 using namespace Plaza;
 
-
 #define TRACY_NO_INVARIANT_CHECK 1
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 
@@ -29,48 +28,13 @@ using namespace Plaza;
 #include <codecvt>
 
 int main() {
-	std::cout << "Start \n";
-	// Buffer to hold the path to the .exe
-	wchar_t exePath3[MAX_PATH];
+	Log::Init();
+	PL_CORE_INFO("Start");
 
-	// Get the path to the .exe
-	GetModuleFileNameW(NULL, exePath3, MAX_PATH);
-
-	// Extract the directory path (excluding the filename)
-	std::wstring exeDirectory3(exePath3);
-	size_t lastSlashPos = exeDirectory3.find_last_of(L"\\");
-	exeDirectory3 = exeDirectory3.substr(0, lastSlashPos);
-
-	// Append "\\Dlls" to the directory path
-	std::wstring dllFolderPath = exeDirectory3 + L"\\Dlls";
-
-	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-	Application->exeDirectory = converter.to_bytes(exeDirectory3);
-#ifdef GAME_MODE
-	wchar_t buffer2[MAX_PATH];
-	GetModuleFileNameW(NULL, buffer2, MAX_PATH);
-
-	// Initialize a character buffer
-	char exePath2[MAX_PATH];
-	size_t convertedChars2 = 0;
-
-	// Convert the wide-character string to a regular string safely
-	if (wcstombs_s(&convertedChars2, exePath2, MAX_PATH, buffer2, MAX_PATH) == 0) {
-		std::string exePathStr2(exePath2);
-		for (auto const& entry : std::filesystem::directory_iterator{ std::filesystem::path{exePathStr2}.parent_path() })
-		{
-			if (entry.path().extension() == Standards::projectExtName) {
-				Application->projectPath = entry.path().parent_path().string();
-			}
-		}
-	}
-
-#endif
+	Application->exeDirectory = filesystem::current_path().string();
 
 	AssetsManager::Init();
 
-	// Start
-	std::cout << "Creating Application \n";
 	Application->CreateApplication();
 
 	Application->mThreadsManager->Init();
@@ -80,50 +44,28 @@ int main() {
 	Editor::EditorSettingsSerializer::DeSerialize();
 #endif
 
-	/* Initialize Audio */
+	std::cout << "Initializating Audio \n";
 	Audio::Init();
 
 	std::cout << "Initializating Physics \n";
 	Physics::Init();
 	Application->activeScene->mainSceneEntity = new Entity("Scene");
-	////   Editor::DefaultModels::Init();
 
-	//for (auto const& dir_entry : std::filesystem::directory_iterator{ sandbox })
-	//	std::cout << dir_entry.path() << '\n';
-
-
-	std::cout << "Loading Project \n";
 #ifdef GAME_MODE
-	wchar_t buffer[MAX_PATH];
-	GetModuleFileNameW(NULL, buffer, MAX_PATH);
+	std::cout << "Loading Project \n";
+	for (auto const& entry : std::filesystem::directory_iterator{ Application->exeDirectory }) {
+		if (entry.path().extension() == Standards::projectExtName) {
+			Editor::Project::Load(entry.path().string());
 
-	// Initialize a character buffer
-	char exePath[MAX_PATH];
-	size_t convertedChars = 0;
-
-	// Convert the wide-character string to a regular string safely
-	if (wcstombs_s(&convertedChars, exePath, MAX_PATH, buffer, MAX_PATH) == 0) {
-		std::string exePathStr(exePath);
-		for (auto const& entry : std::filesystem::directory_iterator{ std::filesystem::path{exePathStr}.parent_path() })
-		{
-			if (entry.path().extension() == Standards::projectExtName) {
-				Editor::Project::Load(entry.path().string());
-
-				std::cout << "Starting Scene\n";
-				Scene::Play();
-				std::cout << "Scene Played \n";
-				if (Application->activeScene->cameraComponents.size() > 0)
-					Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
-				else
-					Application->activeCamera = Application->activeScene->mainSceneEntity->AddComponent<Camera>(new Camera());
-			}
+			std::cout << "Starting Scene\n";
+			Scene::Play();
+			std::cout << "Scene Played \n";
+			if (Application->activeScene->cameraComponents.size() > 0)
+				Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
+			else
+				Application->activeCamera = Application->activeScene->mainSceneEntity->AddComponent<Camera>(new Camera());
 		}
 	}
-	else {
-		// Handle conversion error
-		std::cerr << "Error converting wide char to char" << std::endl;
-	}
-
 
 #else
 	if (filesystem::exists(Application->enginePathAppData + "cache.yaml"))
@@ -131,12 +73,6 @@ int main() {
 #endif
 	if (Application->mRenderer->api == RendererAPI::OpenGL)
 		OpenGLSkybox::Init();
-
-	/*  -----   TEMPORARILY LOAD MODEL   -----  */
-	// ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod"), "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod");
-	// ModelLoader::LoadImportedModelToScene(ModelSerializer::ReadUUID("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod"), "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\SpaceGame\\Assets\\Models\\sponza\\sponza.plzmod");
-
-	//Application->activeScene->entities.at(Application->activeScene->mainSceneEntity->uuid).parentUuid = 0;
 
 	std::cout << "Starting Loop \n";
 	Application->Loop();

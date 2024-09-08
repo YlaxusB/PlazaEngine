@@ -3738,7 +3738,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			PLAZA_PROFILE_SECTION(
 				"Reset Fences/CommandBuffer and Record command buffer");
 			vkResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]);
-			vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0);
+			PLVK_CHECK_RESULT(vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0));
 
 			VkCommandBuffer commandBuffer = mCommandBuffers[mCurrentFrame];
 			VkCommandBufferBeginInfo beginInfo{};

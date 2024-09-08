@@ -204,6 +204,7 @@ void ApplicationClass::InitShaders() {
 }
 
 void ApplicationClass::CreateApplication() {
+    PL_CORE_INFO("Creating Application");
      /* Get paths */
      std::filesystem::path currentPath(__FILE__);
      //Application->projectPath = currentPath.parent_path().parent_path().parent_path().string();

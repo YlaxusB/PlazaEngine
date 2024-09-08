@@ -480,3 +480,10 @@ namespace Plaza {
 	};
 }
 
+#define PLVK_CHECK_RESULT(x) { \
+	VkResult res = (x); \
+	if (res != VK_SUCCESS) { \
+		PL_CORE_ERROR("{0}:{1} : VkResult: {2}", __FILE__, __LINE__, x); \
+		assert(x == VK_SUCCESS); \
+	}	\
+}

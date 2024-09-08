@@ -18,11 +18,11 @@ void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, 
 		tool.second->OnMouseClick(button, action, mods);
 	}
 
-	//if (Application->hoveredMenu != "File Explorer" && Application->hoveredMenu != "Inspector")
+	//if (Application::Get()->hoveredMenu != "File Explorer" && Application::Get()->hoveredMenu != "Inspector")
 	//	Editor::selectedFiles.clear();
-	if (Application->hoveredMenu == "Editor" && Application->focusedMenu != "Scene") {
-		ApplicationSizes& appSizes = *Application->appSizes;
-		ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+	if (Application::Get()->hoveredMenu == "Editor" && Application::Get()->focusedMenu != "Scene") {
+		ApplicationSizes& appSizes = *Application::Get()->appSizes;
+		ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 
 		if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 			// Pressing right button
@@ -36,7 +36,7 @@ void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, 
 		}
 
 #pragma region Picking
-		if (Application->focusedMenu == "Editor") {
+		if (Application::Get()->focusedMenu == "Editor") {
 			float xposGame = lastX - appSizes.hierarchySize.x;
 			float yposGame = lastY - appSizes.sceneImageStart.y;
 			//yposGame = appSizes.sceneSize.y - yposGame;
@@ -51,12 +51,12 @@ void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, 
 			bool pressingLeftClick = button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS;
 			bool drawingButMouseNotOverGizmo = !ImGuizmo::IsOver() && ImGuizmoHelper::IsDrawing;
 			if (pressingLeftClick && (!ImGuizmoHelper::IsDrawing || drawingButMouseNotOverGizmo)) {
-				//	Application->pickingTexture->GenerateTexture();
-				//    	clickUuid = Application->pickingTexture->readPixel(xposGame, yposGame);
-				clickUuid = Application->mRenderer->mPicking->DrawAndRead(glm::vec2(xposGame, yposGame));
+				//	Application::Get()->pickingTexture->GenerateTexture();
+				//    	clickUuid = Application::Get()->pickingTexture->readPixel(xposGame, yposGame);
+				clickUuid = Application::Get()->mRenderer->mPicking->DrawAndRead(glm::vec2(xposGame, yposGame));
 
-				auto it = Application->activeScene->entities.find(clickUuid);
-				if (it != Application->activeScene->entities.end()) {
+				auto it = Application::Get()->activeScene->entities.find(clickUuid);
+				if (it != Application::Get()->activeScene->entities.end()) {
 					// Object with the specified name found
 					Plaza::Editor::Gui::changeSelectedGameObject(&it->second);
 				}

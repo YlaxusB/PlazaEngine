@@ -14,13 +14,13 @@ namespace Plaza::Editor {
 			bool showFPSCounter = true;
 			if (ImGui::Begin("FPS Overlay", &showFPSCounter, windowflags))
 			{
-				ImGui::SetWindowPos(ImVec2(Application->appSizes->sceneStart.x + Application->appSizes->sceneSize.x + (ImGui::GetWindowSize().x / 2), Application->appSizes->sceneStart.y + ImGui::GetWindowPos().y), ImGuiCond_Once);
+				ImGui::SetWindowPos(ImVec2(Application::Get()->appSizes->sceneStart.x + Application::Get()->appSizes->sceneSize.x + (ImGui::GetWindowSize().x / 2), Application::Get()->appSizes->sceneStart.y + ImGui::GetWindowPos().y), ImGuiCond_Once);
 				ImGui::Text(("MS/Frame:" + std::to_string(Time::msPerFrame)).c_str());
 				ImGui::Text(("FPS:" + std::to_string(Time::fps)).c_str());
-				ImGui::Text(("Scene Size X:" + std::to_string(Application->appSizes->sceneSize.x)).c_str());
-				ImGui::Text(("Scene Size Y:" + std::to_string(Application->appSizes->sceneSize.y)).c_str());
-				ImGui::Text(("Scene Start X:" + std::to_string(Application->appSizes->sceneStart.x)).c_str());
-				ImGui::Text(("Scene Start Y:" + std::to_string(Application->appSizes->sceneStart.y)).c_str());
+				ImGui::Text(("Scene Size X:" + std::to_string(Application::Get()->appSizes->sceneSize.x)).c_str());
+				ImGui::Text(("Scene Size Y:" + std::to_string(Application::Get()->appSizes->sceneSize.y)).c_str());
+				ImGui::Text(("Scene Start X:" + std::to_string(Application::Get()->appSizes->sceneStart.x)).c_str());
+				ImGui::Text(("Scene Start Y:" + std::to_string(Application::Get()->appSizes->sceneStart.y)).c_str());
 				ImGui::Text(("Draw Calls:" + std::to_string(Time::drawCalls)).c_str());
 				ImGui::Text(("Add Instance Calls:" + std::to_string(Time::addInstanceCalls)).c_str());
 				ImGui::Text(("Unique Triangles: " + std::to_string(Time::mUniqueTriangles)).c_str());

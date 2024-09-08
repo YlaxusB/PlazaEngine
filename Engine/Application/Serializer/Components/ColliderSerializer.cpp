@@ -24,7 +24,7 @@ namespace Plaza {
 
 	Collider* ComponentSerializer::ColliderSerializer::DeSerialize(YAML::Node data) {
 		Collider* collider = new Collider(data["Uuid"].as<uint64_t>(), nullptr);
-		Transform* transform = &Application->activeScene->transformComponents.at(collider->mUuid);
+		Transform* transform = &Application::Get()->activeScene->transformComponents.at(collider->mUuid);
 		for (auto shapeDeserialized : data["Shapes"]) {
 			if (AssetsManager::HasMesh(shapeDeserialized["MeshUuid"].as<uint64_t>()) || shapeDeserialized["Shape"].as<int>() != ColliderShape::ColliderShapeEnum::MESH) {
 				if (shapeDeserialized["MeshUuid"].as<uint64_t>())

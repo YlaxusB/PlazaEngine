@@ -134,7 +134,7 @@ namespace Plaza {
 	}
 
 	void LoadDeserializedEntity(const SerializableEntity& deserializedEntity, std::unordered_map<uint64_t, uint64_t>& equivalentUuids, bool loadToScene) {
-		Entity* newEntity = new Entity(deserializedEntity.name, Application->activeScene->mainSceneEntity, loadToScene);
+		Entity* newEntity = new Entity(deserializedEntity.name, Application::Get()->activeScene->mainSceneEntity, loadToScene);
 		newEntity->equivalentPrefabUuid = deserializedEntity.entityUuid;
 		equivalentUuids.emplace(deserializedEntity.entityUuid, newEntity->uuid);
 
@@ -150,11 +150,11 @@ namespace Plaza {
 				SerializableMeshRenderer deserializedMeshRenderer = *(SerializableMeshRenderer*)(component.get());
 				SerializableMesh* deserializedMesh = &deserializedMeshRenderer.serializedMesh;
 				mesh = AssetsManager::GetMesh(deserializedMesh->assetUuid);
-				MeshRenderer* meshRenderer = new MeshRenderer(mesh, Application->activeScene->GetMaterialsVector(deserializedMeshRenderer.materialsUuid));
+				MeshRenderer* meshRenderer = new MeshRenderer(mesh, Application::Get()->activeScene->GetMaterialsVector(deserializedMeshRenderer.materialsUuid));
 				meshRenderer->instanced = true;
-				meshRenderer->mMaterials = Application->activeScene->GetMaterialsVector(deserializedMeshRenderer.materialsUuid);
+				meshRenderer->mMaterials = Application::Get()->activeScene->GetMaterialsVector(deserializedMeshRenderer.materialsUuid);
 				RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
-				//meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
+				//meshRenderer->renderGroup = Application::Get()->activeScene->AddRenderGroup(newRenderGroup);
 				newEntity->AddComponent<MeshRenderer>(meshRenderer);
 			}
 			if (typeid(*component.get()) == typeid(SerializableCollider)) {
@@ -171,7 +171,7 @@ namespace Plaza {
 		/*
 		Entity* obj = new Entity(name, parent, addToScene);
 		obj->changingName = true;
-		Application->activeScene->entities.at(obj->uuid).changingName = true;
+		Application::Get()->activeScene->entities.at(obj->uuid).changingName = true;
 		Gui::Hierarchy::Item::firstFocus = true;
 		obj->GetComponent<Transform>()->UpdateChildrenTransform();
 		MeshRenderer* meshRenderer = new MeshRenderer(*mesh, Scene::DefaultMaterial());
@@ -179,7 +179,7 @@ namespace Plaza {
 		//meshRenderer->mesh = new Mesh(*mesh);
 		meshRenderer->material = Scene::DefaultMaterial();
 		RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
-		meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
+		meshRenderer->renderGroup = Application::Get()->activeScene->AddRenderGroup(newRenderGroup);
 		//meshRenderer->renderGroup->material = make_shared<Material>(*Scene::DefaultMaterial());
 		obj->AddComponent<MeshRenderer>(meshRenderer);
 		Editor::selectedGameObject = obj;
@@ -199,7 +199,7 @@ namespace Plaza {
 
 					SerializableMesh* deserializedMesh = &deserializedMeshRenderer.serializedMesh;
 					std::vector<glm::vec3> tangents;
-					Mesh* mesh = &Application->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, deserializedMesh->tangent, deserializedMesh->indices, deserializedMesh->materialsIndices, false, deserializedMesh->bonesHolders, deserializedMesh->uniqueBones);
+					Mesh* mesh = &Application::Get()->mRenderer->CreateNewMesh(deserializedMesh->vertices, deserializedMesh->normals, deserializedMesh->uvs, deserializedMesh->tangent, deserializedMesh->indices, deserializedMesh->materialsIndices, false, deserializedMesh->bonesHolders, deserializedMesh->uniqueBones);
 
 					/* TEMPORARY: TODO: FIX THE UNIQUE BONES */
 					for (int i = 0; i < deserializedMesh->uniqueBones.size(); ++i) {
@@ -224,14 +224,14 @@ namespace Plaza {
 		}
 
 		for (const SerializableEntity& deserializedEntity : model->mSerializablePrefab.entities) {
-			Entity* equivalentEntity = Application->activeScene->GetEntity(equivalentUuids.find(deserializedEntity.entityUuid)->second);
-			Entity* equivalentEntityParent = Application->activeScene->GetEntity(equivalentEntity->equivalentPrefabParentUuid);
+			Entity* equivalentEntity = Application::Get()->activeScene->GetEntity(equivalentUuids.find(deserializedEntity.entityUuid)->second);
+			Entity* equivalentEntityParent = Application::Get()->activeScene->GetEntity(equivalentEntity->equivalentPrefabParentUuid);
 			if (deserializedEntity.parentUuid != 0) {
-				//Entity* equivalentEntity = Application->activeScene->GetEntity(deserializedEntity.parentUuid);
-				Entity* oldParent = Application->activeScene->GetEntity(equivalentEntity->parentUuid);
+				//Entity* equivalentEntity = Application::Get()->activeScene->GetEntity(deserializedEntity.parentUuid);
+				Entity* oldParent = Application::Get()->activeScene->GetEntity(equivalentEntity->parentUuid);
 				if (equivalentUuids.find(deserializedEntity.parentUuid) != equivalentUuids.end()) {
-					Entity* newParent = Application->activeScene->GetEntity(equivalentUuids.at(deserializedEntity.parentUuid));
-					Application->activeScene->GetEntity(equivalentEntity->uuid)->ChangeParent(oldParent, newParent);
+					Entity* newParent = Application::Get()->activeScene->GetEntity(equivalentUuids.at(deserializedEntity.parentUuid));
+					Application::Get()->activeScene->GetEntity(equivalentEntity->uuid)->ChangeParent(oldParent, newParent);
 				}
 			}
 		}

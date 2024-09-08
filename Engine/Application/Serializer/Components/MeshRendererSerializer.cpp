@@ -20,28 +20,28 @@ namespace Plaza {
 	MeshRenderer* ComponentSerializer::MeshRendererSerializer::DeSerialize(YAML::Node data)
 	{
 		auto meshRenderDeserialized = data;
-		MeshRenderer* meshRenderer = new MeshRenderer();//new MeshRenderer(*shared_ptr<Mesh>(Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>())).get(), Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>())->material);
+		MeshRenderer* meshRenderer = new MeshRenderer();//new MeshRenderer(*shared_ptr<Mesh>(Application::Get()->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>())).get(), Application::Get()->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>())->material);
 		meshRenderer->instanced = data["Instanced"].as<bool>();
 		if (data["CastShadows"])
 			meshRenderer->castShadows = data["CastShadows"].as<bool>();
 		uint64_t meshId = meshRenderDeserialized["MeshId"].as<uint64_t>();
 		if (AssetsManager::HasMesh(meshRenderDeserialized["MeshId"].as<uint64_t>()))
-			meshRenderer->mesh = AssetsManager::GetMesh(meshRenderDeserialized["MeshId"].as<uint64_t>());//Application->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()).get();
+			meshRenderer->mesh = AssetsManager::GetMesh(meshRenderDeserialized["MeshId"].as<uint64_t>());//Application::Get()->activeScene->meshes.at(meshRenderDeserialized["MeshId"].as<uint64_t>()).get();
 		else
 			meshRenderer->mesh = nullptr;//new OpenGLMesh();
 		uint64_t materialUuid;
 		if (data["Material"])
 			materialUuid = data["Material"].as<uint64_t>();;
 		Material* material;
-		if (Application->activeScene->materials.find(materialUuid) != Application->activeScene->materials.end() && materialUuid != 0) {
-			material = Application->activeScene->materials.at(materialUuid).get();
+		if (Application::Get()->activeScene->materials.find(materialUuid) != Application::Get()->activeScene->materials.end() && materialUuid != 0) {
+			material = Application::Get()->activeScene->materials.at(materialUuid).get();
 		}
 		else
 			material = Scene::DefaultMaterial();
 		meshRenderer->mMaterials.push_back(material);
 		if (meshRenderer->mesh && meshRenderer->mMaterials.size() > 0) {
-			meshRenderer->renderGroup = Application->activeScene->AddRenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);//std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);
-			//Application->activeScene->AddRenderGroup(meshRenderer->renderGroup);
+			meshRenderer->renderGroup = Application::Get()->activeScene->AddRenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);//std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);
+			//Application::Get()->activeScene->AddRenderGroup(meshRenderer->renderGroup);
 		}
 		return meshRenderer;
 	}

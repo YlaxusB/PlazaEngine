@@ -48,8 +48,8 @@ namespace Plaza {
 
 	void Animation::Play() {
 		this->mIsPlaying = true;
-		Application->activeScene->mPlayingAnimations.clear();
-		Application->activeScene->mPlayingAnimations.emplace(this->mUuid, this);
+		Application::Get()->activeScene->mPlayingAnimations.clear();
+		Application::Get()->activeScene->mPlayingAnimations.emplace(this->mUuid, this);
 	}
 
 	Bone* Animation::GetRootBone() {

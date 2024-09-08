@@ -368,7 +368,7 @@ namespace Plaza {
 		imageInfo.imageView = mImageView;
 		imageInfo.sampler = VulkanRenderer::GetRenderer()->mTextureSampler;
 
-		for (size_t i = 0; i < Application->mRenderer->mMaxFramesInFlight; i++) {
+		for (size_t i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; i++) {
 			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
 			VkDescriptorBufferInfo bufferInfo2{};

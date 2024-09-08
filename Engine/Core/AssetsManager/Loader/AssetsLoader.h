@@ -53,7 +53,7 @@ namespace Plaza {
 			if (AssetsManager::mTextures.find(asset->mAssetUuid) != AssetsManager::mTextures.end())
 				return AssetsManager::mTextures.at(asset->mAssetUuid);
 
-			Texture* texture = Application->mRenderer->LoadTexture(asset->mAssetPath.string());
+			Texture* texture = Application::Get()->mRenderer->LoadTexture(asset->mAssetPath.string());
 			texture->mAssetUuid = asset->mAssetUuid;
 			AssetsManager::mTextures.emplace(asset->mAssetUuid, texture);
 			return texture;

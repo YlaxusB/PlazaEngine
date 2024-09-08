@@ -77,7 +77,7 @@ namespace Plaza {
 		out << YAML::Key << "CsScriptComponent" << YAML::BeginMap;
 		out << YAML::Key << "Uuid" << YAML::Value << uuid;
 		out << YAML::Key << "Scripts" << YAML::BeginSeq;
-		auto range = Application->activeScene->csScriptComponents.equal_range(uuid);
+		auto range = Application::Get()->activeScene->csScriptComponents.equal_range(uuid);
 		for (auto it = range.first; it != range.second; ++it) {
 			ComponentSerializer::CsScriptComponentSerializer::Serialize(out, it->second);
 		}
@@ -89,8 +89,8 @@ namespace Plaza {
 		out << YAML::BeginMap;
 
 		out << YAML::Key << "Name" << YAML::Value << std::filesystem::path{ script.scriptPath }.stem().string();
-		if (script.scriptPath.starts_with(Application->projectPath)) {
-			out << YAML::Key << "Path" << YAML::Value << script.scriptPath.substr(Application->projectPath.size(), script.scriptPath.size() - Application->projectPath.size());
+		if (script.scriptPath.starts_with(Application::Get()->projectPath)) {
+			out << YAML::Key << "Path" << YAML::Value << script.scriptPath.substr(Application::Get()->projectPath.size(), script.scriptPath.size() - Application::Get()->projectPath.size());
 		}
 		else {
 			out << YAML::Key << "Path" << YAML::Value << script.scriptPath;
@@ -170,9 +170,9 @@ namespace Plaza {
 
 	CsScriptComponent* ComponentSerializer::CsScriptComponentSerializer::DeSerialize(YAML::Node data) {
 		CsScriptComponent* script = new CsScriptComponent(data["Uuid"].as<uint64_t>());
-		std::string csFileName = Application->projectPath + data["Path"].as<std::string>();
+		std::string csFileName = Application::Get()->projectPath + data["Path"].as<std::string>();
 		script->Init(csFileName);
-		Application->activeProject->scripts.at(csFileName).entitiesUsingThisScript.emplace(data["Uuid"].as<uint64_t>());
+		Application::Get()->activeProject->scripts.at(csFileName).entitiesUsingThisScript.emplace(data["Uuid"].as<uint64_t>());
 
 		/* Get all fields and group them in a map*/
 		std::map<std::string, Field*> fields = std::map<std::string, Field*>();

@@ -73,9 +73,9 @@ namespace Plaza {
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
 #ifdef GAME_MODE
-			std::string faceDirectory = Application->projectPath + "\\DefaultAssets\\Skybox\\";
+			std::string faceDirectory = Application::Get()->projectPath + "\\DefaultAssets\\Skybox\\";
 #else
-			std::string faceDirectory = Application->enginePath + "\\DefaultAssets\\Skybox\\";
+			std::string faceDirectory = Application::Get()->enginePath + "\\DefaultAssets\\Skybox\\";
 #endif // GAME_REL
 
 
@@ -107,9 +107,9 @@ namespace Plaza {
 			glStencilMask(0xFF);
 			glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 			skyboxShader->use();
-			glm::mat4 view = glm::mat4(glm::mat3(Application->activeCamera->GetViewMatrix())); // remove translation from the view matrix
-			//glm::mat4 projection = glm::perspective(glm::radians(90.0f), (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), Application->activeCamera->nearPlane, Application->activeCamera->farPlane);;//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
-			glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+			glm::mat4 view = glm::mat4(glm::mat3(Application::Get()->activeCamera->GetViewMatrix())); // remove translation from the view matrix
+			//glm::mat4 projection = glm::perspective(glm::radians(90.0f), (Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y), Application::Get()->activeCamera->nearPlane, Application::Get()->activeCamera->farPlane);;//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
+			glm::mat4 projection = Application::Get()->activeCamera->GetProjectionMatrix();//glm::perspective(glm::radians(activeCamera->Zoom), (float)(appSizes.sceneSize.x / appSizes.sceneSize.y), 0.3f, 10000.0f);
 			skyboxShader->setMat4("view", view);
 			skyboxShader->setMat4("projection", projection);
 			// skybox cube

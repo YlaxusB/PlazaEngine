@@ -18,7 +18,7 @@ namespace Plaza::Editor {
 			Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"), {}, outDirectory);
 
 			if (asset)
-				return Application->mRenderer->LoadTexture(asset->mAssetPath.string(), asset->mAssetUuid);
+				return Application::Get()->mRenderer->LoadTexture(asset->mAssetPath.string(), asset->mAssetUuid);
 			else
 				return AssetsManager::mTextures.find(1)->second;
 		}
@@ -27,8 +27,8 @@ namespace Plaza::Editor {
 			if (!material || file != lastFile) {
 				if (AssetsManager::GetAsset(file->directory))
 				{
-					auto materialIt = Application->activeScene->materials.find(AssetsManager::GetAsset(file->directory)->mAssetUuid);
-					if (materialIt != Application->activeScene->materials.end())
+					auto materialIt = Application::Get()->activeScene->materials.find(AssetsManager::GetAsset(file->directory)->mAssetUuid);
+					if (materialIt != Application::Get()->activeScene->materials.end())
 						material = materialIt->second.get();
 				}
 			}

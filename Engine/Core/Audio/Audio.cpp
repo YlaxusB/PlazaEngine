@@ -38,12 +38,13 @@ namespace Plaza {
 	}
 
 	void Audio::Init() {
+		PL_CORE_INFO("Initializating Audio");
 		// Init OpenAL
 		if (InitAL(sAudioDevice, nullptr, 0) != 0)
 			std::cout << "Audio device error!\n";
 
 		// Init listener
-		Application->activeCamera;
+		Application::Get()->activeCamera;
 		ALfloat listenerPos[] = { 0.0f,0.0f,0.0f };
 		ALfloat listenerVel[] = { 0.0,0.0f,0.0 };
 		ALfloat listenerOri[] = { 0.0,0.0, -1.0, 0.0,1.0,0.0 };
@@ -54,20 +55,20 @@ namespace Plaza {
 
 	void Audio::UpdateListener() {
 		PLAZA_PROFILE_SECTION("Update Audio");
-		if (Application->runningScene && Application->activeCamera != Application->editorCamera) {
-			if (Application->activeScene->entities.find(Application->activeCamera->mUuid) != Application->activeScene->entities.end() && Application->activeScene->GetEntity(Application->activeCamera->mUuid)->HasComponent<AudioListener>())
-				Application->activeScene->GetEntity(Application->activeCamera->mUuid)->GetComponent<AudioListener>()->UpdateListener();
+		if (Application::Get()->runningScene && Application::Get()->activeCamera != Application::Get()->editorCamera) {
+			if (Application::Get()->activeScene->entities.find(Application::Get()->activeCamera->mUuid) != Application::Get()->activeScene->entities.end() && Application::Get()->activeScene->GetEntity(Application::Get()->activeCamera->mUuid)->HasComponent<AudioListener>())
+				Application::Get()->activeScene->GetEntity(Application::Get()->activeCamera->mUuid)->GetComponent<AudioListener>()->UpdateListener();
 		}
 		else {
-			glm::vec3 position = Application->activeCamera->Position;
+			glm::vec3 position = Application::Get()->activeCamera->Position;
 			// Init listener
-			Application->activeCamera;
+			Application::Get()->activeCamera;
 			ALfloat listenerPos[] = { position.x, position.y, position.z };
 			ALfloat listenerVel[] = { 0.0,0.0f,0.0 };
 
-			glm::vec3 forward = Application->activeCamera->Front;
-			glm::vec3 up = Application->activeCamera->Up;
-			glm::vec3 right = Application->activeCamera->Right;
+			glm::vec3 forward = Application::Get()->activeCamera->Front;
+			glm::vec3 up = Application::Get()->activeCamera->Up;
+			glm::vec3 right = Application::Get()->activeCamera->Right;
 			float listenerOrientation[6] = {
 				forward.x, forward.y, forward.z,
 				up.x, up.y, up.z

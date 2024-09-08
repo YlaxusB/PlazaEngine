@@ -11,9 +11,9 @@ namespace Plaza {
 		void ProjectManagerGui::NewProjectClick() {
 			std::string filePath = FileDialog::OpenFolderDialog();
 			if (filePath != "") {
-				Application->activeProject = new Project();
-				Application->activeProject->name;
-				Application->activeProject->directory = filePath;
+				Application::Get()->activeProject = new Project();
+				Application::Get()->activeProject->name;
+				Application::Get()->activeProject->directory = filePath;
 				this->currentContent = new NewProjectContent();
 			}
 		}

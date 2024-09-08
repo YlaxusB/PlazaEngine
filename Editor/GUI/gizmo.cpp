@@ -27,7 +27,7 @@ namespace Plaza::Editor {
 
 	void Gizmo::Draw(Entity* entity, Camera camera) {
 
-		ApplicationSizes& appSizes = *Application->appSizes;
+		ApplicationSizes& appSizes = *Application::Get()->appSizes;
 		// Setup imguizmo
 		ImGuizmo::SetOrthographic(false);
 		ImGuizmo::GetStyle().HatchedAxisLineThickness = 8.0f;
@@ -45,7 +45,7 @@ namespace Plaza::Editor {
 		// Get the object transform and camera matrices
 		Transform& a = *entity->GetComponent<Transform>();
 		Transform& b = *entity->GetComponent<Transform>();
-		auto& parentTransform = *Application->activeScene->entities[entity->parentUuid].GetComponent<Transform>();
+		auto& parentTransform = *Application::Get()->activeScene->entities[entity->parentUuid].GetComponent<Transform>();
 		auto& transform = *entity->GetComponent<Transform>();
 
 		glm::mat4 projection = camera.GetProjectionMatrix();
@@ -164,7 +164,7 @@ namespace Plaza::Editor {
 			collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
 		}
 
-		if (Application->runningScene && !ImGuizmo::IsUsing()) {
+		if (Application::Get()->runningScene && !ImGuizmo::IsUsing()) {
 			//collider->UpdateShapeScale(transform.worldScale);
 			//transform.SetRelativeScale(transform.worldScale);
 		}

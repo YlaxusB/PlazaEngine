@@ -18,6 +18,14 @@
 
 #include "ThirdParty/include/VulkanMemoryAllocator/vk_mem_alloc.h"
 #include "VulkanPlazaWrapper.h"
+#include "Engine/Core/Debugging/Log.h"
+
+#define PLVK_CHECK_RESULT(x) { \
+	VkResult res = (x); \
+	if (res != VK_SUCCESS) { \
+		assert(x == VK_SUCCESS); \
+	}	\
+}
 
 namespace Plaza {
 	struct SwapChainSupportDetails {
@@ -478,12 +486,4 @@ namespace Plaza {
 		friend class VulkanGuiRenderer;
 		friend class VulkanPicking;
 	};
-}
-
-#define PLVK_CHECK_RESULT(x) { \
-	VkResult res = (x); \
-	if (res != VK_SUCCESS) { \
-		PL_CORE_ERROR("{0}:{1} : VkResult: {2}", __FILE__, __LINE__, x); \
-		assert(x == VK_SUCCESS); \
-	}	\
 }

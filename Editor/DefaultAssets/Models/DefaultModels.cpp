@@ -18,8 +18,8 @@ namespace Plaza::Editor {
           //defaultMaterial.albedo.rgba = glm::vec4(1.0f);
           //defaultMaterial.diffuse.rgba = glm::vec4(1.0f);
           //defaultMaterial.uuid = -1;
-          ////Application->activeScene->materials.emplace(-1, std::make_shared<Material>(defaultMaterial));
-          //Application->activeScene->AddMaterial(&defaultMaterial);
+          ////Application::Get()->activeScene->materials.emplace(-1, std::make_shared<Material>(defaultMaterial));
+          //Application::Get()->activeScene->AddMaterial(&defaultMaterial);
      }
      Mesh* DefaultModels::Cube() {
           return AssetsManager::GetMesh(cubeUuid);
@@ -105,7 +105,7 @@ namespace Plaza::Editor {
 
           std::vector<glm::vec3> tangents;
           std::vector<unsigned int> materials{ 0 };
-          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(positions, normals, texCoords, tangents, indices, materials, false);
+          Mesh* newMesh = &Application::Get()->mRenderer->CreateNewMesh(positions, normals, texCoords, tangents, indices, materials, false);
           newMesh->meshId = cubeUuid;
           newMesh->uuid = cubeUuid;
           AssetsManager::AddMesh(newMesh);
@@ -170,7 +170,7 @@ namespace Plaza::Editor {
           }
 
           std::vector<unsigned int> materials{ 0 };
-          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);
+          Mesh* newMesh = &Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);
           newMesh->meshId = sphereUuid;
           newMesh->uuid = sphereUuid;
           AssetsManager::AddMesh(newMesh);
@@ -205,7 +205,7 @@ namespace Plaza::Editor {
 
           std::vector<glm::vec3> tangents;
           std::vector<unsigned int> materials{ 0 };
-          Mesh* newMesh = &Application->mRenderer->CreateNewMesh(vertices, normals, texCoords, tangents, indices, materials, false);
+          Mesh* newMesh = &Application::Get()->mRenderer->CreateNewMesh(vertices, normals, texCoords, tangents, indices, materials, false);
           newMesh->meshId = planeUuid;
           newMesh->uuid = planeUuid;
           AssetsManager::AddMesh(newMesh);
@@ -247,6 +247,6 @@ namespace Plaza::Editor {
           //Mesh* newMesh = new Mesh(vertices, indices);
           //newMesh->usingNormal = false; // You probably want to set this to true for the cylinder
           //newMesh->meshId = cylinderUuid;
-          //Application->editorScene->meshes.emplace(newMesh->meshId, std::make_shared<Mesh>(*newMesh));
+          //Application::Get()->editorScene->meshes.emplace(newMesh->meshId, std::make_shared<Mesh>(*newMesh));
      }
 }

@@ -14,7 +14,7 @@ namespace Plaza {
 		std::string Editor::File::changingName = "";
 
 		void Icon::LoadImageToImGuiTexture(const char* path, ImTextureID* outTextureID) {
-			if (Application->mRenderer->api = RendererAPI::OpenGL)
+			if (Application::Get()->mRenderer->api = RendererAPI::OpenGL)
 			{
 				int width, height, channels;
 				unsigned char* image_data = stbi_load(path, &width, &height, &channels, STBI_rgb_alpha);
@@ -37,8 +37,8 @@ namespace Plaza {
 				// Free the loaded image data
 				stbi_image_free(image_data);
 			}
-			else if (Application->mRenderer->api = RendererAPI::Vulkan) {
-				*outTextureID = Application->mRenderer->LoadImGuiTexture(path)->GetImGuiTextureID();
+			else if (Application::Get()->mRenderer->api = RendererAPI::Vulkan) {
+				*outTextureID = Application::Get()->mRenderer->LoadImGuiTexture(path)->GetImGuiTextureID();
 			}
 		}
 	}

@@ -28,7 +28,7 @@ namespace Plaza {
 			if (settings.mImportModel) {
 				mainEntity = AssetsImporter::ImportOBJ(asset, std::filesystem::path{});
 				SerializablePrefab prefab = AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName });
-				Application->activeScene->RemoveEntity(mainEntity->uuid);
+				Application::Get()->activeScene->RemoveEntity(mainEntity->uuid);
 				Asset* asset = AssetsManager::NewAsset(prefab.assetUuid, AssetType::MODEL, outPath + Standards::modelExtName);
 				AssetsLoader::LoadAsset(asset);
 			}
@@ -37,7 +37,7 @@ namespace Plaza {
 			if (settings.mImportModel) {
 				mainEntity = AssetsImporter::ImportFBX(asset, std::filesystem::path{});
 				SerializablePrefab prefab = AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName });
-				Application->activeScene->RemoveEntity(mainEntity->uuid);
+				Application::Get()->activeScene->RemoveEntity(mainEntity->uuid);
 				Asset* asset = AssetsManager::NewAsset(prefab.assetUuid, AssetType::MODEL, outPath + Standards::modelExtName);
 				AssetsLoader::LoadAsset(asset);
 			}

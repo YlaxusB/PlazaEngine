@@ -5,7 +5,7 @@ namespace Plaza::Editor {
 	void ProjectGenerator::GenerateSolution(const std::string& solutionName, const std::string& projectName, const std::string& outputDirectory) {
         // Specify the project name and Plaza root dir and also change the backslashes to forwardslesh
         const char* ProjectName = projectName.c_str();
-        std::string PlazaRootDir = (Application->enginePath + "/../").c_str();
+        std::string PlazaRootDir = (Application::Get()->enginePath + "/../").c_str();
         for (size_t i = 0; i < PlazaRootDir.length(); ++i) {
             if (PlazaRootDir[i] == '\\') {
                 PlazaRootDir[i] = '/';
@@ -13,7 +13,7 @@ namespace Plaza::Editor {
         }
 
         // Read the content of default premake file
-        std::string premakeDefaultFilePath = Application->editorPath + "/premakeDefaultProject.lua";
+        std::string premakeDefaultFilePath = Application::Get()->editorPath + "/premakeDefaultProject.lua";
         std::ifstream sourceFile(premakeDefaultFilePath);
         if (!sourceFile.is_open()) {
             std::cerr << "Failed to open the default premake file." << std::endl;

@@ -3,15 +3,15 @@
 
 namespace Plaza {
 	void RenderGroup::InitializeInstanceBuffer() {
-		this->mInstanceBuffers.resize(Application->mRenderer->mMaxFramesInFlight);
-		this->mInstanceBufferMemories.resize(Application->mRenderer->mMaxFramesInFlight);
-		for (int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		this->mInstanceBuffers.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		this->mInstanceBufferMemories.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		for (int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
 			VulkanRenderer::GetRenderer()->CreateBuffer(mBufferSize * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mInstanceBuffers[i], mInstanceBufferMemories[i]);
 		}
 	}
 
 	void RenderGroup::ResizeInstanceBuffer(uint64_t newSize) {
-		for (int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		for (int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
 
 
 			//vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, this->mInstanceBufferMemories[i], nullptr);
@@ -21,9 +21,9 @@ namespace Plaza {
 		}
 
 
-		//Application->mThreadsManager->mFrameRendererAfterFenceThread->AddToQueue([newSize, this]() {
+		//Application::Get()->mThreadsManager->mFrameRendererAfterFenceThread->AddToQueue([newSize, this]() {
 		//
-		//	unsigned int currentFrame = Application->mRenderer->mCurrentFrame;
+		//	unsigned int currentFrame = Application::Get()->mRenderer->mCurrentFrame;
 		//	vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, this->mInstanceBuffers[currentFrame], nullptr);
 		//	vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, this->mInstanceBufferMemories[currentFrame], nullptr);
 		//
@@ -31,9 +31,9 @@ namespace Plaza {
 		//	this->mBufferSize = size;
 		//	VulkanRenderer::GetRenderer()->CreateBuffer(size * sizeof(glm::mat4), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM, this->mInstanceBuffers[currentFrame], this->mInstanceBufferMemories[currentFrame]);
 		//
-		//	Application->mThreadsManager->mFrameRendererBeforeFenceThread->AddToQueue([newSize, this]() {
+		//	Application::Get()->mThreadsManager->mFrameRendererBeforeFenceThread->AddToQueue([newSize, this]() {
 		//
-		//		unsigned int currentFrame = Application->mRenderer->mCurrentFrame;
+		//		unsigned int currentFrame = Application::Get()->mRenderer->mCurrentFrame;
 		//		vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, this->mInstanceBuffers[currentFrame], nullptr);
 		//		vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, this->mInstanceBufferMemories[currentFrame], nullptr);
 		//
@@ -47,25 +47,25 @@ namespace Plaza {
 	}
 
 	void RenderGroup::ChangeMaterial(Material* newMaterial, unsigned int index) {
-		//Application->activeScene->RemoveRenderGroup(this->uuid);
+		//Application::Get()->activeScene->RemoveRenderGroup(this->uuid);
 		//uint64_t oldMeshUuid = this->mesh->uuid;
 		//uint64_t oldMaterialUuid = this->material->uuid;
 		this->materials[index] = newMaterial;
-		Application->activeScene->AddRenderGroup(this);
-		//RenderGroup* renderGroup = Application->activeScene->GetRenderGroupWithUuids(oldMeshUuid, oldMaterialUuid);
+		Application::Get()->activeScene->AddRenderGroup(this);
+		//RenderGroup* renderGroup = Application::Get()->activeScene->GetRenderGroupWithUuids(oldMeshUuid, oldMaterialUuid);
 		//if (renderGroup) {
-			//Application->activeScene->RemoveRenderGroup(renderGroup->uuid);
+			//Application::Get()->activeScene->RemoveRenderGroup(renderGroup->uuid);
 		//}
 	}
 
 	void RenderGroup::ChangeMesh(Mesh* mesh) {
-		//Application->activeScene->RemoveRenderGroup(this->uuid);
+		//Application::Get()->activeScene->RemoveRenderGroup(this->uuid);
 		this->mesh = mesh;
-		Application->activeScene->AddRenderGroup(this);
+		Application::Get()->activeScene->AddRenderGroup(this);
 	}
 
 	bool RenderGroup::SceneHasRenderGroup(Mesh* mesh, Material* materials) {
-		//bool hasSpecificRenderGroup = Application->activeScene->renderGroupsFindMap.find(std::pair<uint64_t, uint64_t>(mesh->uuid, material->uuid)) != Application->activeScene->renderGroupsFindMap.end();
+		//bool hasSpecificRenderGroup = Application::Get()->activeScene->renderGroupsFindMap.find(std::pair<uint64_t, uint64_t>(mesh->uuid, material->uuid)) != Application::Get()->activeScene->renderGroupsFindMap.end();
 		//return hasSpecificRenderGroup;
 		return true;
 	}

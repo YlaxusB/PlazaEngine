@@ -65,8 +65,8 @@ namespace Plaza {
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &mDescriptorSetLayout;
 
-		mDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
-		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		mDescriptorSets.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		for (unsigned int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
 			if (vkAllocateDescriptorSets(device, &allocInfo, &this->mDescriptorSets[i]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to allocate descriptor sets!");
 			}
@@ -90,7 +90,7 @@ namespace Plaza {
 
 
 			for (uint32_t j = 0; j < mCascades.size(); ++j) {
-				this->mCascades[j].mDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
+				this->mCascades[j].mDescriptorSets.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
 				vkAllocateDescriptorSets(device, &allocInfo, &this->mCascades[j].mDescriptorSets[i]);
 				VkDescriptorImageInfo cascadeImageInfo{};
 				cascadeImageInfo.sampler = this->mShadowsSampler;
@@ -224,8 +224,8 @@ namespace Plaza {
 			//}
 		}
 
-		this->mFramebuffers.resize(Application->mRenderer->mMaxFramesInFlight);
-		for (int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i)
+		this->mFramebuffers.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		for (int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i)
 		{
 			VkFramebufferCreateInfo framebufferInfo = {};
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -245,8 +245,8 @@ namespace Plaza {
 		// Debug pass
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.extent.width = Application->appSizes->sceneSize.x;
-		imageInfo.extent.height = Application->appSizes->sceneSize.y;
+		imageInfo.extent.width = Application::Get()->appSizes->sceneSize.x;
+		imageInfo.extent.height = Application::Get()->appSizes->sceneSize.y;
 		imageInfo.extent.depth = 1;
 		imageInfo.mipLevels = 1;
 		imageInfo.arrayLayers = 1;
@@ -297,8 +297,8 @@ namespace Plaza {
 		framebufferInfo.renderPass = this->mDepthDebugRenderPass;
 		framebufferInfo.attachmentCount = 1;
 		framebufferInfo.pAttachments = &this->mDebugDepthImageView;
-		framebufferInfo.width = Application->appSizes->sceneSize.x;
-		framebufferInfo.height = Application->appSizes->sceneSize.y;
+		framebufferInfo.width = Application::Get()->appSizes->sceneSize.x;
+		framebufferInfo.height = Application::Get()->appSizes->sceneSize.y;
 		framebufferInfo.layers = 1;
 		//framebufferInfo.flags = VK_IMAGE_USAGE_SAMPLED_BIT;
 		if (vkCreateFramebuffer(renderer.mDevice, &framebufferInfo, nullptr, &this->mDepthDebugFramebuffer) != VK_SUCCESS) {
@@ -493,14 +493,14 @@ namespace Plaza {
 
 	void VulkanShadows::Init() {
 		float mult = 1.0f;
-		shadowCascadeLevels = vector{ Application->activeCamera->farPlane / (9000.0f * mult), Application->activeCamera->farPlane / (3000.0f * mult), Application->activeCamera->farPlane / (1000.0f * mult), Application->activeCamera->farPlane / (500.0f * mult), Application->activeCamera->farPlane / (100.0f * mult), Application->activeCamera->farPlane / (35.0f * mult),Application->activeCamera->farPlane / (10.0f * mult), Application->activeCamera->farPlane / (2.0f * mult), Application->activeCamera->farPlane / (1.0f * mult) };
+		shadowCascadeLevels = vector{ Application::Get()->activeCamera->farPlane / (9000.0f * mult), Application::Get()->activeCamera->farPlane / (3000.0f * mult), Application::Get()->activeCamera->farPlane / (1000.0f * mult), Application::Get()->activeCamera->farPlane / (500.0f * mult), Application::Get()->activeCamera->farPlane / (100.0f * mult), Application::Get()->activeCamera->farPlane / (35.0f * mult),Application::Get()->activeCamera->farPlane / (10.0f * mult), Application::Get()->activeCamera->farPlane / (2.0f * mult), Application::Get()->activeCamera->farPlane / (1.0f * mult) };
 
 		int bufferSize = sizeof(ShadowsUniformBuffer);
 
-		mUniformBuffers.resize(Application->mRenderer->mMaxFramesInFlight);
-		mUniformBuffersMemory.resize(Application->mRenderer->mMaxFramesInFlight);
-		mUniformBuffersMapped.resize(Application->mRenderer->mMaxFramesInFlight);
-		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		mUniformBuffers.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		mUniformBuffersMemory.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		mUniformBuffersMapped.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		for (unsigned int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
 			VulkanRenderer::GetRenderer()->CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mUniformBuffers[i], mUniformBuffersMemory[i]);
 			vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, mUniformBuffersMemory[i], 0, bufferSize, 0, &mUniformBuffersMapped[i]);
 		}
@@ -513,7 +513,7 @@ namespace Plaza {
 		//this->CreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice);
 		//this->CreateDescriptorSet(VulkanRenderer::GetRenderer()->mDevice);
 		//
-		//mShadowsShader = new VulkanShaders(VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.vert"), VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.frag"), VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.geom"));
+		//mShadowsShader = new VulkanShaders(VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.vert"), VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.frag"), VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.geom"));
 		//
 		//VkPushConstantRange pushConstantRange{};
 		//pushConstantRange.stageFlags = VK_SHADER_STAGE_ALL;
@@ -529,9 +529,9 @@ namespace Plaza {
 		//mShadowsShader->Init(VulkanRenderer::GetRenderer()->mDevice, this->mRenderPass, this->mShadowResolution, this->mShadowResolution, this->mDescriptorSetLayout, pipelineLayoutInfo, std::vector<VkPushConstantRange> { pushConstantRange });
 		//
 		//// Debug
-		//mDepthDebugShaders = new VulkanShaders(VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthDebugShaders.vert"), VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthDebugShaders.frag"), VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.geom"));
+		//mDepthDebugShaders = new VulkanShaders(VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthDebugShaders.vert"), VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthDebugShaders.frag"), VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.geom"));
 		//pipelineLayoutInfo.pSetLayouts = &this->mDebugDepthDescriptorLayout;
-		//mDepthDebugShaders->Init(VulkanRenderer::GetRenderer()->mDevice, this->mDepthDebugRenderPass, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, this->mDebugDepthDescriptorLayout, pipelineLayoutInfo, std::vector<VkPushConstantRange> { pushConstantRange }, false);
+		//mDepthDebugShaders->Init(VulkanRenderer::GetRenderer()->mDevice, this->mDepthDebugRenderPass, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, this->mDebugDepthDescriptorLayout, pipelineLayoutInfo, std::vector<VkPushConstantRange> { pushConstantRange }, false);
 	}
 
 	void VulkanShadows::RenderToShadowMap() {
@@ -547,9 +547,9 @@ namespace Plaza {
 	glm::mat4 VulkanShadows::GetLightSpaceMatrix(const float nearPlane, const float farPlane, const float ratio, const glm::mat4& viewMatrix, const glm::vec3& lightDirection)
 	{
 		const auto proj = glm::perspective(
-			glm::radians(Application->activeCamera->Zoom), ratio, nearPlane,
+			glm::radians(Application::Get()->activeCamera->Zoom), ratio, nearPlane,
 			farPlane);
-		const auto corners = Application->activeCamera->getFrustumCornersWorldSpace(proj, viewMatrix);
+		const auto corners = Application::Get()->activeCamera->getFrustumCornersWorldSpace(proj, viewMatrix);
 
 		glm::vec3 center = glm::vec3(0, 0, 0);
 		for (const auto& v : corners)
@@ -607,13 +607,13 @@ namespace Plaza {
 		PLAZA_PROFILE_SECTION("GetLightSpaceMatrices");
 		std::vector<glm::mat4> ret = std::vector<glm::mat4>();
 		ret.resize(shadowCascadeLevels.size() + 1);
-		float ratio = (float)Application->appSizes->sceneSize.x / (float)Application->appSizes->sceneSize.y;
-		const glm::mat4 viewMatrix = Application->activeCamera->GetViewMatrix();
+		float ratio = (float)Application::Get()->appSizes->sceneSize.x / (float)Application::Get()->appSizes->sceneSize.y;
+		const glm::mat4 viewMatrix = Application::Get()->activeCamera->GetViewMatrix();
 		for (size_t i = 0; i < shadowCascadeLevels.size() + 1; ++i)
 		{
 			if (i == 0)
 			{
-				ret[i] = VulkanShadows::GetLightSpaceMatrix(Application->editorCamera->nearPlane - 1.0f, shadowCascadeLevels[i], ratio, viewMatrix, lightDirection);
+				ret[i] = VulkanShadows::GetLightSpaceMatrix(Application::Get()->editorCamera->nearPlane - 1.0f, shadowCascadeLevels[i], ratio, viewMatrix, lightDirection);
 			}
 			else if (i < shadowCascadeLevels.size())
 			{
@@ -626,7 +626,7 @@ namespace Plaza {
 	void VulkanShadows::UpdateUniformBuffer(unsigned int frameIndex) {
 		PLAZA_PROFILE_SECTION("Update Shadows Uniform Buffers");
 		//memcpy(&this->mUbo, GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo).data(), sizeof(this->mUbo));//this->mUbo.lightSpaceMatrices = GetLightSpaceMatrices(this->shadowCascadeLevels, this->mUbo).data();
-		this->mUbo.resize(Application->mRenderer->mMaxFramesInFlight);
+		this->mUbo.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
 		std::vector<glm::mat4> mats = VulkanShadows::GetLightSpaceMatrices(this->shadowCascadeLevels, mLightDirection);
 		for (int i = 0; i < 9; ++i) {
 			this->mUbo[frameIndex].lightSpaceMatrices[i] = mats[i];

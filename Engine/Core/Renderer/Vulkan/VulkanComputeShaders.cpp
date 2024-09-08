@@ -76,7 +76,7 @@ namespace Plaza {
 		//UniformBufferObject ubo{};
 		////ubo.deltaTime = Time::deltaTime * 1000.0f;
 		//
-		//memcpy(mUniformBuffersMapped[Application->mRenderer->mCurrentFrame], &ubo, sizeof(ubo));
+		//memcpy(mUniformBuffersMapped[Application::Get()->mRenderer->mCurrentFrame], &ubo, sizeof(ubo));
 		//
 		//vkCmdBindPipeline(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipeline);
 		//

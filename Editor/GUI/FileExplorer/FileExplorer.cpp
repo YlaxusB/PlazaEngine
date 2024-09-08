@@ -25,8 +25,8 @@ namespace Plaza {
 				Gui::canUpdateContent = false;
 			}
 
-			ApplicationSizes& appSizes = *Application->appSizes;
-			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
+			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
 
 			// Set the window to be the content size + header size
@@ -37,9 +37,9 @@ namespace Plaza {
 			//windowFlags |= ImGuiWindowFlags_NoScrollbar;
 			if (ImGui::Begin("File Explorer", &Gui::isFileExplorerOpen, windowFlags)) {
 				if (ImGui::IsWindowFocused())
-					Application->focusedMenu = "File Explorer";
+					Application::Get()->focusedMenu = "File Explorer";
 				if (ImGui::IsWindowHovered())
-					Application->hoveredMenu = "File Explorer";
+					Application::Get()->hoveredMenu = "File Explorer";
 				File::currentPos = ImVec2(-1.0f, 1.0f);
 
 				FileExplorer::breakFilesLoop = false;
@@ -136,9 +136,9 @@ namespace Plaza {
 				}
 
 				if (ImGui::IsWindowFocused())
-					Application->focusedMenu = "File Explorer";
+					Application::Get()->focusedMenu = "File Explorer";
 				if (ImGui::IsWindowHovered())
-					Application->hoveredMenu = "File Explorer";
+					Application::Get()->hoveredMenu = "File Explorer";
 
 				ImVec4 backgroundColor = editorStyle.hierarchyBackgroundColor;
 
@@ -206,14 +206,14 @@ namespace Plaza {
 				if (ImGui::IsMouseDoubleClicked(0)) {
 					// Handle double click on folders
 					file->DoubleClick();
-					//if (filesystem::is_directory(filesystem::path{ file->directory }) && glfwGetKey(Application->Window->glfwWindow, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS) {
+					//if (filesystem::is_directory(filesystem::path{ file->directory }) && glfwGetKey(Application::Get()->Window->glfwWindow, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS) {
 					//	Editor::Gui::FileExplorer::currentDirectory = file->directory;
 					//	Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 					//	Editor::selectedFiles.clear();
 					//} // Handle double click on .cs files
 					//else if (filesystem::path{ file->directory }.extension() == ".cs") {
 					//	/* Get Devenv path */
-					//	std::string getDevenvCommand = (Application->enginePath + "/vendor/vsWhere/vswhere -latest -requires Microsoft.Component.MSBuild -find Common7/IDE/devenv.exe");
+					//	std::string getDevenvCommand = (Application::Get()->enginePath + "/vendor/vsWhere/vswhere -latest -requires Microsoft.Component.MSBuild -find Common7/IDE/devenv.exe");
 					//	// Open a pipe to capture the command output
 					//	FILE* pipe = _popen(getDevenvCommand.c_str(), "r");
 					//	if (!pipe) {
@@ -234,7 +234,7 @@ namespace Plaza {
 					//	_pclose(pipe);
 					//
 					//	/* "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" /command "File.OpenFile" "Speed Runers.sln" scriptchola.cs */
-					//	std::string projectPath = std::filesystem::path{ Application->activeProject->directory + "/" + Application->activeProject->name }.replace_extension(".sln").string();
+					//	std::string projectPath = std::filesystem::path{ Application::Get()->activeProject->directory + "/" + Application::Get()->activeProject->name }.replace_extension(".sln").string();
 					//	std::string scriptPath = file->directory;
 					//	std::string openCsFileCommand = "\"\"" + devenvPath + "\" \"" + projectPath + "\" \"" + scriptPath + "\"\"";
 					//	for (size_t i = 0; i < openCsFileCommand.length(); ++i) {
@@ -254,7 +254,7 @@ namespace Plaza {
 				else {
 					Editor::selectedGameObject = 0;
 					// Clicked on something and is pressing control
-					if (glfwGetKey(Application->Window->glfwWindow, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+					if (glfwGetKey(Application::Get()->mWindow->glfwWindow, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
 						// Check if this file is already in the selected files, if yes, then remove it from the map
 						if (Editor::selectedFiles.contains(file->name)) {
 							Editor::selectedFiles.erase(file->name);

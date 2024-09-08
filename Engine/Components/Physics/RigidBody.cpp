@@ -20,8 +20,8 @@ namespace Plaza {
 		Collider* collider = this->GetGameObject()->GetComponent<Collider>();
 		//AddCollidersOfChildren(this->uuid);
 		if (collider) {
-			if (Application->activeScene->colliderComponents.find(this->mUuid) != Application->activeScene->colliderComponents.end())
-				Application->activeScene->colliderComponents.at(this->mUuid).Init(this);
+			if (Application::Get()->activeScene->colliderComponents.find(this->mUuid) != Application::Get()->activeScene->colliderComponents.end())
+				Application::Get()->activeScene->colliderComponents.at(this->mUuid).Init(this);
 			mRigidActor = collider->mRigidActor;
 			physx::PxRigidBodyExt::setMassAndUpdateInertia(*this->mRigidActor->is<physx::PxRigidDynamic>(), physx::PxReal(this->density));
 			physx::PxRigidBodyExt::updateMassAndInertia(*this->mRigidActor->is<physx::PxRigidDynamic>(), physx::PxReal(this->density));
@@ -37,10 +37,10 @@ namespace Plaza {
 	}
 
 	void RigidBody::AddCollidersOfChildren(uint64_t parent) {
-		for (uint64_t child : Application->activeScene->entities.at(parent).childrenUuid) {
-			if (Application->activeScene->entities.at(child).HasComponent<Collider>() && !Application->activeScene->entities.at(child).HasComponent<RigidBody>()) {
-				Collider* rigidBodyCollider = Application->activeScene->entities.at(this->mUuid).GetComponent<Collider>();
-				Collider* collider = Application->activeScene->entities.at(child).GetComponent<Collider>();
+		for (uint64_t child : Application::Get()->activeScene->entities.at(parent).childrenUuid) {
+			if (Application::Get()->activeScene->entities.at(child).HasComponent<Collider>() && !Application::Get()->activeScene->entities.at(child).HasComponent<RigidBody>()) {
+				Collider* rigidBodyCollider = Application::Get()->activeScene->entities.at(this->mUuid).GetComponent<Collider>();
+				Collider* collider = Application::Get()->activeScene->entities.at(child).GetComponent<Collider>();
 				for (ColliderShape* colliderShape : collider->mShapes) {
 					rigidBodyCollider->mShapes.push_back(colliderShape);
 				}
@@ -74,8 +74,8 @@ namespace Plaza {
 
 	void RigidBody::Update() {
 		if (canUpdate) {
-			Transform& transform = *Application->activeScene->entities.at(this->mUuid).GetComponent<Transform>();
-			Transform& parentTransform = Application->activeScene->transformComponents.at(this->GetGameObject()->parentUuid);
+			Transform& transform = *Application::Get()->activeScene->entities.at(this->mUuid).GetComponent<Transform>();
+			Transform& parentTransform = Application::Get()->activeScene->transformComponents.at(this->GetGameObject()->parentUuid);
 			// Convert Px to Glm
 			physx::PxTransform pxTransform = mRigidActor->getGlobalPose();
 			PxQuat rotationQuaternion = pxTransform.q;
@@ -93,7 +93,7 @@ namespace Plaza {
 	}
 	void RigidBody::UpdateGlobalPose() {
 		if (this->mRigidActor) {
-			Transform& transform = *Application->activeScene->entities.at(this->mUuid).GetComponent<Transform>();
+			Transform& transform = *Application::Get()->activeScene->entities.at(this->mUuid).GetComponent<Transform>();
 			physx::PxTransform* pxTransform = Physics::ConvertMat4ToPxTransform(transform.modelMatrix);
 			this->mRigidActor->setGlobalPose(*pxTransform);
 		}
@@ -153,7 +153,7 @@ namespace Plaza {
 			this->rigidDynamicLockFlags.raise(flag);
 		else
 			this->rigidDynamicLockFlags.clear(flag);
-		if (Application->runningScene)
+		if (Application::Get()->runningScene)
 			this->mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlag(flag, value);
 	}
 }

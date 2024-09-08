@@ -30,7 +30,7 @@ namespace Plaza::Editor {
 				float& restitution = rigidBody->mRestitution;
 				float& density = rigidBody->density;
 				physx::PxVec3 linearVelocityPxVec;
-				if (Application->runningScene)
+				if (Application::Get()->runningScene)
 					linearVelocityPxVec = body.is<physx::PxRigidDynamic>()->getLinearVelocity();
 				glm::vec3& linearVelocity = *new glm::vec3(linearVelocityPxVec.x, linearVelocityPxVec.y, linearVelocityPxVec.z);
 

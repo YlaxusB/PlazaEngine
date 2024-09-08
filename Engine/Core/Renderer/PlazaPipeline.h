@@ -30,8 +30,8 @@ namespace Plaza {
 }
 
 /*
-		pipeline->mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert");
-		pipeline->mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag");
+		pipeline->mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert");
+		pipeline->mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag");
 		auto bindingsArray = VertexGetBindingDescription();
 		std::vector<VkVertexInputBindingDescription> bindings(std::begin(bindingsArray), std::end(bindingsArray));
 		auto attributesArray = VertexGetAttributeDescriptions();
@@ -51,8 +51,8 @@ namespace Plaza {
 			VulkanRenderer::GetRenderer()->mDevice,
 			pipelineLayoutCreateInfo,
 			true,
-			Application->appSizes->sceneSize.x,
-			Application->appSizes->sceneSize.y,
+			Application::Get()->appSizes->sceneSize.x,
+			Application::Get()->appSizes->sceneSize.y,
 			{},
 			vertexInputInfo,
 			inputAssemblyState,

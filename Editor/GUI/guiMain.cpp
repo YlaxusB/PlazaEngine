@@ -65,27 +65,27 @@ namespace Plaza {
 			PLAZA_PROFILE_SECTION("ImGui Update");
 			ImGuiIO& io = ImGui::GetIO();
 			io.DeltaTime = Time::deltaTime;
-			io.DisplaySize = ImVec2(Application->appSizes->appSize.x, Application->appSizes->appSize.y);
-			Gui::setupDockspace(Application->Window->glfwWindow, Application->textureColorbuffer, Application->activeCamera);
-			if (Application->mRenderer->api == RendererAPI::OpenGL)
+			io.DisplaySize = ImVec2(Application::Get()->appSizes->appSize.x, Application::Get()->appSizes->appSize.y);
+			Gui::setupDockspace(Application::Get()->mWindow->glfwWindow, Application::Get()->textureColorbuffer, Application::Get()->activeCamera);
+			if (Application::Get()->mRenderer->api == RendererAPI::OpenGL)
 			{
 				ImGui::Render();
 				ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 			}
-			//else if (Application->mRenderer->api == RendererAPI::Vulkan)
-			//	Application->mRenderer->UpdateGUI();
-			//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), (VulkanRenderer)(Application->mRenderer)->);
+			//else if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
+			//	Application::Get()->mRenderer->UpdateGUI();
+			//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), (VulkanRenderer)(Application::Get()->mRenderer)->);
 		}
 
 		void Gui::NewFrame() {
 			PLAZA_PROFILE_SECTION("ImGui New Frame");
-			if (Application->mRenderer->api == RendererAPI::OpenGL)
+			if (Application::Get()->mRenderer->api == RendererAPI::OpenGL)
 			{
 				ImGui_ImplOpenGL3_NewFrame();
 			}
-			else if (Application->mRenderer->api == RendererAPI::Vulkan)
+			else if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
 			{
-				Application->mRenderer->NewFrameGUI();
+				Application::Get()->mRenderer->NewFrameGUI();
 			}
 			ImGui_ImplGlfw_NewFrame();
 			ImGui::NewFrame();
@@ -98,23 +98,23 @@ namespace Plaza {
 			ImGuiIO& io = ImGui::GetIO();
 			(void)io;
 
-			const char* iniFilePath = new char[(Application->enginePath + "\\imgui.ini").size() + 1];
-			strcpy(const_cast<char*>(iniFilePath), (Application->enginePath + "\\imgui.ini").c_str());
+			const char* iniFilePath = new char[(Application::Get()->enginePath + "\\imgui.ini").size() + 1];
+			strcpy(const_cast<char*>(iniFilePath), (Application::Get()->enginePath + "\\imgui.ini").c_str());
 			ImGui::GetIO().IniFilename = iniFilePath;
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-			if (Application->mRenderer->api == RendererAPI::OpenGL)
+			if (Application::Get()->mRenderer->api == RendererAPI::OpenGL)
 			{
 				ImGui_ImplGlfw_InitForOpenGL(window, true);
 				ImGui_ImplOpenGL3_Init("#version 460");
 			}
-			else if (Application->mRenderer->api == RendererAPI::Vulkan)
+			else if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
 			{
 				ImGui_ImplGlfw_InitForVulkan(window, true);
-				Application->mRenderer->InitGUI();
+				Application::Get()->mRenderer->InitGUI();
 			}
-			//ImGui_ImplGlfw_InitForVulkan(Application->Window->glfwWindow, true);
+			//ImGui_ImplGlfw_InitForVulkan(Application::Get()->Window->glfwWindow, true);
 		//C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
-			io.Fonts->AddFontFromFileTTF((Application->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
+			io.Fonts->AddFontFromFileTTF((Application::Get()->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
 			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
 
 #pragma region ImGui Style
@@ -145,14 +145,14 @@ namespace Plaza {
 			FpsCounter* fpsCounter = new FpsCounter();
 
 			// Load Icons
-			playPauseButtonImageId = Utils::LoadImageToImGuiTexture(std::string(Application->editorPath + "\\Images\\Other\\playPauseButton.png").c_str());
+			playPauseButtonImageId = Utils::LoadImageToImGuiTexture(std::string(Application::Get()->editorPath + "\\Images\\Other\\playPauseButton.png").c_str());
 
 			sEditorTools.emplace(EditorTool::ToolType::TERRAIN_EDITOR, std::make_unique<TerrainEditorTool>());
 		}
 
 		void Gui::Delete() {
 			// Clean up ImGui
-			if (Application->mRendererAPI == RendererAPI::OpenGL)
+			if (Application::Get()->mRendererAPI == RendererAPI::OpenGL)
 			{
 				ImGui_ImplOpenGL3_Shutdown();
 				ImGui_ImplGlfw_Shutdown();
@@ -165,8 +165,8 @@ namespace Plaza {
 		}
 		void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera) {
 			PLAZA_PROFILE_SECTION("Setup Dockspace");
-			ApplicationSizes& appSizes = *Application->appSizes;
-			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
+			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 
 			//	ImGuiWindowFlags  windowFlags = ImGuiWindowFlags_MenuBar;
 
@@ -194,13 +194,13 @@ namespace Plaza {
 			Gui::MainMenuBar::Begin();
 
 			//Gui::beginHierarchyView(gameFrameBuffer);
-			Application->mEditor->mGui.mHierarchy.Update();
+			Application::Get()->mEditor->mGui.mHierarchy.Update();
 
-			Gui::beginScene(gameFrameBuffer, *Application->activeCamera);
+			Gui::beginScene(gameFrameBuffer, *Application::Get()->activeCamera);
 
-			Gui::beginEditor(gameFrameBuffer, *Application->activeCamera);
+			Gui::beginEditor(gameFrameBuffer, *Application::Get()->activeCamera);
 
-			Gui::beginAssetsViewer(gameFrameBuffer, *Application->activeCamera);
+			Gui::beginAssetsViewer(gameFrameBuffer, *Application::Get()->activeCamera);
 
 			Gui::beginInspector(gameFrameBuffer, *camera);
 
@@ -209,11 +209,11 @@ namespace Plaza {
 			//ImGui::ShowDemoWindow();
 
 			FileExplorer::UpdateGui();
-			Application->mEditor->mGui.mConsole->Update();
+			Application::Get()->mEditor->mGui.mConsole->Update();
 			ImGui::End();
 
 
-			Overlay::beginTransformOverlay(*Application->activeCamera);
+			Overlay::beginTransformOverlay(*Application::Get()->activeCamera);
 			fpsCounter->Update();
 			// Update the sizes after resizing
 
@@ -227,7 +227,7 @@ namespace Plaza {
 			//	Gui::AssetsImporter::Update();
 			//}
 
-			Application->mEditor->mGui.mAssetsImporter.Update();
+			Application::Get()->mEditor->mGui.mAssetsImporter.Update();
 
 
 			for (auto& editorTool : Gui::sEditorTools) {
@@ -243,8 +243,8 @@ namespace Plaza {
 		// Create the scene view
 		inline void Gui::beginScene(int gameFrameBuffer, Camera& camera) {
 			PLAZA_PROFILE_SECTION("Begin Scene");
-			ApplicationSizes& appSizes = *Application->appSizes;
-			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
+			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
 
 			// Set the window to be the content size + header size
@@ -259,34 +259,34 @@ namespace Plaza {
 			ImGui::SetNextWindowSize(ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y));
 			if (ImGui::Begin("Scene", &Gui::isSceneOpen, windowFlags)) {
 				if (sceneViewUsingEditorCamera)
-					Application->activeCamera = Application->editorCamera;
+					Application::Get()->activeCamera = Application::Get()->editorCamera;
 				else {
-					if (Application->activeCamera->isEditorCamera && Application->activeScene->cameraComponents.size() > 0)
-						Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
+					if (Application::Get()->activeCamera->isEditorCamera && Application::Get()->activeScene->cameraComponents.size() > 0)
+						Application::Get()->activeCamera = &Application::Get()->activeScene->cameraComponents.begin()->second;
 				}
 			}
 
 
 			if (ImGui::IsWindowFocused())
 			{
-				if (Application->focusedMenu != "Scene") {
+				if (Application::Get()->focusedMenu != "Scene") {
 					if (Input::Cursor::show)
-						glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+						glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 					else
-						glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+						glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 				}
 
-				Application->focusedMenu = "Scene";
+				Application::Get()->focusedMenu = "Scene";
 			}
 			if (ImGui::IsWindowHovered())
-				Application->hoveredMenu = "Scene";
+				Application::Get()->hoveredMenu = "Scene";
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x / 2, 25));
 
 			ImGuiStyle& style = ImGui::GetStyle();
 
 			// Change the background color of the button
-			if (Application->runningScene) {
+			if (Application::Get()->runningScene) {
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
 			}
 			else {
@@ -294,7 +294,7 @@ namespace Plaza {
 			}
 			if (isSceneOpen) {
 				if (ImGui::ImageButton("PlayPauseButton", ImTextureID(playPauseButtonImageId), ImVec2(25, 25))) {
-					if (Application->runningScene)
+					if (Application::Get()->runningScene)
 						Scene::Stop();
 					else
 						Scene::Play();
@@ -306,10 +306,10 @@ namespace Plaza {
 				ImGui::SameLine();
 				if (ImGui::Checkbox("Editor Camera", &sceneViewUsingEditorCamera)) {
 					if (sceneViewUsingEditorCamera)
-						Application->activeCamera = Application->editorCamera;
+						Application::Get()->activeCamera = Application::Get()->editorCamera;
 					else {
-						if (Application->activeCamera->isEditorCamera && Application->activeScene->cameraComponents.size() > 0)
-							Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
+						if (Application::Get()->activeCamera->isEditorCamera && Application::Get()->activeScene->cameraComponents.size() > 0)
+							Application::Get()->activeCamera = &Application::Get()->activeScene->cameraComponents.begin()->second;
 					}
 				}
 			}
@@ -319,8 +319,8 @@ namespace Plaza {
 				ImVec2 uv0(0, 0); // bottom-left corner
 				ImVec2 uv1(1, 1); // top-right corner
 				appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
-				ImGui::Image(ImTextureID(Application->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
-				//ImGui::Image(ImTextureID(Application->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+				ImGui::Image(ImTextureID(Application::Get()->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+				//ImGui::Image(ImTextureID(Application::Get()->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 
 				//	appSizes.sceneStart = ImGui::glmVec2(ImGui::GetWindowPos());
 				if (ImGui::BeginDragDropTarget()) {
@@ -346,8 +346,8 @@ namespace Plaza {
 		// Create the Editor view
 		inline void Gui::beginEditor(int gameFrameBuffer, Camera& camera) {
 			PLAZA_PROFILE_SECTION("Begin Editor");
-			ApplicationSizes& appSizes = *Application->appSizes;
-			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
+			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
 
 			// Set the window to be the content size + header size
@@ -367,18 +367,18 @@ namespace Plaza {
 			style.WindowPadding = ImVec2(0.0f, 0.0f);  // Change window padding
 
 			if (ImGui::Begin("Editor", &Gui::isSceneOpen, windowFlags)) {
-				Application->activeCamera = Application->editorCamera;
+				Application::Get()->activeCamera = Application::Get()->editorCamera;
 			};
 			if (ImGui::IsWindowFocused())
 			{
-				if (Application->focusedMenu != "Editor") {
-					glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				if (Application::Get()->focusedMenu != "Editor") {
+					glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 				}
-				Application->focusedMenu = "Editor";
-				Application->activeCamera = Application->editorCamera;
+				Application::Get()->focusedMenu = "Editor";
+				Application::Get()->activeCamera = Application::Get()->editorCamera;
 			}
 			if (ImGui::IsWindowHovered())
-				Application->hoveredMenu = "Editor";
+				Application::Get()->hoveredMenu = "Editor";
 
 
 
@@ -387,7 +387,7 @@ namespace Plaza {
 			//ImGuiStyle& style = ImGui::GetStyle();
 
 			// Change the background color of the button
-			if (Application->runningScene) {
+			if (Application::Get()->runningScene) {
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
 			}
 			else {
@@ -395,7 +395,7 @@ namespace Plaza {
 			}
 
 			if (ImGui::ImageButton("PlayPauseButton", ImTextureID(playPauseButtonImageId), ImVec2(25, 25))) {
-				if (Application->runningScene)
+				if (Application::Get()->runningScene)
 					Scene::Stop();
 				else
 					Scene::Play();
@@ -410,7 +410,7 @@ namespace Plaza {
 			ImVec2 uv1(1, 1); // top-right corner
 			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 
-			ImGui::Image(mShowSelectedImageInEditorView ? Gui::mSelectedImageInspector : ImTextureID(Application->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+			ImGui::Image(mShowSelectedImageInEditorView ? Gui::mSelectedImageInspector : ImTextureID(Application::Get()->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 
 			// Show the gizmo if there's a selected entity
 			std::map<std::string, File*> files = Editor::selectedFiles;
@@ -444,8 +444,8 @@ namespace Plaza {
 
 		void Gui::beginHierarchyView(int gameFrameBuffer) {
 			PLAZA_PROFILE_SECTION("Begin Hierarchy");
-			ApplicationSizes& appSizes = *Application->appSizes;
-			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
+			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
 			//ImGui::SetNextWindowPos(ImVec2(0, 0));
 			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoFocusOnAppearing | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_HorizontalScrollbar | ImGuiScrollFlags_NoScrollParent;
@@ -454,9 +454,9 @@ namespace Plaza {
 			ImGui::SetNextWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y));
 			ImGui::Begin("Hierarchy", &Gui::isHierarchyOpen, sceneWindowFlags);
 			if (ImGui::IsWindowFocused())
-				Application->focusedMenu = "Hierarchy";
+				Application::Get()->focusedMenu = "Hierarchy";
 			if (ImGui::IsWindowHovered()) {
-				Application->hoveredMenu = "Hierarchy";
+				Application::Get()->hoveredMenu = "Hierarchy";
 			}
 
 			appSizes.hierarchySize.x = ImGui::GetWindowSize().x;
@@ -470,7 +470,7 @@ namespace Plaza {
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-			HierarchyWindow::Item(Application->activeScene->entities[Application->activeScene->mainSceneEntity->uuid], selectedGameObject);
+			HierarchyWindow::Item(Application::Get()->activeScene->entities[Application::Get()->activeScene->mainSceneEntity->uuid], selectedGameObject);
 			ImGui::PopStyleVar();
 			ImGui::PopStyleVar();
 
@@ -481,8 +481,8 @@ namespace Plaza {
 
 		void Gui::beginInspector(int gameFrameBuffer, Camera camera) {
 			PLAZA_PROFILE_SECTION("Begin Inspector");
-			ApplicationSizes& appSizes = *Application->appSizes;
-			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
+			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
 
 			//ImGui::SetCursorPosY(appSizes.appHeaderSize);
@@ -496,9 +496,9 @@ namespace Plaza {
 			ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.inspectorSize));
 			ImGui::Begin("Inspector", &Gui::isInspectorOpen, sceneWindowFlags);
 			if (ImGui::IsWindowFocused())
-				Application->focusedMenu = "Inspector";
+				Application::Get()->focusedMenu = "Inspector";
 			if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
-				Application->hoveredMenu = "Inspector";
+				Application::Get()->hoveredMenu = "Inspector";
 
 
 			//// Handle size changes
@@ -528,8 +528,8 @@ namespace Plaza {
 
 		void Gui::beginImageInspector(int gameFrameBuffer, Camera camera) {
 			PLAZA_PROFILE_SECTION("Begin Image Inspector");
-			ApplicationSizes& appSizes = *Application->appSizes;
-			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
+			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
 
 			ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.inspectorSize), ImGuiCond_Always);
@@ -541,16 +541,16 @@ namespace Plaza {
 			ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.inspectorSize));
 			ImGui::Begin("Image Inspector", &Gui::isInspectorOpen, sceneWindowFlags);
 			if (ImGui::IsWindowFocused())
-				Application->focusedMenu = "ImageInspector";
+				Application::Get()->focusedMenu = "ImageInspector";
 			if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
-				Application->hoveredMenu = "ImageInspector";
+				Application::Get()->hoveredMenu = "ImageInspector";
 
 
 			ImVec2 uv0(0, mFlipY ? 0 : 1); // bottom-left corner
 			ImVec2 uv1(1, mFlipY ? 1 : 0); // top-right corner
 			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 
-			Gui::imageSize = ImVec2(200 * (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), 200);
+			Gui::imageSize = ImVec2(200 * (Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y), 200);
 			ImGui::Checkbox("Show All Images", &mImageInspectorShowAllImages);
 			ImGui::Checkbox("Show image in editor view", &mShowSelectedImageInEditorView);
 			ImGui::Checkbox("Flip Y", &mFlipY);
@@ -558,14 +558,14 @@ namespace Plaza {
 			if (!Gui::mImageInspectorShowAllImages)
 				ImGui::Image(Gui::mSelectedImageInspector, Gui::imageSize, uv0, uv1);
 
-			for (unsigned int i = 0; i < Application->mRenderer->mTrackedImages.size(); ++i) {
+			for (unsigned int i = 0; i < Application::Get()->mRenderer->mTrackedImages.size(); ++i) {
 				if (Gui::mImageInspectorShowAllImages) {
-					ImGui::Image(Application->mRenderer->mTrackedImages[i].mTextureID, Gui::imageSize, uv0, uv1);
+					ImGui::Image(Application::Get()->mRenderer->mTrackedImages[i].mTextureID, Gui::imageSize, uv0, uv1);
 				}
 				else
 				{
-					if (ImGui::Button(Application->mRenderer->mTrackedImages[i].name.c_str())) {
-						Gui::mSelectedImageInspector = Application->mRenderer->mTrackedImages[i].mTextureID;
+					if (ImGui::Button(Application::Get()->mRenderer->mTrackedImages[i].name.c_str())) {
+						Gui::mSelectedImageInspector = Application::Get()->mRenderer->mTrackedImages[i].mTextureID;
 					}
 				}
 			}
@@ -577,8 +577,8 @@ namespace Plaza {
 
 		void Gui::beginAssetsViewer(int gameFrameBuffer, Camera camera) {
 			PLAZA_PROFILE_SECTION("Begin Assets Viewer");
-			ApplicationSizes& appSizes = *Application->appSizes;
-			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
+			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
 
 			// Set the window to be the content size + header size
@@ -624,13 +624,13 @@ namespace Plaza {
 			};
 			if (ImGui::IsWindowFocused())
 			{
-				if (Application->focusedMenu != "AssetsViewer") {
-					glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				if (Application::Get()->focusedMenu != "AssetsViewer") {
+					glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 				}
-				Application->focusedMenu = "AssetsViewer";
+				Application::Get()->focusedMenu = "AssetsViewer";
 			}
 			if (ImGui::IsWindowHovered())
-				Application->hoveredMenu = "AssetsViewer";
+				Application::Get()->hoveredMenu = "AssetsViewer";
 
 			ImGui::End();
 		}
@@ -642,7 +642,7 @@ namespace Plaza {
 
 		// Update appSizes
 		void Gui::UpdateSizes() {
-			ApplicationSizes& appSizes = *Application->appSizes;
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			appSizes.hierarchySize = glm::abs(curHierarchySize);
 			appSizes.inspectorSize = glm::abs(curInspectorSize);
 			//appSizes.sceneSize = curSceneSize;

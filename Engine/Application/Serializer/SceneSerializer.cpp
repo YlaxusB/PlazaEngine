@@ -21,7 +21,7 @@ namespace Plaza {
 		out << YAML::BeginMap;
 		out << YAML::Key << "Entity" << YAML::Value << entity->uuid;
 		out << YAML::Key << "Name" << YAML::Value << entity->name;
-		uint64_t parentUuid = (entity->uuid == Application->activeScene->mainSceneEntity->uuid) ? entity->uuid : entity->parentUuid;
+		uint64_t parentUuid = (entity->uuid == Application::Get()->activeScene->mainSceneEntity->uuid) ? entity->uuid : entity->parentUuid;
 		out << YAML::Key << "ParentID" << YAML::Value << parentUuid;
 		out << YAML::Key << "Components" << YAML::BeginMap;
 		if (Transform* transform = entity->GetComponent<Transform>()) {
@@ -71,8 +71,8 @@ namespace Plaza {
 	//	out << YAML::Key << "Model" << YAML::Value << model->uuid;
 	//	out << YAML::Key << "Name" << YAML::Value << model->modelName;
 	//	std::string modelPath = model->modelPlazaPath;
-	//	if (modelPath.starts_with(Application->projectPath))
-	//		modelPath = modelPath.substr(Application->projectPath.length(), modelPath.length() - Application->projectPath.length() + 2);
+	//	if (modelPath.starts_with(Application::Get()->projectPath))
+	//		modelPath = modelPath.substr(Application::Get()->projectPath.length(), modelPath.length() - Application::Get()->projectPath.length() + 2);
 	//	if (modelPath.starts_with("\\"))
 	//		modelPath = modelPath.substr(1, modelPath.length() - 1);
 	//	out << YAML::Key << "ModelPath" << YAML::Value << modelPath;
@@ -84,7 +84,7 @@ namespace Plaza {
 	void SerializeScene(YAML::Emitter& out, Entity* sceneEntity) {
 		out << YAML::Key << "Uuid" << YAML::Value << sceneEntity->uuid;
 		out << YAML::Key << "Name" << YAML::Value << sceneEntity->name;
-		out << YAML::Key << "LightDirection" << YAML::Value << VulkanRenderer::GetRenderer()->mShadows->mLightDirection;//Application->mRenderer->mShadows->mLightDirection;
+		out << YAML::Key << "LightDirection" << YAML::Value << VulkanRenderer::GetRenderer()->mShadows->mLightDirection;//Application::Get()->mRenderer->mShadows->mLightDirection;
 	}
 
 	void Serializer::Serialize(const Asset* sceneAsset)
@@ -93,11 +93,11 @@ namespace Plaza {
 		out << YAML::BeginMap;
 		out << YAML::Key << "AssetUuid" << YAML::Value << sceneAsset->mAssetUuid;
 		out << YAML::Key << "Scene" << YAML::Value << YAML::BeginMap;
-		SerializeScene(out, Application->activeScene->mainSceneEntity);
+		SerializeScene(out, Application::Get()->activeScene->mainSceneEntity);
 		out << YAML::EndMap;
 		/* Entities */
 		out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
-		for (auto& [key, value] : Application->activeScene->entities) {
+		for (auto& [key, value] : Application::Get()->activeScene->entities) {
 			SerializeGameObjects(out, &value);
 		}
 		out << YAML::EndSeq;
@@ -116,7 +116,7 @@ namespace Plaza {
 
 		/* Meshes (Only their uuids and paths) */
 		out << YAML::Key << "Meshes" << YAML::Value << YAML::BeginSeq;
-		for (auto& [key, value] : Application->activeScene->meshRendererComponents) {
+		for (auto& [key, value] : Application::Get()->activeScene->meshRendererComponents) {
 			SerializeMeshes(out, &value);
 		}
 		out << YAML::EndSeq;
@@ -141,19 +141,19 @@ namespace Plaza {
 
 		/* Scene */
 		if (!deserializingProject)
-			Application->editorScene = new Scene();
-		Application->editorScene->mAssetUuid = data["AssetUuid"].as<uint64_t>();
-		Application->activeScene = Application->editorScene;
+			Application::Get()->editorScene = new Scene();
+		Application::Get()->editorScene->mAssetUuid = data["AssetUuid"].as<uint64_t>();
+		Application::Get()->activeScene = Application::Get()->editorScene;
 		Editor::DefaultModels::Init();
 		Entity* newScene = new Entity(data["Scene"]["Name"].as<std::string>(), nullptr, true, data["Scene"]["Uuid"].as<uint64_t>());
 		if (data["Scene"]["LightDirection"])
 			VulkanRenderer::GetRenderer()->mShadows->mLightDirection = data["Scene"]["LightDirection"].as<glm::vec3>();
-		//free(Application->activeScene->mainSceneEntity);
-		Application->activeScene->mainSceneEntity = newScene;
-		if (filePath.starts_with(Application->projectPath))
-			Application->activeScene->filePath = filePath.substr(Application->projectPath.length() + 1, filePath.length() - Application->projectPath.length());
+		//free(Application::Get()->activeScene->mainSceneEntity);
+		Application::Get()->activeScene->mainSceneEntity = newScene;
+		if (filePath.starts_with(Application::Get()->projectPath))
+			Application::Get()->activeScene->filePath = filePath.substr(Application::Get()->projectPath.length() + 1, filePath.length() - Application::Get()->projectPath.length());
 		else
-			Application->activeScene->filePath = filePath;
+			Application::Get()->activeScene->filePath = filePath;
 
 		std::cout << "Deserializing meshes \n";
 		/* Models and Meshes */
@@ -204,13 +204,13 @@ namespace Plaza {
 			for (auto entity : gameObjectsDeserialized) {
 				std::string name = entity["Name"].as<std::string>();
 				Entity* newEntity;
-				auto parentIt = Application->activeScene->entities.find(entity["ParentID"].as<std::uint64_t>());
+				auto parentIt = Application::Get()->activeScene->entities.find(entity["ParentID"].as<std::uint64_t>());
 				if (entity["ParentID"].as<std::uint64_t>() != entity["Entity"].as<uint64_t>()) {
-					if (entity["ParentID"].as<std::uint64_t>() && parentIt != Application->activeScene->entities.end()) {
-						newEntity = new Entity(name, &Application->activeScene->entities.at(entity["ParentID"].as<std::uint64_t>()), true, entity["Entity"].as<uint64_t>());
+					if (entity["ParentID"].as<std::uint64_t>() && parentIt != Application::Get()->activeScene->entities.end()) {
+						newEntity = new Entity(name, &Application::Get()->activeScene->entities.at(entity["ParentID"].as<std::uint64_t>()), true, entity["Entity"].as<uint64_t>());
 					}
 					else {
-						newEntity = new Entity(name, Application->activeScene->mainSceneEntity, true, entity["Entity"].as<uint64_t>());
+						newEntity = new Entity(name, Application::Get()->activeScene->mainSceneEntity, true, entity["Entity"].as<uint64_t>());
 					}
 					newEntity->parentUuid = entity["ParentID"].as<std::uint64_t>();
 					if (newEntity)
@@ -256,15 +256,15 @@ namespace Plaza {
 				uint64_t entityUuid = entity["Entity"].as<uint64_t>();
 				uint64_t parentUuid = entity["ParentID"].as<uint64_t>();
 
-				if (entityUuid == Application->activeScene->mainSceneEntity->uuid)
+				if (entityUuid == Application::Get()->activeScene->mainSceneEntity->uuid)
 					continue;
 
-				Entity* ent = &Application->activeScene->entities.at(entityUuid);
-				if (parentUuid && parentUuid != entityUuid && Application->activeScene->entities.find(parentUuid) != Application->activeScene->entities.end())
-					Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), Application->activeScene->entities.at(entity["ParentID"].as<uint64_t>()));
+				Entity* ent = &Application::Get()->activeScene->entities.at(entityUuid);
+				if (parentUuid && parentUuid != entityUuid && Application::Get()->activeScene->entities.find(parentUuid) != Application::Get()->activeScene->entities.end())
+					Application::Get()->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application::Get()->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), Application::Get()->activeScene->entities.at(entity["ParentID"].as<uint64_t>()));
 				else
-					Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), *Application->activeScene->mainSceneEntity);
-				Application->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+					Application::Get()->activeScene->entities.at(entity["Entity"].as<uint64_t>()).ChangeParent(Application::Get()->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetParent(), *Application::Get()->activeScene->mainSceneEntity);
+				Application::Get()->activeScene->entities.at(entity["Entity"].as<uint64_t>()).GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 			}
 			//delete oldScene;
 			std::cout << "Finished Deserialization \n";

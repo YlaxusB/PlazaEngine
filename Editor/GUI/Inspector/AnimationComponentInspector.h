@@ -39,7 +39,7 @@ namespace Plaza::Editor {
 					//ImGui::BeginChild(std::string("Animation: " + animation.mName).c_str());
 					ImGui::PushID(std::string("Animation: " + animation.mName).c_str());
 					if (ImGui::Button(std::string("Play" + animation.mName).c_str())) {
-						Application->activeScene->mPlayingAnimations.clear();
+						Application::Get()->activeScene->mPlayingAnimations.clear();
 						animation.Play();
 					}
 					float time = animation.mCurrentTime;

@@ -9,7 +9,7 @@ namespace Plaza {
         ZeroMemory(&ofn, sizeof(OPENFILENAME));
 
         ofn.lStructSize = sizeof(OPENFILENAME);
-        ofn.hwndOwner = glfwGetWin32Window(Application->Window->glfwWindow);
+        ofn.hwndOwner = glfwGetWin32Window(Application::Get()->mWindow->glfwWindow);
         ofn.lpstrFile = szFileName;
         ofn.nMaxFile = sizeof(szFileName);
         ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;

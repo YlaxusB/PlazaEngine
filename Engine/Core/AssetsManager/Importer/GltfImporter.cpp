@@ -66,7 +66,7 @@ namespace Plaza {
 		//	Entity* entity;
 		//	if (!mainEntity)
 		//	{
-		//		entity = new Entity(mesh.name, Application->activeScene->mainSceneEntity);
+		//		entity = new Entity(mesh.name, Application::Get()->activeScene->mainSceneEntity);
 		//		mainEntity = entity;
 		//	}else
 		//		entity = new Entity(mesh.name, mainEntity);
@@ -76,7 +76,7 @@ namespace Plaza {
 		//	if (parent) {
 		//		auto parentIt = meshIndexEntityMap.find(parent->id);
 		//		if (parentIt != meshIndexEntityMap.end()) {
-		//			entity->ChangeParent(Application->activeScene->GetEntity(entity->GetParent().uuid), Application->activeScene->GetEntity(parentIt->second));
+		//			entity->ChangeParent(Application::Get()->activeScene->GetEntity(entity->GetParent().uuid), Application::Get()->activeScene->GetEntity(parentIt->second));
 		//		}
 		//	}
 
@@ -124,7 +124,7 @@ namespace Plaza {
 		//		indicesOffset += geom.getPositions().count;
 		//	}
 
-		//	MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, Application->activeScene->DefaultMaterial());
+		//	MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, Application::Get()->activeScene->DefaultMaterial());
 		//	entity->AddComponent<MeshRenderer>(meshRenderer);
 		//}
 		//fclose(fp);
@@ -152,7 +152,7 @@ namespace Plaza {
 		//	return nullptr;
 		//}
 		//
-		//return Application->activeScene->GetEntity(AssetsImporter::ProcessNode(scene->mRootNode, scene, Application->activeScene->GetEntity(Application->activeScene->mainSceneEntity->uuid))->uuid);
+		//return Application::Get()->activeScene->GetEntity(AssetsImporter::ProcessNode(scene->mRootNode, scene, Application::Get()->activeScene->GetEntity(Application::Get()->activeScene->mainSceneEntity->uuid))->uuid);
 
 
 		//if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, asset.mPath.c_str())) {
@@ -165,7 +165,7 @@ namespace Plaza {
 		//	Entity* newEntity;
 		//	if (!mainEntity)
 		//	{
-		//		newEntity = new Entity(shape.name, Application->activeScene->mainSceneEntity);
+		//		newEntity = new Entity(shape.name, Application::Get()->activeScene->mainSceneEntity);
 		//		mainEntity = newEntity;
 		//	}
 		//	else
@@ -209,11 +209,11 @@ namespace Plaza {
 		//		indices.push_back(uniqueVertices[vertex]);
 		//	}
 		//
-		//	Mesh& mesh = Application->mRenderer->CreateNewMesh(vertices, normals, uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), indices, *Scene::DefaultMaterial(), false);// new Mesh();
+		//	Mesh& mesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), indices, *Scene::DefaultMaterial(), false);// new Mesh();
 		//	MeshRenderer* meshRenderer = new MeshRenderer(mesh, Scene::DefaultMaterial());
 		//	newEntity->AddComponent<MeshRenderer>(meshRenderer);
 		//}
 		//AssetsSerializer::SerializePrefab(mainEntity, asset.mPath);
-		//return Application->activeScene->GetEntity(mainEntity->uuid);
+		//return Application::Get()->activeScene->GetEntity(mainEntity->uuid);
 	}
 }

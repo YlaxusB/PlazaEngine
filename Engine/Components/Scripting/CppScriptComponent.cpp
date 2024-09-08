@@ -19,11 +19,11 @@ namespace Plaza {
 			script->onUpdateMethod = mono_class_get_method_from_name(klass, "OnUpdate", 0);
 			script->GetMethods();
 		}
-		Application->activeProject->scripts[csScriptPath].entitiesUsingThisScript.emplace(this->mUuid);
+		Application::Get()->activeProject->scripts[csScriptPath].entitiesUsingThisScript.emplace(this->mUuid);
 
-		Application->activeProject->scripts[csScriptPath].entitiesUsingThisScript.emplace(this->mUuid);
+		Application::Get()->activeProject->scripts[csScriptPath].entitiesUsingThisScript.emplace(this->mUuid);
 	}
 	CsScriptComponent::~CsScriptComponent() {
-		//Application->activeProject->scripts.at(scriptPath).entitiesUsingThisScript.erase(this->uuid);
+		//Application::Get()->activeProject->scripts.at(scriptPath).entitiesUsingThisScript.erase(this->uuid);
 	}
 }

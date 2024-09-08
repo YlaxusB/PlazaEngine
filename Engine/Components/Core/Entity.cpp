@@ -15,9 +15,9 @@ namespace Plaza {
 		uuid = Plaza::UUID::NewUUID();
 		this->AddComponent<Transform>(new Transform(), true);
 		this->name = "Entity";
-		Application->activeScene->entities.emplace(this->uuid, *this);
-		Application->activeScene->mainSceneEntity->childrenUuid.push_back(this->uuid);
-		Application->activeScene->entitiesNames[this->name].insert(this->uuid);
+		Application::Get()->activeScene->entities.emplace(this->uuid, *this);
+		Application::Get()->activeScene->mainSceneEntity->childrenUuid.push_back(this->uuid);
+		Application::Get()->activeScene->entitiesNames[this->name].insert(this->uuid);
 	}
 	Entity::Entity(std::string objName, Entity* parent, bool addToScene, uint64_t newUuid) {
 		if (newUuid)
@@ -30,24 +30,24 @@ namespace Plaza {
 		// Set the new parent
 		if (parent != nullptr && addToScene) {
 			this->parentUuid = parent->uuid;
-			Application->activeScene->entities[parentUuid].childrenUuid.push_back(this->uuid);
+			Application::Get()->activeScene->entities[parentUuid].childrenUuid.push_back(this->uuid);
 			//parent->childrenUuid.push_back(this->uuid);
 		}
 		// Add to the gameobjects list
 		if (addToScene) {
-			Application->activeScene->entities.emplace(this->uuid, *this);
-			Application->activeScene->entitiesNames[this->name].insert(this->uuid);
+			Application::Get()->activeScene->entities.emplace(this->uuid, *this);
+			Application::Get()->activeScene->entitiesNames[this->name].insert(this->uuid);
 		}
 
 	}
 
 	std::unordered_map<std::string, void*> Entity::GetAllComponentsMaps() {
-		return Application->activeScene->componentsMap;
+		return Application::Get()->activeScene->componentsMap;
 	}
 
 	Component* Entity::GetComponentByName(std::string className) {
 		Component* component = nullptr;
-		auto& components = *static_cast<ComponentMultiMap<uint64_t, Component>*>(Application->activeScene->componentsMap[className]);
+		auto& components = *static_cast<ComponentMultiMap<uint64_t, Component>*>(Application::Get()->activeScene->componentsMap[className]);
 		auto it = components.find(this->uuid);
 		if (it != components.end()) {
 			component = &(it->second);
@@ -57,11 +57,11 @@ namespace Plaza {
 
 	Entity& Entity::GetParent() {
 		if (!parentUuid)
-			return Application->activeScene->entities.find(Application->activeScene->mainSceneEntity->uuid)->second;
-		auto parentIt = Application->activeScene->entities.find(parentUuid);
-		if (parentIt != Application->activeScene->entities.end())
+			return Application::Get()->activeScene->entities.find(Application::Get()->activeScene->mainSceneEntity->uuid)->second;
+		auto parentIt = Application::Get()->activeScene->entities.find(parentUuid);
+		if (parentIt != Application::Get()->activeScene->entities.end())
 			return parentIt->second;
-		else return *Application->activeScene->mainSceneEntity;
+		else return *Application::Get()->activeScene->mainSceneEntity;
 	}
 
 	template Transform* Entity::ReplaceComponent<Transform>(Transform* newComponent); // Replace 'Transform' with the actual type
@@ -76,10 +76,10 @@ namespace Plaza {
 
 			// Replace the component in the appropriate components list
 			if constexpr (std::is_same_v<T, Transform>) {
-				Application->activeScene->transformComponents[newComponent->mUuid] = *newComponent;
+				Application::Get()->activeScene->transformComponents[newComponent->mUuid] = *newComponent;
 			}
 			else if constexpr (std::is_same_v<T, MeshRenderer>) {
-				Application->activeScene->meshRendererComponents[newComponent->mUuid] = *newComponent;
+				Application::Get()->activeScene->meshRendererComponents[newComponent->mUuid] = *newComponent;
 			}
 
 			// Clean up and delete the old component
@@ -91,10 +91,10 @@ namespace Plaza {
 				if constexpr (std::is_base_of_v<Transform, T> || std::is_base_of_v<MeshRenderer, T>) {
 					if (existingComponent->mUuid != newComponent->mUuid) {
 						if constexpr (std::is_base_of_v<Transform, T>) {
-							Application->activeScene->transformComponents.erase(existingComponent->mUuid);
+							Application::Get()->activeScene->transformComponents.erase(existingComponent->mUuid);
 						}
 						else if constexpr (std::is_base_of_v<MeshRenderer, T>) {
-							Application->activeScene->meshRendererComponents.erase(existingComponent->mUuid);
+							Application::Get()->activeScene->meshRendererComponents.erase(existingComponent->mUuid);
 						}
 					}
 				}
@@ -109,22 +109,22 @@ namespace Plaza {
 
 	void Entity::Rename(std::string newName) {
 		// Erase the old name
-		Application->activeScene->entitiesNames.at(this->name).erase(Application->activeScene->entitiesNames.at(this->name).find(this->uuid));
-		if (Application->activeScene->entitiesNames.at(this->name).size() <= 0) {
-			Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
+		Application::Get()->activeScene->entitiesNames.at(this->name).erase(Application::Get()->activeScene->entitiesNames.at(this->name).find(this->uuid));
+		if (Application::Get()->activeScene->entitiesNames.at(this->name).size() <= 0) {
+			Application::Get()->activeScene->entitiesNames.erase(Application::Get()->activeScene->entitiesNames.find(this->name));
 		}
 
 		// Emplace the new name
-		Application->activeScene->entitiesNames[newName].insert(this->uuid);
+		Application::Get()->activeScene->entitiesNames[newName].insert(this->uuid);
 		this->name = newName;
 	}
 
 	Entity::~Entity() {
-		//if (!Application->runningScene) {
+		//if (!Application::Get()->runningScene) {
 		//	std::vector<uint64_t> children = this->childrenUuid;
 		//	for (uint64_t child : children) {
-		//		if (Application->activeScene->entities.find(child) != Application->activeScene->entities.end())
-		//			Application->activeScene->entities.at(child).~Entity();
+		//		if (Application::Get()->activeScene->entities.find(child) != Application::Get()->activeScene->entities.end())
+		//			Application::Get()->activeScene->entities.at(child).~Entity();
 		//	}
 		//	if (this->HasComponent<Transform>())
 		//		this->RemoveComponent<Transform>();
@@ -153,22 +153,22 @@ namespace Plaza {
 		//		Editor::selectedGameObject = nullptr;
 		//
 		//	this->GetParent().childrenUuid.erase(std::remove(this->GetParent().childrenUuid.begin(), this->GetParent().childrenUuid.end(), this->uuid), this->GetParent().childrenUuid.end());
-		//	if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
-		//		Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
+		//	if (Application::Get()->activeScene->entitiesNames.find(this->name) != Application::Get()->activeScene->entitiesNames.end())
+		//		Application::Get()->activeScene->entitiesNames.erase(Application::Get()->activeScene->entitiesNames.find(this->name));
 		//
-		//	if (Application->activeScene->entities.find(this->uuid) != Application->activeScene->entities.end())
-		//		Application->activeScene->entities.extract(this->uuid);
-		//	//Application->activeScene->entities.erase(std::remove(Application->activeScene->entities.begin(), Application->activeScene->entities.end(), this->uuid), Application->activeScene->entities.end());
-		//	//Application->activeScene->entities.
-		//	//Application->activeScene->entities.erase(Application->activeScene->entities.find(this->uuid));
+		//	if (Application::Get()->activeScene->entities.find(this->uuid) != Application::Get()->activeScene->entities.end())
+		//		Application::Get()->activeScene->entities.extract(this->uuid);
+		//	//Application::Get()->activeScene->entities.erase(std::remove(Application::Get()->activeScene->entities.begin(), Application::Get()->activeScene->entities.end(), this->uuid), Application::Get()->activeScene->entities.end());
+		//	//Application::Get()->activeScene->entities.
+		//	//Application::Get()->activeScene->entities.erase(Application::Get()->activeScene->entities.find(this->uuid));
 		//}
 	}
 
 	void Entity::Delete() {
 		std::vector<uint64_t> children = this->childrenUuid;
 		for (uint64_t child : children) {
-			if (Application->activeScene->entities.find(child) != Application->activeScene->entities.end())
-				Application->activeScene->entities.at(child).Delete();
+			if (Application::Get()->activeScene->entities.find(child) != Application::Get()->activeScene->entities.end())
+				Application::Get()->activeScene->entities.at(child).Delete();
 		}
 		if (this->HasComponent<Transform>())
 			this->RemoveComponent<Transform>();
@@ -184,7 +184,7 @@ namespace Plaza {
 			this->RemoveComponent<Camera>();
 		if (this->HasComponent<CsScriptComponent>()) {
 			this->RemoveComponent<CsScriptComponent>();
-			Application->activeScene->csScriptComponents.erase(this->uuid);
+			Application::Get()->activeScene->csScriptComponents.erase(this->uuid);
 		}
 		if (this->HasComponent<Plaza::Drawing::UI::TextRenderer>())
 			this->RemoveComponent<Plaza::Drawing::UI::TextRenderer>();
@@ -210,9 +210,9 @@ namespace Plaza {
 			Editor::selectedGameObject = nullptr;
 
 		this->GetParent().childrenUuid.erase(std::remove(this->GetParent().childrenUuid.begin(), this->GetParent().childrenUuid.end(), this->uuid), this->GetParent().childrenUuid.end());
-		if (Application->activeScene->entitiesNames.find(this->name) != Application->activeScene->entitiesNames.end())
-			Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(this->name));
-		Application->activeScene->entities.erase(Application->activeScene->entities.find(this->uuid));
+		if (Application::Get()->activeScene->entitiesNames.find(this->name) != Application::Get()->activeScene->entitiesNames.end())
+			Application::Get()->activeScene->entitiesNames.erase(Application::Get()->activeScene->entitiesNames.find(this->name));
+		Application::Get()->activeScene->entities.erase(Application::Get()->activeScene->entities.find(this->uuid));
 
 		//this->~Entity();
 	}
@@ -236,7 +236,7 @@ namespace Plaza {
 
 	void Entity::RemoveComponent(Component* component) {
 		std::string className = typeid(*component).name();
-		auto& components = *static_cast<ComponentMultiMap<uint64_t, Component>*>(Application->activeScene->componentsMap[className]);
+		auto& components = *static_cast<ComponentMultiMap<uint64_t, Component>*>(Application::Get()->activeScene->componentsMap[className]);
 		if (components.find(this->uuid) != components.end()) {
 			component->~Component();
 			components.erase(components.find(this->uuid));
@@ -245,20 +245,20 @@ namespace Plaza {
 
 	uint64_t  Entity::Instantiate(uint64_t uuid) {
 		PLAZA_PROFILE_SECTION("Instantiate");
-		if (Application->activeScene->entities.find(uuid) == Application->activeScene->entities.end())
+		if (Application::Get()->activeScene->entities.find(uuid) == Application::Get()->activeScene->entities.end())
 			return 0;
-		Entity* entityToInstantiate = &Application->activeScene->entities.find(uuid)->second;
-		Entity* instantiatedEntity = new Entity(entityToInstantiate->name, &Application->activeScene->entities.find(entityToInstantiate->parentUuid)->second);
-		instantiatedEntity = &Application->activeScene->entities.find(instantiatedEntity->uuid)->second;
+		Entity* entityToInstantiate = &Application::Get()->activeScene->entities.find(uuid)->second;
+		Entity* instantiatedEntity = new Entity(entityToInstantiate->name, &Application::Get()->activeScene->entities.find(entityToInstantiate->parentUuid)->second);
+		instantiatedEntity = &Application::Get()->activeScene->entities.find(instantiatedEntity->uuid)->second;
 
-		Transform* toInstantiateTransform = &Application->activeScene->transformComponents.find(entityToInstantiate->uuid)->second;
-		Transform* newTransform = &Application->activeScene->transformComponents.find(instantiatedEntity->uuid)->second;
+		Transform* toInstantiateTransform = &Application::Get()->activeScene->transformComponents.find(entityToInstantiate->uuid)->second;
+		Transform* newTransform = &Application::Get()->activeScene->transformComponents.find(instantiatedEntity->uuid)->second;
 		newTransform->SetRelativePosition(toInstantiateTransform->relativePosition);
 		newTransform->SetRelativeRotation(glm::eulerAngles(toInstantiateTransform->rotation));
 		newTransform->scale = toInstantiateTransform->scale;
 
-		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(entityToInstantiate->uuid);
-		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(entityToInstantiate->uuid);
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			PLAZA_PROFILE_SECTION("MeshRenderer");
 			//MeshRenderer* meshRendererToInstantiate = meshRendererIt->second;
 			MeshRenderer* newMeshRenderer = new MeshRenderer();
@@ -270,8 +270,8 @@ namespace Plaza {
 			instantiatedEntity->AddComponent<MeshRenderer>(newMeshRenderer);
 		}
 
-		auto colliderIt = Application->activeScene->colliderComponents.find(entityToInstantiate->uuid);
-		if (colliderIt != Application->activeScene->colliderComponents.end()) {
+		auto colliderIt = Application::Get()->activeScene->colliderComponents.find(entityToInstantiate->uuid);
+		if (colliderIt != Application::Get()->activeScene->colliderComponents.end()) {
 			PLAZA_PROFILE_SECTION("Collider");
 			Collider* newCollider = new Collider(colliderIt->second);
 			newCollider->mShapes.clear();
@@ -285,11 +285,11 @@ namespace Plaza {
 				newCollider->mShapes.push_back(new ColliderShape(newShape, shape->mEnum, shape->mMeshUuid));
 			}
 			instantiatedEntity->AddComponent<Collider>(newCollider);//->Init(nullptr);
-			Application->activeScene->colliderComponents.find(instantiatedEntity->uuid)->second.Init(nullptr);
+			Application::Get()->activeScene->colliderComponents.find(instantiatedEntity->uuid)->second.Init(nullptr);
 		}
 
-		auto rigidBodyIt = Application->activeScene->rigidBodyComponents.find(entityToInstantiate->uuid);
-		if (rigidBodyIt != Application->activeScene->rigidBodyComponents.end()) {
+		auto rigidBodyIt = Application::Get()->activeScene->rigidBodyComponents.find(entityToInstantiate->uuid);
+		if (rigidBodyIt != Application::Get()->activeScene->rigidBodyComponents.end()) {
 			PLAZA_PROFILE_SECTION("RigidBody");
 			RigidBody* newRigidBody = new RigidBody(rigidBodyIt->second);
 			newRigidBody->mUuid = instantiatedEntity->uuid;
@@ -297,12 +297,12 @@ namespace Plaza {
 			instantiatedEntity->GetComponent<RigidBody>()->Init();
 		}
 
-		auto csScriptComponentIt = Application->activeScene->csScriptComponents.find(entityToInstantiate->uuid);
-		if (csScriptComponentIt != Application->activeScene->csScriptComponents.end()) {
+		auto csScriptComponentIt = Application::Get()->activeScene->csScriptComponents.find(entityToInstantiate->uuid);
+		if (csScriptComponentIt != Application::Get()->activeScene->csScriptComponents.end()) {
 			PLAZA_PROFILE_SECTION("CsScriptComponent");
-			auto range = Application->activeScene->csScriptComponents.equal_range(entityToInstantiate->uuid);
+			auto range = Application::Get()->activeScene->csScriptComponents.equal_range(entityToInstantiate->uuid);
 			vector<CsScriptComponent*> scriptsToAdd = vector<CsScriptComponent*>();
-			for (auto it = range.first; it != range.second && it != Application->activeScene->csScriptComponents.end(); ++it) {
+			for (auto it = range.first; it != range.second && it != Application::Get()->activeScene->csScriptComponents.end(); ++it) {
 				if (it->second.mUuid == entityToInstantiate->uuid) {
 					CsScriptComponent* newScript = new CsScriptComponent(instantiatedEntity->uuid);
 					newScript->Init(it->second.scriptPath);
@@ -332,8 +332,8 @@ namespace Plaza {
 					//	}
 					//}
 
-					Application->activeProject->scripts.at(it->second.scriptPath).entitiesUsingThisScript.emplace(instantiatedEntity->uuid);
-					if (Application->runningScene) {
+					Application::Get()->activeProject->scripts.at(it->second.scriptPath).entitiesUsingThisScript.emplace(instantiatedEntity->uuid);
+					if (Application::Get()->runningScene) {
 						for (auto& [key, value] : newScript->scriptClasses) {
 							Mono::OnStart(value->monoObject);
 						}
@@ -347,8 +347,8 @@ namespace Plaza {
 			}
 		}
 
-		auto audioSourceIt = Application->activeScene->audioSourceComponents.find(entityToInstantiate->uuid);
-		if (audioSourceIt != Application->activeScene->audioSourceComponents.end()) {
+		auto audioSourceIt = Application::Get()->activeScene->audioSourceComponents.find(entityToInstantiate->uuid);
+		if (audioSourceIt != Application::Get()->activeScene->audioSourceComponents.end()) {
 			PLAZA_PROFILE_SECTION("AudioSource");
 			AudioSource* newAudioSource = new AudioSource(audioSourceIt->second);
 			newAudioSource->mUuid = instantiatedEntity->uuid;
@@ -359,16 +359,16 @@ namespace Plaza {
 			instantiatedEntity->AddComponent<AudioSource>(newAudioSource);
 		}
 
-		auto lightIt = Application->activeScene->lightComponents.find(entityToInstantiate->uuid);
-		if (lightIt != Application->activeScene->lightComponents.end()) {
+		auto lightIt = Application::Get()->activeScene->lightComponents.find(entityToInstantiate->uuid);
+		if (lightIt != Application::Get()->activeScene->lightComponents.end()) {
 			PLAZA_PROFILE_SECTION("Light");
 			Light* newLight = new Light(lightIt->second);
 			newLight->mUuid = instantiatedEntity->uuid;
 			instantiatedEntity->AddComponent<Light>(newLight);
 		}
 
-		auto characterControllerIt = Application->activeScene->characterControllerComponents.find(entityToInstantiate->uuid);
-		if (characterControllerIt != Application->activeScene->characterControllerComponents.end()) {
+		auto characterControllerIt = Application::Get()->activeScene->characterControllerComponents.find(entityToInstantiate->uuid);
+		if (characterControllerIt != Application::Get()->activeScene->characterControllerComponents.end()) {
 			PLAZA_PROFILE_SECTION("Light");
 			CharacterController* newCharacterController = new CharacterController(characterControllerIt->second);
 			newCharacterController->mUuid = instantiatedEntity->uuid;
@@ -381,7 +381,7 @@ namespace Plaza {
 			uint64_t childUuid = entityToInstantiate->childrenUuid[i];
 			uint64_t uuid = Instantiate(childUuid);
 			if (uuid)
-				Application->activeScene->entities.at(uuid).ChangeParent(&Application->activeScene->entities.at(uuid).GetParent(), instantiatedEntity);
+				Application::Get()->activeScene->entities.at(uuid).ChangeParent(&Application::Get()->activeScene->entities.at(uuid).GetParent(), instantiatedEntity);
 			//instantiatedEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 		}
 

@@ -27,11 +27,21 @@
 
 namespace Plaza {
 	class Camera;
-	class WindowClass;
-	class ShadowsClass;
-	//class WindowClass;
-	class ApplicationClass {
+	class Window;
+	class Application {
 	public:
+		void CreateApplication();
+		void GetPaths();
+		void GetAppSize();
+		void CheckEditorCache();
+		void LoadProject();
+
+		void UpdateEngine();
+		void UpdateProjectManagerGui();
+
+		void Loop();
+		void Terminate();
+
 		AssetsManager* mAssetsManager;
 		Renderer* mRenderer = nullptr;
 		RendererAPI mRendererAPI;
@@ -60,76 +70,26 @@ namespace Plaza {
 
 		Camera* editorCamera;
 		Camera* activeCamera;
-		ApplicationClass(); // Initialize the activeCamera reference
-		ApplicationSizes* appSizes = new ApplicationSizes(); // = new ApplicationSizes();
+		Application();
+		ApplicationSizes* appSizes = new ApplicationSizes();
 		ApplicationSizes* lastAppSizes = appSizes;
 		Plaza::Editor::ProjectManagerGui* projectManagerGui = new Plaza::Editor::ProjectManagerGui();
 
-		unsigned int frameBuffer, textureColorbuffer, rbo = 0;
-		unsigned int geometryFramebuffer, gPosition, gNormal, gDiffuse, gOthers, gDepth, geometryRboDepth = 0;
-		unsigned int edgeDetectionFramebuffer, edgeDetectionColorBuffer, edgeDetectionDepthStencilRBO = 0;
-		unsigned int blurFramebuffer, blurColorBuffer, blurDepthStencilRBO = 0;
-		unsigned int selectedFramebuffer, selectedColorBuffer, selectedDepthStencilRBO = 0;
-		unsigned int hdrFramebuffer, hdrSceneColor, hdrBloomColor = 0;
-		unsigned int pick = 0;
-
-		FrameBuffer* distortionCorrectionFrameBuffer = nullptr;
-		Shader* distortionCorrectionShader = nullptr;
-
-		// Shadows
-		ShadowsClass* Shadows;
-
-		unsigned int blurVAO = 0;
-		unsigned int blurVBO = 0;
-
-		unsigned int verticalBlurColorBuffer = 0;
-		unsigned int horizontalBlurColorBuffer = 0;
-
-		PickingTexture* pickingTexture = nullptr;
-
-		Shader* shader = nullptr;
-		Shader* pickingShader = nullptr;
-		Shader* outlineShader = nullptr;
-		Shader* outlineBlurShader = nullptr;
-		Shader* edgeDetectionShader = nullptr;
-		Shader* combiningShader = nullptr;
-		Shader* singleColorShader = nullptr;
-		Shader* shadowsDepthShader = nullptr;
-		Shader* debugDepthShader = nullptr;
-		Shader* hdrShader = nullptr;
-		Shader* textRenderingShader = nullptr;
-
 		bool runProjectManagerGui = true;
-		////   bool runEngine = false;
 		bool runEngine = true;
 
-		void CreateApplication();
-		static GLFWwindow* InitApplication();
-
-		static void InitOpenGL();
-		static void InitShaders();
-
-		static void InitSkybox();
-
-
-		static void UpdateEngine();
-		static void UpdateProjectManagerGui();
-
-		void Loop();
-		static void Terminate();
-		static void Render();
-
-		std::vector<Material> materials = std::vector<Material>();
-
 		EngineClass* engine = new EngineClass();
-		WindowClass* Window;
+		Window* mWindow = new Window();
 		Editor::EditorClass* mEditor = new Editor::EditorClass();
 
-		// MUST REVIEW
-		static void updateBuffers(GLuint textureColorBuffer, GLuint rbo);
+		static void Init() {
+			sApplication = new Application();
+		}
+		static inline Application* Get() {
+			return sApplication;
+		}
 
-		static void InitBlur();
+	private:
+		static inline Application* sApplication = nullptr;
 	};
-
-	extern ApplicationClass* Application;
 }

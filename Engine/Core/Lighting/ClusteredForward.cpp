@@ -16,14 +16,14 @@ namespace Plaza {
      std::vector<ClusteredLighting::Cluster> ClusteredLighting::mClusters = std::vector<Cluster>();
      std::vector<ClusteredLighting::LightStruct> ClusteredLighting::mLights = std::vector<LightStruct>();
      void ClusteredLighting::InitializeClusters(float numberClustersX, float numberClustersY, float numberClustersZ, std::vector<Cluster>& clusters) {
-          std::string shadersFolder = Application->enginePath;
+          std::string shadersFolder = Application::Get()->enginePath;
           mLightAccumulationShader = new Shader((shadersFolder + "\\Shaders\\ClusteredForward\\accumulationVertex.glsl").c_str(), (shadersFolder + "\\Shaders\\ClusteredForward\\accumulationFragment.glsl").c_str());
           // Clear any existing data in clusters
           clusters.clear();
 
           // Calculate the size of each cluster in the X, Y, and Z directions
-          float clusterSizeX = Application->appSizes->sceneSize.x / numberClustersX /* calculate based on screen size and numClustersX */;
-          float clusterSizeY = Application->appSizes->sceneSize.y / numberClustersY/* calculate based on screen size and numClustersY */;
+          float clusterSizeX = Application::Get()->appSizes->sceneSize.x / numberClustersX /* calculate based on screen size and numClustersX */;
+          float clusterSizeY = Application::Get()->appSizes->sceneSize.y / numberClustersY/* calculate based on screen size and numClustersY */;
           float clusterSizeZ = numberClustersZ;//* calculate based on screen size and numClustersZ */;
 
           // Iterate over clusters and initialize them
@@ -59,7 +59,7 @@ namespace Plaza {
 
      void ClusteredLighting::CreateClusterBuffers(const std::vector<Cluster>& clusters) {
           int size = 32;
-          int clusterCount = glm::ceil(glm::ceil(Application->appSizes->sceneSize.x / size + 1) * glm::ceil(Application->appSizes->sceneSize.y / size + 1));
+          int clusterCount = glm::ceil(glm::ceil(Application::Get()->appSizes->sceneSize.x / size + 1) * glm::ceil(Application::Get()->appSizes->sceneSize.y / size + 1));
           for (int i = 0; i < clusterCount; i++) {
                mClusters.push_back(*new Cluster());
           }
@@ -114,8 +114,8 @@ namespace Plaza {
 
 
 
-          ApplicationSizes& appSizes = *Application->appSizes;
-          //unsigned int& textureColorbuffer = Application->textureColorbuffer;
+          ApplicationSizes& appSizes = *Application::Get()->appSizes;
+          //unsigned int& textureColorbuffer = Application::Get()->textureColorbuffer;
           glGenFramebuffers(1, &ClusteredLighting::frameBuffer);
           glBindFramebuffer(GL_FRAMEBUFFER, ClusteredLighting::frameBuffer);
           // create a color attachment texture
@@ -140,10 +140,10 @@ namespace Plaza {
 
           //frameBuffer = new FrameBuffer(GL_FRAMEBUFFER);
           //frameBuffer->Init();
-          //frameBuffer->InitColorAttachment(GL_TEXTURE_2D, GL_RGBA32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, GL_RGBA32F, GL_FLOAT, NULL);
-          //frameBuffer->InitRenderBufferObject(GL_RGBA32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+          //frameBuffer->InitColorAttachment(GL_TEXTURE_2D, GL_RGBA32F, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, GL_RGBA32F, GL_FLOAT, NULL);
+          //frameBuffer->InitRenderBufferObject(GL_RGBA32F, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y);
           //GLenum attachments[] = { GL_COLOR_ATTACHMENT0 };
-          //frameBuffer->DrawAttachments(attachments, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+          //frameBuffer->DrawAttachments(attachments, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y);
 
           /* Compute Shader */
           //GLuint lightsBuffer2;
@@ -190,23 +190,23 @@ namespace Plaza {
                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
                GLuint lightsBindingLocation = glGetUniformLocation(mLightAccumulationShader->ID, "LightsBuffer");
                glProgramUniform1i(mLightAccumulationShader->ID, lightsBindingLocation, 0);
-               mLightAccumulationShader->setVec3("viewPos", Application->activeCamera->Position);
-               mLightAccumulationShader->setMat4("viewMatrix", Application->activeCamera->GetViewMatrix());
+               mLightAccumulationShader->setVec3("viewPos", Application::Get()->activeCamera->Position);
+               mLightAccumulationShader->setMat4("viewMatrix", Application::Get()->activeCamera->GetViewMatrix());
                glEnable(GL_FRONT_AND_BACK);
                for (const Cluster& cluster : clusters) {
 
 
                }
-               Application->mRenderer->RenderFullScreenQuad();
+               Application::Get()->mRenderer->RenderFullScreenQuad();
                glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
                mLightSorterComputeShader->use();
-               mLightSorterComputeShader->setMat4("view", Application->activeCamera->GetViewMatrix());
-               mLightSorterComputeShader->setMat4("projection", Application->activeCamera->GetProjectionMatrix());
+               mLightSorterComputeShader->setMat4("view", Application::Get()->activeCamera->GetViewMatrix());
+               mLightSorterComputeShader->setMat4("projection", Application::Get()->activeCamera->GetProjectionMatrix());
                mLightSorterComputeShader->setInt("lightCount", mLightsSize);
                mLightSorterComputeShader->setInt("depthMap", 30);
                glActiveTexture(GL_TEXTURE30);
-               glBindTexture(GL_TEXTURE_2D, Application->gDepth);
+               glBindTexture(GL_TEXTURE_2D, Application::Get()->gDepth);
 
                glProgramUniform1i(mLightSorterComputeShader->ID, lightsBindingLocation2, 0);
 
@@ -218,7 +218,7 @@ namespace Plaza {
                //GLuint frustumsBindingLocation2 = glGetUniformLocation(mLightSorterComputeShader->ID, "DepthTileBuffer");
                //glProgramUniform1i(mLightSorterComputeShader->ID, frustumsBindingLocation2, 30);
 
-               //glBindImageTexture(2, Application->gDepth, 0, GL_TRUE, 0, GL_READ_WRITE, GL_R32F);
+               //glBindImageTexture(2, Application::Get()->gDepth, 0, GL_TRUE, 0, GL_READ_WRITE, GL_R32F);
 
                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mClustersBuffer);
                glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mLightsBuffer);
@@ -228,21 +228,21 @@ namespace Plaza {
                //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
                //mLightSorterComputeShader->setBool("first", false);
                glm::vec2 clusterSize = glm::vec2(32.0f);
-               glm::vec2 clusterCount = glm::ceil(Application->appSizes->sceneSize / clusterSize);
-               int extraX = int(Application->appSizes->sceneSize.x) % 32 != 0 ? 1 : 0;
+               glm::vec2 clusterCount = glm::ceil(Application::Get()->appSizes->sceneSize / clusterSize);
+               int extraX = int(Application::Get()->appSizes->sceneSize.x) % 32 != 0 ? 1 : 0;
                glDispatchCompute(clusterCount.x, clusterCount.y, 1);
                //glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
           }
 
           /* Merge the scene frame buffer with the light frame buffer */
-          glBindFramebuffer(GL_FRAMEBUFFER, Application->frameBuffer);
+          glBindFramebuffer(GL_FRAMEBUFFER, Application::Get()->frameBuffer);
           glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
           mLightMergerShader->use();
-          mLightMergerShader->setVec3("viewPos", Application->activeCamera->Position);
+          mLightMergerShader->setVec3("viewPos", Application::Get()->activeCamera->Position);
           mLightMergerShader->setFloat("time", glfwGetTime());
-          mLightMergerShader->setMat4("view", Application->activeCamera->GetViewMatrix());
-          mLightMergerShader->setMat4("projection", Application->activeCamera->GetProjectionMatrix());
+          mLightMergerShader->setMat4("view", Application::Get()->activeCamera->GetViewMatrix());
+          mLightMergerShader->setMat4("projection", Application::Get()->activeCamera->GetProjectionMatrix());
           //GLuint lightsBindingLocation2 = glGetUniformLocation(mLightMergerShader->ID, "LightsBuffer");
           glProgramUniform1i(mLightMergerShader->ID, lightsBindingLocation2, 0);
           //GLuint clustersBindingLocation = glGetUniformLocation(mLightMergerShader->ID, "ClusterBuffer");
@@ -257,18 +257,18 @@ namespace Plaza {
           glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mClustersBuffer);
 
           glActiveTexture(GL_TEXTURE0);
-          glBindTexture(GL_TEXTURE_2D, Application->gPosition);
+          glBindTexture(GL_TEXTURE_2D, Application::Get()->gPosition);
 
           glActiveTexture(GL_TEXTURE1);
-          glBindTexture(GL_TEXTURE_2D, Application->gNormal);
+          glBindTexture(GL_TEXTURE_2D, Application::Get()->gNormal);
 
           glActiveTexture(GL_TEXTURE2);
-          glBindTexture(GL_TEXTURE_2D, Application->gDiffuse);
+          glBindTexture(GL_TEXTURE_2D, Application::Get()->gDiffuse);
 
           glActiveTexture(GL_TEXTURE3);
-          glBindTexture(GL_TEXTURE_2D, Application->gOthers);
+          glBindTexture(GL_TEXTURE_2D, Application::Get()->gOthers);
 
-          Application->mRenderer->RenderFullScreenQuad();
+          Application::Get()->mRenderer->RenderFullScreenQuad();
           glActiveTexture(GL_TEXTURE0);
           glBindTexture(GL_TEXTURE_2D, 0);
           glActiveTexture(GL_TEXTURE1);
@@ -285,8 +285,8 @@ namespace Plaza {
 
      void ClusteredLighting::UpdateBuffers() {
           std::vector<LightStruct> mLights = std::vector<LightStruct>();
-          for (auto [key, value] : Application->activeScene->lightComponents) {
-               Transform& transform = Application->activeScene->transformComponents.find(key)->second;
+          for (auto [key, value] : Application::Get()->activeScene->lightComponents) {
+               Transform& transform = Application::Get()->activeScene->transformComponents.find(key)->second;
                glm::vec3 pos = transform.GetWorldPosition();
                mLights.push_back(LightStruct(value.color, value.radius, transform.GetWorldPosition(), value.intensity));
           }

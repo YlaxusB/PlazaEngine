@@ -12,20 +12,20 @@ namespace Plaza {
 
 	void Camera::Update() {
 		if (!this->isEditorCamera)
-			Position = Application->activeScene->transformComponents.at(this->mUuid).GetWorldPosition();
+			Position = Application::Get()->activeScene->transformComponents.at(this->mUuid).GetWorldPosition();
 		updateCameraVectors();
 		UpdateFrustum();
 	}
 
 	glm::mat4 Camera::GetProjectionMatrix() {
-		//return glm::perspective(glm::radians(this->Zoom), (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), nearPlane, farPlane);
-		return glm::infinitePerspective(glm::radians(Zoom), Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y, nearPlane);
+		//return glm::perspective(glm::radians(this->Zoom), (Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y), nearPlane, farPlane);
+		return glm::infinitePerspective(glm::radians(Zoom), Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y, nearPlane);
 	}
 
 	glm::mat4 Camera::GetProjectionMatrix(float nearPlaneCustom, float farPlaneCustom) {
 		nearPlaneCustom = nearPlaneCustom == NULL ? nearPlane : nearPlaneCustom;
 		farPlaneCustom = farPlaneCustom == NULL ? nearPlane : farPlaneCustom;
-		return glm::perspective(this->Zoom, (Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y), nearPlaneCustom, farPlaneCustom);
+		return glm::perspective(this->Zoom, (Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y), nearPlaneCustom, farPlaneCustom);
 	}
 
 	void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
@@ -71,7 +71,7 @@ namespace Plaza {
 
 	void Camera::UpdateFrustum() {
 		Camera& cam = *this;
-		float aspect = Application->appSizes->sceneSize.x / Application->appSizes->sceneSize.y; float fovY = glm::radians(Zoom); float zNear = nearPlane; float zFar = farPlane;
+		float aspect = Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y; float fovY = glm::radians(Zoom); float zNear = nearPlane; float zFar = farPlane;
 		ViewFrustum newFrustum;
 		const float halfVSide = zFar * tanf(fovY * .5f);
 		const float halfHSide = halfVSide * aspect;
@@ -117,9 +117,9 @@ namespace Plaza {
 	void Camera::updateCameraVectors()
 	{
 		if (Application) {
-			auto it = Application->activeScene->transformComponents.find(this->mUuid);
-			if (it != Application->activeScene->transformComponents.end()) {
-				Application->activeScene->transformComponents.at(this->mUuid).haveCamera = true;
+			auto it = Application::Get()->activeScene->transformComponents.find(this->mUuid);
+			if (it != Application::Get()->activeScene->transformComponents.end()) {
+				Application::Get()->activeScene->transformComponents.at(this->mUuid).haveCamera = true;
 			}
 		}
 		if (this->isEditorCamera) {
@@ -134,8 +134,8 @@ namespace Plaza {
 			Up = glm::normalize(glm::cross(Right, Front));
 		}
 		else {
-			if (this->mUuid && Application && Application->activeScene->transformComponents.find(this->mUuid) != Application->activeScene->transformComponents.end()) {
-				Transform* transform = &Application->activeScene->transformComponents.at(this->mUuid);
+			if (this->mUuid && Application && Application::Get()->activeScene->transformComponents.find(this->mUuid) != Application::Get()->activeScene->transformComponents.end()) {
+				Transform* transform = &Application::Get()->activeScene->transformComponents.at(this->mUuid);
 				glm::mat4 transformationMatrix = transform->modelMatrix; // Assuming you have a transformation matrix
 
 				glm::vec3 cubeFront = glm::normalize(glm::vec3(transformationMatrix[0])); // Negative Z-axis
@@ -158,8 +158,8 @@ namespace Plaza {
 		}
 		/*
 		if (!this->isEditorCamera && this->uuid && Application) {
-			if (Application->activeScene->transformComponents.find(this->uuid) != Application->activeScene->transformComponents.end()) {
-				Transform* transform = &Application->activeScene->transformComponents.at(this->uuid);
+			if (Application::Get()->activeScene->transformComponents.find(this->uuid) != Application::Get()->activeScene->transformComponents.end()) {
+				Transform* transform = &Application::Get()->activeScene->transformComponents.at(this->uuid);
 				transform->rotation = GetEulerAnglesIgnoreY();
 				transform->UpdateChildrenTransform();
 			}

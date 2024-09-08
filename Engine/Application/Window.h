@@ -3,7 +3,7 @@
 #include "ThirdParty/GLFW/include/GLFW/glfw3.h"
 #include "Engine/Application/Application.h"
 namespace Plaza {
-    class WindowClass {
+    class Window {
     public:
         GLFWwindow* glfwWindow;
         GLFWwindow* InitGLFWWindow();

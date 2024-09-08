@@ -304,7 +304,19 @@ namespace Plaza {
 				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents, mainSceneEntityUuid);
 		}
 
-		static Scene* GetActiveScene();
+		static Scene* GetEditorScene() {
+			return sEditorScene.get();
+		}
+		static Scene* GetRuntimeScene() {
+			return sRuntimeScene.get();
+		}
+		static Scene* GetActiveScene() {
+			return sActiveScene;
+		}
+	private:
+		static inline std::unique_ptr<Scene> sEditorScene;
+		static inline std::unique_ptr<Scene> sRuntimeScene;
+		static inline Scene* sActiveScene = nullptr;
 	};
 }
 #endif //PLAZA_SCENE_H

@@ -51,7 +51,7 @@ namespace Plaza {
 	VulkanRenderer*
 		VulkanRenderer::GetRenderer() {
 		if (Application)
-			return (VulkanRenderer*)(Application->mRenderer);
+			return (VulkanRenderer*)(Application::Get()->mRenderer);
 		else
 			return nullptr;
 	}
@@ -376,7 +376,7 @@ namespace Plaza {
 	void VulkanRenderer::InitSurface() {
 		VkWin32SurfaceCreateInfoKHR createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-		createInfo.hwnd = glfwGetWin32Window(Application->Window->glfwWindow);
+		createInfo.hwnd = glfwGetWin32Window(Application::Get()->mWindow->glfwWindow);
 		createInfo.hinstance = GetModuleHandle(nullptr);
 		if (vkCreateWin32SurfaceKHR(
 			mVulkanInstance, &createInfo, nullptr, &mSurface)
@@ -384,7 +384,7 @@ namespace Plaza {
 			throw std::runtime_error("failed to create window surface!");
 		}
 		// if (glfwCreateWindowSurface(mVulkanInstance,
-		// Application->Window->glfwWindow, nullptr, &mSurface) != VK_SUCCESS) {
+		// Application::Get()->Window->glfwWindow, nullptr, &mSurface) != VK_SUCCESS) {
 		// throw
 		// std::runtime_error("failed to create window surface!");
 		// }
@@ -429,7 +429,7 @@ namespace Plaza {
 		}
 		else {
 			int width, height;
-			glfwGetFramebufferSize(Application->Window->glfwWindow, &width, &height);
+			glfwGetFramebufferSize(Application::Get()->mWindow->glfwWindow, &width, &height);
 
 			VkExtent2D actualExtent = { static_cast<uint32_t>(width),
 				static_cast<uint32_t>(height) };
@@ -563,8 +563,8 @@ namespace Plaza {
 		//VkImageCreateInfo imageCreateInfo = {};
 		//imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		//imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-		//imageCreateInfo.extent.width = Application->appSizes->sceneSize.x;
-		//imageCreateInfo.extent.height = Application->appSizes->sceneSize.y;
+		//imageCreateInfo.extent.width = Application::Get()->appSizes->sceneSize.x;
+		//imageCreateInfo.extent.height = Application::Get()->appSizes->sceneSize.y;
 		//imageCreateInfo.extent.depth = 1;
 		//imageCreateInfo.mipLevels = 1;
 		//imageCreateInfo.arrayLayers = 1;
@@ -897,8 +897,8 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::CreateGraphicsPipeline() {
-		auto vertShaderCode = readFile(Application->exeDirectory + "\\CompiledShaders\\vulkanTriangle.vert.spv");
-		auto fragShaderCode = readFile(Application->exeDirectory + "\\CompiledShaders\\vulkanTriangle.frag.spv");
+		auto vertShaderCode = readFile(Application::Get()->exeDirectory + "\\CompiledShaders\\vulkanTriangle.vert.spv");
+		auto fragShaderCode = readFile(Application::Get()->exeDirectory + "\\CompiledShaders\\vulkanTriangle.frag.spv");
 
 		VkShaderModule vertShaderModule = createShaderModule(vertShaderCode, mDevice);
 		VkShaderModule fragShaderModule = createShaderModule(fragShaderCode, mDevice);
@@ -1086,8 +1086,8 @@ namespace Plaza {
 		//framebufferInfo.renderPass = this->mSwapchainRenderPass;
 		//framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		//framebufferInfo.pAttachments = attachments.data();
-		//framebufferInfo.width = Application->appSizes->sceneSize.x;
-		//framebufferInfo.height = Application->appSizes->sceneSize.y;
+		//framebufferInfo.width = Application::Get()->appSizes->sceneSize.x;
+		//framebufferInfo.height = Application::Get()->appSizes->sceneSize.y;
 		//framebufferInfo.layers = 1;
 		//
 		//if (vkCreateFramebuffer(
@@ -1151,8 +1151,8 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::CalculateBonesParentship(Bone* bone, glm::mat4 parentTransform, float time, uint64_t boneId) {
-		if (Application->activeScene->mPlayingAnimations[0]->mKeyframes[boneId].size() > 0)
-			bone->Update(Application->activeScene->mPlayingAnimations[0]->mKeyframes[boneId], time);
+		if (Application::Get()->activeScene->mPlayingAnimations[0]->mKeyframes[boneId].size() > 0)
+			bone->Update(Application::Get()->activeScene->mPlayingAnimations[0]->mKeyframes[boneId], time);
 		bone->mTransform = parentTransform * bone->mLocalTransform;
 		for (uint64_t childId : bone->mChildren) {
 			this->CalculateBonesParentship(&this->mBones[childId], bone->mTransform, time, childId);
@@ -1162,7 +1162,7 @@ namespace Plaza {
 	static inline int tim = 0;
 	void VulkanRenderer::EarlyAnimationController() {
 		PLAZA_PROFILE_SECTION("Early Animation Controller");
-		for (auto& [key, value] : Application->activeScene->mPlayingAnimations) {
+		for (auto& [key, value] : Application::Get()->activeScene->mPlayingAnimations) {
 			if (value->GetRootBone())
 				CalculateBonesParentship(value->GetRootBone(), glm::mat4(1.0f), value->mCurrentTime, value->GetRootBone()->mId);
 		}
@@ -1226,11 +1226,11 @@ namespace Plaza {
 			UpdateMaterials();
 		}
 
-		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Group Instances");
-			for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
-				const auto& transformIt = Application->activeScene->transformComponents.find(key);
-				if (transformIt != Application->activeScene->transformComponents.end() && value.renderGroup) {
+			for (const auto& [key, value] : Application::Get()->activeScene->meshRendererComponents) {
+				const auto& transformIt = Application::Get()->activeScene->transformComponents.find(key);
+				if (transformIt != Application::Get()->activeScene->transformComponents.end() && value.renderGroup) {
 					// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 					// mInstanceModelMatrices.push_back(transform.modelMatrix);
 
@@ -1247,22 +1247,22 @@ namespace Plaza {
 		unsigned int allMaterialsCount = 0;
 		std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
 		std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
-		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances)
+		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances)
 		{
 			PLAZA_PROFILE_SECTION("Create Indirect Commands");
 			this->mIndirectCommands.clear();
-			//this->mIndirectCommands.resize(Application->activeScene->renderGroups.size());
+			//this->mIndirectCommands.resize(Application::Get()->activeScene->renderGroups.size());
 			this->mInstanceModelMatrices.clear();
-			///this->mInstanceModelMatrices.resize(Application->activeScene->renderGroups.size());
+			///this->mInstanceModelMatrices.resize(Application::Get()->activeScene->renderGroups.size());
 			this->mInstanceModelMaterialsIndex.clear();
 			this->mInstanceModelMaterialsIndex.push_back(0);
 			this->mInstanceModelMaterialOffsets.clear();
-			//this->mInstanceModelMaterialOffsets.resize(Application->activeScene->renderGroups.size());
+			//this->mInstanceModelMaterialOffsets.resize(Application::Get()->activeScene->renderGroups.size());
 			mTotalInstances = 0;
 			mIndirectDrawCount = 0;
 			unsigned int lastRendergroupMaterialsCount = 0;
 			{
-				for (auto& [key, value] : Application->activeScene->renderGroups) {
+				for (auto& [key, value] : Application::Get()->activeScene->renderGroups) {
 					const size_t& materialsCount = value.materials.size();
 					const size_t& instanceCount = value.instanceModelMatrices.size();
 					allMaterialsCount += materialsCount;
@@ -1311,7 +1311,7 @@ namespace Plaza {
 			this->mShadows->UpdateAndPushConstants(commandBuffer, 0);
 			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[0].mDescriptorSets[mCurrentFrame], 0, nullptr);
 
-			if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+			if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 				PLAZA_PROFILE_SECTION("Copy Indirect Data");
 				VkDeviceSize bufferSize = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
 				void* data;
@@ -1320,7 +1320,7 @@ namespace Plaza {
 				vkUnmapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame]);
 			}
 
-			if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+			if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 				PLAZA_PROFILE_SECTION("Copy Data");
 				VkDeviceSize bufferSize = sizeof(glm::mat4) * mInstanceModelMatrices.size();
 				void* data;
@@ -1329,7 +1329,7 @@ namespace Plaza {
 				vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame]);
 			}
 
-			if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+			if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 				PLAZA_PROFILE_SECTION("Bind the instance's materials");
 				VkDeviceSize bufferSize = sizeof(unsigned int) * mInstanceModelMaterialsIndex.size();
 				void* data;
@@ -1338,7 +1338,7 @@ namespace Plaza {
 				vkUnmapMemory(this->mDevice, mMainInstanceMaterialBufferMemories[mCurrentFrame]);
 			}
 
-			if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+			if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 				PLAZA_PROFILE_SECTION("Bind the instance material offsets");
 				VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupMaterialsOffsets.size());
 				void* data;
@@ -1347,7 +1347,7 @@ namespace Plaza {
 				vkUnmapMemory(this->mDevice, mMainInstanceMaterialOffsetsBufferMemories[mCurrentFrame]);
 			}
 
-			if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+			if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 				PLAZA_PROFILE_SECTION("Bind the instance material offsets 2");
 				VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupOffsets.size());
 				void* data;
@@ -1388,7 +1388,7 @@ namespace Plaza {
 				vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 			}
 
-			// for (const auto& [key, value] : Application->activeScene->renderGroups) {
+			// for (const auto& [key, value] : Application::Get()->activeScene->renderGroups) {
 			//	//	this->DrawRenderGroupShadowDepthMapInstanced(value, 0);
 			// }
 
@@ -1410,14 +1410,14 @@ namespace Plaza {
 		renderPassInfo.renderPass = this->mGeometryPassRenderer.mRenderPass; // mDeferredRenderPass;
 		renderPassInfo.framebuffer = this->mGeometryPassRenderer.mFramebuffer; // mDeferredFramebuffer;
 
-		renderPassInfo.renderArea.extent.width = Application->appSizes->sceneSize.x;
-		renderPassInfo.renderArea.extent.height = Application->appSizes->sceneSize.y;
+		renderPassInfo.renderArea.extent.width = Application::Get()->appSizes->sceneSize.x;
+		renderPassInfo.renderArea.extent.height = Application::Get()->appSizes->sceneSize.y;
 
-		viewport.width = Application->appSizes->sceneSize.x;
-		viewport.height = -Application->appSizes->sceneSize.y;
-		viewport.y = Application->appSizes->sceneSize.y;
-		scissor.extent.width = Application->appSizes->sceneSize.x;
-		scissor.extent.height = Application->appSizes->sceneSize.y;
+		viewport.width = Application::Get()->appSizes->sceneSize.x;
+		viewport.height = -Application::Get()->appSizes->sceneSize.y;
+		viewport.y = Application::Get()->appSizes->sceneSize.y;
+		scissor.extent.width = Application::Get()->appSizes->sceneSize.x;
+		scissor.extent.height = Application::Get()->appSizes->sceneSize.y;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 		{
@@ -1452,8 +1452,8 @@ namespace Plaza {
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
 
-		viewport.height = -Application->appSizes->sceneSize.y;
-		viewport.y = Application->appSizes->sceneSize.y;
+		viewport.height = -Application::Get()->appSizes->sceneSize.y;
+		viewport.y = Application::Get()->appSizes->sceneSize.y;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
@@ -1552,9 +1552,9 @@ namespace Plaza {
 	void VulkanRenderer::UpdatePreRenderData() {
 		//UpdateMaterials();
 		PLAZA_PROFILE_SECTION("Group Instances");
-		for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
-			const auto& transformIt = Application->activeScene->transformComponents.find(key);
-			if (transformIt != Application->activeScene->transformComponents.end() && value.renderGroup) {
+		for (const auto& [key, value] : Application::Get()->activeScene->meshRendererComponents) {
+			const auto& transformIt = Application::Get()->activeScene->transformComponents.find(key);
+			if (transformIt != Application::Get()->activeScene->transformComponents.end() && value.renderGroup) {
 				// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 				// mInstanceModelMatrices.push_back(transform.modelMatrix);
 
@@ -1568,13 +1568,13 @@ namespace Plaza {
 		}
 
 		this->mIndirectCommands.clear();
-		//this->mIndirectCommands.resize(Application->activeScene->renderGroups.size());
+		//this->mIndirectCommands.resize(Application::Get()->activeScene->renderGroups.size());
 		this->mInstanceModelMatrices.clear();
-		///this->mInstanceModelMatrices.resize(Application->activeScene->renderGroups.size());
+		///this->mInstanceModelMatrices.resize(Application::Get()->activeScene->renderGroups.size());
 		this->mInstanceModelMaterialsIndex.clear();
 		this->mInstanceModelMaterialsIndex.push_back(0);
 		this->mInstanceModelMaterialOffsets.clear();
-		//this->mInstanceModelMaterialOffsets.resize(Application->activeScene->renderGroups.size());
+		//this->mInstanceModelMaterialOffsets.resize(Application::Get()->activeScene->renderGroups.size());
 		mTotalInstances = 0;
 		mIndirectDrawCount = 0;
 		unsigned int lastRendergroupMaterialsCount = 0;
@@ -1582,7 +1582,7 @@ namespace Plaza {
 		std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
 		std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
 		{
-			for (auto& [key, value] : Application->activeScene->renderGroups) {
+			for (auto& [key, value] : Application::Get()->activeScene->renderGroups) {
 				const size_t& materialsCount = value.materials.size();
 				const size_t& instanceCount = value.instanceModelMatrices.size();
 				allMaterialsCount += materialsCount;
@@ -1636,9 +1636,9 @@ namespace Plaza {
 
 	void VulkanRenderer::RecreateSwapChain() {
 		int width = 0, height = 0;
-		glfwGetFramebufferSize(Application->Window->glfwWindow, &width, &height);
+		glfwGetFramebufferSize(Application::Get()->mWindow->glfwWindow, &width, &height);
 		while (width == 0 || height == 0) {
-			glfwGetFramebufferSize(Application->Window->glfwWindow, &width, &height);
+			glfwGetFramebufferSize(Application::Get()->mWindow->glfwWindow, &width, &height);
 			glfwWaitEvents();
 		}
 
@@ -1906,8 +1906,8 @@ namespace Plaza {
 
 	void VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage) {
 		UniformBufferObject ubo{};
-		ubo.projection = Application->activeCamera->GetProjectionMatrix();
-		ubo.view = Application->activeCamera->GetViewMatrix();
+		ubo.projection = Application::Get()->activeCamera->GetProjectionMatrix();
+		ubo.view = Application::Get()->activeCamera->GetViewMatrix();
 		ubo.model = glm::mat4(1.0f);
 
 		ubo.cascadeCount = 9;
@@ -1919,7 +1919,7 @@ namespace Plaza {
 		glm::vec3 lightPos;
 
 		ubo.lightDirection = glm::vec4(lightDir, 1.0f);
-		ubo.viewPos = glm::vec4(Application->activeCamera->Position, 1.0f);
+		ubo.viewPos = glm::vec4(Application::Get()->activeCamera->Position, 1.0f);
 
 		ubo.directionalLightColor = glm::vec4(this->mLighting->directionalLightColor * this->mLighting->directionalLightIntensity);
 		ubo.directionalLightColor.a = 1.0f;
@@ -1936,7 +1936,7 @@ namespace Plaza {
 				ubo.cascadePlaneDistances[i] = glm::vec4(this->mShadows->shadowCascadeLevels[8], 1.0f, 1.0f, 1.0f);
 		}
 
-		ubo.showCascadeLevels = Application->showCascadeLevels;
+		ubo.showCascadeLevels = Application::Get()->showCascadeLevels;
 
 		memcpy(mUniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 	}
@@ -2451,8 +2451,8 @@ namespace Plaza {
 
 	void VulkanRenderer::CreateDepthResources() {
 		VkFormat depthFormat = VK_FORMAT_D32_SFLOAT_S8_UINT; // FindDepthFormat();
-		CreateImage(Application->appSizes->sceneSize.x,
-			Application->appSizes->sceneSize.y,
+		CreateImage(Application::Get()->appSizes->sceneSize.x,
+			Application::Get()->appSizes->sceneSize.y,
 			depthFormat,
 			VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -2464,19 +2464,19 @@ namespace Plaza {
 
 	void VulkanRenderer::InitializeGeometryPassRenderer() {
 		VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		this->mDeferredPositionTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, false, imageUsageFlags);
+		this->mDeferredPositionTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, false, imageUsageFlags);
 		this->mDeferredPositionTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
 		this->AddTrackerToImage(this->mDeferredPositionTexture.mImageView, "Deferred Position", this->mImGuiTextureSampler, this->mDeferredPositionTexture.GetLayout());
 
-		this->mDeferredNormalTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, false, imageUsageFlags);
+		this->mDeferredNormalTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, false, imageUsageFlags);
 		this->mDeferredNormalTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
 		this->AddTrackerToImage(this->mDeferredNormalTexture.mImageView, "Deferred Normal", this->mImGuiTextureSampler, this->mDeferredNormalTexture.GetLayout());
 
-		this->mDeferredDiffuseTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, false, imageUsageFlags);
+		this->mDeferredDiffuseTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, false, imageUsageFlags);
 		this->mDeferredDiffuseTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
 		this->AddTrackerToImage(this->mDeferredDiffuseTexture.mImageView, "Deferred Diffuse", this->mImGuiTextureSampler, this->mDeferredDiffuseTexture.GetLayout());
 
-		this->mDeferredOthersTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, false, imageUsageFlags);
+		this->mDeferredOthersTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, false, imageUsageFlags);
 		this->mDeferredOthersTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
 		this->AddTrackerToImage(this->mDeferredOthersTexture.mImageView, "Deferred Others", this->mImGuiTextureSampler, this->mDeferredOthersTexture.GetLayout());
 
@@ -2550,7 +2550,7 @@ namespace Plaza {
 		this->mGeometryPassRenderer.InitializeFramebuffer(
 			attachments.data(),
 			attachments.size(),
-			Application->appSizes->sceneSize,
+			Application::Get()->appSizes->sceneSize,
 			1);
 
 		// Descriptor set
@@ -2580,8 +2580,8 @@ namespace Plaza {
 		VkPushConstantRange pushConstantRange = plvk::pushConstantRange(VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants));
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = plvk::pipelineLayoutCreateInfo(1, &this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout, 1, &pushConstantRange);
 
-		this->mGeometryPassRenderer.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert");
-		this->mGeometryPassRenderer.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag");
+		this->mGeometryPassRenderer.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert");
+		this->mGeometryPassRenderer.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag");
 		auto bindingsArray = VertexGetBindingDescription();
 		std::vector<VkVertexInputBindingDescription> bindings(std::begin(bindingsArray), std::end(bindingsArray));
 		auto attributesArray = VertexGetAttributeDescriptions();
@@ -2601,8 +2601,8 @@ namespace Plaza {
 			this->mDevice,
 			pipelineLayoutCreateInfo,
 			true,
-			Application->appSizes->sceneSize.x,
-			Application->appSizes->sceneSize.y,
+			Application::Get()->appSizes->sceneSize.x,
+			Application::Get()->appSizes->sceneSize.y,
 			{},
 			vertexInputInfo,
 			inputAssemblyState,
@@ -2620,8 +2620,8 @@ namespace Plaza {
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout;
 
-		this->mGeometryPassRenderer.mShaders->mDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
-		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight;
+		this->mGeometryPassRenderer.mShaders->mDescriptorSets.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		for (unsigned int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight;
 			++i) {
 			if (vkAllocateDescriptorSets(
 				this->mDevice,
@@ -2649,7 +2649,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::Init() {
-		Application->mRendererAPI = RendererAPI::Vulkan;
+		Application::Get()->mRendererAPI = RendererAPI::Vulkan;
 		this->mShadows = new VulkanShadows();
 		this->mLighting = new VulkanLighting();
 		this->mSkybox = new VulkanSkybox();
@@ -2657,11 +2657,11 @@ namespace Plaza {
 		this->mGuiRenderer = new VulkanGuiRenderer();
 		this->mRenderGraph = new VulkanRenderGraph();
 
-		VulkanShadersCompiler::mDefaultOutDirectory = Application->exeDirectory + "\\CompiledShaders\\";
+		VulkanShadersCompiler::mDefaultOutDirectory = Application::Get()->exeDirectory + "\\CompiledShaders\\";
 		VulkanShadersCompiler::mGlslcExePath = "C:\\VulkanSDK\\1.3.268.0\\Bin\\glslc.exe";
 
-		VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\vulkanTriangle.vert");
-		VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\vulkanTriangle.frag");
+		VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\vulkanTriangle.vert");
+		VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\vulkanTriangle.frag");
 
 		std::string shadersFolder = VulkanShadersCompiler::mDefaultOutDirectory;
 		std::cout << "Initializing vulkan \n";
@@ -2841,15 +2841,15 @@ namespace Plaza {
 		//
 		//this->mSwapchainRenderer.mRenderPass = this->mSwapchainRenderPass;
 		//this->mSwapchainRenderer.mShaders = new VulkanShaders(
-		//	VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.vert"),
-		//	VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.frag"),
+		//	VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.vert"),
+		//	VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.frag"),
 		//	"");
 		//this->mSwapchainRenderer.Init(
-		//	VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.vert"),
-		//	VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.frag"),
+		//	VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.vert"),
+		//	VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.frag"),
 		//	"",
 		//	this->mDevice,
-		//	Application->appSizes->sceneSize,
+		//	Application::Get()->appSizes->sceneSize,
 		//	mSwapchainDescriptorSetLayout,
 		//	mSwapchainPipelineLayoutInfo);
 		//
@@ -2903,7 +2903,7 @@ namespace Plaza {
 		mRenderGraph->RunSkyboxRenderGraph(mRenderGraph->BuildSkyboxRenderGraph());
 
 #ifdef EDITOR_MODE
-		Editor::Gui::Init(Application->Window->glfwWindow);
+		Editor::Gui::Init(Application::Get()->Window->glfwWindow);
 #endif
 	}
 
@@ -2923,9 +2923,9 @@ namespace Plaza {
 		//
 		//	renderGraph->BindPass("Deferred Geometry Pass");
 		//
-		//	VkViewport viewport = plvk::viewport(0.0f, Application->appSizes->sceneSize.y, Application->appSizes->sceneSize.x, -static_cast<float>(Application->appSizes->sceneSize.y));
+		//	VkViewport viewport = plvk::viewport(0.0f, Application::Get()->appSizes->sceneSize.y, Application::Get()->appSizes->sceneSize.x, -static_cast<float>(Application::Get()->appSizes->sceneSize.y));
 		//	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-		//	VkRect2D scissor = plvk::rect2D(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+		//	VkRect2D scissor = plvk::rect2D(0, 0, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y);
 		//	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 		//
 		//
@@ -2958,11 +2958,11 @@ namespace Plaza {
 
 		{
 			PLAZA_PROFILE_SECTION("Wait Fences");
-			Application->mThreadsManager->mFrameRendererBeforeFenceThread->Update();
+			Application::Get()->mThreadsManager->mFrameRendererBeforeFenceThread->Update();
 			vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
 			// vkWaitForFences(mDevice, 1, &mComputeInFlightFences[mCurrentFrame],
 			// VK_TRUE, UINT64_MAX);
-			Application->mThreadsManager->mFrameRendererAfterFenceThread->Update();
+			Application::Get()->mThreadsManager->mFrameRendererAfterFenceThread->Update();
 		}
 
 		{
@@ -3008,7 +3008,7 @@ namespace Plaza {
 
 			{
 				PLAZA_PROFILE_SECTION("vkResetCommandBuffer");
-				vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0);
+				PLVK_CHECK_RESULT(vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0));
 			}
 
 			{
@@ -3310,7 +3310,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imageInfo.imageView = texture->mImageView;
 		imageInfo.sampler = VulkanRenderer::GetRenderer()->mTextureSampler;
-		for (size_t i = 0; i < Application->mRenderer->mMaxFramesInFlight; i++) {
+		for (size_t i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; i++) {
 			VkWriteDescriptorSet descriptorWrite = plvk::writeDescriptorSet(VulkanRenderer::GetRenderer()->GetGeometryPassDescriptorSet(i), 20, index == -1 ? VulkanTexture::mLastBindingIndex : index, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo);
 			vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, 1, &descriptorWrite, 0, nullptr);
 		}
@@ -3836,7 +3836,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		VkSampler textureSampler,
 		VkImageLayout layout) {
 #ifdef EDITOR_MODE
-		Application->mThreadsManager->mFrameRendererAfterFenceThread->AddToQueue([imageView, name, textureSampler, layout]() {
+		Application::Get()->mThreadsManager->mFrameRendererAfterFenceThread->AddToQueue([imageView, name, textureSampler, layout]() {
 			VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(
 				textureSampler == VK_NULL_HANDLE ? VulkanRenderer::GetRenderer()->mTextureSampler : textureSampler,
 				imageView,
@@ -3851,7 +3851,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 	void VulkanRenderer::UpdateMaterials() {
 		std::vector<MaterialData> materialDataVector = std::vector<MaterialData>();
 
-		for (auto& [key, value] : Application->activeScene->materials) {
+		for (auto& [key, value] : Application::Get()->activeScene->materials) {
 			MaterialData materialData{};
 			materialData.color = value->diffuse->rgba;
 			materialData.diffuseIndex = value->diffuse->mIndexHandle;
@@ -3922,9 +3922,9 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		unsigned int allMaterialsCount = 0;
 		std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
 		std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
-		for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
-			const auto& transformIt = Application->activeScene->transformComponents.find(key);
-			if (transformIt != Application->activeScene->transformComponents.end() && value.renderGroup) {
+		for (const auto& [key, value] : Application::Get()->activeScene->meshRendererComponents) {
+			const auto& transformIt = Application::Get()->activeScene->transformComponents.find(key);
+			if (transformIt != Application::Get()->activeScene->transformComponents.end() && value.renderGroup) {
 				// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 				// mInstanceModelMatrices.push_back(transform.modelMatrix);
 
@@ -3936,19 +3936,19 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 				// value.renderGroup->AddCascadeInstance(transform.modelMatrix, 0);
 			}
 		}
-		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			this->mIndirectCommands.clear();
-			//this->mIndirectCommands.resize(Application->activeScene->renderGroups.size());
+			//this->mIndirectCommands.resize(Application::Get()->activeScene->renderGroups.size());
 			this->mInstanceModelMatrices.clear();
-			///this->mInstanceModelMatrices.resize(Application->activeScene->renderGroups.size());
+			///this->mInstanceModelMatrices.resize(Application::Get()->activeScene->renderGroups.size());
 			this->mInstanceModelMaterialsIndex.clear();
 			this->mInstanceModelMaterialsIndex.push_back(0);
 			this->mInstanceModelMaterialOffsets.clear();
-			//this->mInstanceModelMaterialOffsets.resize(Application->activeScene->renderGroups.size());
+			//this->mInstanceModelMaterialOffsets.resize(Application::Get()->activeScene->renderGroups.size());
 			mTotalInstances = 0;
 			mIndirectDrawCount = 0;
 			unsigned int lastRendergroupMaterialsCount = 0;
-			for (auto& [key, value] : Application->activeScene->renderGroups) {
+			for (auto& [key, value] : Application::Get()->activeScene->renderGroups) {
 				const size_t& materialsCount = value.materials.size();
 				const size_t& instanceCount = value.instanceModelMatrices.size();
 				allMaterialsCount += materialsCount;
@@ -3988,7 +3988,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			PlVkBuffer* materialBuffer = mRenderGraph->GetBuffer<PlVkBuffer>("MaterialsBuffer");
 			std::vector<MaterialData> materialDataVector = std::vector<MaterialData>();
 
-			for (auto& [key, value] : Application->activeScene->materials) {
+			for (auto& [key, value] : Application::Get()->activeScene->materials) {
 				MaterialData materialData{};
 				materialData.color = value->diffuse->rgba;
 				materialData.diffuseIndex = value->diffuse->mIndexHandle;
@@ -4032,7 +4032,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			vkUpdateDescriptorSets(mDevice, 1, &descriptorWrite, 0, nullptr);
 		}
 
-		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Copy Indirect Data");
 			VkDeviceSize bufferSize = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
 			void* data;
@@ -4041,7 +4041,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			vkUnmapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame]);
 		}
 
-		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Copy Data");
 			VkDeviceSize bufferSize = sizeof(glm::mat4) * mInstanceModelMatrices.size();
 			void* data;
@@ -4050,7 +4050,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame]);
 		}
 
-		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Bind the instance's materials");
 			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("MaterialsBuffer");
 			VkDeviceSize bufferSize = sizeof(unsigned int) * mInstanceModelMaterialsIndex.size();
@@ -4060,7 +4060,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
 		}
 
-		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Bind the instance material offsets");
 			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("RenderGroupMaterialsOffsetsBuffer");
 			VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupMaterialsOffsets.size());
@@ -4070,7 +4070,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
 		}
 
-		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Bind the instance material offsets 2");
 			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("RenderGroupOffsetsBuffer");
 			VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupOffsets.size());
@@ -4080,11 +4080,11 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
 		}
 
-		if (Application->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("LightsBuffer");
 			VulkanRenderer::GetRenderer()->mLighting->mLights.clear();
-			for (const auto& [key, value] : Application->activeScene->lightComponents) {
-				glm::vec3 position = Application->activeScene->transformComponents.at(key).GetWorldPosition();
+			for (const auto& [key, value] : Application::Get()->activeScene->lightComponents) {
+				glm::vec3 position = Application::Get()->activeScene->transformComponents.at(key).GetWorldPosition();
 				VulkanRenderer::GetRenderer()->mLighting->mLights.push_back(Lighting::LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff, 0.0f });
 			}
 

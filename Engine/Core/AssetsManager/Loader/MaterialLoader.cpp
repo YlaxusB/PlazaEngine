@@ -10,7 +10,7 @@ namespace Plaza {
 
 		Material* material = new Material(deserializedMaterial);
 		if (!scene)
-			Application->activeScene->AddMaterial(material);
+			Application::Get()->activeScene->AddMaterial(material);
 		else
 			scene->AddMaterial(material);
 		return material;

@@ -4,8 +4,8 @@
 namespace Plaza {
 	void VulkanGuiRenderer::PreparePipeline()
 	{
-		std::string vertexPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\gui\\text.vert");
-		std::string fragmentPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\gui\\text.frag");
+		std::string vertexPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\text.vert");
+		std::string fragmentPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\text.frag");
 
 		this->mTextPipeline = new VulkanPlazaPipeline();
 		this->mTextPipeline->mShaders = new VulkanShaders(vertexPath, fragmentPath, "");
@@ -71,7 +71,7 @@ namespace Plaza {
 		inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
 		inputAssemblyState.primitiveRestartEnable = VK_FALSE;
 
-		this->mTextPipeline->mShaders->InitializeFull(*mDevice, this->mPipelineLayoutInfo, true, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, {}, {}, inputAssemblyState, {}, rasterizer, {}, colorBlending, {}, this->mRenderer->mRenderPass, depthStencil, std::vector<VkVertexInputBindingDescription>(vertexInputBindings.begin(), vertexInputBindings.end()), std::vector<VkVertexInputAttributeDescription>(vertexInputAttributes.begin(), vertexInputAttributes.end()));
+		this->mTextPipeline->mShaders->InitializeFull(*mDevice, this->mPipelineLayoutInfo, true, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, {}, {}, inputAssemblyState, {}, rasterizer, {}, colorBlending, {}, this->mRenderer->mRenderPass, depthStencil, std::vector<VkVertexInputBindingDescription>(vertexInputBindings.begin(), vertexInputBindings.end()), std::vector<VkVertexInputAttributeDescription>(vertexInputAttributes.begin(), vertexInputAttributes.end()));
 		//// Pipeline cache
 		//VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
 		//pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
@@ -361,8 +361,8 @@ namespace Plaza {
 
 		assert(mapped != nullptr);
 
-		frameBufferWidth = new uint32_t((uint32_t)Application->appSizes->sceneSize.x);
-		frameBufferHeight = new uint32_t((uint32_t)Application->appSizes->sceneSize.y);
+		frameBufferWidth = new uint32_t((uint32_t)Application::Get()->appSizes->sceneSize.x);
+		frameBufferHeight = new uint32_t((uint32_t)Application::Get()->appSizes->sceneSize.y);
 
 		const float charW = 1.5f * scale / *frameBufferWidth;
 		const float charH = 1.5f * scale / *frameBufferHeight;
@@ -391,8 +391,8 @@ namespace Plaza {
 		case alignLeft:
 			break;
 		}
-		float xOffset = 0.0f;//-(Application->appSizes->sceneImageStart.x / Application->appSizes->appSize.x);
-		float yOffset = 0.0f;//-(Application->appSizes->sceneImageStart.y / Application->appSizes->appSize.y);
+		float xOffset = 0.0f;//-(Application::Get()->appSizes->sceneImageStart.x / Application::Get()->appSizes->appSize.x);
+		float yOffset = 0.0f;//-(Application::Get()->appSizes->sceneImageStart.y / Application::Get()->appSizes->appSize.y);
 		// Generate a uv mapped quad per char in the new text
 		for (auto letter : text)
 		{
@@ -436,7 +436,7 @@ namespace Plaza {
 		vkMapMemory(*mDevice, mMemory, 0, VK_WHOLE_SIZE, 0, (void**)&mapped);
 		numLetters = 0;
 
-		for (auto& [key, value] : Application->activeScene->UITextRendererComponents) {
+		for (auto& [key, value] : Application::Get()->activeScene->UITextRendererComponents) {
 			this->AddText(value.mText, value.mPosX, value.mPosY, value.mScale, TextAlign::alignLeft);
 		}
 

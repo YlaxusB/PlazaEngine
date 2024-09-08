@@ -9,12 +9,12 @@ namespace Plaza {
 		PlImageUsage outImageUsageFlags = static_cast<PlImageUsage>(PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_COLOR_ATTACHMENT);
 		PlImageUsage depthTextureFlags = static_cast<PlImageUsage>(PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC);
 		PlImageUsage equirectangularImageUsage = static_cast<PlImageUsage>(PL_IMAGE_USAGE_COLOR_ATTACHMENT | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC);
-		const unsigned int bufferCount = Application->mRenderer->mMaxFramesInFlight;
+		const unsigned int bufferCount = Application::Get()->mRenderer->mMaxFramesInFlight;
 		const unsigned int shadowMapResolution = 2048;
 		const unsigned int skyboxResolution = 512;
 		const unsigned int irradianceSize = 64;
 		const unsigned int brdfSize = 512;
-		const glm::vec2 screenSize = Application->appSizes->sceneSize;
+		const glm::vec2 screenSize = Application::Get()->appSizes->sceneSize;
 		const glm::vec2 deferredTileSize = glm::vec2(32, 32);
 		const uint32_t clusterCount = glm::ceil(screenSize.x / deferredTileSize.x + 1) * glm::ceil(screenSize.y / deferredTileSize.y + 1);
 
@@ -29,28 +29,28 @@ namespace Plaza {
 		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(irradianceSize, irradianceSize, 1), 1, 6, "IrradianceMap"));
 
 		this->AddTexture(make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D_ARRAY, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(shadowMapResolution, shadowMapResolution, 1), 1, VulkanRenderer::GetRenderer()->mShadows->mCascadeCount, "ShadowsDepthMap"));
-		//this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "GPosition"));
-		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "GDiffuse"));
-		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "GNormal"));
-		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "GOthers"));
-		this->AddTexture(make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "SceneDepth"));
+		//this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "GPosition"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "GDiffuse"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "GNormal"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "GOthers"));
+		this->AddTexture(make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "SceneDepth"));
 
-		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "SceneTexture"));
-		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "FinalTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "SceneTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "FinalTexture"));
 
-		this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 0, 1, "BloomTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 0, 1, "BloomTexture"));
 		TextureInfo bloomInfo = this->GetTexture<VulkanTexture>("BloomTexture")->GetTextureInfo();
 		bloomInfo.mInitialLayout = PL_IMAGE_LAYOUT_GENERAL;
 		bloomInfo.mSamplerAddressMode = PL_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 		this->GetTexture<VulkanTexture>("BloomTexture")->SetTextureInfo(bloomInfo);
 		
-		// this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application->appSizes->sceneSize, 1), 1, 1, "BloomFinalTexture"));
+		// this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "BloomFinalTexture"));
 
 		std::string skyboxPath;
 #ifdef EDITOR_MODE
-		skyboxPath = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\";
+		skyboxPath = Application::Get()->enginePath + "\\Editor\\DefaultAssets\\Skybox\\";
 #else
-		skyboxPath = Application->projectPath + "\\";
+		skyboxPath = Application::Get()->projectPath + "\\";
 #endif
 
 		TextureInfo equirectangularInfo = this->GetTexture<VulkanTexture>("EquirectangularTexture")->GetTextureInfo();
@@ -83,8 +83,8 @@ namespace Plaza {
 		this->GetRenderPass("Shadow Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"ShadowMapping",
 			PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.frag", "main") },
 			{ pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX), pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE) },
 			{ pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)),
 			pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0),
@@ -111,11 +111,11 @@ namespace Plaza {
 			for (unsigned int i = VulkanRenderer::GetRenderer()->mShadows->mCascadeCount; i < 32; ++i) {
 				shadowPassUbo.lightSpaceMatrices[i] = glm::mat4(1.0f);
 			}
-			plazaRenderGraph->GetSharedBuffer("ShadowPassUBO")->UpdateData<ShadowPassUBO>(Application->mRenderer->mCurrentFrame, shadowPassUbo);
+			plazaRenderGraph->GetSharedBuffer("ShadowPassUBO")->UpdateData<ShadowPassUBO>(Application::Get()->mRenderer->mCurrentFrame, shadowPassUbo);
 			});
 
 
-		glm::vec2 gPassSize = Application->appSizes->sceneSize;
+		glm::vec2 gPassSize = Application::Get()->appSizes->sceneSize;
 		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Deferred Geometry Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_INDIRECT_BUFFER, glm::vec2(gPassSize.x, gPassSize.y), true))
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 0, PlBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_ALL, this->GetSharedBuffer("GPassUBO")))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(VulkanRenderer::GetRenderer()->mMaxBindlessTextures, 0, 20, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("TexturesBuffer")))
@@ -137,8 +137,8 @@ namespace Plaza {
 		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"MainShaders",
 			PL_RENDER_PASS_INDIRECT_BUFFER,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag", "main") },
 			VertexGetBindingDescription(),
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -163,8 +163,8 @@ namespace Plaza {
 		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"Skybox",
 			PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.frag", "main") },
 			VertexGetBindingDescription(),
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -181,8 +181,8 @@ namespace Plaza {
 
 		this->AddRenderPassCallback("Deferred Geometry Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
 			static VulkanRenderer::UniformBufferObject ubo{};
-			ubo.projection = Application->activeCamera->GetProjectionMatrix();
-			ubo.view = Application->activeCamera->GetViewMatrix();
+			ubo.projection = Application::Get()->activeCamera->GetProjectionMatrix();
+			ubo.view = Application::Get()->activeCamera->GetViewMatrix();
 			ubo.model = glm::mat4(1.0f);
 
 			ubo.cascadeCount = 9;
@@ -194,7 +194,7 @@ namespace Plaza {
 			glm::vec3 lightPos;
 
 			ubo.lightDirection = glm::vec4(lightDir, 1.0f);
-			ubo.viewPos = glm::vec4(Application->activeCamera->Position, 1.0f);
+			ubo.viewPos = glm::vec4(Application::Get()->activeCamera->Position, 1.0f);
 
 			ubo.directionalLightColor = glm::vec4(VulkanRenderer::GetRenderer()->mLighting->directionalLightColor * VulkanRenderer::GetRenderer()->mLighting->directionalLightIntensity);
 			ubo.directionalLightColor.a = 1.0f;
@@ -210,10 +210,10 @@ namespace Plaza {
 					ubo.cascadePlaneDistances[i] = glm::vec4(VulkanRenderer::GetRenderer()->mShadows->shadowCascadeLevels[8], 1.0f, 1.0f, 1.0f);
 			}
 
-			ubo.showCascadeLevels = Application->showCascadeLevels;
-			plazaRenderGraph->GetSharedBuffer("GPassUBO")->UpdateData<VulkanRenderer::UniformBufferObject>(Application->mRenderer->mCurrentFrame, ubo);
+			ubo.showCascadeLevels = Application::Get()->showCascadeLevels;
+			plazaRenderGraph->GetSharedBuffer("GPassUBO")->UpdateData<VulkanRenderer::UniformBufferObject>(Application::Get()->mRenderer->mCurrentFrame, ubo);
 
-			plazaRenderPass->mPipelines[1]->UpdatePushConstants<DeferredGeometrySkyboxPC>(0, DeferredGeometrySkyboxPC(Application->activeCamera->GetProjectionMatrix(), Application->activeCamera->GetViewMatrix(),
+			plazaRenderPass->mPipelines[1]->UpdatePushConstants<DeferredGeometrySkyboxPC>(0, DeferredGeometrySkyboxPC(Application::Get()->activeCamera->GetProjectionMatrix(), Application::Get()->activeCamera->GetViewMatrix(),
 				VulkanRenderer::GetRenderer()->mSkyboxIntensity, VulkanRenderer::GetRenderer()->gamma, VulkanRenderer::GetRenderer()->exposure, 0.0f));
 			});
 
@@ -235,16 +235,16 @@ namespace Plaza {
 			->AddOutputResource(std::make_shared<VulkanBufferBinding>(1, 1, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_COMPUTE, this->GetSharedBuffer("ClustersBuffer")))
 			->AddOutputResource(std::make_shared<VulkanBufferBinding>(1, 8, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_COMPUTE, this->GetSharedBuffer("TilesDepthBuffer")))
 			->AddPipeline(pl::pipelineCreateInfo("LightSorter", PL_RENDER_PASS_COMPUTE,
-				{ pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, Application->enginePath + "\\Shaders\\Vulkan\\lighting\\lightSorter.comp", "main") },
+				{ pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, Application::Get()->enginePath + "\\Shaders\\Vulkan\\lighting\\lightSorter.comp", "main") },
 				{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { pl::pushConstantRange(PL_STAGE_COMPUTE, 0, sizeof(LightSorterPC)) }));
 
 		this->AddRenderPassCallback("Light Sorter Pass", [&, gPassSize](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-			Application->mThreadsManager->mFrameRendererAfterGeometry->Update();
+			Application::Get()->mThreadsManager->mFrameRendererAfterGeometry->Update();
 			glm::vec2 clusterSize = glm::vec2(32.0f);
 			glm::vec2 clusterCount = glm::ceil(gPassSize / clusterSize);
 			VulkanLighting* lig = VulkanRenderer::GetRenderer()->mLighting;
 			plazaRenderPass->mPipelines[0]->UpdatePushConstants<LightSorterPC>(0, LightSorterPC(
-				Application->activeCamera->GetViewMatrix(), Application->activeCamera->GetProjectionMatrix(), VulkanRenderer::GetRenderer()->mLighting->mLights.size(), true, gPassSize, clusterSize));
+				Application::Get()->activeCamera->GetViewMatrix(), Application::Get()->activeCamera->GetProjectionMatrix(), VulkanRenderer::GetRenderer()->mLighting->mLights.size(), true, gPassSize, clusterSize));
 			plazaRenderPass->mDispatchSize = glm::vec3(clusterCount.x, clusterCount.y, 1);
 			});
 
@@ -270,8 +270,8 @@ namespace Plaza {
 		this->GetRenderPass("Deferred Lighting Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"LightingPassShaders",
 			PL_RENDER_PASS_FULL_SCREEN_QUAD,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.frag", "main") },
 			VertexGetBindingDescription(),
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -286,8 +286,8 @@ namespace Plaza {
 		));
 
 		this->AddRenderPassCallback("Deferred Lighting Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-			plazaRenderPass->mPipelines[0]->UpdatePushConstants<DeferredLightingPassConstants>(0, DeferredLightingPassConstants(Application->activeCamera->Position, 0.0f, Application->activeCamera->GetViewMatrix(),
-				Application->activeCamera->GetProjectionMatrix(), VulkanRenderer::GetRenderer()->mLighting->mLights.size(), VulkanRenderer::GetRenderer()->mLighting->ambientLightColor * VulkanRenderer::GetRenderer()->mLighting->ambientLightIntensity));
+			plazaRenderPass->mPipelines[0]->UpdatePushConstants<DeferredLightingPassConstants>(0, DeferredLightingPassConstants(Application::Get()->activeCamera->Position, 0.0f, Application::Get()->activeCamera->GetViewMatrix(),
+				Application::Get()->activeCamera->GetProjectionMatrix(), VulkanRenderer::GetRenderer()->mLighting->mLights.size(), VulkanRenderer::GetRenderer()->mLighting->ambientLightColor * VulkanRenderer::GetRenderer()->mLighting->ambientLightIntensity));
 			});
 
 
@@ -329,8 +329,8 @@ namespace Plaza {
 			++bloomMipCount;
 		}
 		bool pingPong = true;
-		PlPipelineShaderStageCreateInfo downScaleShaders = pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomDownScale.comp"), "main");
-		PlPipelineShaderStageCreateInfo upScaleShaders = pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomUpScale.comp"), "main");
+		PlPipelineShaderStageCreateInfo downScaleShaders = pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomDownScale.comp"), "main");
+		PlPipelineShaderStageCreateInfo upScaleShaders = pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomUpScale.comp"), "main");
 		PlPipelineCreateInfo bloomPipelineCreateInfo = pl::pipelineCreateInfo("BloomShaders", PL_RENDER_PASS_COMPUTE, { downScaleShaders }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { pl::pushConstantRange(PL_STAGE_COMPUTE, 0, sizeof(BloomPassPC)) });
 		std::shared_ptr<PlazaPipeline> bloomDownScalePipeline = this->GetRenderPass("Bloom Pass")->AddPipeline(bloomPipelineCreateInfo);
 
@@ -359,8 +359,8 @@ namespace Plaza {
 		bloomPipelineCreateInfo.shaderStages = { upScaleShaders };
 		std::shared_ptr<PlazaPipeline> bloomUpScalePipeline = this->GetRenderPass("Bloom Pass")->AddPipeline(bloomPipelineCreateInfo);
 		for (uint8_t i = bloomMipCount - 1; i >= 1; --i) {
-			mipSize.x = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.x) / glm::pow(2.0, i - 1)));
-			mipSize.y = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.y) / glm::pow(2.0, i - 1)));
+			mipSize.x = glm::max(1.0, glm::floor(float(Application::Get()->appSizes->sceneSize.x) / glm::pow(2.0, i - 1)));
+			mipSize.y = glm::max(1.0, glm::floor(float(Application::Get()->appSizes->sceneSize.y) / glm::pow(2.0, i - 1)));
 			if (i == 0) {
 				this->GetRenderPass("Bloom Pass")->AddChildPass(std::make_shared<VulkanRenderPass>("Bloom Pass " + std::to_string(i) + " UpScale", PL_STAGE_COMPUTE, PL_RENDER_PASS_COMPUTE, gPassSize, false))
 					->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL, 1, 0, this->GetSharedTexture("BloomTexture")))
@@ -398,8 +398,8 @@ namespace Plaza {
 		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"FinalShaders",
 			PL_RENDER_PASS_FULL_SCREEN_QUAD,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.frag", "main") },
 			VertexGetBindingDescription(),
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -432,8 +432,8 @@ namespace Plaza {
 		PlPipelineCreateInfo pipelineCreateInfo = pl::pipelineCreateInfo(
 			"EquirectangularToCubeMapShaders",
 			PL_RENDER_PASS_CUBE,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.frag", "main") },
 			{ },
 			{ },
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -455,8 +455,8 @@ namespace Plaza {
 		pipelineCreateInfo.pipelineName = "BrdfGeneratorShaders";
 		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
 		pipelineCreateInfo.shaderStages = {
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.vert", "main"),
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.frag", "main") };
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.vert", "main"),
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.frag", "main") };
 		pipelineCreateInfo.pushConstants = {};
 		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("BrdfGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, glm::vec2(brdfSize, brdfSize), true))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("SamplerBRDFLUT")))
@@ -465,8 +465,8 @@ namespace Plaza {
 		pipelineCreateInfo.pipelineName = "IrradianceGeneratorShaders";
 		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_CUBE;
 		pipelineCreateInfo.shaderStages = {
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert", "main"),
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application->enginePath + "\\Shaders\\Vulkan\\skybox\\irradianceGenerator.frag", "main") };
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert", "main"),
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\irradianceGenerator.frag", "main") };
 		pipelineCreateInfo.pushConstants = { pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC)) };
 		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("IrradianceGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_CUBE, glm::vec2(irradianceSize, irradianceSize), false))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("CubeMapTexture")))
@@ -476,8 +476,8 @@ namespace Plaza {
 		pipelineCreateInfo.pipelineName = "PreFilteredGeneratorShaders";
 		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_CUBE;
 		pipelineCreateInfo.shaderStages = {
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert", "main"),
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application->enginePath + "\\Shaders\\Vulkan\\skybox\\prefilterEnvGenerator.frag", "main") };
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert", "main"),
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\prefilterEnvGenerator.frag", "main") };
 		pipelineCreateInfo.pushConstants = { pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC)) };
 		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("PreFilteredGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_CUBE, glm::vec2(faceSize, faceSize), false))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("CubeMapTexture")))
@@ -1054,7 +1054,7 @@ namespace Plaza {
 		if (mDescriptorSetLayout == VK_NULL_HANDLE)
 			vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &descriptorSetLayoutCreateInfo, nullptr, &mDescriptorSetLayout);
 
-		std::vector<VkDescriptorSetLayout> layouts(Application->mRenderer->mMaxFramesInFlight, mDescriptorSetLayout);
+		std::vector<VkDescriptorSetLayout> layouts(Application::Get()->mRenderer->mMaxFramesInFlight, mDescriptorSetLayout);
 		VkDescriptorSetAllocateInfo allocInfo{
 			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO
 		};
@@ -1066,16 +1066,16 @@ namespace Plaza {
 			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT
 		};
 		static const uint32_t maxBindlessResources = 16536;
-		std::vector<uint32_t> maxBinding(Application->mRenderer->mMaxFramesInFlight, Application->mRenderer->mMaxBindlessTextures - 1);
-		countInfo.descriptorSetCount = Application->mRenderer->mMaxFramesInFlight;
+		std::vector<uint32_t> maxBinding(Application::Get()->mRenderer->mMaxFramesInFlight, Application::Get()->mRenderer->mMaxBindlessTextures - 1);
+		countInfo.descriptorSetCount = Application::Get()->mRenderer->mMaxFramesInFlight;
 		countInfo.pDescriptorCounts = maxBinding.data();
 		//allocInfo.pNext = &countInfo;
-		mDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
+		mDescriptorSets.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
 		VkResult res = vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, mDescriptorSets.data());
 		if (res != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate descriptor sets!");
 		}
-		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		for (unsigned int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
 			std::vector<VkWriteDescriptorSet> descriptorWrites{};
 
 			std::vector<VkDescriptorBufferInfo*> bufferInfos{};

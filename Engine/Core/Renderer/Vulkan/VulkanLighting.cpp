@@ -7,14 +7,14 @@
 
 namespace Plaza {
 	void VulkanLighting::InitializeBuffers() {
-		this->mLightsBuffer.resize(Application->mRenderer->mMaxFramesInFlight);
-		this->mLightsBufferMemory.resize(Application->mRenderer->mMaxFramesInFlight);
-		this->mTilesBuffer.resize(Application->mRenderer->mMaxFramesInFlight);
-		this->mTilesBufferMemory.resize(Application->mRenderer->mMaxFramesInFlight);
-		this->mDepthValuesBuffer.resize(Application->mRenderer->mMaxFramesInFlight);
-		this->mDepthValuesBufferMemory.resize(Application->mRenderer->mMaxFramesInFlight);
+		this->mLightsBuffer.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		this->mLightsBufferMemory.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		this->mTilesBuffer.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		this->mTilesBufferMemory.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		this->mDepthValuesBuffer.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		this->mDepthValuesBufferMemory.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
 
-		for (int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		for (int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
 			VulkanRenderer::GetRenderer()->CreateBuffer(
 				sizeof(LightStruct) * 1024 * 1024,
 				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -78,19 +78,19 @@ namespace Plaza {
 		}
 
 		/* Descriptor sets */
-		std::vector<VkDescriptorSetLayout> layouts(Application->mRenderer->mMaxFramesInFlight, this->mLightSorterComputeShaders.mComputeDescriptorSetLayout);
+		std::vector<VkDescriptorSetLayout> layouts(Application::Get()->mRenderer->mMaxFramesInFlight, this->mLightSorterComputeShaders.mComputeDescriptorSetLayout);
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		allocInfo.descriptorPool = VulkanRenderer::GetRenderer()->mDescriptorPool;
-		allocInfo.descriptorSetCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
+		allocInfo.descriptorSetCount = static_cast<uint32_t>(Application::Get()->mRenderer->mMaxFramesInFlight);
 		allocInfo.pSetLayouts = layouts.data();
 
-		this->mLightSorterComputeShaders.mComputeDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
+		this->mLightSorterComputeShaders.mComputeDescriptorSets.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
 		if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, this->mLightSorterComputeShaders.mComputeDescriptorSets.data()) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate descriptor sets!");
 		}
 
-		for (int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		for (int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
 			VkDescriptorBufferInfo lightsBufferInfo{};
 			lightsBufferInfo.buffer = this->mLightsBuffer[i];
 			lightsBufferInfo.range = VK_WHOLE_SIZE;
@@ -142,7 +142,7 @@ namespace Plaza {
 	}
 
 	void VulkanLighting::Init() {
-		this->mScreenSize = Application->appSizes->sceneSize;
+		this->mScreenSize = Application::Get()->appSizes->sceneSize;
 
 		std::cerr << "Initializing Tiled Deferred Shading \n";
 		/* Initialize Light Sorter Compute Shaders */
@@ -153,7 +153,7 @@ namespace Plaza {
 		pushConstantRange.size = sizeof(LightSorterPushConstants);
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
-		this->mLightSorterComputeShaders.Init(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\lightSorter.comp", { pushConstantRange });
+		this->mLightSorterComputeShaders.Init(Application::Get()->enginePath + "\\Shaders\\Vulkan\\lighting\\lightSorter.comp", { pushConstantRange });
 
 		/* Initialize Deferred Pass */
 		VkFormat form = VK_FORMAT_R32G32B32A32_SFLOAT;
@@ -242,8 +242,8 @@ namespace Plaza {
 		this->mDeferredEndPassRenderer.InitializeFramebuffer(imageViews.data(), imageViews.size(), this->mScreenSize, 1);
 
 		mDeferredEndPassRenderer.Init(
-			VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.vert"),
-			VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.frag"),
+			VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.vert"),
+			VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.frag"),
 			"",
 			VulkanRenderer::GetRenderer()->mDevice,
 			this->mScreenSize,
@@ -257,8 +257,8 @@ namespace Plaza {
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &this->mDeferredEndPassRenderer.mShaders->mDescriptorSetLayout;
 
-		this->mDeferredEndPassRenderer.mShaders->mDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
-		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		this->mDeferredEndPassRenderer.mShaders->mDescriptorSets.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		for (unsigned int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
 			if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, &this->mDeferredEndPassRenderer.mShaders->mDescriptorSets[i]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to allocate descriptor sets!");
 			}
@@ -289,20 +289,20 @@ namespace Plaza {
 
 	void VulkanLighting::GetLights() {
 		this->mLights.clear();
-		for (const auto& [key, value] : Application->activeScene->lightComponents) {
-			glm::vec3 position = Application->activeScene->transformComponents.at(key).GetWorldPosition();
+		for (const auto& [key, value] : Application::Get()->activeScene->lightComponents) {
+			glm::vec3 position = Application::Get()->activeScene->transformComponents.at(key).GetWorldPosition();
 			this->mLights.push_back(LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff });
 		}
 
 		void* data;
 		size_t bufferSize = sizeof(LightStruct) * this->mLights.size();
-		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, this->mLightsBufferMemory[Application->mRenderer->mCurrentFrame], 0, VK_WHOLE_SIZE, 0, &data);
+		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, this->mLightsBufferMemory[Application::Get()->mRenderer->mCurrentFrame], 0, VK_WHOLE_SIZE, 0, &data);
 		memcpy(data, this->mLights.data(), (size_t)bufferSize);
-		vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, this->mLightsBufferMemory[Application->mRenderer->mCurrentFrame]);
+		vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, this->mLightsBufferMemory[Application::Get()->mRenderer->mCurrentFrame]);
 	}
 
 	void VulkanLighting::UpdateTiles() {
-		this->mScreenSize = Application->appSizes->sceneSize;
+		this->mScreenSize = Application::Get()->appSizes->sceneSize;
 
 		glm::vec2 clusterSize = glm::vec2(32.0f);
 		glm::vec2 clusterCount = glm::ceil(this->mScreenSize / clusterSize);
@@ -311,8 +311,8 @@ namespace Plaza {
 		lightSorterPushConstants.clusterSize = glm::vec2(32);
 		lightSorterPushConstants.first = true;
 		lightSorterPushConstants.lightCount = this->mLights.size();
-		lightSorterPushConstants.projection = Application->activeCamera->GetProjectionMatrix();
-		lightSorterPushConstants.view = Application->activeCamera->GetViewMatrix();
+		lightSorterPushConstants.projection = Application::Get()->activeCamera->GetProjectionMatrix();
+		lightSorterPushConstants.view = Application::Get()->activeCamera->GetViewMatrix();
 		lightSorterPushConstants.screenSize = this->mScreenSize;
 		vkCmdPushConstants(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, this->mLightSorterComputeShaders.mComputePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, { 0 }, sizeof(LightSorterPushConstants), &lightSorterPushConstants);
 		this->mLightSorterComputeShaders.Dispatch(clusterCount.x, clusterCount.y, 1);
@@ -326,7 +326,7 @@ namespace Plaza {
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		//renderPassInfo.renderPass = this->mSkyboxPostEffect->mRenderPass;
-		//renderPassInfo.framebuffer = this->mFramebuffers[Application->mRenderer->mCurrentFrame];//mSwapChainFramebuffers[0];//mSwapChainFramebuffers[imageIndex];
+		//renderPassInfo.framebuffer = this->mFramebuffers[Application::Get()->mRenderer->mCurrentFrame];//mSwapChainFramebuffers[0];//mSwapChainFramebuffers[imageIndex];
 		renderPassInfo.renderPass = this->mDeferredEndPassRenderer.mRenderPass;
 		renderPassInfo.framebuffer = this->mDeferredEndPassRenderer.mFramebuffer;
 
@@ -349,19 +349,19 @@ namespace Plaza {
 		viewport.height = static_cast<float>(VulkanRenderer::GetRenderer()->mSwapChainExtent.height);
 		//viewport.y = this->mResolution.y;
 
-		renderPassInfo.renderArea.extent.width = Application->appSizes->sceneSize.x;
-		renderPassInfo.renderArea.extent.height = Application->appSizes->sceneSize.y;
+		renderPassInfo.renderArea.extent.width = Application::Get()->appSizes->sceneSize.x;
+		renderPassInfo.renderArea.extent.height = Application::Get()->appSizes->sceneSize.y;
 
-		viewport.width = Application->appSizes->sceneSize.x;
-		viewport.height = -Application->appSizes->sceneSize.y;
-		viewport.y = Application->appSizes->sceneSize.y;
+		viewport.width = Application::Get()->appSizes->sceneSize.x;
+		viewport.height = -Application::Get()->appSizes->sceneSize.y;
+		viewport.y = Application::Get()->appSizes->sceneSize.y;
 		vkCmdSetViewport(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, 0, 1, &viewport);
 
 		VkRect2D scissor{};
 		scissor.offset = { 0, 0 };
 		scissor.extent = VulkanRenderer::GetRenderer()->mSwapChainExtent;
-		scissor.extent.width = Application->appSizes->sceneSize.x;
-		scissor.extent.height = Application->appSizes->sceneSize.y;
+		scissor.extent.width = Application::Get()->appSizes->sceneSize.x;
+		scissor.extent.height = Application::Get()->appSizes->sceneSize.y;
 		vkCmdSetScissor(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, 0, 1, &scissor);
 
 		vkCmdBeginRenderPass(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -370,9 +370,9 @@ namespace Plaza {
 		//vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, &this->mDeferredPassRenderer.mShaders->mDescriptorSetLayout, 0, 1, &this->mDeferredPassRenderer.mShaders->mDescriptorSet, 0, 0);
 		DeferredPassPushConstants deferredPassPushConstants{};
 		deferredPassPushConstants.lightCount = this->mLights.size();
-		deferredPassPushConstants.projection = Application->activeCamera->GetProjectionMatrix();
-		deferredPassPushConstants.view = Application->activeCamera->GetViewMatrix();
-		deferredPassPushConstants.viewPos = Application->activeCamera->Position;
+		deferredPassPushConstants.projection = Application::Get()->activeCamera->GetProjectionMatrix();
+		deferredPassPushConstants.view = Application::Get()->activeCamera->GetViewMatrix();
+		deferredPassPushConstants.viewPos = Application::Get()->activeCamera->Position;
 		deferredPassPushConstants.ambientLightColor = this->ambientLightColor * this->ambientLightIntensity;
 		vkCmdPushConstants(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, this->mDeferredEndPassRenderer.mShaders->mPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(DeferredPassPushConstants), &deferredPassPushConstants);
 		mDeferredEndPassRenderer.DrawFullScreenRectangle();

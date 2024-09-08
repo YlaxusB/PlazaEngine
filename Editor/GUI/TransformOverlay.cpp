@@ -13,8 +13,8 @@ namespace Plaza::Editor {
 		if (ImGui::Begin("Transform Overlay", &showOverlay, window_flags))
 		{
 			if (ImGui::IsWindowHovered())
-				Application->hoveredMenu = "Transform Overlay";
-			ImGui::SetWindowPos(ImVec2(400, Application->appSizes->sceneStart.y + ImGui::GetWindowPos().y), ImGuiCond_Once);
+				Application::Get()->hoveredMenu = "Transform Overlay";
+			ImGui::SetWindowPos(ImVec2(400, Application::Get()->appSizes->sceneStart.y + ImGui::GetWindowPos().y), ImGuiCond_Once);
 			Button* worldButton = new Button{ "World", ImGuizmo::OPERATION(-1), ImGuizmo::MODE::WORLD };
 			createButton(worldButton, activeMode, activeOperation);
 

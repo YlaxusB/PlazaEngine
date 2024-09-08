@@ -9,9 +9,9 @@ namespace Plaza {
 	{
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-		out << YAML::Key << "Project" << YAML::Value << Application->activeProject->name;
-		out << YAML::Key << "Directory" << YAML::Value << Application->activeProject->directory;
-		out << YAML::Key << "LastActiveScenePath" << YAML::Value << Application->editorScene->filePath;
+		out << YAML::Key << "Project" << YAML::Value << Application::Get()->activeProject->name;
+		out << YAML::Key << "Directory" << YAML::Value << Application::Get()->activeProject->directory;
+		out << YAML::Key << "LastActiveScenePath" << YAML::Value << Application::Get()->editorScene->filePath;
 
 		//out << YAML::EndSeq;
 		out << YAML::EndMap;
@@ -35,20 +35,20 @@ namespace Plaza {
 		std::string directory = data["Directory"].as<std::string>();
 		std::string lastActiveScenePath = data["LastActiveScenePath"].as<std::string>();
 
-		Application->activeProject = new Editor::Project();
-		Application->activeProject->name = name;
-		Application->activeProject->directory = directory;
+		Application::Get()->activeProject = new Editor::Project();
+		Application::Get()->activeProject->name = name;
+		Application::Get()->activeProject->directory = directory;
 
-		if (std::filesystem::exists(Application->projectPath + "\\" + lastActiveScenePath))
+		if (std::filesystem::exists(Application::Get()->projectPath + "\\" + lastActiveScenePath))
 		{
-			Serializer::DeSerialize(Application->projectPath + "\\" + lastActiveScenePath, true);
+			Serializer::DeSerialize(Application::Get()->projectPath + "\\" + lastActiveScenePath, true);
 		}
 		else {
-			Application->editorScene = new Scene();
-			Application->activeScene = Application->editorScene;
-			Application->activeScene->mainSceneEntity = new Entity("Scene");
-			Application->activeScene->mainSceneEntity->parentUuid = Application->activeScene->mainSceneEntity->uuid;
-			Application->activeScene->GetEntity(Application->activeScene->mainSceneEntity->uuid)->parentUuid = Application->activeScene->mainSceneEntity->uuid;
+			Application::Get()->editorScene = new Scene();
+			Application::Get()->activeScene = Application::Get()->editorScene;
+			Application::Get()->activeScene->mainSceneEntity = new Entity("Scene");
+			Application::Get()->activeScene->mainSceneEntity->parentUuid = Application::Get()->activeScene->mainSceneEntity->uuid;
+			Application::Get()->activeScene->GetEntity(Application::Get()->activeScene->mainSceneEntity->uuid)->parentUuid = Application::Get()->activeScene->mainSceneEntity->uuid;
 			Editor::DefaultModels::Init();
 		}
 	}

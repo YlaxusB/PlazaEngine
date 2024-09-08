@@ -6,7 +6,7 @@
 
 namespace Plaza::Drawing::UI {
 	TextRenderer::TextRenderer() {
-		//Init(Application->enginePath + "\\Font\\Roboto-Medium.ttf");
+		//Init(Application::Get()->enginePath + "\\Font\\Roboto-Medium.ttf");
 	}
 
 	void TextRenderer::Init(std::string fontPath) {
@@ -90,7 +90,7 @@ namespace Plaza::Drawing::UI {
 		//glEnable(GL_CULL_FACE);
 		//glEnable(GL_BLEND);
 		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//glm::mat4 projection = glm::ortho(0.0f, Application->appSizes->sceneSize.x, 0.0f, static_cast<float>(Application->appSizes->sceneSize.y));
+		//glm::mat4 projection = glm::ortho(0.0f, Application::Get()->appSizes->sceneSize.x, 0.0f, static_cast<float>(Application::Get()->appSizes->sceneSize.y));
 		//shader.use();
 		//glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 		//// activate corresponding render state	

@@ -4,7 +4,7 @@
 namespace Plaza::Editor {
 	void EditorSettingsSerializer::Serialize(std::string filePath) {
 		if (filePath.empty()) {
-			filePath = Application->enginePathAppData + "Settings.yaml";
+			filePath = Application::Get()->enginePathAppData + "Settings.yaml";
 		}
 
 		YAML::Emitter out;
@@ -17,7 +17,7 @@ namespace Plaza::Editor {
 
 	void EditorSettingsSerializer::DeSerialize(std::string filePath) {
 		if (filePath.empty()) {
-			filePath = Application->enginePathAppData + "Settings.yaml";
+			filePath = Application::Get()->enginePathAppData + "Settings.yaml";
 		}
 		std::ifstream stream(filePath);
 		std::stringstream strStream;

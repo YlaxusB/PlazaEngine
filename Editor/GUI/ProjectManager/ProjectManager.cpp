@@ -30,32 +30,32 @@ namespace Plaza {
 				static char name[256] = "";
 				ImGui::InputText("##InputText", name, IM_ARRAYSIZE(name));
 				if (ImGui::Button("Create Project") && std::string(name) != "") {
-					Application->activeProject->name = std::string(name);
-					Application->activeProject->scriptsConfigFilePath = Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName;
+					Application::Get()->activeProject->name = std::string(name);
+					Application::Get()->activeProject->scriptsConfigFilePath = Application::Get()->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName;
 
-					Application->runEngine = true;
-					Application->runProjectManagerGui = false;
+					Application::Get()->runEngine = true;
+					Application::Get()->runProjectManagerGui = false;
 
 					// Create the main project settings file
-					Gui::FileExplorer::currentDirectory = Application->activeProject->directory;
-					ProjectSerializer::Serialize(Application->activeProject->directory + "\\" + Application->activeProject->name + Standards::projectExtName);
+					Gui::FileExplorer::currentDirectory = Application::Get()->activeProject->directory;
+					ProjectSerializer::Serialize(Application::Get()->activeProject->directory + "\\" + Application::Get()->activeProject->name + Standards::projectExtName);
 
 					// Create visual studio solution and project
-					const std::string solutionName = Application->activeProject->name;
-					const std::string projectName = Application->activeProject->name;
-					const std::string outputDirectory = Application->activeProject->directory; // Specify the desired output directory
+					const std::string solutionName = Application::Get()->activeProject->name;
+					const std::string projectName = Application::Get()->activeProject->name;
+					const std::string outputDirectory = Application::Get()->activeProject->directory; // Specify the desired output directory
 					ProjectGenerator::GenerateSolution(solutionName, projectName, outputDirectory);
 					ProjectGenerator::GenerateProject(projectName, outputDirectory);
 
 					// Create scripts holder file
-					//ScriptManagerSerializer::Create(Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
-					//ScriptManagerSerializer::DeSerialize(Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
+					//ScriptManagerSerializer::Create(Application::Get()->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
+					//ScriptManagerSerializer::DeSerialize(Application::Get()->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
 
 					// Update the file explorer content
-					Editor::Gui::FileExplorer::UpdateContent(Application->activeProject->directory);
+					Editor::Gui::FileExplorer::UpdateContent(Application::Get()->activeProject->directory);
 
-					Application->projectPath = Application->activeProject->directory;
-					Cache::Serialize(Application->enginePathAppData + "\\cache.yaml");
+					Application::Get()->projectPath = Application::Get()->activeProject->directory;
+					Cache::Serialize(Application::Get()->enginePathAppData + "\\cache.yaml");
 
 					// Load Default Models
 					Editor::DefaultModels::Init();
@@ -70,7 +70,7 @@ namespace Plaza {
 
 		void ProjectManagerGui::Update() {
 			ProjectManagerGui::SetupDockspace();
-			Application->mRenderer->UpdateProjectManager();
+			Application::Get()->mRenderer->UpdateProjectManager();
 		}
 
 
@@ -78,8 +78,8 @@ namespace Plaza {
 			// Imgui New Frame
 			Gui::NewFrame();
 
-			ApplicationSizes& appSizes = *Application->appSizes;
-			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
+			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 
 			//ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.hierarchyBackgroundColor);
 
@@ -110,7 +110,7 @@ namespace Plaza {
 			ImGui::PopStyleColor();
 			ImGui::PopStyleVar();
 			ImGui::Render();
-			if (Application->mRendererAPI = RendererAPI::OpenGL)
+			if (Application::Get()->mRendererAPI = RendererAPI::OpenGL)
 				ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		}
 

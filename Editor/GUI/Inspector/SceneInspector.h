@@ -8,15 +8,15 @@
 bool visualizingNormals = false;
 namespace Plaza::Editor {
 	void callback(float) {
-		Application->editorCamera->Update();
-		//Application->editorCamera = new Plaza::Camera(*Application->editorCamera);
-		//Application->activeCamera = Application->editorCamera;
+		Application::Get()->editorCamera->Update();
+		//Application::Get()->editorCamera = new Plaza::Camera(*Application::Get()->editorCamera);
+		//Application::Get()->activeCamera = Application::Get()->editorCamera;
 	}
 	void callbacke(glm::vec3) {
 
 	}
 	void callbacke2(glm::vec3) {
-		Application->editorCamera->Update();
+		Application::Get()->editorCamera->Update();
 	}
 	static class SceneInspector {
 	public:
@@ -92,8 +92,8 @@ namespace Plaza::Editor {
 			return true;
 		}
 		static glm::vec3 DrawGizmo(glm::vec3 vector) {
-			glm::mat4 projection = Application->activeCamera->GetProjectionMatrix();
-			glm::mat4 view = Application->activeCamera->GetViewMatrix();
+			glm::mat4 projection = Application::Get()->activeCamera->GetProjectionMatrix();
+			glm::mat4 view = Application::Get()->activeCamera->GetViewMatrix();
 			glm::mat4 rotationMatrix = glm::eulerAngleXYZ(vector.x, vector.y, vector.z);
 			glm::mat4 gizmoTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))
 				* glm::toMat4(glm::quat(vector))
@@ -111,7 +111,7 @@ namespace Plaza::Editor {
 			return vector;
 		}
 		SceneInspector(Scene* scene) {
-			Shadows* shadows = Application->mRenderer->GetShadows();
+			Shadows* shadows = Application::Get()->mRenderer->GetShadows();
 			/* Draw Gizmo for rotating Sun */
 			shadows->mLightDirection = SceneInspector::DrawGizmo(shadows->mLightDirection);
 
@@ -129,11 +129,11 @@ namespace Plaza::Editor {
 			if (ImGui::TreeNodeEx("Rendering", ImGuiTreeNodeFlags_DefaultOpen)) {
 				if (ImGui::Checkbox("Visualize Normals", &visualizingNormals)) {
 					if (visualizingNormals) {
-						Application->shader = new Shader((Application->enginePath + "\\Shaders\\normals\\normalVisualizerVertex.glsl").c_str(),
-							(Application->enginePath + "\\Shaders\\normals\\normalVisualizerFragment.glsl").c_str(), (Application->enginePath + "\\Shaders\\normals\\normalVisualizerGeometry.glsl").c_str());
+						Application::Get()->shader = new Shader((Application::Get()->enginePath + "\\Shaders\\normals\\normalVisualizerVertex.glsl").c_str(),
+							(Application::Get()->enginePath + "\\Shaders\\normals\\normalVisualizerFragment.glsl").c_str(), (Application::Get()->enginePath + "\\Shaders\\normals\\normalVisualizerGeometry.glsl").c_str());
 					}
 					else {
-						Application->shader = new Shader((Application->enginePath + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (Application->enginePath + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
+						Application::Get()->shader = new Shader((Application::Get()->enginePath + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (Application::Get()->enginePath + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
 					}
 				}
 				ImGui::TreePop();
@@ -141,27 +141,27 @@ namespace Plaza::Editor {
 
 			/* Editor Camera */
 			if (ImGui::TreeNodeEx("Editor Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
-				Utils::DragFloat("Zoom: ", Application->editorCamera->Zoom, 0.1f, callback, 0.0f);
-				Utils::DragFloat("Movement Speed: ", Application->editorCamera->MovementSpeed, 0.1f, callback, 0.0f);
-				Utils::DragFloat("Camera Sensitivity: ", Application->editorCamera->MouseSensitivity, 0.1f, callback, 0.0f);
-				Utils::DragFloat("Nearplane: ", Application->editorCamera->nearPlane, 0.1f, callback, -10000.0f);
-				Utils::DragFloat("Farplane: ", Application->editorCamera->farPlane, 0.1f, callback, 0.0f);
+				Utils::DragFloat("Zoom: ", Application::Get()->editorCamera->Zoom, 0.1f, callback, 0.0f);
+				Utils::DragFloat("Movement Speed: ", Application::Get()->editorCamera->MovementSpeed, 0.1f, callback, 0.0f);
+				Utils::DragFloat("Camera Sensitivity: ", Application::Get()->editorCamera->MouseSensitivity, 0.1f, callback, 0.0f);
+				Utils::DragFloat("Nearplane: ", Application::Get()->editorCamera->nearPlane, 0.1f, callback, -10000.0f);
+				Utils::DragFloat("Farplane: ", Application::Get()->editorCamera->farPlane, 0.1f, callback, 0.0f);
 
-				Utils::DragFloat("Pitch: ", Application->editorCamera->Pitch, 0.1f, callback);
-				Utils::DragFloat3("Front: ", Application->editorCamera->Front, 0.1f, callbacke);
-				Utils::DragFloat3("Right: ", Application->editorCamera->Right, 0.1f, callbacke2);
-				Utils::DragFloat3("Up: ", Application->editorCamera->Up, 0.1f, callbacke2);
-				Utils::DragFloat3("WorldUp: ", Application->editorCamera->WorldUp, 0.1f, callbacke2);
-				Utils::DragFloat("Yaw: ", Application->editorCamera->Yaw, 0.1f, callback);
+				Utils::DragFloat("Pitch: ", Application::Get()->editorCamera->Pitch, 0.1f, callback);
+				Utils::DragFloat3("Front: ", Application::Get()->editorCamera->Front, 0.1f, callbacke);
+				Utils::DragFloat3("Right: ", Application::Get()->editorCamera->Right, 0.1f, callbacke2);
+				Utils::DragFloat3("Up: ", Application::Get()->editorCamera->Up, 0.1f, callbacke2);
+				Utils::DragFloat3("WorldUp: ", Application::Get()->editorCamera->WorldUp, 0.1f, callbacke2);
+				Utils::DragFloat("Yaw: ", Application::Get()->editorCamera->Yaw, 0.1f, callback);
 
-				Utils::DragFloat("Aspect Ratio: ", Application->editorCamera->aspectRatio, 0.1f, callback);
-				Utils::DragFloat("X: ", Application->appSizes->sceneSize.x, 0.1f, callback);
-				Utils::DragFloat("Y: ", Application->appSizes->sceneSize.y, 0.1f, callback);
+				Utils::DragFloat("Aspect Ratio: ", Application::Get()->editorCamera->aspectRatio, 0.1f, callback);
+				Utils::DragFloat("X: ", Application::Get()->appSizes->sceneSize.x, 0.1f, callback);
+				Utils::DragFloat("Y: ", Application::Get()->appSizes->sceneSize.y, 0.1f, callback);
 
 
-				//Utils::DragFloat("Farplane: ", Application->editorCamera->farPlane, 0.1f, callback, 0.0f);
-				//Utils::DragFloat("Farplane: ", Application->editorCamera->farPlane, 0.1f, callback, 0.0f);
-				//Utils::DragFloat("Farplane: ", Application->editorCamera->farPlane, 0.1f, callback, 0.0f);
+				//Utils::DragFloat("Farplane: ", Application::Get()->editorCamera->farPlane, 0.1f, callback, 0.0f);
+				//Utils::DragFloat("Farplane: ", Application::Get()->editorCamera->farPlane, 0.1f, callback, 0.0f);
+				//Utils::DragFloat("Farplane: ", Application::Get()->editorCamera->farPlane, 0.1f, callback, 0.0f);
 
 				ImGui::TreePop();
 			}

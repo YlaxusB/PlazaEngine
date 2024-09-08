@@ -18,7 +18,7 @@ namespace Plaza::Editor {
                          Settings::ReapplyAllSettings();
                     }
 
-                    ImGui::Checkbox("Show Cascade Levels", &Application->showCascadeLevels);
+                    ImGui::Checkbox("Show Cascade Levels", &Application::Get()->showCascadeLevels);
 
                     ImGui::DragFloat("Bloom Intensity", &VulkanRenderer::GetRenderer()->mBloom.mBloomIntensity);
                     ImGui::DragFloat("Bloom Knee", &VulkanRenderer::GetRenderer()->mBloom.mKnee);

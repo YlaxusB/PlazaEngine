@@ -3,15 +3,15 @@
 #include "Engine/Core/Standards.h"
 namespace Plaza::Editor {
 	void Cache::Load() {
-		DeSerialize(Application->enginePathAppData + "\\" + "cache.yaml");
+		DeSerialize(Application::Get()->enginePathAppData + "\\" + "cache.yaml");
 	}
 
 	void Cache::Serialize(const std::string filePath) {
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "LastOpenProject" << YAML::Value << YAML::BeginMap;
-		out << YAML::Key << "Path" << YAML::Value << Application->projectPath + "\\" + Application->activeProject->name + Standards::projectExtName;
-		out << YAML::Key << "Name" << YAML::Value << Application->activeProject->name;
+		out << YAML::Key << "Path" << YAML::Value << Application::Get()->projectPath + "\\" + Application::Get()->activeProject->name + Standards::projectExtName;
+		out << YAML::Key << "Name" << YAML::Value << Application::Get()->activeProject->name;
 		out << YAML::EndMap;
 		out << YAML::EndMap;
 		std::ofstream fout(filePath);

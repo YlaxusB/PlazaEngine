@@ -19,7 +19,7 @@ namespace Plaza {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, shadowsDepthMap);
 		//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 		float mult = 1.0f;
-		shadowCascadeLevels = vector{ Application->activeCamera->farPlane / (9000.0f * mult), Application->activeCamera->farPlane / (3000.0f * mult), Application->activeCamera->farPlane / (1000.0f * mult), Application->activeCamera->farPlane / (500.0f * mult), Application->activeCamera->farPlane / (100.0f * mult), Application->activeCamera->farPlane / (35.0f * mult),Application->activeCamera->farPlane / (10.0f * mult), Application->activeCamera->farPlane / (2.0f * mult), Application->activeCamera->farPlane / (1.0f * mult) };
+		shadowCascadeLevels = vector{ Application::Get()->activeCamera->farPlane / (9000.0f * mult), Application::Get()->activeCamera->farPlane / (3000.0f * mult), Application::Get()->activeCamera->farPlane / (1000.0f * mult), Application::Get()->activeCamera->farPlane / (500.0f * mult), Application::Get()->activeCamera->farPlane / (100.0f * mult), Application::Get()->activeCamera->farPlane / (35.0f * mult),Application::Get()->activeCamera->farPlane / (10.0f * mult), Application::Get()->activeCamera->farPlane / (2.0f * mult), Application::Get()->activeCamera->farPlane / (1.0f * mult) };
 		glTexImage3D(
 			GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, depthMapResolution, depthMapResolution, int(shadowCascadeLevels.size()) + 1,
 			0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
@@ -56,7 +56,7 @@ namespace Plaza {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// 0. UBO setup
-		Application->shadowsDepthShader->use();
+		Application::Get()->shadowsDepthShader->use();
 		const auto lightMatrices = ShadowsClass::GetLightSpaceMatrices();
 		glBindBuffer(GL_UNIFORM_BUFFER, matricesUBO);
 		for (size_t i = 0; i < lightMatrices.size(); ++i)
@@ -66,31 +66,31 @@ namespace Plaza {
 		glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 
-		Application->shadowsDepthShader->use();
-		lightPos = Application->activeCamera->Position + lightDistance;
+		Application::Get()->shadowsDepthShader->use();
+		lightPos = Application::Get()->activeCamera->Position + lightDistance;
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowsFBO);
-		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, depthMapResolution, depthMapResolution);
+		glViewport(Application::Get()->appSizes->sceneStart.x, Application::Get()->appSizes->sceneStart.y, depthMapResolution, depthMapResolution);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glCullFace(GL_FRONT);
-		ShadowsClass::RenderScene(*Application->shadowsDepthShader);
-		Application->mRenderer->RenderShadowMap(*Application->shadowsDepthShader);
+		ShadowsClass::RenderScene(*Application::Get()->shadowsDepthShader);
+		Application::Get()->mRenderer->RenderShadowMap(*Application::Get()->shadowsDepthShader);
 		glCullFace(GL_BACK);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// reset viewport
-		glViewport(Application->appSizes->sceneStart.x, Application->appSizes->sceneStart.y, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+		glViewport(Application::Get()->appSizes->sceneStart.x, Application::Get()->appSizes->sceneStart.y, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void ShadowsClass::RenderScene(Shader& shader) {
 		shader.use();
-		for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
+		for (const auto& [key, value] : Application::Get()->activeScene->meshRendererComponents) {
 			const MeshRenderer& meshRenderer = value;
-			auto transformIt = Application->activeScene->transformComponents.find(key);
-			if (transformIt != Application->activeScene->transformComponents.end()) {
+			auto transformIt = Application::Get()->activeScene->transformComponents.find(key);
+			if (transformIt != Application::Get()->activeScene->transformComponents.end()) {
 				const Transform& transform = transformIt->second;
-				if (Application->activeCamera->IsInsideViewFrustum(transform.worldPosition)) {
-					//Application->activeScene->entities[transform->uuid].GetComponent<Transform>()->UpdateObjectTransform(&Application->activeScene->entities[meshRendererPair.first]);
+				if (Application::Get()->activeCamera->IsInsideViewFrustum(transform.worldPosition)) {
+					//Application::Get()->activeScene->entities[transform->uuid].GetComponent<Transform>()->UpdateObjectTransform(&Application::Get()->activeScene->entities[meshRendererPair.first]);
 					glm::mat4 modelMatrix = transform.modelMatrix;
 					if (meshRenderer.instanced&& meshRenderer.renderGroup && meshRenderer.renderGroup->mesh) {
 						meshRenderer.renderGroup->AddInstance(modelMatrix);
@@ -108,9 +108,9 @@ namespace Plaza {
 	glm::mat4 getLightSpaceMatrix(const float nearPlane, const float farPlane)
 	{
 		const auto proj = glm::perspective(
-			glm::radians(Application->activeCamera->Zoom), (float)Application->appSizes->sceneSize.x / (float)Application->appSizes->sceneSize.y, nearPlane,
+			glm::radians(Application::Get()->activeCamera->Zoom), (float)Application::Get()->appSizes->sceneSize.x / (float)Application::Get()->appSizes->sceneSize.y, nearPlane,
 			farPlane);
-		const auto corners = Application->activeCamera->getFrustumCornersWorldSpace(proj, Application->activeCamera->GetViewMatrix());
+		const auto corners = Application::Get()->activeCamera->getFrustumCornersWorldSpace(proj, Application::Get()->activeCamera->GetViewMatrix());
 
 		glm::vec3 center = glm::vec3(0, 0, 0);
 		for (const auto& v : corners)
@@ -119,7 +119,7 @@ namespace Plaza {
 		}
 		center /= corners.size();
 		const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::min());
-		const auto lightView = glm::lookAt(center + glm::radians(Application->Shadows->lightDir), center, glm::vec3(0.0f, 1.0f, 0.0f));
+		const auto lightView = glm::lookAt(center + glm::radians(Application::Get()->Shadows->lightDir), center, glm::vec3(0.0f, 1.0f, 0.0f));
 		float minX = std::numeric_limits<float>::max();
 		float maxX = std::numeric_limits<float>::lowest();
 		float minY = std::numeric_limits<float>::max();
@@ -168,7 +168,7 @@ namespace Plaza {
 		{
 			if (i == 0)
 			{
-				ret.push_back(getLightSpaceMatrix(Application->editorCamera->nearPlane - 1.0f, shadowCascadeLevels[i]));
+				ret.push_back(getLightSpaceMatrix(Application::Get()->editorCamera->nearPlane - 1.0f, shadowCascadeLevels[i]));
 			}
 			else if (i < shadowCascadeLevels.size())
 			{

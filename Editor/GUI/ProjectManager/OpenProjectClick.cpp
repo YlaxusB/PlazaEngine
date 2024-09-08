@@ -20,7 +20,7 @@ namespace Plaza {
 			// If user didnt canceled, loop through all items found on the directory path and check for the first that haves the project extension. 
 			if (filePath != "") {
 				Project::Load(filePath);
-				Cache::Serialize(Application->enginePathAppData + "\\cache.yaml");
+				Cache::Serialize(Application::Get()->enginePathAppData + "\\cache.yaml");
 			}
 
 		}

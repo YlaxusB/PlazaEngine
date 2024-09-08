@@ -95,7 +95,7 @@ namespace Plaza {
 		}
 
 		if (material->diffuse == nullptr || material->normal == nullptr || material->roughness == nullptr || material->metalness == nullptr)
-			material = Application->activeScene->DefaultMaterial();
+			material = Application::Get()->activeScene->DefaultMaterial();
 		return material;
 	}
 
@@ -154,7 +154,7 @@ namespace Plaza {
 			return nullptr;
 		}
 
-		Entity* mainEntity = new Entity(std::filesystem::path{ asset.mPath }.stem().string(), Application->activeScene->mainSceneEntity);
+		Entity* mainEntity = new Entity(std::filesystem::path{ asset.mPath }.stem().string(), Application::Get()->activeScene->mainSceneEntity);
 
 		std::unordered_map<uint64_t, Entity*> entities = std::unordered_map<uint64_t, Entity*>();
 		std::unordered_map<uint64_t, uint64_t> meshIndexEntityMap = std::unordered_map<uint64_t, uint64_t>(); // ufbx id, plaza uuid
@@ -201,7 +201,7 @@ namespace Plaza {
 					if (materialIsNotLoaded) {
 						materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
 						Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
-						if (material->mAssetUuid == Application->activeScene->DefaultMaterial()->mAssetUuid) {
+						if (material->mAssetUuid == Application::Get()->activeScene->DefaultMaterial()->mAssetUuid) {
 							loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
 							materials.push_back(material);
 							continue;
@@ -209,16 +209,16 @@ namespace Plaza {
 						material->flip = settings.mFlipTextures;
 						loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
 						AssetsSerializer::SerializeMaterial(material, materialOutPath);
-						Application->activeScene->AddMaterial(material);
+						Application::Get()->activeScene->AddMaterial(material);
 						materials.push_back(material);
 					}
 					else
-						materials.push_back(Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second));
+						materials.push_back(Application::Get()->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second));
 					//materials.push_back(material);
 				}
 			}
 			else
-				materials.push_back(Application->activeScene->DefaultMaterial());
+				materials.push_back(Application::Get()->activeScene->DefaultMaterial());
 			/* Skinning */
 			if (ufbxMesh->skin_deformers.count > 0) {
 				ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
@@ -392,7 +392,7 @@ namespace Plaza {
 
 
 			if (materials.size() <= 0)
-				materials.push_back(Application->activeScene->DefaultMaterial());
+				materials.push_back(Application::Get()->activeScene->DefaultMaterial());
 			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, materials);
 			entity->AddComponent<MeshRenderer>(meshRenderer);
 
@@ -403,14 +403,14 @@ namespace Plaza {
 		}
 
 		for (auto& [key, value] : entityMeshParent) {
-			Entity* entity = &Application->activeScene->entities.at(key);
+			Entity* entity = &Application::Get()->activeScene->entities.at(key);
 			if (value != 0 && meshIndexEntityMap.find(value) != meshIndexEntityMap.end()) {
-				entity->ChangeParent(&entity->GetParent(), &Application->activeScene->entities.at(meshIndexEntityMap.at(value)));
+				entity->ChangeParent(&entity->GetParent(), &Application::Get()->activeScene->entities.at(meshIndexEntityMap.at(value)));
 			}
 		}
 
 		ufbx_free_scene(scene);
-		return Application->activeScene->GetEntity(mainEntity->uuid);
+		return Application::Get()->activeScene->GetEntity(mainEntity->uuid);
 	}
 
 	std::vector<Animation> AssetsImporter::ImportAnimationFBX(std::string filePath, AssetsImporterSettings settings) {

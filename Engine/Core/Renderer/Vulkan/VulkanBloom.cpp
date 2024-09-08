@@ -29,32 +29,32 @@ namespace Plaza {
 
 		bool pingPong = true;
 		for (unsigned int i = 0; i < this->mMipCount; ++i) {
-			this->mDownScaleDescriptorSets[i].resize(Application->mRenderer->mMaxFramesInFlight);
-			this->mUpScaleDescriptorSets[i].resize(Application->mRenderer->mMaxFramesInFlight);
+			this->mDownScaleDescriptorSets[i].resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+			this->mUpScaleDescriptorSets[i].resize(Application::Get()->mRenderer->mMaxFramesInFlight);
 
 			std::array<VkDescriptorPoolSize, 2> poolSizes{};
 			poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			poolSizes[0].descriptorCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
+			poolSizes[0].descriptorCount = static_cast<uint32_t>(Application::Get()->mRenderer->mMaxFramesInFlight);
 
 			poolSizes[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-			poolSizes[1].descriptorCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight) * 2;
+			poolSizes[1].descriptorCount = static_cast<uint32_t>(Application::Get()->mRenderer->mMaxFramesInFlight) * 2;
 
 			VkDescriptorPoolCreateInfo poolInfo{};
 			poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 			poolInfo.poolSizeCount = 2;
 			poolInfo.pPoolSizes = poolSizes.data();
-			poolInfo.maxSets = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
+			poolInfo.maxSets = static_cast<uint32_t>(Application::Get()->mRenderer->mMaxFramesInFlight);
 
 			VkDescriptorPool descriptorPool;
 			if (vkCreateDescriptorPool(VulkanRenderer::GetRenderer()->mDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create descriptor pool!");
 			}
 
-			std::vector<VkDescriptorSetLayout> layouts(Application->mRenderer->mMaxFramesInFlight, mComputeShadersScaleDown.mComputeDescriptorSetLayout);
+			std::vector<VkDescriptorSetLayout> layouts(Application::Get()->mRenderer->mMaxFramesInFlight, mComputeShadersScaleDown.mComputeDescriptorSetLayout);
 			VkDescriptorSetAllocateInfo allocInfo{};
 			allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 			allocInfo.descriptorPool = descriptorPool;
-			allocInfo.descriptorSetCount = static_cast<uint32_t>(Application->mRenderer->mMaxFramesInFlight);
+			allocInfo.descriptorSetCount = static_cast<uint32_t>(Application::Get()->mRenderer->mMaxFramesInFlight);
 			allocInfo.pSetLayouts = layouts.data();
 
 			if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, this->mDownScaleDescriptorSets[i].data()) != VK_SUCCESS) {
@@ -116,7 +116,7 @@ namespace Plaza {
 			}
 
 			if (i < this->mMipCount - 1) {
-				for (unsigned int j = 0; j < Application->mRenderer->mMaxFramesInFlight; ++j) {
+				for (unsigned int j = 0; j < Application::Get()->mRenderer->mMaxFramesInFlight; ++j) {
 					UpdateDescriptorSet(inputLayout, inputView, inputSampler, outputImageView, j, this->mDownScaleDescriptorSets[i][j]);
 				}
 
@@ -164,7 +164,7 @@ namespace Plaza {
 
 
 			}
-			for (unsigned int j = 0; j < Application->mRenderer->mMaxFramesInFlight; ++j) {
+			for (unsigned int j = 0; j < Application::Get()->mRenderer->mMaxFramesInFlight; ++j) {
 				UpdateDescriptorSet(inputLayout, inputView, inputSampler, outputImageView, j, this->mUpScaleDescriptorSets[i][j]);
 			}
 
@@ -181,8 +181,8 @@ namespace Plaza {
 		imageInfo.imageView = inputView;//this->mTexture1->mImageView;
 		imageInfo.sampler = inputSampler;//this->mTexture1->mSampler;
 
-		mComputeShadersScaleDown.mComputeDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
-		mUniformBuffers.resize(Application->mRenderer->mMaxFramesInFlight);
+		mComputeShadersScaleDown.mComputeDescriptorSets.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		mUniformBuffers.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
 
 		mComputeShadersScaleDown.mDescriptorWrites.resize(3);
 		mComputeShadersScaleDown.mDescriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -225,10 +225,10 @@ namespace Plaza {
 	}
 
 	void VulkanBloom::Init() {
-		this->mMipCount = this->CalculateMipmapLevels(Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 16, 10);
+		this->mMipCount = this->CalculateMipmapLevels(Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, 16, 10);
 		this->mTexture1 = new VulkanTexture();
 		this->mTexture1->mMipCount = this->mMipCount;
-		this->mTexture1->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, true, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
+		this->mTexture1->CreateTextureImage(VulkanRenderer::GetRenderer()->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, true, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT);
 		VulkanRenderer::GetRenderer()->TransitionImageLayout(mTexture1->mImage, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT, 1, mTexture1->mMipCount);
 		this->mTexture1->CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_MIPMAP_MODE_NEAREST, VK_FILTER_LINEAR, VK_FILTER_LINEAR);
 		this->mTexture1->CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D);
@@ -283,8 +283,8 @@ namespace Plaza {
 		pushConstantRange.offset = 0; // Offset of the push constant block
 		pushConstantRange.size = sizeof(PushConstant); // Size of the push constant block
 
-		this->mComputeShadersScaleDown.Init(Application->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomDownScale.comp", { pushConstantRange });
-		this->mComputeShadersScaleUp.Init(Application->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomUpScale.comp", { pushConstantRange });
+		this->mComputeShadersScaleDown.Init(Application::Get()->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomDownScale.comp", { pushConstantRange });
+		this->mComputeShadersScaleUp.Init(Application::Get()->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomUpScale.comp", { pushConstantRange });
 	}
 
 	void VulkanBloom::UpdateUniformBuffers(glm::vec2 texelSize, unsigned int mipLevel, bool useThreshold) {
@@ -300,7 +300,7 @@ namespace Plaza {
 		this->CopySceneTexture();
 
 		/* Bloom: downscale */
-		glm::uvec2 mipSize = glm::uvec2(Application->appSizes->sceneSize.x / 2, Application->appSizes->sceneSize.y / 2);
+		glm::uvec2 mipSize = glm::uvec2(Application::Get()->appSizes->sceneSize.x / 2, Application::Get()->appSizes->sceneSize.y / 2);
 
 		for (uint8_t i = 0; i < mMipCount - 1; ++i) {
 			PushConstant pushConstant{};
@@ -309,7 +309,7 @@ namespace Plaza {
 			pushConstant.u_threshold = glm::vec4(mThreshold, mThreshold - mKnee, 2.0f * mKnee, 0.25f * mKnee);
 			pushConstant.u_use_threshold = i == 0;
 
-			this->mComputeShadersScaleDown.Dispatch(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1, &pushConstant, sizeof(PushConstant), this->mDownScaleDescriptorSets[i][Application->mRenderer->mCurrentFrame]);
+			this->mComputeShadersScaleDown.Dispatch(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1, &pushConstant, sizeof(PushConstant), this->mDownScaleDescriptorSets[i][Application::Get()->mRenderer->mCurrentFrame]);
 
 			VkImageMemoryBarrier imageMemoryBarrier = {};
 			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -340,8 +340,8 @@ namespace Plaza {
 
 		/* Bloom: upscale */
 		for (uint8_t i = mMipCount - 1; i >= 1; --i) {
-			mipSize.x = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.x) / glm::pow(2.0, i - 1)));
-			mipSize.y = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.y) / glm::pow(2.0, i - 1)));
+			mipSize.x = glm::max(1.0, glm::floor(float(Application::Get()->appSizes->sceneSize.x) / glm::pow(2.0, i - 1)));
+			mipSize.y = glm::max(1.0, glm::floor(float(Application::Get()->appSizes->sceneSize.y) / glm::pow(2.0, i - 1)));
 
 
 			PushConstant pushConstant{};
@@ -350,7 +350,7 @@ namespace Plaza {
 			pushConstant.u_threshold = glm::vec4(mThreshold, mThreshold - mKnee, 2.0f * mKnee, 0.25f * mKnee);
 			pushConstant.u_use_threshold = i == 0;
 
-			this->mComputeShadersScaleUp.Dispatch(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1, &pushConstant, sizeof(PushConstant), this->mUpScaleDescriptorSets[i][Application->mRenderer->mCurrentFrame]);
+			this->mComputeShadersScaleUp.Dispatch(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1, &pushConstant, sizeof(PushConstant), this->mUpScaleDescriptorSets[i][Application::Get()->mRenderer->mCurrentFrame]);
 
 			VkImageMemoryBarrier imageMemoryBarrier = {};
 			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -400,8 +400,8 @@ namespace Plaza {
 		imageCopyRegion.dstSubresource.layerCount = 1;
 		imageCopyRegion.dstOffset = { 0, 0, 0 };
 
-		imageCopyRegion.extent.width = Application->appSizes->sceneSize.x;
-		imageCopyRegion.extent.height = Application->appSizes->sceneSize.y;
+		imageCopyRegion.extent.width = Application::Get()->appSizes->sceneSize.x;
+		imageCopyRegion.extent.height = Application::Get()->appSizes->sceneSize.y;
 		imageCopyRegion.extent.depth = 1;
 
 		{

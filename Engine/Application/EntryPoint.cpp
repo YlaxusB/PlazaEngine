@@ -8,7 +8,7 @@
 #include "Engine/Core/Skybox.h"
 #include "Editor/SessionCache/Cache.h"
 
-ApplicationClass* Plaza::Application = new Plaza::ApplicationClass();
+Application* Plaza::Application = new Plaza::Application();
 
 using namespace Plaza;
 
@@ -30,54 +30,9 @@ using namespace Plaza;
 int main() {
 	Log::Init();
 	PL_CORE_INFO("Start");
-
-	Application->exeDirectory = filesystem::current_path().string();
-
-	AssetsManager::Init();
-
-	Application->CreateApplication();
-
-	Application->mThreadsManager->Init();
-
-	/* Load Editor settings */
-#ifdef EDITOR_MODE
-	Editor::EditorSettingsSerializer::DeSerialize();
-#endif
-
-	std::cout << "Initializating Audio \n";
-	Audio::Init();
-
-	std::cout << "Initializating Physics \n";
-	Physics::Init();
-	Application->activeScene->mainSceneEntity = new Entity("Scene");
-
-#ifdef GAME_MODE
-	std::cout << "Loading Project \n";
-	for (auto const& entry : std::filesystem::directory_iterator{ Application->exeDirectory }) {
-		if (entry.path().extension() == Standards::projectExtName) {
-			Editor::Project::Load(entry.path().string());
-
-			std::cout << "Starting Scene\n";
-			Scene::Play();
-			std::cout << "Scene Played \n";
-			if (Application->activeScene->cameraComponents.size() > 0)
-				Application->activeCamera = &Application->activeScene->cameraComponents.begin()->second;
-			else
-				Application->activeCamera = Application->activeScene->mainSceneEntity->AddComponent<Camera>(new Camera());
-		}
-	}
-
-#else
-	if (filesystem::exists(Application->enginePathAppData + "cache.yaml"))
-		Editor::Cache::Load();
-#endif
-	if (Application->mRenderer->api == RendererAPI::OpenGL)
-		OpenGLSkybox::Init();
-
-	std::cout << "Starting Loop \n";
-	Application->Loop();
-	std::cout << "Terminate \n";
-	Application->Terminate();
+	Application::Get()->CreateApplication();
+	Application::Get()->Loop();
+	Application::Get()->Terminate();
 	return 0;
 #
 }

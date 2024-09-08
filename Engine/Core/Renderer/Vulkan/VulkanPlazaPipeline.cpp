@@ -34,8 +34,8 @@ namespace Plaza {
 		framebufferInfo.renderPass = this->mRenderPass;
 		framebufferInfo.attachmentCount = attachmentsCount;
 		framebufferInfo.pAttachments = pAttachmentsData;
-		framebufferInfo.width = Application->appSizes->sceneSize.x;
-		framebufferInfo.height = Application->appSizes->sceneSize.y;
+		framebufferInfo.width = Application::Get()->appSizes->sceneSize.x;
+		framebufferInfo.height = Application::Get()->appSizes->sceneSize.y;
 		framebufferInfo.layers = layers;
 
 		if (vkCreateFramebuffer(VulkanRenderer::GetRenderer()->mDevice, &framebufferInfo, nullptr, &this->mFramebuffer) != VK_SUCCESS) {
@@ -48,7 +48,7 @@ namespace Plaza {
 	}
 
 	void VulkanPlazaPipeline::DrawFullScreenRectangle() {
-		vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShaders->mPipelineLayout, 0, 1, &this->mShaders->mDescriptorSets[Application->mRenderer->mCurrentFrame], 0, nullptr);
+		vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShaders->mPipelineLayout, 0, 1, &this->mShaders->mDescriptorSets[Application::Get()->mRenderer->mCurrentFrame], 0, nullptr);
 		vkCmdDraw(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, 3, 1, 0, 0);
 	}
 

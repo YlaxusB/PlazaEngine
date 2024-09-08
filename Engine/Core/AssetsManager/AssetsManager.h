@@ -33,6 +33,8 @@ namespace Plaza {
 		static inline std::unordered_map<AssetType, std::unordered_set<uint64_t>> mTypeMap = std::unordered_map<AssetType, std::unordered_set<uint64_t>>();
 
 		static void Init() {
+			PL_CORE_INFO("Initializing Assets Manager");
+
 			mTypeMap = []() {
 				std::unordered_map<AssetType, std::unordered_set<uint64_t>> map;
 				for (int i = 0; i <= UNKNOWN; ++i) {

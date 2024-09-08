@@ -6,19 +6,19 @@ namespace Plaza::Editor {
 
 		/* Material */
 		if (newExtension == Standards::materialExtName) {
-			if (Application->activeScene->materialsNames.find(oldPath) != Application->activeScene->materialsNames.end()) {
-				uint64_t materialUuid = Application->activeScene->materialsNames.at(oldPath);
-				Application->activeScene->materials.at(materialUuid)->mAssetName = newPath;
-				Application->activeScene->materialsNames.emplace(newPath, materialUuid);
-				Application->activeScene->materialsNames.erase(oldPath);
-				AssetsManager::ChangeAssetPath(Application->activeScene->materials.at(materialUuid)->mAssetUuid, newPath);
+			if (Application::Get()->activeScene->materialsNames.find(oldPath) != Application::Get()->activeScene->materialsNames.end()) {
+				uint64_t materialUuid = Application::Get()->activeScene->materialsNames.at(oldPath);
+				Application::Get()->activeScene->materials.at(materialUuid)->mAssetName = newPath;
+				Application::Get()->activeScene->materialsNames.emplace(newPath, materialUuid);
+				Application::Get()->activeScene->materialsNames.erase(oldPath);
+				AssetsManager::ChangeAssetPath(Application::Get()->activeScene->materials.at(materialUuid)->mAssetUuid, newPath);
 			}
 		}
 		/* C# Script */
 		else if (newExtension == ".cs") {
-			auto it = Application->activeProject->scripts.find(oldPath);
-			if (it != Application->activeProject->scripts.end())
-				Application->activeProject->scripts.emplace(newPath, it->second);
+			auto it = Application::Get()->activeProject->scripts.find(oldPath);
+			if (it != Application::Get()->activeProject->scripts.end())
+				Application::Get()->activeProject->scripts.emplace(newPath, it->second);
 		}
 	}
 }

@@ -8,10 +8,10 @@ namespace Plaza {
 	double Input::Cursor::deltaX = 0;
 	double Input::Cursor::deltaY = 0;
 	void Input::Cursor::Update() {
-		if (Application->focusedMenu == "Scene") {
+		if (Application::Get()->focusedMenu == "Scene") {
 			double currentX;
 			double currentY;
-			glfwGetCursorPos(Application->Window->glfwWindow, &currentX, &currentY);
+			glfwGetCursorPos(Application::Get()->mWindow->glfwWindow, &currentX, &currentY);
 
 			deltaX = currentX - lastX;
 			deltaY = currentY - lastY;

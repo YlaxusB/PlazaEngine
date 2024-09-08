@@ -59,7 +59,7 @@ namespace Plaza {
 	//	out << YAML::EndSeq;
 	//	out << YAML::Key << "GameObjects" << YAML::Value << YAML::BeginSeq;
 	//	for (uint64_t childUuuid : mainObject->childrenUuid) {
-	//		SerializeGameObject(out, &Application->activeScene->entities[childUuuid]);
+	//		SerializeGameObject(out, &Application::Get()->activeScene->entities[childUuuid]);
 	//	}
 	//	out << YAML::EndSeq;
 	//	out << YAML::EndMap;
@@ -107,7 +107,7 @@ namespace Plaza {
 	//		}
 	//	}
 	//	if (entity->parentUuid == 0) {
-	//		entity->parentUuid = Application->activeScene->mainSceneEntity->uuid;
+	//		entity->parentUuid = Application::Get()->activeScene->mainSceneEntity->uuid;
 	//	}
 	//	Transform* newTransform = ComponentSerializer::TransformSerializer::DeSerialize(componentsEntry["TransformComponent"]);
 	//	entity->ReplaceComponent<Transform>(newTransform);
@@ -124,7 +124,7 @@ namespace Plaza {
 	//		uint64_t materialUuid = componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>();
 	//		if (componentsEntry["MeshComponent"]["MaterialUuid"])
 	//			/* TODO:FIX THE WAY TO GET MATERIALS, IT HAS BEEN TEMPORARILY DISABLED TO LOAD MODELS WITH VULKAN */
-	//			//newMeshRenderer->material = Application->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>()).get();
+	//			//newMeshRenderer->material = Application::Get()->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>()).get();
 	//		model->meshRenderers.emplace(entity->uuid, newMeshRenderer);
 	//	}
 	//	model->transforms.emplace(entity->uuid, newTransform);

@@ -61,7 +61,7 @@ namespace Plaza {
 
 			std::vector<glm::vec3> tangents;
 			std::vector<unsigned int> materials{ 0 };
-			Mesh* mesh = &Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false, {}, {});
+			Mesh* mesh = &Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false, {}, {});
 			return mesh;
 		}
 		void TerrainEditorTool::CreateTerrain(unsigned int x, unsigned int y, unsigned int z) {
@@ -79,8 +79,8 @@ namespace Plaza {
 
 		void TerrainEditorTool::UpdateGui() {
 			PLAZA_PROFILE_SECTION("Begin Terrain Editor Tool");
-			ApplicationSizes& appSizes = *Application->appSizes;
-			ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
+			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 			Entity* selectedGameObject = Editor::selectedGameObject;
 
 			// Set the window to be the content size + header size
@@ -110,13 +110,13 @@ namespace Plaza {
 			};
 			if (ImGui::IsWindowFocused())
 			{
-				if (Application->focusedMenu != "TerrainEditorTool") {
-					glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				if (Application::Get()->focusedMenu != "TerrainEditorTool") {
+					glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 				}
-				Application->focusedMenu = "TerrainEditorTool";
+				Application::Get()->focusedMenu = "TerrainEditorTool";
 			}
 			if (ImGui::IsWindowHovered())
-				Application->hoveredMenu = "TerrainEditorTool";
+				Application::Get()->hoveredMenu = "TerrainEditorTool";
 
 			if (ImGui::Checkbox("Edit Terrain", &mEditTerrain)) {
 				this->CaptureMouseClick(mEditTerrain);
@@ -127,7 +127,7 @@ namespace Plaza {
 			ImGui::Checkbox("Smooth Tool", &mSettings.smoothTool);
 
 
-			if (mEditTerrain && glfwGetMouseButton(Application->Window->glfwWindow, 0) == GLFW_PRESS)
+			if (mEditTerrain && glfwGetMouseButton(Application::Get()->mWindow->glfwWindow, 0) == GLFW_PRESS)
 				OnMouseClick(GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, 0);
 
 			ImGui::End();
@@ -243,14 +243,14 @@ namespace Plaza {
 		}
 
 		void TerrainEditorTool::OnMouseClick(int button, int action, int mods) {
-			if (Application->focusedMenu != "Editor") //!Gui::sFocusedLayer == GuiLayer::SCENE || 
+			if (Application::Get()->focusedMenu != "Editor") //!Gui::sFocusedLayer == GuiLayer::SCENE || 
 				return;
 
 			if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mEditTerrain) {
-				Application->mThreadsManager->mFrameRendererAfterGeometry->AddToQueue([&]() {
-					float xposGame = Callbacks::lastX - Application->appSizes->hierarchySize.x;
-					float yposGame = Callbacks::lastY - Application->appSizes->sceneImageStart.y - 35;
-					//yposGame = Application->appSizes->sceneSize.y - (yposGame - 35);
+				Application::Get()->mThreadsManager->mFrameRendererAfterGeometry->AddToQueue([&]() {
+					float xposGame = Callbacks::lastX - Application::Get()->appSizes->hierarchySize.x;
+					float yposGame = Callbacks::lastY - Application::Get()->appSizes->sceneImageStart.y - 35;
+					//yposGame = Application::Get()->appSizes->sceneSize.y - (yposGame - 35);
 					VulkanRenderer::GetRenderer()->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")->mLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 					glm::vec4 clickPosition = VulkanRenderer::GetRenderer()->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")->ReadTexture(glm::vec2(xposGame, yposGame), sizeof(float) + sizeof(uint8_t), 1, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, true);
 					if (clickPosition.x == 0.0f && clickPosition.y == 0.0f && clickPosition.z == 0.0f && clickPosition.w == 0.0f)
@@ -259,7 +259,7 @@ namespace Plaza {
 					std::cout << "Depth: \n";
 					std::cout << "X: " << clickPosition.x << " Y: " << clickPosition.y << " Z: " << clickPosition.z << " W: " << clickPosition.w << "\n";
 
-					clickPosition = glm::vec4(Renderer::ReconstructWorldPositionFromDepth(glm::vec2(xposGame, yposGame), Application->appSizes->sceneSize, clickPosition.x, Application->activeCamera), 1.0f);
+					clickPosition = glm::vec4(Renderer::ReconstructWorldPositionFromDepth(glm::vec2(xposGame, yposGame), Application::Get()->appSizes->sceneSize, clickPosition.x, Application::Get()->activeCamera), 1.0f);
 
 					std::cout << "World: \n";
 					std::cout << "X: " << clickPosition.x << " Y: " << clickPosition.y << " Z: " << clickPosition.z << " W: " << clickPosition.w << "\n";

@@ -8,12 +8,12 @@ void Plaza::Callbacks::scrollCallback(GLFWwindow* window, double xoffset, double
 	double mousePosY = 0;
 	glfwGetCursorPos(window, &mousePosX, &mousePosY);
 	glm::vec2 mousePos = glm::vec2(mousePosX, mousePosY);
-	if (Application->focusedMenu == "Editor" && glm::isInside(mousePos, Application->appSizes->sceneStart, Application->appSizes->sceneStart + Application->appSizes->sceneSize)) {
+	if (Application::Get()->focusedMenu == "Editor" && glm::isInside(mousePos, Application::Get()->appSizes->sceneStart, Application::Get()->appSizes->sceneStart + Application::Get()->appSizes->sceneSize)) {
 		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-			Application->activeCamera->MovementSpeed = glm::max(Application->activeCamera->MovementSpeed + (Application->activeCamera->MovementSpeed * yoffset / 10), 0.0001);
+			Application::Get()->activeCamera->MovementSpeed = glm::max(Application::Get()->activeCamera->MovementSpeed + (Application::Get()->activeCamera->MovementSpeed * yoffset / 10), 0.0001);
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
-			Application->activeCamera->ProcessMouseScroll(static_cast<float>(yoffset));
+			Application::Get()->activeCamera->ProcessMouseScroll(static_cast<float>(yoffset));
 	}
 }

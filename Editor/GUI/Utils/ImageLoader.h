@@ -3,7 +3,7 @@
 #include <ThirdParty/glad/glad.h>
 namespace Plaza::Editor::Utils {
 	static ImTextureID LoadImageToImGuiTexture(const char* path) {
-		if (Application->mRenderer->api == RendererAPI::OpenGL) {
+		if (Application::Get()->mRenderer->api == RendererAPI::OpenGL) {
 			int width, height, channels;
 			unsigned char* image_data = stbi_load(path, &width, &height, &channels, STBI_rgb_alpha);
 			if (!image_data) {
@@ -24,8 +24,8 @@ namespace Plaza::Editor::Utils {
 			stbi_image_free(image_data);
 			return (ImTextureID)textureId;
 		}
-		else if (Application->mRenderer->api == RendererAPI::Vulkan) {
-			return Application->mRenderer->LoadImGuiTexture(path)->GetImGuiTextureID();
+		else if (Application::Get()->mRenderer->api == RendererAPI::Vulkan) {
+			return Application::Get()->mRenderer->LoadImGuiTexture(path)->GetImGuiTextureID();
 		}
 	}
 }

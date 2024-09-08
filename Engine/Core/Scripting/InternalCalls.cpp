@@ -20,34 +20,34 @@ namespace Plaza {
 
 	void GetComponentMap(uint64_t uuid, std::string name, Component* component) {
 		if (name == typeid(Transform).name()) {
-			Application->activeScene->transformComponents.emplace(uuid, *dynamic_cast<Transform*>(component));
+			Application::Get()->activeScene->transformComponents.emplace(uuid, *dynamic_cast<Transform*>(component));
 		}
 		else if (name == typeid(MeshRenderer).name()) {
-			Application->activeScene->meshRendererComponents.emplace(uuid, *dynamic_cast<MeshRenderer*>(component));
+			Application::Get()->activeScene->meshRendererComponents.emplace(uuid, *dynamic_cast<MeshRenderer*>(component));
 		}
 		else if (name == typeid(RigidBody).name()) {
 			dynamic_cast<RigidBody*>(component)->Init();
-			Application->activeScene->rigidBodyComponents.emplace(uuid, *dynamic_cast<RigidBody*>(component));
+			Application::Get()->activeScene->rigidBodyComponents.emplace(uuid, *dynamic_cast<RigidBody*>(component));
 		}
 		else if (name == typeid(Collider).name()) {
-			Application->activeScene->colliderComponents.emplace(uuid, *dynamic_cast<Collider*>(component));
+			Application::Get()->activeScene->colliderComponents.emplace(uuid, *dynamic_cast<Collider*>(component));
 		}
 		else if (name == typeid(CharacterController).name()) {
-			Application->activeScene->characterControllerComponents.emplace(uuid, *dynamic_cast<CharacterController*>(component));
+			Application::Get()->activeScene->characterControllerComponents.emplace(uuid, *dynamic_cast<CharacterController*>(component));
 		}
 		else if (name == typeid(Camera).name()) {
-			Application->activeScene->cameraComponents.emplace(uuid, *dynamic_cast<Camera*>(component));
+			Application::Get()->activeScene->cameraComponents.emplace(uuid, *dynamic_cast<Camera*>(component));
 		}
 		else if (name == typeid(Plaza::Drawing::UI::TextRenderer).name()) {
-			Application->activeScene->UITextRendererComponents.emplace(uuid, *dynamic_cast<Plaza::Drawing::UI::TextRenderer*>(component));
+			Application::Get()->activeScene->UITextRendererComponents.emplace(uuid, *dynamic_cast<Plaza::Drawing::UI::TextRenderer*>(component));
 		}
 		else if (name == typeid(Light).name()) {
-			Application->activeScene->lightComponents.emplace(uuid, *dynamic_cast<Light*>(component));
+			Application::Get()->activeScene->lightComponents.emplace(uuid, *dynamic_cast<Light*>(component));
 		}
 	}
 
 	void RemoveComponentFromEntity(uint64_t uuid, std::string name, Component* component) {
-		Entity& ent = Application->activeScene->entities.at(uuid);
+		Entity& ent = Application::Get()->activeScene->entities.at(uuid);
 		if (name == typeid(Transform).name()) {
 			ent.RemoveComponent<Transform>();
 		}
@@ -68,7 +68,7 @@ namespace Plaza {
 #define PL_ADD_INTERNAL_CALL(name) mono_add_internal_call("Plaza.InternalCalls::" #name, (void*)name)
 
 	static uint64_t NewEntity() {
-		Entity* newEntity = new Entity("New Entity", Application->activeScene->mainSceneEntity, true);
+		Entity* newEntity = new Entity("New Entity", Application::Get()->activeScene->mainSceneEntity, true);
 		newEntity->GetComponent<Transform>()->UpdateChildrenTransform();
 		return newEntity->uuid;
 	}
@@ -80,10 +80,10 @@ namespace Plaza {
 	};
 
 	static bool HasComponent(uint64_t uuid, MonoReflectionType* componentType) {
-		if (Application->activeScene->entities.find(uuid) == Application->activeScene->entities.end())
+		if (Application::Get()->activeScene->entities.find(uuid) == Application::Get()->activeScene->entities.end())
 			return false;
 		MonoType* monoType = mono_reflection_type_get_type(componentType);
-		return Mono::mEntityHasComponentFunctions.at(monoType)(*Application->activeScene->GetEntity(uuid));
+		return Mono::mEntityHasComponentFunctions.at(monoType)(*Application::Get()->activeScene->GetEntity(uuid));
 	}
 
 	static const std::string GetSubclassName(Component* component) {
@@ -103,7 +103,7 @@ namespace Plaza {
 			return nullptr;
 		MonoType* monoType = mono_reflection_type_get_type(componentType);
 		if (Mono::mEntityHasComponentFunctions.find(monoType) != Mono::mEntityHasComponentFunctions.end()) {
-			return Mono::mEntityAddComponentFunctions[monoType](Application->activeScene->entities.at(uuid));
+			return Mono::mEntityAddComponentFunctions[monoType](Application::Get()->activeScene->entities.at(uuid));
 		}
 		return nullptr; // Component type not found
 	}
@@ -113,7 +113,7 @@ namespace Plaza {
 			auto* component = CreateComponentByName(uuid, componentType);
 			component->mUuid = uuid;
 			GetComponentMap(uuid, GetSubclassName(component), component);
-			//Application->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
+			//Application::Get()->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
 		}
 	}
 
@@ -121,18 +121,18 @@ namespace Plaza {
 		auto* component = CreateComponentByName(uuid, componentType);
 		component->mUuid = uuid;
 		RemoveComponentFromEntity(uuid, GetSubclassName(component), component);
-		//Application->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
+		//Application::Get()->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
 	}
 
 
 
 	static bool HasScript(uint64_t uuid, MonoReflectionType* componentType) {
 		MonoType* monoType = mono_reflection_type_get_type(componentType);
-		return Mono::mEntityHasComponentFunctions.at(monoType)(*Application->activeScene->GetEntity(uuid));
+		return Mono::mEntityHasComponentFunctions.at(monoType)(*Application::Get()->activeScene->GetEntity(uuid));
 	}
 
 	static MonoObject* GetScript(uint64_t uuid) {
-		auto range = Application->activeScene->csScriptComponents.equal_range(uuid);
+		auto range = Application::Get()->activeScene->csScriptComponents.equal_range(uuid);
 
 		for (auto it = range.first; it != range.second; ++it) {
 			for (auto [key, value] : it->second.scriptClasses) {
@@ -146,14 +146,14 @@ namespace Plaza {
 			auto* script = CreateComponentByName(uuid, scriptType);
 			script->mUuid = uuid;
 			GetComponentMap(uuid, GetSubclassName(script), script);
-			//Application->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
+			//Application::Get()->activeScene->entities.at(uuid).AddComp<typeid(component).name()>();
 		}
 	}
 
 	static uint64_t FindEntityByNameCall(MonoString* name) {
 		char* nameCStr = mono_string_to_utf8(name);
 
-		Entity* entity = Application->activeScene->GetEntityByName(nameCStr);
+		Entity* entity = Application::Get()->activeScene->GetEntityByName(nameCStr);
 		mono_free(nameCStr);
 		if (!entity)
 			return 0;
@@ -163,33 +163,33 @@ namespace Plaza {
 	static uint64_t Instantiate(uint64_t uuid) {
 		uint64_t newUuid = Entity::Instantiate(uuid);
 		if (newUuid)
-			Application->activeScene->transformComponents.find(newUuid)->second.UpdateSelfAndChildrenTransform();
+			Application::Get()->activeScene->transformComponents.find(newUuid)->second.UpdateSelfAndChildrenTransform();
 		return newUuid;
 	}
 
 #pragma region Input
 
 	static bool InputIsAnyKeyPressed() {
-		if (Application->focusedMenu == "Scene") {
+		if (Application::Get()->focusedMenu == "Scene") {
 			return Input::isAnyKeyPressed;
 		}
 	}
 
 	static bool InputIsKeyDown(int keyCode) {
-		if (Application->focusedMenu == "Scene") {
-			return glfwGetKey(Application->Window->glfwWindow, keyCode) == GLFW_PRESS;
+		if (Application::Get()->focusedMenu == "Scene") {
+			return glfwGetKey(Application::Get()->mWindow->glfwWindow, keyCode) == GLFW_PRESS;
 		}
 	}
 
 	static bool IsKeyReleased(int keyCode) {
-		if (Application->focusedMenu == "Scene") {
-			return glfwGetKey(Application->Window->glfwWindow, keyCode) == GLFW_RELEASE;
+		if (Application::Get()->focusedMenu == "Scene") {
+			return glfwGetKey(Application::Get()->mWindow->glfwWindow, keyCode) == GLFW_RELEASE;
 		}
 	}
 
 	static bool InputIsMouseDown(int button) {
-		if (Application->focusedMenu == "Scene") {
-			return glfwGetMouseButton(Application->Window->glfwWindow, button) == GLFW_PRESS;
+		if (Application::Get()->focusedMenu == "Scene") {
+			return glfwGetMouseButton(Application::Get()->mWindow->glfwWindow, button) == GLFW_PRESS;
 		}
 	}
 
@@ -199,14 +199,14 @@ namespace Plaza {
 
 	static void CursorHide(bool val) {
 		Editor::Filewatcher::AddToMainThread([val]() {
-			if (val && glfwGetInputMode(Application->Window->glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_HIDDEN) {
-				glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			if (val && glfwGetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_HIDDEN) {
+				glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			}
-			else if (!val && glfwGetInputMode(Application->Window->glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_NORMAL)
-				glfwSetInputMode(Application->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			else if (!val && glfwGetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_NORMAL)
+				glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			double currentX;
 			double currentY;
-			glfwGetCursorPos(Application->Window->glfwWindow, &currentX, &currentY);
+			glfwGetCursorPos(Application::Get()->mWindow->glfwWindow, &currentX, &currentY);
 			Input::Cursor::deltaX = 0;
 			Input::Cursor::deltaY = 0;
 			Input::Cursor::lastX = currentX;
@@ -219,35 +219,35 @@ namespace Plaza {
 
 #pragma region Entity
 	static MonoString* EntityGetName(uint64_t uuid) {
-		auto it = Application->activeScene->entities.find(uuid);
-		if (it != Application->activeScene->entities.end()) {
+		auto it = Application::Get()->activeScene->entities.find(uuid);
+		if (it != Application::Get()->activeScene->entities.end()) {
 			return mono_string_new(Mono::mAppDomain, it->second.name.c_str());
 		}
 	}
 	static void EntitySetName(uint64_t uuid, MonoString* name) {
 		std::string nameStr = mono_string_to_utf8(name);
 		Editor::Filewatcher::AddToMainThread([uuid, nameStr]() {
-			auto it = Application->activeScene->entities.find(uuid);
-			if (it != Application->activeScene->entities.end()) {
+			auto it = Application::Get()->activeScene->entities.find(uuid);
+			if (it != Application::Get()->activeScene->entities.end()) {
 				it->second.Rename(nameStr);
 			}
 			});
 	}
 	static uint64_t EntityGetParent(uint64_t uuid) {
-		auto it = Application->activeScene->entities.find(uuid);
-		if (it != Application->activeScene->entities.end()) {
+		auto it = Application::Get()->activeScene->entities.find(uuid);
+		if (it != Application::Get()->activeScene->entities.end()) {
 			return it->second.uuid;
 		}
 	}
 	static void EntitySetParent(uint64_t uuid, uint64_t parentUuid) {
-		auto it = Application->activeScene->entities.find(uuid);
-		if (it != Application->activeScene->entities.end()) {
+		auto it = Application::Get()->activeScene->entities.find(uuid);
+		if (it != Application::Get()->activeScene->entities.end()) {
 			if (parentUuid == 0) {
-				it->second.ChangeParent(it->second.GetParent(), Application->activeScene->entities.at(Application->activeScene->mainSceneEntity->uuid));
+				it->second.ChangeParent(it->second.GetParent(), Application::Get()->activeScene->entities.at(Application::Get()->activeScene->mainSceneEntity->uuid));
 			}
 			else {
-				auto parentIt = Application->activeScene->entities.find(parentUuid);
-				if (parentIt != Application->activeScene->entities.end())
+				auto parentIt = Application::Get()->activeScene->entities.find(parentUuid);
+				if (parentIt != Application::Get()->activeScene->entities.end())
 					it->second.ChangeParent(it->second.GetParent(), parentIt->second);
 			}
 		}
@@ -255,18 +255,18 @@ namespace Plaza {
 
 	static vector<uint64_t> EntityGetChildren(uint64_t uuid) {
 
-		auto it = Application->activeScene->entities.find(uuid);
-		if (it != Application->activeScene->entities.end())
-			return Application->activeScene->entities.at(uuid).childrenUuid;
+		auto it = Application::Get()->activeScene->entities.find(uuid);
+		if (it != Application::Get()->activeScene->entities.end())
+			return Application::Get()->activeScene->entities.at(uuid).childrenUuid;
 	}
 
 	static void EntityDelete(uint64_t uuid) {
 		if (uuid) {
 			Editor::Filewatcher::AddToMainThread([uuid]() {
 
-				auto it = Application->activeScene->entities.find(uuid); // Find the iterator for the key
-				if (it != Application->activeScene->entities.end()) {
-					Application->activeScene->entities.at(uuid).Delete();
+				auto it = Application::Get()->activeScene->entities.find(uuid); // Find the iterator for the key
+				if (it != Application::Get()->activeScene->entities.end()) {
+					Application::Get()->activeScene->entities.at(uuid).Delete();
 				}
 				});
 		}
@@ -371,10 +371,10 @@ namespace Plaza {
 #pragma region Transform Component
 	static void SetPosition(uint64_t uuid, glm::vec3* vec3) {
 		PLAZA_PROFILE_SECTION("Mono: Set Position");
-		Application->activeScene->transformComponents.find(uuid)->second.SetRelativePosition(*vec3);
+		Application::Get()->activeScene->transformComponents.find(uuid)->second.SetRelativePosition(*vec3);
 	}
 	static void GetPositionCall(uint64_t uuid, glm::vec3* out) {
-		*out = Application->activeScene->transformComponents.at(uuid).relativePosition;
+		*out = Application::Get()->activeScene->transformComponents.at(uuid).relativePosition;
 	}
 
 	static void SetRotation(uint64_t uuid, glm::vec3* vec3) {
@@ -384,32 +384,32 @@ namespace Plaza {
 			w = 0.0f;
 		radVector = *vec3 * ((float)(glm::pi<float>() / 180.0f));
 		glm::quat rotationQuat = glm::quat(radVector);
-		glm::quat quaternion = Application->activeScene->transformComponents.find(uuid)->second.rotation;
+		glm::quat quaternion = Application::Get()->activeScene->transformComponents.find(uuid)->second.rotation;
 
-		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(rotationQuat);
+		Application::Get()->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(rotationQuat);
 	}
 	static void GetRotationCall(uint64_t uuid, glm::vec3* out) {
-		*out = glm::degrees(glm::normalize(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation()));
+		*out = glm::degrees(glm::normalize(Application::Get()->activeScene->transformComponents.find(uuid)->second.GetWorldRotation()));
 	}
 
 	static void SetRotationQuaternion(uint64_t uuid, glm::vec4* quat) {
-		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(glm::quat(quat->w, quat->x, quat->y, quat->z));
+		Application::Get()->activeScene->transformComponents.find(uuid)->second.SetRelativeRotation(glm::quat(quat->w, quat->x, quat->y, quat->z));
 	}
 	static void GetRotationQuaternionCall(uint64_t uuid, glm::vec4* out) {
-		glm::quat localQuat = Application->activeScene->transformComponents.find(uuid)->second.GetLocalQuaternion();
+		glm::quat localQuat = Application::Get()->activeScene->transformComponents.find(uuid)->second.GetLocalQuaternion();
 		*out = glm::vec4(localQuat.x, localQuat.y, localQuat.z, localQuat.w);
 	}
 
 	static void GetWorldRotationQuaternionCall(uint64_t uuid, glm::vec4* out) {
-		glm::quat worldQuat = glm::quat(Application->activeScene->transformComponents.find(uuid)->second.GetWorldRotation());//Application->activeScene->transformComponents.find(uuid)->second.GetWorldQuaternion();
+		glm::quat worldQuat = glm::quat(Application::Get()->activeScene->transformComponents.find(uuid)->second.GetWorldRotation());//Application::Get()->activeScene->transformComponents.find(uuid)->second.GetWorldQuaternion();
 		*out = glm::vec4(worldQuat.x, worldQuat.y, worldQuat.z, worldQuat.w);
 	}
 
 	static void SetScaleCall(uint64_t uuid, glm::vec3* vec3) {
-		Application->activeScene->transformComponents.find(uuid)->second.SetRelativeScale(*vec3);
+		Application::Get()->activeScene->transformComponents.find(uuid)->second.SetRelativeScale(*vec3);
 	}
 	static void GetScaleCall(uint64_t uuid, glm::vec3* out) {
-		*out = Application->activeScene->transformComponents.find(uuid)->second.scale;
+		*out = Application::Get()->activeScene->transformComponents.find(uuid)->second.scale;
 	}
 	/*
 			glm::mat4 matrix = this->GetTransform();
@@ -420,22 +420,22 @@ namespace Plaza {
 		glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
 	*/
 	static void Transform_GetUpVector(uint64_t uuid, glm::vec3* out) {
-		glm::mat4 matrix = Application->activeScene->transformComponents.at(uuid).GetTransform();
+		glm::mat4 matrix = Application::Get()->activeScene->transformComponents.at(uuid).GetTransform();
 		*out = glm::normalize(glm::vec3(matrix[1][0], matrix[1][1], matrix[1][2]));
 	}
 
 	static void Transform_GetForwardVector(uint64_t uuid, glm::vec3* out) {
-		glm::mat4 matrix = Application->activeScene->transformComponents.at(uuid).GetTransform();
+		glm::mat4 matrix = Application::Get()->activeScene->transformComponents.at(uuid).GetTransform();
 		*out = glm::normalize(glm::vec3(matrix[2][0], matrix[2][1], matrix[2][2]));
 	}
 
 	static void Transform_GetLeftVector(uint64_t uuid, glm::vec3* out) {
-		glm::mat4 matrix = Application->activeScene->transformComponents.at(uuid).GetTransform();
+		glm::mat4 matrix = Application::Get()->activeScene->transformComponents.at(uuid).GetTransform();
 		*out = -glm::normalize(glm::vec3(matrix[0][0], matrix[0][1], matrix[0][2]));
 	}
 
 	static void Transform_GetWorldMatrix(uint64_t uuid, float** out, int* size) {
-		glm::mat4 matrix = Application->activeScene->transformComponents.find(uuid)->second.GetTransform();
+		glm::mat4 matrix = Application::Get()->activeScene->transformComponents.find(uuid)->second.GetTransform();
 
 		// Create a statically allocated array to store the matrix data
 		float* data = new float[16]; // Assuming 4x4 matrix
@@ -453,14 +453,14 @@ namespace Plaza {
 	}
 
 	static void MoveTowards(uint64_t uuid, glm::vec3 vector3) {
-		auto transformIt = Application->activeScene->transformComponents.find(uuid);
-		if (transformIt != Application->activeScene->transformComponents.end())
+		auto transformIt = Application::Get()->activeScene->transformComponents.find(uuid);
+		if (transformIt != Application::Get()->activeScene->transformComponents.end())
 			transformIt->second.MoveTowards(vector3);
 	}
 
 	static void MoveTowardsReturn(uint64_t uuid, glm::vec3 vector3, glm::vec3* outVector) {
-		auto transformIt = Application->activeScene->transformComponents.find(uuid);
-		if (transformIt != Application->activeScene->transformComponents.end())
+		auto transformIt = Application::Get()->activeScene->transformComponents.find(uuid);
+		if (transformIt != Application::Get()->activeScene->transformComponents.end())
 			*outVector = transformIt->second.MoveTowardsReturn(vector3);
 	}
 
@@ -470,21 +470,21 @@ namespace Plaza {
 
 #pragma region Mesh Renderer Component
 	static void MeshRenderer_SetMaterial(uint64_t uuid, uint64_t materialUuid) {
-		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
-		if (meshRendererIt != Application->activeScene->meshRendererComponents.end() && Application->activeScene->materials.find(materialUuid) != Application->activeScene->materials.end()) {
-			meshRendererIt->second.ChangeMaterial(Application->activeScene->materials.find(materialUuid)->second.get());
-			//meshRendererIt->second.ChangeMaterial(Application->activeScene->materials.find(materialUuid)->second.get());
-			//meshRendererIt->second.material = Application->activeScene->materials.find(materialUuid)->second.get();
+		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end() && Application::Get()->activeScene->materials.find(materialUuid) != Application::Get()->activeScene->materials.end()) {
+			meshRendererIt->second.ChangeMaterial(Application::Get()->activeScene->materials.find(materialUuid)->second.get());
+			//meshRendererIt->second.ChangeMaterial(Application::Get()->activeScene->materials.find(materialUuid)->second.get());
+			//meshRendererIt->second.material = Application::Get()->activeScene->materials.find(materialUuid)->second.get();
 			//if (!meshRendererIt->second.renderGroup) {
 			//	meshRendererIt->second.renderGroup = new RenderGroup(meshRendererIt->second.mesh, meshRendererIt->second.material);
-			//	Application->activeScene->AddRenderGroup(meshRendererIt->second.renderGroup);
+			//	Application::Get()->activeScene->AddRenderGroup(meshRendererIt->second.renderGroup);
 			//}
 
 		}
 	}
 	static void MeshRenderer_GetVertices(uint64_t uuid, glm::vec3** out, int* size) {
-		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
-		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			vector<glm::vec3> vertices = meshRendererIt->second.mesh->vertices;
 			*size = static_cast<int>(vertices.size());
 			*out = vertices.data();
@@ -496,8 +496,8 @@ namespace Plaza {
 	}
 
 	static void MeshRenderer_SetVertices(uint64_t uuid, glm::vec3* vertices, int size) {
-		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
-		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
 			Mesh* oldMesh = (Mesh*)meshRendererIt->second.mesh;
 			Mesh* newMesh;
@@ -513,10 +513,10 @@ namespace Plaza {
 			}
 			else {
 				AssetsManager::AddMesh(newMesh);
-				//Application->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
+				//Application::Get()->activeScene->meshes.emplace(newMesh->meshId, make_shared<Mesh>(*newMesh));
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);
-			vector<glm::vec3>& meshVertices = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->vertices;
+			Application::Get()->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);
+			vector<glm::vec3>& meshVertices = Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->vertices;
 			meshVertices.clear();
 
 			// Reserve space for the new vertices (optional but can improve performance)
@@ -527,19 +527,19 @@ namespace Plaza {
 				meshVertices.push_back(vertices[i]);
 			}
 
-			//    Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
-			Application->mRenderer->RestartMesh(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
-			//RenderGroup* rend = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup.get();
-			//Mesh* mes = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh.get();
-			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (Mesh*)(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
+			//    Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			Application::Get()->mRenderer->RestartMesh(Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
+			//RenderGroup* rend = Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup.get();
+			//Mesh* mes = Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh.get();
+			if (Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
+				Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (Mesh*)(Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
 			//delete newMesh;
 		}
 	}
 
 	static void MeshRenderer_GetIndices(uint64_t uuid, unsigned int** out, int* size) {
-		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
-		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			vector<unsigned int> indices = meshRendererIt->second.mesh->indices;
 			*size = static_cast<int>(indices.size());
 			*out = indices.data();
@@ -551,8 +551,8 @@ namespace Plaza {
 	}
 
 	static void MeshRenderer_SetIndices(uint64_t uuid, unsigned int* indices, int size) {
-		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
-		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
 			Mesh* oldMesh = (Mesh*)meshRendererIt->second.mesh;
 			Mesh* newMesh;
@@ -569,8 +569,8 @@ namespace Plaza {
 			else {
 				AssetsManager::AddMesh(newMesh);
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);
-			vector<unsigned int>& meshIndices = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->indices;
+			Application::Get()->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);
+			vector<unsigned int>& meshIndices = Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->indices;
 			meshIndices.clear();
 
 			// Reserve space for the new vertices (optional but can improve performance)
@@ -581,17 +581,17 @@ namespace Plaza {
 				meshIndices.push_back(indices[i]);
 			}
 
-			//    Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
-			Application->mRenderer->RestartMesh(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
-			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+			//    Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			Application::Get()->mRenderer->RestartMesh(Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
+			if (Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
+				Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			delete newMesh;
 		}
 	}
 
 	static void MeshRenderer_GetNormals(uint64_t uuid, glm::vec3** out, int* size) {
-		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
-		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			vector<glm::vec3> vertices = meshRendererIt->second.mesh->normals;
 			*size = static_cast<int>(vertices.size());
 			*out = vertices.data();
@@ -603,8 +603,8 @@ namespace Plaza {
 	}
 
 	static void MeshRenderer_SetNormals(uint64_t uuid, glm::vec3* normals, int size) {
-		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
-		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
 			OpenGLMesh* oldMesh = (OpenGLMesh*)meshRendererIt->second.mesh;
 			OpenGLMesh* newMesh;
@@ -621,8 +621,8 @@ namespace Plaza {
 			else {
 				AssetsManager::AddMesh(newMesh);
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);
-			vector<glm::vec3>& meshNormals = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->normals;
+			Application::Get()->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);
+			vector<glm::vec3>& meshNormals = Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->normals;
 			meshNormals.clear();
 
 			// Reserve space for the new vertices (optional but can improve performance)
@@ -632,17 +632,17 @@ namespace Plaza {
 			for (int i = 0; i < size; ++i) {
 				meshNormals.push_back(normals[i]);
 			}
-			//    Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
-			Application->mRenderer->RestartMesh(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
-			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+			//    Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			Application::Get()->mRenderer->RestartMesh(Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
+			if (Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
+				Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			delete newMesh;
 		}
 	}
 
 	static void MeshRenderer_GetUvs(uint64_t uuid, glm::vec2** out, int* size) {
-		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
-		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			vector<glm::vec2> uvs = meshRendererIt->second.mesh->uvs;
 			*size = static_cast<int>(uvs.size());
 			*out = uvs.data();
@@ -654,8 +654,8 @@ namespace Plaza {
 	}
 
 	static void MeshRenderer_SetUvs(uint64_t uuid, glm::vec2* uvs, int size) {
-		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
-		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
 			OpenGLMesh* oldMesh = (OpenGLMesh*)meshRendererIt->second.mesh;
 			OpenGLMesh* newMesh;
@@ -672,8 +672,8 @@ namespace Plaza {
 			else {
 				AssetsManager::AddMesh(newMesh);
 			}
-			Application->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);//Application->activeScene->meshes.at(newMesh->meshId).get();
-			vector<glm::vec2>& meshUvs = Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->uvs;
+			Application::Get()->activeScene->meshRendererComponents.at(uuid).mesh = AssetsManager::GetMesh(newMesh->meshId);//Application::Get()->activeScene->meshes.at(newMesh->meshId).get();
+			vector<glm::vec2>& meshUvs = Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->uvs;
 			meshUvs.clear();
 
 			// Reserve space for the new vertices (optional but can improve performance)
@@ -683,17 +683,17 @@ namespace Plaza {
 			for (int i = 0; i < size; ++i) {
 				meshUvs.push_back(uvs[i]);
 			}
-			//    Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
-			Application->mRenderer->RestartMesh(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
-			if (Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+			//    Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			Application::Get()->mRenderer->RestartMesh(Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
+			if (Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
+				Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			delete newMesh;
 		}
 	}
 
 	static void MeshRenderer_SetMesh(uint64_t uuid, glm::vec3* vertices, int verticesSize, unsigned int* indices, int indicesSize, glm::vec3* normals, int normalsSize, glm::vec2* uvs, int uvsSize) {
-		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
-		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
 			Mesh* oldMesh = (Mesh*)meshRendererIt->second.mesh;
 			Mesh* newMesh;
@@ -728,31 +728,31 @@ namespace Plaza {
 			newMesh->uvs.assign(uvs, uvs + uvsSize);
 
 			uint64_t oldMeshUuid = oldMesh->uuid;
-			//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
+			//Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
 
 			Editor::Filewatcher::AddToMainThread([uuid, oldMeshUuid, meshRendererIt, newMesh]() {
-				Application->activeScene->meshRendererComponents.find(uuid)->second.mesh = AssetsManager::GetMesh(newMesh->meshId);
+				Application::Get()->activeScene->meshRendererComponents.find(uuid)->second.mesh = AssetsManager::GetMesh(newMesh->meshId);
 				meshRendererIt->second.mesh = newMesh;
 
-				Application->activeScene->meshRendererComponents.find(uuid)->second.mesh = Application->mRenderer->RestartMesh(Application->activeScene->meshRendererComponents.find(uuid)->second.mesh);
+				Application::Get()->activeScene->meshRendererComponents.find(uuid)->second.mesh = Application::Get()->mRenderer->RestartMesh(Application::Get()->activeScene->meshRendererComponents.find(uuid)->second.mesh);
 
-				if (oldMeshUuid == meshRendererIt->second.mesh->uuid && Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup) {
-					Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				if (oldMeshUuid == meshRendererIt->second.mesh->uuid && Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup) {
+					Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 				}
 				else {
-					RenderGroup* newRenderGroup = new RenderGroup(Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh, Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->materials);
-					Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(newRenderGroup);
+					RenderGroup* newRenderGroup = new RenderGroup(Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh, Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->materials);
+					Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application::Get()->activeScene->AddRenderGroup(newRenderGroup);
 				}
 				});
 
 			//delete newMesh;
-			//Application->activeScene->meshRendererComponents.find(uuid)->second.renderGroup->mesh = meshRendererIt->second.mesh;
+			//Application::Get()->activeScene->meshRendererComponents.find(uuid)->second.renderGroup->mesh = meshRendererIt->second.mesh;
 		}
 	}
 
 	static float MeshRenderer_GetHeight(uint64_t uuid, float pixelX, float pixelY) {
-		auto meshRendererIt = Application->activeScene->meshRendererComponents.find(uuid);
-		if (meshRendererIt != Application->activeScene->meshRendererComponents.end()) {
+		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			return meshRendererIt->second.GetHeight(pixelX, pixelY);
 		}
 	}
@@ -761,8 +761,8 @@ namespace Plaza {
 
 #pragma region RigidBody
 	static void RigidBody_LockAngular(uint64_t uuid, Axis axis, bool value) {
-		auto it = Application->activeScene->rigidBodyComponents.find(uuid);
-		if (it != Application->activeScene->rigidBodyComponents.end()) {
+		auto it = Application::Get()->activeScene->rigidBodyComponents.find(uuid);
+		if (it != Application::Get()->activeScene->rigidBodyComponents.end()) {
 			physx::PxRigidDynamicLockFlag::Enum flag;
 			if (axis == Axis::X)
 				flag = physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X;
@@ -780,8 +780,8 @@ namespace Plaza {
 
 	static Angular* RigidBody_IsAngularLocked(uint64_t uuid) {
 		Angular* angular = new Angular();
-		auto it = Application->activeScene->rigidBodyComponents.find(uuid);
-		if (it != Application->activeScene->rigidBodyComponents.end()) {
+		auto it = Application::Get()->activeScene->rigidBodyComponents.find(uuid);
+		if (it != Application::Get()->activeScene->rigidBodyComponents.end()) {
 			if (it->second.rigidDynamicLockFlags.isSet(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X))
 				angular->X = true;
 
@@ -795,61 +795,61 @@ namespace Plaza {
 	}
 
 	static void RigidBody_ApplyForce(uint64_t uuid, glm::vec3* vec3) {
-		Application->activeScene->rigidBodyComponents.at(uuid).ApplyForce(*vec3);
+		Application::Get()->activeScene->rigidBodyComponents.at(uuid).ApplyForce(*vec3);
 	}
 
 	static void RigidBody_AddForce(uint64_t uuid, glm::vec3* vec3, physx::PxForceMode::Enum mode, bool autowake) {
-		if (Application->activeScene->HasComponent<RigidBody>(uuid))
-			Application->activeScene->rigidBodyComponents.at(uuid).AddForce(*vec3, mode, autowake);
+		if (Application::Get()->activeScene->HasComponent<RigidBody>(uuid))
+			Application::Get()->activeScene->rigidBodyComponents.at(uuid).AddForce(*vec3, mode, autowake);
 	}
 
 	static void RigidBody_AddTorque(uint64_t uuid, glm::vec3* vec3, physx::PxForceMode::Enum mode, bool autowake) {
-		if (Application->activeScene->HasComponent<RigidBody>(uuid))
-			Application->activeScene->rigidBodyComponents.at(uuid).AddTorque(*vec3, mode, autowake);
+		if (Application::Get()->activeScene->HasComponent<RigidBody>(uuid))
+			Application::Get()->activeScene->rigidBodyComponents.at(uuid).AddTorque(*vec3, mode, autowake);
 	}
 
 	static float RigidBody_GetDrag(uint64_t uuid, float drag) {
-		if (Application->activeScene->HasComponent<RigidBody>(uuid))
-			return Application->activeScene->rigidBodyComponents.at(uuid).GetDrag();
+		if (Application::Get()->activeScene->HasComponent<RigidBody>(uuid))
+			return Application::Get()->activeScene->rigidBodyComponents.at(uuid).GetDrag();
 	}
 
 	static void RigidBody_SetDrag(uint64_t uuid, float drag) {
-		if (Application->activeScene->HasComponent<RigidBody>(uuid))
-			Application->activeScene->rigidBodyComponents.at(uuid).SetDrag(drag);
+		if (Application::Get()->activeScene->HasComponent<RigidBody>(uuid))
+			Application::Get()->activeScene->rigidBodyComponents.at(uuid).SetDrag(drag);
 	}
 
 	static void RigidBody_GetVelocity(uint64_t uuid, glm::vec3* out) {
-		if (Application->activeScene->HasComponent<RigidBody>(uuid)) {
-			RigidBody* comp = Application->activeScene->GetComponent<RigidBody>(uuid);
+		if (Application::Get()->activeScene->HasComponent<RigidBody>(uuid)) {
+			RigidBody* comp = Application::Get()->activeScene->GetComponent<RigidBody>(uuid);
 			*out = comp->GetVelocity();
 		}
 	}
 
 	static void RigidBody_SetVelocity(uint64_t uuid, glm::vec3* vec3) {
-		if (Application->activeScene->HasComponent<RigidBody>(uuid))
-			Application->activeScene->rigidBodyComponents.at(uuid).SetVelocity(*vec3);
+		if (Application::Get()->activeScene->HasComponent<RigidBody>(uuid))
+			Application::Get()->activeScene->rigidBodyComponents.at(uuid).SetVelocity(*vec3);
 	}
 #pragma endregion RigidBody
 
 #pragma region Collider
 	static void Collider_AddShape(uint64_t uuid, ColliderShape::ColliderShapeEnum shape) {
-		auto it = Application->activeScene->colliderComponents.find(uuid);
-		if (it != Application->activeScene->colliderComponents.end()) {
+		auto it = Application::Get()->activeScene->colliderComponents.find(uuid);
+		if (it != Application::Get()->activeScene->colliderComponents.end()) {
 			Editor::Filewatcher::AddToMainThread([it, uuid, shape]() {
 
-				if ((shape == ColliderShape::ColliderShapeEnum::CONVEX_MESH || shape == ColliderShape::ColliderShapeEnum::MESH) && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
-					it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), Application->activeScene->meshRendererComponents.at(uuid).mesh);
+				if ((shape == ColliderShape::ColliderShapeEnum::CONVEX_MESH || shape == ColliderShape::ColliderShapeEnum::MESH) && Application::Get()->activeScene->HasComponent<MeshRenderer>(uuid)) {
+					it->second.CreateShape(shape, &Application::Get()->activeScene->transformComponents.at(uuid), Application::Get()->activeScene->meshRendererComponents.at(uuid).mesh);
 				}
 				else
-					it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid));
+					it->second.CreateShape(shape, &Application::Get()->activeScene->transformComponents.at(uuid));
 				it->second.Init(nullptr);
 				});
 		}
 	}
 
 	static void Collider_AddShapeMeshCall(uint64_t uuid, ColliderShape::ColliderShapeEnum shape, glm::vec3* vertices, int verticesSize, unsigned int* indices, int indicesSize, glm::vec3* normals, int normalsSize, glm::vec2* uvs, int uvsSize) {
-		auto it = Application->activeScene->colliderComponents.find(uuid);
-		if (it != Application->activeScene->colliderComponents.end()) {
+		auto it = Application::Get()->activeScene->colliderComponents.find(uuid);
+		if (it != Application::Get()->activeScene->colliderComponents.end()) {
 			OpenGLMesh* newMesh = new OpenGLMesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
@@ -870,17 +870,17 @@ namespace Plaza {
 			newMesh->uvs.assign(uvs, uvs + uvsSize);
 
 
-			it->second.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), newMesh);
+			it->second.CreateShape(shape, &Application::Get()->activeScene->transformComponents.at(uuid), newMesh);
 			Editor::Filewatcher::AddToMainThread([uuid]() {
-				Application->activeScene->colliderComponents.find(uuid)->second.Init(nullptr);
+				Application::Get()->activeScene->colliderComponents.find(uuid)->second.Init(nullptr);
 				});
 		}
 	}
 	static void Collider_AddShapeHeightFieldCall(uint64_t uuid, ColliderShape::ColliderShapeEnum shape, MonoArray* floatArray, int size) {
-		auto it = Application->activeScene->colliderComponents.find(uuid);
-		if (it != Application->activeScene->colliderComponents.end()) {
+		auto it = Application::Get()->activeScene->colliderComponents.find(uuid);
+		if (it != Application::Get()->activeScene->colliderComponents.end()) {
 			float min = 0;
-			if (shape == ColliderShape::ColliderShapeEnum::HEIGHT_FIELD && Application->activeScene->HasComponent<MeshRenderer>(uuid)) {
+			if (shape == ColliderShape::ColliderShapeEnum::HEIGHT_FIELD && Application::Get()->activeScene->HasComponent<MeshRenderer>(uuid)) {
 				float** data = new float* [size];
 				for (int i = 0; i < size; ++i) {
 					data[i] = new float[size];
@@ -890,7 +890,7 @@ namespace Plaza {
 						min = data[i][j] < min ? data[i][j] : min;
 					}
 				}
-				it->second.AddHeightShape(data, size);//.CreateShape(shape, &Application->activeScene->transformComponents.at(uuid), Application->activeScene->meshRendererComponents.at(uuid).mesh.get());
+				it->second.AddHeightShape(data, size);//.CreateShape(shape, &Application::Get()->activeScene->transformComponents.at(uuid), Application::Get()->activeScene->meshRendererComponents.at(uuid).mesh.get());
 			}
 			it->second.Init(nullptr);
 		}
@@ -900,83 +900,83 @@ namespace Plaza {
 
 #pragma region Character Controller
 	static void CharacterController_MoveCall(uint64_t uuid, glm::vec3 position, float minimumDistance, bool followOrientation, float elapsedTime) {
-		if (Application->activeScene->HasComponent<CharacterController>(uuid)) {
-			Application->activeScene->GetComponent<CharacterController>(uuid)->Move(position, minimumDistance, followOrientation, elapsedTime);
+		if (Application::Get()->activeScene->HasComponent<CharacterController>(uuid)) {
+			Application::Get()->activeScene->GetComponent<CharacterController>(uuid)->Move(position, minimumDistance, followOrientation, elapsedTime);
 		}
 	}
 #pragma endregion Character Controller
 
 #pragma region TextRenderer
 	static string TextRenderer_GetText(uint64_t uuid) {
-		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
-			return Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mText;
+		if (Application::Get()->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+			return Application::Get()->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mText;
 		}
 		return "";
 	}
 	static void TextRenderer_SetText(uint64_t uuid, MonoString* monoString) {
-		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+		if (Application::Get()->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
 			char* textCStr = mono_string_to_utf8(monoString);
-			Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mText = textCStr;
+			Application::Get()->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mText = textCStr;
 			mono_free(textCStr);
 		}
 	}
 	static void TextRenderer_GetPosition(uint64_t uuid, glm::vec2* out) {
-		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
-			Drawing::UI::TextRenderer* comp = Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid);
+		if (Application::Get()->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+			Drawing::UI::TextRenderer* comp = Application::Get()->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid);
 			*out = glm::vec2(comp->mPosX, comp->mPosY);
 		}
 	}
 	static void TextRenderer_SetPosition(uint64_t uuid, glm::vec2* position) {
-		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
-			Drawing::UI::TextRenderer* comp = Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid);
+		if (Application::Get()->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+			Drawing::UI::TextRenderer* comp = Application::Get()->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid);
 			comp->mPosX = position->x;
 			comp->mPosY = position->y;
 		}
 	}
 	static void TextRenderer_SetFullText(uint64_t uuid, MonoString* monoString, float x, float y, float scale, glm::vec4 color) {
-		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+		if (Application::Get()->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
 			char* textCStr = mono_string_to_utf8(monoString);
-			Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->SetFullText(textCStr, x, y, scale, color);
+			Application::Get()->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->SetFullText(textCStr, x, y, scale, color);
 			mono_free(textCStr);
 		}
 	}
 
 	static float TextRenderer_GetScale(uint64_t uuid) {
-		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
-			return Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mScale;
+		if (Application::Get()->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+			return Application::Get()->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mScale;
 		}
 	}
 	static void TextRenderer_SetScale(uint64_t uuid, float scale) {
-		if (Application->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
-			Application->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mScale = scale;
+		if (Application::Get()->activeScene->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
+			Application::Get()->activeScene->GetComponent<Drawing::UI::TextRenderer>(uuid)->mScale = scale;
 		}
 	}
 #pragma endregion TextRenderer
 
 #pragma region AudioSource
 	static void AudioSource_Play(uint64_t uuid) {
-		Application->activeScene->audioSourceComponents.find(uuid)->second.Play();
+		Application::Get()->activeScene->audioSourceComponents.find(uuid)->second.Play();
 	}
 	static void AudioSource_Stop(uint64_t uuid) {
-		Application->activeScene->audioSourceComponents.find(uuid)->second.Stop();
+		Application::Get()->activeScene->audioSourceComponents.find(uuid)->second.Stop();
 	}
 	static bool AudioSource_GetSpatial(uint64_t uuid) {
-		return Application->activeScene->audioSourceComponents.find(uuid)->second.mSpatial;
+		return Application::Get()->activeScene->audioSourceComponents.find(uuid)->second.mSpatial;
 	}
 	static void AudioSource_SetSpatial(uint64_t uuid, bool value) {
-		Application->activeScene->audioSourceComponents.find(uuid)->second.mSpatial = value;
+		Application::Get()->activeScene->audioSourceComponents.find(uuid)->second.mSpatial = value;
 	}
 	static float AudioSource_GetVolume(uint64_t uuid) {
-		return Application->activeScene->audioSourceComponents.find(uuid)->second.mGain;
+		return Application::Get()->activeScene->audioSourceComponents.find(uuid)->second.mGain;
 	}
 	static void AudioSource_SetVolume(uint64_t uuid, bool value) {
-		Application->activeScene->audioSourceComponents.find(uuid)->second.mGain = value;
+		Application::Get()->activeScene->audioSourceComponents.find(uuid)->second.mGain = value;
 	}
 	static float AudioSource_GetPitch(uint64_t uuid) {
-		return Application->activeScene->audioSourceComponents.find(uuid)->second.mPitch;
+		return Application::Get()->activeScene->audioSourceComponents.find(uuid)->second.mPitch;
 	}
 	static void AudioSource_SetPitch(uint64_t uuid, bool value) {
-		Application->activeScene->audioSourceComponents.find(uuid)->second.mPitch = value;
+		Application::Get()->activeScene->audioSourceComponents.find(uuid)->second.mPitch = value;
 	}
 #pragma endregion AudioSource
 

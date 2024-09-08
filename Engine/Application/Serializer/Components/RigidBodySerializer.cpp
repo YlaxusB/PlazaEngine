@@ -13,7 +13,7 @@ namespace Plaza {
 	}
 
 	RigidBody* ComponentSerializer::RigidBodySerializer::DeSerialize(YAML::Node data) {
-		RigidBody* rigidBody = new RigidBody(data["Uuid"].as<uint64_t>(), Application->runningScene);
+		RigidBody* rigidBody = new RigidBody(data["Uuid"].as<uint64_t>(), Application::Get()->runningScene);
 		rigidBody->rigidDynamicLockFlags = physx::PxRigidDynamicLockFlags(data["DynamicLockFlags"].as<unsigned int>());
 		rigidBody->continuousDetection = data["ContinuousDetection"].as<bool>();
 		return rigidBody;

@@ -19,7 +19,7 @@ namespace Plaza {
 		out << YAML::Key << "AudioSourceComponent" << YAML::BeginMap;
 
 		out << YAML::Key << "Uuid" << YAML::Value << audioSource.mUuid;
-		out << YAML::Key << "SourcePath" << YAML::Value << removeDirectoryFromString(Application->projectPath, audioSource.mSourcePath);
+		out << YAML::Key << "SourcePath" << YAML::Value << removeDirectoryFromString(Application::Get()->projectPath, audioSource.mSourcePath);
 		out << YAML::Key << "Gain" << YAML::Value << audioSource.mGain;
 		out << YAML::Key << "Pitch" << YAML::Value << audioSource.mPitch;
 		out << YAML::Key << "Spatial" << YAML::Value << audioSource.mSpatial;
@@ -32,7 +32,7 @@ namespace Plaza {
 		AudioSource* audioSource = new AudioSource();
 		audioSource->mUuid = data["Uuid"].as<uint64_t>();
 		if (data["SourcePath"])
-			audioSource->mSourcePath = Application->projectPath + "\\" + data["SourcePath"].as<std::string>();
+			audioSource->mSourcePath = Application::Get()->projectPath + "\\" + data["SourcePath"].as<std::string>();
 		if (!audioSource->mSourcePath.empty()) {
 			audioSource->LoadFile(audioSource->mSourcePath);
 		}

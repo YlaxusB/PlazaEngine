@@ -7,13 +7,13 @@ bool Callbacks::rightClickPressed;
 bool Callbacks::mouseFirstCallback;
 bool Callbacks::firstMouse = true;
 
-float Callbacks::lastX = 0;//Application->appSizes->appSize.x / 2.0f;
-float Callbacks::lastY = 0;//Application->appSizes->appSize.y / 2.0f;
+float Callbacks::lastX = 0;//Application::Get()->appSizes->appSize.x / 2.0f;
+float Callbacks::lastY = 0;//Application::Get()->appSizes->appSize.y / 2.0f;
 
 
 
 void Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double yposIn) {
-	if (Application->focusedMenu == "Editor") {
+	if (Application::Get()->focusedMenu == "Editor") {
 		float xpos = static_cast<float>(xposIn);
 		float ypos = static_cast<float>(yposIn);
 
@@ -24,7 +24,7 @@ void Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double yposIn) 
 			mouseFirstCallback = false;
 		}
 		else if (rightClickPressed && !mouseFirstCallback) {
-			Application->activeCamera->ProcessMouseMovement(xoffset, yoffset);
+			Application::Get()->activeCamera->ProcessMouseMovement(xoffset, yoffset);
 			mouseFirstCallback = false;
 		}
 		else if (!rightClickPressed) {

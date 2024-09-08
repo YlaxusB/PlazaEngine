@@ -42,9 +42,9 @@ public class )" + className + R"( : Entity
 
 		Script script = Script();
 		script.lastModifiedDate = std::chrono::system_clock::now();
-		Application->activeProject->scripts.emplace(fullPath, script);
-		std::map<std::string, Script> map = Application->activeProject->scripts;
-		ScriptManagerSerializer::Serialize(Application->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName, map);
+		Application::Get()->activeProject->scripts.emplace(fullPath, script);
+		std::map<std::string, Script> map = Application::Get()->activeProject->scripts;
+		ScriptManagerSerializer::Serialize(Application::Get()->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName, map);
 	}
 }
 

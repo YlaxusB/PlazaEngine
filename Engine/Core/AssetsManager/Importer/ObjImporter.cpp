@@ -86,7 +86,7 @@ namespace Plaza {
 			Entity* newEntity;
 			if (!mainEntity)
 			{
-				newEntity = new Entity(shape.name, Application->activeScene->mainSceneEntity);
+				newEntity = new Entity(shape.name, Application::Get()->activeScene->mainSceneEntity);
 				mainEntity = newEntity;
 			}
 			else
@@ -131,7 +131,7 @@ namespace Plaza {
 				indices.push_back(uniqueVertices[vertex]);
 			}
 			if (vertices.size() > 0) {
-				Material* material = Application->activeScene->DefaultMaterial();
+				Material* material = Application::Get()->activeScene->DefaultMaterial();
 				if (shape.mesh.material_ids.size() > 0 && materials.size() >= shape.mesh.material_ids[0]) {
 					tinyobj::material_t tinyobjMaterial = materials.at(shape.mesh.material_ids[0]);
 					std::string diffusePath = parentPath + "\\" + tinyobjMaterial.diffuse_texname;
@@ -143,10 +143,10 @@ namespace Plaza {
 					if (loadedMaterials.find(materialOutPath) == loadedMaterials.end()) {
 						loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
 						AssetsSerializer::SerializeMaterial(material, materialOutPath);
-						Application->activeScene->AddMaterial(material);
+						Application::Get()->activeScene->AddMaterial(material);
 					}
 					else
-						material = Application->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second);
+						material = Application::Get()->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second);
 				}
 
 				/* Generate Tangents */
@@ -210,7 +210,7 @@ namespace Plaza {
 				}
 
 				std::vector<unsigned int> materials{ 0 };
-				Mesh& mesh = Application->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);// new Mesh();
+				Mesh& mesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);// new Mesh();
 				MeshRenderer* meshRenderer = new MeshRenderer(&mesh, material);
 				meshRenderer->mMaterials.push_back(material);
 				newEntity->AddComponent<MeshRenderer>(meshRenderer);
@@ -222,6 +222,6 @@ namespace Plaza {
 			}
 			index++;
 		}
-		return Application->activeScene->GetEntity(mainEntity->uuid);
+		return Application::Get()->activeScene->GetEntity(mainEntity->uuid);
 	}
 }

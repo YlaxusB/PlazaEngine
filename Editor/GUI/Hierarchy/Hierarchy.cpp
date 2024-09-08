@@ -21,8 +21,8 @@ namespace Plaza::Editor {
 
 	void HierarchyWindow::Update() {
 		PLAZA_PROFILE_SECTION("Begin Hierarchy");
-		ApplicationSizes& appSizes = *Application->appSizes;
-		ApplicationSizes& lastAppSizes = *Application->lastAppSizes;
+		ApplicationSizes& appSizes = *Application::Get()->appSizes;
+		ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 		Entity* selectedGameObject = Editor::selectedGameObject;
 		//ImGui::SetNextWindowPos(ImVec2(0, 0));
 		ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoFocusOnAppearing | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_HorizontalScrollbar | ImGuiScrollFlags_NoScrollParent;
@@ -31,9 +31,9 @@ namespace Plaza::Editor {
 		ImGui::SetNextWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y));
 		ImGui::Begin("Hierarchy", &Gui::isHierarchyOpen, sceneWindowFlags);
 		if (ImGui::IsWindowFocused())
-			Application->focusedMenu = "Hierarchy";
+			Application::Get()->focusedMenu = "Hierarchy";
 		if (ImGui::IsWindowHovered()) {
-			Application->hoveredMenu = "Hierarchy";
+			Application::Get()->hoveredMenu = "Hierarchy";
 		}
 
 		appSizes.hierarchySize.x = ImGui::GetWindowSize().x;
@@ -47,7 +47,7 @@ namespace Plaza::Editor {
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-		HierarchyWindow::Item(Application->activeScene->entities[Application->activeScene->mainSceneEntity->uuid], selectedGameObject);
+		HierarchyWindow::Item(Application::Get()->activeScene->entities[Application::Get()->activeScene->mainSceneEntity->uuid], selectedGameObject);
 		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
 
@@ -136,14 +136,14 @@ namespace Plaza::Editor {
 				entity.Rename(buf);
 				entity.changingName = false;
 				nameChanged = true;
-				Gui::changeSelectedGameObject(&Application->activeScene->entities.at(entity.uuid));
+				Gui::changeSelectedGameObject(&Application::Get()->activeScene->entities.at(entity.uuid));
 			}
 
 			if (!ImGui::IsItemActive() && !firstFocus) {
 				entity.Rename(buf);
 				entity.changingName = false;
 				nameChanged = true;
-				Gui::changeSelectedGameObject(&Application->activeScene->entities.at(entity.uuid));
+				Gui::changeSelectedGameObject(&Application::Get()->activeScene->entities.at(entity.uuid));
 			}
 
 			if (firstFocus) {
@@ -167,7 +167,7 @@ namespace Plaza::Editor {
 
 		// Change the selected entity if user clicked on the selectable
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			Gui::changeSelectedGameObject(&Application->activeScene->entities[entity.uuid]);
+			Gui::changeSelectedGameObject(&Application::Get()->activeScene->entities[entity.uuid]);
 		//Plaza::Editor::selectedGameObject = entity;
 
 
@@ -191,14 +191,14 @@ namespace Plaza::Editor {
 		}
 
 		if (ImGui::IsPopupOpen("ItemPopup")) {
-			Gui::changeSelectedGameObject(&Application->activeScene->entities[entity.uuid]);
+			Gui::changeSelectedGameObject(&Application::Get()->activeScene->entities[entity.uuid]);
 		}
 
 		if (treeNodeOpen)
 		{
 			for (uint64_t child : entity.childrenUuid)
 			{
-				HierarchyWindow::Item(Application->activeScene->entities[child], selectedGameObject);
+				HierarchyWindow::Item(Application::Get()->activeScene->entities[child], selectedGameObject);
 			}
 			if (treePop)
 				ImGui::TreePop();
@@ -224,7 +224,7 @@ namespace Plaza::Editor {
 
 				if (ImGui::MenuItem("Rigid Body Dynamic"))
 				{
-					RigidBody* rigidBody = new RigidBody(entity.uuid, Application->runningScene);
+					RigidBody* rigidBody = new RigidBody(entity.uuid, Application::Get()->runningScene);
 					rigidBody->mUuid = entity.uuid;
 					//Collider* collider = new Collider(entity.uuid);
 					//entity.AddComponent<Collider>(collider);
@@ -234,7 +234,7 @@ namespace Plaza::Editor {
 
 				if (ImGui::MenuItem("Rigid Body Non Dynamic"))
 				{
-					RigidBody* rigidBody = new RigidBody(entity.uuid, Application->runningScene, false);
+					RigidBody* rigidBody = new RigidBody(entity.uuid, Application::Get()->runningScene, false);
 					rigidBody->dynamic = false;
 					rigidBody->mUuid = entity.uuid;
 					entity.AddComponent<RigidBody>(rigidBody);
@@ -256,7 +256,7 @@ namespace Plaza::Editor {
 				if (ImGui::MenuItem("Text Renderer"))
 				{
 					Plaza::Drawing::UI::TextRenderer* textRenderer = new Plaza::Drawing::UI::TextRenderer();
-					textRenderer->Init(Application->activeProject->directory + "\\font.ttf");
+					textRenderer->Init(Application::Get()->activeProject->directory + "\\font.ttf");
 					textRenderer->mUuid = entity.uuid;
 					entity.AddComponent<Plaza::Drawing::UI::TextRenderer>(textRenderer);
 				}
@@ -277,19 +277,19 @@ namespace Plaza::Editor {
 
 				if (ImGui::MenuItem("Rename")) {
 					entity.changingName = true;
-					Application->activeScene->entities.at(entity.uuid).changingName = true;
+					Application::Get()->activeScene->entities.at(entity.uuid).changingName = true;
 					HierarchyWindow::Item::firstFocus = true;
 				}
 
 				if (ImGui::BeginMenu("Script"))
 				{
-					for (auto& [key, value] : Application->activeProject->scripts) {
+					for (auto& [key, value] : Application::Get()->activeProject->scripts) {
 						if (ImGui::MenuItem(filesystem::path{ key }.stem().string().c_str())) {
 							CsScriptComponent* script = new CsScriptComponent(entity.uuid);
 							std::string csFileName = filesystem::path{ key }.replace_extension(".cs").string();
 							script->Init(csFileName);;
-							Application->activeProject->scripts.at(csFileName).entitiesUsingThisScript.emplace(entity.uuid);
-							if (Application->runningScene) {
+							Application::Get()->activeProject->scripts.at(csFileName).entitiesUsingThisScript.emplace(entity.uuid);
+							if (Application::Get()->runningScene) {
 								for (auto& [key, value] : script->scriptClasses) {
 									Mono::OnStart(value->monoObject);
 								}

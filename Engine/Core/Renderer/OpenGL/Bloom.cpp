@@ -58,24 +58,24 @@ namespace Plaza {
 	Texture2D* Bloom::mBlendedTexture = new Texture2D();
 	void Bloom::Init() {
 		Bloom::UpdateBloomTexturesSize();
-		mRenderer = dynamic_cast<OpenGLRenderer*>(Application->mRenderer);
+		mRenderer = dynamic_cast<OpenGLRenderer*>(Application::Get()->mRenderer);
 	}
 
 	void Bloom::UpdateBloomTexturesSize() {
 		mBloomTextures.clear();
-		mBlendedTexture = new Texture2D(Application->appSizes->sceneSize, GL_RGBA32F);
+		mBlendedTexture = new Texture2D(Application::Get()->appSizes->sceneSize, GL_RGBA32F);
 
-		mTemporaryTexture = new Texture2D(Application->appSizes->sceneSize, GL_RGBA32F);
+		mTemporaryTexture = new Texture2D(Application::Get()->appSizes->sceneSize, GL_RGBA32F);
 
 		mFinalTexturePair = new TexturePair();
 		mFinalTexturePair->texture1 = *new Texture2D();
-		mFinalTexturePair->texture1.size = Application->appSizes->sceneSize; 
-		mFinalTexturePair->texture1.mMipSize = calculateMipmapLevels(Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 16, 10);
+		mFinalTexturePair->texture1.size = Application::Get()->appSizes->sceneSize; 
+		mFinalTexturePair->texture1.mMipSize = calculateMipmapLevels(Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, 16, 10);
 
 		glCreateFramebuffers(1, &Bloom::fbo);
 
 		glCreateTextures(GL_TEXTURE_2D, 1, &mFinalTexturePair->texture1.id);
-		glTextureStorage2D(mFinalTexturePair->texture1.id, mFinalTexturePair->texture1.mMipSize, GL_RGBA32F, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y); // internalformat = GL_RGB32F
+		glTextureStorage2D(mFinalTexturePair->texture1.id, mFinalTexturePair->texture1.mMipSize, GL_RGBA32F, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y); // internalformat = GL_RGB32F
 
 		glTextureParameteri(mFinalTexturePair->texture1.id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(mFinalTexturePair->texture1.id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -84,7 +84,7 @@ namespace Plaza {
 
 		GLuint m_rbo_id = 0;
 		glCreateRenderbuffers(1, &m_rbo_id);
-		glNamedRenderbufferStorage(m_rbo_id, GL_DEPTH24_STENCIL8, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+		glNamedRenderbufferStorage(m_rbo_id, GL_DEPTH24_STENCIL8, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y);
 
 		glNamedFramebufferTexture(Bloom::fbo, GL_COLOR_ATTACHMENT0, mFinalTexturePair->texture1.id, 0);
 		glNamedFramebufferRenderbuffer(Bloom::fbo, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_rbo_id);
@@ -97,7 +97,7 @@ namespace Plaza {
 		//
 		//
 		//
-		////mFinalTexturePair = new TexturePair(Texture2D(Application->appSizes->sceneSize, GL_RGBA32F), Texture2D(Application->appSizes->sceneSize, GL_RGBA32F));
+		////mFinalTexturePair = new TexturePair(Texture2D(Application::Get()->appSizes->sceneSize, GL_RGBA32F), Texture2D(Application::Get()->appSizes->sceneSize, GL_RGBA32F));
 		//glActiveTexture(GL_TEXTURE0);
 		//glBindTexture(GL_TEXTURE_2D, mFinalTexturePair->texture1.id);
 		//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFinalTexturePair->texture1.id, 0);
@@ -105,7 +105,7 @@ namespace Plaza {
 		//glDrawBuffers(1, geometryAttachments);
 		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		glm::vec2 currentRes = (Application->appSizes->sceneSize / glm::vec2(1));
+		glm::vec2 currentRes = (Application::Get()->appSizes->sceneSize / glm::vec2(1));
 		for (int i = 1; i < mBloomPasses + 1; ++i) {
 			mBloomTextures.push_back(TexturePair(Texture2D(currentRes / glm::vec2(2), GL_RGBA32F), Texture2D(currentRes / glm::vec2(2), GL_RGBA32F)));
 
@@ -130,7 +130,7 @@ namespace Plaza {
 	void Bloom::DrawBloom() {
 		PLAZA_PROFILE_SECTION("Bloom");
 		glBindFramebuffer(GL_FRAMEBUFFER, Bloom::fbo);
-		glViewport(0, 0, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y);
+		glViewport(0, 0, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		mBloomComputeShader->use();
 
@@ -147,7 +147,7 @@ namespace Plaza {
 		glCopyImageSubData(
 			ScreenSpaceReflections::mScreenSpaceReflectionsFbo->colorBuffer, GL_TEXTURE_2D, 0, 0, 0, 0,
 			mFinalTexturePair->texture1.id, GL_TEXTURE_2D, 0, 0, 0, 0,
-			Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 1
+			Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, 1
 		);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, mRenderer->bloomFrameBuffer->buffer);
@@ -168,7 +168,7 @@ namespace Plaza {
 
 
 
-		glm::vec2 lastSize = Application->appSizes->sceneSize;
+		glm::vec2 lastSize = Application::Get()->appSizes->sceneSize;
 		mBloomComputeShader->setBool("firstPass", true);
 
 
@@ -211,8 +211,8 @@ namespace Plaza {
 
 		for (uint8_t i = mFinalTexturePair->texture1.mMipSize - 1; i >= 1; --i)
 		{
-			mip_size.x = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.x) / glm::pow(2.0, i - 1)));
-			mip_size.y = glm::max(1.0, glm::floor(float(Application->appSizes->sceneSize.y) / glm::pow(2.0, i - 1)));
+			mip_size.x = glm::max(1.0, glm::floor(float(Application::Get()->appSizes->sceneSize.x) / glm::pow(2.0, i - 1)));
+			mip_size.y = glm::max(1.0, glm::floor(float(Application::Get()->appSizes->sceneSize.y) / glm::pow(2.0, i - 1)));
 
 			mBloomUpScaleShader->setVec2("u_texel_size", 1.0f / glm::vec2(mip_size));
 			mBloomUpScaleShader->setInt("u_mip_level", i);
@@ -230,7 +230,7 @@ namespace Plaza {
 		glCopyImageSubData(
 			mBlendedTexture->id, GL_TEXTURE_2D, 0, 0, 0, 0,
 			mRenderer->bloomFrameBuffer->colorBuffer, GL_TEXTURE_2D, 0, 0, 0, 0,
-			Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 1
+			Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, 1
 		);
 
 		glActiveTexture(GL_TEXTURE4);
@@ -251,7 +251,7 @@ namespace Plaza {
 		glBindTexture(GL_TEXTURE_2D, mBlendedTexture->id);
 		glBindImageTexture(2, mBlendedTexture->id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
-		glDispatchCompute(Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, 1);
+		glDispatchCompute(Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, 1);
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT);
 
 		glActiveTexture(GL_TEXTURE0);
@@ -268,13 +268,13 @@ namespace Plaza {
 		int downScalePasses = 4;
 		int upscalePasses = 4;
 		int factor = 2;
-		glm::vec2 currentRes = Application->appSizes->sceneSize;
+		glm::vec2 currentRes = Application::Get()->appSizes->sceneSize;
 		mBloomComputeShader->setBool("upscale", false);
 		for (int i = 0; i < downScalePasses; ++i) {
 			mBloomComputeShader->setBool("readFirst", readFirst);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, Application->hdrSceneColor);
-			glBindImageTexture(0, Application->hdrSceneColor, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+			glBindTexture(GL_TEXTURE_2D, Application::Get()->hdrSceneColor);
+			glBindImageTexture(0, Application::Get()->hdrSceneColor, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, Renderer::bloomFrameBuffer->colorBuffer);
 			glBindImageTexture(1, Renderer::bloomFrameBuffer->colorBuffer, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
@@ -292,8 +292,8 @@ namespace Plaza {
 			mBloomComputeShader->setBool("blur", false);
 			mBloomComputeShader->setVec2("currentRes", currentRes);
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, Application->hdrSceneColor);
-			glBindImageTexture(0, Application->hdrSceneColor, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+			glBindTexture(GL_TEXTURE_2D, Application::Get()->hdrSceneColor);
+			glBindImageTexture(0, Application::Get()->hdrSceneColor, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 			// Create a new texture with the desired size
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, currentRes.x, currentRes.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 

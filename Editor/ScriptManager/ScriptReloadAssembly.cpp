@@ -48,7 +48,7 @@ namespace Plaza::Editor {
 
 		/* Load the new domain */
 		mono_set_assemblies_path("lib/mono");
-		//mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
+		//mono_set_assemblies_path((Application::Get()->editorPath + "/lib/mono").c_str());
 		if (Mono::mMonoRootDomain == nullptr)
 			Mono::mMonoRootDomain = mono_jit_init("MyScriptRuntime");
 		if (Mono::mMonoRootDomain == nullptr)
@@ -67,13 +67,13 @@ namespace Plaza::Editor {
 		mono_domain_set(Mono::mAppDomain, true);
 
 		// Load the PlazaScriptCore.dll assembly
-		Mono::mCoreAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->dllPath + "\\PlazaScriptCore.dll").c_str());
-		Mono::mCoreImage = mono_image_open((Application->dllPath + "\\PlazaScriptCore.dll").c_str(), nullptr);
+		Mono::mCoreAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application::Get()->dllPath + "\\PlazaScriptCore.dll").c_str());
+		Mono::mCoreImage = mono_image_open((Application::Get()->dllPath + "\\PlazaScriptCore.dll").c_str(), nullptr);
 
 		Mono::RegisterComponents();
 		InternalCalls::Init();
 
-		Mono::mEntityObject = Mono::InstantiateClass("Plaza", "Entity", Mono::LoadCSharpAssembly(Application->dllPath + "\\PlazaScriptCore.dll"), Mono::mAppDomain);
+		Mono::mEntityObject = Mono::InstantiateClass("Plaza", "Entity", Mono::LoadCSharpAssembly(Application::Get()->dllPath + "\\PlazaScriptCore.dll"), Mono::mAppDomain);
 		Mono::mEntityClass = mono_object_get_class(Mono::mEntityObject);
 
 		mono_domain_set(Mono::mAppDomain, true);
@@ -82,7 +82,7 @@ namespace Plaza::Editor {
 			Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
 
 			// Initialize all scripts again
-			for (auto& [key, value] : Application->activeScene->csScriptComponents) {
+			for (auto& [key, value] : Application::Get()->activeScene->csScriptComponents) {
 				std::string scriptPath = value.scriptPath;
 				value = *new CsScriptComponent(key);
 				value.Init(scriptPath);
@@ -91,25 +91,25 @@ namespace Plaza::Editor {
 	}
 
 	void ScriptManager::ReloadScriptsAssembly() {
-		bool scriptDllExists = std::filesystem::exists(Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll");
+		bool scriptDllExists = std::filesystem::exists(Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll");
 		if (scriptDllExists) {
 #ifdef  GAME_REL
-			ScriptManager::ReloadScriptsAssembly((Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll").c_str());
+			ScriptManager::ReloadScriptsAssembly((Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll").c_str());
 #else
-			ScriptManager::ReloadScriptsAssembly((Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll").c_str());
+			ScriptManager::ReloadScriptsAssembly((Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + "copy.dll").c_str());
 #endif //  GAME_REL
 	}
 }
 
 	void ScriptManager::ReloadSpecificAssembly(std::string scriptPath) {
-		const auto& script = Application->activeProject->scripts.find(scriptPath);
-		if (script != Application->activeProject->scripts.end()) {
+		const auto& script = Application::Get()->activeProject->scripts.find(scriptPath);
+		if (script != Application::Get()->activeProject->scripts.end()) {
 			std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = FieldManager::GetAllScritpsFields();
 			std::filesystem::path dllPath = std::filesystem::path{ scriptPath }.replace_extension(".dll");
 
 			/* Load the new domain */
 			mono_set_assemblies_path("lib/mono");
-			//mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
+			//mono_set_assemblies_path((Application::Get()->editorPath + "/lib/mono").c_str());
 			if (Mono::mMonoRootDomain == nullptr)
 				Mono::mMonoRootDomain = mono_jit_init("MyScriptRuntime");
 			if (Mono::mMonoRootDomain == nullptr)
@@ -123,13 +123,13 @@ namespace Plaza::Editor {
 			mono_domain_set(newDomain, true);
 
 			// Load the PlazaScriptCore.dll assembly
-			Mono::mCoreAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application->dllPath + "\\PlazaScriptCore.dll").c_str());
-			Mono::mCoreImage = mono_image_open((Application->dllPath + "\\PlazaScriptCore.dll").c_str(), nullptr);
+			Mono::mCoreAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application::Get()->dllPath + "\\PlazaScriptCore.dll").c_str());
+			Mono::mCoreImage = mono_image_open((Application::Get()->dllPath + "\\PlazaScriptCore.dll").c_str(), nullptr);
 
 			Mono::RegisterComponents();
 			InternalCalls::Init();
 
-			Mono::mEntityObject = Mono::InstantiateClass("Plaza", "Entity", Mono::LoadCSharpAssembly(Application->dllPath + "\\PlazaScriptCore.dll"), Mono::mAppDomain);
+			Mono::mEntityObject = Mono::InstantiateClass("Plaza", "Entity", Mono::LoadCSharpAssembly(Application::Get()->dllPath + "\\PlazaScriptCore.dll"), Mono::mAppDomain);
 			Mono::mEntityClass = mono_object_get_class(Mono::mEntityObject);
 
 			mono_domain_set(Mono::mAppDomain, true);
@@ -144,18 +144,18 @@ namespace Plaza::Editor {
 			ScriptManager::RecompileDll(dllPath, scriptPath);
 			/* Load a copy of the script dll if its running the editor, so it can recompile the dll without breaking anything (its temporary, since I dont have hot reloading yet)*/
 #ifdef GAME_MODE
-			std::string scriptDllPath = (Application->projectPath + "\\Binaries\\" + Application->activeProject->name + ".dll");
+			std::string scriptDllPath = (Application::Get()->projectPath + "\\Binaries\\" + Application::Get()->activeProject->name + ".dll");
 #else
-			std::string scriptDllPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll");
+			std::string scriptDllPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + "copy.dll");
 #endif
 			Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, scriptDllPath.c_str());
 			Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
 			if (!Mono::mScriptAssembly) {
 				// Handle assembly loading error
-				std::cout << "Failed to load assembly when recompiling on path: " << (Application->projectPath + "\\Binaries\\" + Application->activeProject->name + ".dll").c_str() << "\n";
+				std::cout << "Failed to load assembly when recompiling on path: " << (Application::Get()->projectPath + "\\Binaries\\" + Application::Get()->activeProject->name + ".dll").c_str() << "\n";
 			}
 			// Initialize all scripts again
-			for (auto& [key, value] : Application->activeScene->csScriptComponents) {
+			for (auto& [key, value] : Application::Get()->activeScene->csScriptComponents) {
 				std::string scriptPath = value.scriptPath;
 				value = *new CsScriptComponent(key);
 				value.Init(scriptPath);
@@ -164,8 +164,8 @@ namespace Plaza::Editor {
 			/* Reapply fields values */
 			FieldManager::ApplyAllScritpsFields(allFields);
 			/* Todo: Fix it */
-			//if (Application->runningScene) {
-			//	for (auto& [key, value] : Application->editorScene->csScriptComponents) {
+			//if (Application::Get()->runningScene) {
+			//	for (auto& [key, value] : Application::Get()->editorScene->csScriptComponents) {
 			//		std::string scriptPath = value.scriptPath;
 			//		value = *new CsScriptComponent(key);
 			//		value.Init(scriptPath);
@@ -178,18 +178,18 @@ namespace Plaza::Editor {
 	void ScriptManager::RecompileDll(std::filesystem::path dllPath, std::string scriptPath) {
 		// Recompile the C# script to .dll
 		//std::string compileCommand = "mcs -target:library -out:\"" + dllPath.parent_path().string() + "\\" + dllPath.stem().string() + ".dll\" " + "\"" + std::string(scriptPath) + "\"";
-		//compileCommand += " -reference:\"" + Application->dllPath + "\\PlazaScriptCore.dll\"";
+		//compileCommand += " -reference:\"" + Application::Get()->dllPath + "\\PlazaScriptCore.dll\"";
 		std::string compileCommand = "dotnet build ";
-		compileCommand += "\"" + Application->projectPath + "\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".csproj \"";
+		compileCommand += "\"" + Application::Get()->projectPath + "\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".csproj \"";
 		int result = system(compileCommand.c_str());
 	}
 
 	std::unordered_map<uint64_t, std::map<std::string, std::unordered_map<std::string, uint32_t>>> ScriptManager::GetAllFields() {
 		// Unordered map of Uuid with a map of script name with an unordered map of classes names and theirs values
 		std::unordered_map<uint64_t, std::map<std::string, std::unordered_map<std::string, uint32_t>>> fields;
-		for (auto& [scriptPath, script] : Application->activeProject->scripts) {
+		for (auto& [scriptPath, script] : Application::Get()->activeProject->scripts) {
 			for (uint64_t entityUuid : script.entitiesUsingThisScript) {
-				auto range = Application->activeScene->csScriptComponents.equal_range(entityUuid);
+				auto range = Application::Get()->activeScene->csScriptComponents.equal_range(entityUuid);
 				for (auto it = range.first; it != range.second; ++it) {
 					for (auto& [className, classScript] : it->second.scriptClasses) {
 						// Get the fields of the class
@@ -238,9 +238,9 @@ namespace Plaza::Editor {
 
 	void ScriptManager::SaveAllFields(std::unordered_map<uint64_t, std::map<std::string, std::unordered_map<std::string, uint32_t>>> fields) {
 		/* Add variables again */
-		for (auto& [scriptPath, script] : Application->activeProject->scripts) {
+		for (auto& [scriptPath, script] : Application::Get()->activeProject->scripts) {
 			for (uint64_t entityUuid : script.entitiesUsingThisScript) {
-				auto range = Application->activeScene->csScriptComponents.equal_range(entityUuid);
+				auto range = Application::Get()->activeScene->csScriptComponents.equal_range(entityUuid);
 				for (auto it = range.first; it != range.second; ++it) {
 					for (auto& [className, classScript] : it->second.scriptClasses) {
 						MonoClassField* field = NULL;

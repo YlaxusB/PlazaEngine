@@ -53,7 +53,7 @@ namespace Plaza {
 
 	Collider::Collider(std::uint64_t uuid, RigidBody* rigidBody) {
 		this->mUuid = uuid;
-		if (Application->runningScene)
+		if (Application::Get()->runningScene)
 			this->Init(rigidBody);
 	}
 
@@ -89,7 +89,7 @@ namespace Plaza {
 		this->lastScale = glm::vec3(0.0f);
 		if (rigidBody)
 			this->mDynamic = !rigidBody->kinematic;
-		if (Application->runningScene || Application->copyingScene) {
+		if (Application::Get()->runningScene || Application::Get()->copyingScene) {
 			InitCollider(rigidBody);
 		}
 	}
@@ -100,7 +100,7 @@ namespace Plaza {
 
 	void Collider::InitCollider(RigidBody* rigidBody) {
 		//this->RemoveActor();
-		physx::PxTransform pxTransform = Physics::GetPxTransform(Application->activeScene->transformComponents.at(this->mUuid));
+		physx::PxTransform pxTransform = Physics::GetPxTransform(Application::Get()->activeScene->transformComponents.at(this->mUuid));
 		this->mRigidActor = Physics::m_physics->createRigidDynamic(pxTransform);
 		if (this->mRigidActor == nullptr)
 			this->mRigidActor = Physics::m_physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity(1.0f)));
@@ -126,7 +126,7 @@ namespace Plaza {
 			this->mRigidActor->attachShape(*shape->mPxShape);
 		}
 		Physics::m_scene->addActor(*this->mRigidActor);
-		//this->UpdateShapeScale(Application->activeScene->transformComponents.at(this->uuid).GetWorldScale());
+		//this->UpdateShapeScale(Application::Get()->activeScene->transformComponents.at(this->uuid).GetWorldScale());
 	}
 
 	void Collider::AddConvexMeshShape(Mesh* mesh) {
@@ -346,12 +346,12 @@ namespace Plaza {
 	}
 
 	void Collider::UpdateAllShapesScale() {
-		UpdateShapeScale(Application->activeScene->transformComponents.at(this->mUuid).GetWorldScale());
+		UpdateShapeScale(Application::Get()->activeScene->transformComponents.at(this->mUuid).GetWorldScale());
 	}
 
 	void Collider::UpdateShapeScale(glm::vec3 scale) {
 		PLAZA_PROFILE_SECTION("Collider: Update Shape Scale");
-		if (!Application->runningScene)
+		if (!Application::Get()->runningScene)
 			return;
 		if (lastScale != scale) {
 			if (scale.x == 0 || scale.y == 0 || scale.z == 0) {
@@ -411,7 +411,7 @@ namespace Plaza {
 				}
 
 
-				if (Application->runningScene && this->mRigidActor) {
+				if (Application::Get()->runningScene && this->mRigidActor) {
 					if (this->mDynamic) {
 						this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
 						this->mShapes[i]->mPxShape = newShape;
@@ -431,9 +431,9 @@ namespace Plaza {
 
 	template <typename EnumType>
 	void Collider::SetSelfAndChildrenFlag(EnumType flag, bool value) {
-		SetFlag(&Application->activeScene->rigidBodyComponents.at(this->mUuid).mRigidActor, flag, value);
-		for (uint64_t child : Application->activeScene->entities.at(this->mUuid).childrenUuid) {
-			SetFlag(&Application->activeScene->rigidBodyComponents.at(child).mRigidActor, flag, value);
+		SetFlag(&Application::Get()->activeScene->rigidBodyComponents.at(this->mUuid).mRigidActor, flag, value);
+		for (uint64_t child : Application::Get()->activeScene->entities.at(this->mUuid).childrenUuid) {
+			SetFlag(&Application::Get()->activeScene->rigidBodyComponents.at(child).mRigidActor, flag, value);
 		}
 	}
 

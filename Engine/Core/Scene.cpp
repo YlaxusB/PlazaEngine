@@ -37,7 +37,7 @@ namespace Plaza {
 			//	else {
 			//		newMeshRenderer = new MeshRenderer();
 			//		newMeshRenderer->uuid = Plaza::UUID::NewUUID();
-			//		Application->activeScene->meshRenderers.emplace_back(newMeshRenderer);
+			//		Application::Get()->activeScene->meshRenderers.emplace_back(newMeshRenderer);
 			//	}
 
 			//	newMeshRenderer->uuid = newObj->uuid;
@@ -82,7 +82,7 @@ namespace Plaza {
 		for (auto& [key, value] : newScene->meshRendererComponents) {
 			if (value.mMaterials.size() > 0 && value.mesh) {
 				RenderGroup* newRenderGroup = new RenderGroup(value.mesh, value.mMaterials);
-				//Application->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
+				//Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application::Get()->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
 				value.renderGroup = newScene->AddRenderGroup(newRenderGroup);
 			}
 		}
@@ -108,9 +108,9 @@ namespace Plaza {
 		//newScene->rigidBodyComponents = std::unordered_map<uint64_t, RigidBody>(copyScene->rigidBodyComponents);
 		//for (auto& gameObj : copyScene->gameObjects) {
 		//	if (gameObj->parentUuid != 0 && copyScene->entities.find(gameObj->parentUuid) != copyScene->entities.end())
-		//		Application->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->entities.find(gameObj->parentUuid)->second.uuid;
+		//		Application::Get()->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->entities.find(gameObj->parentUuid)->second.uuid;
 		//	else if (gameObj->parentUuid == 0)
-		//		Application->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->mainSceneEntity->uuid;
+		//		Application::Get()->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->mainSceneEntity->uuid;
 		//}
 
 		for (auto& [key, value] : copyScene->rigidBodyComponents) {
@@ -138,17 +138,17 @@ namespace Plaza {
 	}
 
 	void Scene::RemoveMeshRenderer(uint64_t uuid) {
-		auto it = std::find_if(Application->editorScene->meshRenderers.begin(), Application->editorScene->meshRenderers.end(), [uuid](MeshRenderer* meshRenderer) {
+		auto it = std::find_if(Application::Get()->editorScene->meshRenderers.begin(), Application::Get()->editorScene->meshRenderers.end(), [uuid](MeshRenderer* meshRenderer) {
 			return meshRenderer->mUuid == uuid;
 			});
 
-		if (it != Application->editorScene->meshRenderers.end()) {
-			Application->editorScene->meshRenderers.erase(it);
+		if (it != Application::Get()->editorScene->meshRenderers.end()) {
+			Application::Get()->editorScene->meshRenderers.erase(it);
 		}
 	}
 
 	void Scene::Play() {
-		bool scriptDllExists = std::filesystem::exists(Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll");
+		bool scriptDllExists = std::filesystem::exists(Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll");
 		/* Get fields values */
 		std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields;
 		if (scriptDllExists) {
@@ -158,7 +158,7 @@ namespace Plaza {
 		/* Stop mono */
 		/* Load the new domain */
 		mono_set_assemblies_path("lib/mono");
-		//mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
+		//mono_set_assemblies_path((Application::Get()->editorPath + "/lib/mono").c_str());
 		if (Mono::mMonoRootDomain == nullptr)
 			Mono::mMonoRootDomain = mono_jit_init("MyScriptRuntime");
 		if (Mono::mMonoRootDomain == nullptr)
@@ -176,8 +176,8 @@ namespace Plaza {
 		mono_domain_set(Mono::mAppDomain, true);
 		/* Copy the script dll */
 		if (scriptDllExists) {
-			std::string dllPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll");
-			std::string newPath = (Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + "copy.dll");
+			std::string dllPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll");
+			std::string newPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + "copy.dll");
 			std::filesystem::copy_file(dllPath, newPath, filesystem::copy_options::overwrite_existing);
 		}
 
@@ -186,39 +186,39 @@ namespace Plaza {
 		Physics::InitPhysics();
 		Physics::InitScene();
 
-		Application->runtimeScene = new Scene();
-		Application->copyingScene = true;
-		Application->runtimeScene = Scene::Copy(Application->runtimeScene, Application->editorScene);
-		Application->activeScene = Application->runtimeScene;
-		Application->copyingScene = false;
-		Application->runningScene = true;
-		for (auto& [key, collider] : Application->activeScene->colliderComponents) {
-			collider.UpdateShapeScale(Application->activeScene->transformComponents.at(collider.mUuid).GetWorldScale());;
+		Application::Get()->runtimeScene = new Scene();
+		Application::Get()->copyingScene = true;
+		Application::Get()->runtimeScene = Scene::Copy(Application::Get()->runtimeScene, Application::Get()->editorScene);
+		Application::Get()->activeScene = Application::Get()->runtimeScene;
+		Application::Get()->copyingScene = false;
+		Application::Get()->runningScene = true;
+		for (auto& [key, collider] : Application::Get()->activeScene->colliderComponents) {
+			collider.UpdateShapeScale(Application::Get()->activeScene->transformComponents.at(collider.mUuid).GetWorldScale());;
 			collider.UpdatePose();
 		}
 #ifdef EDITOR_MODE
 		ImGui::SetWindowFocus("Scene");
 #endif
 		int width, height;
-		glfwGetWindowSize(Application->Window->glfwWindow, &width, &height);
-		glfwSetCursorPos(Application->Window->glfwWindow, width / 2, height / 2);
+		glfwGetWindowSize(Application::Get()->mWindow->glfwWindow, &width, &height);
+		glfwSetCursorPos(Application::Get()->mWindow->glfwWindow, width / 2, height / 2);
 		Input::Cursor::lastX = 0;
 		Input::Cursor::lastY = 0;
 		Input::Cursor::deltaX = 0;
 		Input::Cursor::deltaY = 0;
 		// Init Rigid Bodies
-		for (auto& [key, value] : Application->activeScene->rigidBodyComponents) {
+		for (auto& [key, value] : Application::Get()->activeScene->rigidBodyComponents) {
 			value.Init();
 		}
 
-		for (auto& [key, value] : Application->activeScene->characterControllerComponents) {
+		for (auto& [key, value] : Application::Get()->activeScene->characterControllerComponents) {
 			value.Init();
 		}
 
 		if (scriptDllExists) {
 			Mono::OnStartAll(false);
 			FieldManager::ApplyAllScritpsFields(allFields);
-			for (auto [key, value] : Application->activeScene->csScriptComponents) {
+			for (auto [key, value] : Application::Get()->activeScene->csScriptComponents) {
 				for (auto& [className, classScript] : value.scriptClasses) {
 					Mono::CallMethod(classScript->monoObject, classScript->onStartMethod);
 				}
@@ -235,12 +235,12 @@ namespace Plaza {
 		}
 
 
-		for (auto [key, value] : Application->activeScene->audioSourceComponents) {
+		for (auto [key, value] : Application::Get()->activeScene->audioSourceComponents) {
 			value.Stop();
 		}
 
 		mono_set_assemblies_path("lib/mono");
-		//mono_set_assemblies_path((Application->editorPath + "/lib/mono").c_str());
+		//mono_set_assemblies_path((Application::Get()->editorPath + "/lib/mono").c_str());
 		if (Mono::mMonoRootDomain == nullptr)
 			Mono::mMonoRootDomain = mono_jit_init("MyScriptRuntime");
 		if (Mono::mMonoRootDomain == nullptr)
@@ -259,14 +259,14 @@ namespace Plaza {
 
 		// Change active scene, update the selected object scene, delete runtime and set running to false.
 		Editor::selectedGameObject = nullptr;
-		delete(Application->runtimeScene);
-		Application->runningScene = false;
-		Application->activeScene = Application->editorScene;
-		Application->activeCamera = Application->editorCamera;
+		delete(Application::Get()->runtimeScene);
+		Application::Get()->runningScene = false;
+		Application::Get()->activeScene = Application::Get()->editorScene;
+		Application::Get()->activeCamera = Application::Get()->editorCamera;
 
 
 
-		bool scriptDllExists = std::filesystem::exists(Application->projectPath + "\\Binaries\\" + std::filesystem::path{ Application->activeProject->name }.stem().string() + ".dll");
+		bool scriptDllExists = std::filesystem::exists(Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll");
 		if (scriptDllExists) {
 			Editor::ScriptManager::ReloadScriptsAssembly();
 			FieldManager::ApplyAllScritpsFields(Editor::lastSavedScriptsFields);
@@ -280,9 +280,9 @@ namespace Plaza {
 		Entity* entity = this->GetEntity(uuid);
 		std::vector<uint64_t> children = entity->childrenUuid;
 		for (uint64_t child : children) {
-			if (Application->activeScene->entities.find(child) != Application->activeScene->entities.end())
-				Application->activeScene->RemoveEntity(child);
-			//Application->activeScene->entities.at(child).~Entity();
+			if (Application::Get()->activeScene->entities.find(child) != Application::Get()->activeScene->entities.end())
+				Application::Get()->activeScene->RemoveEntity(child);
+			//Application::Get()->activeScene->entities.at(child).~Entity();
 		}
 		if (entity->HasComponent<Transform>())
 			entity->RemoveComponent<Transform>();
@@ -309,30 +309,30 @@ namespace Plaza {
 			Editor::selectedGameObject = nullptr;
 
 		entity->GetParent().childrenUuid.erase(std::remove(entity->GetParent().childrenUuid.begin(), entity->GetParent().childrenUuid.end(), entity->uuid), entity->GetParent().childrenUuid.end());
-		if (Application->activeScene->entitiesNames.find(entity->name) != Application->activeScene->entitiesNames.end())
-			Application->activeScene->entitiesNames.erase(Application->activeScene->entitiesNames.find(entity->name));
+		if (Application::Get()->activeScene->entitiesNames.find(entity->name) != Application::Get()->activeScene->entitiesNames.end())
+			Application::Get()->activeScene->entitiesNames.erase(Application::Get()->activeScene->entitiesNames.find(entity->name));
 
-		Application->activeScene->entities.extract(entity->uuid);
+		Application::Get()->activeScene->entities.extract(entity->uuid);
 	}
 
 	Entity* Scene::GetEntity(uint64_t uuid) {
-		auto it = Application->activeScene->entities.find(uuid);
-		if (it != Application->activeScene->entities.end())
+		auto it = Application::Get()->activeScene->entities.find(uuid);
+		if (it != Application::Get()->activeScene->entities.end())
 			return &it->second;
 		return nullptr;
 	}
 	Entity* Scene::GetEntityByName(std::string name) {
-		if (Application->activeScene->entitiesNames.find(name) != Application->activeScene->entitiesNames.end()) {
-			for (const auto& element : Application->activeScene->entitiesNames.at(name)) {
-				if (Application->activeScene->entities.find(element) != Application->activeScene->entities.end())
-					return &Application->activeScene->entities.at(element);
+		if (Application::Get()->activeScene->entitiesNames.find(name) != Application::Get()->activeScene->entitiesNames.end()) {
+			for (const auto& element : Application::Get()->activeScene->entitiesNames.at(name)) {
+				if (Application::Get()->activeScene->entities.find(element) != Application::Get()->activeScene->entities.end())
+					return &Application::Get()->activeScene->entities.at(element);
 			}
 		}
 		return nullptr;
 	}
 
 	Material* Scene::DefaultMaterial() {
-		return Application->activeScene->materials.at(0).get();
+		return Application::Get()->activeScene->materials.at(0).get();
 	}
 
 	void Scene::RecalculateAddedComponents() {
@@ -347,9 +347,5 @@ namespace Plaza {
 		}
 		this->mainSceneEntity = this->GetEntity(this->mainSceneEntityUuid);
 		this->mainSceneEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
-	}
-
-	Scene* Scene::GetActiveScene() {
-		return Application->activeScene;
 	}
 }

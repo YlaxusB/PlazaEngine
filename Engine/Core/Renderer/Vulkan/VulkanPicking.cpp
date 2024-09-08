@@ -6,7 +6,7 @@
 
 namespace Plaza {
 	void VulkanPicking::Init() {
-		this->mResolution = Application->appSizes->sceneSize;
+		this->mResolution = Application::Get()->appSizes->sceneSize;
 
 		VkPushConstantRange pushConstantRange{};
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_ALL;
@@ -32,8 +32,8 @@ namespace Plaza {
 		VkImageCreateInfo imageCreateInfo = {};
 		imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageCreateInfo.extent.width = Application->appSizes->sceneSize.x;
-		imageCreateInfo.extent.height = Application->appSizes->sceneSize.y;
+		imageCreateInfo.extent.width = Application::Get()->appSizes->sceneSize.x;
+		imageCreateInfo.extent.height = Application::Get()->appSizes->sceneSize.y;
 		imageCreateInfo.extent.depth = 1;
 		imageCreateInfo.mipLevels = 1;
 		imageCreateInfo.arrayLayers = 1;
@@ -96,8 +96,8 @@ namespace Plaza {
 		framebufferInfo.renderPass = this->mRenderPickingTexturePostEffects->mRenderPass;
 		framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		framebufferInfo.pAttachments = attachments.data();
-		framebufferInfo.width = Application->appSizes->sceneSize.x;
-		framebufferInfo.height = Application->appSizes->sceneSize.y;
+		framebufferInfo.width = Application::Get()->appSizes->sceneSize.x;
+		framebufferInfo.height = Application::Get()->appSizes->sceneSize.y;
 		framebufferInfo.layers = 1;
 
 		if (vkCreateFramebuffer(VulkanRenderer::GetRenderer()->mDevice, &framebufferInfo, nullptr, &mFramebuffer) != VK_SUCCESS) {
@@ -179,8 +179,8 @@ namespace Plaza {
 	}
 
 	void VulkanPicking::InitializePicking() {
-		const std::string pickingVertexPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\picking\\picking.vert");
-		const std::string pickingFragmentPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\picking\\picking.frag");
+		const std::string pickingVertexPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\picking\\picking.vert");
+		const std::string pickingFragmentPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\picking\\picking.frag");
 
 		this->mRenderPickingTexturePostEffects = new VulkanPlazaPipeline();
 
@@ -249,8 +249,8 @@ namespace Plaza {
 	}
 
 	void VulkanPicking::InitializeOutline() {
-		//const std::string outlineVertexPath = Application->enginePath + "\\Shaders\\Vulkan\\picking\\outline.vert";
-		//const std::string outlineFragmentPath = Application->enginePath + "\\Shaders\\Vulkan\\picking\\outline.frag";
+		//const std::string outlineVertexPath = Application::Get()->enginePath + "\\Shaders\\Vulkan\\picking\\outline.vert";
+		//const std::string outlineFragmentPath = Application::Get()->enginePath + "\\Shaders\\Vulkan\\picking\\outline.frag";
 		//
 		//this->mRenderPickingTexturePostEffects = new VulkanPostEffects();
 		//
@@ -261,8 +261,8 @@ namespace Plaza {
 		//	VulkanRenderer::GetRenderer()->mDevice,
 		//	this->mPipelineLayoutInfo,
 		//	true,
-		//	Application->appSizes->sceneSize.x,
-		//	Application->appSizes->sceneSize.y,
+		//	Application::Get()->appSizes->sceneSize.x,
+		//	Application::Get()->appSizes->sceneSize.y,
 		//	{}, {}, {}, {}, {}, {}, {}, {},
 		//	this->mRenderPickingTexturePostEffects->mRenderPass,
 		//	{});
@@ -275,9 +275,9 @@ namespace Plaza {
 		VkCommandBuffer activeCommandBuffer = commandBuffer;
 		
 		VulkanPicking::PushConstants pushData{};
-		pushData.projection = Application->activeCamera->GetProjectionMatrix();
-		pushData.view = Application->activeCamera->GetViewMatrix();
-		pushData.model = Application->activeScene->GetComponent<Transform>(meshRenderer.mUuid)->modelMatrix;
+		pushData.projection = Application::Get()->activeCamera->GetProjectionMatrix();
+		pushData.view = Application::Get()->activeCamera->GetViewMatrix();
+		pushData.model = Application::Get()->activeScene->GetComponent<Transform>(meshRenderer.mUuid)->modelMatrix;
 		pushData.uuid1 = (uint32_t)(meshRenderer.mUuid >> 32);
 		pushData.uuid2 = (uint32_t)(meshRenderer.mUuid & 0xFFFFFFFF);
 		
@@ -332,7 +332,7 @@ namespace Plaza {
 
 		//vkCmdDrawIndexedIndirect(commandBuffer, VulkanRenderer::GetRenderer()->mIndirectBuffer, 0, VulkanRenderer::GetRenderer()->mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 
-		for (const auto& [key, value] : Application->activeScene->meshRendererComponents) {
+		for (const auto& [key, value] : Application::Get()->activeScene->meshRendererComponents) {
 			this->DrawMeshToPickingTexture(value, commandBuffer);
 		}
 

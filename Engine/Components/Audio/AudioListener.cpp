@@ -2,15 +2,15 @@
 #include "AudioListener.h"
 namespace Plaza {
 	void AudioListener::UpdateListener() {
-		mPosition = Application->activeCamera->Position;
+		mPosition = Application::Get()->activeCamera->Position;
 		// Init listener
-		Application->activeCamera;
+		Application::Get()->activeCamera;
 		ALfloat listenerPos[] = { mPosition.x, mPosition.y, mPosition.z };
 		ALfloat listenerVel[] = { 0.0,0.0f,0.0 };
 
-		glm::vec3 forward = Application->activeCamera->Front;
-		glm::vec3 up = Application->activeCamera->Up;
-		glm::vec3 right = Application->activeCamera->Right;
+		glm::vec3 forward = Application::Get()->activeCamera->Front;
+		glm::vec3 up = Application::Get()->activeCamera->Up;
+		glm::vec3 right = Application::Get()->activeCamera->Right;
 		float listenerOrientation[6] = {
 			forward.x, forward.y, forward.z,
 			up.x, up.y, up.z

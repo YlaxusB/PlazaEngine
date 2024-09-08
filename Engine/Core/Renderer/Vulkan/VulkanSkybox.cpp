@@ -157,8 +157,8 @@ namespace Plaza {
 		VkPipelineMultisampleStateCreateInfo multisampleState = plvk::pipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
 		std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 		VkPipelineDynamicStateCreateInfo dynamicState = plvk::pipelineDynamicStateCreateInfo(dynamicStateEnables);
-		irradianceGeneratorPipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert");
-		irradianceGeneratorPipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\irradianceGenerator.frag");
+		irradianceGeneratorPipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert");
+		irradianceGeneratorPipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\irradianceGenerator.frag");
 		irradianceGeneratorPipeline.mShaders->InitializeFull(VulkanRenderer::GetRenderer()->mDevice, irradianceGeneratorPipelineLayoutInfo, true, 32, 32, {},
 			vertexInputInfo,
 			inputAssemblyState,
@@ -363,8 +363,8 @@ namespace Plaza {
 		//renderer.TransitionImageLayout(this->mShadowDepthImage, mDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT, 9);
 		//renderer.TransitionImageLayout(this->mShadowDepthImage, mDepthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_DEPTH_BIT, 9);
 
-		//this->mSkyboxImageViews.resize(Application->mRenderer->mMaxFramesInFlight);
-		//for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		//this->mSkyboxImageViews.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		//for (unsigned int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
 		//	VkImageViewCreateInfo viewInfo{};
 		//	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		//	viewInfo.image = this->mSkyboxImage;
@@ -492,8 +492,8 @@ namespace Plaza {
 		depthStencil.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.stencilTestEnable = VK_FALSE;
-		converterPipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert");
-		converterPipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.frag");
+		converterPipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert");
+		converterPipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.frag");
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputInfo.vertexBindingDescriptionCount = 0;
@@ -566,8 +566,8 @@ namespace Plaza {
 			framebufferInfo.renderPass = converterPipeline.mShaders->mRenderPass;
 			framebufferInfo.attachmentCount = frameBufferAttachments.size();
 			framebufferInfo.pAttachments = frameBufferAttachments.data();
-			framebufferInfo.width = faceSize;//Application->appSizes->sceneSize.x;
-			framebufferInfo.height = faceSize;//Application->appSizes->sceneSize.y;
+			framebufferInfo.width = faceSize;//Application::Get()->appSizes->sceneSize.x;
+			framebufferInfo.height = faceSize;//Application::Get()->appSizes->sceneSize.y;
 			framebufferInfo.layers = 1;
 
 			VkFramebuffer framebuffer; //= frameBuffers[i];
@@ -830,8 +830,8 @@ namespace Plaza {
 		depthStencil.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.stencilTestEnable = VK_FALSE;
-		pipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert");
-		pipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\prefilterEnvGenerator.frag");
+		pipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert");
+		pipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\prefilterEnvGenerator.frag");
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputInfo.vertexBindingDescriptionCount = 0;
@@ -902,8 +902,8 @@ namespace Plaza {
 				framebufferInfo.renderPass = pipeline.mShaders->mRenderPass;
 				framebufferInfo.attachmentCount = frameBufferAttachments.size();
 				framebufferInfo.pAttachments = frameBufferAttachments.data();
-				framebufferInfo.width = currentSize.x;//Application->appSizes->sceneSize.x;
-				framebufferInfo.height = currentSize.y;//Application->appSizes->sceneSize.y;
+				framebufferInfo.width = currentSize.x;//Application::Get()->appSizes->sceneSize.x;
+				framebufferInfo.height = currentSize.y;//Application::Get()->appSizes->sceneSize.y;
 				framebufferInfo.layers = 1;
 
 				VkFramebuffer framebuffer; //= frameBuffers[i];
@@ -993,8 +993,8 @@ namespace Plaza {
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &mDescriptorSetLayout;
 
-		this->mDescriptorSets.resize(Application->mRenderer->mMaxFramesInFlight);
-		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		this->mDescriptorSets.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		for (unsigned int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
 			if (vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, &this->mDescriptorSets[i]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to allocate descriptor sets!");
 			}
@@ -1136,8 +1136,8 @@ namespace Plaza {
 		depthStencil.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.stencilTestEnable = VK_FALSE;
-		pipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.vert");
-		pipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.frag");
+		pipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.vert");
+		pipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.frag");
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputInfo.vertexBindingDescriptionCount = 0;
@@ -1243,9 +1243,9 @@ namespace Plaza {
 
 		std::string shadersPath;
 #ifdef EDITOR_MODE
-		shadersPath = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\";
+		shadersPath = Application::Get()->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\";
 #else
-		shadersPath = Application->projectPath + "\\";
+		shadersPath = Application::Get()->projectPath + "\\";
 #endif
 		this->mSkyboxPaths[0] = shadersPath + "right.jpg";
 		this->mSkyboxPaths[1] = shadersPath + "left.jpg";
@@ -1254,9 +1254,9 @@ namespace Plaza {
 		this->mSkyboxPaths[4] = shadersPath + "front.jpg";
 		this->mSkyboxPaths[5] = shadersPath + "back.jpg";
 
-		this->mSkyboxPaths[0] = Application->enginePath + "\\Editor\\DefaultAssets\\Skybox\\" + "autumn_field_4k.hdr";
+		this->mSkyboxPaths[0] = Application::Get()->enginePath + "\\Editor\\DefaultAssets\\Skybox\\" + "autumn_field_4k.hdr";
 
-		this->mResolution = glm::vec2(4096);//Application->appSizes->sceneSize;
+		this->mResolution = glm::vec2(4096);//Application::Get()->appSizes->sceneSize;
 		this->InitializeImageSampler();
 		this->InitializeImageView();
 		this->InitializeDescriptorPool();
@@ -1265,8 +1265,8 @@ namespace Plaza {
 		InitializeBRDF();
 		//this->InitializeRenderPass();
 
-		//this->mFramebuffers.resize(Application->mRenderer->mMaxFramesInFlight);
-		//for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		//this->mFramebuffers.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		//for (unsigned int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
 		//     VkFramebufferCreateInfo framebufferInfo{};
 		//     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		//     framebufferInfo.renderPass = this->mSkyboxPostEffect->mRenderPass;
@@ -1303,12 +1303,12 @@ namespace Plaza {
 		}
 
 		//this->mSkyboxPostEffect->mShaders = new VulkanShaders(vertexPath, fragmentPath, "");
-		mScreenSize = Application->appSizes->sceneSize;
+		mScreenSize = Application::Get()->appSizes->sceneSize;
 		std::vector<VkImageView> attachments{ VulkanRenderer::GetRenderer()->mLighting->mDeferredEndTexture.mImageView, VulkanRenderer::GetRenderer()->mDepthImageView };
 		mSkyboxPostEffect->InitializeFramebuffer(attachments.data(), attachments.size(), this->mScreenSize, 1);
 		//mSkyboxPostEffect->Init(
-		//	VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.vert"),
-		//	VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.frag"),
+		//	VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.vert"),
+		//	VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.frag"),
 		//	"",
 		//	VulkanRenderer::GetRenderer()->mDevice,
 		//	mScreenSize,
@@ -1322,8 +1322,8 @@ namespace Plaza {
 		depthStencil.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.stencilTestEnable = VK_FALSE;
-		this->mSkyboxPostEffect->mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.vert");
-		this->mSkyboxPostEffect->mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.frag");
+		this->mSkyboxPostEffect->mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.vert");
+		this->mSkyboxPostEffect->mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.frag");
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = plvk::pipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_FALSE);
 		VkPipelineRasterizationStateCreateInfo rasterizationState = plvk::pipelineRasterizationStateCreateInfo(VK_FALSE, VK_FALSE, VK_POLYGON_MODE_FILL, 1.0f, VK_FALSE, 0.0f, 0.0f, 0.0f, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 		VkPipelineColorBlendAttachmentState blendAttachmentState = plvk::pipelineColorBlendAttachmentState(VK_TRUE);
@@ -1334,7 +1334,7 @@ namespace Plaza {
 		VkPipelineMultisampleStateCreateInfo multisampleState = plvk::pipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
 		std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 		VkPipelineDynamicStateCreateInfo dynamicState = plvk::pipelineDynamicStateCreateInfo(dynamicStateEnables);
-		this->mSkyboxPostEffect->mShaders->InitializeFull(VulkanRenderer::GetRenderer()->mDevice, this->mPipelineLayoutInfo, true, Application->appSizes->sceneSize.x, Application->appSizes->sceneSize.y, {},
+		this->mSkyboxPostEffect->mShaders->InitializeFull(VulkanRenderer::GetRenderer()->mDevice, this->mPipelineLayoutInfo, true, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, {},
 			{},
 			inputAssemblyState,
 			viewportState,
@@ -1346,7 +1346,7 @@ namespace Plaza {
 			depthStencilState);
 
 		/* Update deferred irradiance binding */
-		for (unsigned int i = 0; i < Application->mRenderer->mMaxFramesInFlight; ++i) {
+		for (unsigned int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
 			std::vector<VkWriteDescriptorSet> descriptorWrites = std::vector<VkWriteDescriptorSet>();
 			VkDescriptorImageInfo brdfInfo = plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetRenderer()->mSkybox->mBRDFLUTTexture->mImageView, VulkanRenderer::GetRenderer()->mSkybox->mBRDFLUTTexture->mSampler);
 			descriptorWrites.push_back(plvk::writeDescriptorSet(VulkanRenderer::GetRenderer()->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 6, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &brdfInfo));
@@ -1367,7 +1367,7 @@ namespace Plaza {
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		//renderPassInfo.renderPass = this->mSkyboxPostEffect->mRenderPass;
-		//renderPassInfo.framebuffer = this->mFramebuffers[Application->mRenderer->mCurrentFrame];//mSwapChainFramebuffers[0];//mSwapChainFramebuffers[imageIndex];
+		//renderPassInfo.framebuffer = this->mFramebuffers[Application::Get()->mRenderer->mCurrentFrame];//mSwapChainFramebuffers[0];//mSwapChainFramebuffers[imageIndex];
 		renderPassInfo.renderPass = mSkyboxPostEffect->mRenderPass;
 		renderPassInfo.framebuffer = mSkyboxPostEffect->mFramebuffer;
 
@@ -1392,18 +1392,18 @@ namespace Plaza {
 		viewport.height = static_cast<float>(VulkanRenderer::GetRenderer()->mSwapChainExtent.height);
 		//viewport.y = this->mResolution.y;
 
-		renderPassInfo.renderArea.extent.width = Application->appSizes->sceneSize.x;
-		renderPassInfo.renderArea.extent.height = Application->appSizes->sceneSize.y;
+		renderPassInfo.renderArea.extent.width = Application::Get()->appSizes->sceneSize.x;
+		renderPassInfo.renderArea.extent.height = Application::Get()->appSizes->sceneSize.y;
 
-		viewport.width = Application->appSizes->sceneSize.x;
-		viewport.height = -Application->appSizes->sceneSize.y;
-		viewport.y = Application->appSizes->sceneSize.y;
+		viewport.width = Application::Get()->appSizes->sceneSize.x;
+		viewport.height = -Application::Get()->appSizes->sceneSize.y;
+		viewport.y = Application::Get()->appSizes->sceneSize.y;
 
 		VkRect2D scissor{};
 		scissor.offset = { 0, 0 };
 		scissor.extent = VulkanRenderer::GetRenderer()->mSwapChainExtent;
-		scissor.extent.width = Application->appSizes->sceneSize.x;
-		scissor.extent.height = Application->appSizes->sceneSize.y;
+		scissor.extent.width = Application::Get()->appSizes->sceneSize.x;
+		scissor.extent.height = Application::Get()->appSizes->sceneSize.y;
 
 		//vkCmdBeginRenderPass(this->mCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -1413,15 +1413,15 @@ namespace Plaza {
 		vkCmdBindPipeline(this->mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mSkyboxPostEffect->mShaders->mPipeline);
 
 		//this->UpdateAndPushConstants(mCommandBuffer);
-		vkCmdBindDescriptorSets(this->mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mSkyboxPostEffect->mShaders->mPipelineLayout, 0, 1, &this->mDescriptorSets[Application->mRenderer->mCurrentFrame], 0, nullptr);
+		vkCmdBindDescriptorSets(this->mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mSkyboxPostEffect->mShaders->mPipelineLayout, 0, 1, &this->mDescriptorSets[Application::Get()->mRenderer->mCurrentFrame], 0, nullptr);
 
 		VkDeviceSize offsets[] = { 0, 0 };
 
 		pushData.skyboxIntensity = VulkanRenderer::GetRenderer()->mSkyboxIntensity;
 		pushData.gamma = VulkanRenderer::GetRenderer()->gamma;
 		pushData.exposure = VulkanRenderer::GetRenderer()->exposure;
-		pushData.projection = Application->activeCamera->GetProjectionMatrix();
-		pushData.view = Application->activeCamera->GetViewMatrix();
+		pushData.projection = Application::Get()->activeCamera->GetProjectionMatrix();
+		pushData.view = Application::Get()->activeCamera->GetViewMatrix();
 		vkCmdPushConstants(this->mCommandBuffer, this->mSkyboxPostEffect->mShaders->mPipelineLayout, VK_SHADER_STAGE_ALL, 0, sizeof(VulkanSkybox::PushConstants), &pushData);
 
 		//VkDeviceSize offsets2[1] = { 0 };

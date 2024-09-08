@@ -55,7 +55,7 @@ namespace Plaza {
         char path[MAX_PATH];
         path[0] = '\0';
 
-        bi.hwndOwner = glfwGetWin32Window(Application->Window->glfwWindow);
+        bi.hwndOwner = glfwGetWin32Window(Application::Get()->Window->glfwWindow);
         bi.pidlRoot = NULL;
         bi.pszDisplayName = path;
         bi.lpszTitle = "Select a folder";

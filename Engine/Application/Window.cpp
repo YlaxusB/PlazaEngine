@@ -5,19 +5,20 @@
 //#include "Engine/Application/Callbacks/Callbacks.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
 //using namespace Plaza;
-//using Application->;
+//using Application::Get()->;
 
 //using namespace Plaza;
-//using Application->;
-using Plaza::ApplicationClass;
+//using Application::Get()->;
+using Plaza::Application;
 namespace Plaza {
-	GLFWwindow* WindowClass::InitGLFWWindow() {
+	GLFWwindow* Window::InitGLFWWindow() {
+		PL_CORE_INFO("Initializing Window");
 		glfwInit();
 
 		//vkEnumerateInstanceExtensionProperties();
 		// TODO: --------- MUST CHANGE THE WAY IT'S STARTING ON SECOND MONITOR --------- //
 
-		if (Application->mRenderer->api == RendererAPI::OpenGL)
+		if (Application::Get()->mRenderer->api == RendererAPI::OpenGL)
 		{
 			glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -50,7 +51,7 @@ namespace Plaza {
 #else
 		// glfwWindowHint(GLFW_REFRESH_RATE, 5000);
 #endif
-		GLFWwindow* window = glfwCreateWindow(Application->appSizes->appSize.x, Application->appSizes->appSize.y, "Plaza Engine", 0, 0); // ------------------------------------------------------------------ Change this to 0
+		GLFWwindow* window = glfwCreateWindow(Application::Get()->appSizes->appSize.x, Application::Get()->appSizes->appSize.y, "Plaza Engine", 0, 0); // ------------------------------------------------------------------ Change this to 0
 		if (!window) {
 			// Handle window creation failure
 			// You can print an error message or log it
@@ -61,15 +62,15 @@ namespace Plaza {
 
 #ifdef EDITOR_MODE
 		GLFWimage images[1];
-		images[0].pixels = stbi_load(std::string(Application->editorPath + "\\Images\\Other\\PlazaEngineLogo.png").c_str(), &images[0].width, &images[0].height, 0, 4); //rgba channels 
+		images[0].pixels = stbi_load(std::string(Application::Get()->editorPath + "\\Images\\Other\\PlazaEngineLogo.png").c_str(), &images[0].width, &images[0].height, 0, 4); //rgba channels 
 		glfwSetWindowIcon(window, 1, images);
 #endif
 		glfwSetWindowUserPointer(window, this);
-		if (Application->mRenderer->api == RendererAPI::OpenGL)
+		if (Application::Get()->mRenderer->api == RendererAPI::OpenGL)
 		{
 			// Make it be fullscreen
 			glfwMakeContextCurrent(window);
-			glfwSetWindowMonitor(window, NULL, 0, 0, Application->appSizes->appSize.x, Application->appSizes->appSize.y, GLFW_DONT_CARE);
+			glfwSetWindowMonitor(window, NULL, 0, 0, Application::Get()->appSizes->appSize.x, Application::Get()->appSizes->appSize.y, GLFW_DONT_CARE);
 			//glfwSetWindowPos(window, -2560, 0);
 			//glfwMaximizeWindow(window);
 			glfwMaximizeWindow(window);
@@ -93,7 +94,7 @@ namespace Plaza {
 		// glfwSwapInterval(0);
 
 #endif
-		if (Application->mRenderer->api == RendererAPI::OpenGL)
+		if (Application::Get()->mRenderer->api == RendererAPI::OpenGL)
 		{
 			if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 			{

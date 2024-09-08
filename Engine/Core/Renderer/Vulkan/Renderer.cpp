@@ -38,11 +38,6 @@
 #include "VulkanPlazaInitializator.h"
 
 namespace Plaza {
-	VulkanShadows*
-		VulkanRenderer::GetShadows() {
-		return this->mShadows;
-	}
-
 #pragma region Vulkan Setup
 	const std::vector<const char*> validationLayers = {
 		"VK_LAYER_KHRONOS_validation"
@@ -2945,13 +2940,7 @@ namespace Plaza {
 		}
 	}
 
-	void VulkanRenderer::InitShaders(std::string shadersFolder) {
-	}
-	void VulkanRenderer::AddInstancesToRender() {
-	}
-	void VulkanRenderer::RenderShadowMap(Shader& shader) {
-	}
-	void VulkanRenderer::RenderInstances(Shader& shader) {
+	void VulkanRenderer::Render() {
 		PLAZA_PROFILE_SECTION("Render Instances");
 
 		// mCurrentFrame = 0;
@@ -3080,16 +3069,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
 	}
-	void VulkanRenderer::RenderBloom() {
-	}
-	void VulkanRenderer::RenderScreenSpaceReflections() {
-	}
-	void VulkanRenderer::RenderFullScreenQuad() {
-	}
-	void VulkanRenderer::RenderOutline() {
-	}
-	void VulkanRenderer::RenderHDR() {
-	}
+
 	void VulkanRenderer::Destroy() {
 		this->mSkybox->Terminate();
 		this->mShadows->Terminate();

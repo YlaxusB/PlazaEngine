@@ -72,15 +72,7 @@ namespace Plaza {
 		void Init() override;
 		void InitializeRenderGraph(PlazaRenderGraph* renderGraph) override;
 		void UpdateProjectManager() override;
-		void InitShaders(std::string shadersFolder) override;
-		void AddInstancesToRender() override;
-		void RenderShadowMap(Shader& shader) override;
-		void RenderInstances(Shader& shader) override;
-		void RenderBloom() override;
-		void RenderScreenSpaceReflections() override;
-		void RenderFullScreenQuad() override;
-		void RenderOutline() override;
-		void RenderHDR() override;
+		void Render() override;
 		void Destroy() override;
 		void CopyLastFramebufferToFinalDrawBuffer() override;
 		void InitGUI() override;
@@ -100,8 +92,6 @@ namespace Plaza {
 			VkSampler textureSampler = VK_NULL_HANDLE,
 			VkImageLayout layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
 		);
-
-		VulkanShadows* GetShadows() override;
 
 		Mesh& CreateNewMesh(
 			vector<glm::vec3>& vertices,

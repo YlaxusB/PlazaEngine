@@ -13,7 +13,6 @@
 namespace Plaza {
 
 	enum RendererAPI {
-		OpenGL,
 		Vulkan
 	};
 
@@ -48,17 +47,7 @@ namespace Plaza {
 		virtual void Init() = 0;
 		virtual void InitializeRenderGraph(PlazaRenderGraph* renderGraph) = 0;
 		virtual void UpdateProjectManager() = 0;
-		virtual void InitShaders(std::string shadersFolder) = 0;
-		virtual void AddInstancesToRender() = 0;
-		virtual void RenderShadowMap(Shader& shader) = 0;
-		virtual void RenderInstances(Shader& shader) = 0;
-		virtual void RenderBloom() = 0;
-		virtual void RenderScreenSpaceReflections() = 0;
-		virtual void RenderFullScreenQuad() = 0;
-		virtual void RenderOutline() = 0;
-		virtual void RenderHDR() = 0;
-
-		virtual Shadows* GetShadows() = 0;
+		virtual void Render() = 0;
 
 		virtual Mesh& CreateNewMesh(
 			vector<glm::vec3>& vertices,
@@ -95,16 +84,6 @@ namespace Plaza {
 			ndcPosition.y *= -1.0f;
 			glm::vec4 worldPosition = glm::inverse(viewProjection) * ndcPosition;
 			return glm::vec3(worldPosition) / worldPosition.w;
-			/*
-mat4 viewProjection = pushConstants.projection * pushConstants.view;
-float depth = (texture(gSceneDepth, TexCoords).r);
-float ndcZ = (depth) * 2.0f - 1.0f;
- vec4 ndcPosition = vec4(gl_FragCoord.xy * (1.0f / screenSize) * 2.0 - 1.0, (depth), 1.0);
- ndcPosition.y *= -1;
- vec4 worldPosition = inverse(viewProjection) * ndcPosition;
- worldPosition.xyz /= worldPosition.w;
-vec3 FragPos = worldPosition.xyz;
-			  */
 		}
 
 		virtual void CopyLastFramebufferToFinalDrawBuffer() = 0;

@@ -85,15 +85,6 @@ namespace Plaza {
 			return VkDescriptorSet();
 		}
 
-		//// Assignment operator
-		//Texture& operator=(const Texture& other) {
-		//	if (this != &other) {
-		//		path = other.path;
-		//		rgba = other.rgba;
-		//	}
-		//	return *this;
-		//}
-
 		bool IsTextureEmpty() const {
 			return false;
 		}
@@ -114,7 +105,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(mAssetUuid, rgba);
+			archive(mAssetUuid, rgba, mIntensity);
 		}
 
 		void SetTextureInfo(TextureInfo textureInfo) {

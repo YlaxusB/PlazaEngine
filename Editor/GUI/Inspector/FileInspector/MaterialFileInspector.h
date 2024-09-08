@@ -54,41 +54,12 @@ namespace Plaza::Editor {
 				material->height = LoadTextureButton(std::filesystem::path{ material->mAssetPath }.parent_path().string());
 			ImGui::EndTable();
 
-			//ImGui::ColorPicker4("Diffuse", &material->diffuse->rgba.x);
-			////			ImGui::ColorPicker4("Specular", &material->specular->rgba.x);
-			//if (ImGui::Button("Difusse Texture")) {
-			//	material->diffuse = LoadTextureButton();
-			//	//    material->diffuse.path = FileDialog::OpenFileDialog(".jpeg");
-			//	//    material->diffuse.rgba = glm::vec4(INFINITY);
-			//	//    material->diffuse.Load() = ModelLoader::TextureFromFile(material->diffuse.path);
-			//}
-			//if (ImGui::Button("Normal Texture")) {
-			//	material->normal = LoadTextureButton();
-			//}
-			//if (ImGui::Button("Metalic Texture")) {
-			//	material->metalness = LoadTextureButton();
-			//}
-			//if (ImGui::Button("Roughness Texture")) {
-			//	material->roughness = LoadTextureButton();
-			//}
-			//if (ImGui::Button("Height Texture")) {
-			//	material->height = LoadTextureButton();
-			//}
-
-			//ImGui::DragFloat("Roughness: ", &material->roughnessFloat, 0.0f, 1.0f);
-			//ImGui::DragFloat("Metalness: ", &material->metalnessFloat, 0.0f, 1.0f);
-			//ImGui::DragFloat("Diffuse Intensity: ", &material->intensity, 0.0f, 100.0f);
-
 			ImGui::InputFloat("Flip X", &material->flip.x);
 			ImGui::InputFloat("Flip Y", &material->flip.y);
 
-			//if (Application->activeScene->materials.find(material->uuid) != Application->activeScene->materials.end()) {
-			//	Application->activeScene->materials.at(material->uuid) = std::make_shared<Material>(*new Material(*material));
-			//}
 			if (ImGui::Button("Apply")) {
 				material->mAssetName = std::filesystem::path{ file->directory }.stem().string();
 				AssetsSerializer::SerializeMaterial(material, file->directory);
-				//MaterialFileSerializer::Serialize(file->directory, material);
 			}
 
 			lastFile = file;

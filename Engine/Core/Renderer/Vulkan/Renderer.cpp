@@ -3721,11 +3721,11 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}
 
-		{
-			PLAZA_PROFILE_SECTION("Update Uniform Buffers");
-			this->mShadows->UpdateUniformBuffer(mCurrentFrame);
-			UpdateUniformBuffer(mCurrentFrame);
-		}
+		//{
+		//	PLAZA_PROFILE_SECTION("Update Uniform Buffers");
+		//	this->mShadows->UpdateUniformBuffer(mCurrentFrame);
+		//	UpdateUniformBuffer(mCurrentFrame);
+		//}
 
 #ifdef EDITOR_MODE
 		{

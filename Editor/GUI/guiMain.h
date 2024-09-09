@@ -32,19 +32,19 @@ namespace Plaza {
 			class Hierarchy;
 			//class MaterialInspector;
 			class TransformInspector;
-			static void setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera);
+			static void setupDockspace(GLFWwindow* window, Camera* camera);
 			static void changeSelectedGameObject(Entity* newSelectedGameObject);
 			static void Init(GLFWwindow* window);
 			static void Delete();
 			static void Update();
 			static void NewFrame();
 
-			static void beginScene(int gameFrameBuffer, Camera& camera);
-			static void beginEditor(int gameFrameBuffer, Camera& camera);
-			static void beginHierarchyView(int gameFrameBuffer);
-			static void beginInspector(int gameFrameBuffer, Camera camera);
-			static void beginImageInspector(int gameFrameBuffer, Camera camera);
-			static void beginAssetsViewer(int gameFrameBuffer, Camera camera);
+			static void beginScene(Camera& camera);
+			static void beginEditor(Camera& camera);
+			static void beginHierarchyView();
+			static void beginInspector(Camera camera);
+			static void beginImageInspector(Camera camera);
+			static void beginAssetsViewer(Camera camera);
 
 			static inline bool mImageInspectorShowAllImages = false;
 			static inline bool mShowSelectedImageInEditorView = false;

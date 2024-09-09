@@ -66,12 +66,7 @@ namespace Plaza {
 			ImGuiIO& io = ImGui::GetIO();
 			io.DeltaTime = Time::deltaTime;
 			io.DisplaySize = ImVec2(Application::Get()->appSizes->appSize.x, Application::Get()->appSizes->appSize.y);
-			Gui::setupDockspace(Application::Get()->mWindow->glfwWindow, Application::Get()->textureColorbuffer, Application::Get()->activeCamera);
-			if (Application::Get()->mRenderer->api == RendererAPI::OpenGL)
-			{
-				ImGui::Render();
-				ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-			}
+			Gui::setupDockspace(Application::Get()->mWindow->glfwWindow, Application::Get()->activeCamera);
 			//else if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
 			//	Application::Get()->mRenderer->UpdateGUI();
 			//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), (VulkanRenderer)(Application::Get()->mRenderer)->);
@@ -79,12 +74,7 @@ namespace Plaza {
 
 		void Gui::NewFrame() {
 			PLAZA_PROFILE_SECTION("ImGui New Frame");
-			if (Application::Get()->mRenderer->api == RendererAPI::OpenGL)
-			{
-				ImGui_ImplOpenGL3_NewFrame();
-			}
-			else if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
-			{
+			if (Application::Get()->mRenderer->api == RendererAPI::Vulkan) {
 				Application::Get()->mRenderer->NewFrameGUI();
 			}
 			ImGui_ImplGlfw_NewFrame();
@@ -102,12 +92,7 @@ namespace Plaza {
 			strcpy(const_cast<char*>(iniFilePath), (Application::Get()->enginePath + "\\imgui.ini").c_str());
 			ImGui::GetIO().IniFilename = iniFilePath;
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-			if (Application::Get()->mRenderer->api == RendererAPI::OpenGL)
-			{
-				ImGui_ImplGlfw_InitForOpenGL(window, true);
-				ImGui_ImplOpenGL3_Init("#version 460");
-			}
-			else if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
+			if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
 			{
 				ImGui_ImplGlfw_InitForVulkan(window, true);
 				Application::Get()->mRenderer->InitGUI();
@@ -152,18 +137,15 @@ namespace Plaza {
 
 		void Gui::Delete() {
 			// Clean up ImGui
-			if (Application::Get()->mRendererAPI == RendererAPI::OpenGL)
-			{
-				ImGui_ImplOpenGL3_Shutdown();
-				ImGui_ImplGlfw_Shutdown();
-				ImGui::DestroyContext();
-			}
+			//ImGui_ImplGlfw_Shutdown();
+			//ImGui::DestroyContext();
+
 		}
 
 		void Gui::changeSelectedGameObject(Entity* newSelectedGameObject) {
 			selectedGameObject = newSelectedGameObject;
 		}
-		void Gui::setupDockspace(GLFWwindow* window, int gameFrameBuffer, Camera* camera) {
+		void Gui::setupDockspace(GLFWwindow* window, Camera* camera) {
 			PLAZA_PROFILE_SECTION("Setup Dockspace");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -196,15 +178,15 @@ namespace Plaza {
 			//Gui::beginHierarchyView(gameFrameBuffer);
 			Application::Get()->mEditor->mGui.mHierarchy.Update();
 
-			Gui::beginScene(gameFrameBuffer, *Application::Get()->activeCamera);
+			Gui::beginScene(*Application::Get()->activeCamera);
 
-			Gui::beginEditor(gameFrameBuffer, *Application::Get()->activeCamera);
+			Gui::beginEditor(*Application::Get()->activeCamera);
 
-			Gui::beginAssetsViewer(gameFrameBuffer, *Application::Get()->activeCamera);
+			Gui::beginAssetsViewer(*Application::Get()->activeCamera);
 
-			Gui::beginInspector(gameFrameBuffer, *camera);
+			Gui::beginInspector(*camera);
 
-			Gui::beginImageInspector(gameFrameBuffer, *camera);
+			Gui::beginImageInspector(*camera);
 
 			//ImGui::ShowDemoWindow();
 
@@ -241,7 +223,7 @@ namespace Plaza {
 
 
 		// Create the scene view
-		inline void Gui::beginScene(int gameFrameBuffer, Camera& camera) {
+		inline void Gui::beginScene(Camera& camera) {
 			PLAZA_PROFILE_SECTION("Begin Scene");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -344,7 +326,7 @@ namespace Plaza {
 		}
 
 		// Create the Editor view
-		inline void Gui::beginEditor(int gameFrameBuffer, Camera& camera) {
+		inline void Gui::beginEditor(Camera& camera) {
 			PLAZA_PROFILE_SECTION("Begin Editor");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -442,7 +424,7 @@ namespace Plaza {
 			ImGui::End();
 		}
 
-		void Gui::beginHierarchyView(int gameFrameBuffer) {
+		void Gui::beginHierarchyView() {
 			PLAZA_PROFILE_SECTION("Begin Hierarchy");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -479,7 +461,7 @@ namespace Plaza {
 			ImGui::End();
 		}
 
-		void Gui::beginInspector(int gameFrameBuffer, Camera camera) {
+		void Gui::beginInspector(Camera camera) {
 			PLAZA_PROFILE_SECTION("Begin Inspector");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -526,7 +508,7 @@ namespace Plaza {
 			ImGui::PopStyleVar();
 		}
 
-		void Gui::beginImageInspector(int gameFrameBuffer, Camera camera) {
+		void Gui::beginImageInspector(Camera camera) {
 			PLAZA_PROFILE_SECTION("Begin Image Inspector");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -575,7 +557,7 @@ namespace Plaza {
 			ImGui::PopStyleVar();
 		}
 
-		void Gui::beginAssetsViewer(int gameFrameBuffer, Camera camera) {
+		void Gui::beginAssetsViewer(Camera camera) {
 			PLAZA_PROFILE_SECTION("Begin Assets Viewer");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;

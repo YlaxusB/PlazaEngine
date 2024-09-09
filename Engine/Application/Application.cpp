@@ -2,7 +2,6 @@
 
 #include "Editor/GUI/guiMain.h"
 
-#include "Engine/Application/PickingTexture.h"
 #include "Engine/Components/Core/Camera.h"
 #include "Engine/Components/Core/Entity.h"
 #include "Engine/Shaders/Shader.h"
@@ -13,12 +12,9 @@
 #include "Engine/Editor/Editor.h"
 #include "Engine/Application/Window.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
-#include "Engine/Editor/Outline/Outline.h"
-#include "Engine/Editor/Editor.h"
 
-#include <cstdlib> // Include the appropriate header for _dupenv_s
+#include <cstdlib> 
 
-//#include "ThirdParty/Tracy/tracy/TracyC.h"
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Core/Physics.h"
 #include "Engine/Components/Core/Camera.h"
@@ -26,9 +22,7 @@
 #include "Editor/Filewatcher.h"
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Audio/Audio.h"
-#include "Engine/Core/Lighting/ClusteredForward.h"
-#include "Engine/Shaders/ComputeShader.h"
-#include "Engine/Components/Rendering/Light.h"
+#include "Editor/SessionCache/Cache.h"
 
 using namespace Plaza;
 /// ---------------------------------------------------------------------
@@ -54,10 +48,10 @@ namespace Plaza {
 		this->GetPaths();
 		AssetsManager::Init();
 
-		Application::Get()->mRenderer->api = Settings::mDefaultRendererAPI;
 		switch (Settings::mDefaultRendererAPI) {
 		case RendererAPI::Vulkan:
 			Application::Get()->mRenderer = new VulkanRenderer();
+			Application::Get()->mRenderer->api = Settings::mDefaultRendererAPI;
 			break;
 		}
 
@@ -78,6 +72,7 @@ namespace Plaza {
 		size_t len;
 		errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");
 		std::filesystem::path currentPath(__FILE__);
+		Application::Get()->dllPath = currentPath.parent_path().parent_path().parent_path().string() + "\\dll";
 		Application::Get()->enginePath = currentPath.parent_path().parent_path().string();
 		Application::Get()->editorPath = currentPath.parent_path().parent_path().parent_path().string() + "\\Editor";
 		Application::Get()->enginePathAppData = std::string(appdataValue) + "\\PlazaEngine\\";

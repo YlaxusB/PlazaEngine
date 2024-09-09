@@ -15,7 +15,7 @@ namespace Plaza::Editor {
 		void AddChildrenMeshShape(Collider* collider, uint64_t parentUuid) {
 			for (uint64_t childUuid : Application::Get()->activeScene->entities.at(parentUuid).childrenUuid) {
 				if (Application::Get()->activeScene->entities.at(childUuid).HasComponent<MeshRenderer>()) {
-					collider->AddConvexMeshShape((Mesh*)(new OpenGLMesh(*(OpenGLMesh*)(Application::Get()->activeScene->meshRendererComponents.at(childUuid).mesh))));
+					collider->AddConvexMeshShape(Application::Get()->activeScene->meshRendererComponents.at(childUuid).mesh);
 				}
 				AddChildrenMeshShape(collider, childUuid);
 			}
@@ -85,7 +85,7 @@ namespace Plaza::Editor {
 					if (ImGui::MenuItem("Mesh"))
 					{
 						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {
-							collider->AddMeshShape((Mesh*)new OpenGLMesh(*(OpenGLMesh*)Application::Get()->activeScene->meshRendererComponents.at(collider->mUuid).mesh));
+							collider->AddMeshShape(Application::Get()->activeScene->meshRendererComponents.at(collider->mUuid).mesh);
 							collider->Init(nullptr);
 						}
 						if (collider->GetGameObject()->HasComponent<RigidBody>()) {
@@ -96,7 +96,7 @@ namespace Plaza::Editor {
 					if (ImGui::MenuItem("Convex Mesh"))
 					{
 						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {
-							collider->AddConvexMeshShape((Mesh*)new OpenGLMesh(*(OpenGLMesh*)Application::Get()->activeScene->meshRendererComponents.at(collider->mUuid).mesh));
+							collider->AddConvexMeshShape(Application::Get()->activeScene->meshRendererComponents.at(collider->mUuid).mesh);
 							collider->Init(nullptr);
 						}
 						if (collider->GetGameObject()->HasComponent<RigidBody>()) {

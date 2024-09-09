@@ -45,10 +45,7 @@ namespace Plaza {
 
 	VulkanRenderer*
 		VulkanRenderer::GetRenderer() {
-		if (Application)
-			return (VulkanRenderer*)(Application::Get()->mRenderer);
-		else
-			return nullptr;
+		return static_cast<VulkanRenderer*>(Application::Get()->mRenderer);
 	}
 
 	VkResult
@@ -458,7 +455,7 @@ namespace Plaza {
 #endif
 
 		return VK_PRESENT_MODE_FIFO_KHR;
-	}
+			}
 
 	VkSurfaceFormatKHR
 		chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
@@ -1541,8 +1538,8 @@ namespace Plaza {
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
-		}
 	}
+		}
 
 	void VulkanRenderer::UpdatePreRenderData() {
 		//UpdateMaterials();
@@ -2898,7 +2895,7 @@ namespace Plaza {
 		mRenderGraph->RunSkyboxRenderGraph(mRenderGraph->BuildSkyboxRenderGraph());
 
 #ifdef EDITOR_MODE
-		Editor::Gui::Init(Application::Get()->Window->glfwWindow);
+		Editor::Gui::Init(Application::Get()->mWindow->glfwWindow);
 #endif
 	}
 
@@ -3068,7 +3065,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-	}
+		}
 
 	void VulkanRenderer::Destroy() {
 		this->mSkybox->Terminate();
@@ -3711,7 +3708,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		{
 			PLAZA_PROFILE_SECTION("ImGui::Render");
 			ImGui::Render();
-	}
+		}
 #endif
 
 		{
@@ -3809,7 +3806,7 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		}
 
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
-}
+	}
 
 	void VulkanRenderer::AddTrackerToImage(VkImageView imageView,
 		std::string name,
@@ -4089,4 +4086,4 @@ VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT
 		vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
 		//vkDestroyFence(mDevice, mInFlightFences[mCurrentFrame], nullptr);
 	}
-}
+			}

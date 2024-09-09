@@ -7,9 +7,6 @@
 #include "Engine/Core/Time.h"
 #include "Engine/Core/Skybox.h"
 #include "Editor/SessionCache/Cache.h"
-
-Application* Plaza::Application = new Plaza::Application();
-
 using namespace Plaza;
 
 #define TRACY_NO_INVARIANT_CHECK 1
@@ -30,6 +27,7 @@ using namespace Plaza;
 int main() {
 	Log::Init();
 	PL_CORE_INFO("Start");
+	Application::Init();
 	Application::Get()->CreateApplication();
 	Application::Get()->Loop();
 	Application::Get()->Terminate();

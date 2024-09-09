@@ -6,7 +6,6 @@
 
 #include "Engine/Core/Skybox.h"
 #include "Editor/GUI/guiMain.h"
-#include "Engine/Core/Lighting/ClusteredForward.h"
 #include "Editor/DefaultAssets/DefaultAssets.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "Engine/Core/Input/Input.h"
@@ -145,39 +144,12 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 			else
 				Scene::Play();
 		}
-
-		if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
-			Application::Get()->InitShaders();
-		}
-
-		if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS) {
-			//for (Lighting::LightStruct& light : Lighting::mLights) {
-			//	uint64_t uuid = *Application::Get()->activeScene->entitiesNames.find("Light")->second.begin();
-			//	uint64_t instantiatedUuid = Application::Get()->activeScene->entities.at(uuid).Instantiate(uuid);
-			//	Application::Get()->activeScene->entities.find(instantiatedUuid)->second.GetComponent<Transform>()->SetRelativePosition(light.position);
-			//}
-		}
-
-		//if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
-		//	if (RenderGroup::renderMode == GL_TRIANGLES) {
-		//		RenderGroup::renderMode = GL_POINTS;
-		//		glPolygonMode(GL_FRONT_AND_BACK, RenderGroup::renderMode);
-		//	}
-		//	else {
-		//		RenderGroup::renderMode = GL_TRIANGLES;
-		//		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		//	}
-		//}
 	}
 
 	if (Application::Get()->focusedMenu == "Editor" || Application::Get()->focusedMenu == "Hierarchy") {
 		if (glfwGetKey(window, GLFW_KEY_DELETE) == GLFW_PRESS && Editor::selectedGameObject) {
 			uint64_t uuid = Editor::selectedGameObject->uuid;
 			Editor::selectedGameObject->Delete();
-			//auto it = Application::Get()->activeScene->entities.find(uuid); // Find the iterator for the key
-			//if (it != Application::Get()->activeScene->entities.end()) {
-			//	Application::Get()->activeScene->entities.erase(it); // Erase the element if found
-			//}
 			Editor::selectedGameObject = nullptr;
 		}
 	}
@@ -196,10 +168,10 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 
 #ifdef EDITOR_MODE
 	if (glfwGetKey(window, GLFW_KEY_PAGE_UP))
-		glfwSetInputMode(Application::Get()->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	else if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN))
-		glfwSetInputMode(Application::Get()->Window->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 #endif
 
 

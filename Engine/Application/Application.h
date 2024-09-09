@@ -7,8 +7,6 @@
 #include "Engine/Application/EditorCamera.h"
 #include "Engine/Shaders/Shader.h"
 #include "Editor/GUI/guiMain.h"
-#include "Engine/Application/PickingTexture.h"
-#include "Engine/Core/Lighting/Shadows/Shadows.h"
 #include "Engine/Application/Window.h"
 #include "Engine/Editor/Editor.h"
 #include "Editor/GUI/ProjectManager/ProjectManager.h"
@@ -19,7 +17,6 @@
 #include "Engine/Core/FrameBuffer.h"
 
 #include "Engine/Core/Renderer/Renderer.h"
-#include "Engine/Core/Renderer/OpenGL/Renderer.h"
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
 #include "Engine/Core/AssetsManager/AssetsManager.h"
 #include "Engine/Threads/ThreadManager.h"

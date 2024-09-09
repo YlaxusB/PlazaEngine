@@ -110,8 +110,6 @@ namespace Plaza {
 			ImGui::PopStyleColor();
 			ImGui::PopStyleVar();
 			ImGui::Render();
-			if (Application::Get()->mRendererAPI = RendererAPI::OpenGL)
-				ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		}
 
 		void ProjectManagerGui::SetupProjectsTreeNode() {

@@ -234,7 +234,7 @@ namespace Plaza {
 		physx::PxReal min = PX_MAX_F32;
 		physx::PxReal max = -PX_MAX_F32;
 
-		OpenGLMesh* debugMesh = new OpenGLMesh();
+		Mesh* debugMesh = new Mesh();
 		debugMesh->vertices.reserve(size);
 		debugMesh->indices.reserve(size);
 		debugMesh->indices.push_back(0);

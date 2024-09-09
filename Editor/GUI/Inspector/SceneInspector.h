@@ -111,7 +111,7 @@ namespace Plaza::Editor {
 			return vector;
 		}
 		SceneInspector(Scene* scene) {
-			Shadows* shadows = Application::Get()->mRenderer->GetShadows();
+			Shadows* shadows = Application::Get()->mRenderer->mShadows;
 			/* Draw Gizmo for rotating Sun */
 			shadows->mLightDirection = SceneInspector::DrawGizmo(shadows->mLightDirection);
 
@@ -129,11 +129,10 @@ namespace Plaza::Editor {
 			if (ImGui::TreeNodeEx("Rendering", ImGuiTreeNodeFlags_DefaultOpen)) {
 				if (ImGui::Checkbox("Visualize Normals", &visualizingNormals)) {
 					if (visualizingNormals) {
-						Application::Get()->shader = new Shader((Application::Get()->enginePath + "\\Shaders\\normals\\normalVisualizerVertex.glsl").c_str(),
-							(Application::Get()->enginePath + "\\Shaders\\normals\\normalVisualizerFragment.glsl").c_str(), (Application::Get()->enginePath + "\\Shaders\\normals\\normalVisualizerGeometry.glsl").c_str());
+
 					}
 					else {
-						Application::Get()->shader = new Shader((Application::Get()->enginePath + "\\Shaders\\1.model_loadingVertex.glsl").c_str(), (Application::Get()->enginePath + "\\Shaders\\1.model_loadingFragment.glsl").c_str());
+
 					}
 				}
 				ImGui::TreePop();

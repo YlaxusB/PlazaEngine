@@ -584,7 +584,7 @@ namespace Plaza {
 			//    Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
 			Application::Get()->mRenderer->RestartMesh(Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
 			if (Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			delete newMesh;
 		}
 	}
@@ -606,12 +606,12 @@ namespace Plaza {
 		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
 		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
-			OpenGLMesh* oldMesh = (OpenGLMesh*)meshRendererIt->second.mesh;
-			OpenGLMesh* newMesh;
+			Mesh* oldMesh = meshRendererIt->second.mesh;
+			Mesh* newMesh;
 			if (oldMesh)
-				newMesh = new OpenGLMesh(*oldMesh);
+				newMesh = new Mesh(*oldMesh);
 			else
-				newMesh = new OpenGLMesh();
+				newMesh = new Mesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
 			if (oldMesh->temporaryMesh) {
@@ -635,7 +635,7 @@ namespace Plaza {
 			//    Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
 			Application::Get()->mRenderer->RestartMesh(Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
 			if (Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			delete newMesh;
 		}
 	}
@@ -657,12 +657,12 @@ namespace Plaza {
 		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
 		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end()) {
 			// Assuming you have a method to convert an array of glm::vec3 to your desired vector type.
-			OpenGLMesh* oldMesh = (OpenGLMesh*)meshRendererIt->second.mesh;
-			OpenGLMesh* newMesh;
+			Mesh* oldMesh = meshRendererIt->second.mesh;
+			Mesh* newMesh;
 			if (oldMesh)
-				newMesh = new OpenGLMesh(*oldMesh);
+				newMesh = new Mesh(*oldMesh);
 			else
-				newMesh = new OpenGLMesh();
+				newMesh = new Mesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
 			if (oldMesh->temporaryMesh) {
@@ -686,7 +686,7 @@ namespace Plaza {
 			//    Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh->Restart();
 			Application::Get()->mRenderer->RestartMesh(Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh);
 			if (Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup)
-				Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+				Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 			delete newMesh;
 		}
 	}
@@ -737,7 +737,7 @@ namespace Plaza {
 				Application::Get()->activeScene->meshRendererComponents.find(uuid)->second.mesh = Application::Get()->mRenderer->RestartMesh(Application::Get()->activeScene->meshRendererComponents.find(uuid)->second.mesh);
 
 				if (oldMeshUuid == meshRendererIt->second.mesh->uuid && Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup) {
-					Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = (OpenGLMesh*)Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
+					Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->mesh = Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh;
 				}
 				else {
 					RenderGroup* newRenderGroup = new RenderGroup(Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->mesh, Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup->materials);
@@ -850,7 +850,7 @@ namespace Plaza {
 	static void Collider_AddShapeMeshCall(uint64_t uuid, ColliderShape::ColliderShapeEnum shape, glm::vec3* vertices, int verticesSize, unsigned int* indices, int indicesSize, glm::vec3* normals, int normalsSize, glm::vec2* uvs, int uvsSize) {
 		auto it = Application::Get()->activeScene->colliderComponents.find(uuid);
 		if (it != Application::Get()->activeScene->colliderComponents.end()) {
-			OpenGLMesh* newMesh = new OpenGLMesh();
+			Mesh* newMesh = new Mesh();
 			newMesh->meshId = Plaza::UUID::NewUUID();
 			newMesh->temporaryMesh = true;
 			newMesh->vertices.clear();
@@ -997,7 +997,7 @@ namespace Plaza {
 
 		mono_add_internal_call("Plaza.InternalCalls::InputIsAnyKeyPressed", InputIsAnyKeyPressed);
 		mono_add_internal_call("Plaza.InternalCalls::InputIsKeyDown", InputIsKeyDown);
-		mono_add_internal_call("Plaza.InternalCalls::IsKeyReleased", IsKeyReleased); 
+		mono_add_internal_call("Plaza.InternalCalls::IsKeyReleased", IsKeyReleased);
 		mono_add_internal_call("Plaza.InternalCalls::InputIsMouseDown", InputIsMouseDown);
 		mono_add_internal_call("Plaza.InternalCalls::GetMouseDelta", GetMouseDelta);
 		mono_add_internal_call("Plaza.InternalCalls::CursorHide", CursorHide);

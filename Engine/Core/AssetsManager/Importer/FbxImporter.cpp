@@ -166,6 +166,8 @@ namespace Plaza {
 		bool noTangent = true;
 
 		for (size_t i = 0; i < scene->nodes.count; ++i) {
+			Application::Get()->mRenderer->UpdateMainProgressBar(float(float(i) / float(scene->nodes.count)));
+
 			ufbx_node* node = scene->nodes.data[i];
 			ufbx_mesh* ufbxMesh = node->mesh;
 			if (!ufbxMesh)

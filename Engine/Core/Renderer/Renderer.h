@@ -48,6 +48,9 @@ namespace Plaza {
 		virtual void InitializeRenderGraph(PlazaRenderGraph* renderGraph) = 0;
 		virtual void UpdateProjectManager() = 0;
 		virtual void Render() = 0;
+		virtual void RenderImGuiFrame(std::vector<ImDrawData*> drawDatas) = 0;
+		virtual void RecordImGuiFrame(std::vector<ImDrawData*> drawDatas) = 0;
+		virtual void UpdateMainProgressBar(float percentage) = 0;
 
 		virtual Mesh& CreateNewMesh(
 			vector<glm::vec3>& vertices,

@@ -24,7 +24,9 @@ namespace Plaza {
 				if (ImGui::Button("Import")) {
 					this->SetOpen(false);
 					ImGui::CloseCurrentPopup();
-					AssetsImporter::ImportAsset(mFileToImport, 0, settings);
+					Application::Get()->mThreadsManager->mFrameStartThread->AddToQueue([&]() {
+						AssetsImporter::ImportAsset(mFileToImport, 0, settings);
+						});
 				}
 				if (ImGui::Button("Cancel")) {
 					this->SetOpen(false);
@@ -39,7 +41,7 @@ namespace Plaza {
 			if (table.tableName.empty())
 				table.tableName = table.tableUuid;
 
-			ImGui::BeginTable("Importer Menu", 2, table.flags); 
+			ImGui::BeginTable("Importer Menu", 2, table.flags);
 			Utils::AddTableCheckbox("Import Model", &settings.mImportModel);
 			Utils::AddTableCheckbox("Import Textures", &settings.mImportTextures);
 			Utils::AddTableCheckbox("Import Materials", &settings.mImportMaterials);

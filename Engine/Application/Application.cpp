@@ -195,14 +195,14 @@ namespace Plaza {
 		// Imgui New Frame (only if running editor)
 #ifdef EDITOR_MODE
 		Gui::NewFrame();
-		if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
-			Gui::Update();
+		Gui::Update();
 #endif
 
 		Time::drawCalls = 0;
 		Time::addInstanceCalls = 0;
 		Time::mUniqueTriangles = 0;
 		Time::mTotalTriangles = 0;
+
 		Application::Get()->mRenderer->Render();
 
 		Application::Get()->mThreadsManager->UpdateFrameEndThread();

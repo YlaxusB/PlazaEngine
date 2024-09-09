@@ -32,6 +32,10 @@ namespace Plaza {
 			class Hierarchy;
 			//class MaterialInspector;
 			class TransformInspector;
+
+			static inline ImGuiContext* mMainContext = nullptr;
+			static inline ImGuiContext* mMainProgressBarContext = nullptr;
+
 			static void setupDockspace(GLFWwindow* window, Camera* camera);
 			static void changeSelectedGameObject(Entity* newSelectedGameObject);
 			static void Init(GLFWwindow* window);
@@ -45,6 +49,7 @@ namespace Plaza {
 			static void beginInspector(Camera camera);
 			static void beginImageInspector(Camera camera);
 			static void beginAssetsViewer(Camera camera);
+			static void beginMainProgressBar(float percentage);
 
 			static inline bool mImageInspectorShowAllImages = false;
 			static inline bool mShowSelectedImageInEditorView = false;
@@ -78,6 +83,7 @@ namespace Plaza {
 			//static inline EditorTool::ToolType sEditorToolCaptureMouseClick;
 			//static inline EditorTool::ToolType sEditorToolCaptureKeyPress;
 		private:
+			static void CommonGuiInit(GLFWwindow* window, EditorStyle* editorStyle, bool initializePlazaImGuiPools);
 			static inline bool isAssetImporterOpen = false;
 			static inline std::string mAssetToImportPath = "";
 		};

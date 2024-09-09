@@ -73,9 +73,13 @@ namespace Plaza {
 		void InitializeRenderGraph(PlazaRenderGraph* renderGraph) override;
 		void UpdateProjectManager() override;
 		void Render() override;
+		void RenderImGuiFrame(std::vector<ImDrawData*> drawDatas) override;
+		void RecordImGuiFrame(std::vector<ImDrawData*> drawDatas) override;
+		void UpdateMainProgressBar(float percentage) override;
 		void Destroy() override;
 		void CopyLastFramebufferToFinalDrawBuffer() override;
 		void InitGUI() override;
+		void InitVulkanImGui();
 		void NewFrameGUI() override;
 		void UpdateGUI() override;
 		ImTextureID GetFrameImage() override;
@@ -262,6 +266,8 @@ namespace Plaza {
 		void CreateImGuiTextureSampler();
 
 		void UpdatePreRenderData();
+		void UpdatePreRecord();
+		void UpdateAfterRecord();
 
 		void CleanupSwapChain();
 		void RecreateSwapChain();

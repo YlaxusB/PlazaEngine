@@ -83,7 +83,28 @@ namespace Plaza {
 
 		void Gui::Init(GLFWwindow* window) {
 			EditorStyle* editorStyle = new EditorStyle();
-			ImGui::CreateContext();
+
+			mMainContext = ImGui::CreateContext();
+			mMainProgressBarContext = ImGui::CreateContext();
+
+			ImGui::SetCurrentContext(mMainContext);
+			CommonGuiInit(window, editorStyle, true);
+
+			Icon::Init();
+			FpsCounter* fpsCounter = new FpsCounter();
+			// Load Icons
+			playPauseButtonImageId = Utils::LoadImageToImGuiTexture(std::string(Application::Get()->editorPath + "\\Images\\Other\\playPauseButton.png").c_str());
+			sEditorTools.emplace(EditorTool::ToolType::TERRAIN_EDITOR, std::make_unique<TerrainEditorTool>());
+
+			ImGui::SetCurrentContext(mMainProgressBarContext);
+			CommonGuiInit(window, editorStyle, false);
+			mMainProgressBarContext->IO = mMainContext->IO;
+			mMainProgressBarContext->PlatformIO = mMainContext->PlatformIO;
+
+			ImGui::SetCurrentContext(mMainContext);
+		}
+
+		void Gui::CommonGuiInit(GLFWwindow* window, EditorStyle* editorStyle, bool initializePlazaImGuiPools) {
 			ImGui::StyleColorsDark();
 			ImGuiIO& io = ImGui::GetIO();
 			(void)io;
@@ -94,8 +115,14 @@ namespace Plaza {
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 			if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
 			{
-				ImGui_ImplGlfw_InitForVulkan(window, true);
-				Application::Get()->mRenderer->InitGUI();
+				if (initializePlazaImGuiPools) {
+					ImGui_ImplGlfw_InitForVulkan(window, true);
+					Application::Get()->mRenderer->InitGUI();
+				}
+				else {
+					ImGui_ImplGlfw_InitForVulkan(window, false);
+					VulkanRenderer::GetRenderer()->InitVulkanImGui();
+				}
 			}
 			//ImGui_ImplGlfw_InitForVulkan(Application::Get()->Window->glfwWindow, true);
 		//C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
@@ -125,14 +152,6 @@ namespace Plaza {
 #pragma endregion
 
 			ImGui::GetStyle().ScrollbarSize = 9.0f;
-			Icon::Init();
-
-			FpsCounter* fpsCounter = new FpsCounter();
-
-			// Load Icons
-			playPauseButtonImageId = Utils::LoadImageToImGuiTexture(std::string(Application::Get()->editorPath + "\\Images\\Other\\playPauseButton.png").c_str());
-
-			sEditorTools.emplace(EditorTool::ToolType::TERRAIN_EDITOR, std::make_unique<TerrainEditorTool>());
 		}
 
 		void Gui::Delete() {
@@ -361,8 +380,6 @@ namespace Plaza {
 			}
 			if (ImGui::IsWindowHovered())
 				Application::Get()->hoveredMenu = "Editor";
-
-
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x / 2, 25));
 
@@ -614,6 +631,30 @@ namespace Plaza {
 			if (ImGui::IsWindowHovered())
 				Application::Get()->hoveredMenu = "AssetsViewer";
 
+			ImGui::End();
+		}
+
+		void Gui::beginMainProgressBar(float percentage) {
+			PLAZA_PROFILE_SECTION("Begin Main Progress Bar");
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
+			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
+			Entity* selectedGameObject = Editor::selectedGameObject;
+
+			// Set the window to be the content size + header size
+			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_MenuBar;
+
+			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse;
+			windowFlags |= ImGuiWindowFlags_NoScrollbar;
+
+			ImGui::SetNextWindowSize(ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y));
+
+			ImGuiStyle& style = ImGui::GetStyle();
+
+			// Adjust padding and margin sizes
+			style.WindowPadding = ImVec2(0.0f, 0.0f);  // Change window padding
+			if (ImGui::Begin("Progress Bar", &Gui::isSceneOpen, windowFlags)) {
+				ImGui::ProgressBar(percentage);
+			}
 			ImGui::End();
 		}
 

@@ -64,6 +64,12 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 			//archive(*Application::Get()->activeScene);
 			//os.close();
 		}
+		if (key == GLFW_KEY_K && action == GLFW_PRESS) {
+			for (int i = 0; i < 100; ++i) {
+				Application::Get()->mRenderer->UpdateMainProgressBar(i / 100.0f);
+				std::this_thread::sleep_for(std::chrono::milliseconds(3));
+			}
+		}
 		if (key == GLFW_KEY_O && action == GLFW_PRESS) {
 			Application::Get()->mThreadsManager->mFrameEndThread->AddToQueue([sceneOutput]() {
 				std::ifstream is(sceneOutput, std::ios::binary);
@@ -175,4 +181,4 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 #endif
 
 
-}
+	}

@@ -111,7 +111,7 @@ namespace Plaza::Editor {
 			return vector;
 		}
 		SceneInspector(Scene* scene) {
-			Shadows* shadows = Application::Get()->mRenderer->mShadows;
+			Shadows* shadows = VulkanRenderer::GetRenderer()->mShadows;//Application::Get()->mRenderer->mShadows;
 			/* Draw Gizmo for rotating Sun */
 			shadows->mLightDirection = SceneInspector::DrawGizmo(shadows->mLightDirection);
 

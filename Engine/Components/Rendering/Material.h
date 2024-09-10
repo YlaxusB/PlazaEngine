@@ -71,6 +71,5 @@ namespace Plaza {
 	private:
 		std::vector<uint64_t> mDeserializedTexturesUuid = std::vector<uint64_t>();
 	};
-
 }
 #endif // PLAZA_MATERIAL_H

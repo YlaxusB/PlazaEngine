@@ -20,46 +20,29 @@ namespace Plaza::Editor {
 		std::string fileName = projectFile.filename().string();
 		std::string extension = projectFile.extension().string();
 		// Check if its extension is the project extension
-		if (extension != Standards::projectExtName) {
+		if (extension != Standards::projectExtName || !std::filesystem::exists(projectFile)) {
 			Application::Get()->runEngine = false;
 			std::cout << "Project has not been found!" << "\n";
 			return;
 		}
 
-
-		std::cout << filePath << std::endl;
 		Application::Get()->projectPath = projectFile.parent_path().string();
 
+ 		Application::Get()->activeProject = new Project(AssetsSerializer::DeSerializeFile<Project>(filePath));
+		Project* proj = Application::Get()->activeProject;
 
-		Application::Get()->activeProject = new Project();
-		Application::Get()->activeProject->name = fileName;
-		Application::Get()->activeProject->directory = projectFile.parent_path().string();
-		Application::Get()->activeProject->scriptsConfigFilePath = Application::Get()->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName;
-		//Application::Get()->activeProject->scripts = ScriptManagerSerializer::DeSerialize(Application::Get()->activeProject->scriptsConfigFilePath);
 		#ifdef EDITOR_MODE
-		Filewatcher::Start(Application::Get()->activeProject->directory);
+		Filewatcher::Start(Application::Get()->activeProject->mAssetPath.parent_path().string());
 		#endif
 
 		Application::Get()->runEngine = true;
 		Application::Get()->runProjectManagerGui = false;
 		std::cout << "Mid \n";
-		//this->currentContent = new NewProjectContent();
 
 #ifdef EDITOR_MODE
-		Gui::FileExplorer::currentDirectory = Application::Get()->activeProject->directory;
+		Gui::FileExplorer::currentDirectory = Application::Get()->activeProject->mAssetPath.parent_path().string();
 		Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
-#endif // !GAME_REL
-
-		Application::Get()->activeProject->directory = projectFile.parent_path().string();
-
-
-		//free(Application::Get()->editorScene);
-		//free(Application::Get()->runtimeScene);
-
-		Application::Get()->editorScene = new Scene();
-		Application::Get()->runtimeScene = new Scene();
-		Application::Get()->editorScene->mainSceneEntity = new Entity("Scene");
-		Application::Get()->activeScene = Application::Get()->editorScene;
+#endif // EDITOR_MODE
 
 		std::cout << "Mono \n";
 		Mono::Init();
@@ -67,7 +50,8 @@ namespace Plaza::Editor {
 		std::cout << "Read Game Folder \n";
 		std::map<std::string, Script> scripts = std::map<std::string, Script>();
 		/* Iterate over all files and subfolders of the project folder to load assets */
-		for (auto entry = filesystem::recursive_directory_iterator(Application::Get()->activeProject->directory, filesystem::directory_options::skip_permission_denied); entry != filesystem::end(entry); ++entry) {
+		std::string path = Application::Get()->activeProject->mAssetPath.parent_path().string();
+		for (auto entry = filesystem::recursive_directory_iterator(Application::Get()->activeProject->mAssetPath.parent_path(), filesystem::directory_options::skip_permission_denied); entry != filesystem::end(entry); ++entry) {
 			if (entry->is_directory() && entry->path().filename().string().ends_with(".ignore")) {
 				entry.disable_recursion_pending();
 			}
@@ -86,7 +70,6 @@ namespace Plaza::Editor {
 					if (extension == ".plzmat" || extension == Standards::animationExtName)
 					{
 						AssetsLoader::LoadAsset(asset);
-						//AssetsManager::AddAsset(asset);
 					}
 					else if (extension == ".plzmod") {
 						std::ifstream binaryFile(entry->path(), std::ios::binary);
@@ -94,8 +77,6 @@ namespace Plaza::Editor {
 						binaryFile.read(reinterpret_cast<char*>(&uuid), sizeof(uint64_t));
 						binaryFile.close();
 						AssetsManager::NewAsset(uuid, AssetType::MODEL, entry->path().string());
-						//AssetsManager::LoadMetadataAsAsset(entry.path());
-						//AssetsLoader::LoadPrefabToMemory(asset);
 					}
 					else if (extension == Standards::animationExtName) {
 						std::ifstream binaryFile(entry->path(), std::ios::binary);
@@ -128,9 +109,7 @@ namespace Plaza::Editor {
 		}
 
 		std::cout << "Deserializing \n";
-		ProjectSerializer::DeSerialize(filePath);
+		//ProjectSerializer::DeSerialize(filePath);
 		std::cout << "Finished Deserializing \n";
-		Application::Get()->activeProject->scripts = scripts;
-
 	}
 }

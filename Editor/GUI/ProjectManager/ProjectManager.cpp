@@ -30,20 +30,21 @@ namespace Plaza {
 				static char name[256] = "";
 				ImGui::InputText("##InputText", name, IM_ARRAYSIZE(name));
 				if (ImGui::Button("Create Project") && std::string(name) != "") {
-					Application::Get()->activeProject->name = std::string(name);
-					Application::Get()->activeProject->scriptsConfigFilePath = Application::Get()->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName;
+					Application::Get()->activeProject->mAssetName = std::string(name);
+					Application::Get()->activeProject->mAssetPath = Application::Get()->activeProject->mAssetPath.string() + "\\" + name + Standards::projectExtName;
 
 					Application::Get()->runEngine = true;
 					Application::Get()->runProjectManagerGui = false;
 
 					// Create the main project settings file
-					Gui::FileExplorer::currentDirectory = Application::Get()->activeProject->directory;
-					ProjectSerializer::Serialize(Application::Get()->activeProject->directory + "\\" + Application::Get()->activeProject->name + Standards::projectExtName);
+					Gui::FileExplorer::currentDirectory = Application::Get()->activeProject->mAssetPath.parent_path().string();
+					AssetsSerializer::SerializeFile<Project>(*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string());
+					//ProjectSerializer::Serialize(Application::Get()->activeProject->mAssetPath.parent_path().string() + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
 
 					// Create visual studio solution and project
-					const std::string solutionName = Application::Get()->activeProject->name;
-					const std::string projectName = Application::Get()->activeProject->name;
-					const std::string outputDirectory = Application::Get()->activeProject->directory; // Specify the desired output directory
+					const std::string solutionName = Application::Get()->activeProject->mAssetName;
+					const std::string projectName = Application::Get()->activeProject->mAssetName;
+					const std::string outputDirectory = Application::Get()->activeProject->mAssetPath.parent_path().string(); // Specify the desired output directory
 					ProjectGenerator::GenerateSolution(solutionName, projectName, outputDirectory);
 					ProjectGenerator::GenerateProject(projectName, outputDirectory);
 
@@ -52,9 +53,9 @@ namespace Plaza {
 					//ScriptManagerSerializer::DeSerialize(Application::Get()->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
 
 					// Update the file explorer content
-					Editor::Gui::FileExplorer::UpdateContent(Application::Get()->activeProject->directory);
+					Editor::Gui::FileExplorer::UpdateContent(Application::Get()->activeProject->mAssetPath.parent_path().string());
 
-					Application::Get()->projectPath = Application::Get()->activeProject->directory;
+					Application::Get()->projectPath = Application::Get()->activeProject->mAssetPath.parent_path().string();
 					Cache::Serialize(Application::Get()->enginePathAppData + "\\cache.yaml");
 
 					// Load Default Models

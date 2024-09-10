@@ -91,12 +91,12 @@ namespace Plaza::Editor {
 	}
 
 	void ScriptManager::ReloadScriptsAssembly() {
-		bool scriptDllExists = std::filesystem::exists(Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll");
+		bool scriptDllExists = std::filesystem::exists(Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + ".dll");
 		if (scriptDllExists) {
 #ifdef  GAME_REL
-			ScriptManager::ReloadScriptsAssembly((Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll").c_str());
+			ScriptManager::ReloadScriptsAssembly((Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + ".dll").c_str());
 #else
-			ScriptManager::ReloadScriptsAssembly((Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + "copy.dll").c_str());
+			ScriptManager::ReloadScriptsAssembly((Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + "copy.dll").c_str());
 #endif //  GAME_REL
 	}
 }
@@ -144,15 +144,15 @@ namespace Plaza::Editor {
 			ScriptManager::RecompileDll(dllPath, scriptPath);
 			/* Load a copy of the script dll if its running the editor, so it can recompile the dll without breaking anything (its temporary, since I dont have hot reloading yet)*/
 #ifdef GAME_MODE
-			std::string scriptDllPath = (Application::Get()->projectPath + "\\Binaries\\" + Application::Get()->activeProject->name + ".dll");
+			std::string scriptDllPath = (Application::Get()->projectPath + "\\Binaries\\" + Application::Get()->activeProject->mAssetName + ".dll");
 #else
-			std::string scriptDllPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + "copy.dll");
+			std::string scriptDllPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + "copy.dll");
 #endif
 			Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, scriptDllPath.c_str());
 			Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
 			if (!Mono::mScriptAssembly) {
 				// Handle assembly loading error
-				std::cout << "Failed to load assembly when recompiling on path: " << (Application::Get()->projectPath + "\\Binaries\\" + Application::Get()->activeProject->name + ".dll").c_str() << "\n";
+				std::cout << "Failed to load assembly when recompiling on path: " << (Application::Get()->projectPath + "\\Binaries\\" + Application::Get()->activeProject->mAssetName + ".dll").c_str() << "\n";
 			}
 			// Initialize all scripts again
 			for (auto& [key, value] : Application::Get()->activeScene->csScriptComponents) {
@@ -180,7 +180,7 @@ namespace Plaza::Editor {
 		//std::string compileCommand = "mcs -target:library -out:\"" + dllPath.parent_path().string() + "\\" + dllPath.stem().string() + ".dll\" " + "\"" + std::string(scriptPath) + "\"";
 		//compileCommand += " -reference:\"" + Application::Get()->dllPath + "\\PlazaScriptCore.dll\"";
 		std::string compileCommand = "dotnet build ";
-		compileCommand += "\"" + Application::Get()->projectPath + "\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".csproj \"";
+		compileCommand += "\"" + Application::Get()->projectPath + "\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + ".csproj \"";
 		int result = system(compileCommand.c_str());
 	}
 

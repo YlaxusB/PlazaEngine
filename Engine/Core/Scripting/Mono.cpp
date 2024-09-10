@@ -264,10 +264,10 @@ namespace Plaza {
 		mEntityClass = mono_object_get_class(mEntityObject);
 
 #ifdef GAME_MODE
-		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll").c_str());
+		Mono::mScriptAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + ".dll").c_str());
 #else
-		const std::string dllPath = Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll";
-		const std::string copyDllPath = Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + "copy.dll";
+		const std::string dllPath = Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + ".dll";
+		const std::string copyDllPath = Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + "copy.dll";
 		if (!std::filesystem::exists(copyDllPath) && std::filesystem::exists(dllPath)) {
 			std::filesystem::copy(std::filesystem::path{ dllPath }, std::filesystem::path{ copyDllPath });
 		}
@@ -275,7 +275,7 @@ namespace Plaza {
 #endif
 		if (!Mono::mScriptAssembly) {
 			// Handle assembly loading error
-			std::cout << "Failed to load assembly on path: " << (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll").c_str() << "\n";
+			std::cout << "Failed to load assembly on path: " << (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + ".dll").c_str() << "\n";
 		}
 		else
 			Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
@@ -291,8 +291,8 @@ namespace Plaza {
 		Editor::ScriptManager::ReloadScriptsAssembly();
 #else
 		/* Make a copy of the scripts dll, so it does not break when it updates */
-		std::string dllPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll");
-		std::string newPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + "copy.dll");
+		std::string dllPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + ".dll");
+		std::string newPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + "copy.dll");
 		Editor::ScriptManager::ReloadScriptsAssembly(newPath);
 #endif
 		if (callOnStart) {

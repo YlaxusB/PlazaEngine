@@ -10,8 +10,8 @@ namespace Plaza::Editor {
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "LastOpenProject" << YAML::Value << YAML::BeginMap;
-		out << YAML::Key << "Path" << YAML::Value << Application::Get()->projectPath + "\\" + Application::Get()->activeProject->name + Standards::projectExtName;
-		out << YAML::Key << "Name" << YAML::Value << Application::Get()->activeProject->name;
+		out << YAML::Key << "Path" << YAML::Value << Application::Get()->projectPath + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName;
+		out << YAML::Key << "Name" << YAML::Value << Application::Get()->activeProject->mAssetName;
 		out << YAML::EndMap;
 		out << YAML::EndMap;
 		std::ofstream fout(filePath);

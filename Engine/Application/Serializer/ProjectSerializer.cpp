@@ -5,12 +5,11 @@
 #include "SceneSerializer.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 namespace Plaza {
-	void ProjectSerializer::Serialize(const std::string filePath)
-	{
+	void ProjectSerializer::Serialize(const std::string filePath) {
 		YAML::Emitter out;
 		out << YAML::BeginMap;
-		out << YAML::Key << "Project" << YAML::Value << Application::Get()->activeProject->name;
-		out << YAML::Key << "Directory" << YAML::Value << Application::Get()->activeProject->directory;
+		out << YAML::Key << "Project" << YAML::Value << Application::Get()->activeProject->mAssetName;
+		out << YAML::Key << "Directory" << YAML::Value << Application::Get()->activeProject->mAssetPath.string();
 		out << YAML::Key << "LastActiveScenePath" << YAML::Value << Application::Get()->editorScene->filePath;
 
 		//out << YAML::EndSeq;
@@ -36,11 +35,11 @@ namespace Plaza {
 		std::string lastActiveScenePath = data["LastActiveScenePath"].as<std::string>();
 
 		Application::Get()->activeProject = new Editor::Project();
-		Application::Get()->activeProject->name = name;
-		Application::Get()->activeProject->directory = directory;
+		Application::Get()->activeProject->mAssetName = name;
+		Application::Get()->activeProject->mAssetPath = directory;
 
-		if (std::filesystem::exists(Application::Get()->projectPath + "\\" + lastActiveScenePath))
-		{
+		bool sceneFileExists = std::filesystem::exists(Application::Get()->projectPath + "\\" + lastActiveScenePath);
+		if (sceneFileExists) {
 			Serializer::DeSerialize(Application::Get()->projectPath + "\\" + lastActiveScenePath, true);
 		}
 		else {

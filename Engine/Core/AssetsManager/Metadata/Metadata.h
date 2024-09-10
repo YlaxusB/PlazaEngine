@@ -4,10 +4,14 @@
 namespace Plaza {
 	class Metadata {
 	public:
-		struct MetadataStructure {
-			uint64_t uuid;
+		struct MetadataStructure : public Asset {
 			AssetExtension mExtension;
-			std::string mPath;
+			std::string mContentName;
+
+			template <class Archive>
+			void serialize(Archive& archive) {
+				archive(mAssetUuid, mAssetName, mExtension, mContentName);
+			}
 		};
 
 		static void CreateMetadataFile(Asset* asset) {

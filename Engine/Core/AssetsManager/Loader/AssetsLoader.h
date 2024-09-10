@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Core/AssetsManager/Metadata/Metadata.h"
+#include "ThirdParty/cereal/cereal/types/polymorphic.hpp"
 
 namespace Plaza {
 	class AssetsLoader {
@@ -20,17 +21,7 @@ namespace Plaza {
 			".tga"
 		};
 
-		static void LoadAsset(Asset* asset) {
-
-			if (asset->mAssetExtension == Standards::metadataExtName)
-				AssetsLoader::LoadMetadata(asset);
-			else if (asset->mAssetExtension == Standards::modelExtName)
-				AssetsLoader::LoadPrefab(asset);
-			else if (asset->mAssetExtension == Standards::materialExtName)
-				AssetsLoader::LoadMaterial(asset);
-			else if (asset->mAssetExtension == Standards::animationExtName)
-				AssetsLoader::LoadAnimation(asset);
-		}
+		static void LoadAsset(Asset* asset);
 		static void LoadMetadata(Asset* asset) {
 			Asset metadataContent = Metadata::DeSerializeMetadata(asset->mAssetPath.string());
 			if (AssetsManager::mAssetTypeByExtension.find(metadataContent.mAssetExtension) == AssetsManager::mAssetTypeByExtension.end())

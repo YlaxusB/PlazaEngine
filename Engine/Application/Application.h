@@ -82,11 +82,11 @@ namespace Plaza {
 		static void Init() {
 			sApplication = new Application();
 		}
-		static inline Application* Get() {
+		static Application* Get() {
 			return sApplication;
 		}
 
 	private:
-		static inline Application* sApplication = nullptr;
+		static Application* sApplication;
 	};
 }

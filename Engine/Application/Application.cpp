@@ -36,6 +36,7 @@ using namespace Plaza::Editor;
 #define DEFAULT_GRAPHICAL_API "Vulkan"
 
 namespace Plaza {
+	Application* Application::sApplication = nullptr;
 	Plaza::Application::Application() {
 		editorCamera = new Plaza::Camera(glm::vec3(0.0f, 0.0f, 5.0f));
 		editorCamera->isEditorCamera = true;
@@ -48,6 +49,7 @@ namespace Plaza {
 		this->GetPaths();
 		AssetsManager::Init();
 
+		/* Create Renderer */
 		switch (Settings::mDefaultRendererAPI) {
 		case RendererAPI::Vulkan:
 			Application::Get()->mRenderer = new VulkanRenderer();

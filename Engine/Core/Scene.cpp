@@ -148,7 +148,7 @@ namespace Plaza {
 	}
 
 	void Scene::Play() {
-		bool scriptDllExists = std::filesystem::exists(Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll");
+		bool scriptDllExists = std::filesystem::exists(Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + ".dll");
 		/* Get fields values */
 		std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields;
 		if (scriptDllExists) {
@@ -176,8 +176,8 @@ namespace Plaza {
 		mono_domain_set(Mono::mAppDomain, true);
 		/* Copy the script dll */
 		if (scriptDllExists) {
-			std::string dllPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll");
-			std::string newPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + "copy.dll");
+			std::string dllPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + ".dll");
+			std::string newPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + "copy.dll");
 			std::filesystem::copy_file(dllPath, newPath, filesystem::copy_options::overwrite_existing);
 		}
 
@@ -266,7 +266,7 @@ namespace Plaza {
 
 
 
-		bool scriptDllExists = std::filesystem::exists(Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->name }.stem().string() + ".dll");
+		bool scriptDllExists = std::filesystem::exists(Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + ".dll");
 		if (scriptDllExists) {
 			Editor::ScriptManager::ReloadScriptsAssembly();
 			FieldManager::ApplyAllScritpsFields(Editor::lastSavedScriptsFields);

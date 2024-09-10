@@ -7,7 +7,7 @@ namespace Plaza {
 		WorldUp = up;
 		Yaw = yaw;
 		Pitch = pitch;
-		updateCameraVectors();
+		// updateCameraVectors();
 	}
 
 	void Camera::Update() {
@@ -116,11 +116,9 @@ namespace Plaza {
 
 	void Camera::updateCameraVectors()
 	{
-		if (Application::Get()) {
-			auto it = Application::Get()->activeScene->transformComponents.find(this->mUuid);
-			if (it != Application::Get()->activeScene->transformComponents.end()) {
-				Application::Get()->activeScene->transformComponents.at(this->mUuid).haveCamera = true;
-			}
+		auto it = Application::Get()->activeScene->transformComponents.find(this->mUuid);
+		if (it != Application::Get()->activeScene->transformComponents.end()) {
+			Application::Get()->activeScene->transformComponents.at(this->mUuid).haveCamera = true;
 		}
 		if (this->isEditorCamera) {
 			// calculate the new Front vector
@@ -134,7 +132,7 @@ namespace Plaza {
 			Up = glm::normalize(glm::cross(Right, Front));
 		}
 		else {
-			if (this->mUuid && Application::Get() && Application::Get()->activeScene->transformComponents.find(this->mUuid) != Application::Get()->activeScene->transformComponents.end()) {
+			if (this->mUuid && Application::Get()->activeScene->transformComponents.find(this->mUuid) != Application::Get()->activeScene->transformComponents.end()) {
 				Transform* transform = &Application::Get()->activeScene->transformComponents.at(this->mUuid);
 				glm::mat4 transformationMatrix = transform->modelMatrix; // Assuming you have a transformation matrix
 

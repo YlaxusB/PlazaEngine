@@ -19,14 +19,14 @@ namespace Plaza {
 					msbuild.exe "C:\Users\Giovane\Desktop\Workspace\Plaza\Engine\..\OpenGLEngine.sln" /p:Configuration=GameRel /t:Build /p:OutDir="C:\Users\Giovane\Desktop\Workspace\PlazaGames\daldal\build\\"
 					*/
 					std::string devEnv = " \"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\msbuild.exe\" ";
-					std::string outPath = "\"" + Application::Get()->projectPath + "\\..\\" + Application::Get()->activeProject->name + "build\\\\\"";
+					std::string outPath = "\"" + Application::Get()->projectPath + "\\..\\" + Application::Get()->activeProject->mAssetName + "build\\\\\"";
 					std::string command = "\"" + devEnv + "\"" + Application::Get()->enginePath + "\\..\\OpenGLEngine.sln\" /p:Configuration=GameRel /t:Build /p:PROJECT_NAME=YourMacroValue /p:OutDir=" + outPath + "\"";
 					std::cout << command << std::endl;
 					system(command.c_str());
 
 					/* Copy assets and scripts into Content Folder inside build folder */
 					try {
-						filesystem::copy(Application::Get()->projectPath, Application::Get()->projectPath + "\\..\\" + Application::Get()->activeProject->name + "build", filesystem::copy_options::recursive);
+						filesystem::copy(Application::Get()->projectPath, Application::Get()->projectPath + "\\..\\" + Application::Get()->activeProject->mAssetName + "build", filesystem::copy_options::recursive);
 						std::cout << "Project Folder copied successfully.\n";
 					}
 					catch (const filesystem::filesystem_error& e) {
@@ -58,7 +58,7 @@ namespace Plaza {
 						Serializer::Serialize(AssetsManager::NewAsset(AssetType::SCENE, newPath));
 						if (newPath.starts_with(Application::Get()->projectPath))
 							Application::Get()->editorScene->filePath = newPath.substr(Application::Get()->projectPath.length() + 1, newPath.length() - Application::Get()->projectPath.length());
-						ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->name + Standards::projectExtName);
+						ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
 						Serializer::DeSerialize(newPath);
 					}
 				}
@@ -67,10 +67,10 @@ namespace Plaza {
 					/* TODO: IMPLEMENT PROPER SCENE ASSET LOADER */
 					Asset* temporarySceneAsset = new Asset();
 					temporarySceneAsset->mAssetUuid = Application::Get()->activeScene->mAssetUuid;
-					temporarySceneAsset->mAssetPath = std::filesystem::path{ Application::Get()->activeProject->directory + "\\" + Application::Get()->activeScene->filePath };
+					temporarySceneAsset->mAssetPath = std::filesystem::path{ Application::Get()->activeProject->mAssetPath.parent_path().string() + "\\" + Application::Get()->activeScene->filePath};
 					temporarySceneAsset->mAssetExtension = Standards::sceneExtName;
 					Serializer::Serialize(temporarySceneAsset);
-					ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->name + Standards::projectExtName);
+					ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
 				}
 				if (ImGui::Button("Save Scene As...")) {
 					std::string path = FileDialog::SaveFileDialog(("Engine (*.%s)", Standards::sceneExtName).c_str());
@@ -78,7 +78,7 @@ namespace Plaza {
 						Serializer::Serialize(AssetsManager::NewAsset(AssetType::SCENE, path));
 						if (path.starts_with(Application::Get()->projectPath))
 							Application::Get()->editorScene->filePath = path.substr(Application::Get()->projectPath.length() + 1, path.length() - Application::Get()->projectPath.length());
-						ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->name + Standards::projectExtName);
+						ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
 					}
 				}
 				if (ImGui::Button("Open Scene")) {
@@ -88,7 +88,7 @@ namespace Plaza {
 						Serializer::DeSerialize(path);
 						if (path.starts_with(Application::Get()->projectPath))
 							Application::Get()->editorScene->filePath = path.substr(Application::Get()->projectPath.length() + 1, path.length() - Application::Get()->projectPath.length());
-						ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->name + Standards::projectExtName);
+						ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
 					}
 				}
 				ImGui::EndMenu();

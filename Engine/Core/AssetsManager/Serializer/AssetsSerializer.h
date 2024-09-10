@@ -226,6 +226,25 @@ namespace Plaza {
 		static SerializablePrefab SerializePrefab(Entity* mainEntity, std::filesystem::path outPath);
 		static void SerializeMesh(Mesh* mesh, std::filesystem::path outPath);
 		static void SerializeAnimation(Animation& animation, std::filesystem::path outPath);
+
+		template <typename T>
+		static void SerializeFile(T& file, std::string path) {
+			std::ofstream os(path, std::ios::binary);
+			cereal::BinaryOutputArchive archive(os);
+			archive(file);
+			os.close();
+		}
+
+		template <typename T>
+		static T DeSerializeFile(std::string path) {
+			std::ifstream is(path, std::ios::binary);
+			cereal::BinaryInputArchive archive(is);
+			T file;
+			archive(file);
+			is.close();
+			static_cast<Asset>(file).mAssetPath = path;
+			return file;
+		}
 	};
 }
 

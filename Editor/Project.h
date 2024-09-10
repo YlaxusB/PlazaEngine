@@ -3,22 +3,23 @@
 #include "ThirdParty/mono/include/mono/jit/jit.h"
 #include "ThirdParty/mono/include/mono/metadata/assembly.h"
 #include "Engine/Core/Scripting/Script.h"
+#include "Engine/Core/AssetsManager/Asset.h"
 namespace Plaza {
 	namespace Editor {
-		class Project {
+		class Project : public Asset {
 		public:
-			std::string name;
-			std::string directory;
+			std::string creationDate = "";
+			std::string lastModifyDate = "";
 
-			std::string creationDate;
-			std::string lastModifyDate;
-
-			std::string scriptsConfigFilePath;
+			static void Load(const std::string filePath);
 
 			std::map<std::string, Script> scripts;
 			std::map<std::string, MonoObject*> monoObjects;
 
-			static void Load(const std::string filePath);
+			template <class Archive>
+			void serialize(Archive& archive) {
+				archive(mAssetUuid, mAssetName, creationDate, lastModifyDate);
+			}
 		};
 	}
 }

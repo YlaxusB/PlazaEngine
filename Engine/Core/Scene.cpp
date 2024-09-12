@@ -343,5 +343,6 @@ namespace Plaza {
 		}
 		this->mainSceneEntity = this->GetEntity(this->mainSceneEntityUuid);
 		this->mainSceneEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+
 	}
 }

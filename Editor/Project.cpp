@@ -90,6 +90,7 @@ namespace Plaza::Editor {
 				Application::Get()->editorScene = sc->get();
 				Application::Get()->activeScene = Application::Get()->editorScene;
 				Application::Get()->activeScene->RecalculateAddedComponents();
+				DefaultModels::Init();
 			}
 			//if (sceneFileExists)
 			//	Serializer::DeSerialize(sceneFilePath, true);

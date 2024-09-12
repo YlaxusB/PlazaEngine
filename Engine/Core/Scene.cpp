@@ -5,7 +5,6 @@
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Input/Cursor.h"
-#include "Engine/Application/Serializer/Components/CsScriptComponentSerializer.h"
 #include "Engine/Core/Scripting/FieldManager.h"
 #include "Editor/Filewatcher.h"
 #include "Engine/Core/Physics.h"

@@ -3704,7 +3704,7 @@ namespace Plaza {
 	void VulkanRenderer::UpdateMaterials() {
 		std::vector<MaterialData> materialDataVector = std::vector<MaterialData>();
 
-		for (auto& [key, value] : Application::Get()->activeScene->materials) {
+		for (auto& [key, value] : AssetsManager::mMaterials) {
 			MaterialData materialData{};
 			materialData.color = value->diffuse->rgba;
 			materialData.diffuseIndex = value->diffuse->mIndexHandle;
@@ -3841,7 +3841,7 @@ namespace Plaza {
 			PlVkBuffer* materialBuffer = mRenderGraph->GetBuffer<PlVkBuffer>("MaterialsBuffer");
 			std::vector<MaterialData> materialDataVector = std::vector<MaterialData>();
 
-			for (auto& [key, value] : Application::Get()->activeScene->materials) {
+			for (auto& [key, value] : AssetsManager::mMaterials) {
 				MaterialData materialData{};
 				materialData.color = value->diffuse->rgba;
 				materialData.diffuseIndex = value->diffuse->mIndexHandle;

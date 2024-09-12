@@ -27,8 +27,8 @@ namespace Plaza::Editor {
 			if (!material || file != lastFile) {
 				if (AssetsManager::GetAsset(file->directory))
 				{
-					auto materialIt = Application::Get()->activeScene->materials.find(AssetsManager::GetAsset(file->directory)->mAssetUuid);
-					if (materialIt != Application::Get()->activeScene->materials.end())
+					auto materialIt = AssetsManager::mMaterials.find(AssetsManager::GetAsset(file->directory)->mAssetUuid);
+					if (materialIt != AssetsManager::mMaterials.end())
 						material = materialIt->second.get();
 				}
 			}

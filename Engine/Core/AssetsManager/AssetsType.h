@@ -3,6 +3,7 @@
 namespace Plaza {
 	enum AssetType {
 		NONE,
+		METADATA,
 		MODEL,
 		MATERIAL,
 		TEXTURE,

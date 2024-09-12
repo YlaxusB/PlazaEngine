@@ -150,10 +150,10 @@ namespace Plaza {
 			VulkanRenderer::GetRenderer()->mShadows->mLightDirection = data["Scene"]["LightDirection"].as<glm::vec3>();
 		//free(Application::Get()->activeScene->mainSceneEntity);
 		Application::Get()->activeScene->mainSceneEntity = newScene;
-		if (filePath.starts_with(Application::Get()->projectPath))
-			Application::Get()->activeScene->filePath = filePath.substr(Application::Get()->projectPath.length() + 1, filePath.length() - Application::Get()->projectPath.length());
-		else
-			Application::Get()->activeScene->filePath = filePath;
+		//if (filePath.starts_with(Application::Get()->projectPath))
+		//	Application::Get()->activeScene->filePath = filePath.substr(Application::Get()->projectPath.length() + 1, filePath.length() - Application::Get()->projectPath.length());
+		//else
+		//	Application::Get()->activeScene->filePath = filePath;
 
 		std::cout << "Deserializing meshes \n";
 		/* Models and Meshes */

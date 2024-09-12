@@ -15,7 +15,21 @@ namespace Plaza {
 		};
 
 		static void CreateMetadataFile(Asset* asset) {
-			Metadata::SerializeMetadata(asset->mAssetUuid, asset->mAssetPath.string(), asset->mAssetExtension);
+			MetadataStructure metadata;
+			metadata.mAssetUuid = asset->mAssetUuid;
+			metadata.mAssetName = asset->mAssetName + Standards::metadataExtName;
+			metadata.mAssetPath = asset->mAssetPath;
+			metadata.mContentName = asset->mAssetName;
+			std::filesystem::path metadataPath = asset->mAssetPath;
+			metadataPath.replace_extension(Standards::metadataExtName).string();
+			AssetsSerializer::SerializeFile<MetadataStructure>(metadata, metadataPath.string());
+			//Metadata::SerializeMetadata(asset->mAssetUuid, asset->mAssetPath.string(), asset->GetExtension());
+		}
+
+		static Asset ConvertMetadataToAsset(MetadataStructure metadata) {
+			std::string contentPath = metadata.mAssetPath.parent_path().string() + "\\" + metadata.mContentName;
+			Asset asset(metadata.mAssetUuid, metadata.mAssetPath.filename().string(), contentPath);
+			return asset;
 		}
 
 		static void SerializeMetadata(uint64_t uuid, std::string assetPath, std::string extension) {
@@ -36,7 +50,6 @@ namespace Plaza {
 
 			binaryFile.read(reinterpret_cast<char*>(&asset.mAssetUuid), sizeof(uint64_t));
 			asset.mAssetPath = std::filesystem::path{ Plaza::Utils::ReadBinaryString(binaryFile) };
-			asset.mAssetExtension = Plaza::Utils::ReadBinaryString(binaryFile);
 
 			binaryFile.close();
 

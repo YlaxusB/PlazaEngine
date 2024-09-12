@@ -131,7 +131,7 @@ namespace Plaza {
 				indices.push_back(uniqueVertices[vertex]);
 			}
 			if (vertices.size() > 0) {
-				Material* material = Application::Get()->activeScene->DefaultMaterial();
+				Material* material = AssetsManager::GetDefaultMaterial();
 				if (shape.mesh.material_ids.size() > 0 && materials.size() >= shape.mesh.material_ids[0]) {
 					tinyobj::material_t tinyobjMaterial = materials.at(shape.mesh.material_ids[0]);
 					std::string diffusePath = parentPath + "\\" + tinyobjMaterial.diffuse_texname;
@@ -143,10 +143,10 @@ namespace Plaza {
 					if (loadedMaterials.find(materialOutPath) == loadedMaterials.end()) {
 						loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
 						AssetsSerializer::SerializeMaterial(material, materialOutPath);
-						Application::Get()->activeScene->AddMaterial(material);
+						AssetsManager::AddMaterial(material);
 					}
 					else
-						material = Application::Get()->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second);
+						material = AssetsManager::GetMaterial(loadedMaterials.find(materialOutPath)->second);
 				}
 
 				/* Generate Tangents */

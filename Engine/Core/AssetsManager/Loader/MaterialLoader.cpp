@@ -9,10 +9,7 @@ namespace Plaza {
 		is.close();
 
 		Material* material = new Material(deserializedMaterial);
-		if (!scene)
-			Application::Get()->activeScene->AddMaterial(material);
-		else
-			scene->AddMaterial(material);
+		AssetsManager::AddMaterial(material);
 		return material;
 	}
 }

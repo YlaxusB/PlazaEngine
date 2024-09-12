@@ -12,6 +12,7 @@
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
+#include "Engine/Core/AssetsManager/AssetsReader.h"
 
 namespace Plaza::Editor {
 	void Project::Load(const std::string filePath) {
@@ -28,12 +29,12 @@ namespace Plaza::Editor {
 
 		Application::Get()->projectPath = projectFile.parent_path().string();
 
- 		Application::Get()->activeProject = new Project(AssetsSerializer::DeSerializeFile<Project>(filePath));
-		Project* proj = Application::Get()->activeProject;
+		Application::Get()->activeProject = std::make_unique<Project>(*AssetsSerializer::DeSerializeFile<Project>(filePath));
+		Application::Get()->activeProject->mAssetPath = filePath;
 
-		#ifdef EDITOR_MODE
+#ifdef EDITOR_MODE
 		Filewatcher::Start(Application::Get()->activeProject->mAssetPath.parent_path().string());
-		#endif
+#endif
 
 		Application::Get()->runEngine = true;
 		Application::Get()->runProjectManagerGui = false;
@@ -48,6 +49,9 @@ namespace Plaza::Editor {
 		Mono::Init();
 
 		std::cout << "Read Game Folder \n";
+		Application::Get()->editorScene = new Scene();
+		Application::Get()->editorScene->mainSceneEntity = new Entity();
+		Application::Get()->activeScene = Application::Get()->editorScene;
 		std::map<std::string, Script> scripts = std::map<std::string, Script>();
 		/* Iterate over all files and subfolders of the project folder to load assets */
 		std::string path = Application::Get()->activeProject->mAssetPath.parent_path().string();
@@ -56,48 +60,14 @@ namespace Plaza::Editor {
 				entry.disable_recursion_pending();
 			}
 
-			const std::string extension = entry->path().extension().string();
-			if (entry->is_regular_file() && extension != "")
-			{
-				if (extension == Standards::metadataExtName) {
-					Asset* asset = AssetsManager::LoadMetadataAsAsset(entry->path());
-					if (AssetsLoader::mSupportedTextureLoadFormats.find(asset->mAssetExtension) != AssetsLoader::mSupportedTextureLoadFormats.end()) {
-						AssetsManager::mTextures.emplace(asset->mAssetUuid, Application::Get()->mRenderer->LoadTexture(asset->mAssetPath.string(), asset->mAssetUuid));
-					}
-				}
-				else if (AssetsLoader::mSupportedLoadFormats.find(extension) != AssetsLoader::mSupportedLoadFormats.end()) {
-					Asset* asset = AssetsManager::LoadBinaryFileAsAsset(entry->path());
-					if (extension == ".plzmat" || extension == Standards::animationExtName)
-					{
-						AssetsLoader::LoadAsset(asset);
-					}
-					else if (extension == ".plzmod") {
-						std::ifstream binaryFile(entry->path(), std::ios::binary);
-						uint64_t uuid = 0;
-						binaryFile.read(reinterpret_cast<char*>(&uuid), sizeof(uint64_t));
-						binaryFile.close();
-						AssetsManager::NewAsset(uuid, AssetType::MODEL, entry->path().string());
-					}
-					else if (extension == Standards::animationExtName) {
-						std::ifstream binaryFile(entry->path(), std::ios::binary);
-						uint64_t uuid = 0;
-						binaryFile.read(reinterpret_cast<char*>(&uuid), sizeof(uint64_t));
-						binaryFile.close();
-						Asset* asset = AssetsManager::NewAsset(uuid, AssetType::ANIMATION, entry->path().string());
-						AssetsLoader::LoadAnimation(asset);
-					}
-				}
-
-				if (entry->is_regular_file() && entry->path().extension() == ".cs") {
-					scripts.emplace(entry->path().string(), Script());
-				}
-			}
+			AssetsReader::ReadAssetAtPath(entry->path());
 		}
 
-		for (auto& [key, value] : Application::Get()->activeScene->materials) {
+		for (auto& [key, value] : AssetsManager::mMaterials) {
 			//Application::Get()->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"))->mPath.string())
 			if (key == 0)
 				continue;
+			value->GetDeserializedTextures();
 			if (value->diffuse->mAssetUuid)
 				value->diffuse = AssetsManager::GetTexture(value->diffuse->mAssetUuid);
 			if (value->normal->mAssetUuid)
@@ -110,6 +80,28 @@ namespace Plaza::Editor {
 
 		std::cout << "Deserializing \n";
 		//ProjectSerializer::DeSerialize(filePath);
+
+		PL_CORE_INFO(Application::Get()->activeProject->mLastSceneUuid);
+		if (Application::Get()->activeProject->mLastSceneUuid != 0 && AssetsManager::GetAsset(Application::Get()->activeProject->mLastSceneUuid)) {
+			const std::string sceneFilePath = AssetsManager::GetAsset(Application::Get()->activeProject->mLastSceneUuid)->mAssetPath.string();//Application::Get()->projectPath + "\\" + AssetsManager::lastActiveScenePath;
+			bool sceneFileExists = std::filesystem::exists(sceneFilePath);
+			if (sceneFileExists) {
+				std::shared_ptr<Scene>* sc = new std::shared_ptr<Scene>(AssetsSerializer::DeSerializeFile<Scene>(sceneFilePath));
+				Application::Get()->editorScene = sc->get();
+				Application::Get()->activeScene = Application::Get()->editorScene;
+				Application::Get()->activeScene->RecalculateAddedComponents();
+			}
+			//if (sceneFileExists)
+			//	Serializer::DeSerialize(sceneFilePath, true);
+		}
+		else {
+			Application::Get()->editorScene = new Scene();
+			Application::Get()->activeScene = Application::Get()->editorScene;
+			Application::Get()->activeScene->mainSceneEntity = new Entity("Scene");
+			Application::Get()->activeScene->mainSceneEntity->parentUuid = Application::Get()->activeScene->mainSceneEntity->uuid;
+			Application::Get()->activeScene->GetEntity(Application::Get()->activeScene->mainSceneEntity->uuid)->parentUuid = Application::Get()->activeScene->mainSceneEntity->uuid;
+			Editor::DefaultModels::Init();
+		}
 		std::cout << "Finished Deserializing \n";
 	}
 }

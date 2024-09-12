@@ -104,7 +104,7 @@ namespace Plaza {
 
 		std::filesystem::copy(importedAsset.mPath, outPath);
 
-		Asset asset{ uuid <= 0 ? Plaza::UUID::NewUUID() : uuid, importedAsset.mExtension, outPath };
+		Asset asset{ uuid <= 0 ? Plaza::UUID::NewUUID() : uuid, std::filesystem::path{ importedAsset.mPath }.filename().string() , outPath };
 		Metadata::CreateMetadataFile(&asset);
 		AssetsManager::AddAsset(new Asset(asset));
 

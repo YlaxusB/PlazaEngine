@@ -16,7 +16,8 @@ namespace Plaza {
 		this->AddComponent<Transform>(new Transform(), true);
 		this->name = "Entity";
 		Application::Get()->activeScene->entities.emplace(this->uuid, *this);
-		Application::Get()->activeScene->mainSceneEntity->childrenUuid.push_back(this->uuid);
+		if (Application::Get()->activeScene->mainSceneEntity)
+			Application::Get()->activeScene->mainSceneEntity->childrenUuid.push_back(this->uuid);
 		Application::Get()->activeScene->entitiesNames[this->name].insert(this->uuid);
 	}
 	Entity::Entity(std::string objName, Entity* parent, bool addToScene, uint64_t newUuid) {

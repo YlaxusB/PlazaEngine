@@ -11,7 +11,7 @@ namespace Plaza::Editor {
 		ModelFileInspector(File* file) {
 			if (!model || file != lastFile) {
 				model = ModelFileSerializer::DeSerialize(file->directory);
-				if (model->uuid && Application::Get()->activeScene->materials.find(model->uuid) != Application::Get()->activeScene->materials.end())
+				if (model->uuid && AssetsManager::mMaterials.find(model->uuid) != AssetsManager::mMaterials.end())
 					model = Application::Get()->.at(model->uuid).get();
 			}
 			ImGui::Text(file->directory.c_str());

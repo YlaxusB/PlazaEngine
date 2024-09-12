@@ -25,7 +25,7 @@ namespace Plaza::Editor {
 
 			ImGui::BeginChild("SearchChild1");
 
-			for (const auto& [key, value] : Application::Get()->activeScene->materials) {
+			for (const auto& [key, value] : AssetsManager::mMaterials) {
 				if (value->mAssetName.find(searchText) != std::string::npos) {
 					ImGui::BeginGroup();
 					ImGui::Text(value->mAssetName.c_str());

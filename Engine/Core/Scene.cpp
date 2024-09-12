@@ -130,11 +130,11 @@ namespace Plaza {
 
 		Material* defaultMaterial = new Material();
 		defaultMaterial->mAssetUuid = 0;
-//		defaultMaterial->diffuse->rgba = glm::vec4(1.0f);
-//		defaultMaterial->shininess = 3.0f;
+		//		defaultMaterial->diffuse->rgba = glm::vec4(1.0f);
+		//		defaultMaterial->shininess = 3.0f;
 		defaultMaterial->mAssetName = "Default Material";
 		defaultMaterial->mAssetUuid = 0;
-		this->AddMaterial(defaultMaterial);
+		AssetsManager::AddMaterial(defaultMaterial);
 	}
 
 	void Scene::RemoveMeshRenderer(uint64_t uuid) {
@@ -316,8 +316,8 @@ namespace Plaza {
 	}
 
 	Entity* Scene::GetEntity(uint64_t uuid) {
-		auto it = Application::Get()->activeScene->entities.find(uuid);
-		if (it != Application::Get()->activeScene->entities.end())
+		auto it = entities.find(uuid);
+		if (it != entities.end())
 			return &it->second;
 		return nullptr;
 	}
@@ -331,19 +331,15 @@ namespace Plaza {
 		return nullptr;
 	}
 
-	Material* Scene::DefaultMaterial() {
-		return Application::Get()->activeScene->materials.at(0).get();
-	}
-
 	void Scene::RecalculateAddedComponents() {
 		for (auto& [key, value] : AssetsManager::mAssets) {
-			if (value->mAssetExtension == Standards::materialExtName) {
-				AssetsLoader::LoadMaterial(value, this);
+			if (value->GetExtension() == Standards::materialExtName) {
+				//AssetsLoader::LoadMaterial(value, this);
 			}
 		}
 		for (auto& [key, value] : meshRendererComponents) {
 			value.mesh = AssetsManager::GetMesh(value.mMeshUuid);
-			value.renderGroup = this->AddRenderGroup(AssetsManager::GetMesh(value.mMeshUuid), this->GetMaterialsVector(value.mMaterialsUuids));
+			value.renderGroup = this->AddRenderGroup(AssetsManager::GetMesh(value.mMeshUuid), AssetsManager::GetMaterialsVector(value.mMaterialsUuids));
 		}
 		this->mainSceneEntity = this->GetEntity(this->mainSceneEntityUuid);
 		this->mainSceneEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();

@@ -11,13 +11,13 @@ namespace Plaza::Editor {
 		Application::Get()->activeScene->entities.at(obj->uuid).changingName = true;
 		HierarchyWindow::Item::firstFocus = true;
 		obj->GetComponent<Transform>()->UpdateChildrenTransform();
-		MeshRenderer* meshRenderer = new MeshRenderer(mesh, Scene::DefaultMaterial());
+		MeshRenderer* meshRenderer = new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, true);
 		meshRenderer->instanced = true;
 		//meshRenderer->mesh = new Mesh(*mesh);
-		meshRenderer->mMaterials.push_back(Scene::DefaultMaterial());
-		RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
-		meshRenderer->renderGroup = Application::Get()->activeScene->AddRenderGroup(newRenderGroup);
-		//meshRenderer->renderGroup->material = make_shared<Material>(*Scene::DefaultMaterial());
+		//meshRenderer->mMaterials.push_back(AssetsManager::GetDefaultMaterial());
+		//RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
+		//meshRenderer->renderGroup = Application::Get()->activeScene->AddRenderGroup(newRenderGroup);
+		//meshRenderer->renderGroup->material = make_shared<Material>(*AssetsManager::GetDefaultMaterial());
 		obj->AddComponent<MeshRenderer>(meshRenderer);
 		Editor::selectedGameObject = obj;
 

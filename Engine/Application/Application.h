@@ -58,7 +58,7 @@ namespace Plaza {
 		std::string enginePath;
 		std::string editorPath;
 		std::string enginePathAppData;
-		Editor::Project* activeProject = nullptr;
+		std::unique_ptr<Editor::Project> activeProject = nullptr;
 
 		std::string focusedMenu = "Scene";
 		std::string hoveredMenu = "Scene";
@@ -82,7 +82,7 @@ namespace Plaza {
 		static void Init() {
 			sApplication = new Application();
 		}
-		static Application* Get() {
+		static inline Application* Get() {
 			return sApplication;
 		}
 

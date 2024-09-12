@@ -30,10 +30,10 @@ namespace Plaza::Editor {
 					Application::Get()->activeProject->scripts.emplace(pathToWatch + "\\" + path, Script());
 				}
 
-				if (fsPath.extension().string().starts_with(Standards::engineExtName))
-					AssetsLoader::LoadAsset(AssetsManager::LoadFileAsAsset(finalPath));
-				else
-					AssetsImporter::ImportAsset(finalPath);
+				//if (fsPath.extension().string().starts_with(Standards::engineExtName))
+				//	AssetsLoader::LoadAsset(AssetsManager::LoadFileAsAsset(finalPath));
+				//else
+				//	AssetsImporter::ImportAsset(finalPath);
 
 				break;
 			case filewatch::Event::removed:

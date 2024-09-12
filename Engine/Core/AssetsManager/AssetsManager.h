@@ -26,9 +26,12 @@ namespace Plaza {
 		static inline std::map<std::string, AssetType> mAssetTypeByExtension = std::map<std::string, AssetType>();
 
 		static inline std::unordered_map<uint64_t, Texture*> mTextures = std::unordered_map<uint64_t, Texture*>();
+		static inline std::unordered_map<uint64_t, shared_ptr<Material>> mMaterials = std::unordered_map<uint64_t, shared_ptr<Material>>();
+		static inline std::unordered_map<std::string, uint64_t> mMaterialsNames = std::unordered_map<std::string, uint64_t>();
 		static inline std::unordered_map<uint64_t, LoadedModel*> mLoadedModels = std::unordered_map<uint64_t, LoadedModel*>();
 		static inline std::unordered_map<uint64_t, Mesh*> mLoadedMeshes = std::unordered_map<uint64_t, Mesh*>();
 		static inline std::unordered_map<uint64_t, Animation> mLoadedAnimations = std::unordered_map<uint64_t, Animation>();
+		static inline std::unordered_map<uint64_t, Asset*> mSceneAssets = std::unordered_map<uint64_t, Asset*>();
 
 		static inline std::unordered_map<AssetType, std::unordered_set<uint64_t>> mTypeMap = std::unordered_map<AssetType, std::unordered_set<uint64_t>>();
 
@@ -43,6 +46,7 @@ namespace Plaza {
 				return map;
 				}();
 
+			AssetsManager::mAssetTypeByExtension.emplace(Standards::metadataExtName, AssetType::METADATA);
 			AssetsManager::mAssetTypeByExtension.emplace(Standards::modelExtName, AssetType::MODEL);
 			AssetsManager::mAssetTypeByExtension.emplace(Standards::materialExtName, AssetType::MATERIAL);
 			AssetsManager::mAssetTypeByExtension.emplace(".png", AssetType::TEXTURE);
@@ -63,27 +67,22 @@ namespace Plaza {
 			Asset* newAsset = new Asset();
 			newAsset->mAssetUuid = uuid;
 			newAsset->mAssetPath = std::filesystem::path{ path };
-			newAsset->mAssetExtension = newAsset->mAssetPath.extension().string();
 			AssetsManager::AddAsset(newAsset);
 			return newAsset;
 		}
 		static Asset* NewAsset(AssetType assetType, std::filesystem::path path) {
-			Asset* newAsset = new Asset();
-			newAsset->mAssetUuid = Plaza::UUID::NewUUID();
-			newAsset->mAssetExtension = path.extension().string();
-			newAsset->mAssetPath = path;
-			AssetsManager::AddAsset(newAsset);
-			return newAsset;
+			return NewAsset(assetType, path);
 		}
 		static Asset* NewAsset(AssetType assetType, std::string path) {
 			return NewAsset(assetType, std::filesystem::path{ path });
 		}
 
+		static Asset* NewAsset(std::shared_ptr<Asset> asset) {
+			return NewAsset(asset->mAssetUuid, AssetType::UNKNOWN, asset->mAssetPath.string());
+		}
+
 		static Asset* NewAsset() {
-			Asset* newAsset = new Asset();
-			newAsset->mAssetUuid = Plaza::UUID::NewUUID();
-			AssetsManager::AddAsset(newAsset);
-			return newAsset;
+			return NewAsset(Plaza::UUID::NewUUID(), AssetType::UNKNOWN, "");
 		}
 
 		static Asset* GetAsset(uint64_t uuid) {
@@ -102,7 +101,7 @@ namespace Plaza {
 
 		static void AddAsset(Asset* asset) {
 			AssetsManager::mAssets.emplace(asset->mAssetUuid, asset);
-			AssetsManager::mTypeMap.find(mAssetTypeByExtension.at(asset->mAssetExtension))->second.emplace(asset->mAssetUuid);
+			AssetsManager::mTypeMap.find(mAssetTypeByExtension.at(asset->GetExtension()))->second.emplace(asset->mAssetUuid);
 			AssetsManager::mAssetsUuidByPath.emplace(asset->mAssetPath, asset->mAssetUuid);
 		}
 
@@ -149,6 +148,54 @@ namespace Plaza {
 			if (it != mLoadedAnimations.end())
 				return &mLoadedAnimations.at(uuid);
 			return nullptr;
+		}
+
+		static Asset* GetSceneAsset(uint64_t uuid) {
+			const auto& it = mSceneAssets.find(uuid);
+			if (it != mSceneAssets.end())
+				return mSceneAssets.at(uuid);
+			return nullptr;
+		}
+
+		static void AddMaterial(Material* material) {
+			mMaterials.emplace(material->mAssetUuid, material);
+			mMaterialsNames.emplace(material->mAssetPath.string(), material->mAssetUuid);
+		}
+
+		static void AddMaterial(std::shared_ptr<Material> material) {
+			mMaterials.emplace(material->mAssetUuid, material);
+			mMaterialsNames.emplace(material->mAssetPath.string(), material->mAssetUuid);
+		}
+
+		static Material* GetDefaultMaterial() {
+			static Material* material = nullptr;
+			if (material == nullptr)
+				material = new Material();
+			return material;
+		}
+
+		static Material* GetMaterial(uint64_t uuid) {
+			auto it = mMaterials.find(uuid);
+			if (it != mMaterials.end()) {
+				return it->second.get();
+			}
+			return AssetsManager::GetDefaultMaterial(); //->DefaultMaterial();
+		}
+
+		static std::vector<Material*> GetMaterialsVector(std::vector<uint64_t>& uuids) {
+			std::vector<Material*> materials = std::vector<Material*>();
+			for (unsigned int i = 0; i < uuids.size(); ++i) {
+				auto it = mMaterials.find(uuids[i]);
+				if (it != mMaterials.end()) {
+					materials.push_back(it->second.get());
+				}
+				else {
+					materials.push_back(AssetsManager::GetDefaultMaterial());
+				}
+			}
+			if (materials.size() == 0)
+				return { AssetsManager::GetDefaultMaterial() };
+			return materials;
 		}
 
 		static Asset* LoadFileAsAsset(std::filesystem::path path) {

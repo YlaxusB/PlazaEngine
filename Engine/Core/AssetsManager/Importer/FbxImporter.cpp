@@ -95,7 +95,7 @@ namespace Plaza {
 		}
 
 		if (material->diffuse == nullptr || material->normal == nullptr || material->roughness == nullptr || material->metalness == nullptr)
-			material = Application::Get()->activeScene->DefaultMaterial();
+			material = AssetsManager::GetDefaultMaterial();
 		return material;
 	}
 
@@ -203,7 +203,7 @@ namespace Plaza {
 					if (materialIsNotLoaded) {
 						materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
 						Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
-						if (material->mAssetUuid == Application::Get()->activeScene->DefaultMaterial()->mAssetUuid) {
+						if (material->mAssetUuid == AssetsManager::GetDefaultMaterial()->mAssetUuid) {
 							loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
 							materials.push_back(material);
 							continue;
@@ -211,16 +211,16 @@ namespace Plaza {
 						material->flip = settings.mFlipTextures;
 						loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
 						AssetsSerializer::SerializeMaterial(material, materialOutPath);
-						Application::Get()->activeScene->AddMaterial(material);
+						AssetsManager::AddMaterial(material);
 						materials.push_back(material);
 					}
 					else
-						materials.push_back(Application::Get()->activeScene->GetMaterial(loadedMaterials.find(materialOutPath)->second));
+						materials.push_back(AssetsManager::GetMaterial(loadedMaterials.find(materialOutPath)->second));
 					//materials.push_back(material);
 				}
 			}
 			else
-				materials.push_back(Application::Get()->activeScene->DefaultMaterial());
+				materials.push_back(AssetsManager::GetDefaultMaterial());
 			/* Skinning */
 			if (ufbxMesh->skin_deformers.count > 0) {
 				ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
@@ -394,7 +394,7 @@ namespace Plaza {
 
 
 			if (materials.size() <= 0)
-				materials.push_back(Application::Get()->activeScene->DefaultMaterial());
+				materials.push_back(AssetsManager::GetDefaultMaterial());
 			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, materials);
 			entity->AddComponent<MeshRenderer>(meshRenderer);
 

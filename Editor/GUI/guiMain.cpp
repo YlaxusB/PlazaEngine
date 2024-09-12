@@ -611,7 +611,7 @@ namespace Plaza {
 
 							ImGui::Text("Extension: ");
 							ImGui::SameLine();
-							ImGui::Text(value->mAssetExtension.c_str());
+							ImGui::Text(value->GetExtension().c_str());
 
 
 							ImGui::TreePop();

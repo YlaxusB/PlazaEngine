@@ -217,7 +217,7 @@ namespace Plaza::Editor {
 				if (ImGui::MenuItem("Mesh Renderer"))
 				{
 					MeshRenderer* meshRenderer = new MeshRenderer();
-					meshRenderer->mMaterials.push_back(Scene::DefaultMaterial());
+					meshRenderer->mMaterials.push_back(AssetsManager::GetDefaultMaterial());
 					meshRenderer->instanced = true;
 					entity.AddComponent<MeshRenderer>(meshRenderer);
 				}

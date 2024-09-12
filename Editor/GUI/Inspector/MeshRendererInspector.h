@@ -28,7 +28,7 @@ namespace Plaza::Editor {
 						if (ImGui::Button("Change Material")) {
 							sMaterialsSearch->SetOpen(true);
 							sMaterialsSearch->mCallback = [&](uint64_t uuid) {
-								meshRenderer->ChangeMaterial(Application::Get()->activeScene->materials.at(uuid).get());
+								meshRenderer->ChangeMaterial(AssetsManager::mMaterials.at(uuid).get());
 								};
 						}
 

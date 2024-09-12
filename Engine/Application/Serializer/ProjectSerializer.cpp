@@ -10,7 +10,7 @@ namespace Plaza {
 		out << YAML::BeginMap;
 		out << YAML::Key << "Project" << YAML::Value << Application::Get()->activeProject->mAssetName;
 		out << YAML::Key << "Directory" << YAML::Value << Application::Get()->activeProject->mAssetPath.string();
-		out << YAML::Key << "LastActiveScenePath" << YAML::Value << Application::Get()->editorScene->filePath;
+		//out << YAML::Key << "LastActiveScenePath" << YAML::Value << Application::Get()->editorScene->filePath;
 
 		//out << YAML::EndSeq;
 		out << YAML::EndMap;
@@ -34,7 +34,7 @@ namespace Plaza {
 		std::string directory = data["Directory"].as<std::string>();
 		std::string lastActiveScenePath = data["LastActiveScenePath"].as<std::string>();
 
-		Application::Get()->activeProject = new Editor::Project();
+		Application::Get()->activeProject = std::make_unique<Editor::Project>();
 		Application::Get()->activeProject->mAssetName = name;
 		Application::Get()->activeProject->mAssetPath = directory;
 

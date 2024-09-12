@@ -100,16 +100,13 @@ namespace Plaza {
 		Entity* find(uint64_t findUuid);
 		~GameObjectList() = default;
 	};
-	class Scene {
+	class Scene : public Asset {
 	public:
 		bool mIsDeleting = false;
 
-		uint64_t mAssetUuid = 0;
-		std::string filePath = "mainScene.plzscn";
-
 		std::unordered_map<std::variant<uint64_t, std::string>, Entity*> gameObjectsMap;
 
-		Entity* mainSceneEntity;
+		Entity* mainSceneEntity = nullptr;
 		uint64_t mainSceneEntityUuid;
 
 		std::map<uint64_t, Animation*> mPlayingAnimations = std::map<uint64_t, Animation*>();
@@ -131,7 +128,6 @@ namespace Plaza {
 		std::unordered_map<std::string, void*> componentsMap;
 
 		std::vector<MeshRenderer*> meshRenderers;
-		std::unordered_map<uint64_t, shared_ptr<Material>> materials;
 		std::unordered_map<std::string, uint64_t> materialsNames;
 
 		std::unordered_map<uint64_t, RenderGroup> renderGroups;
@@ -244,49 +240,16 @@ namespace Plaza {
 			componentsMap["class Plaza::AnimationComponent"] = &animationComponentComponents;
 		}
 
-		static Material* DefaultMaterial();
-
-		unsigned int lastMaterialIndex = 0;
-		void AddMaterial(Material* material) {
-			lastMaterialIndex++;
-			this->materials.emplace(material->mAssetUuid, material);
-			this->materialsNames.emplace(material->mAssetPath.string(), material->mAssetUuid);
-		}
-
-		void AddMaterial(std::shared_ptr<Material> material) {
-			this->materials.emplace(material->mAssetUuid, material);
-			this->materialsNames.emplace(material->mAssetPath.string(), material->mAssetUuid);
-		}
-
-		Material* GetMaterial(uint64_t uuid) {
-			auto it = this->materials.find(uuid);
-			if (it != this->materials.end()) {
-				return it->second.get();
-			}
-			return this->DefaultMaterial();
-		}
-
-		std::vector<Material*> GetMaterialsVector(std::vector<uint64_t>& uuids) {
-			std::vector<Material*> materials = std::vector<Material*>();
-			for (unsigned int i = 0; i < uuids.size(); ++i) {
-				auto it = this->materials.find(uuids[i]);
-				if (it != this->materials.end()) {
-					materials.push_back(it->second.get());
-				}
-				else {
-					materials.push_back(this->DefaultMaterial());
-				}
-			}
-			if (materials.size() == 0)
-				return { this->DefaultMaterial() };
-			return materials;
-		}
-
 		template <class Archive>
-		void save(Archive& archive) const {
-			archive(mAssetUuid, entities, transformComponents, cameraComponents, meshRendererComponents,
+		void serialize(Archive& archive) {
+			if (mainSceneEntity)
+				mainSceneEntityUuid = mainSceneEntity->uuid;
+			archive(mAssetUuid, mAssetName, entities, transformComponents, cameraComponents, meshRendererComponents,
 				rigidBodyComponents, colliderComponents, csScriptComponents, UITextRendererComponents, audioSourceComponents,
-				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents, mainSceneEntity->uuid);
+				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents, mainSceneEntityUuid);
+
+			if (!mainSceneEntity)
+				mainSceneEntity = &entities.at(mainSceneEntityUuid);
 			/*
 						archive(mAssetUuid, entities, transformComponents, cameraComponents, meshRendererComponents,
 				rigidBodyComponents, colliderComponents, csScriptComponents, UITextRendererComponents, audioSourceComponents,
@@ -294,14 +257,6 @@ namespace Plaza {
 				materialsNames, renderGroups, renderGroupsFindMap, renderGroupsFindMapWithMeshUuid, renderGroupsFindMapWithMaterialUuid,
 				entitiesNames);
 			*/
-		}
-
-
-		template <class Archive>
-		void load(Archive& archive) {
-			archive(mAssetUuid, entities, transformComponents, cameraComponents, meshRendererComponents,
-				rigidBodyComponents, colliderComponents, csScriptComponents, UITextRendererComponents, audioSourceComponents,
-				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents, mainSceneEntityUuid);
 		}
 
 		static Scene* GetEditorScene() {

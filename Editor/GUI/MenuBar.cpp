@@ -5,6 +5,7 @@
 #include "Engine/Application/Serializer/ProjectSerializer.h"
 #include "Engine/Core/Standards.h"
 #include "Editor/SessionCache/Cache.h"
+#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 namespace Plaza {
 	namespace Editor {
 		void Gui::MainMenuBar::Begin() {
@@ -38,7 +39,7 @@ namespace Plaza {
 					Editor::selectedGameObject = nullptr;
 					Application::Get()->runEngine = false;
 					Application::Get()->runProjectManagerGui = true;
-					Application::Get()->activeProject = new Project();
+					Application::Get()->activeProject = std::make_unique<Project>();
 					Cache::Serialize(Application::Get()->enginePathAppData + "\\cache.yaml");
 					//free(Application::Get()->editorScene);
 					//free(Application::Get()->runtimeScene);
@@ -55,40 +56,36 @@ namespace Plaza {
 						Application::Get()->editorScene->mainSceneEntity = new Entity("Scene");
 						Application::Get()->editorScene->entities.at(Application::Get()->editorScene->mainSceneEntity->uuid).parentUuid = Application::Get()->editorScene->mainSceneEntity->uuid;
 						Application::Get()->editorScene->mainSceneEntity->parentUuid = Application::Get()->editorScene->mainSceneEntity->uuid;
-						Serializer::Serialize(AssetsManager::NewAsset(AssetType::SCENE, newPath));
-						if (newPath.starts_with(Application::Get()->projectPath))
-							Application::Get()->editorScene->filePath = newPath.substr(Application::Get()->projectPath.length() + 1, newPath.length() - Application::Get()->projectPath.length());
-						ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
-						Serializer::DeSerialize(newPath);
+						//Serializer::Serialize(AssetsManager::NewAsset(AssetType::SCENE, newPath));
+						AssetsSerializer::SerializeFile(*Application::Get()->editorScene, newPath);
+						Application::Get()->activeProject->mLastSceneUuid = Application::Get()->editorScene->mAssetUuid;
+						AssetsSerializer::SerializeFile<Project>(*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string());
+						AssetsLoader::LoadScene(AssetsSerializer::DeSerializeFile<Asset>(newPath).get());
+						AssetsManager::NewAsset(Application::Get()->activeScene->mAssetUuid, {}, newPath);
+						//ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
+						//Serializer::DeSerialize(newPath);
 					}
 				}
 				if (ImGui::Button("Save Scene")) {
-					//std::string path = Application::Get()->projectPath + "\\" + Application::Get()->activeScene->filePath;
-					/* TODO: IMPLEMENT PROPER SCENE ASSET LOADER */
-					Asset* temporarySceneAsset = new Asset();
-					temporarySceneAsset->mAssetUuid = Application::Get()->activeScene->mAssetUuid;
-					temporarySceneAsset->mAssetPath = std::filesystem::path{ Application::Get()->activeProject->mAssetPath.parent_path().string() + "\\" + Application::Get()->activeScene->filePath};
-					temporarySceneAsset->mAssetExtension = Standards::sceneExtName;
-					Serializer::Serialize(temporarySceneAsset);
-					ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
+					AssetsSerializer::SerializeFile(*Application::Get()->activeScene, AssetsManager::GetAsset(Application::Get()->activeScene->mAssetUuid)->mAssetPath.string());
+					Application::Get()->activeProject->mLastSceneUuid = Application::Get()->activeScene->mAssetUuid;
+					AssetsSerializer::SerializeFile<Project>(*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string());
 				}
 				if (ImGui::Button("Save Scene As...")) {
 					std::string path = FileDialog::SaveFileDialog(("Engine (*.%s)", Standards::sceneExtName).c_str());
 					if (!path.empty()) {
-						Serializer::Serialize(AssetsManager::NewAsset(AssetType::SCENE, path));
-						if (path.starts_with(Application::Get()->projectPath))
-							Application::Get()->editorScene->filePath = path.substr(Application::Get()->projectPath.length() + 1, path.length() - Application::Get()->projectPath.length());
-						ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
+						AssetsSerializer::SerializeFile(*Application::Get()->activeScene, AssetsManager::GetAsset(Application::Get()->activeScene->mAssetUuid)->mAssetPath.string());
+						Application::Get()->activeProject->mLastSceneUuid = Application::Get()->activeScene->mAssetUuid;
+						AssetsSerializer::SerializeFile<Project>(*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string());
 					}
 				}
 				if (ImGui::Button("Open Scene")) {
 					std::string path = FileDialog::OpenFileDialog(("Engine (*.%s)", Standards::sceneExtName).c_str());
 					if (std::filesystem::exists(path)) {
-						Editor::selectedGameObject = nullptr;
-						Serializer::DeSerialize(path);
-						if (path.starts_with(Application::Get()->projectPath))
-							Application::Get()->editorScene->filePath = path.substr(Application::Get()->projectPath.length() + 1, path.length() - Application::Get()->projectPath.length());
-						ProjectSerializer::Serialize(Application::Get()->projectPath + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
+						std::shared_ptr<Scene>* sc = new std::shared_ptr<Scene>(AssetsSerializer::DeSerializeFile<Scene>(path));
+						Application::Get()->editorScene = sc->get();
+						Application::Get()->activeScene = Application::Get()->editorScene;
+						Application::Get()->activeScene->RecalculateAddedComponents();
 					}
 				}
 				ImGui::EndMenu();

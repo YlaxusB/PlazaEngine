@@ -6,16 +6,27 @@
 
 namespace Plaza {
 	void AssetsLoader::LoadAsset(Asset* asset) {
-		if (asset->mAssetExtension == Standards::metadataExtName)
+		if (asset->GetExtension() == Standards::metadataExtName)
 			AssetsLoader::LoadMetadata(asset);
-		else if (asset->mAssetExtension == Standards::modelExtName)
+		else if (asset->GetExtension() == Standards::modelExtName)
 			AssetsLoader::LoadPrefab(asset);
-		else if (asset->mAssetExtension == Standards::materialExtName)
+		else if (asset->GetExtension() == Standards::materialExtName)
 			AssetsLoader::LoadMaterial(asset);
-		else if (asset->mAssetExtension == Standards::animationExtName)
+		else if (asset->GetExtension() == Standards::animationExtName)
 			AssetsLoader::LoadAnimation(asset);
 	}
 
+	std::shared_ptr<Scene> AssetsLoader::LoadScene(Asset* asset) {
+		std::ifstream is(asset->mAssetPath, std::ios::binary);
+		cereal::BinaryInputArchive archive(is);
+		std::shared_ptr<Scene> scene = std::make_shared<Scene>();;
+		archive(*scene.get());
+		is.close();
+
+		Application::Get()->editorScene->Copy(Application::Get()->editorScene, scene.get());
+
+		return scene;
+	}
 
 	SerializablePrefab DeserializePrefab(std::string path) {
 		SerializablePrefab prefab{};
@@ -49,9 +60,9 @@ namespace Plaza {
 				SerializableMeshRenderer deserializedMeshRenderer = *(SerializableMeshRenderer*)(component.get());
 				SerializableMesh* deserializedMesh = &deserializedMeshRenderer.serializedMesh;
 				mesh = AssetsManager::GetMesh(deserializedMesh->assetUuid);
-				MeshRenderer* meshRenderer = new MeshRenderer(mesh, Application::Get()->activeScene->GetMaterialsVector(deserializedMeshRenderer.materialsUuid));
+				MeshRenderer* meshRenderer = new MeshRenderer(mesh, AssetsManager::GetMaterialsVector(deserializedMeshRenderer.materialsUuid));
 				meshRenderer->instanced = true;
-				meshRenderer->mMaterials = Application::Get()->activeScene->GetMaterialsVector(deserializedMeshRenderer.materialsUuid);
+				meshRenderer->mMaterials = AssetsManager::GetMaterialsVector(deserializedMeshRenderer.materialsUuid);
 				RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
 				//meshRenderer->renderGroup = Application::Get()->activeScene->AddRenderGroup(newRenderGroup);
 				newEntity->AddComponent<MeshRenderer>(meshRenderer);

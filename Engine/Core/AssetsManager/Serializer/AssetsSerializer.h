@@ -236,13 +236,13 @@ namespace Plaza {
 		}
 
 		template <typename T>
-		static T DeSerializeFile(std::string path) {
+		static std::shared_ptr<T> DeSerializeFile(std::string path) {
 			std::ifstream is(path, std::ios::binary);
 			cereal::BinaryInputArchive archive(is);
-			T file;
-			archive(file);
+			std::shared_ptr<T> file = std::make_shared<T>();
+			archive(*file.get());
 			is.close();
-			static_cast<Asset>(file).mAssetPath = path;
+			static_cast<Asset*>(file.get())->mAssetPath = std::filesystem::path{ path };
 			return file;
 		}
 	};

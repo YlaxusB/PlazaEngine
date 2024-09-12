@@ -33,11 +33,11 @@ namespace Plaza {
 		if (data["Material"])
 			materialUuid = data["Material"].as<uint64_t>();;
 		Material* material;
-		if (Application::Get()->activeScene->materials.find(materialUuid) != Application::Get()->activeScene->materials.end() && materialUuid != 0) {
-			material = Application::Get()->activeScene->materials.at(materialUuid).get();
+		if (AssetsManager::mMaterials.find(materialUuid) != AssetsManager::mMaterials.end() && materialUuid != 0) {
+			material = AssetsManager::mMaterials.at(materialUuid).get();
 		}
 		else
-			material = Scene::DefaultMaterial();
+			material = AssetsManager::GetDefaultMaterial();
 		meshRenderer->mMaterials.push_back(material);
 		if (meshRenderer->mesh && meshRenderer->mMaterials.size() > 0) {
 			meshRenderer->renderGroup = Application::Get()->activeScene->AddRenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);//std::make_shared<RenderGroup>(meshRenderer->mesh, meshRenderer->material);

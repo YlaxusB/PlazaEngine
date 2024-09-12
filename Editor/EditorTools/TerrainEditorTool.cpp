@@ -72,7 +72,7 @@ namespace Plaza {
 			Mesh* mesh = this->CreateHeightMapTerrain(x, y, z);
 			AssetsManager::AddMesh(mesh);
 
-			MeshRenderer* meshRenderer = new MeshRenderer(mesh, { scene->DefaultMaterial() }, false);
+			MeshRenderer* meshRenderer = new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, false);
 			entity->AddComponent<MeshRenderer>(meshRenderer);
 
 		}

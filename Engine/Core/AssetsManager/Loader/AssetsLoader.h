@@ -9,7 +9,8 @@ namespace Plaza {
 			Standards::metadataExtName,
 			Standards::modelExtName,
 			Standards::materialExtName,
-			Standards::animationExtName
+			Standards::animationExtName,
+			Standards::sceneExtName
 		};
 
 		static inline const std::unordered_set<std::string> mSupportedTextureLoadFormats = {
@@ -23,17 +24,21 @@ namespace Plaza {
 
 		static void LoadAsset(Asset* asset);
 		static void LoadMetadata(Asset* asset) {
-			Asset metadataContent = Metadata::DeSerializeMetadata(asset->mAssetPath.string());
-			if (AssetsManager::mAssetTypeByExtension.find(metadataContent.mAssetExtension) == AssetsManager::mAssetTypeByExtension.end())
+			//Asset metadataContent = Metadata::DeSerializeMetadata(asset->mAssetPath.string());
+			Metadata::MetadataStructure metadata = *AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(asset->mAssetPath.string()).get();
+			std::string metadataContentExtension = std::filesystem::path{ asset->mAssetPath.parent_path().string() + "\\" + metadata.mContentName}.extension().string();
+			bool metadataContentExtensionIsSupported = AssetsManager::mAssetTypeByExtension.find(metadataContentExtension) != AssetsManager::mAssetTypeByExtension.end();
+			if (!metadataContentExtensionIsSupported)
 				return;
-			AssetType type = AssetsManager::mAssetTypeByExtension.at(metadataContent.mAssetExtension);
+			AssetType type = AssetsManager::mAssetTypeByExtension.at(metadataContentExtension);
 
 			switch (type) {
 			case AssetType::TEXTURE:
-				AssetsLoader::LoadTexture(&metadataContent);
+				AssetsLoader::LoadTexture(AssetsManager::NewAsset(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
 				break;
 			}
 		}
+		static std::shared_ptr<Scene> LoadScene(Asset* asset);
 		static void LoadPrefab(Asset* asset);
 		static void LoadPrefabToMemory(Asset* asset);
 		static void LoadPrefabToScene(LoadedModel* model, bool loadToScene);

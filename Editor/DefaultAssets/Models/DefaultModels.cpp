@@ -17,8 +17,8 @@ namespace Plaza::Editor {
           //defaultMaterial.albedo.rgba = glm::vec4(1.0f);
           //defaultMaterial.diffuse.rgba = glm::vec4(1.0f);
           //defaultMaterial.uuid = -1;
-          ////Application::Get()->activeScene->materials.emplace(-1, std::make_shared<Material>(defaultMaterial));
-          //Application::Get()->activeScene->AddMaterial(&defaultMaterial);
+          ////AssetsManager::mMaterials.emplace(-1, std::make_shared<Material>(defaultMaterial));
+          //AssetsManager::AddMaterial(&defaultMaterial);
      }
      Mesh* DefaultModels::Cube() {
           return AssetsManager::GetMesh(cubeUuid);

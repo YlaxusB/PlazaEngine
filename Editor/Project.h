@@ -8,6 +8,7 @@ namespace Plaza {
 	namespace Editor {
 		class Project : public Asset {
 		public:
+			uint64_t mLastSceneUuid = 0;
 			std::string creationDate = "";
 			std::string lastModifyDate = "";
 
@@ -18,7 +19,7 @@ namespace Plaza {
 
 			template <class Archive>
 			void serialize(Archive& archive) {
-				archive(mAssetUuid, mAssetName, creationDate, lastModifyDate);
+				archive(mAssetUuid, mAssetName, creationDate, lastModifyDate, mLastSceneUuid);
 			}
 		};
 	}

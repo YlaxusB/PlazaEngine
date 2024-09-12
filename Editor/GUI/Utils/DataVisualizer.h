@@ -114,7 +114,8 @@ namespace Plaza::Editor::Utils {
 	}
 
 	static bool AddTableTexture(std::string label, Texture* texture, ImGuiSliderFlags flags = ImGuiSliderFlags_None) {
-		ImGui::PushID(texture->mAssetUuid);
+		std::string id = std::to_string(texture->mAssetUuid) + label;
+		ImGui::PushID(id.c_str());
 		ImGui::TableNextRow();
 
 		ImGui::TableNextColumn();

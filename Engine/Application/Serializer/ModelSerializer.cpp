@@ -124,7 +124,7 @@ namespace Plaza {
 	//		uint64_t materialUuid = componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>();
 	//		if (componentsEntry["MeshComponent"]["MaterialUuid"])
 	//			/* TODO:FIX THE WAY TO GET MATERIALS, IT HAS BEEN TEMPORARILY DISABLED TO LOAD MODELS WITH VULKAN */
-	//			//newMeshRenderer->material = Application::Get()->activeScene->materials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>()).get();
+	//			//newMeshRenderer->material = AssetsManager::mMaterials.at(componentsEntry["MeshComponent"]["MaterialUuid"].as<uint64_t>()).get();
 	//		model->meshRenderers.emplace(entity->uuid, newMeshRenderer);
 	//	}
 	//	model->transforms.emplace(entity->uuid, newTransform);

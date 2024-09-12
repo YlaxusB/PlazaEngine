@@ -6,12 +6,12 @@ namespace Plaza::Editor {
 
 		/* Material */
 		if (newExtension == Standards::materialExtName) {
-			if (Application::Get()->activeScene->materialsNames.find(oldPath) != Application::Get()->activeScene->materialsNames.end()) {
-				uint64_t materialUuid = Application::Get()->activeScene->materialsNames.at(oldPath);
-				Application::Get()->activeScene->materials.at(materialUuid)->mAssetName = newPath;
-				Application::Get()->activeScene->materialsNames.emplace(newPath, materialUuid);
-				Application::Get()->activeScene->materialsNames.erase(oldPath);
-				AssetsManager::ChangeAssetPath(Application::Get()->activeScene->materials.at(materialUuid)->mAssetUuid, newPath);
+			if (AssetsManager::mMaterialsNames.find(oldPath) != AssetsManager::mMaterialsNames.end()) {
+				uint64_t materialUuid = AssetsManager::mMaterialsNames.at(oldPath);
+				AssetsManager::mMaterials.at(materialUuid)->mAssetName = newPath;
+				AssetsManager::mMaterialsNames.emplace(newPath, materialUuid);
+				AssetsManager::mMaterialsNames.erase(oldPath);
+				AssetsManager::ChangeAssetPath(AssetsManager::mMaterials.at(materialUuid)->mAssetUuid, newPath);
 			}
 		}
 		/* C# Script */

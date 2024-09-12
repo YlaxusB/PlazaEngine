@@ -50,23 +50,22 @@ namespace Plaza {
 		}
 
 		template <class Archive>
-		void save(Archive& archive) const {
-			archive(mAssetUuid, mAssetName, diffuse->mAssetUuid, normal->mAssetUuid, metalness->mAssetUuid, roughness->mAssetUuid, height->mAssetUuid, aoMap->mAssetUuid, flip);
-		}
+		void serialize(Archive& archive) {
+			uint64_t diffuseUuid = diffuse->mAssetUuid;
+			uint64_t normalUuid = normal->mAssetUuid;
+			uint64_t metalnessUuid = metalness->mAssetUuid;
+			uint64_t roughnessUuid = roughness->mAssetUuid;
+			uint64_t heightUuid = height->mAssetUuid;
+			uint64_t aoUuid = aoMap->mAssetUuid;
 
-		template <class Archive>
-		void load(Archive& archive) {
-			uint64_t diffuseUuid;
-			uint64_t normalUuid;
-			uint64_t metalnessUuid;
-			uint64_t roughnessUuid;
-			uint64_t heightUuid;
-			uint64_t aoUuid;
 			archive(mAssetUuid, mAssetName, diffuseUuid, normalUuid, metalnessUuid, roughnessUuid, heightUuid, aoUuid, flip);
-			mDeserializedTexturesUuid = { diffuseUuid, normalUuid, metalnessUuid, roughnessUuid, heightUuid, aoUuid };
+
+			if constexpr (Archive::is_loading::value) {
+				mDeserializedTexturesUuid = { diffuseUuid, normalUuid, metalnessUuid, roughnessUuid, heightUuid, aoUuid };
+			}
 		}
 
-		void LoadDeserializedTextures();
+		void GetDeserializedTextures();
 
 	private:
 		std::vector<uint64_t> mDeserializedTexturesUuid = std::vector<uint64_t>();

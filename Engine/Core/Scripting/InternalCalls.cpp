@@ -471,10 +471,10 @@ namespace Plaza {
 #pragma region Mesh Renderer Component
 	static void MeshRenderer_SetMaterial(uint64_t uuid, uint64_t materialUuid) {
 		auto meshRendererIt = Application::Get()->activeScene->meshRendererComponents.find(uuid);
-		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end() && Application::Get()->activeScene->materials.find(materialUuid) != Application::Get()->activeScene->materials.end()) {
-			meshRendererIt->second.ChangeMaterial(Application::Get()->activeScene->materials.find(materialUuid)->second.get());
-			//meshRendererIt->second.ChangeMaterial(Application::Get()->activeScene->materials.find(materialUuid)->second.get());
-			//meshRendererIt->second.material = Application::Get()->activeScene->materials.find(materialUuid)->second.get();
+		if (meshRendererIt != Application::Get()->activeScene->meshRendererComponents.end() && AssetsManager::mMaterials.find(materialUuid) != AssetsManager::mMaterials.end()) {
+			meshRendererIt->second.ChangeMaterial(AssetsManager::mMaterials.find(materialUuid)->second.get());
+			//meshRendererIt->second.ChangeMaterial(AssetsManager::mMaterials.find(materialUuid)->second.get());
+			//meshRendererIt->second.material = AssetsManager::mMaterials.find(materialUuid)->second.get();
 			//if (!meshRendererIt->second.renderGroup) {
 			//	meshRendererIt->second.renderGroup = new RenderGroup(meshRendererIt->second.mesh, meshRendererIt->second.material);
 			//	Application::Get()->activeScene->AddRenderGroup(meshRendererIt->second.renderGroup);

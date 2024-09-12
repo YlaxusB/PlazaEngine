@@ -124,7 +124,7 @@ namespace Plaza {
 		//		indicesOffset += geom.getPositions().count;
 		//	}
 
-		//	MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, Application::Get()->activeScene->DefaultMaterial());
+		//	MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, AssetsManager::GetDefaultMaterial());
 		//	entity->AddComponent<MeshRenderer>(meshRenderer);
 		//}
 		//fclose(fp);
@@ -209,8 +209,8 @@ namespace Plaza {
 		//		indices.push_back(uniqueVertices[vertex]);
 		//	}
 		//
-		//	Mesh& mesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), indices, *Scene::DefaultMaterial(), false);// new Mesh();
-		//	MeshRenderer* meshRenderer = new MeshRenderer(mesh, Scene::DefaultMaterial());
+		//	Mesh& mesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), indices, *AssetsManager::GetDefaultMaterial(), false);// new Mesh();
+		//	MeshRenderer* meshRenderer = new MeshRenderer(mesh, AssetsManager::GetDefaultMaterial());
 		//	newEntity->AddComponent<MeshRenderer>(meshRenderer);
 		//}
 		//AssetsSerializer::SerializePrefab(mainEntity, asset.mPath);

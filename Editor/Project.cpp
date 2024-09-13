@@ -46,9 +46,8 @@ namespace Plaza::Editor {
 		Mono::Init();
 
 		std::cout << "Read Game Folder \n";
-		Application::Get()->editorScene = new Scene();
-		Application::Get()->editorScene->mainSceneEntity = new Entity();
-		Application::Get()->activeScene = Application::Get()->editorScene;
+		Scene::ClearEditorScene();
+		Scene::SetActiveScene(Scene::GetEditorScene());
 		std::map<std::string, Script> scripts = std::map<std::string, Script>();
 		/* Iterate over all files and subfolders of the project folder to load assets */
 		std::string path = Application::Get()->activeProject->mAssetPath.parent_path().string();
@@ -85,20 +84,20 @@ namespace Plaza::Editor {
 			const std::string sceneFilePath = AssetsManager::GetAsset(Application::Get()->activeProject->mLastSceneUuid)->mAssetPath.string();//Application::Get()->projectPath + "\\" + AssetsManager::lastActiveScenePath;
 			bool sceneFileExists = std::filesystem::exists(sceneFilePath);
 			if (sceneFileExists) {
-				std::shared_ptr<Scene>* sc = new std::shared_ptr<Scene>(AssetsSerializer::DeSerializeFile<Scene>(sceneFilePath));
-				Application::Get()->editorScene = sc->get();
-				Application::Get()->activeScene = Application::Get()->editorScene;
-				Application::Get()->activeScene->RecalculateAddedComponents();
+				Scene* scene = Scene::GetEditorScene();
+				Scene::SetEditorScene(AssetsSerializer::DeSerializeFile<Scene>(sceneFilePath));
+				Scene::SetActiveScene(Scene::GetEditorScene());
+				Scene::GetActiveScene()->RecalculateAddedComponents();
 			}
 			//if (sceneFileExists)
 			//	Serializer::DeSerialize(sceneFilePath, true);
 		}
 		else {
-			Application::Get()->editorScene = new Scene();
-			Application::Get()->activeScene = Application::Get()->editorScene;
-			Application::Get()->activeScene->mainSceneEntity = new Entity("Scene");
-			Application::Get()->activeScene->mainSceneEntity->parentUuid = Application::Get()->activeScene->mainSceneEntity->uuid;
-			Application::Get()->activeScene->GetEntity(Application::Get()->activeScene->mainSceneEntity->uuid)->parentUuid = Application::Get()->activeScene->mainSceneEntity->uuid;
+			Scene::ClearEditorScene();
+			Scene::SetActiveScene(Scene::GetEditorScene());
+			Scene::GetActiveScene()->mainSceneEntity = new Entity("Scene");
+			Scene::GetActiveScene()->mainSceneEntity->parentUuid = Scene::GetActiveScene()->mainSceneEntity->uuid;
+			Scene::GetActiveScene()->GetEntity(Scene::GetActiveScene()->mainSceneEntity->uuid)->parentUuid = Scene::GetActiveScene()->mainSceneEntity->uuid;
 		}
 		std::cout << "Finished Deserializing \n";
 	}

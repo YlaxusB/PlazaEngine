@@ -28,9 +28,7 @@ namespace Plaza {
 		~Entity();
 		void Delete();
 
-		Component* GetComponentByName(std::string className);
-
-		std::unordered_map<std::string, void*> GetAllComponentsMaps();
+		static std::unordered_map<std::string, void*> GetAllComponentsMaps();
 
 		template<typename T>
 		T* GetComponent() {

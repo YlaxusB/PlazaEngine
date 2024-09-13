@@ -43,7 +43,7 @@ namespace Plaza {
 	glm::mat4 Transform::GetTransform(glm::vec3 position, glm::vec3 scale)
 	{
 		glm::mat4 parentMatrix;
-		if (Application::Get()->activeScene->entities.at(this->mUuid).parentUuid == 0) {
+		if (Scene::GetActiveScene()->entities.at(this->mUuid).parentUuid == 0) {
 			parentMatrix = glm::mat4(1.0f);
 		}
 		else {
@@ -62,9 +62,9 @@ namespace Plaza {
 
 	void Transform::UpdateWorldMatrix() {
 		PLAZA_PROFILE_SECTION("Transform: Update World Matrix");
-		uint64_t parentUuid = Application::Get()->activeScene->entities.find(this->mUuid)->second.parentUuid;
-		if (parentUuid && Application::Get()->activeScene->transformComponents.find(parentUuid) != Application::Get()->activeScene->transformComponents.end()) {
-			glm::mat4 parentModelMatrix = Application::Get()->activeScene->transformComponents.find(parentUuid)->second.modelMatrix;
+		uint64_t parentUuid = Scene::GetActiveScene()->entities.find(this->mUuid)->second.parentUuid;
+		if (parentUuid && Scene::GetActiveScene()->transformComponents.find(parentUuid) != Scene::GetActiveScene()->transformComponents.end()) {
+			glm::mat4 parentModelMatrix = Scene::GetActiveScene()->transformComponents.find(parentUuid)->second.modelMatrix;
 			if (this->lastParentModelMatrix != parentModelMatrix || this->lastLocalMatrix != this->localMatrix) {
 				this->modelMatrix = parentModelMatrix * this->localMatrix;
 				this->lastParentModelMatrix = parentModelMatrix;
@@ -116,10 +116,10 @@ namespace Plaza {
 	/// </summary>
 	glm::vec3 newWorldPosition(Entity* entity) {
 		glm::mat4 rotationMatrix = glm::mat4(1.0f);
-		rotationMatrix *= glm::toMat4(glm::quat(Application::Get()->activeScene->entities[entity->parentUuid].GetComponent<Transform>()->worldRotation));
-		rotationMatrix = glm::scale(rotationMatrix, Application::Get()->activeScene->entities[entity->parentUuid].GetComponent<Transform>()->worldScale);
+		rotationMatrix *= glm::toMat4(glm::quat(Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<Transform>()->worldRotation));
+		rotationMatrix = glm::scale(rotationMatrix, Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<Transform>()->worldScale);
 		glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(entity->GetComponent<Transform>()->relativePosition, 1.0f));
-		glm::vec3 finalWorldPoint = transformedPoint + Application::Get()->activeScene->entities[entity->parentUuid].GetComponent<Transform>()->worldPosition;
+		glm::vec3 finalWorldPoint = transformedPoint + Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<Transform>()->worldPosition;
 		return finalWorldPoint;
 	}
 	/// <summary>
@@ -127,7 +127,7 @@ namespace Plaza {
 	/// </summary>
 	glm::vec3 newWorldRotation(Entity* entity) {
 		glm::mat4 newRotationMatrix = glm::translate(glm::mat4(1.0f), entity->GetComponent<Transform>()->worldPosition)
-			* glm::toMat4(glm::quat(Application::Get()->activeScene->entities[entity->parentUuid].GetComponent<Transform>()->worldRotation))
+			* glm::toMat4(glm::quat(Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<Transform>()->worldRotation))
 			* glm::toMat4(glm::quat(entity->GetComponent<Transform>()->rotation))
 			* glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 
@@ -149,9 +149,9 @@ namespace Plaza {
 		UpdateObjectTransform(entity);
 
 		for (uint64_t child : entity->childrenUuid) {
-			UpdateObjectTransform(&Application::Get()->activeScene->entities[child]);
+			UpdateObjectTransform(&Scene::GetActiveScene()->entities[child]);
 
-			UpdateChildrenTransform(&Application::Get()->activeScene->entities[child]);
+			UpdateChildrenTransform(&Scene::GetActiveScene()->entities[child]);
 		}
 	}
 
@@ -162,7 +162,7 @@ namespace Plaza {
 		if (Application::Get()->runningScene)
 			this->UpdatePhysics();
 		for (uint64_t child : this->GetGameObject()->childrenUuid) {
-			Application::Get()->activeScene->transformComponents.at(child).UpdateSelfAndChildrenTransform();
+			Scene::GetActiveScene()->transformComponents.at(child).UpdateSelfAndChildrenTransform();
 		}
 		if (haveCamera) {
 			Application::Get()->activeCamera->Update();
@@ -171,7 +171,7 @@ namespace Plaza {
 
 	void Transform::UpdateChildrenTransform() {
 		if (mUuid) {
-			UpdateChildrenTransform(&Application::Get()->activeScene->entities[mUuid]);
+			UpdateChildrenTransform(&Scene::GetActiveScene()->entities[mUuid]);
 		}
 	}
 
@@ -210,16 +210,16 @@ namespace Plaza {
 	void Transform::SetRelativeScale(glm::vec3 vector) { 
 		this->scale = vector;
 		this->UpdateSelfAndChildrenTransform();
-		auto it = Application::Get()->activeScene->colliderComponents.find(this->mUuid);
-		if (it != Application::Get()->activeScene->colliderComponents.end()) {
+		auto it = Scene::GetActiveScene()->colliderComponents.find(this->mUuid);
+		if (it != Scene::GetActiveScene()->colliderComponents.end()) {
 			it->second.UpdateShapeScale(this->worldScale);
 		}
 	}
 
 	void Transform::UpdatePhysics() {
 		PLAZA_PROFILE_SECTION("Transform: Update Physics");
-		auto it = Application::Get()->activeScene->colliderComponents.find(this->mUuid);
-		if (it != Application::Get()->activeScene->colliderComponents.end()) {
+		auto it = Scene::GetActiveScene()->colliderComponents.find(this->mUuid);
+		if (it != Scene::GetActiveScene()->colliderComponents.end()) {
 			it->second.UpdateShapeScale(this->GetWorldScale());
 			it->second.UpdatePose(this);
 		}

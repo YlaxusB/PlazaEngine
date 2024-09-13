@@ -80,14 +80,14 @@ namespace Plaza::Editor {
 				if (currentPosition != startingPosition || currentRotation != startingRotation || currentScale != startingScale) {
 
 //					entity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
-					if (Application::Get()->activeScene->rigidBodyComponents.find(entity->uuid) != Application::Get()->activeScene->rigidBodyComponents.end()) {
-						//RigidBody* rigidBody = &Application::Get()->activeScene->rigidBodyComponents.at(entity->uuid);
+					if (Scene::GetActiveScene()->rigidBodyComponents.find(entity->uuid) != Scene::GetActiveScene()->rigidBodyComponents.end()) {
+						//RigidBody* rigidBody = &Scene::GetActiveScene()->rigidBodyComponents.at(entity->uuid);
 						//rigidBody->UpdateGlobalPose();
 					}
 				}
 
 				for (uint64_t child : entity->childrenUuid) {
-					ImGui::Text(Application::Get()->activeScene->entities[child].name.c_str());
+					ImGui::Text(Scene::GetActiveScene()->entities[child].name.c_str());
 				}
 
 

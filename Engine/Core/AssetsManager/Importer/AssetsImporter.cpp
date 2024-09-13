@@ -28,8 +28,8 @@ namespace Plaza {
 			if (settings.mImportModel) {
 				mainEntity = AssetsImporter::ImportOBJ(asset, std::filesystem::path{});
 				SerializablePrefab prefab = AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName });
-				Application::Get()->activeScene->RemoveEntity(mainEntity->uuid);
-				Asset* asset = AssetsManager::NewAsset(prefab.assetUuid, AssetType::MODEL, outPath + Standards::modelExtName);
+				Scene::GetActiveScene()->RemoveEntity(mainEntity->uuid);
+				Asset* asset = AssetsManager::NewAsset<Asset>(prefab.assetUuid, outPath + Standards::modelExtName);
 				AssetsLoader::LoadAsset(asset);
 			}
 			break;
@@ -37,8 +37,8 @@ namespace Plaza {
 			if (settings.mImportModel) {
 				mainEntity = AssetsImporter::ImportFBX(asset, std::filesystem::path{});
 				SerializablePrefab prefab = AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName });
-				Application::Get()->activeScene->RemoveEntity(mainEntity->uuid);
-				Asset* asset = AssetsManager::NewAsset(prefab.assetUuid, AssetType::MODEL, outPath + Standards::modelExtName);
+				Scene::GetActiveScene()->RemoveEntity(mainEntity->uuid);
+				Asset* asset = AssetsManager::NewAsset<Asset>(prefab.assetUuid, outPath + Standards::modelExtName);
 				AssetsLoader::LoadAsset(asset);
 			}
 			if (settings.mImportAnimations)
@@ -91,9 +91,9 @@ namespace Plaza {
 		}
 
 		for (Animation& animation : loadedAnimations) {
-			std::string animationOutPath = Editor::Utils::Filesystem::GetUnrepeatedPath(outFolder.string() + "\\" + animation.mName + Standards::animationExtName);
+			std::string animationOutPath = Editor::Utils::Filesystem::GetUnrepeatedPath(outFolder.string() + "\\" + animation.mAssetName + Standards::animationExtName);
 			AssetsSerializer::SerializeAnimation(animation, animationOutPath);
-			AssetsManager::NewAsset(AssetType::ANIMATION, animationOutPath);
+			AssetsManager::NewAsset<Animation>(AssetType::ANIMATION, animationOutPath);
 			AssetsManager::AddAnimation(animation);
 		}
 	}

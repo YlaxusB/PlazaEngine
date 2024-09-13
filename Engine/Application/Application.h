@@ -45,9 +45,9 @@ namespace Plaza {
 		ThreadsManager* mThreadsManager = new ThreadsManager();
 		bool showCascadeLevels = false;
 
-		Scene* editorScene = new Scene();
-		Scene* runtimeScene = new Scene();
-		Scene* activeScene = editorScene;
+		Scene* editorScene = nullptr;
+		Scene* runtimeScene = nullptr;
+		Scene* activeScene = nullptr;
 		bool runningScene = false;
 		int drawCalls = 0;
 		bool runningEditor = true;

@@ -289,8 +289,8 @@ namespace Plaza {
 
 	void VulkanLighting::GetLights() {
 		this->mLights.clear();
-		for (const auto& [key, value] : Application::Get()->activeScene->lightComponents) {
-			glm::vec3 position = Application::Get()->activeScene->transformComponents.at(key).GetWorldPosition();
+		for (const auto& [key, value] : Scene::GetActiveScene()->lightComponents) {
+			glm::vec3 position = Scene::GetActiveScene()->transformComponents.at(key).GetWorldPosition();
 			this->mLights.push_back(LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff });
 		}
 

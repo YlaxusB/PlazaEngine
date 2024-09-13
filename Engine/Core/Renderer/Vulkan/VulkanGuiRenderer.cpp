@@ -436,7 +436,7 @@ namespace Plaza {
 		vkMapMemory(*mDevice, mMemory, 0, VK_WHOLE_SIZE, 0, (void**)&mapped);
 		numLetters = 0;
 
-		for (auto& [key, value] : Application::Get()->activeScene->UITextRendererComponents) {
+		for (auto& [key, value] : Scene::GetActiveScene()->UITextRendererComponents) {
 			this->AddText(value.mText, value.mPosX, value.mPosY, value.mScale, TextAlign::alignLeft);
 		}
 

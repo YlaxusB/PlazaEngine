@@ -261,8 +261,8 @@ namespace Plaza {
 				if (sceneViewUsingEditorCamera)
 					Application::Get()->activeCamera = Application::Get()->editorCamera;
 				else {
-					if (Application::Get()->activeCamera->isEditorCamera && Application::Get()->activeScene->cameraComponents.size() > 0)
-						Application::Get()->activeCamera = &Application::Get()->activeScene->cameraComponents.begin()->second;
+					if (Application::Get()->activeCamera->isEditorCamera && Scene::GetActiveScene()->cameraComponents.size() > 0)
+						Application::Get()->activeCamera = &Scene::GetActiveScene()->cameraComponents.begin()->second;
 				}
 			}
 
@@ -308,8 +308,8 @@ namespace Plaza {
 					if (sceneViewUsingEditorCamera)
 						Application::Get()->activeCamera = Application::Get()->editorCamera;
 					else {
-						if (Application::Get()->activeCamera->isEditorCamera && Application::Get()->activeScene->cameraComponents.size() > 0)
-							Application::Get()->activeCamera = &Application::Get()->activeScene->cameraComponents.begin()->second;
+						if (Application::Get()->activeCamera->isEditorCamera && Scene::GetActiveScene()->cameraComponents.size() > 0)
+							Application::Get()->activeCamera = &Scene::GetActiveScene()->cameraComponents.begin()->second;
 					}
 				}
 			}
@@ -468,7 +468,7 @@ namespace Plaza {
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-			HierarchyWindow::Item(Application::Get()->activeScene->entities[Application::Get()->activeScene->mainSceneEntity->uuid], selectedGameObject);
+			HierarchyWindow::Item(Scene::GetActiveScene()->entities[Scene::GetActiveScene()->mainSceneEntity->uuid], selectedGameObject);
 			ImGui::PopStyleVar();
 			ImGui::PopStyleVar();
 

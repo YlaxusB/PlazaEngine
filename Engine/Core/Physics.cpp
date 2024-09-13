@@ -19,8 +19,8 @@ namespace Plaza {
 
 					//if (name != "Road")
 					//	std::cout << "Found: " << name << "\n";
-					auto it1 = Application::Get()->activeScene->csScriptComponents.find(uuid1);
-					if (it1 != Application::Get()->activeScene->csScriptComponents.end()) {
+					auto it1 = Scene::GetActiveScene()->csScriptComponents.find(uuid1);
+					if (it1 != Scene::GetActiveScene()->csScriptComponents.end()) {
 						for (auto [key, value] : it1->second.scriptClasses) {
 							void* params[] =
 							{
@@ -31,8 +31,8 @@ namespace Plaza {
 						}
 					}
 
-					auto it2 = Application::Get()->activeScene->csScriptComponents.find(uuid2);
-					if (it2 != Application::Get()->activeScene->csScriptComponents.end()) {
+					auto it2 = Scene::GetActiveScene()->csScriptComponents.find(uuid2);
+					if (it2 != Scene::GetActiveScene()->csScriptComponents.end()) {
 						for (auto [key, value] : it2->second.scriptClasses) {
 							void* params[] =
 							{
@@ -233,7 +233,7 @@ namespace Plaza {
 
 	void Physics::Update() {
 		PLAZA_PROFILE_SECTION("Update");
-		for (auto& [key, value] : Application::Get()->runtimeScene->rigidBodyComponents) {
+		for (auto& [key, value] : Scene::GetRuntimeScene()->rigidBodyComponents) {
 			value.Update();
 		}
 

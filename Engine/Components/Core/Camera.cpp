@@ -12,7 +12,7 @@ namespace Plaza {
 
 	void Camera::Update() {
 		if (!this->isEditorCamera)
-			Position = Application::Get()->activeScene->transformComponents.at(this->mUuid).GetWorldPosition();
+			Position = Scene::GetActiveScene()->transformComponents.at(this->mUuid).GetWorldPosition();
 		updateCameraVectors();
 		UpdateFrustum();
 	}
@@ -116,9 +116,9 @@ namespace Plaza {
 
 	void Camera::updateCameraVectors()
 	{
-		auto it = Application::Get()->activeScene->transformComponents.find(this->mUuid);
-		if (it != Application::Get()->activeScene->transformComponents.end()) {
-			Application::Get()->activeScene->transformComponents.at(this->mUuid).haveCamera = true;
+		auto it = Scene::GetActiveScene()->transformComponents.find(this->mUuid);
+		if (it != Scene::GetActiveScene()->transformComponents.end()) {
+			Scene::GetActiveScene()->transformComponents.at(this->mUuid).haveCamera = true;
 		}
 		if (this->isEditorCamera) {
 			// calculate the new Front vector
@@ -132,8 +132,8 @@ namespace Plaza {
 			Up = glm::normalize(glm::cross(Right, Front));
 		}
 		else {
-			if (this->mUuid && Application::Get()->activeScene->transformComponents.find(this->mUuid) != Application::Get()->activeScene->transformComponents.end()) {
-				Transform* transform = &Application::Get()->activeScene->transformComponents.at(this->mUuid);
+			if (this->mUuid && Scene::GetActiveScene()->transformComponents.find(this->mUuid) != Scene::GetActiveScene()->transformComponents.end()) {
+				Transform* transform = &Scene::GetActiveScene()->transformComponents.at(this->mUuid);
 				glm::mat4 transformationMatrix = transform->modelMatrix; // Assuming you have a transformation matrix
 
 				glm::vec3 cubeFront = glm::normalize(glm::vec3(transformationMatrix[0])); // Negative Z-axis
@@ -156,8 +156,8 @@ namespace Plaza {
 		}
 		/*
 		if (!this->isEditorCamera && this->uuid && Application) {
-			if (Application::Get()->activeScene->transformComponents.find(this->uuid) != Application::Get()->activeScene->transformComponents.end()) {
-				Transform* transform = &Application::Get()->activeScene->transformComponents.at(this->uuid);
+			if (Scene::GetActiveScene()->transformComponents.find(this->uuid) != Scene::GetActiveScene()->transformComponents.end()) {
+				Transform* transform = &Scene::GetActiveScene()->transformComponents.at(this->uuid);
 				transform->rotation = GetEulerAnglesIgnoreY();
 				transform->UpdateChildrenTransform();
 			}

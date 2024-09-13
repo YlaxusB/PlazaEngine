@@ -25,7 +25,7 @@ glm::vec3 randomVec3() {
 Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true, bool addToScene = true) {
 	Entity* obj = new Entity(name, parent, addToScene);
 	//obj->changingName = true;
-	//Application::Get()->activeScene->entities.at(obj->uuid).changingName = true;
+	//Scene::GetActiveScene()->entities.at(obj->uuid).changingName = true;
 	//Gui::Hierarchy::Item::firstFocus = true;
 	obj->GetComponent<Transform>()->UpdateChildrenTransform();
 	MeshRenderer* meshRenderer = new MeshRenderer(mesh, AssetsManager::GetDefaultMaterial());
@@ -33,7 +33,7 @@ Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true
 	//meshRenderer->mesh = new Mesh(*mesh);
 	meshRenderer->mMaterials.push_back(AssetsManager::GetDefaultMaterial());
 	//RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
-	meshRenderer->renderGroup = Application::Get()->activeScene->AddRenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
+	meshRenderer->renderGroup = Scene::GetActiveScene()->AddRenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
 	//meshRenderer->renderGroup->material = make_shared<Material>(*AssetsManager::GetDefaultMaterial());
 	obj->AddComponent<MeshRenderer>(meshRenderer);
 	Editor::selectedGameObject = obj;
@@ -55,48 +55,25 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 		Input::isAnyKeyPressed = true;
 	if (Application::Get()->focusedMenu == "Editor") {
 
-		const std::string sceneOutput = "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\FPS\\Assets\\Scenes\\cerealScene.plzscn";
-		if (key == GLFW_KEY_I && action == GLFW_PRESS) {
-			Editor::Gui::OpenAssetImporterContext("asd");
-			//std::ofstream os(sceneOutput, std::ios::binary);
-			//cereal::BinaryOutputArchive archive(os);
-			//archive(*Application::Get()->activeScene);
-			//os.close();
-		}
 		if (key == GLFW_KEY_K && action == GLFW_PRESS) {
 			for (int i = 0; i < 100; ++i) {
 				Application::Get()->mRenderer->UpdateMainProgressBar(i / 100.0f);
 				std::this_thread::sleep_for(std::chrono::milliseconds(3));
 			}
 		}
-		if (key == GLFW_KEY_O && action == GLFW_PRESS) {
-			Application::Get()->mThreadsManager->mFrameEndThread->AddToQueue([sceneOutput]() {
-				std::ifstream is(sceneOutput, std::ios::binary);
-				cereal::BinaryInputArchive archive(is);
-				Scene* obj = new Scene();
-				archive(*obj);
-				is.close();
-				obj->mainSceneEntity = obj->GetEntity(Application::Get()->activeScene->mainSceneEntity->uuid);
-
-				Application::Get()->editorScene = obj;
-				Application::Get()->activeScene = Application::Get()->editorScene;
-				Application::Get()->activeScene->RecalculateAddedComponents();
-				});
-		}
-
 
 		if (key == GLFW_KEY_F && action == GLFW_PRESS) {
 			if (Editor::selectedGameObject) {
 				uint64_t newUuid = Entity::Instantiate(Editor::selectedGameObject->uuid);
 				if (newUuid)
-					Application::Get()->activeScene->transformComponents.find(newUuid)->second.UpdateSelfAndChildrenTransform();
-				Editor::selectedGameObject = Application::Get()->activeScene->GetEntity(newUuid);
+					Scene::GetActiveScene()->transformComponents.find(newUuid)->second.UpdateSelfAndChildrenTransform();
+				Editor::selectedGameObject = Scene::GetActiveScene()->GetEntity(newUuid);
 			}
 		}
 
 		if (key == GLFW_KEY_T && action == GLFW_PRESS) {
 			for (int i = 0; i < 1000; ++i) {
-				Entity* obj = NewEntity("Sphere", Application::Get()->activeScene->mainSceneEntity, Editor::DefaultModels::Cube(), true, true);
+				Entity* obj = NewEntity("Sphere", Scene::GetActiveScene()->mainSceneEntity, Editor::DefaultModels::Cube(), true, true);
 				Transform* transform = obj->GetComponent<Transform>();
 				transform->relativePosition = randomVec3();
 				transform->UpdateSelfAndChildrenTransform();
@@ -128,7 +105,7 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 			Editor::selectedGameObject->GetComponent<MeshRenderer>()->LoadHeightMap("C:\\Users\\Giovane\\Desktop\\Workspace\\heightmap.save");
 		}
 		//if (key == GLFW_KEY_G && action == GLFW_PRESS)
-		//	Application::Get()->activeScene->entities[Editor::selectedGameObject->uuid].RemoveComponent<RigidBody>();
+		//	Scene::GetActiveScene()->entities[Editor::selectedGameObject->uuid].RemoveComponent<RigidBody>();
 
 		if (key == GLFW_KEY_U && action == GLFW_PRESS)
 			Application::Get()->activeCamera->Position = Plaza::Editor::selectedGameObject->GetComponent<Transform>()->GetWorldPosition();

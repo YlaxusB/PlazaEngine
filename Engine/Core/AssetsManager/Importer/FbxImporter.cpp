@@ -154,7 +154,7 @@ namespace Plaza {
 			return nullptr;
 		}
 
-		Entity* mainEntity = new Entity(std::filesystem::path{ asset.mPath }.stem().string(), Application::Get()->activeScene->mainSceneEntity);
+		Entity* mainEntity = new Entity(std::filesystem::path{ asset.mPath }.stem().string(), Scene::GetActiveScene()->mainSceneEntity);
 
 		std::unordered_map<uint64_t, Entity*> entities = std::unordered_map<uint64_t, Entity*>();
 		std::unordered_map<uint64_t, uint64_t> meshIndexEntityMap = std::unordered_map<uint64_t, uint64_t>(); // ufbx id, plaza uuid
@@ -405,14 +405,14 @@ namespace Plaza {
 		}
 
 		for (auto& [key, value] : entityMeshParent) {
-			Entity* entity = &Application::Get()->activeScene->entities.at(key);
+			Entity* entity = &Scene::GetActiveScene()->entities.at(key);
 			if (value != 0 && meshIndexEntityMap.find(value) != meshIndexEntityMap.end()) {
-				entity->ChangeParent(&entity->GetParent(), &Application::Get()->activeScene->entities.at(meshIndexEntityMap.at(value)));
+				entity->ChangeParent(&entity->GetParent(), &Scene::GetActiveScene()->entities.at(meshIndexEntityMap.at(value)));
 			}
 		}
 
 		ufbx_free_scene(scene);
-		return Application::Get()->activeScene->GetEntity(mainEntity->uuid);
+		return Scene::GetActiveScene()->GetEntity(mainEntity->uuid);
 	}
 
 	std::vector<Animation> AssetsImporter::ImportAnimationFBX(std::string filePath, AssetsImporterSettings settings) {
@@ -467,7 +467,7 @@ namespace Plaza {
 			if (bake == nullptr)
 				continue;
 			Animation& animation = animations.emplace_back(Animation());
-			animation.mName = stack->name.data;
+			animation.mAssetName = stack->name.data;
 
 			for (ufbx_bone* bone : scene->bones) {
 				if (bone->is_root)

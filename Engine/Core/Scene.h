@@ -198,7 +198,7 @@ namespace Plaza {
 
 		//unordered_map<uint64_t, Transform*> meshRenderersComponents;
 
-		static Scene* Copy(Scene* newScene, Scene* copyScn);
+		void Copy(Scene* baseScene);
 		static void Play(); // Starts the game
 		static void Stop(); // Finishes the game
 		static void Pause(); // Just pauses the game
@@ -259,8 +259,20 @@ namespace Plaza {
 			*/
 		}
 
+		static void InitializeScenes() {
+			sEditorScene = std::make_shared<Scene>();
+			sRuntimeScene = std::make_shared<Scene>();
+		}
+
 		static Scene* GetEditorScene() {
 			return sEditorScene.get();
+		}
+		static void SetEditorScene(std::shared_ptr<Scene> scene) {
+			sEditorScene = scene;
+		}
+		static void ClearEditorScene() {
+			sEditorScene.reset();
+			sEditorScene = std::make_shared<Scene>();
 		}
 		static Scene* GetRuntimeScene() {
 			return sRuntimeScene.get();
@@ -268,9 +280,13 @@ namespace Plaza {
 		static Scene* GetActiveScene() {
 			return sActiveScene;
 		}
+		static void SetActiveScene(Scene* scene) {
+			sActiveScene = scene;
+		}
+		static void NewRuntimeScene(Scene* baseScene);
 	private:
-		static inline std::unique_ptr<Scene> sEditorScene;
-		static inline std::unique_ptr<Scene> sRuntimeScene;
+		static inline std::shared_ptr<Scene> sEditorScene = nullptr;
+		static inline std::shared_ptr<Scene> sRuntimeScene = nullptr;
 		static inline Scene* sActiveScene = nullptr;
 	};
 }

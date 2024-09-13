@@ -45,9 +45,9 @@ namespace Plaza::Editor {
 		if (Editor::selectedGameObject) {
 			ImGui::SetCursorPosY(50);
 			ImGui::Indent(10);
-			bool selectedEntityIsSceneEntity = Editor::selectedGameObject->uuid == Application::Get()->activeScene->mainSceneEntity->uuid;
+			bool selectedEntityIsSceneEntity = Editor::selectedGameObject->uuid == Scene::GetActiveScene()->mainSceneEntity->uuid;
 			if (selectedEntityIsSceneEntity) {
-				SceneInspector::SceneInspector(Application::Get()->activeScene);
+				SceneInspector::SceneInspector(Scene::GetActiveScene());
 			}
 			else {
 				ImGui::Text(Editor::selectedGameObject->name.c_str());
@@ -63,7 +63,7 @@ namespace Plaza::Editor {
 	void Inspector::ComponentInspector::UpdateComponents() {
 		components.clear();
 		uint64_t uuid = Editor::selectedGameObject->uuid;
-		Scene* activeScene = Application::Get()->activeScene;
+		Scene* activeScene = Scene::GetActiveScene();
 
 		if (activeScene->transformComponents.contains(uuid))
 			components.push_back(&activeScene->transformComponents.at(uuid));

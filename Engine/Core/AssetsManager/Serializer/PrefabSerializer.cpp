@@ -41,7 +41,7 @@ namespace Plaza {
 		serializableEntity.componentsCount = componentCount;
 		entityCount++;
 		for (unsigned int i = 0; i < entity->childrenUuid.size(); ++i) {
-			entitiesVector.push_back(ConvertEntity(Application::Get()->activeScene->GetEntity(entity->childrenUuid[i]), entityCount, entitiesVector));
+			entitiesVector.push_back(ConvertEntity(Scene::GetActiveScene()->GetEntity(entity->childrenUuid[i]), entityCount, entitiesVector));
 		}
 
 		return serializableEntity;

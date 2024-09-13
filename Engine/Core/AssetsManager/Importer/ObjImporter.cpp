@@ -86,7 +86,7 @@ namespace Plaza {
 			Entity* newEntity;
 			if (!mainEntity)
 			{
-				newEntity = new Entity(shape.name, Application::Get()->activeScene->mainSceneEntity);
+				newEntity = new Entity(shape.name, Scene::GetActiveScene()->mainSceneEntity);
 				mainEntity = newEntity;
 			}
 			else
@@ -222,6 +222,6 @@ namespace Plaza {
 			}
 			index++;
 		}
-		return Application::Get()->activeScene->GetEntity(mainEntity->uuid);
+		return Scene::GetActiveScene()->GetEntity(mainEntity->uuid);
 	}
 }

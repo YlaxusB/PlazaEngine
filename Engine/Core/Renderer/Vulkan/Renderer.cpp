@@ -1144,8 +1144,8 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::CalculateBonesParentship(Bone* bone, glm::mat4 parentTransform, float time, uint64_t boneId) {
-		if (Application::Get()->activeScene->mPlayingAnimations[0]->mKeyframes[boneId].size() > 0)
-			bone->Update(Application::Get()->activeScene->mPlayingAnimations[0]->mKeyframes[boneId], time);
+		if (Scene::GetActiveScene()->mPlayingAnimations[0]->mKeyframes[boneId].size() > 0)
+			bone->Update(Scene::GetActiveScene()->mPlayingAnimations[0]->mKeyframes[boneId], time);
 		bone->mTransform = parentTransform * bone->mLocalTransform;
 		for (uint64_t childId : bone->mChildren) {
 			this->CalculateBonesParentship(&this->mBones[childId], bone->mTransform, time, childId);
@@ -1155,7 +1155,7 @@ namespace Plaza {
 	static inline int tim = 0;
 	void VulkanRenderer::EarlyAnimationController() {
 		PLAZA_PROFILE_SECTION("Early Animation Controller");
-		for (auto& [key, value] : Application::Get()->activeScene->mPlayingAnimations) {
+		for (auto& [key, value] : Scene::GetActiveScene()->mPlayingAnimations) {
 			if (value->GetRootBone())
 				CalculateBonesParentship(value->GetRootBone(), glm::mat4(1.0f), value->mCurrentTime, value->GetRootBone()->mId);
 		}
@@ -1221,9 +1221,9 @@ namespace Plaza {
 
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Group Instances");
-			for (const auto& [key, value] : Application::Get()->activeScene->meshRendererComponents) {
-				const auto& transformIt = Application::Get()->activeScene->transformComponents.find(key);
-				if (transformIt != Application::Get()->activeScene->transformComponents.end() && value.renderGroup) {
+			for (const auto& [key, value] : Scene::GetActiveScene()->meshRendererComponents) {
+				const auto& transformIt = Scene::GetActiveScene()->transformComponents.find(key);
+				if (transformIt != Scene::GetActiveScene()->transformComponents.end() && value.renderGroup) {
 					// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 					// mInstanceModelMatrices.push_back(transform.modelMatrix);
 
@@ -1244,18 +1244,18 @@ namespace Plaza {
 		{
 			PLAZA_PROFILE_SECTION("Create Indirect Commands");
 			this->mIndirectCommands.clear();
-			//this->mIndirectCommands.resize(Application::Get()->activeScene->renderGroups.size());
+			//this->mIndirectCommands.resize(Scene::GetActiveScene()->renderGroups.size());
 			this->mInstanceModelMatrices.clear();
-			///this->mInstanceModelMatrices.resize(Application::Get()->activeScene->renderGroups.size());
+			///this->mInstanceModelMatrices.resize(Scene::GetActiveScene()->renderGroups.size());
 			this->mInstanceModelMaterialsIndex.clear();
 			this->mInstanceModelMaterialsIndex.push_back(0);
 			this->mInstanceModelMaterialOffsets.clear();
-			//this->mInstanceModelMaterialOffsets.resize(Application::Get()->activeScene->renderGroups.size());
+			//this->mInstanceModelMaterialOffsets.resize(Scene::GetActiveScene()->renderGroups.size());
 			mTotalInstances = 0;
 			mIndirectDrawCount = 0;
 			unsigned int lastRendergroupMaterialsCount = 0;
 			{
-				for (auto& [key, value] : Application::Get()->activeScene->renderGroups) {
+				for (auto& [key, value] : Scene::GetActiveScene()->renderGroups) {
 					const size_t& materialsCount = value.materials.size();
 					const size_t& instanceCount = value.instanceModelMatrices.size();
 					allMaterialsCount += materialsCount;
@@ -1381,7 +1381,7 @@ namespace Plaza {
 				vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 			}
 
-			// for (const auto& [key, value] : Application::Get()->activeScene->renderGroups) {
+			// for (const auto& [key, value] : Scene::GetActiveScene()->renderGroups) {
 			//	//	this->DrawRenderGroupShadowDepthMapInstanced(value, 0);
 			// }
 
@@ -1545,9 +1545,9 @@ namespace Plaza {
 	void VulkanRenderer::UpdatePreRenderData() {
 		//UpdateMaterials();
 		PLAZA_PROFILE_SECTION("Group Instances");
-		for (const auto& [key, value] : Application::Get()->activeScene->meshRendererComponents) {
-			const auto& transformIt = Application::Get()->activeScene->transformComponents.find(key);
-			if (transformIt != Application::Get()->activeScene->transformComponents.end() && value.renderGroup) {
+		for (const auto& [key, value] : Scene::GetActiveScene()->meshRendererComponents) {
+			const auto& transformIt = Scene::GetActiveScene()->transformComponents.find(key);
+			if (transformIt != Scene::GetActiveScene()->transformComponents.end() && value.renderGroup) {
 				// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 				// mInstanceModelMatrices.push_back(transform.modelMatrix);
 
@@ -1561,13 +1561,13 @@ namespace Plaza {
 		}
 
 		this->mIndirectCommands.clear();
-		//this->mIndirectCommands.resize(Application::Get()->activeScene->renderGroups.size());
+		//this->mIndirectCommands.resize(Scene::GetActiveScene()->renderGroups.size());
 		this->mInstanceModelMatrices.clear();
-		///this->mInstanceModelMatrices.resize(Application::Get()->activeScene->renderGroups.size());
+		///this->mInstanceModelMatrices.resize(Scene::GetActiveScene()->renderGroups.size());
 		this->mInstanceModelMaterialsIndex.clear();
 		this->mInstanceModelMaterialsIndex.push_back(0);
 		this->mInstanceModelMaterialOffsets.clear();
-		//this->mInstanceModelMaterialOffsets.resize(Application::Get()->activeScene->renderGroups.size());
+		//this->mInstanceModelMaterialOffsets.resize(Scene::GetActiveScene()->renderGroups.size());
 		mTotalInstances = 0;
 		mIndirectDrawCount = 0;
 		unsigned int lastRendergroupMaterialsCount = 0;
@@ -1575,7 +1575,7 @@ namespace Plaza {
 		std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
 		std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
 		{
-			for (auto& [key, value] : Application::Get()->activeScene->renderGroups) {
+			for (auto& [key, value] : Scene::GetActiveScene()->renderGroups) {
 				const size_t& materialsCount = value.materials.size();
 				const size_t& instanceCount = value.instanceModelMatrices.size();
 				allMaterialsCount += materialsCount;
@@ -3168,7 +3168,7 @@ namespace Plaza {
 			vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, 1, &descriptorWrite, 0, nullptr);
 		}
 		texture->mIndexHandle = index == -1 ? VulkanTexture::mLastBindingIndex : index;
-		if (index != -1)
+		if (index == -1)
 			VulkanTexture::mLastBindingIndex++;
 	}
 
@@ -3775,9 +3775,9 @@ namespace Plaza {
 		unsigned int allMaterialsCount = 0;
 		std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
 		std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
-		for (const auto& [key, value] : Application::Get()->activeScene->meshRendererComponents) {
-			const auto& transformIt = Application::Get()->activeScene->transformComponents.find(key);
-			if (transformIt != Application::Get()->activeScene->transformComponents.end() && value.renderGroup) {
+		for (const auto& [key, value] : Scene::GetActiveScene()->meshRendererComponents) {
+			const auto& transformIt = Scene::GetActiveScene()->transformComponents.find(key);
+			if (transformIt != Scene::GetActiveScene()->transformComponents.end() && value.renderGroup) {
 				// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 				// mInstanceModelMatrices.push_back(transform.modelMatrix);
 
@@ -3791,17 +3791,17 @@ namespace Plaza {
 		}
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			this->mIndirectCommands.clear();
-			//this->mIndirectCommands.resize(Application::Get()->activeScene->renderGroups.size());
+			//this->mIndirectCommands.resize(Scene::GetActiveScene()->renderGroups.size());
 			this->mInstanceModelMatrices.clear();
-			///this->mInstanceModelMatrices.resize(Application::Get()->activeScene->renderGroups.size());
+			///this->mInstanceModelMatrices.resize(Scene::GetActiveScene()->renderGroups.size());
 			this->mInstanceModelMaterialsIndex.clear();
 			this->mInstanceModelMaterialsIndex.push_back(0);
 			this->mInstanceModelMaterialOffsets.clear();
-			//this->mInstanceModelMaterialOffsets.resize(Application::Get()->activeScene->renderGroups.size());
+			//this->mInstanceModelMaterialOffsets.resize(Scene::GetActiveScene()->renderGroups.size());
 			mTotalInstances = 0;
 			mIndirectDrawCount = 0;
 			unsigned int lastRendergroupMaterialsCount = 0;
-			for (auto& [key, value] : Application::Get()->activeScene->renderGroups) {
+			for (auto& [key, value] : Scene::GetActiveScene()->renderGroups) {
 				const size_t& materialsCount = value.materials.size();
 				const size_t& instanceCount = value.instanceModelMatrices.size();
 				allMaterialsCount += materialsCount;
@@ -3936,8 +3936,8 @@ namespace Plaza {
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("LightsBuffer");
 			VulkanRenderer::GetRenderer()->mLighting->mLights.clear();
-			for (const auto& [key, value] : Application::Get()->activeScene->lightComponents) {
-				glm::vec3 position = Application::Get()->activeScene->transformComponents.at(key).GetWorldPosition();
+			for (const auto& [key, value] : Scene::GetActiveScene()->lightComponents) {
+				glm::vec3 position = Scene::GetActiveScene()->transformComponents.at(key).GetWorldPosition();
 				VulkanRenderer::GetRenderer()->mLighting->mLights.push_back(Lighting::LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff, 0.0f });
 			}
 

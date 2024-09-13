@@ -1,11 +1,10 @@
 #pragma once
 #include "Engine/Core/Renderer/Mesh.h"
+#include "Engine/Core/AssetsManager/Asset.h"
 
 namespace Plaza {
-	class Animation {
+	class Animation : public Asset {
 	public:
-		uint64_t mUuid = 0;
-		std::string mName = "";
 		float mStartTime = 0.0f;
 		float mEndTime = 0.0f;
 		float mCurrentTime = 0.0f;
@@ -34,13 +33,8 @@ namespace Plaza {
 		}
 
 		template <class Archive>
-		void save(Archive& archive) const {
-			archive(mUuid, mName, mStartTime, mEndTime, mCurrentTime, mAnimationSpeed, mKeyframes, mRootBoneUuid);
-		}
-
-		template <class Archive>
-		void load(Archive& archive) {
-			archive(mUuid, mName, mStartTime, mEndTime, mCurrentTime, mAnimationSpeed, mKeyframes, mRootBoneUuid);
+		void serialize(Archive& archive) {
+			archive(mAssetUuid, mAssetName, mStartTime, mEndTime, mCurrentTime, mAnimationSpeed, mKeyframes, mRootBoneUuid);
 		}
 
 		//template <class Archive>

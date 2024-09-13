@@ -100,7 +100,7 @@ namespace Plaza {
 
 	void Collider::InitCollider(RigidBody* rigidBody) {
 		//this->RemoveActor();
-		physx::PxTransform pxTransform = Physics::GetPxTransform(Application::Get()->activeScene->transformComponents.at(this->mUuid));
+		physx::PxTransform pxTransform = Physics::GetPxTransform(Scene::GetActiveScene()->transformComponents.at(this->mUuid));
 		this->mRigidActor = Physics::m_physics->createRigidDynamic(pxTransform);
 		if (this->mRigidActor == nullptr)
 			this->mRigidActor = Physics::m_physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity(1.0f)));
@@ -126,7 +126,7 @@ namespace Plaza {
 			this->mRigidActor->attachShape(*shape->mPxShape);
 		}
 		Physics::m_scene->addActor(*this->mRigidActor);
-		//this->UpdateShapeScale(Application::Get()->activeScene->transformComponents.at(this->uuid).GetWorldScale());
+		//this->UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(this->uuid).GetWorldScale());
 	}
 
 	void Collider::AddConvexMeshShape(Mesh* mesh) {
@@ -346,7 +346,7 @@ namespace Plaza {
 	}
 
 	void Collider::UpdateAllShapesScale() {
-		UpdateShapeScale(Application::Get()->activeScene->transformComponents.at(this->mUuid).GetWorldScale());
+		UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(this->mUuid).GetWorldScale());
 	}
 
 	void Collider::UpdateShapeScale(glm::vec3 scale) {
@@ -431,9 +431,9 @@ namespace Plaza {
 
 	template <typename EnumType>
 	void Collider::SetSelfAndChildrenFlag(EnumType flag, bool value) {
-		SetFlag(&Application::Get()->activeScene->rigidBodyComponents.at(this->mUuid).mRigidActor, flag, value);
-		for (uint64_t child : Application::Get()->activeScene->entities.at(this->mUuid).childrenUuid) {
-			SetFlag(&Application::Get()->activeScene->rigidBodyComponents.at(child).mRigidActor, flag, value);
+		SetFlag(&Scene::GetActiveScene()->rigidBodyComponents.at(this->mUuid).mRigidActor, flag, value);
+		for (uint64_t child : Scene::GetActiveScene()->entities.at(this->mUuid).childrenUuid) {
+			SetFlag(&Scene::GetActiveScene()->rigidBodyComponents.at(child).mRigidActor, flag, value);
 		}
 	}
 

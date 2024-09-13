@@ -296,7 +296,7 @@ namespace Plaza {
 		Editor::ScriptManager::ReloadScriptsAssembly(newPath);
 #endif
 		if (callOnStart) {
-			for (auto& [key, value] : Application::Get()->activeScene->csScriptComponents) {
+			for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 				for (auto& [className, classScript] : value.scriptClasses) {
 					CallMethod(classScript->monoObject, classScript->onStartMethod);
 				}
@@ -306,7 +306,7 @@ namespace Plaza {
 
 	// Execute OnUpdate on all scripts
 	void Mono::Update() {
-		for (auto& [key, value] : Application::Get()->activeScene->csScriptComponents) {
+		for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 			for (auto& [className, classScript] : value.scriptClasses) {
 				CallMethod(classScript->monoObject, classScript->onUpdateMethod);
 			}

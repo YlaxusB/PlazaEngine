@@ -80,7 +80,7 @@ namespace Plaza::Editor {
 			Mono::mScriptImage = mono_assembly_get_image(Mono::mScriptAssembly);
 
 			// Initialize all scripts again
-			for (auto& [key, value] : Application::Get()->activeScene->csScriptComponents) {
+			for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 				std::string scriptPath = value.scriptPath;
 				value = *new CsScriptComponent(key);
 				value.Init(scriptPath);
@@ -153,7 +153,7 @@ namespace Plaza::Editor {
 				std::cout << "Failed to load assembly when recompiling on path: " << (Application::Get()->projectPath + "\\Binaries\\" + Application::Get()->activeProject->mAssetName + ".dll").c_str() << "\n";
 			}
 			// Initialize all scripts again
-			for (auto& [key, value] : Application::Get()->activeScene->csScriptComponents) {
+			for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 				std::string scriptPath = value.scriptPath;
 				value = *new CsScriptComponent(key);
 				value.Init(scriptPath);
@@ -163,7 +163,7 @@ namespace Plaza::Editor {
 			FieldManager::ApplyAllScritpsFields(allFields);
 			/* Todo: Fix it */
 			//if (Application::Get()->runningScene) {
-			//	for (auto& [key, value] : Application::Get()->editorScene->csScriptComponents) {
+			//	for (auto& [key, value] : Scene::GetEditorScene()->csScriptComponents) {
 			//		std::string scriptPath = value.scriptPath;
 			//		value = *new CsScriptComponent(key);
 			//		value.Init(scriptPath);
@@ -187,7 +187,7 @@ namespace Plaza::Editor {
 		std::unordered_map<uint64_t, std::map<std::string, std::unordered_map<std::string, uint32_t>>> fields;
 		for (auto& [scriptPath, script] : Application::Get()->activeProject->scripts) {
 			for (uint64_t entityUuid : script.entitiesUsingThisScript) {
-				auto range = Application::Get()->activeScene->csScriptComponents.equal_range(entityUuid);
+				auto range = Scene::GetActiveScene()->csScriptComponents.equal_range(entityUuid);
 				for (auto it = range.first; it != range.second; ++it) {
 					for (auto& [className, classScript] : it->second.scriptClasses) {
 						// Get the fields of the class
@@ -238,7 +238,7 @@ namespace Plaza::Editor {
 		/* Add variables again */
 		for (auto& [scriptPath, script] : Application::Get()->activeProject->scripts) {
 			for (uint64_t entityUuid : script.entitiesUsingThisScript) {
-				auto range = Application::Get()->activeScene->csScriptComponents.equal_range(entityUuid);
+				auto range = Scene::GetActiveScene()->csScriptComponents.equal_range(entityUuid);
 				for (auto it = range.first; it != range.second; ++it) {
 					for (auto& [className, classScript] : it->second.scriptClasses) {
 						MonoClassField* field = NULL;

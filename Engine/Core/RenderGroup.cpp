@@ -47,25 +47,25 @@ namespace Plaza {
 	}
 
 	void RenderGroup::ChangeMaterial(Material* newMaterial, unsigned int index) {
-		//Application::Get()->activeScene->RemoveRenderGroup(this->uuid);
+		//Scene::GetActiveScene()->RemoveRenderGroup(this->uuid);
 		//uint64_t oldMeshUuid = this->mesh->uuid;
 		//uint64_t oldMaterialUuid = this->material->uuid;
 		this->materials[index] = newMaterial;
-		Application::Get()->activeScene->AddRenderGroup(this);
-		//RenderGroup* renderGroup = Application::Get()->activeScene->GetRenderGroupWithUuids(oldMeshUuid, oldMaterialUuid);
+		Scene::GetActiveScene()->AddRenderGroup(this);
+		//RenderGroup* renderGroup = Scene::GetActiveScene()->GetRenderGroupWithUuids(oldMeshUuid, oldMaterialUuid);
 		//if (renderGroup) {
-			//Application::Get()->activeScene->RemoveRenderGroup(renderGroup->uuid);
+			//Scene::GetActiveScene()->RemoveRenderGroup(renderGroup->uuid);
 		//}
 	}
 
 	void RenderGroup::ChangeMesh(Mesh* mesh) {
-		//Application::Get()->activeScene->RemoveRenderGroup(this->uuid);
+		//Scene::GetActiveScene()->RemoveRenderGroup(this->uuid);
 		this->mesh = mesh;
-		Application::Get()->activeScene->AddRenderGroup(this);
+		Scene::GetActiveScene()->AddRenderGroup(this);
 	}
 
 	bool RenderGroup::SceneHasRenderGroup(Mesh* mesh, Material* materials) {
-		//bool hasSpecificRenderGroup = Application::Get()->activeScene->renderGroupsFindMap.find(std::pair<uint64_t, uint64_t>(mesh->uuid, material->uuid)) != Application::Get()->activeScene->renderGroupsFindMap.end();
+		//bool hasSpecificRenderGroup = Scene::GetActiveScene()->renderGroupsFindMap.find(std::pair<uint64_t, uint64_t>(mesh->uuid, material->uuid)) != Scene::GetActiveScene()->renderGroupsFindMap.end();
 		//return hasSpecificRenderGroup;
 		return true;
 	}

@@ -43,7 +43,7 @@ namespace Plaza::Editor {
 					//AssetsManager::mMaterials.emplace(material.uuid, std::make_shared<Material>(material));
 					AssetsManager::AddMaterial(material);
 					std::string path = Gui::FileExplorer::currentDirectory + "\\" + Editor::File::changingName;
-					AssetsManager::NewAsset(material->mAssetUuid, AssetType::MATERIAL, path);
+					AssetsManager::NewAsset<Material>(material->mAssetUuid, path);
 					AssetsSerializer::SerializeMaterial(material, path);
 					//MaterialFileSerializer::Serialize(path, material);
 				}

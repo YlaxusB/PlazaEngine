@@ -196,7 +196,7 @@ namespace Plaza {
 	std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> FieldManager::GetAllScritpsFields()
 	{
 		std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>>();
-		for (auto& [key, value] : Application::Get()->activeScene->csScriptComponents) {
+		for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 			for (auto& [scriptClassName, scriptClassValue] : value.scriptClasses) {
 				std::map<std::string, Field*> map = FieldManager::GetFieldsValues(scriptClassValue->monoObject);
 				std::map<std::string, std::map<std::string, Field*>> subMap = std::map<std::string, std::map<std::string, Field*>>();
@@ -209,7 +209,7 @@ namespace Plaza {
 
 	void FieldManager::ApplyAllScritpsFields(std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields)
 	{
-		for (auto& [key, value] : Application::Get()->activeScene->csScriptComponents) {
+		for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 			for (auto& [scriptClassKey, scriptClassValue] : value.scriptClasses) {
 				MonoClassField* monoField = NULL;
 				void* iter = NULL;

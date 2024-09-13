@@ -45,7 +45,7 @@ namespace Plaza::Editor {
 		// Get the object transform and camera matrices
 		Transform& a = *entity->GetComponent<Transform>();
 		Transform& b = *entity->GetComponent<Transform>();
-		auto& parentTransform = *Application::Get()->activeScene->entities[entity->parentUuid].GetComponent<Transform>();
+		auto& parentTransform = *Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<Transform>();
 		auto& transform = *entity->GetComponent<Transform>();
 
 		glm::mat4 projection = camera.GetProjectionMatrix();

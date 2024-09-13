@@ -34,7 +34,7 @@ namespace Plaza {
 
 			switch (type) {
 			case AssetType::TEXTURE:
-				AssetsLoader::LoadTexture(AssetsManager::NewAsset(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
+				AssetsLoader::LoadTexture(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
 				break;
 			}
 		}

@@ -48,8 +48,8 @@ namespace Plaza {
 
 	void Animation::Play() {
 		this->mIsPlaying = true;
-		Application::Get()->activeScene->mPlayingAnimations.clear();
-		Application::Get()->activeScene->mPlayingAnimations.emplace(this->mUuid, this);
+		Scene::GetActiveScene()->mPlayingAnimations.clear();
+		Scene::GetActiveScene()->mPlayingAnimations.emplace(this->mAssetUuid, this);
 	}
 
 	Bone* Animation::GetRootBone() {
@@ -111,7 +111,7 @@ namespace Plaza {
 			if (bake == nullptr)
 				continue;
 			Animation& animation = mAnimations.emplace_back(Animation());
-			animation.mName = stack->name.data;
+			animation.mAssetName = stack->name.data;
 
 			for (ufbx_bone* bone : scene->bones) {
 				if (bone->is_root)

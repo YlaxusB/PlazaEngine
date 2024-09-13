@@ -277,7 +277,7 @@ namespace Plaza {
 		VulkanPicking::PushConstants pushData{};
 		pushData.projection = Application::Get()->activeCamera->GetProjectionMatrix();
 		pushData.view = Application::Get()->activeCamera->GetViewMatrix();
-		pushData.model = Application::Get()->activeScene->GetComponent<Transform>(meshRenderer.mUuid)->modelMatrix;
+		pushData.model = Scene::GetActiveScene()->GetComponent<Transform>(meshRenderer.mUuid)->modelMatrix;
 		pushData.uuid1 = (uint32_t)(meshRenderer.mUuid >> 32);
 		pushData.uuid2 = (uint32_t)(meshRenderer.mUuid & 0xFFFFFFFF);
 		
@@ -332,7 +332,7 @@ namespace Plaza {
 
 		//vkCmdDrawIndexedIndirect(commandBuffer, VulkanRenderer::GetRenderer()->mIndirectBuffer, 0, VulkanRenderer::GetRenderer()->mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 
-		for (const auto& [key, value] : Application::Get()->activeScene->meshRendererComponents) {
+		for (const auto& [key, value] : Scene::GetActiveScene()->meshRendererComponents) {
 			this->DrawMeshToPickingTexture(value, commandBuffer);
 		}
 

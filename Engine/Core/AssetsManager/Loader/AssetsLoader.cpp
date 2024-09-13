@@ -22,8 +22,9 @@ namespace Plaza {
 		std::shared_ptr<Scene> scene = std::make_shared<Scene>();;
 		archive(*scene.get());
 		is.close();
+		scene->mAssetPath = asset->mAssetPath;
 
-		Application::Get()->editorScene->Copy(Application::Get()->editorScene, scene.get());
+		Scene::GetEditorScene()->Copy(scene.get());
 
 		return scene;
 	}
@@ -44,7 +45,7 @@ namespace Plaza {
 	}
 
 	void LoadDeserializedEntity(const SerializableEntity& deserializedEntity, std::unordered_map<uint64_t, uint64_t>& equivalentUuids, bool loadToScene) {
-		Entity* newEntity = new Entity(deserializedEntity.name, Application::Get()->activeScene->mainSceneEntity, loadToScene);
+		Entity* newEntity = new Entity(deserializedEntity.name, Scene::GetActiveScene()->mainSceneEntity, loadToScene);
 		newEntity->equivalentPrefabUuid = deserializedEntity.entityUuid;
 		equivalentUuids.emplace(deserializedEntity.entityUuid, newEntity->uuid);
 
@@ -64,7 +65,7 @@ namespace Plaza {
 				meshRenderer->instanced = true;
 				meshRenderer->mMaterials = AssetsManager::GetMaterialsVector(deserializedMeshRenderer.materialsUuid);
 				RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
-				//meshRenderer->renderGroup = Application::Get()->activeScene->AddRenderGroup(newRenderGroup);
+				//meshRenderer->renderGroup = Scene::GetActiveScene()->AddRenderGroup(newRenderGroup);
 				newEntity->AddComponent<MeshRenderer>(meshRenderer);
 			}
 			if (typeid(*component.get()) == typeid(SerializableCollider)) {
@@ -118,14 +119,14 @@ namespace Plaza {
 		}
 
 		for (const SerializableEntity& deserializedEntity : model->mSerializablePrefab.entities) {
-			Entity* equivalentEntity = Application::Get()->activeScene->GetEntity(equivalentUuids.find(deserializedEntity.entityUuid)->second);
-			Entity* equivalentEntityParent = Application::Get()->activeScene->GetEntity(equivalentEntity->equivalentPrefabParentUuid);
+			Entity* equivalentEntity = Scene::GetActiveScene()->GetEntity(equivalentUuids.find(deserializedEntity.entityUuid)->second);
+			Entity* equivalentEntityParent = Scene::GetActiveScene()->GetEntity(equivalentEntity->equivalentPrefabParentUuid);
 			if (deserializedEntity.parentUuid != 0) {
-				//Entity* equivalentEntity = Application::Get()->activeScene->GetEntity(deserializedEntity.parentUuid);
-				Entity* oldParent = Application::Get()->activeScene->GetEntity(equivalentEntity->parentUuid);
+				//Entity* equivalentEntity = Scene::GetActiveScene()->GetEntity(deserializedEntity.parentUuid);
+				Entity* oldParent = Scene::GetActiveScene()->GetEntity(equivalentEntity->parentUuid);
 				if (equivalentUuids.find(deserializedEntity.parentUuid) != equivalentUuids.end()) {
-					Entity* newParent = Application::Get()->activeScene->GetEntity(equivalentUuids.at(deserializedEntity.parentUuid));
-					Application::Get()->activeScene->GetEntity(equivalentEntity->uuid)->ChangeParent(oldParent, newParent);
+					Entity* newParent = Scene::GetActiveScene()->GetEntity(equivalentUuids.at(deserializedEntity.parentUuid));
+					Scene::GetActiveScene()->GetEntity(equivalentEntity->uuid)->ChangeParent(oldParent, newParent);
 				}
 			}
 		}

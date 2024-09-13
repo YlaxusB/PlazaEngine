@@ -20,7 +20,7 @@ namespace Plaza::Editor {
 
 				if (ImGui::BeginPopup("Select Animation Popup")) {
 					for (int i = 0; i < AssetsManager::mLoadedAnimations.size(); ++i) {
-						if (ImGui::Selectable(AssetsManager::mLoadedAnimations[i].mName.c_str())) {
+						if (ImGui::Selectable(AssetsManager::mLoadedAnimations[i].mAssetName.c_str())) {
 							if (!AssetsManager::mLoadedAnimations[i].GetRootBone())
 								if (VulkanRenderer::GetRenderer()->mBones.find(AssetsManager::mLoadedAnimations[i].mRootBoneUuid) != VulkanRenderer::GetRenderer()->mBones.end())
 									AssetsManager::mLoadedAnimations[i].SetRootBone(&VulkanRenderer::GetRenderer()->mBones.at(AssetsManager::mLoadedAnimations[i].mRootBoneUuid));
@@ -37,9 +37,9 @@ namespace Plaza::Editor {
 
 				for (Animation& animation : component->mAnimations) {
 					//ImGui::BeginChild(std::string("Animation: " + animation.mName).c_str());
-					ImGui::PushID(std::string("Animation: " + animation.mName).c_str());
-					if (ImGui::Button(std::string("Play" + animation.mName).c_str())) {
-						Application::Get()->activeScene->mPlayingAnimations.clear();
+					ImGui::PushID(std::string("Animation: " + animation.mAssetName).c_str());
+					if (ImGui::Button(std::string("Play" + animation.mAssetName).c_str())) {
+						Scene::GetActiveScene()->mPlayingAnimations.clear();
 						animation.Play();
 					}
 					float time = animation.mCurrentTime;
@@ -52,7 +52,7 @@ namespace Plaza::Editor {
 				}
 
 				for (Animation& animation : component->mAnimations) {
-					if (ImGui::TreeNodeEx(std::string("beg" + animation.mName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+					if (ImGui::TreeNodeEx(std::string("beg" + animation.mAssetName).c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
 						BoneParentShipTree(animation.GetRootBone());
 						ImGui::TreePop();
 					}

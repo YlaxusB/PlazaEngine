@@ -63,26 +63,25 @@ namespace Plaza {
 			AssetsManager::mTextures.emplace(1, defaultTexture);
 		}
 
-		static Asset* NewAsset(uint64_t uuid, AssetType assetType, std::string path) {
-			Asset* newAsset = new Asset();
+		template<typename T>
+		static T* NewAsset(uint64_t uuid, std::string path) {
+			T* newAsset = new T();
 			newAsset->mAssetUuid = uuid;
 			newAsset->mAssetPath = std::filesystem::path{ path };
-			AssetsManager::AddAsset(newAsset);
+			AssetsManager::AddAsset(static_cast<Asset*>(newAsset));
 			return newAsset;
 		}
-		static Asset* NewAsset(AssetType assetType, std::filesystem::path path) {
-			return NewAsset(assetType, path);
+		template<typename T>
+		static T* NewAsset(std::string path) {
+			return NewAsset<T>(Plaza::UUID::NewUUID(), path);
 		}
-		static Asset* NewAsset(AssetType assetType, std::string path) {
-			return NewAsset(assetType, std::filesystem::path{ path });
+		template<typename T>
+		static T* NewAsset(std::shared_ptr<Asset> asset) {
+			return NewAsset<T>(asset->mAssetUuid, asset->mAssetPath.string());
 		}
-
-		static Asset* NewAsset(std::shared_ptr<Asset> asset) {
-			return NewAsset(asset->mAssetUuid, AssetType::UNKNOWN, asset->mAssetPath.string());
-		}
-
-		static Asset* NewAsset() {
-			return NewAsset(Plaza::UUID::NewUUID(), AssetType::UNKNOWN, "");
+		template<typename T>
+		static T* NewAsset() {
+			return NewAsset<T>(Plaza::UUID::NewUUID(), "");
 		}
 
 		static Asset* GetAsset(uint64_t uuid) {
@@ -139,8 +138,8 @@ namespace Plaza {
 		}
 
 		static Animation& AddAnimation(Animation animation) {
-			AssetsManager::mLoadedAnimations.emplace(animation.mUuid, animation);
-			return mLoadedAnimations.at(animation.mUuid);
+			AssetsManager::mLoadedAnimations.emplace(animation.mAssetUuid, animation);
+			return mLoadedAnimations.at(animation.mAssetUuid);
 		}
 
 		static Animation* GetAnimation(uint64_t uuid) {
@@ -214,7 +213,7 @@ namespace Plaza {
 
 			binaryFile.close();
 
-			return AssetsManager::NewAsset(uuid, AssetsManager::mAssetTypeByExtension.at(extension), assetFinalPath);
+			return AssetsManager::NewAsset<Asset>(uuid, assetFinalPath);
 		}
 
 		static Asset* LoadBinaryFileAsAsset(std::filesystem::path path) {
@@ -229,7 +228,7 @@ namespace Plaza {
 
 			binaryFile.close();
 
-			return AssetsManager::NewAsset(uuid, AssetsManager::mAssetTypeByExtension.at(path.extension().string()), path.string());
+			return AssetsManager::NewAsset<Asset>(uuid, path.string());
 		}
 
 		static void RemoveAssetUuidPath(uint64_t assetUuid) {

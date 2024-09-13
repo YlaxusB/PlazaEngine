@@ -13,9 +13,9 @@ namespace Plaza::Editor {
 	static class ColliderInspector {
 	public:
 		void AddChildrenMeshShape(Collider* collider, uint64_t parentUuid) {
-			for (uint64_t childUuid : Application::Get()->activeScene->entities.at(parentUuid).childrenUuid) {
-				if (Application::Get()->activeScene->entities.at(childUuid).HasComponent<MeshRenderer>()) {
-					collider->AddConvexMeshShape(Application::Get()->activeScene->meshRendererComponents.at(childUuid).mesh);
+			for (uint64_t childUuid : Scene::GetActiveScene()->entities.at(parentUuid).childrenUuid) {
+				if (Scene::GetActiveScene()->entities.at(childUuid).HasComponent<MeshRenderer>()) {
+					collider->AddConvexMeshShape(Scene::GetActiveScene()->meshRendererComponents.at(childUuid).mesh);
 				}
 				AddChildrenMeshShape(collider, childUuid);
 			}
@@ -54,7 +54,7 @@ namespace Plaza::Editor {
 						ImGui::CloseCurrentPopup(); // Close the context menu on right-click
 					}
 
-					Transform& transform = *Application::Get()->activeScene->entities.at(collider->mUuid).GetComponent<Transform>();
+					Transform& transform = *Scene::GetActiveScene()->entities.at(collider->mUuid).GetComponent<Transform>();
 					// Create a dynamic rigid body
 					glm::quat quaternion = transform.GetWorldQuaternion();
 					physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
@@ -85,7 +85,7 @@ namespace Plaza::Editor {
 					if (ImGui::MenuItem("Mesh"))
 					{
 						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {
-							collider->AddMeshShape(Application::Get()->activeScene->meshRendererComponents.at(collider->mUuid).mesh);
+							collider->AddMeshShape(Scene::GetActiveScene()->meshRendererComponents.at(collider->mUuid).mesh);
 							collider->Init(nullptr);
 						}
 						if (collider->GetGameObject()->HasComponent<RigidBody>()) {
@@ -96,7 +96,7 @@ namespace Plaza::Editor {
 					if (ImGui::MenuItem("Convex Mesh"))
 					{
 						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {
-							collider->AddConvexMeshShape(Application::Get()->activeScene->meshRendererComponents.at(collider->mUuid).mesh);
+							collider->AddConvexMeshShape(Scene::GetActiveScene()->meshRendererComponents.at(collider->mUuid).mesh);
 							collider->Init(nullptr);
 						}
 						if (collider->GetGameObject()->HasComponent<RigidBody>()) {

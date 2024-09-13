@@ -246,6 +246,6 @@ namespace Plaza::Editor {
           //Mesh* newMesh = new Mesh(vertices, indices);
           //newMesh->usingNormal = false; // You probably want to set this to true for the cylinder
           //newMesh->meshId = cylinderUuid;
-          //Application::Get()->editorScene->meshes.emplace(newMesh->meshId, std::make_shared<Mesh>(*newMesh));
+          //Scene::GetEditorScene()->meshes.emplace(newMesh->meshId, std::make_shared<Mesh>(*newMesh));
      }
 }

@@ -47,7 +47,7 @@ namespace Plaza::Editor {
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-		HierarchyWindow::Item(Application::Get()->activeScene->entities[Application::Get()->activeScene->mainSceneEntity->uuid], selectedGameObject);
+		HierarchyWindow::Item(Scene::GetActiveScene()->entities[Scene::GetActiveScene()->mainSceneEntity->uuid], selectedGameObject);
 		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
 
@@ -136,14 +136,14 @@ namespace Plaza::Editor {
 				entity.Rename(buf);
 				entity.changingName = false;
 				nameChanged = true;
-				Gui::changeSelectedGameObject(&Application::Get()->activeScene->entities.at(entity.uuid));
+				Gui::changeSelectedGameObject(&Scene::GetActiveScene()->entities.at(entity.uuid));
 			}
 
 			if (!ImGui::IsItemActive() && !firstFocus) {
 				entity.Rename(buf);
 				entity.changingName = false;
 				nameChanged = true;
-				Gui::changeSelectedGameObject(&Application::Get()->activeScene->entities.at(entity.uuid));
+				Gui::changeSelectedGameObject(&Scene::GetActiveScene()->entities.at(entity.uuid));
 			}
 
 			if (firstFocus) {
@@ -167,7 +167,7 @@ namespace Plaza::Editor {
 
 		// Change the selected entity if user clicked on the selectable
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
-			Gui::changeSelectedGameObject(&Application::Get()->activeScene->entities[entity.uuid]);
+			Gui::changeSelectedGameObject(&Scene::GetActiveScene()->entities[entity.uuid]);
 		//Plaza::Editor::selectedGameObject = entity;
 
 
@@ -191,14 +191,14 @@ namespace Plaza::Editor {
 		}
 
 		if (ImGui::IsPopupOpen("ItemPopup")) {
-			Gui::changeSelectedGameObject(&Application::Get()->activeScene->entities[entity.uuid]);
+			Gui::changeSelectedGameObject(&Scene::GetActiveScene()->entities[entity.uuid]);
 		}
 
 		if (treeNodeOpen)
 		{
 			for (uint64_t child : entity.childrenUuid)
 			{
-				HierarchyWindow::Item(Application::Get()->activeScene->entities[child], selectedGameObject);
+				HierarchyWindow::Item(Scene::GetActiveScene()->entities[child], selectedGameObject);
 			}
 			if (treePop)
 				ImGui::TreePop();
@@ -277,7 +277,7 @@ namespace Plaza::Editor {
 
 				if (ImGui::MenuItem("Rename")) {
 					entity.changingName = true;
-					Application::Get()->activeScene->entities.at(entity.uuid).changingName = true;
+					Scene::GetActiveScene()->entities.at(entity.uuid).changingName = true;
 					HierarchyWindow::Item::firstFocus = true;
 				}
 

@@ -66,7 +66,7 @@ namespace Plaza {
 		//	Entity* entity;
 		//	if (!mainEntity)
 		//	{
-		//		entity = new Entity(mesh.name, Application::Get()->activeScene->mainSceneEntity);
+		//		entity = new Entity(mesh.name, Scene::GetActiveScene()->mainSceneEntity);
 		//		mainEntity = entity;
 		//	}else
 		//		entity = new Entity(mesh.name, mainEntity);
@@ -76,7 +76,7 @@ namespace Plaza {
 		//	if (parent) {
 		//		auto parentIt = meshIndexEntityMap.find(parent->id);
 		//		if (parentIt != meshIndexEntityMap.end()) {
-		//			entity->ChangeParent(Application::Get()->activeScene->GetEntity(entity->GetParent().uuid), Application::Get()->activeScene->GetEntity(parentIt->second));
+		//			entity->ChangeParent(Scene::GetActiveScene()->GetEntity(entity->GetParent().uuid), Scene::GetActiveScene()->GetEntity(parentIt->second));
 		//		}
 		//	}
 
@@ -152,7 +152,7 @@ namespace Plaza {
 		//	return nullptr;
 		//}
 		//
-		//return Application::Get()->activeScene->GetEntity(AssetsImporter::ProcessNode(scene->mRootNode, scene, Application::Get()->activeScene->GetEntity(Application::Get()->activeScene->mainSceneEntity->uuid))->uuid);
+		//return Scene::GetActiveScene()->GetEntity(AssetsImporter::ProcessNode(scene->mRootNode, scene, Scene::GetActiveScene()->GetEntity(Scene::GetActiveScene()->mainSceneEntity->uuid))->uuid);
 
 
 		//if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, asset.mPath.c_str())) {
@@ -165,7 +165,7 @@ namespace Plaza {
 		//	Entity* newEntity;
 		//	if (!mainEntity)
 		//	{
-		//		newEntity = new Entity(shape.name, Application::Get()->activeScene->mainSceneEntity);
+		//		newEntity = new Entity(shape.name, Scene::GetActiveScene()->mainSceneEntity);
 		//		mainEntity = newEntity;
 		//	}
 		//	else
@@ -214,6 +214,6 @@ namespace Plaza {
 		//	newEntity->AddComponent<MeshRenderer>(meshRenderer);
 		//}
 		//AssetsSerializer::SerializePrefab(mainEntity, asset.mPath);
-		//return Application::Get()->activeScene->GetEntity(mainEntity->uuid);
+		//return Scene::GetActiveScene()->GetEntity(mainEntity->uuid);
 	}
 }

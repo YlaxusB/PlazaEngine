@@ -12,13 +12,13 @@
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 
 namespace Plaza {
-	Scene* Scene::Copy(Scene* newScene, Scene* copyScene) {
-		newScene = new Scene(*copyScene);
-		newScene->mainSceneEntity = new Entity(*copyScene->mainSceneEntity);
-		for (auto& gameObj : copyScene->entities) {
+	void Scene::Copy(Scene* baseScene) {
+		*this = *baseScene;
+		mainSceneEntity = new Entity(*baseScene->mainSceneEntity);
+		for (auto& gameObj : baseScene->entities) {
 			Entity* newObj = new Entity(gameObj.second);
-			const auto& it = copyScene->transformComponents.find(gameObj.second.uuid);
-			if (it != copyScene->transformComponents.end()) {
+			const auto& it = baseScene->transformComponents.find(gameObj.second.uuid);
+			if (it != baseScene->transformComponents.end()) {
 				Transform* transform = new Transform(*gameObj.second.GetComponent<Transform>());
 				transform->mUuid = newObj->uuid;
 				transform->scene = "Runtime Scene";
@@ -27,122 +27,71 @@ namespace Plaza {
 				newObj->AddComponent<Transform>(transform);
 				newObj->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 			}
-			//newObj->ReplaceComponent<Transform>(newObj->GetComponent<Transform>(), newObj->transform);
-			//MeshRenderer* meshRenderer = gameObj.second.GetComponent<MeshRenderer>();
-			//if (gameObj.second.GetComponent<MeshRenderer>()) {
-			//	MeshRenderer* newMeshRenderer;
-			//	if(gameObj.second.GetComponent<MeshRenderer>()->mesh.get())
-			//		newMeshRenderer = new MeshRenderer(*(gameObj.second.GetComponent<MeshRenderer>()->mesh));
-			//	else {
-			//		newMeshRenderer = new MeshRenderer();
-			//		newMeshRenderer->uuid = Plaza::UUID::NewUUID();
-			//		Application::Get()->activeScene->meshRenderers.emplace_back(newMeshRenderer);
-			//	}
 
-			//	newMeshRenderer->uuid = newObj->uuid;
-			//	//newObj->RemoveComponent<MeshRenderer>();
-			//	newScene->meshRendererComponents.emplace()
-			//	//newObj->AddComponent<MeshRenderer>(newMeshRenderer);
-			//	//newObj->ReplaceComponent<MeshRenderer>(newObj->GetComponent<MeshRenderer>(), newMeshRenderer);
-			//	//newScene->meshRenderers.push_back(newMeshRenderer);
-			//}
-
-
-
-
-			//newScene->gameObjectsMap.emplace(newObj->uuid, newObj.get());
 			uint64_t uuid = newObj->uuid;
-			newScene->entities.emplace(uuid, std::move(*newObj));
-			//newScene->gameObjects.push_back(std::make_unique<Entity>(newObj.get()));
-			//delete(newObj);
+			entities.emplace(uuid, std::move(*newObj));
 		}
-		newScene->rigidBodyComponents.clear();
-		newScene->colliderComponents.clear();
-		//newScene->transformComponents = ComponentMultiMap<uint64_t, Transform>(copyScene->transformComponents);
-		//newScene->cameraComponents = ComponentMultiMap<uint64_t, Camera>(copyScene->cameraComponents);
-		//newScene->meshRendererComponents = ComponentMultiMap<uint64_t, MeshRenderer>(copyScene->meshRendererComponents);
-		//newScene->csScriptComponents = ComponentMultiMap<uint64_t, CsScriptComponent>(copyScene->csScriptComponents);
-		//newScene->UITextRendererComponents = ComponentMultiMap<uint64_t, Plaza::Drawing::UI::TextRenderer>(copyScene->UITextRendererComponents);
-		//newScene->audioSourceComponents = ComponentMultiMap<uint64_t, AudioSource>(copyScene->audioSourceComponents);
-		//newScene->audioListenerComponents = ComponentMultiMap<uint64_t, AudioListener>(copyScene->audioListenerComponents);
-		//newScene->lightComponents = ComponentMultiMap<uint64_t, Light>(copyScene->lightComponents);
-		//newScene->characterControllerComponents = ComponentMultiMap<uint64_t, CharacterController>(copyScene->characterControllerComponents);
-		//newScene->entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>(copyScene->entitiesNames);
-		//
-		////newScene->meshes = unordered_map<uint64_t, shared_ptr<Mesh>>(copyScene->meshes);
-		//newScene->materials = std::unordered_map<uint64_t, std::shared_ptr<Material>>(copyScene->materials);
-		//newScene->materialsNames = std::unordered_map<std::string, uint64_t>(copyScene->materialsNames);
-		//
-		//newScene->renderGroups = std::unordered_map<uint64_t, RenderGroup*>();
-		//newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, std::vector<uint64_t>>, uint64_t, PairHash>();
-		//newScene->renderGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>(); 
-		//newScene->renderGroupsFindMapWithMaterialUuid = std::unordered_map<std::vector<uint64_t>, uint64_t, VectorHash, VectorEqual<uint64_t>>();
+		rigidBodyComponents.clear();
+		colliderComponents.clear();
 
-		for (auto& [key, value] : newScene->meshRendererComponents) {
+		for (auto& [key, value] : meshRendererComponents) {
 			if (value.mMaterials.size() > 0 && value.mesh) {
 				RenderGroup* newRenderGroup = new RenderGroup(value.mesh, value.mMaterials);
-				//Application::Get()->activeScene->entities.at(uuid).GetComponent<MeshRenderer>()->renderGroup = Application::Get()->activeScene->AddRenderGroup(std::shared_ptr<RenderGroup>(newRenderGroup));
-				value.renderGroup = newScene->AddRenderGroup(newRenderGroup);
+				value.renderGroup = AddRenderGroup(newRenderGroup);
 			}
 		}
-		//newScene->renderGroups = std::unordered_map<uint64_t, shared_ptr<RenderGroup>>(copyScene->renderGroups);
-		//newScene->renderGroupsFindMap = std::unordered_map<std::pair<uint64_t, uint64_t>, uint64_t, PairHash>(copyScene->renderGroupsFindMap);
-		//newScene->rederGroupsFindMapWithMeshUuid = std::unordered_map<uint64_t, uint64_t>(copyScene->rederGroupsFindMapWithMeshUuid);
-		//newScene->rederGroupsFindMapWithMaterialUuid = std::unordered_map<uint64_t, uint64_t>(copyScene->rederGroupsFindMapWithMaterialUuid);
 
-		for (auto& [key, value] : copyScene->colliderComponents) {
-			// RigidBody* rig = &copyScene->rigidBodyComponents.at(key);
-			if (copyScene->rigidBodyComponents.find(key) == copyScene->rigidBodyComponents.end()) {
+		for (auto& [key, value] : baseScene->colliderComponents) {
+			if (baseScene->rigidBodyComponents.find(key) == baseScene->rigidBodyComponents.end()) {
 				Collider* collider = new Collider(value);
 				collider->Init(nullptr);
-				newScene->colliderComponents.emplace(key, *collider);
+				colliderComponents.emplace(key, *collider);
 			}
 			else {
-				newScene->colliderComponents.emplace(key, value);
+				colliderComponents.emplace(key, value);
 			}
 		}
 
-
-		//newScene->colliderComponents = std::unordered_map<uint64_t, Collider>(copyScene->colliderComponents);
-		//newScene->rigidBodyComponents = std::unordered_map<uint64_t, RigidBody>(copyScene->rigidBodyComponents);
-		//for (auto& gameObj : copyScene->gameObjects) {
-		//	if (gameObj->parentUuid != 0 && copyScene->entities.find(gameObj->parentUuid) != copyScene->entities.end())
-		//		Application::Get()->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->entities.find(gameObj->parentUuid)->second.uuid;
-		//	else if (gameObj->parentUuid == 0)
-		//		Application::Get()->activeScene->entities.find(gameObj->uuid)->second.parentUuid = copyScene->mainSceneEntity->uuid;
-		//}
-
-		for (auto& [key, value] : copyScene->rigidBodyComponents) {
+		for (auto& [key, value] : baseScene->rigidBodyComponents) {
 			RigidBody* rigidBody = new RigidBody(value);
 			rigidBody->mUuid = key;
-			newScene->rigidBodyComponents.emplace(key, *rigidBody);
+			rigidBodyComponents.emplace(key, *rigidBody);
 		}
 
-		newScene->RegisterMaps();
-		return newScene;
+		RegisterMaps();
+	}
+
+	void Scene::NewRuntimeScene(Scene* baseScene) {
+		
 	}
 
 	Scene::Scene() {
+		Scene* oldActiveScene = Scene::GetActiveScene();
+		Scene::SetActiveScene(this);
 		this->mAssetUuid = Plaza::UUID::NewUUID();
 		this->RegisterMaps();
 
 
 		Material* defaultMaterial = new Material();
 		defaultMaterial->mAssetUuid = 0;
-		//		defaultMaterial->diffuse->rgba = glm::vec4(1.0f);
-		//		defaultMaterial->shininess = 3.0f;
 		defaultMaterial->mAssetName = "Default Material";
 		defaultMaterial->mAssetUuid = 0;
 		AssetsManager::AddMaterial(defaultMaterial);
+
+		mainSceneEntity = new Entity("Scene");
+		mainSceneEntity->parentUuid = mainSceneEntity->uuid;
+		mainSceneEntityUuid = mainSceneEntity->uuid;
+
+		 Scene::SetActiveScene(oldActiveScene);
 	}
 
 	void Scene::RemoveMeshRenderer(uint64_t uuid) {
-		auto it = std::find_if(Application::Get()->editorScene->meshRenderers.begin(), Application::Get()->editorScene->meshRenderers.end(), [uuid](MeshRenderer* meshRenderer) {
+		auto it = std::find_if(Scene::GetEditorScene()->meshRenderers.begin(), Scene::GetEditorScene()->meshRenderers.end(), [uuid](MeshRenderer* meshRenderer) {
 			return meshRenderer->mUuid == uuid;
 			});
 
-		if (it != Application::Get()->editorScene->meshRenderers.end()) {
-			Application::Get()->editorScene->meshRenderers.erase(it);
+		if (it != Scene::GetEditorScene()->meshRenderers.end()) {
+			Scene::GetEditorScene()->meshRenderers.erase(it);
 		}
 	}
 
@@ -185,14 +134,16 @@ namespace Plaza {
 		Physics::InitPhysics();
 		Physics::InitScene();
 
-		Application::Get()->runtimeScene = new Scene();
+
+		Scene::sRuntimeScene.reset();
+		Scene::sRuntimeScene = std::make_unique<Scene>();
 		Application::Get()->copyingScene = true;
-		Application::Get()->runtimeScene = Scene::Copy(Application::Get()->runtimeScene, Application::Get()->editorScene);
-		Application::Get()->activeScene = Application::Get()->runtimeScene;
+		Scene::sRuntimeScene->Copy(Scene::GetEditorScene());
+		Scene::SetActiveScene(Scene::GetRuntimeScene());
 		Application::Get()->copyingScene = false;
 		Application::Get()->runningScene = true;
-		for (auto& [key, collider] : Application::Get()->activeScene->colliderComponents) {
-			collider.UpdateShapeScale(Application::Get()->activeScene->transformComponents.at(collider.mUuid).GetWorldScale());;
+		for (auto& [key, collider] : Scene::GetActiveScene()->colliderComponents) {
+			collider.UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(collider.mUuid).GetWorldScale());;
 			collider.UpdatePose();
 		}
 #ifdef EDITOR_MODE
@@ -206,18 +157,18 @@ namespace Plaza {
 		Input::Cursor::deltaX = 0;
 		Input::Cursor::deltaY = 0;
 		// Init Rigid Bodies
-		for (auto& [key, value] : Application::Get()->activeScene->rigidBodyComponents) {
+		for (auto& [key, value] : Scene::GetActiveScene()->rigidBodyComponents) {
 			value.Init();
 		}
 
-		for (auto& [key, value] : Application::Get()->activeScene->characterControllerComponents) {
+		for (auto& [key, value] : Scene::GetActiveScene()->characterControllerComponents) {
 			value.Init();
 		}
 
 		if (scriptDllExists) {
 			Mono::OnStartAll(false);
 			FieldManager::ApplyAllScritpsFields(allFields);
-			for (auto [key, value] : Application::Get()->activeScene->csScriptComponents) {
+			for (auto [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 				for (auto& [className, classScript] : value.scriptClasses) {
 					Mono::CallMethod(classScript->monoObject, classScript->onStartMethod);
 				}
@@ -234,7 +185,7 @@ namespace Plaza {
 		}
 
 
-		for (auto [key, value] : Application::Get()->activeScene->audioSourceComponents) {
+		for (auto [key, value] : Scene::GetActiveScene()->audioSourceComponents) {
 			value.Stop();
 		}
 
@@ -260,7 +211,7 @@ namespace Plaza {
 		Editor::selectedGameObject = nullptr;
 		delete(Application::Get()->runtimeScene);
 		Application::Get()->runningScene = false;
-		Application::Get()->activeScene = Application::Get()->editorScene;
+		Scene::SetActiveScene(Scene::GetEditorScene());
 		Application::Get()->activeCamera = Application::Get()->editorCamera;
 
 
@@ -279,9 +230,9 @@ namespace Plaza {
 		Entity* entity = this->GetEntity(uuid);
 		std::vector<uint64_t> children = entity->childrenUuid;
 		for (uint64_t child : children) {
-			if (Application::Get()->activeScene->entities.find(child) != Application::Get()->activeScene->entities.end())
-				Application::Get()->activeScene->RemoveEntity(child);
-			//Application::Get()->activeScene->entities.at(child).~Entity();
+			if (Scene::GetActiveScene()->entities.find(child) != Scene::GetActiveScene()->entities.end())
+				Scene::GetActiveScene()->RemoveEntity(child);
+			//Scene::GetActiveScene()->entities.at(child).~Entity();
 		}
 		if (entity->HasComponent<Transform>())
 			entity->RemoveComponent<Transform>();
@@ -308,10 +259,10 @@ namespace Plaza {
 			Editor::selectedGameObject = nullptr;
 
 		entity->GetParent().childrenUuid.erase(std::remove(entity->GetParent().childrenUuid.begin(), entity->GetParent().childrenUuid.end(), entity->uuid), entity->GetParent().childrenUuid.end());
-		if (Application::Get()->activeScene->entitiesNames.find(entity->name) != Application::Get()->activeScene->entitiesNames.end())
-			Application::Get()->activeScene->entitiesNames.erase(Application::Get()->activeScene->entitiesNames.find(entity->name));
+		if (Scene::GetActiveScene()->entitiesNames.find(entity->name) != Scene::GetActiveScene()->entitiesNames.end())
+			Scene::GetActiveScene()->entitiesNames.erase(Scene::GetActiveScene()->entitiesNames.find(entity->name));
 
-		Application::Get()->activeScene->entities.extract(entity->uuid);
+		Scene::GetActiveScene()->entities.extract(entity->uuid);
 	}
 
 	Entity* Scene::GetEntity(uint64_t uuid) {
@@ -321,10 +272,10 @@ namespace Plaza {
 		return nullptr;
 	}
 	Entity* Scene::GetEntityByName(std::string name) {
-		if (Application::Get()->activeScene->entitiesNames.find(name) != Application::Get()->activeScene->entitiesNames.end()) {
-			for (const auto& element : Application::Get()->activeScene->entitiesNames.at(name)) {
-				if (Application::Get()->activeScene->entities.find(element) != Application::Get()->activeScene->entities.end())
-					return &Application::Get()->activeScene->entities.at(element);
+		if (Scene::GetActiveScene()->entitiesNames.find(name) != Scene::GetActiveScene()->entitiesNames.end()) {
+			for (const auto& element : Scene::GetActiveScene()->entitiesNames.at(name)) {
+				if (Scene::GetActiveScene()->entities.find(element) != Scene::GetActiveScene()->entities.end())
+					return &Scene::GetActiveScene()->entities.at(element);
 			}
 		}
 		return nullptr;

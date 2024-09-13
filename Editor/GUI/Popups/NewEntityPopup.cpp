@@ -8,7 +8,7 @@ namespace Plaza::Editor {
 	Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true, bool addToScene = true) {
 		Entity* obj = new Entity(name, parent, addToScene);
 		obj->changingName = true;
-		Application::Get()->activeScene->entities.at(obj->uuid).changingName = true;
+		Scene::GetActiveScene()->entities.at(obj->uuid).changingName = true;
 		HierarchyWindow::Item::firstFocus = true;
 		obj->GetComponent<Transform>()->UpdateChildrenTransform();
 		MeshRenderer* meshRenderer = new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, true);
@@ -16,7 +16,7 @@ namespace Plaza::Editor {
 		//meshRenderer->mesh = new Mesh(*mesh);
 		//meshRenderer->mMaterials.push_back(AssetsManager::GetDefaultMaterial());
 		//RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
-		//meshRenderer->renderGroup = Application::Get()->activeScene->AddRenderGroup(newRenderGroup);
+		//meshRenderer->renderGroup = Scene::GetActiveScene()->AddRenderGroup(newRenderGroup);
 		//meshRenderer->renderGroup->material = make_shared<Material>(*AssetsManager::GetDefaultMaterial());
 		obj->AddComponent<MeshRenderer>(meshRenderer);
 		Editor::selectedGameObject = obj;
@@ -25,7 +25,7 @@ namespace Plaza::Editor {
 	}
 	void Popup::NewEntityPopup::Init(Entity* obj, Entity* parent) {
 		if (!parent) {
-			parent = Application::Get()->activeScene->mainSceneEntity;
+			parent = Scene::GetActiveScene()->mainSceneEntity;
 		}
 		if (ImGui::BeginMenu("New Entity"))
 		{

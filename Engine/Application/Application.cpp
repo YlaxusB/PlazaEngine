@@ -63,6 +63,7 @@ namespace Plaza {
 #ifdef EDITOR_MODE
 		this->CheckEditorCache();
 #endif
+		Scene::InitializeScenes();
 		mRenderer->Init();
 		Audio::Init();
 		Physics::Init();
@@ -112,10 +113,10 @@ namespace Plaza {
 				std::cout << "Starting Scene\n";
 				Scene::Play();
 				std::cout << "Scene Played \n";
-				if (Application::Get()->activeScene->cameraComponents.size() > 0)
-					Application::Get()->activeCamera = &Application::Get()->activeScene->cameraComponents.begin()->second;
+				if (Scene::GetActiveScene()->cameraComponents.size() > 0)
+					Application::Get()->activeCamera = &Scene::GetActiveScene()->cameraComponents.begin()->second;
 				else
-					Application::Get()->activeCamera = Application::Get()->activeScene->mainSceneEntity->AddComponent<Camera>(new Camera());
+					Application::Get()->activeCamera = Scene::GetActiveScene()->mainSceneEntity->AddComponent<Camera>(new Camera());
 			}
 		}
 
@@ -174,7 +175,7 @@ namespace Plaza {
 		Filewatcher::UpdateOnMainThread();
 
 		// Update Animations
-		for (auto& [key, value] : Application::Get()->activeScene->mPlayingAnimations) {
+		for (auto& [key, value] : Scene::GetActiveScene()->mPlayingAnimations) {
 			value->UpdateTime(Time::deltaTime);
 		}
 

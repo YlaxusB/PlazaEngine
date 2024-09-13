@@ -68,7 +68,6 @@ add_subdirectory("ThirdParty/freetype/")
 add_subdirectory("ThirdParty/GLFW/")
 #add_subdirectory("ThirdParty/spdlog/")
 add_subdirectory("ThirdParty/Tracy/")
-add_subdirectory("ThirdParty/dds_image-main/")
 
 set(PLAZA_ITERATOR_LEVEL 2)
 

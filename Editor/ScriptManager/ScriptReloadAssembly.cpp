@@ -1,7 +1,5 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ScriptManager.h"
-#include "Engine/Application/Serializer/ScriptManagerSerializer.h"
-#include "Engine/Application/Serializer/Components/CsScriptComponentSerializer.h"
 #include "Engine/Core/Scripting/Mono.h"
 
 /*

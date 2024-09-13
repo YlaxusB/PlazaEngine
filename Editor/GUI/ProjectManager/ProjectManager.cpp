@@ -4,8 +4,6 @@
 #include "Editor/GUI/MenuBar.h"
 #include "Editor/GUI/ProjectManager/ProjectItem.h"
 #include "Editor/GUI/Style/EditorStyle.h"
-#include "Engine/Application/Serializer/ProjectSerializer.h"
-#include "Engine/Application/Serializer/ScriptManagerSerializer.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Editor/Settings/ProjectGenerator.h"
 #include "Editor/SessionCache/Cache.h"

@@ -18,7 +18,6 @@
 #include "Editor/GUI/FpsCounter.h"
 #include "Editor/GUI/MenuBar.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
-#include "Engine/Application/Serializer/ModelSerializer.h"
 
 #include "Editor/GUI/Hierarchy/HierarchyPopup.h"
 #include "Editor/GUI/Utils/ImageLoader.h"

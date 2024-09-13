@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <cstdint>
@@ -171,6 +170,10 @@ enum DXGI_FORMAT {
 };
 #endif // #ifndef __dxgiformat_h__
 // clang-format on
+
+#if DDS_CPP_20
+#include <span>
+#endif
 
 namespace dds {
 #if DDS_CPP_20

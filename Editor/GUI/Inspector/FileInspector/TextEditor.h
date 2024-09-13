@@ -2,7 +2,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Components/Core/Model.h"
 #include "Editor/GUI/Utils/Utils.h"
-#include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
+
 namespace Plaza::Editor {
 	static class TextEditor {
 	public:

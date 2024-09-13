@@ -50,10 +50,10 @@ namespace Plaza {
 		AssetsManager::Init();
 
 		/* Create Renderer */
-		switch (Settings::mDefaultRendererAPI) {
+		switch (Application::Get()->mEditor->mSettings.mDefaultRendererAPI) {
 		case RendererAPI::Vulkan:
 			Application::Get()->mRenderer = new VulkanRenderer();
-			Application::Get()->mRenderer->api = Settings::mDefaultRendererAPI;
+			Application::Get()->mRenderer->api = Application::Get()->mEditor->mSettings.mDefaultRendererAPI;
 			break;
 		}
 

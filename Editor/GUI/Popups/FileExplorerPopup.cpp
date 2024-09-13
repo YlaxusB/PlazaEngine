@@ -5,7 +5,6 @@
 
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/GUI/FileExplorer/File.h"
-#include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
 namespace Plaza::Editor {
 	void Popup::FileExplorerPopup::UpdateContent() {
 		if (ImGui::BeginMenu("Create"))

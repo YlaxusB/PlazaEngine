@@ -3,14 +3,15 @@
 namespace Plaza::Editor{
 	static class Settings {
 	public:
-		static std::string name;
-		static bool vsync;
-		static RendererAPI mDefaultRendererAPI;
+		std::string mName = "editor";
+		bool mVsync = false;
+		RendererAPI mDefaultRendererAPI = RendererAPI::Vulkan;
 
-		static void ReapplyAllSettings();
+		void ReapplyAllSettings();
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(mName, mVsync, mDefaultRendererAPI);
+		}
 	};
 }
-
-inline bool Plaza::Editor::Settings::vsync = false; 
-inline std::string Plaza::Editor::Settings::name = "editouri";
-inline RendererAPI Plaza::Editor::Settings::mDefaultRendererAPI = RendererAPI::Vulkan;

@@ -2,7 +2,7 @@
 #include "EditorSettings.h"
 namespace Plaza::Editor {
 	void Settings::ReapplyAllSettings() {
-		if (vsync)
+		if (mVsync)
 			glfwSwapInterval(1);
 		else
 			glfwSwapInterval(0);

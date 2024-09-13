@@ -3,13 +3,14 @@ namespace Plaza {
 	using namespace std;
 	class Standards {
 	public:
-		static inline string engineExtName = ".plz";
-		static inline string projectExtName = engineExtName + "prj";
-		static inline string sceneExtName = engineExtName + "scn";
-		static inline string materialExtName = engineExtName + "mat";
-		static inline string modelExtName = engineExtName + "mod";
-		static inline string scriptConfigExtName = engineExtName + "scp";
-		static inline string metadataExtName = engineExtName + "meta";
-		static inline string animationExtName = engineExtName + "anim";
+		static inline std::string engineExtName = ".plz";
+		static inline std::string projectExtName = engineExtName + "prj";
+		static inline std::string sceneExtName = engineExtName + "scn";
+		static inline std::string materialExtName = engineExtName + "mat";
+		static inline std::string modelExtName = engineExtName + "mod";
+		static inline std::string scriptConfigExtName = engineExtName + "scp";
+		static inline std::string metadataExtName = engineExtName + "meta";
+		static inline std::string animationExtName = engineExtName + "anim";
+		static inline std::string editorCacheExtName = engineExtName + "cache";
 	};
 }

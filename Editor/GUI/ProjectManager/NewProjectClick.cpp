@@ -2,7 +2,6 @@
 #include "ProjectManager.h"
 
 #include "Engine/Application/FileDialog/FileDialog.h"
-#include "Engine/Application/Serializer/SceneSerializer.h"
 
 #include "Editor/Settings/ProjectGenerator.h"
 #include "Editor/SessionCache/Cache.h"

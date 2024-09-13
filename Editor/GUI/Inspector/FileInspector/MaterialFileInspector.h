@@ -2,7 +2,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Components/Rendering/Material.h"
 #include "Editor/GUI/Utils/Utils.h"
-#include "Engine/Application/Serializer/FileSerializer/FileSerializer.h"
 #include "Engine/Core/Renderer/Renderer.h"
 #include "Engine/Application/FileDialog/FileDialog.h"
 #include "Editor/GUI/FileExplorer/File.h"

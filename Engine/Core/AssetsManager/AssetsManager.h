@@ -198,20 +198,6 @@ namespace Plaza {
 			return materials;
 		}
 
-		static Asset* LoadFileAsAsset(std::filesystem::path path) {
-			std::ifstream stream(path);
-			std::stringstream strStream;
-			strStream << stream.rdbuf();
-
-			YAML::Node data = YAML::Load(strStream.str());
-			if (!data || !data["AssetUuid"]) {
-				std::cout << "File is empty!" << std::endl;
-				return new Asset();
-			}
-
-			return AssetsManager::NewAsset(data["AssetUuid"].as<uint64_t>(), AssetsManager::mAssetTypeByExtension.at(path.extension().string()), path.string());
-		}
-
 		static Asset* LoadMetadataAsAsset(std::filesystem::path path) {
 			std::ifstream binaryFile(path, std::ios::binary);
 			if (!binaryFile.is_open()) {
@@ -246,26 +232,6 @@ namespace Plaza {
 			return AssetsManager::NewAsset(uuid, AssetsManager::mAssetTypeByExtension.at(path.extension().string()), path.string());
 		}
 
-		static uint64_t CheckAssetPath(YAML::Node& data) {
-			if (data["AssetUuid"])
-				return data["AssetUuid"].as<uint64_t>();
-			else
-				return 0;
-		}
-		static uint64_t CheckAssetPath(std::filesystem::path path) {
-			std::ifstream stream(path);
-			std::stringstream strStream;
-			strStream << stream.rdbuf();
-
-			YAML::Node data = YAML::Load(strStream.str());
-			if (!data) {
-				std::cout << "File is empty!" << std::endl;
-				return 0;
-			}
-
-			return CheckAssetPath(data);
-		}
-
 		static void RemoveAssetUuidPath(uint64_t assetUuid) {
 			const auto& it = AssetsManager::mAssetsUuidByPath.find(AssetsManager::GetAsset(assetUuid)->mAssetPath);
 			if (it != AssetsManager::mAssetsUuidByPath.end())
@@ -279,5 +245,7 @@ namespace Plaza {
 		}
 
 		static Asset* GetAssetOrImport(std::string path, uint64_t uuid = 0, std::string outDirectory = "");
+
+		static void ReadFolderContent(std::string path, bool readSubFolders);
 	};
 }

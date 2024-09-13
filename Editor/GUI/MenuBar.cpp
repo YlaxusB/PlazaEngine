@@ -1,8 +1,6 @@
 ﻿#include "Engine/Core/PreCompiledHeaders.h"
 #include "MenuBar.h"
 #include "Engine/Application/FileDialog/FileDialog.h"
-#include "Engine/Application/Serializer/SceneSerializer.h"
-#include "Engine/Application/Serializer/ProjectSerializer.h"
 #include "Engine/Core/Standards.h"
 #include "Editor/SessionCache/Cache.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"

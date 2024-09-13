@@ -157,8 +157,7 @@ namespace Plaza {
 			texHeight = metadata.height;
 			texChannels = 4;
 
-			// Access image data
-
+			// Access image data			
 			const DirectX::Image* image2 = scratchImage.GetImage(0, 0, 0);
 			pixels = static_cast<stbi_uc*>(image2->pixels);
 			//FlipYCoordinates(pixels, texWidth, texHeight, 3);
@@ -255,8 +254,8 @@ namespace Plaza {
 
 	bool VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps, VkImageUsageFlags usageFlags, VkImageType imageType, VkImageTiling tiling, VkImageLayout initialLayout,
 		unsigned int layers, VkImageUsageFlags flags, bool transition, VkSharingMode sharingMode, bool calculateMips) {
-//		mLayersCount = layers;
-		//this->SetFormat(format);
+		//		mLayersCount = layers;
+				//this->SetFormat(format);
 		this->mMipCount = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 		if (!generateMipMaps && !calculateMips)
 			this->mMipCount = 1;

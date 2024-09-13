@@ -1,6 +1,5 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "CallbacksHeader.h"
-#include "Engine/Application/Serializer/SceneSerializer.h"
 #include "Engine/Core/Physics.h"
 #include "Editor/DefaultAssets/DefaultAssets.h"
 

@@ -2,10 +2,7 @@
 #include "ProjectManager.h"
 
 #include "Engine/Application/FileDialog/FileDialog.h"
-#include "Engine/Application/Serializer/SceneSerializer.h"
-#include "Engine/Application/Serializer/ProjectSerializer.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
-#include "Engine/Application/Serializer/ScriptManagerSerializer.h"
 #include "Engine/Core/Scripting/Mono.h"
 #include "Editor/Filewatcher.h"
 #include "Editor/ScriptManager/ScriptManager.h"
@@ -20,7 +17,7 @@ namespace Plaza {
 			// If user didnt canceled, loop through all items found on the directory path and check for the first that haves the project extension. 
 			if (filePath != "") {
 				Project::Load(filePath);
-				Cache::Serialize(Application::Get()->enginePathAppData + "\\cache.yaml");
+				Cache::Serialize(Application::Get()->enginePathAppData + "\\cache" + Standards::editorCacheExtName);
 			}
 
 		}

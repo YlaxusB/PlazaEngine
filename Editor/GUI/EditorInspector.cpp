@@ -14,8 +14,8 @@ namespace Plaza::Editor {
 
                /* Editor Settings */
                if (Utils::ComponentInspectorHeader(nullptr, "Settings")) {
-                    if (ImGui::Checkbox("VSync", &Editor::Settings::vsync)) {
-                         Settings::ReapplyAllSettings();
+                    if (ImGui::Checkbox("VSync", &Application::Get()->mEditor->mSettings.mVsync)) {
+                         Application::Get()->mEditor->mSettings.ReapplyAllSettings();
                     }
 
                     ImGui::Checkbox("Show Cascade Levels", &Application::Get()->showCascadeLevels);

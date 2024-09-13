@@ -1,7 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ScriptManager.h"
 #include "Editor/GUI/Utils/Filesystem.h"
-#include "Engine/Application/Serializer/ScriptManagerSerializer.h"
 namespace Plaza::Editor {
 	void ScriptManager::NewCsScript(std::string fullPath) {
 		std::ofstream file = Utils::Filesystem::GetFileStream(fullPath);
@@ -44,7 +43,7 @@ public class )" + className + R"( : Entity
 		script.lastModifiedDate = std::chrono::system_clock::now();
 		Application::Get()->activeProject->scripts.emplace(fullPath, script);
 		std::map<std::string, Script> map = Application::Get()->activeProject->scripts;
-		ScriptManagerSerializer::Serialize(Application::Get()->activeProject->mAssetPath.parent_path().string() + "\\Scripts" + Standards::scriptConfigExtName, map);
+		//ScriptManagerSerializer::Serialize(Application::Get()->activeProject->mAssetPath.parent_path().string() + "\\Scripts" + Standards::scriptConfigExtName, map);
 	}
 }
 

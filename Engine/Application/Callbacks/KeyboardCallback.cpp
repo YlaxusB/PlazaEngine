@@ -2,7 +2,6 @@
 #include "CallbacksHeader.h"
 #include "Engine/Core/Time.h"
 
-#include "Engine/Application/Serializer/Components/MeshSerializer.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "Engine/Core/Physics.h"
 

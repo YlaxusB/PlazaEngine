@@ -1,7 +1,8 @@
 #pragma once
 #include <unordered_set>
+#include "Engine/Core/AssetsManager/Asset.h"
 namespace Plaza {
-	class Script {
+	class Script : public Asset {
 	public:
 		Script() {
 			this->lastModifiedDate = std::chrono::system_clock::now();

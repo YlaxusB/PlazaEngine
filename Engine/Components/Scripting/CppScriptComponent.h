@@ -56,6 +56,7 @@ namespace Plaza {
 	public:
 		CsScriptComponent() {}
 		CsScriptComponent(uint64_t uuid);
+		uint64_t mScriptUuid = 0;
 		std::string scriptPath;
 		std::map<std::string, PlazaScriptClass*> scriptClasses;;
 		MonoImage* image;
@@ -65,7 +66,7 @@ namespace Plaza {
 		/// Instanties the class, get the start and update methods and set some other starting parameters
 		/// </summary>
 		/// <param name="csScriptPath">string path to the .cs file</param>
-		void Init(std::string csScriptPath);
+		void Init();
 		void UpdateMethods() {
 			for (auto& [key, value] : scriptClasses) {
 				value->onStartMethod = Mono::GetMethod(value->monoObject, "OnStart", 0);

@@ -193,9 +193,8 @@ namespace Plaza {
 		return fields;
 	}
 
-	std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> FieldManager::GetAllScritpsFields()
-	{
-		std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>>();
+	std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> FieldManager::GetAllScritpsFields() {
+		std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>>(); // Entity UUID, Class Name, Field Name
 		for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 			for (auto& [scriptClassName, scriptClassValue] : value.scriptClasses) {
 				std::map<std::string, Field*> map = FieldManager::GetFieldsValues(scriptClassValue->monoObject);
@@ -207,16 +206,14 @@ namespace Plaza {
 		return allFields;
 	}
 
-	void FieldManager::ApplyAllScritpsFields(std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields)
-	{
+	void FieldManager::ApplyAllScritpsFields(std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields) {
 		for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 			for (auto& [scriptClassKey, scriptClassValue] : value.scriptClasses) {
 				MonoClassField* monoField = NULL;
 				void* iter = NULL;
 				if (allFields.find(key) != allFields.end() && allFields.at(key).find(scriptClassValue->name) != allFields.at(key).end()) {
 					std::map<std::string, Field*> fields = allFields.at(key).at(scriptClassValue->name);
-					while ((monoField = mono_class_get_fields(mono_object_get_class(scriptClassValue->monoObject), &iter)) != NULL)
-					{
+					while ((monoField = mono_class_get_fields(mono_object_get_class(scriptClassValue->monoObject), &iter)) != NULL) {
 						int type = mono_type_get_type(mono_field_get_type(monoField));
 						if (type != MONO_TYPE_ARRAY) {
 							if (fields.find(mono_field_get_name(monoField)) != fields.end())

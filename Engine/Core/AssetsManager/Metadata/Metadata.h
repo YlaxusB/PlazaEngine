@@ -29,6 +29,7 @@ namespace Plaza {
 		static Asset ConvertMetadataToAsset(MetadataStructure metadata) {
 			std::string contentPath = metadata.mAssetPath.parent_path().string() + "\\" + metadata.mContentName;
 			Asset asset(metadata.mAssetUuid, metadata.mAssetPath.filename().string(), contentPath);
+			asset.mAssetName = metadata.mContentName;
 			return asset;
 		}
 

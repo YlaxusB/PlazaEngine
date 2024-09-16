@@ -65,13 +65,13 @@ namespace Plaza::Editor {
 		mono_domain_set(Mono::mAppDomain, true);
 
 		// Load the PlazaScriptCore.dll assembly
-		Mono::mCoreAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application::Get()->dllPath + "\\PlazaScriptCore.dll").c_str());
-		Mono::mCoreImage = mono_image_open((Application::Get()->dllPath + "\\PlazaScriptCore.dll").c_str(), nullptr);
+		Mono::mCoreAssembly = mono_domain_assembly_open(Mono::mAppDomain, (Application::Get()->projectPath + "\\Binaries\\PlazaScriptCore.dll").c_str());
+		Mono::mCoreImage = mono_image_open((Application::Get()->projectPath + "\\Binaries\\PlazaScriptCore.dll").c_str(), nullptr);
 
 		Mono::RegisterComponents();
 		InternalCalls::Init();
 
-		Mono::mEntityObject = Mono::InstantiateClass("Plaza", "Entity", Mono::LoadCSharpAssembly(Application::Get()->dllPath + "\\PlazaScriptCore.dll"), Mono::mAppDomain);
+		Mono::mEntityObject = Mono::InstantiateClass("Plaza", "Entity", Mono::LoadCSharpAssembly(Application::Get()->projectPath + "\\Binaries\\PlazaScriptCore.dll"), Mono::mAppDomain);
 		Mono::mEntityClass = mono_object_get_class(Mono::mEntityObject);
 
 		mono_domain_set(Mono::mAppDomain, true);
@@ -82,8 +82,11 @@ namespace Plaza::Editor {
 			// Initialize all scripts again
 			for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 				std::string scriptPath = value.scriptPath;
+				uint64_t scriptUuid = value.mScriptUuid;
 				value = *new CsScriptComponent(key);
-				value.Init(scriptPath);
+				value.mScriptUuid = scriptUuid;
+				value.scriptPath = scriptPath;
+				value.Init();
 			}
 		}
 	}
@@ -156,7 +159,8 @@ namespace Plaza::Editor {
 			for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 				std::string scriptPath = value.scriptPath;
 				value = *new CsScriptComponent(key);
-				value.Init(scriptPath);
+				value.mScriptUuid = value.mScriptUuid;
+				value.Init();
 			}
 
 			/* Reapply fields values */

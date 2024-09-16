@@ -4,7 +4,8 @@ namespace Plaza {
 	CsScriptComponent::CsScriptComponent(uint64_t uuid) {
 		this->mUuid = uuid;
 	}
-	void CsScriptComponent::Init(std::string csScriptPath) {
+	void CsScriptComponent::Init() {
+		std::string csScriptPath = AssetsManager::GetScript(mScriptUuid)->mAssetPath.string();
 		this->scriptPath = csScriptPath;
 		std::string dllPath = std::filesystem::path{ csScriptPath }.replace_extension(".dll").string();
 

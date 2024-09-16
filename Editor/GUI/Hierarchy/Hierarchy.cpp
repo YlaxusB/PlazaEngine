@@ -283,12 +283,13 @@ namespace Plaza::Editor {
 
 				if (ImGui::BeginMenu("Script"))
 				{
-					for (auto& [key, value] : Application::Get()->activeProject->scripts) {
-						if (ImGui::MenuItem(filesystem::path{ key }.stem().string().c_str())) {
+					for (auto& [key, value] : AssetsManager::mScripts) { //Application::Get()->activeProject->scripts) {
+						if (ImGui::MenuItem(value->mAssetName.c_str())) {
 							CsScriptComponent* script = new CsScriptComponent(entity.uuid);
-							std::string csFileName = filesystem::path{ key }.replace_extension(".cs").string();
-							script->Init(csFileName);;
-							Application::Get()->activeProject->scripts.at(csFileName).entitiesUsingThisScript.emplace(entity.uuid);
+							script->mScriptUuid = value->mAssetUuid;
+							//std::string csFileName = filesystem::path{ key }.replace_extension(".cs").string();
+							script->Init();
+							//Application::Get()->activeProject->scripts.at(csFileName).entitiesUsingThisScript.emplace(entity.uuid);
 							if (Application::Get()->runningScene) {
 								for (auto& [key, value] : script->scriptClasses) {
 									Mono::OnStart(value->monoObject);

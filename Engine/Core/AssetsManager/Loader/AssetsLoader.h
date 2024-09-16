@@ -26,7 +26,7 @@ namespace Plaza {
 		static void LoadMetadata(Asset* asset) {
 			//Asset metadataContent = Metadata::DeSerializeMetadata(asset->mAssetPath.string());
 			Metadata::MetadataStructure metadata = *AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(asset->mAssetPath.string()).get();
-			std::string metadataContentExtension = std::filesystem::path{ asset->mAssetPath.parent_path().string() + "\\" + metadata.mContentName}.extension().string();
+			std::string metadataContentExtension = std::filesystem::path{ asset->mAssetPath.parent_path().string() + "\\" + metadata.mContentName }.extension().string();
 			bool metadataContentExtensionIsSupported = AssetsManager::mAssetTypeByExtension.find(metadataContentExtension) != AssetsManager::mAssetTypeByExtension.end();
 			if (!metadataContentExtensionIsSupported)
 				return;
@@ -36,13 +36,22 @@ namespace Plaza {
 			case AssetType::TEXTURE:
 				AssetsLoader::LoadTexture(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
 				break;
+			case AssetType::SCRIPT:
+				AssetsLoader::LoadScript(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
+				break;
 			}
 		}
 		static std::shared_ptr<Scene> LoadScene(Asset* asset);
 		static void LoadPrefab(Asset* asset);
 		static void LoadPrefabToMemory(Asset* asset);
 		static void LoadPrefabToScene(LoadedModel* model, bool loadToScene);
-		static void LoadScript(Asset* asset) {};
+		static void LoadScript(Asset* asset) {
+			Script* script = new Script();
+			script->mAssetUuid = asset->mAssetUuid;
+			script->mAssetPath = asset->mAssetPath;
+			script->mAssetName = asset->mAssetName;
+			AssetsManager::AddScript(script);
+		};
 		static Texture* LoadTexture(Asset* asset) {
 			if (!asset)
 				return new Texture();

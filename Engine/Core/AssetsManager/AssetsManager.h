@@ -32,6 +32,7 @@ namespace Plaza {
 		static inline std::unordered_map<uint64_t, Mesh*> mLoadedMeshes = std::unordered_map<uint64_t, Mesh*>();
 		static inline std::unordered_map<uint64_t, Animation> mLoadedAnimations = std::unordered_map<uint64_t, Animation>();
 		static inline std::unordered_map<uint64_t, Asset*> mSceneAssets = std::unordered_map<uint64_t, Asset*>();
+		static inline std::unordered_map<uint64_t, Script*> mScripts = std::unordered_map<uint64_t, Script*>();
 
 		static inline std::unordered_map<AssetType, std::unordered_set<uint64_t>> mTypeMap = std::unordered_map<AssetType, std::unordered_set<uint64_t>>();
 
@@ -56,6 +57,7 @@ namespace Plaza {
 			AssetsManager::mAssetTypeByExtension.emplace(".tga", AssetType::TEXTURE);
 			AssetsManager::mAssetTypeByExtension.emplace(Standards::sceneExtName, AssetType::SCENE);
 			AssetsManager::mAssetTypeByExtension.emplace(Standards::animationExtName, AssetType::ANIMATION);
+			AssetsManager::mAssetTypeByExtension.emplace(".cs", AssetType::SCRIPT);
 			AssetsManager::mAssetTypeByExtension.emplace("", AssetType::NONE);
 
 			Texture* defaultTexture = new Texture();
@@ -68,6 +70,7 @@ namespace Plaza {
 			T* newAsset = new T();
 			newAsset->mAssetUuid = uuid;
 			newAsset->mAssetPath = std::filesystem::path{ path };
+			newAsset->mAssetName = newAsset->mAssetPath.filename().string();
 			AssetsManager::AddAsset(static_cast<Asset*>(newAsset));
 			return newAsset;
 		}
@@ -168,8 +171,10 @@ namespace Plaza {
 
 		static Material* GetDefaultMaterial() {
 			static Material* material = nullptr;
-			if (material == nullptr)
+			if (material == nullptr) {
 				material = new Material();
+				AssetsManager::AddMaterial(material);
+			}
 			return material;
 		}
 
@@ -195,6 +200,18 @@ namespace Plaza {
 			if (materials.size() == 0)
 				return { AssetsManager::GetDefaultMaterial() };
 			return materials;
+		}
+
+		static void AddScript(Script* script) {
+			mScripts.emplace(script->mAssetUuid, script);
+		}
+
+		static Script* GetScript(uint64_t uuid) {
+			auto it = mScripts.find(uuid);
+			if (it != mScripts.end()) {
+				return it->second;
+			}
+			return nullptr;
 		}
 
 		static Asset* LoadMetadataAsAsset(std::filesystem::path path) {

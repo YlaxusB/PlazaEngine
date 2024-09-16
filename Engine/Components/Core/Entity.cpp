@@ -296,7 +296,8 @@ namespace Plaza {
 			for (auto it = range.first; it != range.second && it != Scene::GetActiveScene()->csScriptComponents.end(); ++it) {
 				if (it->second.mUuid == entityToInstantiate->uuid) {
 					CsScriptComponent* newScript = new CsScriptComponent(instantiatedEntity->uuid);
-					newScript->Init(it->second.scriptPath);
+					newScript->mScriptUuid = instantiatedEntity->GetComponent<CsScriptComponent>()->mScriptUuid;
+					newScript->Init();
 
 					/* Get all fields from the entity to instantiate */
 					std::map<std::string, Field*> fields = std::map<std::string, Field*>();

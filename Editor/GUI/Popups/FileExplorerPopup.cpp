@@ -5,6 +5,7 @@
 
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/GUI/FileExplorer/File.h"
+#include "Engine/Core/AssetsManager/Metadata/Metadata.h"
 namespace Plaza::Editor {
 	void Popup::FileExplorerPopup::UpdateContent() {
 		if (ImGui::BeginMenu("Create"))
@@ -22,12 +23,29 @@ namespace Plaza::Editor {
 			{
 				if (ImGui::MenuItem("C# Script"))
 				{
-					Editor::File::changingName = Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs");
-					Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+					//Editor::File::changingName = Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs");
+					//Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+					//Editor::File::changingName = std::filesystem::path{ Editor::File::changingName }.filename().string();
+					//Editor::File::firstFocus = true;
+					////Application::Get()->activeProject->scripts.push_back(Script(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs", "Unnamed.cs"));
+					////ScriptManager::NewCsScript(Gui::FileExplorer::currentDirectory + "\\" + Editor::File::changingName);
+					//Script newScript;
+					//assert(true);
+					//assert(false);
+
+					Editor::File::changingName = Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed" + ".cs");
 					Editor::File::changingName = std::filesystem::path{ Editor::File::changingName }.filename().string();
 					Editor::File::firstFocus = true;
-					//Application::Get()->activeProject->scripts.push_back(Script(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs", "Unnamed.cs"));
-					ScriptManager::NewCsScript(Gui::FileExplorer::currentDirectory + "\\" + Editor::File::changingName);
+					Script* script = new Script();
+					script->mAssetUuid = Plaza::UUID::NewUUID();
+					script->mAssetName = Editor::File::changingName;
+					//AssetsManager::mMaterials.emplace(material.uuid, std::make_shared<Material>(material));
+					AssetsManager::AddScript(script);
+					script->mAssetPath = Gui::FileExplorer::currentDirectory + "\\" + Editor::File::changingName;
+
+					Metadata::CreateMetadataFile(script);
+					//AssetsManager::AddScript();
+					//AssetsSerializer::SerializeFile<CsScriptComponent>();
 				}
 				ImGui::EndMenu();
 			}

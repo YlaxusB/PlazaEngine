@@ -60,9 +60,10 @@ namespace Plaza::Editor {
 		//	AssetsReader::ReadAssetAtPath(entry->path());
 		//}
 
+		uint64_t defaultMaterialUuid = AssetsManager::GetDefaultMaterial()->mAssetUuid;
 		for (auto& [key, value] : AssetsManager::mMaterials) {
 			//Application::Get()->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"))->mPath.string())
-			if (key == 0)
+			if (key == defaultMaterialUuid || key == 0)
 				continue;
 			value->GetDeserializedTextures();
 			if (value->diffuse->mAssetUuid)

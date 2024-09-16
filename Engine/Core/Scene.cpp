@@ -167,6 +167,9 @@ namespace Plaza {
 
 		if (scriptDllExists) {
 			Mono::OnStartAll(false);
+			for (auto [key, value] : Scene::GetActiveScene()->csScriptComponents) {
+				value.Init();
+			}
 			FieldManager::ApplyAllScritpsFields(allFields);
 			for (auto [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 				for (auto& [className, classScript] : value.scriptClasses) {

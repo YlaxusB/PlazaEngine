@@ -284,6 +284,8 @@ namespace Plaza::Editor {
 				if (ImGui::BeginMenu("Script"))
 				{
 					for (auto& [key, value] : AssetsManager::mScripts) { //Application::Get()->activeProject->scripts) {
+						//TODO: FIX SCRIPTS WITH INCORRECT NAME AND REMOVE THE BELOW HACK USING THE ASSET
+						Asset* asset = AssetsManager::GetAsset(key);
 						if (ImGui::MenuItem(value->mAssetName.c_str())) {
 							CsScriptComponent* script = new CsScriptComponent(entity.uuid);
 							script->mScriptUuid = value->mAssetUuid;

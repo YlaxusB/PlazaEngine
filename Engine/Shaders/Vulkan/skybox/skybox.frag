@@ -31,7 +31,7 @@ vec3 Uncharted2Tonemap(vec3 color)
 
 void main() {
     //gDiffuse = vec4(pow(texture(prefilterMap, fragTexCoord).xyz, vec3(1.0f / pushConstants.gamma)), 1.0f);
-	vec3 color =  texture(equirectangularMap, fragTexCoord.xy).xyz;
+	vec3 color =  texture(prefilterMap, fragTexCoord.xyz).xyz;
 	//if(fragTexCoord.y > 0.5f){
 	//	color = mix(vec3(0.4f, 0.4f, 0.4f), vec3(0.6f, 0.6f, 0.6f), smoothstep(1.0f, 0.0f, fragTexCoord.y) * 2.0 - 1.0);//vec3(0.0f, 0.0f, 0.0f);
 	//}

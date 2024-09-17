@@ -24,6 +24,7 @@ namespace Plaza {
 		static inline AssetsListStructure mAssets = AssetsListStructure();
 		static inline std::map<std::filesystem::path, uint64_t> mAssetsUuidByPath = std::map<std::filesystem::path, uint64_t>();
 		static inline std::map<std::string, AssetType> mAssetTypeByExtension = std::map<std::string, AssetType>();
+		static inline std::set<AssetType> mAssetsTypesWithMetaData = std::set<AssetType>();
 
 		static inline std::unordered_map<uint64_t, Texture*> mTextures = std::unordered_map<uint64_t, Texture*>();
 		static inline std::unordered_map<uint64_t, shared_ptr<Material>> mMaterials = std::unordered_map<uint64_t, shared_ptr<Material>>();
@@ -36,34 +37,16 @@ namespace Plaza {
 
 		static inline std::unordered_map<AssetType, std::unordered_set<uint64_t>> mTypeMap = std::unordered_map<AssetType, std::unordered_set<uint64_t>>();
 
-		static void Init() {
-			PL_CORE_INFO("Initializing Assets Manager");
+		static void Init();
 
-			mTypeMap = []() {
-				std::unordered_map<AssetType, std::unordered_set<uint64_t>> map;
-				for (int i = 0; i <= UNKNOWN; ++i) {
-					map.emplace(static_cast<AssetType>(i), std::unordered_set<uint64_t>());
-				}
-				return map;
-				}();
+		static AssetType GetExtensionType(std::string extension);
 
-			AssetsManager::mAssetTypeByExtension.emplace(Standards::metadataExtName, AssetType::METADATA);
-			AssetsManager::mAssetTypeByExtension.emplace(Standards::modelExtName, AssetType::MODEL);
-			AssetsManager::mAssetTypeByExtension.emplace(Standards::materialExtName, AssetType::MATERIAL);
-			AssetsManager::mAssetTypeByExtension.emplace(".png", AssetType::TEXTURE);
-			AssetsManager::mAssetTypeByExtension.emplace(".jpg", AssetType::TEXTURE);
-			AssetsManager::mAssetTypeByExtension.emplace(".jpeg", AssetType::TEXTURE);
-			AssetsManager::mAssetTypeByExtension.emplace(".dds", AssetType::TEXTURE);
-			AssetsManager::mAssetTypeByExtension.emplace(".tga", AssetType::TEXTURE);
-			AssetsManager::mAssetTypeByExtension.emplace(Standards::sceneExtName, AssetType::SCENE);
-			AssetsManager::mAssetTypeByExtension.emplace(Standards::animationExtName, AssetType::ANIMATION);
-			AssetsManager::mAssetTypeByExtension.emplace(".cs", AssetType::SCRIPT);
-			AssetsManager::mAssetTypeByExtension.emplace("", AssetType::NONE);
+		static bool AssetTypeContainsMetaData(AssetType assetType);
+		static bool AssetContainsMetaData(Asset* asset);
 
-			Texture* defaultTexture = new Texture();
-			defaultTexture->mAssetUuid = 1;
-			AssetsManager::mTextures.emplace(1, defaultTexture);
-		}
+		static void RenameAsset(Asset* asset, std::string oldPath, std::string newPath);
+		static void RenameMetaData(Asset* asset, std::string oldPath, std::string newPath);
+		static void AfterRename(Asset* renamedAsset, std::string oldPath, std::string newPath);
 
 		template<typename T>
 		static T* NewAsset(uint64_t uuid, std::string path) {
@@ -87,179 +70,37 @@ namespace Plaza {
 			return NewAsset<T>(Plaza::UUID::NewUUID(), "");
 		}
 
-		static Asset* GetAsset(uint64_t uuid) {
-			const auto& it = mAssets.find(uuid);
-			if (it != mAssets.end())
-				return mAssets.at(uuid);
-			return nullptr;
-		}
+		static Asset* GetAsset(uint64_t uuid);
+		static Asset* GetAsset(std::filesystem::path path);
+		static void AddAsset(Asset* asset);
+		static bool HasAssetPath(std::string& path);
 
-		static Asset* GetAsset(std::filesystem::path path) {
-			const auto& it = AssetsManager::mAssetsUuidByPath.find(path);
-			if (it != mAssetsUuidByPath.end())
-				return GetAsset(it->second);
-			return nullptr;
-		}
+		static Texture* GetTexture(uint64_t uuid);
+		static bool TextureExists(uint64_t uuid);
 
-		static void AddAsset(Asset* asset) {
-			AssetsManager::mAssets.emplace(asset->mAssetUuid, asset);
-			AssetsManager::mTypeMap.find(mAssetTypeByExtension.at(asset->GetExtension()))->second.emplace(asset->mAssetUuid);
-			AssetsManager::mAssetsUuidByPath.emplace(asset->mAssetPath, asset->mAssetUuid);
-		}
+		static void AddMesh(Mesh* mesh);
+		static Mesh* GetMesh(uint64_t uuid);
+		static bool HasMesh(uint64_t uuid);
 
-		static bool HasAssetPath(std::string& path) {
-			return AssetsManager::mAssetsUuidByPath.find(path) != AssetsManager::mAssetsUuidByPath.end();
-		}
+		static Animation& AddAnimation(Animation animation);
+		static Animation* GetAnimation(uint64_t uuid);
 
-		static Texture* GetTexture(uint64_t uuid) {
-			const auto& it = mTextures.find(uuid);
-			if (it != mTextures.end())
-				return mTextures.at(uuid);
-			return new Texture();
-		}
+		static Asset* GetSceneAsset(uint64_t uuid);
 
-		static bool TextureExists(uint64_t uuid) {
-			const auto& it = mTextures.find(uuid);
-			if (it != mTextures.end())
-				return true;
-			return false;
-		}
+		static void AddMaterial(Material* material);
+		static void AddMaterial(std::shared_ptr<Material> material);
+		static Material* GetDefaultMaterial();
+		static Material* GetMaterial(uint64_t uuid);
+		static std::vector<Material*> GetMaterialsVector(std::vector<uint64_t>& uuids);
 
-		static void AddMesh(Mesh* mesh) {
-			AssetsManager::mLoadedMeshes.emplace(mesh->meshId, mesh);
-		}
+		static void AddScript(Script* script);
+		static Script* GetScript(uint64_t uuid);
+		static void RemoveScript(uint64_t uuid);
 
-		static Mesh* GetMesh(uint64_t uuid) {
-			const auto& it = mLoadedMeshes.find(uuid);
-			if (it != mLoadedMeshes.end())
-				return mLoadedMeshes.at(uuid);
-			return nullptr;
-		}
-
-		static bool HasMesh(uint64_t uuid) {
-			return  mLoadedMeshes.find(uuid) != mLoadedMeshes.end();
-		}
-
-		static Animation& AddAnimation(Animation animation) {
-			AssetsManager::mLoadedAnimations.emplace(animation.mAssetUuid, animation);
-			return mLoadedAnimations.at(animation.mAssetUuid);
-		}
-
-		static Animation* GetAnimation(uint64_t uuid) {
-			const auto& it = mLoadedAnimations.find(uuid);
-			if (it != mLoadedAnimations.end())
-				return &mLoadedAnimations.at(uuid);
-			return nullptr;
-		}
-
-		static Asset* GetSceneAsset(uint64_t uuid) {
-			const auto& it = mSceneAssets.find(uuid);
-			if (it != mSceneAssets.end())
-				return mSceneAssets.at(uuid);
-			return nullptr;
-		}
-
-		static void AddMaterial(Material* material) {
-			mMaterials.emplace(material->mAssetUuid, material);
-			mMaterialsNames.emplace(material->mAssetPath.string(), material->mAssetUuid);
-		}
-
-		static void AddMaterial(std::shared_ptr<Material> material) {
-			mMaterials.emplace(material->mAssetUuid, material);
-			mMaterialsNames.emplace(material->mAssetPath.string(), material->mAssetUuid);
-		}
-
-		static Material* GetDefaultMaterial() {
-			static Material* material = nullptr;
-			if (material == nullptr) {
-				material = new Material();
-				AssetsManager::AddMaterial(material);
-			}
-			return material;
-		}
-
-		static Material* GetMaterial(uint64_t uuid) {
-			auto it = mMaterials.find(uuid);
-			if (it != mMaterials.end()) {
-				return it->second.get();
-			}
-			return AssetsManager::GetDefaultMaterial(); //->DefaultMaterial();
-		}
-
-		static std::vector<Material*> GetMaterialsVector(std::vector<uint64_t>& uuids) {
-			std::vector<Material*> materials = std::vector<Material*>();
-			for (unsigned int i = 0; i < uuids.size(); ++i) {
-				auto it = mMaterials.find(uuids[i]);
-				if (it != mMaterials.end()) {
-					materials.push_back(it->second.get());
-				}
-				else {
-					materials.push_back(AssetsManager::GetDefaultMaterial());
-				}
-			}
-			if (materials.size() == 0)
-				return { AssetsManager::GetDefaultMaterial() };
-			return materials;
-		}
-
-		static void AddScript(Script* script) {
-			mScripts.emplace(script->mAssetUuid, script);
-		}
-
-		static Script* GetScript(uint64_t uuid) {
-			auto it = mScripts.find(uuid);
-			if (it != mScripts.end()) {
-				return it->second;
-			}
-			return nullptr;
-		}
-
-		static Asset* LoadMetadataAsAsset(std::filesystem::path path) {
-			std::ifstream binaryFile(path, std::ios::binary);
-			if (!binaryFile.is_open()) {
-				std::cerr << "Error opening file for writing!" << std::endl;
-				return nullptr;
-			}
-
-			uint64_t uuid = 0;
-			binaryFile.read(reinterpret_cast<char*>(&uuid), sizeof(uint64_t));
-			std::string contentPath = Plaza::Utils::ReadBinaryString(binaryFile);
-			std::string extension = Plaza::Utils::ReadBinaryString(binaryFile);
-
-			std::string assetFinalPath = path.parent_path().string() + "\\" + std::filesystem::path{ contentPath }.filename().string();
-
-			binaryFile.close();
-
-			return AssetsManager::NewAsset<Asset>(uuid, assetFinalPath);
-		}
-
-		static Asset* LoadBinaryFileAsAsset(std::filesystem::path path) {
-			std::ifstream binaryFile(path, std::ios::binary);
-			if (!binaryFile.is_open()) {
-				std::cerr << "Error opening file for writing!" << std::endl;
-				return nullptr;
-			}
-
-			uint64_t uuid = 0;
-			binaryFile.read(reinterpret_cast<char*>(&uuid), sizeof(uint64_t));
-
-			binaryFile.close();
-
-			return AssetsManager::NewAsset<Asset>(uuid, path.string());
-		}
-
-		static void RemoveAssetUuidPath(uint64_t assetUuid) {
-			const auto& it = AssetsManager::mAssetsUuidByPath.find(AssetsManager::GetAsset(assetUuid)->mAssetPath);
-			if (it != AssetsManager::mAssetsUuidByPath.end())
-				AssetsManager::mAssetsUuidByPath.erase(it);
-		}
-
-		static void ChangeAssetPath(uint64_t assetUuid, std::string newPath) {
-			AssetsManager::RemoveAssetUuidPath(assetUuid);
-			AssetsManager::GetAsset(assetUuid)->mAssetPath = newPath;
-			AssetsManager::mAssetsUuidByPath.emplace(std::filesystem::path{ newPath }, assetUuid);
-		}
-
+		static Asset* LoadMetadataAsAsset(std::filesystem::path path);
+		static Asset* LoadBinaryFileAsAsset(std::filesystem::path path);
+		static void RemoveAssetUuidPath(uint64_t assetUuid);
+		static void ChangeAssetPath(uint64_t assetUuid, std::string newPath);
 		static Asset* GetAssetOrImport(std::string path, uint64_t uuid = 0, std::string outDirectory = "");
 
 		static void ReadFolderContent(std::string path, bool readSubFolders);

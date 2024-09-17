@@ -61,12 +61,23 @@ namespace Plaza::Editor {
 
 				break;
 			case filewatch::Event::renamed_new: // The file was renamed and this is the new name
+				std::filesystem::path metadataFile(sLastFileWatchEvent.path);
+				metadataFile.replace_extension(Standards::metadataExtName);
+				std::string metadataPath = metadataFile.string();
 				if (AssetsManager::HasAssetPath(sLastFileWatchEvent.path)) {
-					auto it = AssetsManager::mAssetsUuidByPath.find(sLastFileWatchEvent.path);
-					AssetsManager::mAssetsUuidByPath.emplace(finalPath, it->second);
-					AssetsManager::mAssetsUuidByPath.erase(it);
+					Asset* asset = AssetsManager::GetAsset(sLastFileWatchEvent.path);
+					bool containsMetaData = std::filesystem::exists(metadataPath);
+					if (containsMetaData)
+						AssetsManager::RenameMetaData(asset, sLastFileWatchEvent.path, finalPath);
+					else
+						AssetsManager::RenameAsset(asset, sLastFileWatchEvent.path, finalPath);
 				}
-				break;
+				else {
+					if (AssetsManager::HasAssetPath(metadataPath)) {
+						Asset* asset = AssetsManager::GetAsset(metadataPath);
+						AssetsManager::RenameMetaData(asset, sLastFileWatchEvent.path, finalPath);
+					}
+				}
 			};
 
 			//Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);

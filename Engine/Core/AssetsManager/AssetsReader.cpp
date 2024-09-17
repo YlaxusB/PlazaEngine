@@ -7,9 +7,9 @@ namespace Plaza {
 		std::string extension = path.extension().string();
 		if (AssetsLoader::mSupportedLoadFormats.find(extension) == AssetsLoader::mSupportedLoadFormats.end())
 			return nullptr;
-		Asset* asset = AssetsManager::NewAsset<Asset>(AssetsSerializer::DeSerializeFile<Asset>(path.string()));
-		AssetsLoader::LoadAsset(asset);
-		return asset;
+		shared_ptr<Asset> asset = AssetsSerializer::DeSerializeFile<Asset>(path.string());
+		AssetsLoader::LoadAsset(asset.get());
+		return AssetsManager::GetAsset(asset->mAssetUuid);
 	}
 }
 

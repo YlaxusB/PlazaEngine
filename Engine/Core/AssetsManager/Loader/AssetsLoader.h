@@ -46,11 +46,7 @@ namespace Plaza {
 		static void LoadPrefabToMemory(Asset* asset);
 		static void LoadPrefabToScene(LoadedModel* model, bool loadToScene);
 		static void LoadScript(Asset* asset) {
-			Script* script = new Script();
-			script->mAssetUuid = asset->mAssetUuid;
-			script->mAssetPath = asset->mAssetPath;
-			script->mAssetName = asset->mAssetName;
-			AssetsManager::AddScript(script);
+			AssetsManager::AddScript(static_cast<Script*>(asset));
 		};
 		static Texture* LoadTexture(Asset* asset) {
 			if (!asset)

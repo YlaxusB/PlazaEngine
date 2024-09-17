@@ -8,7 +8,10 @@ namespace Plaza {
 	void AssetsLoader::LoadAsset(Asset* asset) {
 		if (asset->GetExtension() == Standards::metadataExtName)
 			AssetsLoader::LoadMetadata(asset);
-		else if (asset->GetExtension() == Standards::modelExtName)
+		else
+			AssetsManager::NewAsset<Asset>(asset->mAssetUuid, asset->mAssetPath.string());
+
+		if (asset->GetExtension() == Standards::modelExtName)
 			AssetsLoader::LoadPrefab(asset);
 		else if (asset->GetExtension() == Standards::materialExtName)
 			AssetsLoader::LoadMaterial(asset);

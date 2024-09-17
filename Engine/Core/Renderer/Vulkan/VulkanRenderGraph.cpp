@@ -160,6 +160,8 @@ namespace Plaza {
 			float exposure;
 			float useless;
 		};
+
+		uint64_t skyboxMeshUuid = 2;
 		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"Skybox",
 			PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH,
@@ -176,7 +178,7 @@ namespace Plaza {
 			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
 			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
 			{ pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(DeferredGeometrySkyboxPC)) },
-			{ 2 }
+			{ skyboxMeshUuid }
 		));
 
 		this->AddRenderPassCallback("Deferred Geometry Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {

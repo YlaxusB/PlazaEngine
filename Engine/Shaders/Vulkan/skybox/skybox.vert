@@ -81,11 +81,20 @@ layout(push_constant) uniform PushConstants{
     float useless;
 } pushConstants;
 
+#define USE_SPHERE
+
 void main()
 {
-	fragTexCoord.xy = inTexCoord;
-    fragTexCoord.x = fragTexCoord.x - 0.5f;
-    fragTexCoord.y = 1.0f - fragTexCoord.y;
+#ifdef USE_CUBE
+	fragTexCoord.xyz = inPosition.xyz;
+#endif
+#ifdef USE_SPHERE
+    fragTexCoord.xyz = inPosition.xyz;
+    //fragTexCoord.xy = inPosition.xy;
+    //fragTexCoord.x = fragTexCoord.x - 0.5f;
+    //fragTexCoord.y = 1.0f - fragTexCoord.y;
+#endif
+
 
 	mat4 viewMat = mat4(mat3(pushConstants.view));
 	gl_Position = pushConstants.projection * viewMat * vec4(inPosition.xyz, 1.0f);

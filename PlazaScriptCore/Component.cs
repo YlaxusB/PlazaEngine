@@ -472,6 +472,52 @@ namespace Plaza
     }
     #endregion Character Controller
 
+    #region Camera
+    public class Camera : Component
+    {
+        public Matrix4 ProjectionMatrix
+        {
+            get
+            {
+                InternalCalls.Camera_GetProjectionMatrix(this.Uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
+
+                Matrix4 matrix = new Matrix4();
+
+                Vector4[] rows = { row0, row1, row2, row3 };
+                for (int i = 0; i < 4; ++i)
+                {
+                    matrix.data[i, 0] = rows[i].X;
+                    matrix.data[i, 1] = rows[i].Y;
+                    matrix.data[i, 2] = rows[i].Z;
+                    matrix.data[i, 3] = rows[i].W;
+                }
+
+                return matrix;
+            }
+        }
+        public Matrix4 ViewMatrix
+        {
+            get
+            {
+                InternalCalls.Camera_GetViewMatrix(this.Uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
+
+                Matrix4 matrix = new Matrix4();
+
+                Vector4[] rows = { row0, row1, row2, row3 };
+                for (int i = 0; i < 4; ++i)
+                {
+                    matrix.data[i, 0] = rows[i].X;
+                    matrix.data[i, 1] = rows[i].Y;
+                    matrix.data[i, 2] = rows[i].Z;
+                    matrix.data[i, 3] = rows[i].W;
+                }
+
+                return matrix;
+            }
+        }
+    }
+    #endregion Camera
+
     #region TextRenderer
     public class TextRenderer : Component
     {

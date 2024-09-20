@@ -6,6 +6,7 @@
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/GUI/FileExplorer/File.h"
 #include "Engine/Core/AssetsManager/Metadata/Metadata.h"
+#include "Engine/Core/AssetsManager/AssetsReader.h"
 namespace Plaza::Editor {
 	void Popup::FileExplorerPopup::UpdateContent() {
 		if (ImGui::BeginMenu("Create"))
@@ -40,10 +41,13 @@ namespace Plaza::Editor {
 					script->mAssetUuid = Plaza::UUID::NewUUID();
 					script->mAssetName = Editor::File::changingName;
 					//AssetsManager::mMaterials.emplace(material.uuid, std::make_shared<Material>(material));
-					AssetsManager::AddScript(script);
 					script->mAssetPath = Gui::FileExplorer::currentDirectory + "\\" + Editor::File::changingName;
 
 					Metadata::CreateMetadataFile(script);
+					//AssetsManager::AddScript(script);
+					std::filesystem::path metaDataPath = script->mAssetPath;
+					metaDataPath.replace_extension(Standards::metadataExtName);
+					AssetsReader::ReadAssetAtPath(metaDataPath);
 					//AssetsManager::AddScript();
 					//AssetsSerializer::SerializeFile<CsScriptComponent>();
 				}

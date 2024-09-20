@@ -24,6 +24,10 @@ namespace Plaza::Editor {
 			std::filesystem::path fsPath = std::filesystem::path{ path };
 			std::string finalPath = pathToWatch + "\\" + path;
 			mQueuedEvents.emplace(changeType, finalPath);
+
+			if (finalPath.find("~") != std::string::npos)
+				return;
+
 			switch (changeType) {
 			case filewatch::Event::added:
 				if (fsPath.extension() == ".cs") {

@@ -18,7 +18,6 @@ namespace Plaza {
 	}
 
 	glm::mat4 Camera::GetProjectionMatrix() {
-		//return glm::perspective(glm::radians(this->Zoom), (Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y), nearPlane, farPlane);
 		return glm::infinitePerspective(glm::radians(Zoom), Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y, nearPlane);
 	}
 

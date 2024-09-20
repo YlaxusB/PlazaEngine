@@ -57,6 +57,22 @@ namespace Plaza
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void CursorHide(bool val);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static float Cursor_GetX();
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Cursor_SetX(float value);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static float Cursor_GetY();
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Cursor_SetY(float value);
+
+        #region Screen
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Screen_GetSize(out Vector2 vector);
+        #endregion
+
         #endregion Input
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -513,6 +529,13 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void CharacterController_MoveCall(UInt64 uuid, Vector3 position, float minimumDistance, bool followOrientation, float elapsedTime);
         #endregion CharacterController
+
+        #region Camera
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Camera_GetProjectionMatrix(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Camera_GetViewMatrix(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
+        #endregion Camera
 
         #region TextRenderer
         [MethodImplAttribute(MethodImplOptions.InternalCall)]

@@ -1718,7 +1718,7 @@ void ImGui::TableNextRow(ImGuiTableRowFlags row_flags, float row_min_height)
     ImGuiContext& g = *GImGui;
     ImGuiTable* table = g.CurrentTable;
 
-    if (!table->IsLayoutLocked)
+   if (!table->IsLayoutLocked)
         TableUpdateLayout(table);
     if (table->IsInsideRow)
         TableEndRow(table);

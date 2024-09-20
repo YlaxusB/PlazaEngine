@@ -121,13 +121,13 @@ set_target_properties(PlazaShippingGame PROPERTIES
     VS_GLOBAL_MONO_USE_STATIC_LIBMONO "true"
 )
 
-target_compile_definitions(PlazaEngine PRIVATE PX_PHYSX_STATIC_LIB)
-target_compile_definitions(PlazaEngine PRIVATE EDITOR_MODE)
-target_compile_options(PlazaEngine PRIVATE /WX-)
+target_compile_definitions(PlazaEngine PUBLIC  PX_PHYSX_STATIC_LIB)
+target_compile_definitions(PlazaEngine PUBLIC  EDITOR_MODE)
+target_compile_options(PlazaEngine PUBLIC  /WX-)
 
-target_compile_definitions(PlazaShippingGame PRIVATE GAME_MODE)
-target_compile_definitions(PlazaShippingGame PRIVATE PX_PHYSX_STATIC_LIB)
-target_compile_options(PlazaShippingGame PRIVATE /WX-)
+target_compile_definitions(PlazaShippingGame PUBLIC  GAME_MODE)
+target_compile_definitions(PlazaShippingGame PUBLIC  PX_PHYSX_STATIC_LIB)
+target_compile_options(PlazaShippingGame PUBLIC  /WX-)
 
 target_precompile_headers(PlazaEngine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
 target_precompile_headers(PlazaShippingGame PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
@@ -195,7 +195,7 @@ set(MONO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/lib/${CMAKE_BUILD_TYP
 #)
 
 target_include_directories(PlazaEngine PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaEngine PRIVATE glfw OpenAL freetype TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib"  DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
+target_link_libraries(PlazaEngine PUBLIC  glfw OpenAL freetype TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib"  DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 
 target_include_directories(PlazaShippingGame PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaShippingGame PRIVATE glfw OpenAL freetype TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib" DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
+target_link_libraries(PlazaShippingGame PUBLIC  glfw OpenAL freetype TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib" DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)

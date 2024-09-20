@@ -11,5 +11,8 @@ namespace Plaza {
 		static double deltaY;
 		
 		static void Update();
+
+		static void SetX(float value);
+		static void SetY(float value);
 	};
 }

@@ -2,6 +2,7 @@
 #include "../Component.h"
 #include "Engine/Components/Component.h"
 #include "Engine/Core/Scripting/Mono.h"
+#include <cereal/archives/json.hpp>
 namespace Plaza {
 	class PlazaScriptClass {
 	public:
@@ -90,7 +91,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Component>(this), scriptPath);
+			archive(cereal::base_class<Component>(this), scriptPath, mScriptUuid);
 		}
 	};
 }

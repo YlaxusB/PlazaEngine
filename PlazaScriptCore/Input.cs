@@ -49,6 +49,27 @@ namespace Plaza
 
     public class Cursor
     {
+        public static float X {
+            get {
+                return InternalCalls.Cursor_GetX();
+            }
+            set {
+                InternalCalls.Cursor_SetX(value);
+            }
+        }
+
+        public static float Y
+        {
+            get
+            {
+                return InternalCalls.Cursor_GetY();
+            }
+            set
+            {
+                InternalCalls.Cursor_SetY(value);
+            }
+        }
+
         public static void Hide()
         {
             InternalCalls.CursorHide(true);

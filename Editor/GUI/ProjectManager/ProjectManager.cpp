@@ -54,10 +54,12 @@ namespace Plaza {
 					Editor::Gui::FileExplorer::UpdateContent(Application::Get()->activeProject->mAssetPath.parent_path().string());
 
 					Application::Get()->projectPath = Application::Get()->activeProject->mAssetPath.parent_path().string();
-					Cache::Serialize(Application::Get()->enginePathAppData + "\\cache.yaml");
+					Cache::Serialize(Application::Get()->enginePathAppData + "\\cache" + Standards::editorCacheExtName);
+
+					Project::Load(Application::Get()->activeProject->mAssetPath.string());
 
 					// Load Default Models
-					Editor::DefaultModels::Init();
+					//Editor::DefaultModels::Init();
 				}
 				if (ImGui::Button("Cancel")) {
 					projectManagerGui.currentContent = new ProjectManagerContent();

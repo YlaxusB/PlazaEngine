@@ -121,8 +121,15 @@ namespace Plaza {
 		}
 
 #else
-		if (filesystem::exists(Application::Get()->enginePathAppData + "cache.yaml"))
+		if (filesystem::exists(Application::Get()->enginePathAppData + "\\cache" + Standards::editorCacheExtName))
 			Editor::Cache::Load();
+		else {
+			Application::Get()->runEngine = false;
+			Application::Get()->runProjectManagerGui = true;
+			Application::Get()->activeProject = std::make_unique<Project>();
+			Cache::Serialize(Application::Get()->enginePathAppData + "\\cache" + Standards::editorCacheExtName);
+			Application::Get()->focusedMenu = "ProjectManager";
+		}
 #endif
 	}
 

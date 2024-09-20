@@ -78,9 +78,9 @@ namespace Plaza {
 		defaultMaterial->mAssetUuid = 0;
 		AssetsManager::AddMaterial(defaultMaterial);
 
-		mainSceneEntity = new Entity("Scene");
-		mainSceneEntity->parentUuid = mainSceneEntity->uuid;
-		mainSceneEntityUuid = mainSceneEntity->uuid;
+		//mainSceneEntity = new Entity("Scene");
+		//mainSceneEntity->parentUuid = mainSceneEntity->uuid;
+		//mainSceneEntityUuid = mainSceneEntity->uuid;
 
 		 Scene::SetActiveScene(oldActiveScene);
 	}
@@ -142,6 +142,7 @@ namespace Plaza {
 		Scene::SetActiveScene(Scene::GetRuntimeScene());
 		Application::Get()->copyingScene = false;
 		Application::Get()->runningScene = true;
+		Scene::GetActiveScene()->RecalculateAddedComponents();
 		for (auto& [key, collider] : Scene::GetActiveScene()->colliderComponents) {
 			collider.UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(collider.mUuid).GetWorldScale());;
 			collider.UpdatePose();
@@ -167,9 +168,9 @@ namespace Plaza {
 
 		if (scriptDllExists) {
 			Mono::OnStartAll(false);
-			for (auto [key, value] : Scene::GetActiveScene()->csScriptComponents) {
-				value.Init();
-			}
+			//for (auto [key, value] : Scene::GetActiveScene()->csScriptComponents) {
+			//	value.Init();
+			//}
 			FieldManager::ApplyAllScritpsFields(allFields);
 			for (auto [key, value] : Scene::GetActiveScene()->csScriptComponents) {
 				for (auto& [className, classScript] : value.scriptClasses) {
@@ -291,6 +292,8 @@ namespace Plaza {
 			}
 		}
 		for (auto& [key, value] : meshRendererComponents) {
+			if(value.mesh)
+			value.mMeshUuid = value.mesh->uuid;
 			value.mesh = AssetsManager::GetMesh(value.mMeshUuid);
 			value.renderGroup = this->AddRenderGroup(AssetsManager::GetMesh(value.mMeshUuid), AssetsManager::GetMaterialsVector(value.mMaterialsUuids));
 		}

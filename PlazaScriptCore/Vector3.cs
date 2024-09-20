@@ -8,13 +8,13 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Plaza
 {
-    public class Matrix4
+    public class Matrix4 : Mathf.vec
     {
-        public float[,] data;
+        public float[,] data = new float[4, 4];
 
         public Matrix4()
         {
-            data = new float[4, 4];
+
         }
 
         public Matrix4(float[,] newData)
@@ -22,11 +22,24 @@ namespace Plaza
             data = newData;
         }
 
-        // Accessor for individual elements
         public float this[int row, int col]
         {
             get => data[row, col];
             set => data[row, col] = value;
+        }
+
+        public void From1DArray(float[] source)
+        {
+            if (source.Length != 16)
+                throw new ArgumentException("Source array must have 16 elements.");
+
+            for (int i = 0; i < 4; ++i)
+            {
+                for (int j = 0; j < 4; ++j)
+                {
+                    data[i, j] = source[i * 4 + j];
+                }
+            }
         }
 
         public Vector3 ExtractRotationAsEulerAngles()
@@ -217,6 +230,80 @@ namespace Plaza
             // Create a Vector3 from the transformed coordinates
             return new Vector3(transformedVec.X, transformedVec.Y, transformedVec.Z);
         }
+
+        public float Determinant()
+        {
+            // Compute the determinant using cofactor expansion along the first row
+            float a = data[0, 0];
+            float b = data[0, 1];
+            float c = data[0, 2];
+            float d = data[0, 3];
+            return a * Cofactor(0, 0) - b * Cofactor(0, 1) + c * Cofactor(0, 2) - d * Cofactor(0, 3);
+        }
+
+        private float Cofactor(int row, int col)
+        {
+            // Compute cofactor as Minor(row, col) * (-1)^(row+col)
+            return Minor(row, col) * (((row + col) % 2 == 0) ? 1 : -1);
+        }
+
+        private float Minor(int row, int col)
+        {
+            // Create the 3x3 minor matrix by excluding the row and column
+            float[,] minorMatrix = new float[3, 3];
+            int minorRow = 0;
+
+            for (int i = 0; i < 4; i++)
+            {
+                if (i == row) continue; // Skip the current row
+                int minorCol = 0;
+
+                for (int j = 0; j < 4; j++)
+                {
+                    if (j == col) continue; // Skip the current column
+                    minorMatrix[minorRow, minorCol] = data[i, j];
+                    minorCol++;
+                }
+                minorRow++;
+            }
+
+            // Return determinant of the 3x3 matrix
+            return Determinant3x3(minorMatrix);
+        }
+
+        private float Determinant3x3(float[,] matrix)
+        {
+            // Calculate determinant of a 3x3 matrix
+            return matrix[0, 0] * (matrix[1, 1] * matrix[2, 2] - matrix[1, 2] * matrix[2, 1]) -
+                   matrix[0, 1] * (matrix[1, 0] * matrix[2, 2] - matrix[1, 2] * matrix[2, 0]) +
+                   matrix[0, 2] * (matrix[1, 0] * matrix[2, 1] - matrix[1, 1] * matrix[2, 0]);
+        }
+
+        public static Matrix4 Inverse(Matrix4 matrix)
+        {
+            float det = matrix.Determinant();
+
+            // Handle precision with an appropriate small value
+            if (Math.Abs(det) < 1E-06f)
+            {
+                throw new InvalidOperationException("Matrix is not invertible. Determinant is too close to zero.");
+            }
+
+            // Calculate inverse by using cofactors, transposing, and dividing by determinant
+            Matrix4 inverseMatrix = new Matrix4();
+
+            // Loop through each element to calculate cofactor and set in transposed position
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    // Transpose: notice that j and i are swapped to transpose the cofactor matrix
+                    inverseMatrix[j, i] = matrix.Cofactor(i, j) / det;
+                }
+            }
+
+            return inverseMatrix;
+        }
     }
     public struct Vector3
     {
@@ -265,6 +352,12 @@ namespace Plaza
         public static Vector3 operator /(Vector3 a, float b)
         {
             return new Vector3(a.X / b, a.Y / b, a.Z / b);
+        }
+
+        public static Vector3 ToEulerAngles(Quaternion q)
+        {
+            float yaw = (float)Math.Atan2(2.0f * (q.y * q.w + q.x * q.z), 1.0f - 2.0f * (q.y * q.y + q.z * q.z));
+            return new Vector3 { X = 0, Y = yaw, Z = 0 };
         }
 
         public static Vector3 Cross(Vector3 v1, Vector3 v2)

@@ -20,4 +20,12 @@ namespace Plaza {
 			lastY = currentY;
 		}
 	}
+
+	void Input::Cursor::SetX(float value) {
+		glfwSetCursorPos(Application::Get()->mWindow->glfwWindow, value, lastY);
+	}
+
+	void Input::Cursor::SetY(float value) {
+		glfwSetCursorPos(Application::Get()->mWindow->glfwWindow, lastX, value);
+	}
 }

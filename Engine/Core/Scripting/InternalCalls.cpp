@@ -215,7 +215,37 @@ namespace Plaza {
 			});
 
 	}
+
+	static float Cursor_GetX() {
+#ifdef EDITOR_MODE
+		return Input::Cursor::lastX - Application::Get()->appSizes->hierarchySize.x;
+#else
+		return Input::Cursor::lastX;
+#endif
+	}
+
+	static void Cursor_SetX(float value) {
+		return Input::Cursor::SetX(value);
+	}
+
+	static float Cursor_GetY() {
+#ifdef EDITOR_MODE
+		return Input::Cursor::lastY - Application::Get()->appSizes->sceneImageStart.y - 35;
+#else
+		return Input::Cursor::lastY;
+#endif
+	}
+
+	static void Cursor_SetY(float value) {
+		return Input::Cursor::SetY(value);
+	}
 #pragma endregion Input
+
+#pragma region Screen
+	static void Screen_GetSize(glm::vec2* out) {
+		*out = Application::Get()->appSizes->sceneSize;
+	}
+#pragma endregion Screen
 
 #pragma region Entity
 	static MonoString* EntityGetName(uint64_t uuid) {
@@ -906,6 +936,53 @@ namespace Plaza {
 	}
 #pragma endregion Character Controller
 
+#pragma region Camera
+	struct PlazaMatrix4 {
+		float data[16];
+	};
+	static void Camera_GetProjectionMatrix(uint64_t uuid, glm::vec4* row0, glm::vec4* row1, glm::vec4* row2, glm::vec4* row3) {
+		auto it = Scene::GetActiveScene()->cameraComponents.find(uuid);
+		if (it != Scene::GetActiveScene()->cameraComponents.end()) {
+			glm::mat4 projectionMatrix = it->second.GetProjectionMatrix();
+
+			glm::vec4* rows[] = { row0, row1, row2, row3 };
+			for (int i = 0; i < 4; ++i) {
+				rows[i]->x = projectionMatrix[i].x;
+				rows[i]->y = projectionMatrix[i].y;
+				rows[i]->z = projectionMatrix[i].z;
+				rows[i]->w = projectionMatrix[i].w;
+
+			}
+
+			glm::mat4 inverseMat = glm::inverse(it->second.GetProjectionMatrix() * it->second.GetViewMatrix());
+
+			std::cout << "Internall Projection: \n";
+			for (int i = 0; i < 4; ++i) {
+				std::cout << inverseMat[i].x << "\n";
+				std::cout << inverseMat[i].y << "\n";
+				std::cout << inverseMat[i].z << "\n";
+				std::cout << inverseMat[i].w << "\n";
+			}
+			std::cout << "Internall End \n";
+		}
+	}
+
+	static void Camera_GetViewMatrix(uint64_t uuid, glm::vec4* row0, glm::vec4* row1, glm::vec4* row2, glm::vec4* row3) {
+		auto it = Scene::GetActiveScene()->cameraComponents.find(uuid);
+		if (it != Scene::GetActiveScene()->cameraComponents.end()) {
+			glm::mat4 viewMatrix = it->second.GetViewMatrix();
+
+			glm::vec4* rows[] = { row0, row1, row2, row3 };
+			for (int i = 0; i < 4; ++i) {
+				rows[i]->x = viewMatrix[i].x;
+				rows[i]->y = viewMatrix[i].y;
+				rows[i]->z = viewMatrix[i].z;
+				rows[i]->w = viewMatrix[i].w;
+			}
+		}
+	}
+#pragma endregion Camera
+
 #pragma region TextRenderer
 	static string TextRenderer_GetText(uint64_t uuid) {
 		if (Scene::GetActiveScene()->HasComponent<Drawing::UI::TextRenderer>(uuid)) {
@@ -1001,6 +1078,12 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::InputIsMouseDown", InputIsMouseDown);
 		mono_add_internal_call("Plaza.InternalCalls::GetMouseDelta", GetMouseDelta);
 		mono_add_internal_call("Plaza.InternalCalls::CursorHide", CursorHide);
+		mono_add_internal_call("Plaza.InternalCalls::Cursor_GetX", Cursor_GetX);
+		mono_add_internal_call("Plaza.InternalCalls::Cursor_SetX", Cursor_SetX);
+		mono_add_internal_call("Plaza.InternalCalls::Cursor_GetY", Cursor_GetY);
+		mono_add_internal_call("Plaza.InternalCalls::Cursor_SetY", Cursor_SetY);
+
+		mono_add_internal_call("Plaza.InternalCalls::Screen_GetSize", Screen_GetSize);
 
 		mono_add_internal_call("Plaza.InternalCalls::EntityGetName", EntityGetName);
 		mono_add_internal_call("Plaza.InternalCalls::EntitySetName", EntitySetName);
@@ -1061,6 +1144,9 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::Collider_AddShapeHeightFieldCall", Collider_AddShapeHeightFieldCall);
 
 		mono_add_internal_call("Plaza.InternalCalls::CharacterController_MoveCall", CharacterController_MoveCall);
+
+		mono_add_internal_call("Plaza.InternalCalls::Camera_GetProjectionMatrix", Camera_GetProjectionMatrix);
+		mono_add_internal_call("Plaza.InternalCalls::Camera_GetViewMatrix", Camera_GetViewMatrix);
 
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_GetText", TextRenderer_GetText);
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetText", TextRenderer_SetText);

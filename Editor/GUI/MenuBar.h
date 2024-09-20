@@ -5,8 +5,6 @@ namespace Plaza {
 		class Gui::MainMenuBar {
 		public:
 			static void Begin();
-
-
 		};
 	}
 }

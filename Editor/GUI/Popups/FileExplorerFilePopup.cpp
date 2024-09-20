@@ -15,19 +15,20 @@ namespace Plaza::Editor {
 			Editor::selectedFiles.emplace(file->directory, new File(*file));
 		}
 
-		if (ImGui::MenuItem("Open"))
-		{
+		if (ImGui::MenuItem("Open")) {
 			ShellExecuteA(NULL, "open", std::string("\"" + file->directory + "\"").c_str(), NULL, NULL, SW_SHOWDEFAULT);
 		}
 
-		if (ImGui::MenuItem("Rename"))
-		{
+		if (ImGui::MenuItem("Open in file explorer")) {
+			ShellExecuteA(NULL, "open", std::string("\"" + std::filesystem::path{ file->directory }.parent_path().string() + "\"").c_str(), NULL, NULL, SW_SHOWDEFAULT);
+		}
+
+		if (ImGui::MenuItem("Rename")) {
 			Editor::File::changingName = Editor::selectedFiles.begin()->second->name;
 			Editor::File::firstFocus = true;
 		}
 
-		if (ImGui::MenuItem("Delete"))
-		{
+		if (ImGui::MenuItem("Delete")) {
 			for (const auto& [key, value] : Editor::selectedFiles) {
 				Utils::Filesystem::DeleteFileF(value->directory);
 			}

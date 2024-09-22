@@ -515,6 +515,69 @@ namespace Plaza
                 return matrix;
             }
         }
+
+        public Matrix4 InverseMVP
+        {
+            get
+            {
+                InternalCalls.Camera_GetInverseMVP(this.Uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
+
+                Matrix4 matrix = new Matrix4();
+
+                Vector4[] rows = { row0, row1, row2, row3 };
+                for (int i = 0; i < 4; ++i)
+                {
+                    matrix.data[i, 0] = rows[i].X;
+                    matrix.data[i, 1] = rows[i].Y;
+                    matrix.data[i, 2] = rows[i].Z;
+                    matrix.data[i, 3] = rows[i].W;
+                }
+
+                return matrix;
+            }
+        }
+
+        public Matrix4 InverseProjection
+        {
+            get
+            {
+                InternalCalls.Camera_GetInverseProjection(this.Uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
+
+                Matrix4 matrix = new Matrix4();
+
+                Vector4[] rows = { row0, row1, row2, row3 };
+                for (int i = 0; i < 4; ++i)
+                {
+                    matrix.data[i, 0] = rows[i].X;
+                    matrix.data[i, 1] = rows[i].Y;
+                    matrix.data[i, 2] = rows[i].Z;
+                    matrix.data[i, 3] = rows[i].W;
+                }
+
+                return matrix;
+            }
+        }
+
+        public Matrix4 InverseView
+        {
+            get
+            {
+                InternalCalls.Camera_GetInverseView(this.Uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
+
+                Matrix4 matrix = new Matrix4();
+
+                Vector4[] rows = { row0, row1, row2, row3 };
+                for (int i = 0; i < 4; ++i)
+                {
+                    matrix.data[i, 0] = rows[i].X;
+                    matrix.data[i, 1] = rows[i].Y;
+                    matrix.data[i, 2] = rows[i].Z;
+                    matrix.data[i, 3] = rows[i].W;
+                }
+
+                return matrix;
+            }
+        }
     }
     #endregion Camera
 

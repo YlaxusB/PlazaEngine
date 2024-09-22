@@ -300,5 +300,10 @@ namespace Plaza {
 		this->mainSceneEntity = this->GetEntity(this->mainSceneEntityUuid);
 		this->mainSceneEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 
+		entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>();
+		entitiesNames.reserve(entities.size());
+		for (auto& [key, value] : entities) {
+			entitiesNames[value.name].insert(key);
+		}
 	}
 }

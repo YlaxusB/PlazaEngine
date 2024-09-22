@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using static Plaza.Physics;
+using System.Numerics;
 
 namespace Plaza
 {
@@ -44,7 +45,7 @@ namespace Plaza
         public extern static bool InputIsKeyDown(KeyCode keyCode);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static bool IsKeyReleased(KeyCode keyCode); 
+        public extern static bool IsKeyReleased(KeyCode keyCode);
 
 
 
@@ -135,7 +136,7 @@ namespace Plaza
         public extern static void GetRotationCall(UInt64 uuid, out Vector3 vector);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void SetRotationQuaternion(UInt64 uuid, ref Vector4 quaternion);
-        
+
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void GetRotationQuaternionCall(UInt64 uuid, out Vector4 quaternion);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -450,7 +451,8 @@ namespace Plaza
         public extern static void Collider_AddShape(UInt64 uuid, ColliderShapeEnum shape);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void Collider_AddShapeMeshCall(UInt64 uuid, ColliderShapeEnum shape, IntPtr vertices, int verticesSize, IntPtr indices, int indicesSize, IntPtr normals, int normalsSize, IntPtr uvs, int uvsSize);
-        public static void Collider_AddShapeMesh(UInt64 uuid, ColliderShapeEnum shape, Mesh mesh) {
+        public static void Collider_AddShapeMesh(UInt64 uuid, ColliderShapeEnum shape, Mesh mesh)
+        {
             int verticesSize = mesh.Vertices.Length;
             int indicesSize = mesh.Indices.Length;
             int normalsSize = mesh.Normals.Length;
@@ -534,7 +536,13 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void Camera_GetProjectionMatrix(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static void Camera_GetViewMatrix(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
+        public extern static void Camera_GetViewMatrix(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3); 
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Camera_GetInverseMVP(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3); 
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Camera_GetInverseView(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Camera_GetInverseProjection(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
         #endregion Camera
 
         #region TextRenderer

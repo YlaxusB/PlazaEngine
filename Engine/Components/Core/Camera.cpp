@@ -126,40 +126,28 @@ namespace Plaza {
 			front.y = sin(glm::radians(Pitch));
 			front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
 			Front = glm::normalize(front);
-			// also re-calculate the Right and Up vector
-			Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+			Right = glm::normalize(glm::cross(Front, WorldUp));
 			Up = glm::normalize(glm::cross(Right, Front));
 		}
 		else {
 			if (this->mUuid && Scene::GetActiveScene()->transformComponents.find(this->mUuid) != Scene::GetActiveScene()->transformComponents.end()) {
 				Transform* transform = &Scene::GetActiveScene()->transformComponents.at(this->mUuid);
-				glm::mat4 transformationMatrix = transform->modelMatrix; // Assuming you have a transformation matrix
+				glm::mat4 transformationMatrix = transform->modelMatrix;
 
-				glm::vec3 cubeFront = glm::normalize(glm::vec3(transformationMatrix[0])); // Negative Z-axis
+				/*
+				The first column (index [0]) represents the Right vector (X-axis).
+				The second column (index [1]) represents the Up vector (Y-axis).
+				The third column (index [2]) represents the negative Forward vector (Z-axis).
+				*/
+
+				glm::vec3 cubeRight = glm::normalize(glm::vec3(transformationMatrix[0])); // X-axis
 				glm::vec3 cubeUp = glm::normalize(glm::vec3(transformationMatrix[1])); // Y-axis
-				glm::vec3 cubeRight = glm::normalize(glm::vec3(transformationMatrix[2])); // X-axis
+				glm::vec3 cubeFront = glm::normalize(glm::vec3(transformationMatrix[2])); // Z-axis
 
+				Right = cubeRight;
 				Up = cubeUp;
 				Front = cubeFront;
-				Right = cubeRight;
-
-				//glm::vec3 upVector = glm::normalize(glm::vec3(transformationMatrix[1])); // The second column is the up vector
-				//glm::vec3 frontVector = -glm::normalize(glm::vec3(transformationMatrix[2])); // The third column is the negative forward vector
-				//glm::vec3 rightVector = glm::normalize(glm::vec3(transformationMatrix[0])); // The first column is the right vector
-
-				//Front = glm::normalize(frontVector);
-				//// also re-calculate the Right and Up vector
-				//Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
-				//Up = glm::normalize(glm::cross(Right, Front));
 			}
 		}
-		/*
-		if (!this->isEditorCamera && this->uuid && Application) {
-			if (Scene::GetActiveScene()->transformComponents.find(this->uuid) != Scene::GetActiveScene()->transformComponents.end()) {
-				Transform* transform = &Scene::GetActiveScene()->transformComponents.at(this->uuid);
-				transform->rotation = GetEulerAnglesIgnoreY();
-				transform->UpdateChildrenTransform();
-			}
-		}*/
 	};
 }

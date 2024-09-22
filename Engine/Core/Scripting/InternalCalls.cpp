@@ -981,6 +981,51 @@ namespace Plaza {
 			}
 		}
 	}
+
+	static void Camera_GetInverseMVP(uint64_t uuid, glm::vec4* row0, glm::vec4* row1, glm::vec4* row2, glm::vec4* row3) {
+		auto it = Scene::GetActiveScene()->cameraComponents.find(uuid);
+		if (it != Scene::GetActiveScene()->cameraComponents.end()) {
+			glm::mat4 matrix = glm::inverse(it->second.GetProjectionMatrix() * it->second.GetViewMatrix());
+
+			glm::vec4* rows[] = { row0, row1, row2, row3 };
+			for (int i = 0; i < 4; ++i) {
+				rows[i]->x = matrix[i].x;
+				rows[i]->y = matrix[i].y;
+				rows[i]->z = matrix[i].z;
+				rows[i]->w = matrix[i].w;
+			}
+		}
+	}
+	
+	static void Camera_GetInverseProjection(uint64_t uuid, glm::vec4* row0, glm::vec4* row1, glm::vec4* row2, glm::vec4* row3) {
+		auto it = Scene::GetActiveScene()->cameraComponents.find(uuid);
+		if (it != Scene::GetActiveScene()->cameraComponents.end()) {
+			glm::mat4 matrix = glm::inverse(it->second.GetProjectionMatrix());
+
+			glm::vec4* rows[] = { row0, row1, row2, row3 };
+			for (int i = 0; i < 4; ++i) {
+				rows[i]->x = matrix[i].x;
+				rows[i]->y = matrix[i].y;
+				rows[i]->z = matrix[i].z;
+				rows[i]->w = matrix[i].w;
+			}
+		}
+	}
+
+	static void Camera_GetInverseView(uint64_t uuid, glm::vec4* row0, glm::vec4* row1, glm::vec4* row2, glm::vec4* row3) {
+		auto it = Scene::GetActiveScene()->cameraComponents.find(uuid);
+		if (it != Scene::GetActiveScene()->cameraComponents.end()) {
+			glm::mat4 matrix = glm::inverse(it->second.GetViewMatrix());
+
+			glm::vec4* rows[] = { row0, row1, row2, row3 };
+			for (int i = 0; i < 4; ++i) {
+				rows[i]->x = matrix[i].x;
+				rows[i]->y = matrix[i].y;
+				rows[i]->z = matrix[i].z;
+				rows[i]->w = matrix[i].w;
+			}
+		}
+	}
 #pragma endregion Camera
 
 #pragma region TextRenderer
@@ -1147,6 +1192,9 @@ namespace Plaza {
 
 		mono_add_internal_call("Plaza.InternalCalls::Camera_GetProjectionMatrix", Camera_GetProjectionMatrix);
 		mono_add_internal_call("Plaza.InternalCalls::Camera_GetViewMatrix", Camera_GetViewMatrix);
+		mono_add_internal_call("Plaza.InternalCalls::Camera_GetInverseMVP", Camera_GetInverseMVP);
+		mono_add_internal_call("Plaza.InternalCalls::Camera_GetInverseProjection", Camera_GetInverseProjection);
+		mono_add_internal_call("Plaza.InternalCalls::Camera_GetInverseView", Camera_GetInverseView);
 
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_GetText", TextRenderer_GetText);
 		mono_add_internal_call("Plaza.InternalCalls::TextRenderer_SetText", TextRenderer_SetText);

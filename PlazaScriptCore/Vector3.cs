@@ -8,7 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Plaza
 {
-    public class Matrix4 : Mathf.vec
+    public class Matrix4
     {
         public float[,] data = new float[4, 4];
 
@@ -231,6 +231,30 @@ namespace Plaza
             return new Vector3(transformedVec.X, transformedVec.Y, transformedVec.Z);
         }
 
+        public static Vector4 TransformVector(Matrix4 matrix, Vector4 vector)
+        {
+            Vector4 result = matrix * vector;
+
+            if (Math.Abs(result.W) > float.Epsilon)
+            {
+                result /= result.W;
+            }
+
+            return result;
+        }
+
+        public static Vector4 TransformVector(Vector4 vector, Matrix4 matrix)
+        {
+            Vector4 result = matrix * vector;
+
+            if (Math.Abs(result.W) > float.Epsilon)
+            {
+                result /= result.W;
+            }
+
+            return result;
+        }
+
         public float Determinant()
         {
             // Compute the determinant using cofactor expansion along the first row
@@ -354,10 +378,33 @@ namespace Plaza
             return new Vector3(a.X / b, a.Y / b, a.Z / b);
         }
 
+        private static float CopySign(float sizeval, float signval)
+        {
+            return Math.Abs(sizeval) * Math.Sign(signval);
+        }
+
         public static Vector3 ToEulerAngles(Quaternion q)
         {
-            float yaw = (float)Math.Atan2(2.0f * (q.y * q.w + q.x * q.z), 1.0f - 2.0f * (q.y * q.y + q.z * q.z));
-            return new Vector3 { X = 0, Y = yaw, Z = 0 };
+            Vector3 angles = new Vector3();
+
+            // Roll (X-axis rotation)
+            float sinr_cosp = 2 * (q.w * q.x + q.y * q.z);
+            float cosr_cosp = 1 - 2 * (q.x * q.x + q.y * q.y);
+            angles.X = (float)Math.Atan2(sinr_cosp, cosr_cosp);
+
+            // Pitch (Y-axis rotation)
+            float sinp = 2 * (q.w * q.y - q.z * q.x);
+            if (Math.Abs(sinp) >= 1)
+                angles.Y = (float)CopySign((float)Math.PI / 2, sinp); // Use 90 degrees if out of range
+            else
+                angles.Y = (float)Math.Asin(sinp);
+
+            // Yaw (Z-axis rotation)
+            float siny_cosp = 2 * (q.w * q.z + q.x * q.y);
+            float cosy_cosp = 1 - 2 * (q.y * q.y + q.z * q.z);
+            angles.Z = (float)Math.Atan2(siny_cosp, cosy_cosp);
+
+            return angles;
         }
 
         public static Vector3 Cross(Vector3 v1, Vector3 v2)

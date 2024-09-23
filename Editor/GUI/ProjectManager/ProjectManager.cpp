@@ -36,7 +36,7 @@ namespace Plaza {
 
 					// Create the main project settings file
 					Gui::FileExplorer::currentDirectory = Application::Get()->activeProject->mAssetPath.parent_path().string();
-					AssetsSerializer::SerializeFile<Project>(*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string());
+					AssetsSerializer::SerializeFile<Project>(*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string(), Application::Get()->mSettings.mProjectSerializationMode);
 					//ProjectSerializer::Serialize(Application::Get()->activeProject->mAssetPath.parent_path().string() + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
 
 					// Create visual studio solution and project

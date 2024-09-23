@@ -58,7 +58,7 @@ namespace Plaza::Editor {
 
 			if (ImGui::Button("Apply")) {
 				material->mAssetName = std::filesystem::path{ file->directory }.stem().string();
-				AssetsSerializer::SerializeMaterial(material, file->directory);
+				AssetsSerializer::SerializeMaterial(material, file->directory, Application::Get()->mSettings.mMaterialSerializationMode);
 			}
 
 			lastFile = file;

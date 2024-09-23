@@ -91,7 +91,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Component>(this), scriptPath, mScriptUuid);
+			archive(cereal::base_class<Component>(this), PL_SER(scriptPath), PL_SER(mScriptUuid));
 		}
 	};
 }

@@ -14,7 +14,7 @@
 namespace Plaza {
 	void Scene::Copy(Scene* baseScene) {
 		*this = *baseScene;
-		mainSceneEntity = new Entity(*baseScene->mainSceneEntity);
+		mainSceneEntity = this->GetEntity(baseScene->mainSceneEntityUuid);
 		for (auto& gameObj : baseScene->entities) {
 			Entity* newObj = new Entity(gameObj.second);
 			const auto& it = baseScene->transformComponents.find(gameObj.second.uuid);

@@ -41,7 +41,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Component>(this), mPosition, mSourcePath, mSource, mLoop, mSpatial, mPitch, mGain);
+			archive(cereal::base_class<Component>(this), PL_SER(mPosition), PL_SER(mSourcePath), PL_SER(mSource), PL_SER(mLoop), PL_SER(mSpatial), PL_SER(mPitch), PL_SER(mGain));
 		}
 	};
 }

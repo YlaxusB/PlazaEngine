@@ -46,14 +46,8 @@ namespace Plaza {
 
 		return serializableEntity;
 	}
-	SerializablePrefab AssetsSerializer::SerializePrefab(Entity* entity, std::filesystem::path outPath) {
+	SerializablePrefab AssetsSerializer::SerializePrefab(Entity* entity, std::filesystem::path outPath, SerializationMode serializationMode) {
 		SerializablePrefab serializablePrefab{};
-
-		std::ofstream outfile(outPath.string(), std::ios::binary);
-		if (!outfile.is_open()) {
-			std::cerr << "Error opening file for writing!" << std::endl;
-			return serializablePrefab;
-		}
 
 		uint32_t entityCount = 0;
 
@@ -62,20 +56,8 @@ namespace Plaza {
 		serializablePrefab.entities.push_back(ConvertEntity(entity, entityCount, serializablePrefab.entities));
 		serializablePrefab.entitiesCount = entityCount;
 
-		std::ofstream os(outPath.string(), std::ios::binary);
-		cereal::BinaryOutputArchive archive(os);
-		archive(serializablePrefab);
-		os.close();
+		AssetsSerializer::SerializeFile<SerializablePrefab>(serializablePrefab, outPath.string(), serializationMode);
 
 		return serializablePrefab;
-
-		//{
-		//	Serp loadedPrefab;
-		//	std::ifstream is(outPath.string(), std::ios::binary);
-		//	cereal::BinaryInputArchive archive2(is);
-		//	archive2(loadedPrefab);
-		//	std::cout << loadedPrefab.data.assetUuid << "\n";
-		//}
-
 	}
 }

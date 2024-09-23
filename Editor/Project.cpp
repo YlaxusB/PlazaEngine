@@ -26,7 +26,7 @@ namespace Plaza::Editor {
 
 		Application::Get()->projectPath = projectFile.parent_path().string();
 
-		Application::Get()->activeProject = std::make_unique<Project>(*AssetsSerializer::DeSerializeFile<Project>(filePath));
+		Application::Get()->activeProject = std::make_unique<Project>(*AssetsSerializer::DeSerializeFile<Project>(filePath, Application::Get()->mSettings.mProjectSerializationMode));
 		Application::Get()->activeProject->mAssetPath = filePath;
 
 #ifdef EDITOR_MODE
@@ -86,7 +86,7 @@ namespace Plaza::Editor {
 			bool sceneFileExists = std::filesystem::exists(sceneFilePath);
 			if (sceneFileExists) {
 				Scene* scene = Scene::GetEditorScene();
-				Scene::SetEditorScene(AssetsSerializer::DeSerializeFile<Scene>(sceneFilePath));
+				Scene::SetEditorScene(AssetsSerializer::DeSerializeFile<Scene>(sceneFilePath, Application::Get()->mSettings.mSceneSerializationMode));
 				Scene::SetActiveScene(Scene::GetEditorScene());
 				Scene::GetActiveScene()->RecalculateAddedComponents();
 			}
@@ -96,9 +96,7 @@ namespace Plaza::Editor {
 		else {
 			Scene::ClearEditorScene();
 			Scene::SetActiveScene(Scene::GetEditorScene());
-			Scene::GetActiveScene()->mainSceneEntity = new Entity("Scene");
-			Scene::GetActiveScene()->mainSceneEntity->parentUuid = Scene::GetActiveScene()->mainSceneEntity->uuid;
-			Scene::GetActiveScene()->GetEntity(Scene::GetActiveScene()->mainSceneEntity->uuid)->parentUuid = Scene::GetActiveScene()->mainSceneEntity->uuid;
+			Scene::GetEditorScene()->InitMainEntity();
 		}
 		std::cout << "Finished Deserializing \n";
 	}

@@ -209,6 +209,7 @@ namespace Plaza {
 		}
 		Physics::InitPhysics();
 		Physics::InitScene();
+		Physics::InitDefaultGeometries();
 	}
 
 	void Physics::InitPhysics() {
@@ -236,12 +237,6 @@ namespace Plaza {
 		for (auto& [key, value] : Scene::GetRuntimeScene()->rigidBodyComponents) {
 			value.Update();
 		}
-
-		//for (auto& [key, value] : Application::Get()->runtimeScene->colliderComponents) {
-		//	if (Application::Get()->runtimeScene->rigidBodyComponents.find(key) == Application::Get()->runtimeScene->rigidBodyComponents.end()) {
-		//		value.Update();
-		//	}
-		//}
 	}
 
 	physx::PxTransform Physics::GetPxTransform(Transform& transform) {
@@ -256,17 +251,155 @@ namespace Plaza {
 	}
 
 	physx::PxTransform* Physics::ConvertMat4ToPxTransform(const glm::mat4& mat) {
-		// Extract translation from the glm::mat4
 		glm::vec3 translation = mat[3];
-
-		// Extract rotation quaternion from the upper-left 3x3 submatrix
 		glm::quat rotationQuaternion = glm::quat_cast(glm::mat3(mat));
-
-		// Create a physx::PxQuat from the rotation quaternion
 		physx::PxQuat pxQuaternion(rotationQuaternion.x, rotationQuaternion.y, rotationQuaternion.z, rotationQuaternion.w);
-
-		// Create a physx::PxTransform using the translation and quaternion
-
 		return new physx::PxTransform(physx::PxVec3(translation.x, translation.y, translation.z), pxQuaternion);
+	}
+
+	physx::PxShape* Physics::GetPhysXShape(ColliderShape* colliderShape, PhysicsMaterial* material) {
+		if (colliderShape->mPxShape != nullptr)
+			return colliderShape->mPxShape;
+
+		physx::PxGeometry* geometry = nullptr;
+		uint64_t meshUuid = 0;
+		bool foundCookedGeometry = sCookedGeometries.find(colliderShape->mMeshUuid) != sCookedGeometries.end();
+		Mesh* mesh = AssetsManager::GetMesh(colliderShape->mMeshUuid);
+		switch (colliderShape->mEnum) {
+		case ColliderShape::BOX:
+			meshUuid = 1;
+			geometry = Physics::GetCubeGeometry();
+			break;
+		case ColliderShape::PLANE:
+			meshUuid = 2;
+			geometry = Physics::GetPlaneGeometry();
+			break;
+		case ColliderShape::SPHERE:
+			meshUuid = 3;
+			geometry = Physics::GetSphereGeometry();
+			break;
+		case ColliderShape::CAPSULE:
+			meshUuid = 4;
+			geometry = Physics::GetCapsuleGeometry();
+			break;
+		case ColliderShape::MESH:
+			meshUuid = colliderShape->mMeshUuid;
+			geometry = foundCookedGeometry ? Physics::GetGeometry(colliderShape->mMeshUuid) : Physics::CookMeshGeometry(mesh);
+			break;
+		case ColliderShape::CONVEX_MESH:
+			meshUuid = colliderShape->mMeshUuid;
+			geometry = foundCookedGeometry ? Physics::GetGeometry(colliderShape->mMeshUuid) : Physics::CookConvexMeshGeometry(mesh);
+			break;
+		}
+
+		if (sShapes[meshUuid][*material] == nullptr) {
+			sShapes[meshUuid][*material] = Physics::m_physics->createShape(*geometry, *material->mPhysxMaterial);
+		}
+		return sShapes[meshUuid][*material];
+	}
+
+	physx::PxMaterial* Physics::InitializePhysicsMaterial(float staticFriction, float dynamicFriction, float restitution) {
+		return Physics::m_physics->createMaterial(staticFriction, dynamicFriction, restitution);
+	}
+
+	void Physics::InitDefaultGeometries() {
+		sCookedGeometries.emplace(1, new physx::PxBoxGeometry(0.5f, 0.5f, 0.5f));
+		sCookedGeometries.emplace(2, new physx::PxPlaneGeometry());
+		sCookedGeometries.emplace(3, new physx::PxSphereGeometry(1.0f));
+		sCookedGeometries.emplace(4, new physx::PxCapsuleGeometry(1.0f));
+	}
+
+	physx::PxGeometry* Physics::GetGeometry(uint64_t uuid) {
+		auto it = sCookedGeometries.find(uuid);
+		if (it != sCookedGeometries.end())
+			return it->second;
+		return nullptr;
+	}
+
+	physx::PxGeometry* Physics::GetCubeGeometry() {
+		return GetGeometry(1);
+	}
+
+	physx::PxGeometry* Physics::GetPlaneGeometry() {
+		return GetGeometry(2);
+	}
+
+	physx::PxGeometry* Physics::GetSphereGeometry() {
+		return GetGeometry(3);
+	}
+
+	physx::PxGeometry* Physics::GetCapsuleGeometry() {
+		return GetGeometry(4);
+	}
+
+	physx::PxGeometry* Physics::CookMeshGeometry(Mesh* mesh) {
+		physx::PxShape* shape;
+		physx::PxTriangleMeshGeometry triangleGeometry;
+		std::vector<physx::PxVec3> vertices = std::vector<physx::PxVec3>();
+		std::vector<physx::PxU32> indices = std::vector<physx::PxU32>();
+
+		// Extract vertices and indices from the mesh
+		vertices.resize(mesh->vertices.size());
+		std::transform(mesh->vertices.begin(), mesh->vertices.end(), vertices.begin(),
+			[](const glm::vec3& glmVertex) {
+				return physx::PxVec3(glmVertex.x, glmVertex.y, glmVertex.z);
+			}
+		);
+		indices.resize(mesh->indices.size());
+		indices = mesh->indices;
+
+		physx::PxTriangleMeshDesc meshDesc;
+
+		meshDesc.points.data = vertices.data();
+		meshDesc.points.count = static_cast<physx::PxU32>(vertices.size());
+		meshDesc.points.stride = sizeof(physx::PxVec3);
+		meshDesc.triangles.data = indices.data();
+		meshDesc.triangles.count = static_cast<physx::PxU32>(indices.size()) / 3;
+		meshDesc.triangles.stride = sizeof(physx::PxU32) * 3;
+		physx::PxCookingParams params(Physics::m_physics->getTolerancesScale());
+		params.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
+		params.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
+		//params.meshcook = physx::PxMeshCookingHint::eCOOKING_PERFORMANCE;
+
+		//params. = physx::PxMeshCookingHint::eSIM_PERFORMANCE;
+		physx::PxDefaultMemoryOutputStream buf;
+		if (!PxCookTriangleMesh(params, meshDesc, buf))
+			printf("failed");
+		physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+		physx::PxTriangleMesh* triangleMesh = Physics::m_physics->createTriangleMesh(input);
+		physx::PxTriangleMeshGeometry* geometry = new physx::PxTriangleMeshGeometry(triangleMesh);
+		sCookedGeometries.emplace(mesh->uuid, geometry);
+		return geometry;
+	}
+
+	physx::PxGeometry* Physics::CookConvexMeshGeometry(Mesh* mesh) {
+		physx::PxTriangleMeshGeometry triangleGeometry;
+		std::vector<physx::PxVec3> vertices;
+		for (const glm::vec3& vertex : mesh->vertices) {
+			vertices.push_back(physx::PxVec3(vertex.x, vertex.y, vertex.z));
+		}
+		physx::PxConvexMeshDesc meshDesc;
+		meshDesc.points.data = vertices.data();
+		meshDesc.points.count = static_cast<physx::PxU32>(vertices.size());
+		meshDesc.points.stride = sizeof(physx::PxVec3);
+		meshDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
+
+		physx::PxTolerancesScale scale;
+		physx::PxCookingParams params(scale);
+
+		physx::PxDefaultMemoryOutputStream buf;
+		physx::PxConvexMeshCookingResult::Enum result;
+		if (!PxCookConvexMesh(params, meshDesc, buf, &result))
+			PL_CORE_WARN("Convex Mesh Cooking failed!");
+		physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+		physx::PxConvexMesh* convexMesh = Physics::m_physics->createConvexMesh(input);
+		physx::PxConvexMeshGeometry* geometry = new physx::PxConvexMeshGeometry(convexMesh);
+		sCookedGeometries.emplace(mesh->uuid, geometry);
+
+		return geometry;
+	}
+
+	void Physics::DeleteShape() {
+
 	}
 }

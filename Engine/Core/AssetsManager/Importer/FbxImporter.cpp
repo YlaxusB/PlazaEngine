@@ -210,7 +210,7 @@ namespace Plaza {
 						}
 						material->flip = settings.mFlipTextures;
 						loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
-						AssetsSerializer::SerializeMaterial(material, materialOutPath);
+						AssetsSerializer::SerializeMaterial(material, materialOutPath, Application::Get()->mSettings.mMaterialSerializationMode);
 						AssetsManager::AddMaterial(material);
 						materials.push_back(material);
 					}

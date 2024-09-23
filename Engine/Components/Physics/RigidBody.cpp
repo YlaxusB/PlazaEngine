@@ -41,7 +41,7 @@ namespace Plaza {
 			if (Scene::GetActiveScene()->entities.at(child).HasComponent<Collider>() && !Scene::GetActiveScene()->entities.at(child).HasComponent<RigidBody>()) {
 				Collider* rigidBodyCollider = Scene::GetActiveScene()->entities.at(this->mUuid).GetComponent<Collider>();
 				Collider* collider = Scene::GetActiveScene()->entities.at(child).GetComponent<Collider>();
-				for (ColliderShape* colliderShape : collider->mShapes) {
+				for (auto& colliderShape : collider->mShapes) {
 					rigidBodyCollider->mShapes.push_back(colliderShape);
 				}
 				collider->RemoveActor();

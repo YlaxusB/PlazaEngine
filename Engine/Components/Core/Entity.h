@@ -121,7 +121,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(uuid, parentUuid, prefabUuid, equivalentPrefabUuid, childrenUuid, name);
+			archive(PL_SER(uuid), PL_SER(parentUuid), PL_SER(prefabUuid), PL_SER(equivalentPrefabUuid), PL_SER(childrenUuid), PL_SER(name));
 		}
 
 	private:

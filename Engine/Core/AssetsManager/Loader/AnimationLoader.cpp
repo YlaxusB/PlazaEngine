@@ -1,13 +1,8 @@
 #include "AssetsLoader.h"
 
 namespace Plaza {
-	Animation& AssetsLoader::LoadAnimation(Asset* asset, Scene* scene) {
-		std::ifstream is(asset->mAssetPath, std::ios::binary);
-		cereal::BinaryInputArchive archive(is);
-		Animation animation;
-		archive(animation);
-		is.close();
-
+	Animation& AssetsLoader::LoadAnimation(Asset* asset, SerializationMode serializationMode) {
+		Animation animation = *AssetsSerializer::DeSerializeFile<Animation>(asset->mAssetPath.string(), serializationMode).get();
 		return AssetsManager::AddAnimation(animation);
 	}
 }

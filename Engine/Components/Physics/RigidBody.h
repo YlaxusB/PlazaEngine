@@ -59,7 +59,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Component>(this), kinematic, dynamic, continuousDetection, mStaticFriction, mDynamicFriction, mRestitution, density, gravity);
+			archive(cereal::base_class<Component>(this), PL_SER(kinematic), PL_SER(dynamic), PL_SER(continuousDetection), PL_SER(mStaticFriction), PL_SER(mDynamicFriction), PL_SER(mRestitution), PL_SER(density), PL_SER(gravity));
 		}
 	private:
 

@@ -125,7 +125,8 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Component>(this), isEditorCamera, Position, Front, Up, Right, WorldUp, Yaw, Pitch, MovementSpeed, MovementSpeedTemporaryBoost, MouseSensitivity, Zoom, nearPlane, farPlane, aspectRatio);
+			archive(cereal::base_class<Component>(this), PL_SER(isEditorCamera), PL_SER(Position), PL_SER(Front), PL_SER(Up), PL_SER(Right), PL_SER(WorldUp),
+				PL_SER(Yaw), PL_SER(Pitch), PL_SER(MovementSpeed), PL_SER(MovementSpeedTemporaryBoost), PL_SER(MouseSensitivity), PL_SER(Zoom), PL_SER(nearPlane), PL_SER(farPlane), PL_SER(aspectRatio));
 		}
 	private:
 		// calculates the front vector from the Camera's (updated) Euler Angles

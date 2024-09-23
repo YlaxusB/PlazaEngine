@@ -59,7 +59,7 @@ namespace Plaza {
 
 	Collider::~Collider() {
 		if (mRigidActor) {
-			for (ColliderShape* shape : mShapes) {
+			for (auto& shape : mShapes) {
 				this->mRigidActor->detachShape(*shape->mPxShape);
 				if (shape->mPxShape->userData)
 					shape->mPxShape->release();
@@ -74,7 +74,7 @@ namespace Plaza {
 
 	void Collider::RemoveActor() {
 		if (this->mRigidActor) {
-			for (ColliderShape* shape : mShapes) {
+			for (auto& shape : mShapes) {
 				this->mRigidActor->detachShape(*shape->mPxShape);
 			}
 			Physics::m_scene->removeActor(*this->mRigidActor);
@@ -116,12 +116,11 @@ namespace Plaza {
 
 		this->mRigidActor->userData = reinterpret_cast<void*>(this->mUuid);
 		// Attach the shapes with the material to the actor
-		for (ColliderShape* shape : mShapes) {
-			//shape->mPxShape->setMaterials(&material, 1);
-			//physx::PxFilterData filterData;
-			//filterData.word0 = 0; // word0 = own ID
-			//filterData.word1 = 0;  // word1 = ID mask to filter pairs that trigger a contact callback
-			//shape->mPxShape->setSimulationFilterData(filterData);
+		for (auto& shape : mShapes) {
+			if (shape->mPxShape == nullptr) {
+				shape->mPxShape = Physics::GetPhysXShape(shape.get(), &Physics::GetDefaultPhysicsMaterial());
+			}
+
 			shape->mPxShape->userData = reinterpret_cast<void*>(this->mUuid);
 			this->mRigidActor->attachShape(*shape->mPxShape);
 		}
@@ -154,7 +153,7 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(physx::PxConvexMeshGeometry(convexMesh),
 			*Physics::defaultMaterial);
 
-		this->mShapes.push_back(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::CONVEX_MESH, mesh->meshId));
+		this->mShapes.push_back(std::make_shared<ColliderShape>(shape, ColliderShape::ColliderShapeEnum::CONVEX_MESH, mesh->meshId));
 		delete mesh;
 	}
 
@@ -215,7 +214,7 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(physx::PxTriangleMeshGeometry(triangleMesh),
 			*Physics::defaultMaterial);
 		auto end4 = std::chrono::high_resolution_clock::now();
-		this->mShapes.push_back(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::MESH, mesh->meshId));
+		this->mShapes.push_back(std::make_shared<ColliderShape>(shape, ColliderShape::ColliderShapeEnum::MESH, mesh->meshId));
 		auto end0 = std::chrono::high_resolution_clock::now();
 
 		std::cout << "Time taken by function 1: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " milliseconds" << std::endl;
@@ -303,7 +302,7 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(hfGeom,
 			*Physics::defaultMaterial, false);
 		shape->setLocalPose(localPose);
-		this->mShapes.push_back(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::HEIGHT_FIELD));
+		this->mShapes.push_back(std::make_shared<ColliderShape>(shape, ColliderShape::ColliderShapeEnum::HEIGHT_FIELD));
 		auto end0 = std::chrono::high_resolution_clock::now();
 		delete[] hfSamples;
 
@@ -341,7 +340,7 @@ namespace Plaza {
 	}
 
 	void Collider::AddShape(ColliderShape* shape) {
-		this->mShapes.push_back(shape);
+		this->mShapes.push_back(std::make_shared<ColliderShape>(*shape));
 		Init(nullptr);
 	}
 

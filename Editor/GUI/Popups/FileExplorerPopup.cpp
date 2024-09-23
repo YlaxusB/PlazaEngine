@@ -66,7 +66,7 @@ namespace Plaza::Editor {
 					AssetsManager::AddMaterial(material);
 					std::string path = Gui::FileExplorer::currentDirectory + "\\" + Editor::File::changingName;
 					AssetsManager::NewAsset<Material>(material->mAssetUuid, path);
-					AssetsSerializer::SerializeMaterial(material, path);
+					AssetsSerializer::SerializeMaterial(material, path, Application::Get()->mSettings.mMaterialSerializationMode);
 					//MaterialFileSerializer::Serialize(path, material);
 				}
 				ImGui::EndMenu();

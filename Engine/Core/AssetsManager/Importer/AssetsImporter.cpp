@@ -27,7 +27,7 @@ namespace Plaza {
 		case AssetExtension::OBJ:
 			if (settings.mImportModel) {
 				mainEntity = AssetsImporter::ImportOBJ(asset, std::filesystem::path{});
-				SerializablePrefab prefab = AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName });
+				SerializablePrefab prefab = AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName }, Application::Get()->mSettings.mModelSerializationMode);
 				Scene::GetActiveScene()->RemoveEntity(mainEntity->uuid);
 				Asset* asset = AssetsManager::NewAsset<Asset>(prefab.assetUuid, outPath + Standards::modelExtName);
 				AssetsLoader::LoadAsset(asset);
@@ -36,7 +36,7 @@ namespace Plaza {
 		case AssetExtension::FBX:
 			if (settings.mImportModel) {
 				mainEntity = AssetsImporter::ImportFBX(asset, std::filesystem::path{});
-				SerializablePrefab prefab = AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName });
+				SerializablePrefab prefab = AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName }, Application::Get()->mSettings.mModelSerializationMode);
 				Scene::GetActiveScene()->RemoveEntity(mainEntity->uuid);
 				Asset* asset = AssetsManager::NewAsset<Asset>(prefab.assetUuid, outPath + Standards::modelExtName);
 				AssetsLoader::LoadAsset(asset);
@@ -92,7 +92,7 @@ namespace Plaza {
 
 		for (Animation& animation : loadedAnimations) {
 			std::string animationOutPath = Editor::Utils::Filesystem::GetUnrepeatedPath(outFolder.string() + "\\" + animation.mAssetName + Standards::animationExtName);
-			AssetsSerializer::SerializeAnimation(animation, animationOutPath);
+			AssetsSerializer::SerializeAnimation(animation, animationOutPath, Application::Get()->mSettings.mAnimationSerializationMode);
 			AssetsManager::NewAsset<Animation>(AssetType::ANIMATION, animationOutPath);
 			AssetsManager::AddAnimation(animation);
 		}

@@ -62,7 +62,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Component>(this), relativePosition, rotation, scale);
+			archive(cereal::base_class<Component>(this), PL_SER(relativePosition), PL_SER(rotation), PL_SER(scale));
 		}
 	private:
 		/* Matrices calculation cache */

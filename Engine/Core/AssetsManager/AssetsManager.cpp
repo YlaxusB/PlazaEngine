@@ -4,6 +4,7 @@
 #include "Engine/Core/AssetsManager/Importer/AssetsImporter.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Engine/Core/AssetsManager/AssetsReader.h"
+#include "Engine/Core/Physics.h"
 
 namespace Plaza {
 	void AssetsManager::Init() {
@@ -72,7 +73,7 @@ namespace Plaza {
 
 		std::filesystem::path metaDataNewPath(newPath);
 		metaDataNewPath.replace_extension(Standards::metadataExtName);
-		std::shared_ptr<Metadata::MetadataStructure> metaData = AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(metaDataOldPath.string());
+		std::shared_ptr<Metadata::MetadataStructure> metaData = AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(metaDataOldPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode);
 
 		// Rename the non metadata file
 		std::filesystem::path contentOldPath(oldPath);
@@ -88,16 +89,16 @@ namespace Plaza {
 		std::filesystem::rename(metaDataOldPath, metaDataNewPath);
 		metaData->mAssetName = metaDataNewPath.filename().string();
 		metaData->mContentName = contentNewPath.filename().string();
-		AssetsSerializer::SerializeFile<Metadata::MetadataStructure>(*metaData.get(), metaDataNewPath.string());
+		AssetsSerializer::SerializeFile<Metadata::MetadataStructure>(*metaData.get(), metaDataNewPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode);
 	}
 
 	void AssetsManager::AfterRename(Asset* renamedAsset, std::string oldPath, std::string newPath) {
 		AssetType type = AssetsManager::GetExtensionType(renamedAsset->GetExtension());
 		switch (type) {
-		//case AssetType::SCRIPT:
-		//	AssetsManager::RemoveScript(renamedAsset->mAssetUuid);
-		//	AssetsManager::AddScript(static_cast<Script*>(renamedAsset));
-		//	break;
+			//case AssetType::SCRIPT:
+			//	AssetsManager::RemoveScript(renamedAsset->mAssetUuid);
+			//	AssetsManager::AddScript(static_cast<Script*>(renamedAsset));
+			//	break;
 		}
 	}
 
@@ -214,6 +215,20 @@ namespace Plaza {
 		if (materials.size() == 0)
 			return { AssetsManager::GetDefaultMaterial() };
 		return materials;
+	}
+
+	PhysicsMaterial& AssetsManager::GetPhysicsMaterial(PhysicsMaterial& other) {
+		auto it = mPhysicsMaterials.find(other);
+		return *it->second.get();
+	}
+	PhysicsMaterial& AssetsManager::GetPhysicsMaterial(float staticFriction, float dynamicFriction, float restitution) {
+		PhysicsMaterial material(staticFriction, dynamicFriction, restitution);
+		bool materialDoesntExists = mPhysicsMaterials.find(material) == mPhysicsMaterials.end();
+		if (materialDoesntExists) {
+			mPhysicsMaterials[material] = std::make_shared<PhysicsMaterial>(staticFriction, dynamicFriction, restitution);
+			mPhysicsMaterials[material]->mPhysxMaterial = Physics::InitializePhysicsMaterial(staticFriction, dynamicFriction, restitution);
+		}
+		return *mPhysicsMaterials.find(material)->second.get();
 	}
 
 	void AssetsManager::AddScript(Script* script) {

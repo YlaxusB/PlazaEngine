@@ -32,7 +32,7 @@ namespace Plaza::Drawing::UI {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Component>(this), mText, mPosX, mPosY, mScale, mColor);
+			archive(cereal::base_class<Component>(this), PL_SER(mText), PL_SER(mPosX), PL_SER(mPosY), PL_SER(mScale), PL_SER(mColor));
 		}
 	};
 

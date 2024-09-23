@@ -34,7 +34,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(mAssetUuid, mAssetName, mStartTime, mEndTime, mCurrentTime, mAnimationSpeed, mKeyframes, mRootBoneUuid);
+			archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(mStartTime), PL_SER(mEndTime), PL_SER(mCurrentTime), PL_SER(mAnimationSpeed), PL_SER(mKeyframes), PL_SER(mRootBoneUuid));
 		}
 
 		//template <class Archive>

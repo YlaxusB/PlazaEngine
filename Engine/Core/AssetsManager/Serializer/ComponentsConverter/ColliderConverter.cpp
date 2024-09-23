@@ -16,8 +16,8 @@ namespace Plaza {
 		serializedCollider->type = SerializableComponentType::COLLIDER;
 
 		serializedCollider->shapesCount = collider->mShapes.size();
-		for (ColliderShape* shape : collider->mShapes) {
-			serializedCollider->shapes.push_back(ConvertShape(shape));
+		for (auto& shape : collider->mShapes) {
+			serializedCollider->shapes.push_back(ConvertShape(shape.get()));
 		}
 
 		return serializedCollider;

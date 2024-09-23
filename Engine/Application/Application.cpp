@@ -63,6 +63,7 @@ namespace Plaza {
 #ifdef EDITOR_MODE
 		this->CheckEditorCache();
 #endif
+		this->SetDefaultSettings();
 		Scene::InitializeScenes();
 		mRenderer->Init();
 		Audio::Init();
@@ -90,6 +91,40 @@ namespace Plaza {
 		Application::Get()->appSizes->sceneSize = glm::vec2(width, height);
 #else
 
+#endif
+	}
+
+	/*
+	
+			SerializationMode mCommonSerializationMode = SerializationMode::SERIALIZE_JSON;
+		SerializationMode mMetaDataSerializationMode = SerializationMode::SERIALIZE_JSON;
+		SerializationMode mSceneSerializationMode = SerializationMode::SERIALIZE_JSON;
+		SerializationMode mProjectSerializationMode = SerializationMode::SERIALIZE_JSON;
+		SerializationMode mSettingsSerializationMode = SerializationMode::SERIALIZE_JSON;
+		SerializationMode mModelSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		SerializationMode mAnimationSerializationMode = SerializationMode::SERIALIZE_BINARY;
+	*/
+
+	void Application::SetDefaultSettings() {
+#ifdef EDITOR_MODE
+		mSettings.mCommonSerializationMode = SerializationMode::SERIALIZE_JSON;
+		mSettings.mMetaDataSerializationMode = SerializationMode::SERIALIZE_JSON;
+		mSettings.mSceneSerializationMode = SerializationMode::SERIALIZE_JSON;
+		mSettings.mProjectSerializationMode = SerializationMode::SERIALIZE_JSON;
+		mSettings.mSettingsSerializationMode = SerializationMode::SERIALIZE_JSON;
+		mSettings.mModelSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		mSettings.mAnimationSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		mSettings.mMaterialSerializationMode = SerializationMode::SERIALIZE_JSON;
+
+#elif GAME_MODE
+		mSettings.mCommonSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		mSettings.mMetaDataSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		mSettings.mSceneSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		mSettings.mProjectSerializationMode = SerializationMode::SERIALIZE_JSON;
+		mSettings.mSettingsSerializationMode = SerializationMode::SERIALIZE_JSON;
+		mSettings.mModelSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		mSettings.mAnimationSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		mSettings.mMaterialSerializationMode = SerializationMode::SERIALIZE_BINARY;
 #endif
 	}
 

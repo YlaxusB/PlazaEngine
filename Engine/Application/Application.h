@@ -21,6 +21,7 @@
 #include "Engine/Core/AssetsManager/AssetsManager.h"
 #include "Engine/Threads/ThreadManager.h"
 #include "Editor/Editor.h"
+#include "EngineSettings.h"
 
 namespace Plaza {
 	class Camera;
@@ -30,6 +31,7 @@ namespace Plaza {
 		void CreateApplication();
 		void GetPaths();
 		void GetAppSize();
+		void SetDefaultSettings();
 		void CheckEditorCache();
 		void LoadProject();
 
@@ -39,6 +41,7 @@ namespace Plaza {
 		void Loop();
 		void Terminate();
 
+		EngineSettings mSettings = EngineSettings();
 		AssetsManager* mAssetsManager;
 		Renderer* mRenderer = nullptr;
 		RendererAPI mRendererAPI;

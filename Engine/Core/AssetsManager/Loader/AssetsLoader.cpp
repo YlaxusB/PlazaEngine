@@ -14,35 +14,24 @@ namespace Plaza {
 		if (asset->GetExtension() == Standards::modelExtName)
 			AssetsLoader::LoadPrefab(asset);
 		else if (asset->GetExtension() == Standards::materialExtName)
-			AssetsLoader::LoadMaterial(asset);
+			AssetsLoader::LoadMaterial(asset, Application::Get()->mSettings.mCommonSerializationMode);
 		else if (asset->GetExtension() == Standards::animationExtName)
-			AssetsLoader::LoadAnimation(asset);
+			AssetsLoader::LoadAnimation(asset, Application::Get()->mSettings.mAnimationSerializationMode);
 	}
 
-	std::shared_ptr<Scene> AssetsLoader::LoadScene(Asset* asset) {
-		std::ifstream is(asset->mAssetPath, std::ios::binary);
-		cereal::BinaryInputArchive archive(is);
-		std::shared_ptr<Scene> scene = std::make_shared<Scene>();;
-		archive(*scene.get());
-		is.close();
-		scene->mAssetPath = asset->mAssetPath;
-
+	std::shared_ptr<Scene> AssetsLoader::LoadScene(Asset* asset, SerializationMode serializationMode) {
+		std::shared_ptr<Scene> scene = AssetsSerializer::DeSerializeFile<Scene>(asset->mAssetPath.string(), serializationMode);
 		Scene::GetEditorScene()->Copy(scene.get());
-
 		return scene;
 	}
 
-	SerializablePrefab DeserializePrefab(std::string path) {
+	SerializablePrefab DeserializePrefab(std::string path, SerializationMode serializationMode) {
 		SerializablePrefab prefab{};
 
-		Serp loadedPrefab;
-		std::ifstream is(path, std::ios::binary);
-		cereal::BinaryInputArchive archive(is);
-		archive(loadedPrefab);
-		prefab = loadedPrefab.data;
-		std::cout << loadedPrefab.data.assetUuid << "\n";
-		is.close();
-		prefab = loadedPrefab.data;
+		Serp* loadedPrefab = AssetsSerializer::DeSerializeFile<Serp>(path, serializationMode).get();
+
+		prefab = loadedPrefab->data;
+		prefab = loadedPrefab->data;
 
 		return prefab;
 	}
@@ -87,7 +76,7 @@ namespace Plaza {
 	void AssetsLoader::LoadPrefabToMemory(Asset* asset) {
 		if (!asset)
 			return;
-		SerializablePrefab deserializedPrefab = DeserializePrefab(asset->mAssetPath.string());
+		SerializablePrefab deserializedPrefab = DeserializePrefab(asset->mAssetPath.string(), Application::Get()->mSettings.mModelSerializationMode);
 
 		for (const SerializableEntity& deserializedEntity : deserializedPrefab.entities) {
 			for (const std::shared_ptr<SerializableComponents> component : deserializedEntity.components) {

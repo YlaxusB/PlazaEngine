@@ -37,6 +37,7 @@
 #include "ThirdParty/mono/include/mono/metadata/assembly.h"
 #include <ThirdParty/cereal/cereal/archives/binary.hpp>
 #include <ThirdParty/cereal/cereal/types/polymorphic.hpp>
+#define PL_SER(T) CEREAL_NVP(T)
 
 
 #include <iostream>

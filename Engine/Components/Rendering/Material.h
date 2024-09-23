@@ -58,7 +58,7 @@ namespace Plaza {
 			uint64_t heightUuid = height->mAssetUuid;
 			uint64_t aoUuid = aoMap->mAssetUuid;
 
-			archive(mAssetUuid, mAssetName, diffuseUuid, normalUuid, metalnessUuid, roughnessUuid, heightUuid, aoUuid, flip);
+			archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(diffuseUuid), PL_SER(normalUuid), PL_SER(metalnessUuid), PL_SER(roughnessUuid), PL_SER(heightUuid), PL_SER(aoUuid), PL_SER(flip));
 
 			if constexpr (Archive::is_loading::value) {
 				mDeserializedTexturesUuid = { diffuseUuid, normalUuid, metalnessUuid, roughnessUuid, heightUuid, aoUuid };

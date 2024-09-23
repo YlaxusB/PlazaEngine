@@ -105,7 +105,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(mAssetUuid, rgba, mIntensity);
+			archive(PL_SER(mAssetUuid), PL_SER(rgba), PL_SER(mIntensity));
 		}
 
 		void SetTextureInfo(TextureInfo textureInfo) {

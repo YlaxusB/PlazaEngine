@@ -142,7 +142,7 @@ namespace Plaza {
 
 					if (loadedMaterials.find(materialOutPath) == loadedMaterials.end()) {
 						loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
-						AssetsSerializer::SerializeMaterial(material, materialOutPath);
+						AssetsSerializer::SerializeMaterial(material, materialOutPath, Application::Get()->mSettings.mMaterialSerializationMode);
 						AssetsManager::AddMaterial(material);
 					}
 					else

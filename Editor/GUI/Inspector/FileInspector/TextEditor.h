@@ -1,6 +1,5 @@
 #pragma once
 #include "Engine/Core/PreCompiledHeaders.h"
-#include "Engine/Components/Core/Model.h"
 #include "Editor/GUI/Utils/Utils.h"
 
 namespace Plaza::Editor {

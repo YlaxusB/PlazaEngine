@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "DefaultModels.h"
+#include "Engine/Core/Physics.h"
 namespace Plaza::Editor {
 
      vector<Mesh*> DefaultModels::meshes = vector<Mesh*>();
@@ -13,6 +14,8 @@ namespace Plaza::Editor {
           InitSphere();
           InitPlane();
           InitCylinder();
+
+          Physics::InitDefaultGeometries();
           //Material defaultMaterial = Material();
           //defaultMaterial.albedo.rgba = glm::vec4(1.0f);
           //defaultMaterial.diffuse.rgba = glm::vec4(1.0f);

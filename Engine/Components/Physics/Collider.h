@@ -18,16 +18,22 @@ namespace Plaza {
 			HEIGHT_FIELD
 		};
 
+		ColliderShape() {};
 		ColliderShape(physx::PxShape* shape, ColliderShapeEnum newEnum = ColliderShapeEnum::BOX, uint64_t meshUuid = 0) : mPxShape(shape), mEnum(newEnum), mMeshUuid(meshUuid) {}
-		physx::PxShape* mPxShape;
-		ColliderShapeEnum mEnum;
-		uint64_t mMeshUuid;
+		physx::PxShape* mPxShape = nullptr;
+		ColliderShapeEnum mEnum = ColliderShapeEnum::BOX;
+		uint64_t mMeshUuid = 0;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(mEnum), PL_SER(mMeshUuid));
+		}
 	};
 	class Collider : public Component {
 	public:
 		glm::vec3 lastScale = glm::vec3(1.0f);
 		Collider() {};
-		vector<ColliderShape*> mShapes;
+		std::vector<std::shared_ptr<ColliderShape>> mShapes = std::vector<std::shared_ptr<ColliderShape>>();
 		physx::PxRigidActor* mRigidActor = nullptr;
 		physx::PxRigidBody* mStaticPxRigidBody = nullptr;
 		physx::PxRigidBody* pxRigidBody = nullptr;
@@ -63,7 +69,9 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Component>(this), mDynamic);
+			archive(cereal::base_class<Component>(this), mDynamic, mShapes);
+
+			//			archive(cereal::base_class<Component>(this), CEREAL_NVP(mDynamic), cereal::make_optional(CEREAL_NVP(mShapes)));
 		}
 	};
 }

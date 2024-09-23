@@ -18,7 +18,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(mAssetUuid, mAssetName);
+			archive(PL_SER(mAssetUuid), PL_SER(mAssetName));
 		}
 
 	};

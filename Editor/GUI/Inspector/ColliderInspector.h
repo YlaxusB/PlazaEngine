@@ -42,7 +42,7 @@ namespace Plaza::Editor {
 					ImGui::OpenPopup("AddShapeContexMenu"); // Open the popup when the button is clicked
 				}
 
-				for (ColliderShape* shape : collider->mShapes) {
+				for (auto& shape : collider->mShapes) {
 					ImGui::Text("Shape");
 				}
 
@@ -63,7 +63,7 @@ namespace Plaza::Editor {
 						transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
 						pxQuaternion);
 
-					physx::PxMaterial* defaultMaterial = Physics::m_physics->createMaterial(0.0f, 0.0f, 0.5f);
+					physx::PxMaterial* defaultMaterial = Physics::defaultMaterial;
 					if (ImGui::MenuItem("Box"))
 					{
 						physx::PxBoxGeometry geometry(transform.scale.x / 2.1, transform.scale.y / 2.1, transform.scale.z / 2.1);

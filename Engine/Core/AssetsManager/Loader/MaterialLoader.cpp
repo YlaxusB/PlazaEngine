@@ -1,14 +1,8 @@
 #include "AssetsLoader.h"
 
 namespace Plaza {
-	Material* AssetsLoader::LoadMaterial(Asset* asset, Scene* scene) {
-		std::ifstream is(asset->mAssetPath, std::ios::binary);
-		cereal::BinaryInputArchive archive(is);
-		Material deserializedMaterial;
-		archive(deserializedMaterial);
-		is.close();
-
-		Material* material = new Material(deserializedMaterial);
+	Material* AssetsLoader::LoadMaterial(Asset* asset, SerializationMode serializationMode) {
+		Material* material = new Material(*AssetsSerializer::DeSerializeFile<Material>(asset->mAssetPath.string(), serializationMode).get());
 		AssetsManager::AddMaterial(material);
 		return material;
 	}

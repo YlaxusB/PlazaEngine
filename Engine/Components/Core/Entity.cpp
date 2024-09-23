@@ -268,12 +268,12 @@ namespace Plaza {
 			newCollider->mShapes.clear();
 			newCollider->mUuid = instantiatedEntity->uuid;
 			newCollider->mRigidActor = nullptr;
-			for (ColliderShape* shape : colliderIt->second.mShapes) {
+			for (auto& shape : colliderIt->second.mShapes) {
 				physx::PxGeometryHolder geometry = shape->mPxShape->getGeometry();
 				physx::PxMaterial* shapeMaterial = Physics::defaultMaterial;
 				// Create a new shape with the same properties
 				physx::PxShape* newShape = Physics::m_physics->createShape(geometry.triangleMesh(), *shapeMaterial, false);
-				newCollider->mShapes.push_back(new ColliderShape(newShape, shape->mEnum, shape->mMeshUuid));
+				newCollider->mShapes.push_back(std::make_shared<ColliderShape>(newShape, shape->mEnum, shape->mMeshUuid));
 			}
 			instantiatedEntity->AddComponent<Collider>(newCollider);//->Init(nullptr);
 			Scene::GetActiveScene()->colliderComponents.find(instantiatedEntity->uuid)->second.Init(nullptr);

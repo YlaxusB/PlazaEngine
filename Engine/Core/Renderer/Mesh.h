@@ -72,7 +72,7 @@ namespace Plaza {
 
 			template <class Archive>
 			void serialize(Archive& archive) {
-				archive(time, position, orientation, scale);
+				archive(PL_SER(time), PL_SER(position), PL_SER(orientation), PL_SER(scale));
 			}
 		};
 
@@ -142,7 +142,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(mId, mName, weight, mPosition, mRotation, mScale, mOffset, mParentId, mChildren);
+			archive(PL_SER(mId), PL_SER(mName), PL_SER(weight), PL_SER(mPosition), PL_SER(mRotation), PL_SER(mScale), PL_SER(mOffset), PL_SER(mParentId), PL_SER(mChildren));
 		}
 
 	private:
@@ -199,7 +199,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(mBones, mWeights);
+			archive(PL_SER(mBones), PL_SER(mWeights));
 		}
 	};
 
@@ -281,7 +281,8 @@ namespace Plaza {
 		void serialize(Archive& archive) {
 			verticesCount = vertices.size();
 			indicesCount = indices.size();
-			archive(uuid, meshId, mImportedMesh, id, meshName, modelUuid, vertices, verticesCount, indices, indicesCount, normals, uvs, tangent, materialsIndices, bonesHolder, uniqueBonesInfo);
+			archive(PL_SER(uuid), PL_SER(meshId), PL_SER(mImportedMesh), PL_SER(id), PL_SER(meshName), PL_SER(modelUuid), PL_SER(vertices),
+			 PL_SER(verticesCount), PL_SER(indices), PL_SER(indicesCount), PL_SER(normals), PL_SER(uvs), PL_SER(tangent), PL_SER(materialsIndices), PL_SER(bonesHolder), PL_SER(uniqueBonesInfo));
 		}
 	};
 }

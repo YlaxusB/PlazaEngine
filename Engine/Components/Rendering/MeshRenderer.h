@@ -138,7 +138,7 @@ namespace Plaza {
 			if (mesh)
 				mMeshUuid = mesh->uuid;
 			UpdateMaterialsUuids();
-			archive(cereal::base_class<Component>(this), castShadows, mMeshUuid, mMaterialsUuids);
+			archive(cereal::base_class<Component>(this), PL_SER(castShadows), PL_SER(mMeshUuid), PL_SER(mMaterialsUuids));
 		}
 		uint64_t mMeshUuid = 0;
 		std::vector<uint64_t> mMaterialsUuids = std::vector<uint64_t>();

@@ -6,7 +6,6 @@
 #include "Engine/Core/UUID.h"
 #include "ThirdParty/glad/glad.h"
 
-
 namespace Plaza {
 	class Entity;
 	class Component {
@@ -20,7 +19,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(mUuid);
+			archive(PL_SER(mUuid));
 		}
 	};
 }

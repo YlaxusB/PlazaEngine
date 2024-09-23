@@ -9,7 +9,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Component>(this), color, radius, cutoff, intensity);
+			archive(cereal::base_class<Component>(this), PL_SER(color), PL_SER(radius), PL_SER(cutoff), PL_SER(intensity));
 		}
 	};
 }

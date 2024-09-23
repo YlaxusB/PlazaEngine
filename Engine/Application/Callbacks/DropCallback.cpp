@@ -14,17 +14,10 @@ void Plaza::Callbacks::dropCallback(GLFWwindow* window, int count, const char** 
 		std::string fileName = filesystem::path{ paths[i] }.stem().string();
 
 		std::string path = paths[i];
-		if (fileExtension == Standards::metadataExtName)
-			path = Metadata::DeSerializeMetadata(paths[i]).mAssetPath.string();
 
 		if (AssetsLoader::mSupportedLoadFormats.find(fileExtension) != AssetsLoader::mSupportedLoadFormats.end())
 			AssetsLoader::LoadAsset(AssetsManager::GetAsset(std::filesystem::path{ path }));
 		else
 			Application::Get()->mEditor->mGui.mAssetsImporter.OpenAssetsImporter(path, "");
-		//AssetsImporter::ImportAsset(path);
-
-	//ModelLoader::LoadModelToGame(paths[i], fileName);
-	//Editor::ModelImporter::ImportModel(Gui::FileExplorer::currentDirectory, fileName, fileExtension, paths[i]);
-		//}
 	}
 }

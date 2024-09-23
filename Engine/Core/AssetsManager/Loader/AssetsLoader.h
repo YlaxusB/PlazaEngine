@@ -24,8 +24,7 @@ namespace Plaza {
 
 		static void LoadAsset(Asset* asset);
 		static void LoadMetadata(Asset* asset) {
-			//Asset metadataContent = Metadata::DeSerializeMetadata(asset->mAssetPath.string());
-			Metadata::MetadataStructure metadata = *AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(asset->mAssetPath.string()).get();
+			Metadata::MetadataStructure metadata = *AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(asset->mAssetPath.string(), Application::Get()->mSettings.mCommonSerializationMode).get();
 			std::string metadataContentExtension = std::filesystem::path{ asset->mAssetPath.parent_path().string() + "\\" + metadata.mContentName }.extension().string();
 			bool metadataContentExtensionIsSupported = AssetsManager::mAssetTypeByExtension.find(metadataContentExtension) != AssetsManager::mAssetTypeByExtension.end();
 			if (!metadataContentExtensionIsSupported)
@@ -41,7 +40,7 @@ namespace Plaza {
 				break;
 			}
 		}
-		static std::shared_ptr<Scene> LoadScene(Asset* asset);
+		static std::shared_ptr<Scene> LoadScene(Asset* asset, SerializationMode serializationMode);
 		static void LoadPrefab(Asset* asset);
 		static void LoadPrefabToMemory(Asset* asset);
 		static void LoadPrefabToScene(LoadedModel* model, bool loadToScene);
@@ -59,8 +58,8 @@ namespace Plaza {
 			AssetsManager::mTextures.emplace(asset->mAssetUuid, texture);
 			return texture;
 		}
-		static Material* LoadMaterial(Asset* asset, Scene* scene = nullptr);
+		static Material* LoadMaterial(Asset* asset, SerializationMode serializationMode);
 		static void LoadModel(Asset* asset) {};
-		static Animation& LoadAnimation(Asset* asset, Scene* scene = nullptr);
+		static Animation& LoadAnimation(Asset* asset, SerializationMode serializationMode);
 	};
 }

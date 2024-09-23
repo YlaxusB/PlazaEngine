@@ -7,6 +7,7 @@
 #include "Engine/Components/Rendering/AnimationComponent.h"
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 #include "Asset.h"
+#include "Engine/Components/Physics/PhysicsMaterial.h"
 
 namespace Plaza {
 	class AssetsListStructure : public std::unordered_map<uint64_t, Asset*> {
@@ -29,6 +30,7 @@ namespace Plaza {
 		static inline std::unordered_map<uint64_t, Texture*> mTextures = std::unordered_map<uint64_t, Texture*>();
 		static inline std::unordered_map<uint64_t, shared_ptr<Material>> mMaterials = std::unordered_map<uint64_t, shared_ptr<Material>>();
 		static inline std::unordered_map<std::string, uint64_t> mMaterialsNames = std::unordered_map<std::string, uint64_t>();
+		static inline std::unordered_map<PhysicsMaterial, std::shared_ptr<PhysicsMaterial>> mPhysicsMaterials = std::unordered_map<PhysicsMaterial, std::shared_ptr<PhysicsMaterial>>();
 		static inline std::unordered_map<uint64_t, LoadedModel*> mLoadedModels = std::unordered_map<uint64_t, LoadedModel*>();
 		static inline std::unordered_map<uint64_t, Mesh*> mLoadedMeshes = std::unordered_map<uint64_t, Mesh*>();
 		static inline std::unordered_map<uint64_t, Animation> mLoadedAnimations = std::unordered_map<uint64_t, Animation>();
@@ -92,6 +94,9 @@ namespace Plaza {
 		static Material* GetDefaultMaterial();
 		static Material* GetMaterial(uint64_t uuid);
 		static std::vector<Material*> GetMaterialsVector(std::vector<uint64_t>& uuids);
+
+		static PhysicsMaterial& GetPhysicsMaterial(PhysicsMaterial& other);
+		static PhysicsMaterial& GetPhysicsMaterial(float staticFriction, float dynamicFriction, float restitution);
 
 		static void AddScript(Script* script);
 		static Script* GetScript(uint64_t uuid);

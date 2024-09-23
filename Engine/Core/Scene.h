@@ -194,6 +194,12 @@ namespace Plaza {
 		Scene();
 		Scene(Scene& other) = default;
 
+		void InitMainEntity() {
+			mainSceneEntity = new Entity("Scene");
+			mainSceneEntityUuid = mainSceneEntity->uuid;
+			mainSceneEntity->parentUuid = Scene::GetActiveScene()->mainSceneEntity->uuid;
+		};
+
 		void RecalculateAddedComponents();
 
 		//unordered_map<uint64_t, Transform*> meshRenderersComponents;
@@ -244,9 +250,9 @@ namespace Plaza {
 		void serialize(Archive& archive) {
 			if (mainSceneEntity)
 				mainSceneEntityUuid = mainSceneEntity->uuid;
-			archive(mAssetUuid, mAssetName, entities, transformComponents, cameraComponents, meshRendererComponents,
-				rigidBodyComponents, colliderComponents, csScriptComponents, UITextRendererComponents, audioSourceComponents,
-				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents, mainSceneEntityUuid);
+			archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(entities), PL_SER(transformComponents), PL_SER(cameraComponents), PL_SER(meshRendererComponents),
+				PL_SER(rigidBodyComponents), PL_SER(colliderComponents), PL_SER(csScriptComponents), PL_SER(UITextRendererComponents), PL_SER(audioSourceComponents),
+				PL_SER(audioListenerComponents), PL_SER(lightComponents), PL_SER(characterControllerComponents), PL_SER(animationComponentComponents), PL_SER(mainSceneEntityUuid));
 
 			if (!mainSceneEntity)
 				mainSceneEntity = &entities.at(mainSceneEntityUuid);

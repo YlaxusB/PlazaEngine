@@ -62,7 +62,7 @@ namespace Plaza {
 	}
 
 	void Scene::NewRuntimeScene(Scene* baseScene) {
-		
+
 	}
 
 	Scene::Scene() {
@@ -82,7 +82,7 @@ namespace Plaza {
 		//mainSceneEntity->parentUuid = mainSceneEntity->uuid;
 		//mainSceneEntityUuid = mainSceneEntity->uuid;
 
-		 Scene::SetActiveScene(oldActiveScene);
+		Scene::SetActiveScene(oldActiveScene);
 	}
 
 	void Scene::RemoveMeshRenderer(uint64_t uuid) {
@@ -292,10 +292,14 @@ namespace Plaza {
 			}
 		}
 		for (auto& [key, value] : meshRendererComponents) {
-			if(value.mesh)
-			value.mMeshUuid = value.mesh->uuid;
+			if (value.mesh)
+				value.mMeshUuid = value.mesh->uuid;
 			value.mesh = AssetsManager::GetMesh(value.mMeshUuid);
-			value.renderGroup = this->AddRenderGroup(AssetsManager::GetMesh(value.mMeshUuid), AssetsManager::GetMaterialsVector(value.mMaterialsUuids));
+			if (value.mMaterialsUuids.size() == 0)
+				value.mMaterials = { AssetsManager::GetDefaultMaterial() };
+			else
+				value.mMaterials = AssetsManager::GetMaterialsVector(value.mMaterialsUuids);
+			value.renderGroup = this->AddRenderGroup(AssetsManager::GetMesh(value.mMeshUuid), value.mMaterials);
 		}
 		this->mainSceneEntity = this->GetEntity(this->mainSceneEntityUuid);
 		this->mainSceneEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();

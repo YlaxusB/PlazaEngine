@@ -107,10 +107,14 @@ namespace Plaza {
 
 		void ChangeParent(Entity* oldParent, Entity* newParent) {
 			this->parentUuid = newParent->uuid;
-			auto oldParentIt = std::find(oldParent->childrenUuid.begin(), oldParent->childrenUuid.end(), this->uuid);
+			if (oldParent) {
+				auto oldParentIt = std::find(oldParent->childrenUuid.begin(), oldParent->childrenUuid.end(), this->uuid);
+				if (oldParentIt != oldParent->childrenUuid.end()) {
+					oldParent->childrenUuid.erase(oldParentIt);
+				}
+			}
 			auto newParentIt = std::find(newParent->childrenUuid.begin(), newParent->childrenUuid.end(), this->uuid);
-			if (oldParentIt != oldParent->childrenUuid.end() && newParentIt == newParent->childrenUuid.end()) {
-				oldParent->childrenUuid.erase(oldParentIt);
+			if (newParentIt == newParent->childrenUuid.end()) {	
 				newParent->childrenUuid.push_back(this->uuid);
 			}
 		}

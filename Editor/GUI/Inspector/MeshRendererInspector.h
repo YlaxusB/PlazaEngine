@@ -22,16 +22,20 @@ namespace Plaza::Editor {
 					for (Material* material : meshRenderer->mMaterials) {
 						ImGui::PushID(material->mAssetUuid);
 						std::string treeNodeName = std::to_string(index) + ": " + material->mAssetName;
-						index++;
 						bool treeNodeOpen = ImGui::TreeNode(treeNodeName.c_str());
 						ImGui::SameLine();
 						if (ImGui::Button("Change Material")) {
 							sMaterialsSearch->SetOpen(true);
-							sMaterialsSearch->mCallback = [&](uint64_t uuid) {
-								meshRenderer->ChangeMaterial(AssetsManager::mMaterials.at(uuid).get());
+							sMaterialsSearch->mCallback = [&, index](uint64_t uuid) {
+								meshRenderer->ChangeMaterial(AssetsManager::mMaterials.at(uuid).get(), index);
 								};
 						}
+						ImGui::SameLine();
+						if (ImGui::Button("Remove Button")) {
+							meshRenderer->mMaterials.erase(meshRenderer->mMaterials.begin() + index);
+						}
 
+						index++;
 						if (treeNodeOpen) {
 							if (AssetsManager::GetAsset(material->mAssetUuid) == nullptr) {
 								ImGui::TreePop();
@@ -44,6 +48,13 @@ namespace Plaza::Editor {
 							ImGui::TreePop();
 						}
 						ImGui::PopID();
+					}
+
+					if (ImGui::Button("Add Material")) {
+						sMaterialsSearch->SetOpen(true);
+						sMaterialsSearch->mCallback = [&](uint64_t uuid) {
+							meshRenderer->mMaterials.push_back(AssetsManager::mMaterials.at(uuid).get());
+							};
 					}
 					ImGui::TreePop();
 				}

@@ -28,7 +28,7 @@ namespace Plaza {
 	SerializablePrefab DeserializePrefab(std::string path, SerializationMode serializationMode) {
 		SerializablePrefab prefab{};
 
-		Serp* loadedPrefab = AssetsSerializer::DeSerializeFile<Serp>(path, serializationMode).get();
+		std::shared_ptr<Serp> loadedPrefab = AssetsSerializer::DeSerializeFile<Serp>(path, serializationMode);
 
 		prefab = loadedPrefab->data;
 		prefab = loadedPrefab->data;

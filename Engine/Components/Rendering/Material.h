@@ -10,12 +10,12 @@ namespace Plaza {
 	struct Material : public Asset {
 	public:
 		unsigned int mIndexHandle = -1;
-		Texture* diffuse = new Texture(glm::vec4(1.0f), 1.0f);
-		Texture* normal = new Texture(glm::vec4(1.0f), 1.0f);
-		Texture* metalness = new Texture(glm::vec4(1.0f), 0.35f);
-		Texture* roughness = new Texture(glm::vec4(1.0f), 1.0f);
-		Texture* height = new Texture(glm::vec4(1.0f), 1.0f);
-		Texture* aoMap = new Texture(glm::vec4(1.0f), 1.0f);
+		std::shared_ptr<Texture> diffuse = std::make_shared<Texture>(glm::vec4(1.0f), 1.0f);
+		std::shared_ptr<Texture> normal = std::make_shared<Texture>(glm::vec4(1.0f), 1.0f);
+		std::shared_ptr<Texture> metalness = std::make_shared<Texture>(glm::vec4(1.0f), 0.35f);
+		std::shared_ptr<Texture> roughness = std::make_shared<Texture>(glm::vec4(1.0f), 1.0f);
+		std::shared_ptr<Texture> height = std::make_shared<Texture>(glm::vec4(1.0f), 1.0f);
+		std::shared_ptr<Texture> aoMap = std::make_shared<Texture>(glm::vec4(1.0f), 1.0f);
 		glm::vec2 flip = glm::vec2(1.0f);
 
 		void LoadTextures(std::string relativePath = "") {
@@ -58,9 +58,15 @@ namespace Plaza {
 			uint64_t heightUuid = height->mAssetUuid;
 			uint64_t aoUuid = aoMap->mAssetUuid;
 
-			archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(diffuseUuid), PL_SER(normalUuid), PL_SER(metalnessUuid), PL_SER(roughnessUuid), PL_SER(heightUuid), PL_SER(aoUuid), PL_SER(flip));
+			archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(diffuse), PL_SER(normal), PL_SER(metalness), PL_SER(roughness), PL_SER(height), PL_SER(aoMap), PL_SER(flip));
 
 			if constexpr (Archive::is_loading::value) {
+				uint64_t diffuseUuid = diffuse->mAssetUuid;
+				uint64_t normalUuid = normal->mAssetUuid;
+				uint64_t metalnessUuid = metalness->mAssetUuid;
+				uint64_t roughnessUuid = roughness->mAssetUuid;
+				uint64_t heightUuid = height->mAssetUuid;
+				uint64_t aoUuid = aoMap->mAssetUuid;
 				mDeserializedTexturesUuid = { diffuseUuid, normalUuid, metalnessUuid, roughnessUuid, heightUuid, aoUuid };
 			}
 		}

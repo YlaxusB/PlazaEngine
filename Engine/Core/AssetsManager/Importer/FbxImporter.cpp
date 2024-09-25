@@ -82,16 +82,16 @@ namespace Plaza {
 		}
 
 		if (ufbxMaterial->features.pbr.enabled) {
-			material->diffuse = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->pbr.base_color, materialFolderPath, loadedTextures);
-			material->normal = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->pbr.normal_map, materialFolderPath, loadedTextures);
-			material->roughness = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->pbr.roughness, materialFolderPath, loadedTextures);
-			material->metalness = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->pbr.metalness, materialFolderPath, loadedTextures);
+			material->diffuse = std::shared_ptr<Texture>(ConvertUFBXTextureToPlazaTexture(ufbxMaterial->pbr.base_color, materialFolderPath, loadedTextures));
+			material->normal = std::shared_ptr<Texture>(ConvertUFBXTextureToPlazaTexture(ufbxMaterial->pbr.normal_map, materialFolderPath, loadedTextures));
+			material->roughness = std::shared_ptr<Texture>(ConvertUFBXTextureToPlazaTexture(ufbxMaterial->pbr.roughness, materialFolderPath, loadedTextures));
+			material->metalness = std::shared_ptr<Texture>(ConvertUFBXTextureToPlazaTexture(ufbxMaterial->pbr.metalness, materialFolderPath, loadedTextures));
 		}
 		else {
-			material->diffuse = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->fbx.diffuse_color, materialFolderPath, loadedTextures);
-			material->normal = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->fbx.normal_map, materialFolderPath, loadedTextures);
-			material->roughness = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->fbx.specular_color, materialFolderPath, loadedTextures);
-			material->metalness = ConvertUFBXTextureToPlazaTexture(ufbxMaterial->fbx.reflection_color, materialFolderPath, loadedTextures);
+			material->diffuse = std::shared_ptr<Texture>(ConvertUFBXTextureToPlazaTexture(ufbxMaterial->fbx.diffuse_color, materialFolderPath, loadedTextures));
+			material->normal = std::shared_ptr<Texture>(ConvertUFBXTextureToPlazaTexture(ufbxMaterial->fbx.normal_map, materialFolderPath, loadedTextures));
+			material->roughness = std::shared_ptr<Texture>(ConvertUFBXTextureToPlazaTexture(ufbxMaterial->fbx.specular_color, materialFolderPath, loadedTextures));
+			material->metalness = std::shared_ptr<Texture>(ConvertUFBXTextureToPlazaTexture(ufbxMaterial->fbx.reflection_color, materialFolderPath, loadedTextures));
 		}
 
 		if (material->diffuse == nullptr || material->normal == nullptr || material->roughness == nullptr || material->metalness == nullptr)

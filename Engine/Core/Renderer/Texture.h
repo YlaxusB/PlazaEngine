@@ -56,8 +56,6 @@ namespace Plaza {
 		glm::vec3 mResolution = glm::vec3(1, 1, 1);
 		uint8_t mMipCount = 1;
 
-		std::vector<PlImageLayout> mFutureLayouts = std::vector<PlImageLayout>();
-
 		Texture() {
 			this->SetTextureInfo(TextureInfo{});
 		}
@@ -118,7 +116,7 @@ namespace Plaza {
 
 	public:
 		/* Static */
-		static TextureInfo* CreateTextureInfo(TextureInfo info) {
+		static TextureInfo* CreateTextureInfo(TextureInfo& info) {
 			if (!Texture::HasTextureInfo(info))
 				mTexturesInfo.emplace(info);
 			return Texture::GetTextureInfo(info);

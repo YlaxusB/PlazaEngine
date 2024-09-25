@@ -188,6 +188,8 @@ namespace Plaza {
 		static Material* material = nullptr;
 		if (material == nullptr) {
 			material = new Material();
+			material->mAssetName = "Default Material";
+			material->mAssetUuid = 0;
 			AssetsManager::AddMaterial(material);
 		}
 		return material;

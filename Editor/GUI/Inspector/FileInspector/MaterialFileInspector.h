@@ -13,13 +13,13 @@ namespace Plaza::Editor {
 		static Material* material;
 		static File* lastFile;
 
-		Texture* LoadTextureButton(std::string outDirectory = "") {
+		std::shared_ptr<Texture> LoadTextureButton(std::string outDirectory = "") {
 			Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"), {}, outDirectory);
 
 			if (asset)
-				return Application::Get()->mRenderer->LoadTexture(asset->mAssetPath.string(), asset->mAssetUuid);
+				return std::shared_ptr<Texture>(Application::Get()->mRenderer->LoadTexture(asset->mAssetPath.string(), asset->mAssetUuid));
 			else
-				return AssetsManager::mTextures.find(1)->second;
+				return std::shared_ptr<Texture>(AssetsManager::mTextures.find(1)->second);
 		}
 
 		MaterialFileInspector(File* file) {
@@ -41,15 +41,15 @@ namespace Plaza::Editor {
 			ImGui::Text(file->directory.c_str());
 
 			ImGui::BeginTable("MaterialFileInspectorTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
-			if (Utils::AddTableTexture("Diffuse: ", material->diffuse, ImGuiSliderFlags_None))
+			if (Utils::AddTableTexture("Diffuse: ", material->diffuse.get(), ImGuiSliderFlags_None))
 				material->diffuse = LoadTextureButton(std::filesystem::path{ material->mAssetPath }.parent_path().string());
-			if (Utils::AddTableTexture("Normal: ", material->normal, ImGuiSliderFlags_None))
+			if (Utils::AddTableTexture("Normal: ", material->normal.get(), ImGuiSliderFlags_None))
 				material->normal = LoadTextureButton(std::filesystem::path{ material->mAssetPath }.parent_path().string());
-			if (Utils::AddTableTexture("Roughness: ", material->roughness, ImGuiSliderFlags_None))
+			if (Utils::AddTableTexture("Roughness: ", material->roughness.get(), ImGuiSliderFlags_None))
 				material->roughness = LoadTextureButton(std::filesystem::path{ material->mAssetPath }.parent_path().string());
-			if (Utils::AddTableTexture("Metalness: ", material->metalness, ImGuiSliderFlags_None))
+			if (Utils::AddTableTexture("Metalness: ", material->metalness.get(), ImGuiSliderFlags_None))
 				material->metalness = LoadTextureButton(std::filesystem::path{ material->mAssetPath }.parent_path().string());
-			if (Utils::AddTableTexture("Height: ", material->height, ImGuiSliderFlags_None))
+			if (Utils::AddTableTexture("Height: ", material->height.get(), ImGuiSliderFlags_None))
 				material->height = LoadTextureButton(std::filesystem::path{ material->mAssetPath }.parent_path().string());
 			ImGui::EndTable();
 

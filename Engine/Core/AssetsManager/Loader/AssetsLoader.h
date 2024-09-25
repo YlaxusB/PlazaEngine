@@ -50,8 +50,8 @@ namespace Plaza {
 		static Texture* LoadTexture(Asset* asset) {
 			if (!asset)
 				return new Texture();
-			if (AssetsManager::mTextures.find(asset->mAssetUuid) != AssetsManager::mTextures.end())
-				return AssetsManager::mTextures.at(asset->mAssetUuid);
+			if (AssetsManager::GetTexture(asset->mAssetUuid) != nullptr)
+				return AssetsManager::GetTexture(asset->mAssetUuid);
 
 			Texture* texture = Application::Get()->mRenderer->LoadTexture(asset->mAssetPath.string());
 			texture->mAssetUuid = asset->mAssetUuid;

@@ -72,11 +72,11 @@ namespace Plaza {
 		this->RegisterMaps();
 
 
-		Material* defaultMaterial = new Material();
-		defaultMaterial->mAssetUuid = 0;
-		defaultMaterial->mAssetName = "Default Material";
-		defaultMaterial->mAssetUuid = 0;
-		AssetsManager::AddMaterial(defaultMaterial);
+		//Material* defaultMaterial = new Material();
+		//defaultMaterial->mAssetUuid = 0;
+		//defaultMaterial->mAssetName = "Default Material";
+		//defaultMaterial->mAssetUuid = 0;
+		//AssetsManager::AddMaterial(defaultMaterial);
 
 		//mainSceneEntity = new Entity("Scene");
 		//mainSceneEntity->parentUuid = mainSceneEntity->uuid;

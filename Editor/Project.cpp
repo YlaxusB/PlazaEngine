@@ -67,13 +67,13 @@ namespace Plaza::Editor {
 				continue;
 			value->GetDeserializedTextures();
 			if (value->diffuse->mAssetUuid)
-				value->diffuse = AssetsManager::GetTexture(value->diffuse->mAssetUuid);
+				value->diffuse = std::shared_ptr<Texture>(AssetsManager::GetTexture(value->diffuse->mAssetUuid));
 			if (value->normal->mAssetUuid)
-				value->normal = AssetsManager::GetTexture(value->normal->mAssetUuid);
+				value->normal = std::shared_ptr<Texture>(AssetsManager::GetTexture(value->normal->mAssetUuid));
 			if (value->roughness->mAssetUuid)
-				value->roughness = AssetsManager::GetTexture(value->roughness->mAssetUuid);
+				value->roughness = std::shared_ptr<Texture>(AssetsManager::GetTexture(value->roughness->mAssetUuid));
 			if (value->metalness->mAssetUuid)
-				value->metalness = AssetsManager::GetTexture(value->metalness->mAssetUuid);
+				value->metalness = std::shared_ptr<Texture>(AssetsManager::GetTexture(value->metalness->mAssetUuid));
 		}
 
 		std::cout << "Deserializing \n";

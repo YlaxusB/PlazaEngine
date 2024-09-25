@@ -290,6 +290,12 @@ namespace Plaza {
 			sActiveScene = scene;
 		}
 		static void NewRuntimeScene(Scene* baseScene);
+
+		static void Terminate() {
+			sActiveScene = nullptr;
+			sEditorScene.reset();
+			sRuntimeScene.reset();
+		}
 	private:
 		static inline std::shared_ptr<Scene> sEditorScene = nullptr;
 		static inline std::shared_ptr<Scene> sRuntimeScene = nullptr;

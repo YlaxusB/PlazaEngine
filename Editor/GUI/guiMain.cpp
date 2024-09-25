@@ -492,7 +492,7 @@ namespace Plaza {
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f)); // Remove the padding of the window
 			//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
 			ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.inspectorSize));
-			ImGui::Begin("Inspector", &Gui::isInspectorOpen, sceneWindowFlags);
+			bool visibleInspector = ImGui::Begin("Inspector", &Gui::isInspectorOpen, sceneWindowFlags);
 			if (ImGui::IsWindowFocused())
 				Application::Get()->focusedMenu = "Inspector";
 			if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem))
@@ -508,10 +508,10 @@ namespace Plaza {
 			//	//ImGui::SetWindowPos(ImVec2(appSizes.appSize.x - appSizes.inspectorSize.x, 0));
 			//}
 
-			if (Editor::selectedFiles.size() > 0) {
+			if (visibleInspector && Editor::selectedFiles.size() > 0) {
 				Editor::Inspector::FileInspector::CreateInspector();
 			}
-			else if (selectedGameObject) {
+			else if (visibleInspector && selectedGameObject) {
 				if (selectedGameObject->parentUuid)
 					Inspector::ComponentInspector::UpdateComponents();
 				Editor::Inspector::ComponentInspector::CreateInspector();

@@ -263,6 +263,7 @@ namespace Plaza {
 
 	void Application::Terminate() {
 		PL_CORE_INFO("Terminate");
+		Scene::Terminate();
 #ifdef EDITOR_MODE
 		Gui::Delete();
 #endif // !GAME_REL

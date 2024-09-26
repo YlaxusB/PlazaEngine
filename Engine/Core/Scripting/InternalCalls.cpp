@@ -198,21 +198,19 @@ namespace Plaza {
 	}
 
 	static void CursorHide(bool val) {
-		Editor::Filewatcher::AddToMainThread([val]() {
-			if (val && glfwGetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_HIDDEN) {
-				glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-			}
-			else if (!val && glfwGetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_NORMAL)
-				glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			double currentX;
-			double currentY;
-			glfwGetCursorPos(Application::Get()->mWindow->glfwWindow, &currentX, &currentY);
-			Input::Cursor::deltaX = 0;
-			Input::Cursor::deltaY = 0;
-			Input::Cursor::lastX = currentX;
-			Input::Cursor::lastY = currentY;
-			Input::Cursor::show = !val;
-			});
+		if (val && glfwGetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_HIDDEN) {
+			glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+		else if (!val && glfwGetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR) != GLFW_CURSOR_NORMAL)
+			glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		double currentX;
+		double currentY;
+		glfwGetCursorPos(Application::Get()->mWindow->glfwWindow, &currentX, &currentY);
+		Input::Cursor::deltaX = 0;
+		Input::Cursor::deltaY = 0;
+		Input::Cursor::lastX = currentX;
+		Input::Cursor::lastY = currentY;
+		Input::Cursor::show = !val;
 
 	}
 
@@ -256,12 +254,10 @@ namespace Plaza {
 	}
 	static void EntitySetName(uint64_t uuid, MonoString* name) {
 		std::string nameStr = mono_string_to_utf8(name);
-		Editor::Filewatcher::AddToMainThread([uuid, nameStr]() {
-			auto it = Scene::GetActiveScene()->entities.find(uuid);
-			if (it != Scene::GetActiveScene()->entities.end()) {
-				it->second.Rename(nameStr);
-			}
-			});
+		auto it = Scene::GetActiveScene()->entities.find(uuid);
+		if (it != Scene::GetActiveScene()->entities.end()) {
+			it->second.Rename(nameStr);
+		}
 	}
 	static uint64_t EntityGetParent(uint64_t uuid) {
 		auto it = Scene::GetActiveScene()->entities.find(uuid);
@@ -292,13 +288,10 @@ namespace Plaza {
 
 	static void EntityDelete(uint64_t uuid) {
 		if (uuid) {
-			Editor::Filewatcher::AddToMainThread([uuid]() {
-
-				auto it = Scene::GetActiveScene()->entities.find(uuid); // Find the iterator for the key
-				if (it != Scene::GetActiveScene()->entities.end()) {
-					Scene::GetActiveScene()->entities.at(uuid).Delete();
-				}
-				});
+			auto it = Scene::GetActiveScene()->entities.find(uuid); // Find the iterator for the key
+			if (it != Scene::GetActiveScene()->entities.end()) {
+				Scene::GetActiveScene()->entities.at(uuid).Delete();
+			}
 		}
 	}
 #pragma endregion Entity
@@ -865,15 +858,12 @@ namespace Plaza {
 	static void Collider_AddShape(uint64_t uuid, ColliderShape::ColliderShapeEnum shape) {
 		auto it = Scene::GetActiveScene()->colliderComponents.find(uuid);
 		if (it != Scene::GetActiveScene()->colliderComponents.end()) {
-			Editor::Filewatcher::AddToMainThread([it, uuid, shape]() {
-
-				if ((shape == ColliderShape::ColliderShapeEnum::CONVEX_MESH || shape == ColliderShape::ColliderShapeEnum::MESH) && Scene::GetActiveScene()->HasComponent<MeshRenderer>(uuid)) {
-					it->second.CreateShape(shape, &Scene::GetActiveScene()->transformComponents.at(uuid), Scene::GetActiveScene()->meshRendererComponents.at(uuid).mesh);
-				}
-				else
-					it->second.CreateShape(shape, &Scene::GetActiveScene()->transformComponents.at(uuid));
-				it->second.Init(nullptr);
-				});
+			if ((shape == ColliderShape::ColliderShapeEnum::CONVEX_MESH || shape == ColliderShape::ColliderShapeEnum::MESH) && Scene::GetActiveScene()->HasComponent<MeshRenderer>(uuid)) {
+				it->second.CreateShape(shape, &Scene::GetActiveScene()->transformComponents.at(uuid), Scene::GetActiveScene()->meshRendererComponents.at(uuid).mesh);
+			}
+			else
+				it->second.CreateShape(shape, &Scene::GetActiveScene()->transformComponents.at(uuid));
+			it->second.Init(nullptr);
 		}
 	}
 
@@ -901,9 +891,7 @@ namespace Plaza {
 
 
 			it->second.CreateShape(shape, &Scene::GetActiveScene()->transformComponents.at(uuid), newMesh);
-			Editor::Filewatcher::AddToMainThread([uuid]() {
-				Scene::GetActiveScene()->colliderComponents.find(uuid)->second.Init(nullptr);
-				});
+			Scene::GetActiveScene()->colliderComponents.find(uuid)->second.Init(nullptr);
 		}
 	}
 	static void Collider_AddShapeHeightFieldCall(uint64_t uuid, ColliderShape::ColliderShapeEnum shape, MonoArray* floatArray, int size) {
@@ -996,7 +984,7 @@ namespace Plaza {
 			}
 		}
 	}
-	
+
 	static void Camera_GetInverseProjection(uint64_t uuid, glm::vec4* row0, glm::vec4* row1, glm::vec4* row2, glm::vec4* row3) {
 		auto it = Scene::GetActiveScene()->cameraComponents.find(uuid);
 		if (it != Scene::GetActiveScene()->cameraComponents.end()) {

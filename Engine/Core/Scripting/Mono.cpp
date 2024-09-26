@@ -221,6 +221,7 @@ namespace Plaza {
 	void Mono::Init() {
 		mono_set_assemblies_path(Application::Get()->projectPath.c_str());
 		//mono_set_assemblies_path((Application::Get()->editorPath + "/lib/mono").c_str());
+
 		if (Mono::mMonoRootDomain == nullptr)
 			Mono::mMonoRootDomain = mono_jit_init("MyScriptRuntime");
 		if (Mono::mMonoRootDomain == nullptr)
@@ -228,6 +229,7 @@ namespace Plaza {
 			// Maybe log some error here
 			return;
 		}
+
 		// Create an App Domain
 		char appDomainName[] = "PlazaAppDomain";
 		Mono::mAppDomain = mono_domain_create_appdomain(appDomainName, nullptr);
@@ -238,6 +240,13 @@ namespace Plaza {
 		Application::Get()->dllPath = Application::Get()->projectPath + "\\Binaries";
 #endif // GAME_REL
 
+#ifdef EDITOR_MODE
+		std::string engineDllPath = std::filesystem::path{ Application::Get()->enginePath }.parent_path().string() + "\\PlazaScriptCore\\obj\\Release\\PlazaScriptCore.dll";
+		bool foundDllInEngineFolder = std::filesystem::exists(engineDllPath);
+		if (foundDllInEngineFolder) {
+			std::filesystem::copy_file(engineDllPath, Application::Get()->projectPath + "\\Binaries\\PlazaScriptCore.dll", std::filesystem::copy_options::update_existing);
+		}
+#endif
 
 		mCoreAssembly = mono_domain_assembly_open(mAppDomain, (Application::Get()->dllPath + "\\PlazaScriptCore.dll").c_str());
 		mCoreImage = mono_image_open((Application::Get()->dllPath + "\\PlazaScriptCore.dll").c_str(), nullptr);

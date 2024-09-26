@@ -10,6 +10,7 @@
 #include "Engine/Core/Physics.h"
 #include <mutex>
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
+#include "ThirdParty/mono/include/mono/metadata/mono-debug.h"
 
 namespace Plaza {
 	void Scene::Copy(Scene* baseScene) {
@@ -118,6 +119,7 @@ namespace Plaza {
 		char appDomainName[] = "PlazaAppDomain";
 		MonoDomain* newDomain = mono_domain_create_appdomain(appDomainName, nullptr);
 		mono_domain_set(newDomain, true);
+
 		Mono::ReloadAppDomain();
 		Mono::mAppDomain = newDomain;
 
@@ -178,6 +180,7 @@ namespace Plaza {
 				}
 			}
 		}
+
 	}
 
 	void Scene::Stop() {

@@ -133,7 +133,7 @@ namespace Plaza
             return script as T;
         }
 
-        public Entity FindEntityByName(string name)
+        public static Entity FindEntityByName(string name)
         {
             ulong entityUuid = InternalCalls.FindEntityByNameCall(name);
             if (entityUuid == 0)
@@ -141,7 +141,7 @@ namespace Plaza
             return new Entity(entityUuid);
         }
 
-        public Entity Instantiate(Entity otherEntity)
+        public static Entity Instantiate(Entity otherEntity)
         {
             return new Entity(InternalCalls.Instantiate(otherEntity.Uuid));
         }

@@ -257,7 +257,7 @@ namespace Plaza {
 		}
 		void Compile() {
 			for (auto& pass : mOrderedPasses) {
-				PL_CORE_INFO("Rendering Pass" + pass->mName);
+				PL_CORE_INFO("Compiling Pass: " + pass->mName);
 				pass->Compile(this);
 			}
 		}

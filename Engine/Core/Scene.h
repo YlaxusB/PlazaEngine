@@ -256,6 +256,7 @@ namespace Plaza {
 
 			if (!mainSceneEntity)
 				mainSceneEntity = &entities.at(mainSceneEntityUuid);
+
 			/*
 						archive(mAssetUuid, entities, transformComponents, cameraComponents, meshRendererComponents,
 				rigidBodyComponents, colliderComponents, csScriptComponents, UITextRendererComponents, audioSourceComponents,

@@ -13,5 +13,8 @@ namespace Plaza {
 			AssetsSerializer::SerializeFile<Material>(*static_cast<Material*>(AssetsManager::GetMaterial(asset->mAssetUuid)), asset->mAssetPath.string(), Application::Get()->mSettings.mMaterialSerializationMode);
 		else if (asset->GetExtension() == Standards::animationExtName)
 			AssetsSerializer::SerializeFile<Animation>(*static_cast<Animation*>(AssetsManager::GetAnimation(asset->mAssetUuid)), asset->mAssetPath.string(), Application::Get()->mSettings.mAnimationSerializationMode);
+		else if (asset->GetExtension() == Standards::sceneExtName)
+			AssetsSerializer::SerializeFile<Scene>(*static_cast<Scene*>(asset), asset->mAssetPath.string(), Application::Get()->mSettings.mSceneSerializationMode);
+
 	}
 }

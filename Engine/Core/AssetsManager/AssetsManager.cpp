@@ -54,6 +54,12 @@ namespace Plaza {
 		return AssetTypeContainsMetaData(GetExtensionType(asset->GetExtension()));
 	}
 
+	std::filesystem::path AssetsManager::GetAssetMetaDataPath(std::filesystem::path assetPath) {
+		std::filesystem::path path = assetPath;
+		path.replace_extension(Standards::metadataExtName);
+		return path;
+	}
+
 	void AssetsManager::RenameAsset(Asset* asset, std::string oldPath, std::string newPath) {
 		asset->mAssetName = std::filesystem::path{ newPath }.filename().string();
 		auto it = AssetsManager::mAssetsUuidByPath.find(oldPath);
@@ -310,6 +316,7 @@ namespace Plaza {
 	}
 
 	void AssetsManager::ReadFolderContent(std::string path, bool readSubFolders) {
+		PL_CORE_INFO("Reading at path: " + path);
 		for (auto entry = filesystem::recursive_directory_iterator(path, filesystem::directory_options::skip_permission_denied); entry != filesystem::end(entry); ++entry) {
 			if (entry->is_directory() && entry->path().filename().string().ends_with(".ignore")) {
 				entry.disable_recursion_pending();

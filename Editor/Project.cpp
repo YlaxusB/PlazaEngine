@@ -60,6 +60,7 @@ namespace Plaza::Editor {
 		//	AssetsReader::ReadAssetAtPath(entry->path());
 		//}
 
+		PL_CORE_INFO("Load materials textures");
 		uint64_t defaultMaterialUuid = AssetsManager::GetDefaultMaterial()->mAssetUuid;
 		for (auto& [key, value] : AssetsManager::mMaterials) {
 			//Application::Get()->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"))->mPath.string())

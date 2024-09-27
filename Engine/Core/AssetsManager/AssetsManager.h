@@ -45,6 +45,7 @@ namespace Plaza {
 
 		static bool AssetTypeContainsMetaData(AssetType assetType);
 		static bool AssetContainsMetaData(Asset* asset);
+		static std::filesystem::path GetAssetMetaDataPath(std::filesystem::path assetPath);
 
 		static void RenameAsset(Asset* asset, std::string oldPath, std::string newPath);
 		static void RenameMetaData(Asset* asset, std::string oldPath, std::string newPath);

@@ -77,9 +77,28 @@ namespace Plaza {
 					for (auto [key, asset] : AssetsManager::mAssets) {
 						std::string oldPath = asset->mAssetPath.string();
 						asset->mAssetPath = asset->mAssetPath.string().replace(0, Application::Get()->projectPath.size(), newMainFolderPath);
-						AssetsSerializer::SerializeAssetByExtension(asset);
+
+						bool assetContainsMetaData = asset->GetExtension() != Standards::metadataExtName && AssetsManager::AssetContainsMetaData(asset);
+						if (assetContainsMetaData) {
+							std::filesystem::path oldMetadataPath = oldPath;
+							oldMetadataPath.replace_extension(Standards::metadataExtName);
+							std::shared_ptr<Metadata::MetadataStructure> metaDataContent = AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(AssetsManager::GetAssetMetaDataPath(oldMetadataPath).string(),
+								oldSettings.mMetaDataSerializationMode);
+							asset->mAssetPath.replace_extension(Standards::metadataExtName);
+							AssetsSerializer::SerializeFile<Metadata::MetadataStructure>(*metaDataContent.get(), asset->mAssetPath.string(), newSettings.mMetaDataSerializationMode);
+						}
+						else {
+							if (asset->GetExtension() == Standards::sceneExtName) {
+								Asset oldAsset = *asset;
+								//asset = new Scene(*AssetsSerializer::DeSerializeFile<Scene>(oldPath, oldSettings.mSceneSerializationMode).get());
+								AssetsSerializer::SerializeFile<Scene>(*static_cast<Scene*>(AssetsSerializer::DeSerializeFile<Scene>(oldPath, oldSettings.mSceneSerializationMode).get()), oldAsset.mAssetPath.string(), Application::Get()->mSettings.mSceneSerializationMode);
+							}
+							else
+								AssetsSerializer::SerializeAssetByExtension(asset);
+						}
 						asset->mAssetPath = oldPath;
 					}
+
 
 					Application::Get()->mSettings = oldSettings;
 				}

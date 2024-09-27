@@ -144,9 +144,13 @@ namespace Plaza {
 		std::vector<uint64_t> mMaterialsUuids = std::vector<uint64_t>();
 	private:
 		std::vector<uint64_t> UpdateMaterialsUuids() {
+			std::vector<uint64_t> oldMaterialsUuids = mMaterialsUuids;
 			mMaterialsUuids.clear();
 			for (Material* material : mMaterials) {
 				mMaterialsUuids.push_back(material->mAssetUuid);
+			}
+			if (mMaterialsUuids.size() <= 0) {
+				mMaterialsUuids = oldMaterialsUuids;
 			}
 			return mMaterialsUuids;
 		}

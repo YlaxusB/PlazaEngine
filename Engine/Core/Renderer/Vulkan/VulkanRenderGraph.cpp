@@ -50,7 +50,7 @@ namespace Plaza {
 #ifdef EDITOR_MODE
 		skyboxPath = Application::Get()->enginePath + "\\Editor\\DefaultAssets\\Skybox\\";
 #else
-		skyboxPath = Application::Get()->projectPath + "\\";
+		skyboxPath = Application::Get()->exeDirectory + "\\";
 #endif
 
 		TextureInfo equirectangularInfo = this->GetTexture<VulkanTexture>("EquirectangularTexture")->GetTextureInfo();
@@ -490,6 +490,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderGraph::RunSkyboxRenderGraph(VulkanRenderGraph* renderGraph) {
+		PL_CORE_INFO("Run SkyboxRenderGraph");
 		renderGraph->mCompiledBindings = mCompiledBindings;
 		renderGraph->Compile();
 

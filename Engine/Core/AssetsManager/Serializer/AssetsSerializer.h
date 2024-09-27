@@ -216,6 +216,8 @@ namespace Plaza {
 		static void SerializeMesh(Mesh* mesh, std::filesystem::path outPath, SerializationMode serializationMode);
 		static void SerializeAnimation(Animation& animation, std::filesystem::path outPath, SerializationMode serializationMode);
 
+		static void SerializeAssetByExtension(Asset* asset);
+
 		template <typename T>
 		static void SerializeFile(T& file, std::string path, SerializationMode serializationMode) {
 			switch (serializationMode) {

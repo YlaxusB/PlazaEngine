@@ -7,6 +7,37 @@
 #include "Engine/Core/AssetsManager/AssetsReader.h"
 namespace Plaza {
 	namespace Editor {
+		void CopyDirectory(const std::filesystem::path& source, const std::filesystem::path& destination) {
+			try {
+				if (!std::filesystem::exists(destination)) {
+					std::filesystem::create_directories(destination);
+				}
+
+				for (const auto& entry : std::filesystem::recursive_directory_iterator(source)) {
+					const auto& path = entry.path();
+					auto relativePath = std::filesystem::relative(path, source);
+					std::filesystem::path destPath = destination / relativePath;
+
+					try {
+						if (std::filesystem::is_directory(path)) {
+							std::filesystem::create_directories(destPath);
+						}
+						else if (std::filesystem::is_regular_file(path)) {
+							std::filesystem::copy_file(path, destPath, std::filesystem::copy_options::overwrite_existing);
+							std::cout << "Copied: " << path << " to " << destPath << '\n';
+						}
+					}
+					catch (const std::filesystem::filesystem_error& e) {
+						std::cerr << "Skipped file (in use or inaccessible): " << path << "\n";
+					}
+				}
+			}
+			catch (const std::filesystem::filesystem_error& e) {
+				std::cerr << "Error: " << e.what() << '\n';
+			}
+		}
+
+
 		void Gui::MainMenuBar::Begin() {
 			// MenuBar / TitleBar
 			ImGui::BeginMainMenuBar();
@@ -24,14 +55,33 @@ namespace Plaza {
 					std::cout << command << std::endl;
 					system(command.c_str());
 
+					std::string newMainFolderPath = Application::Get()->projectPath + "\\..\\" + Application::Get()->activeProject->mAssetName + "build\\";
+
 					/* Copy assets and scripts into Content Folder inside build folder */
-					try {
-						filesystem::copy(Application::Get()->projectPath, Application::Get()->projectPath + "\\..\\" + Application::Get()->activeProject->mAssetName + "build", filesystem::copy_options::recursive);
-						std::cout << "Project Folder copied successfully.\n";
+					CopyDirectory(Application::Get()->projectPath, newMainFolderPath);
+					//try {
+					//	filesystem::copy(Application::Get()->projectPath, newMainFolderPath, filesystem::copy_options::recursive);
+					//	std::cout << "Project Folder copied successfully.\n";
+					//}
+					//catch (const filesystem::filesystem_error& e) {
+					//	std::cerr << "Error: " << e.what() << std::endl;
+					//}
+
+					EngineSettings oldSettings = Application::Get()->mSettings;
+					EngineSettings newSettings;
+					Application::GetGameModeDefaultSettings(newSettings);
+
+					Application::Get()->mSettings = newSettings;
+
+					/* Iterate over all copied assets and convert them to binary */
+					for (auto [key, asset] : AssetsManager::mAssets) {
+						std::string oldPath = asset->mAssetPath.string();
+						asset->mAssetPath = asset->mAssetPath.string().replace(0, Application::Get()->projectPath.size(), newMainFolderPath);
+						AssetsSerializer::SerializeAssetByExtension(asset);
+						asset->mAssetPath = oldPath;
 					}
-					catch (const filesystem::filesystem_error& e) {
-						std::cerr << "Error: " << e.what() << std::endl;
-					}
+
+					Application::Get()->mSettings = oldSettings;
 				}
 
 				if (ImGui::Button("Return to Project Menu")) {

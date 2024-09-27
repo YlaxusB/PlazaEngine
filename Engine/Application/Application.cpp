@@ -107,25 +107,33 @@ namespace Plaza {
 
 	void Application::SetDefaultSettings() {
 #ifdef EDITOR_MODE
-		mSettings.mCommonSerializationMode = SerializationMode::SERIALIZE_JSON;
-		mSettings.mMetaDataSerializationMode = SerializationMode::SERIALIZE_JSON;
-		mSettings.mSceneSerializationMode = SerializationMode::SERIALIZE_JSON;
-		mSettings.mProjectSerializationMode = SerializationMode::SERIALIZE_JSON;
-		mSettings.mSettingsSerializationMode = SerializationMode::SERIALIZE_JSON;
-		mSettings.mModelSerializationMode = SerializationMode::SERIALIZE_BINARY;
-		mSettings.mAnimationSerializationMode = SerializationMode::SERIALIZE_BINARY;
-		mSettings.mMaterialSerializationMode = SerializationMode::SERIALIZE_JSON;
+		Application::GetEditorModeDefaultSettings(this->mSettings);
 
 #elif GAME_MODE
-		mSettings.mCommonSerializationMode = SerializationMode::SERIALIZE_BINARY;
-		mSettings.mMetaDataSerializationMode = SerializationMode::SERIALIZE_BINARY;
-		mSettings.mSceneSerializationMode = SerializationMode::SERIALIZE_BINARY;
-		mSettings.mProjectSerializationMode = SerializationMode::SERIALIZE_JSON;
-		mSettings.mSettingsSerializationMode = SerializationMode::SERIALIZE_JSON;
-		mSettings.mModelSerializationMode = SerializationMode::SERIALIZE_BINARY;
-		mSettings.mAnimationSerializationMode = SerializationMode::SERIALIZE_BINARY;
-		mSettings.mMaterialSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		Application::GetGameModeDefaultSettings(this->mSettings);
 #endif
+	}
+
+	void Application::GetEditorModeDefaultSettings(EngineSettings& settings) {
+		settings.mCommonSerializationMode = SerializationMode::SERIALIZE_JSON;
+		settings.mMetaDataSerializationMode = SerializationMode::SERIALIZE_JSON;
+		settings.mSceneSerializationMode = SerializationMode::SERIALIZE_JSON;
+		settings.mProjectSerializationMode = SerializationMode::SERIALIZE_JSON;
+		settings.mSettingsSerializationMode = SerializationMode::SERIALIZE_JSON;
+		settings.mModelSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		settings.mAnimationSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		settings.mMaterialSerializationMode = SerializationMode::SERIALIZE_JSON;
+	}
+
+	void Application::GetGameModeDefaultSettings(EngineSettings& settings) {
+		settings.mCommonSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		settings.mMetaDataSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		settings.mSceneSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		settings.mProjectSerializationMode = SerializationMode::SERIALIZE_JSON;
+		settings.mSettingsSerializationMode = SerializationMode::SERIALIZE_JSON;
+		settings.mModelSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		settings.mAnimationSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		settings.mMaterialSerializationMode = SerializationMode::SERIALIZE_BINARY;
 	}
 
 	void Application::CheckEditorCache() {

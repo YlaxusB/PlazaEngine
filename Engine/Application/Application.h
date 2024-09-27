@@ -32,6 +32,8 @@ namespace Plaza {
 		void GetPaths();
 		void GetAppSize();
 		void SetDefaultSettings();
+		static void GetEditorModeDefaultSettings(EngineSettings& settings);
+		static void GetGameModeDefaultSettings(EngineSettings& settings);
 		void CheckEditorCache();
 		void LoadProject();
 

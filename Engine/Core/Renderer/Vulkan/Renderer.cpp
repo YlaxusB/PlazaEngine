@@ -2777,8 +2777,11 @@ namespace Plaza {
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &semaphore);
 
+		PL_CORE_INFO("Build Default RenderGraph");
 		this->mRenderGraph->BuildDefaultRenderGraph();
+		PL_CORE_INFO("Initialize RenderGraph");
 		this->InitializeRenderGraph(mRenderGraph);
+		PL_CORE_INFO("Compile RenderGraph");
 		mRenderGraph->Compile();
 
 		mRenderGraph->RunSkyboxRenderGraph(mRenderGraph->BuildSkyboxRenderGraph());

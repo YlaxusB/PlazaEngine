@@ -175,6 +175,8 @@ namespace Plaza {
 			this->mMipCount = 1;
 
 		if (!isDDS && !pixels && !pixelsFloat) {
+			PL_CORE_CRITICAL("Failed to load image", __FILE__, __LINE__);
+			PL_CORE_CRITICAL("Path: " + path);
 			throw std::runtime_error("failed to load texture image!");
 		}
 		VulkanRenderer::GetRenderer()->CreateBuffer(format == VK_FORMAT_R32G32B32A32_SFLOAT ? imageSize * 4 : imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mStagingBuffer, mStagingBufferMemory);

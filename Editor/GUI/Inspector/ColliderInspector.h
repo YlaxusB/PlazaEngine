@@ -82,6 +82,12 @@ namespace Plaza::Editor {
 						physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
 						collider->AddShape(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::SPHERE, 0));
 					}
+					if (ImGui::MenuItem("Capsule"))
+					{
+						physx::PxCapsuleGeometry geometry(0.5f, 1.0f);
+						physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
+						collider->AddShape(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::CAPSULE, 0));
+					}
 					if (ImGui::MenuItem("Mesh"))
 					{
 						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {

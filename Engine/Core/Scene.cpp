@@ -131,11 +131,16 @@ namespace Plaza {
 			std::filesystem::copy_file(dllPath, newPath, filesystem::copy_options::overwrite_existing);
 		}
 
+		for (auto& [key, collider] : Scene::GetActiveScene()->colliderComponents) {
+			collider.lastScale = glm::vec3(-1231.0f);
+			collider.UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(collider.mUuid).GetWorldScale());;
+			collider.UpdatePose();
+		}
+
 		/* Restart physics */
 		Physics::m_scene->release();
 		Physics::InitPhysics();
 		Physics::InitScene();
-
 
 		Scene::sRuntimeScene.reset();
 		Scene::sRuntimeScene = std::make_unique<Scene>();
@@ -146,6 +151,7 @@ namespace Plaza {
 		Application::Get()->runningScene = true;
 		Scene::GetActiveScene()->RecalculateAddedComponents();
 		for (auto& [key, collider] : Scene::GetActiveScene()->colliderComponents) {
+			collider.lastScale = glm::vec3(-1231.0f);
 			collider.UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(collider.mUuid).GetWorldScale());;
 			collider.UpdatePose();
 		}
@@ -179,6 +185,11 @@ namespace Plaza {
 					Mono::CallMethod(classScript->monoObject, classScript->onStartMethod);
 				}
 			}
+		}
+
+		for (auto& [key, collider] : Scene::GetActiveScene()->colliderComponents) {
+			collider.UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(collider.mUuid).GetWorldScale());;
+			collider.UpdatePose();
 		}
 
 	}

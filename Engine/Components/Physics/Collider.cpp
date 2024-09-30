@@ -61,14 +61,14 @@ namespace Plaza {
 		if (mRigidActor) {
 			for (auto& shape : mShapes) {
 				this->mRigidActor->detachShape(*shape->mPxShape);
-				if (shape->mPxShape->userData)
-					shape->mPxShape->release();
+				//if (shape->mPxShape->userData)
+				//	shape->mPxShape->release();
 			}
 			Physics::m_scene->removeActor(*this->mRigidActor);
 			if (this->mRigidActor->userData)
 				this->mRigidActor->release();
-			if (this->material->userData)
-				this->material->release();
+			//if (this->material->userData)
+			//	this->material->release();
 		}
 	}
 
@@ -357,9 +357,11 @@ namespace Plaza {
 				lastScale = scale;
 				return;
 			}
-
+		
 			for (int i = 0; i < this->mShapes.size(); ++i) {
 				physx::PxShape* shape = this->mShapes[i]->mPxShape;
+				if (!shape)
+					continue;
 				physx::PxGeometryHolder geometry = this->mShapes[i]->mPxShape->getGeometry();
 				physx::PxShape* newShape = this->mShapes[i]->mPxShape;
 				physx::PxMaterial* material;
@@ -368,48 +370,38 @@ namespace Plaza {
 				if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::BOX) {
 					physx::PxBoxGeometry boxGeom = geometry.box();
 					boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
-					shape->release();
+					//shape->release();
 					newShape = Physics::m_physics->createShape(boxGeom, *material);
 				}
 				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::PLANE) {
 					physx::PxBoxGeometry planeGeom = geometry.box();
 					planeGeom.halfExtents = physx::PxVec3(scale.x / 2, 0.001f, scale.z / 2);
-					shape->release();
+					//shape->release();
 					newShape = Physics::m_physics->createShape(planeGeom, *material);
 				}
 				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::SPHERE) {
 					physx::PxSphereGeometry sphereGeometry = geometry.sphere();
 					//boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
 					sphereGeometry.radius = (scale.x + scale.y + scale.z) / 3;
-					shape->release();
+					//shape->release();
 					newShape = Physics::m_physics->createShape(sphereGeometry, *material);
-					//physx::PxSphereGeometry sphereGeom;
-					//sphereGeom.radius *= 3;
-					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
 				}
 				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::MESH) {
 					physx::PxTriangleMeshGeometry meshGeometry(geometry.triangleMesh().triangleMesh, physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z), physx::PxQuat(physx::PxIdentity)));
-					//meshGeometry.scale = physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z));
 					newShape = Physics::m_physics->createShape(meshGeometry, *material);
-					shape->release();
-					//physx::PxSphereGeometry sphereGeom;
-					//sphereGeom.radius *= 3;
-					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
+					//shape->release();
 				}
 				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::HEIGHT_FIELD) {
 					physx::PxHeightFieldGeometry heightGeometry = geometry.heightField();
 					heightGeometry.heightScale = 1.0f;
-					shape->release();
+					//shape->release();
 					newShape = Physics::m_physics->createShape(heightGeometry, *material);
-					//physx::PxSphereGeometry sphereGeom;
-					//sphereGeom.radius *= 3;
-					//this->mShapes[i]->setGeometry(physx::PxSphereGeometry(sphereGeom));
 				}
 				else {
 					std::cout << "Shape not supported for scaling" << std::endl;
 				}
-
-
+		
+		
 				if (Application::Get()->runningScene && this->mRigidActor) {
 					if (this->mDynamic) {
 						this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
@@ -464,8 +456,10 @@ namespace Plaza {
 				physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 
 				glm::vec3 transformPos = transform->GetWorldPosition();
+				glm::vec3 worldScale = transform->GetWorldScale();
 				physx::PxVec3 pxTranslation(transformPos.x, transformPos.y, transformPos.z);
 				physx::PxTransform pxTransform(pxTranslation, pxQuaternion);
+				//pxTransform = pxTransform * physx::PxTransform(physx::PxVec3(worldScale.x, worldScale.y, worldScale.z));
 				//pxTransform = pxTransform.getNormalized();
 
 				this->mRigidActor->setGlobalPose(pxTransform);

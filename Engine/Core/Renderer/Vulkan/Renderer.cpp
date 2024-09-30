@@ -3843,16 +3843,28 @@ namespace Plaza {
 		{
 			PlVkBuffer* materialBuffer = mRenderGraph->GetBuffer<PlVkBuffer>("MaterialsBuffer");
 			std::vector<MaterialData> materialDataVector = std::vector<MaterialData>();
+			MaterialData defaultMaterialData{};
+			defaultMaterialData.color = AssetsManager::GetDefaultMaterial()->diffuse->rgba;
+			defaultMaterialData.diffuseIndex = AssetsManager::GetDefaultMaterial()->diffuse->mIndexHandle;
+			defaultMaterialData.intensity = AssetsManager::GetDefaultMaterial()->diffuse->mIntensity;
+			defaultMaterialData.metalnessFloat = AssetsManager::GetDefaultMaterial()->metalness->mIntensity;
+			defaultMaterialData.metalnessIndex = AssetsManager::GetDefaultMaterial()->metalness->mIndexHandle;
+			defaultMaterialData.normalIndex = AssetsManager::GetDefaultMaterial()->normal->mIndexHandle;
+			defaultMaterialData.roughnessFloat = AssetsManager::GetDefaultMaterial()->roughness->mIntensity;
+			defaultMaterialData.roughnessIndex = AssetsManager::GetDefaultMaterial()->roughness->mIndexHandle;
+			defaultMaterialData.flipX = AssetsManager::GetDefaultMaterial()->flip.x;
+			defaultMaterialData.flipY = AssetsManager::GetDefaultMaterial()->flip.y;
+			materialDataVector.push_back(defaultMaterialData);
 
 			for (auto& [key, value] : AssetsManager::mMaterials) {
 				MaterialData materialData{};
 				materialData.color = value->diffuse->rgba;
 				materialData.diffuseIndex = value->diffuse->mIndexHandle;
 				materialData.intensity = value->diffuse->mIntensity;
-				materialData.metalnessFloat = value->metalness->rgba.x;
+				materialData.metalnessFloat = value->metalness->mIntensity;
 				materialData.metalnessIndex = value->metalness->mIndexHandle;
 				materialData.normalIndex = value->normal->mIndexHandle;
-				materialData.roughnessFloat = value->roughness->rgba.x;
+				materialData.roughnessFloat = value->roughness->mIntensity;
 				materialData.roughnessIndex = value->roughness->mIndexHandle;
 				materialData.flipX = value->flip.x;
 				materialData.flipY = value->flip.y;

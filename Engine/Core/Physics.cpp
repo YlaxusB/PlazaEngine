@@ -221,6 +221,8 @@ namespace Plaza {
 		if (!m_dispatcher) {
 			std::cerr << "PhysX CPU dispatcher creation failed!" << std::endl;
 		}
+
+		// Physics::InitDefaultGeometries();
 	}
 
 	void Physics::InitScene() {
@@ -295,8 +297,64 @@ namespace Plaza {
 		if (sShapes[meshUuid][*material] == nullptr) {
 			sShapes[meshUuid][*material] = Physics::m_physics->createShape(*geometry, *material->mPhysxMaterial);
 		}
+
 		return sShapes[meshUuid][*material];
 	}
+
+	/*
+					physx::PxGeometryHolder geometry = this->mShapes[i]->mPxShape->getGeometry();
+				physx::PxShape* newShape = this->mShapes[i]->mPxShape;
+				physx::PxMaterial* material;
+				this->mShapes[i]->mPxShape->getMaterials(&material, 1);
+				// Scale the geometry parameters by the given factor
+				if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::BOX) {
+					physx::PxBoxGeometry boxGeom = geometry.box();
+					boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
+					shape->release();
+					newShape = Physics::m_physics->createShape(boxGeom, *material);
+				}
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::PLANE) {
+					physx::PxBoxGeometry planeGeom = geometry.box();
+					planeGeom.halfExtents = physx::PxVec3(scale.x / 2, 0.001f, scale.z / 2);
+					shape->release();
+					newShape = Physics::m_physics->createShape(planeGeom, *material);
+				}
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::SPHERE) {
+					physx::PxSphereGeometry sphereGeometry = geometry.sphere();
+					//boxGeom.halfExtents = physx::PxVec3(scale.x / 2, scale.y / 2, scale.z / 2);
+					sphereGeometry.radius = (scale.x + scale.y + scale.z) / 3;
+					shape->release();
+					newShape = Physics::m_physics->createShape(sphereGeometry, *material);
+				}
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::MESH) {
+					physx::PxTriangleMeshGeometry meshGeometry(geometry.triangleMesh().triangleMesh, physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z), physx::PxQuat(physx::PxIdentity)));
+					newShape = Physics::m_physics->createShape(meshGeometry, *material);
+					shape->release();
+				}
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::HEIGHT_FIELD) {
+					physx::PxHeightFieldGeometry heightGeometry = geometry.heightField();
+					heightGeometry.heightScale = 1.0f;
+					shape->release();
+					newShape = Physics::m_physics->createShape(heightGeometry, *material);
+				}
+				else {
+					std::cout << "Shape not supported for scaling" << std::endl;
+				}
+
+
+				if (Application::Get()->runningScene && this->mRigidActor) {
+					if (this->mDynamic) {
+						this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
+						this->mShapes[i]->mPxShape = newShape;
+						this->mRigidActor->attachShape(*newShape);
+					}
+					else {
+						this->mRigidActor->detachShape(*this->mShapes[i]->mPxShape);
+						this->mShapes[i]->mPxShape = newShape;
+						this->mRigidActor->attachShape(*newShape);
+					}
+				}
+	*/
 
 	physx::PxMaterial* Physics::InitializePhysicsMaterial(float staticFriction, float dynamicFriction, float restitution) {
 		return Physics::m_physics->createMaterial(staticFriction, dynamicFriction, restitution);
@@ -306,7 +364,7 @@ namespace Plaza {
 		sCookedGeometries.emplace(1, new physx::PxBoxGeometry(0.5f, 0.5f, 0.5f));
 		sCookedGeometries.emplace(2, new physx::PxPlaneGeometry());
 		sCookedGeometries.emplace(3, new physx::PxSphereGeometry(1.0f));
-		sCookedGeometries.emplace(4, new physx::PxCapsuleGeometry(1.0f));
+		sCookedGeometries.emplace(4, new physx::PxCapsuleGeometry(0.5f, 1.0f));
 	}
 
 	physx::PxGeometry* Physics::GetGeometry(uint64_t uuid) {

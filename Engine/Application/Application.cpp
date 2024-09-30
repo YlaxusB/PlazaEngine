@@ -229,12 +229,6 @@ namespace Plaza {
 			value->UpdateTime(Time::deltaTime);
 		}
 
-		/* Update Physics */
-		if (Application::Get()->runningScene) {
-			PLAZA_PROFILE_SECTION("Update Physics");
-			Physics::Advance(Time::deltaTime);
-			Physics::Update();
-		}
 
 		/* Update Scripts */
 		if (Application::Get()->runningScene) {
@@ -244,6 +238,14 @@ namespace Plaza {
 
 		// Update Camera Position and Rotation
 		Application::Get()->activeCamera->Update();
+
+		/* Update Physics */
+		if (Application::Get()->runningScene) {
+			PLAZA_PROFILE_SECTION("Update Physics");
+			Physics::Advance(Time::deltaTime);
+			Physics::Update();
+		}
+
 
 		// Imgui New Frame (only if running editor)
 #ifdef EDITOR_MODE

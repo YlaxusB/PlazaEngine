@@ -27,6 +27,10 @@ namespace Plaza {
 		return glm::perspective(this->Zoom, (Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y), nearPlaneCustom, farPlaneCustom);
 	}
 
+	glm::mat4 Camera::GetOrthogonalMatrix() {
+		return glm::ortho(0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f);
+	}
+
 	void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
 	{
 		float velocity = MovementSpeed * MovementSpeedTemporaryBoost * deltaTime;

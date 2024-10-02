@@ -25,6 +25,7 @@
 #include "Engine/Components/Physics/Collider.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
+#include "Engine/Components/Drawing/UI/Gui.h"
 #include "Engine/Components/Audio/AudioSource.h"
 #include "Engine/Components/Audio/AudioListener.h"
 #include "Engine/Components/Rendering/AnimationComponent.h"
@@ -124,6 +125,7 @@ namespace Plaza {
 		ComponentMultiMap<uint64_t, Light> lightComponents;
 		ComponentMultiMap<uint64_t, CharacterController> characterControllerComponents;
 		ComponentMultiMap<uint64_t, AnimationComponent> animationComponentComponents;
+		ComponentMultiMap<uint64_t, GuiComponent> guiComponents;
 
 		std::unordered_map<std::string, void*> componentsMap;
 
@@ -244,15 +246,17 @@ namespace Plaza {
 			componentsMap["class Plaza::Light"] = &lightComponents;
 			componentsMap["class Plaza::CharacterController"] = &characterControllerComponents;
 			componentsMap["class Plaza::AnimationComponent"] = &animationComponentComponents;
+			componentsMap["class Plaza::GuiComponent"] = &guiComponents;
 		}
 
 		template <class Archive>
 		void serialize(Archive& archive) {
 			if (mainSceneEntity)
 				mainSceneEntityUuid = mainSceneEntity->uuid;
-			archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(entities), PL_SER(transformComponents), PL_SER(cameraComponents), PL_SER(meshRendererComponents),
+
+			archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(mainSceneEntityUuid), PL_SER(entities), PL_SER(transformComponents), PL_SER(cameraComponents), PL_SER(meshRendererComponents),
 				PL_SER(rigidBodyComponents), PL_SER(colliderComponents), PL_SER(csScriptComponents), PL_SER(UITextRendererComponents), PL_SER(audioSourceComponents),
-				PL_SER(audioListenerComponents), PL_SER(lightComponents), PL_SER(characterControllerComponents), PL_SER(animationComponentComponents), PL_SER(mainSceneEntityUuid));
+				PL_SER(audioListenerComponents), PL_SER(lightComponents), PL_SER(characterControllerComponents), PL_SER(animationComponentComponents), PL_SER(guiComponents));
 
 			if (!mainSceneEntity)
 				mainSceneEntity = &entities.at(mainSceneEntityUuid);

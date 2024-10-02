@@ -325,6 +325,13 @@ namespace Plaza::Editor {
 					entity.AddComponent<AnimationComponent>(animationComponent);
 				}
 
+				if (ImGui::MenuItem("Gui"))
+				{
+					GuiComponent* guiComponent = new GuiComponent();
+					guiComponent->mUuid = entity.uuid;
+					entity.AddComponent<GuiComponent>(guiComponent);
+				}
+
 				ImGui::EndMenu();
 			}
 

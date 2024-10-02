@@ -91,6 +91,7 @@ namespace Plaza {
 
 		glm::mat4 GetProjectionMatrix();
 		glm::mat4 GetProjectionMatrix(float nearPlaneCustom, float farPlaneCustom);
+		glm::mat4 GetOrthogonalMatrix();
 
 		// returns the view matrix calculated using Euler Angles and the LookAt Matrix
 		glm::mat4 GetViewMatrix() {

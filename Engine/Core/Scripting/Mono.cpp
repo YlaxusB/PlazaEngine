@@ -8,6 +8,7 @@
 #include "Engine/Components/Physics/CharacterController.h"
 #include "Engine/Components/Rendering/Light.h"
 #include "Engine/Components/Rendering/AnimationComponent.h"
+#include "Engine/Components/Drawing/UI/Gui.h"
 
 char* ConvertConstCharToChar(const char* constCharString) {
 	// Calculate the length of the input string
@@ -347,6 +348,7 @@ namespace Plaza {
 		RegisterComponent<AudioListener>();
 		RegisterComponent<Light>();
 		RegisterComponent<AnimationComponent>();
+		RegisterComponent<GuiComponent>();
 	}
 
 	void Mono::ReloadAppDomain() {

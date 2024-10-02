@@ -415,8 +415,31 @@ namespace Plaza {
 			{ pl::pushConstantRange(PL_STAGE_FRAGMENT, 0, sizeof(FinalPostProcessingPC)) }
 		));
 
+		struct GuiShadersPC {
+			glm::mat4 matrix;
+		};
+		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(pl::pipelineCreateInfo(
+			"GuiShaders",
+			PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH,
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\rectangle.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\rectangle.frag", "main") },
+			VertexGetBindingDescription(),
+			VertexGetAttributeDescriptions(),
+			PL_TOPOLOGY_TRIANGLE_LIST,
+			false,
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) }),
+			pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
+			pl::pipelineViewportStateCreateInfo(1, 1),
+			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
+			{ pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(GuiShadersPC)) },
+			{ 1 }
+		));
+
 		this->AddRenderPassCallback("Final Post Processing Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
 			plazaRenderPass->mPipelines[0]->UpdatePushConstants<FinalPostProcessingPC>(0, FinalPostProcessingPC(VulkanRenderer::GetRenderer()->exposure, VulkanRenderer::GetRenderer()->gamma));
+			plazaRenderPass->mPipelines[1]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
 			});
 
 		this->OrderPasses();

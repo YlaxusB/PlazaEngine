@@ -5,6 +5,7 @@
 #include "Engine/Components/Rendering/MeshRenderer.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
+#include "Engine/Components/Drawing/UI/Gui.h"
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Physics.h"
 
@@ -187,6 +188,8 @@ namespace Plaza {
 			this->RemoveComponent<Light>();
 		if (this->HasComponent<AnimationComponent>())
 			this->RemoveComponent<AnimationComponent>();
+		if (this->HasComponent<GuiComponent>())
+			this->RemoveComponent<GuiComponent>();
 
 		/*
 					MeshRenderer* meshRendererToInstantiate = entityToInstantiate->GetComponent<MeshRenderer>();
@@ -220,6 +223,7 @@ namespace Plaza {
 	template AudioListener* Entity::AddComp<AudioListener>();
 	template Light* Entity::AddComp<Light>();
 	template AnimationComponent* Entity::AddComp<AnimationComponent>();
+	template GuiComponent* Entity::AddComp<GuiComponent>();
 	template<typename T>
 	T* Entity::AddComp() {
 		return new T();

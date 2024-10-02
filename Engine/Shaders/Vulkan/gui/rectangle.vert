@@ -3,6 +3,11 @@
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
 layout(location = 2) in vec2 inTexCoord;
+layout(location = 3) in vec3 inTangent;
+layout(location = 4) in vec4 instanceMatrix[4];
+layout(location = 8) in ivec4 boneIds;
+layout(location = 9) in vec4 weights;
+layout(location = 10) in uint vertexMaterialIndex;
 
 layout (location = 0) out vec2 outUV;
 
@@ -17,6 +22,9 @@ out gl_PerVertex
 
 void main(void)
 {
-	gl_Position = pushConstants.matrix * vec4(inPosition.xz * vec2(0.5f, 0.2f) + vec2(910, 1) / vec2(1820, 720), 0.0f, 1.0f);
-	outUV = inTexCoord;
+	mat4 model = mat4(instanceMatrix[0], instanceMatrix[1], instanceMatrix[2], instanceMatrix[3]);
+
+    // Perform multiplication
+    gl_Position = pushConstants.matrix * model * vec4(inPosition.xy, 0.0f, 1.0f);
+    outUV = inTexCoord;
 }

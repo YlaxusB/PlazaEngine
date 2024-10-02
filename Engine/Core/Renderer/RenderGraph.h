@@ -141,6 +141,7 @@ namespace Plaza {
 					case PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH: this->RenderIndirectBufferSpecificMesh(pipeline.get()); break;
 					case PL_RENDER_PASS_CUBE: this->RenderCube(pipeline.get()); break;
 					case PL_RENDER_PASS_COMPUTE: this->RunCompute(pipeline.get()); break;
+					case PL_RENDER_PASS_GUI: this->RenderGui(pipeline.get()); break;
 					}
 				}
 			}
@@ -162,6 +163,7 @@ namespace Plaza {
 		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) { };
 		virtual void RenderCube(PlazaPipeline* pipeline) { };
 		virtual void RunCompute(PlazaPipeline* pipeline) { };
+		virtual void RenderGui(PlazaPipeline* pipeline) { };
 		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) { };
 		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) { };
 		virtual void ResetPipelineCompiledBool() { };
@@ -347,9 +349,9 @@ namespace Plaza {
 			return attributeDescriptions;
 		}
 
+		std::map<std::string, std::shared_ptr<PlBuffer>> mBuffers = std::map<std::string, std::shared_ptr<PlBuffer>>();
 	private:
 		std::map<std::string, std::shared_ptr<Texture>> mTextures = std::map<std::string, std::shared_ptr<Texture>>();
-		std::map<std::string, std::shared_ptr<PlBuffer>> mBuffers = std::map<std::string, std::shared_ptr<PlBuffer>>();
 
 	};
 

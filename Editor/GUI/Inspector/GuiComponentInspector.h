@@ -46,15 +46,26 @@ namespace Plaza::Editor {
 				if (ImGui::MenuItem("Rectangle"))
 				{
 					std::shared_ptr<GuiRectangle> rectangle = std::make_shared<GuiRectangle>("Rectangle", 0, 0, 100, 100, 1.0f, glm::vec4(1.0f));
+					rectangle->mComponentUuid = gui->mUuid;
 					rectangle->mGuiParentUuid = parentUuid;
+					rectangle->mGuiType = GuiType::PL_GUI_RECTANGLE;
 					gui->NewGuiItem<GuiRectangle>(rectangle);
 				}
 				else if (ImGui::MenuItem("Button"))
 				{
 					std::shared_ptr<GuiButton> button = std::make_shared<GuiButton>("Button", "Click", 0, 0, 100, 100, 1.0f, 1.0f, glm::vec4(1.0f));
+					button->mComponentUuid = gui->mUuid;
 					button->mGuiParentUuid = parentUuid;
+					button->mGuiType = GuiType::PL_GUI_BUTTON;
 					gui->NewGuiItem<GuiButton>(button);
 				}
+				//else if (ImGui::MenuItem("Text"))
+				//{
+				//	std::shared_ptr<GuiButton> text = std::make_shared<GuiText>("Text", "Click", 0, 0, 100, 100, 1.0f, 1.0f, glm::vec4(1.0f));
+				//	text->mGuiParentUuid = parentUuid;
+				//	text->mGuiType = GuiType::PL_GUI_BUTTON;
+				//	gui->NewGuiItem<GuiButton>(text);
+				//}
 
 				ImGui::EndPopup();
 			}
@@ -65,6 +76,13 @@ namespace Plaza::Editor {
 			ImGui::PushID(itemIndex);
 
 			ImGui::Text(std::string("Name: " + item->mGuiName).c_str());
+			glm::vec2 pos = item->GetPosition();
+			if (ImGui::DragFloat2("Position", &pos.x))
+				item->SetPosition(pos);
+
+			glm::vec2 scale = item->GetScale();
+			if (ImGui::DragFloat2("Scale", &scale.x))
+				item->SetScale(scale);
 			AddGuiItem(gui, item->mGuiUuid);
 
 			ImGui::PopID();

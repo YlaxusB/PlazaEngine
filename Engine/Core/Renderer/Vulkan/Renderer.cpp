@@ -2783,6 +2783,12 @@ namespace Plaza {
 		this->InitializeRenderGraph(mRenderGraph);
 		PL_CORE_INFO("Compile RenderGraph");
 		mRenderGraph->Compile();
+		for (auto& [key, value] : mRenderGraph->mBuffers) {
+			if (mRenderGraph->mCompiledBindings.find(value->mName) == mRenderGraph->mCompiledBindings.end()) {
+				value->CreateBuffer(value->mMaxItems * value->mStride, PlBufferUsageToVkBufferUsage(value->mBufferUsage), PlMemoryUsageToVmaMemoryUsage(value->mMemoryUsage), 0, value->mBufferCount);
+				value->CreateMemory(0, value->mBufferCount);
+			}
+		}
 
 		mRenderGraph->RunSkyboxRenderGraph(mRenderGraph->BuildSkyboxRenderGraph());
 

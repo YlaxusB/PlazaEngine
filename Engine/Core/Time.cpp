@@ -22,10 +22,11 @@ void Plaza::Time::Update() {
 		fps = (1.0f / timeDifference) * frameCount;//frameCount;
 		msPerFrame = (timeDifference / frameCount) * 1000;
 		frameCount = 0;
-		previousTime = currentTime;
+		previousTime = glfwGetTime();
 	}
 
 
 	float currentFrame = static_cast<float>(glfwGetTime());
-	deltaTime = 1.0f / Time::fps; //currentFrame - lastFrame;
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
 }

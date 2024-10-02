@@ -4,11 +4,19 @@
 
 namespace Plaza {
 	class GuiComponent;
+
+	enum class GuiType {
+		PL_GUI_RECTANGLE = 0,
+		PL_GUI_BUTTON,
+		PL_GUI_TEXT
+	};
+
 	class GuiItem {
 	public:
 		uint64_t mGuiUuid = 0;
 		std::string mGuiName = "";
 		uint64_t mComponentUuid = 0;
+		GuiType mGuiType = GuiType::PL_GUI_RECTANGLE;
 		//GuiMesh mGuiMesh;
 
 		bool mRecalculateVertices = true;
@@ -25,7 +33,7 @@ namespace Plaza {
 		GuiComponent* GetOwnerComponent();
 
 		glm::vec2 GetPosition() { return mPosition; }
-		glm::vec2 GetScale() { return mPosition; }
+		glm::vec2 GetScale() { return mScale; }
 
 		void SetPosition(glm::vec2 newPosition);
 		void SetScale(glm::vec2 newScale);
@@ -33,15 +41,15 @@ namespace Plaza {
 
 		static void UpdateSelfAndChildrenTransform(GuiItem* item, glm::mat3& parentTransform);
 
+		glm::mat3 mTransform = glm::mat3(1.0f);
 	private:
 		glm::vec2 mPosition = glm::vec2(0.0f);
 		glm::vec2 mScale = glm::vec2(1.0f);
-		glm::mat3 mTransform = glm::mat3(1.0f);
 		glm::vec2 mSize = glm::vec2(1.0f);
 	public:
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(PL_SER(mGuiUuid), PL_SER(mGuiName));
+			archive(PL_SER(mGuiUuid), PL_SER(mGuiName), PL_SER(mGuiType), PL_SER(mComponentUuid), PL_SER(mGuiParentUuid), PL_SER(mGuiChildren));
 		}
 	};
 }

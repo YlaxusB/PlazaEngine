@@ -43,7 +43,7 @@ namespace Plaza {
 		bloomInfo.mInitialLayout = PL_IMAGE_LAYOUT_GENERAL;
 		bloomInfo.mSamplerAddressMode = PL_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 		this->GetTexture<VulkanTexture>("BloomTexture")->SetTextureInfo(bloomInfo);
-		
+
 		// this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "BloomFinalTexture"));
 
 		std::string skyboxPath;
@@ -70,6 +70,7 @@ namespace Plaza {
 		this->AddBuffer(std::make_shared<PlVkBuffer>(PL_BUFFER_STORAGE_BUFFER, 1024 * 32, sizeof(Lighting::LightStruct), bufferCount, static_cast<PlBufferUsage>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST), PL_MEMORY_USAGE_CPU_TO_GPU, "LightsBuffer"));
 		this->AddBuffer(std::make_shared<PlVkBuffer>(PL_BUFFER_STORAGE_BUFFER, clusterCount, sizeof(Lighting::Tile), bufferCount, static_cast<PlBufferUsage>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST), PL_MEMORY_USAGE_CPU_TO_GPU, "ClustersBuffer"));
 		this->AddBuffer(std::make_shared<PlVkBuffer>(PL_BUFFER_STORAGE_BUFFER, clusterCount, sizeof(glm::vec2), bufferCount, static_cast<PlBufferUsage>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST), PL_MEMORY_USAGE_CPU_TO_GPU, "TilesDepthBuffer"));
+		this->AddBuffer(std::make_shared<PlVkBuffer>(PL_BUFFER_STORAGE_BUFFER, 1024, sizeof(glm::mat4), bufferCount, static_cast<PlBufferUsage>(PL_BUFFER_USAGE_VERTEX_BUFFER), PL_MEMORY_USAGE_CPU_TO_GPU, "RectanglesTransformBuffer"));
 
 		uint64_t a = alignof(Lighting::LightStruct);
 		uint64_t b = sizeof(Lighting::LightStruct);
@@ -102,7 +103,7 @@ namespace Plaza {
 			{}
 		));
 
-			static ShadowPassUBO shadowPassUbo{};
+		static ShadowPassUBO shadowPassUbo{};
 		this->AddRenderPassCallback("Shadow Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
 			std::vector<glm::mat4> mats = VulkanShadows::GetLightSpaceMatrices(VulkanRenderer::GetRenderer()->mShadows->shadowCascadeLevels, VulkanRenderer::GetRenderer()->mShadows->mLightDirection);
 			for (int i = 0; i < VulkanRenderer::GetRenderer()->mShadows->mCascadeCount; ++i) {
@@ -420,7 +421,7 @@ namespace Plaza {
 		};
 		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"GuiShaders",
-			PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH,
+			PL_RENDER_PASS_GUI,
 			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\rectangle.vert", "main"),
 				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\rectangle.frag", "main") },
 			VertexGetBindingDescription(),
@@ -1359,5 +1360,57 @@ namespace Plaza {
 				1, &imageMemoryBarrier);
 		}
 		//VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
+	}
+
+	void VulkanRenderPass::RenderGui(PlazaPipeline* pipeline) {
+		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
+		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
+		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+		for (const PlPushConstants& pushConstant : pipeline->mPushConstants) {
+			vkCmdPushConstants(mCommandBuffer, vulkanPipeline->mShaders->mPipelineLayout, PlRenderStageToVkShaderStage(pushConstant.mStage), pushConstant.mOffset, pushConstant.mStride, pushConstant.mData);
+		}
+		std::vector<glm::mat4> rectanglesTransform = std::vector<glm::mat4>();
+		std::vector<glm::mat3> buttonsTransform = std::vector<glm::mat3>();
+		std::vector<glm::mat3> textsTransform = std::vector<glm::mat3>();
+		for (auto& [key, value] : Scene::GetActiveScene()->guiComponents) {
+			for (auto& [itemUuid, item] : value.mGuiItems) {
+				if (item->mGuiType == GuiType::PL_GUI_RECTANGLE) {
+					//item->SetPosition(glm::vec2(0.5f, 0.5f));
+					glm::mat4 transform = glm::mat4(1.0f);
+					transform = glm::translate(transform, glm::vec3(item->GetPosition(), 0.0f));
+
+					transform = glm::translate(transform, glm::vec3(0.5f * item->GetScale().x, 0.5f * item->GetScale().y, 0.0f));
+					//transform = glm::rotate(transform, glm::radians(rotate), glm::vec3(0.0f, 0.0f, 1.0f));
+					transform = glm::translate(transform, glm::vec3(-0.5f * item->GetScale().x, -0.5f * item->GetScale().y, 0.0f));
+
+					transform = glm::scale(transform, glm::vec3(item->GetScale(), 1.0f));
+					rectanglesTransform.push_back(transform);
+				}
+				else if (item->mGuiType == GuiType::PL_GUI_BUTTON) {
+					buttonsTransform.push_back(item->mTransform);
+				}
+				else if (item->mGuiType == GuiType::PL_GUI_TEXT) {
+					buttonsTransform.push_back(item->mTransform);
+				}
+			}
+		}
+
+		PlVkBuffer* buffer = VulkanRenderer::GetRenderer()->mRenderGraph->GetBuffer<PlVkBuffer>("RectanglesTransformBuffer");
+		Mesh* meshe = AssetsManager::GetMesh(1);
+		if (rectanglesTransform.size() > 0)
+			VulkanRenderer::GetRenderer()->mInstanceModelMatrices[meshe->instanceOffset] = rectanglesTransform[0];
+		void* data;
+		size_t bufferSize = sizeof(glm::mat4) * VulkanRenderer::GetRenderer()->mInstanceModelMatrices.size();
+		vmaMapMemory(VulkanRenderer::GetRenderer()->mVmaAllocator, buffer->GetAllocation(VulkanRenderer::GetRenderer()->mCurrentFrame), &data);
+		memcpy(data, VulkanRenderer::GetRenderer()->mInstanceModelMatrices.data(), bufferSize);
+		vmaUnmapMemory(VulkanRenderer::GetRenderer()->mVmaAllocator, buffer->GetAllocation(VulkanRenderer::GetRenderer()->mCurrentFrame));
+
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(mCommandBuffer, 1, 1, &buffer->GetBuffer(Application::Get()->mRenderer->mCurrentFrame), offsets);
+		for (auto& meshUuid : pipeline->mCreateInfo.staticMeshesUuid) {
+			Mesh* mesh = AssetsManager::GetMesh(meshUuid);
+			if (!mesh) continue;
+			vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), 1, mesh->indicesOffset, mesh->verticesOffset, mesh->instanceOffset);
+		}
 	}
 }

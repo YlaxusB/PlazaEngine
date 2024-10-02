@@ -28,7 +28,7 @@ namespace Plaza {
 	}
 
 	glm::mat4 Camera::GetOrthogonalMatrix() {
-		return glm::ortho(0.0f, 1.0f, 1.0f, 0.0f, -1.0f, 1.0f);
+		return glm::ortho(0.0f, Application::Get()->appSizes->sceneSize.x, 0.0f, Application::Get()->appSizes->sceneSize.y, -1.0f, 1.0f);
 	}
 
 	void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)

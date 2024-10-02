@@ -206,11 +206,10 @@ namespace Plaza {
 	}
 
 	void Application::UpdateEngine() {
-		Plaza::Editor::selectedFiles;
 		PLAZA_PROFILE_SECTION("Update Engine");
+
 		// Update time
 		Time::Update();
-		float currentFrame = static_cast<float>(glfwGetTime());
 
 		// Update Keyboard inputs
 		Callbacks::processInput(Application::Get()->mWindow->glfwWindow);
@@ -229,15 +228,11 @@ namespace Plaza {
 			value->UpdateTime(Time::deltaTime);
 		}
 
-
 		/* Update Scripts */
 		if (Application::Get()->runningScene) {
 			PLAZA_PROFILE_SECTION("Mono Update");
 			Mono::Update();
 		}
-
-		// Update Camera Position and Rotation
-		Application::Get()->activeCamera->Update();
 
 		/* Update Physics */
 		if (Application::Get()->runningScene) {
@@ -246,6 +241,8 @@ namespace Plaza {
 			Physics::Update();
 		}
 
+		// Update Camera Position and Rotation
+		Application::Get()->activeCamera->Update();
 
 		// Imgui New Frame (only if running editor)
 #ifdef EDITOR_MODE
@@ -261,9 +258,6 @@ namespace Plaza {
 		Application::Get()->mRenderer->Render();
 
 		Application::Get()->mThreadsManager->UpdateFrameEndThread();
-
-		// Update last frame
-		Time::lastFrame = currentFrame;
 
 		// Update lastSizes
 		Application::Get()->lastAppSizes = Application::Get()->appSizes;

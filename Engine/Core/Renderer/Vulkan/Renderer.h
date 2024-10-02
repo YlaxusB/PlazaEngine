@@ -227,6 +227,8 @@ namespace Plaza {
 
 		VkInstance mVulkanInstance = VK_NULL_HANDLE;
 
+		std::vector<glm::mat4> mInstanceModelMatrices = std::vector<glm::mat4>();
+
 		void WaitRendererHere();
 	private:
 		struct SwapChainPushConstant {
@@ -346,7 +348,6 @@ namespace Plaza {
 
 		std::vector<VkBuffer> mBoneMatricesBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mBoneMatricesBufferMemories = std::vector<VkDeviceMemory>();
-		std::vector<glm::mat4> mInstanceModelMatrices = std::vector<glm::mat4>();
 		std::vector<std::vector<unsigned int>> mInstanceModelMaterialOffsets = std::vector<std::vector<unsigned int>>();
 		std::vector<unsigned int> mInstanceModelMaterialsIndex = std::vector<unsigned int>();
 

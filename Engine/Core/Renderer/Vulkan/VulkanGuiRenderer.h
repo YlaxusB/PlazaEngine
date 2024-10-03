@@ -11,10 +11,15 @@
 namespace Plaza {
 	class VulkanGuiRenderer : public GuiRenderer {
 	public:
+		enum TextAlign { alignLeft, alignCenter, alignRight };
+
 		void Init() override;
 		void RenderText(Drawing::UI::TextRenderer* textRendererComponent = nullptr) override;
 		void Terminate() override;
 		VkRenderPass mRenderPass;
+		void AddText(std::string text, float x, float y, float scale, TextAlign align, glm::vec4* mapped, int& letters);
+		stb_fontchar stbFontData[STB_FONT_consolas_24_latin1_NUM_CHARS];
+		void FlushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue, VkCommandPool pool, bool free);
 	private:
 		void InitializeRenderPass();
 
@@ -23,8 +28,6 @@ namespace Plaza {
 		void PreparePipeline();
 		VulkanRenderer* mRenderer;
 
-		enum TextAlign { alignLeft, alignCenter, alignRight };
-		void AddText(std::string text, float x, float y, float scale, TextAlign align);
 		int numLetters = 0;
 
 		VkSampler mSampler;
@@ -48,8 +51,6 @@ namespace Plaza {
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 		// Pointer to mapped vertex buffer
 		glm::vec4* mapped = nullptr;
-		stb_fontchar stbFontData[STB_FONT_consolas_24_latin1_NUM_CHARS];
 		
-		void FlushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue, VkCommandPool pool, bool free);
 	};
 }

@@ -969,6 +969,9 @@ namespace Plaza {
 		virtual void RunCompute(PlazaPipeline* pipeline) override;
 		virtual void RenderCube(PlazaPipeline* pipeline) override;
 		virtual void RenderGui(PlazaPipeline* pipeline) override;
+		virtual void RenderGuiRectangle(PlazaPipeline* pipeline)override;
+		virtual void RenderGuiButton(PlazaPipeline* pipeline) override;
+		virtual void RenderGuiText(PlazaPipeline* pipeline) override;
 		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
 		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
 		virtual void ResetPipelineCompiledBool() override;

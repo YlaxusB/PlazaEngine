@@ -80,9 +80,9 @@ namespace Plaza::Editor {
 			if (ImGui::DragFloat2("Position", &pos.x))
 				item->SetPosition(pos);
 
-			glm::vec2 scale = item->GetScale();
-			if (ImGui::DragFloat2("Scale", &scale.x))
-				item->SetScale(scale);
+			glm::vec2 size = item->GetSize();
+			if (ImGui::DragFloat2("Size", &size.x))
+				item->SetSize(size);
 			AddGuiItem(gui, item->mGuiUuid);
 
 			ImGui::PopID();

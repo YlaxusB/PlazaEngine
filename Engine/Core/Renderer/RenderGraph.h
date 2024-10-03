@@ -142,6 +142,9 @@ namespace Plaza {
 					case PL_RENDER_PASS_CUBE: this->RenderCube(pipeline.get()); break;
 					case PL_RENDER_PASS_COMPUTE: this->RunCompute(pipeline.get()); break;
 					case PL_RENDER_PASS_GUI: this->RenderGui(pipeline.get()); break;
+					case PL_RENDER_PASS_GUI_RECTANGLE: this->RenderGuiRectangle(pipeline.get()); break;
+					case PL_RENDER_PASS_GUI_BUTTON: this->RenderGuiButton(pipeline.get()); break;
+					case PL_RENDER_PASS_GUI_TEXT: this->RenderGuiText(pipeline.get()); break;
 					}
 				}
 			}
@@ -164,6 +167,9 @@ namespace Plaza {
 		virtual void RenderCube(PlazaPipeline* pipeline) { };
 		virtual void RunCompute(PlazaPipeline* pipeline) { };
 		virtual void RenderGui(PlazaPipeline* pipeline) { };
+		virtual void RenderGuiRectangle(PlazaPipeline* pipeline) { };
+		virtual void RenderGuiButton(PlazaPipeline* pipeline) { };
+		virtual void RenderGuiText(PlazaPipeline* pipeline) { };
 		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) { };
 		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) { };
 		virtual void ResetPipelineCompiledBool() { };

@@ -33,23 +33,24 @@ namespace Plaza {
 		GuiComponent* GetOwnerComponent();
 
 		glm::vec2 GetPosition() { return mPosition; }
-		glm::vec2 GetScale() { return mScale; }
+		glm::vec2 GetSize() { return mSize; }
 
 		void SetPosition(glm::vec2 newPosition);
-		void SetScale(glm::vec2 newScale);
 		void SetSize(glm::vec2 newSize);
 
-		static void UpdateSelfAndChildrenTransform(GuiItem* item, glm::mat3& parentTransform);
+		static void UpdateLocalTransform(GuiItem* item, glm::mat4& parentTransform);
+		static void UpdateSelfAndChildrenTransform(GuiItem* item, glm::mat4& parentTransform);
 
-		glm::mat3 mTransform = glm::mat3(1.0f);
+		glm::mat4 mTransform = glm::mat4(1.0f);
 	private:
 		glm::vec2 mPosition = glm::vec2(0.0f);
-		glm::vec2 mScale = glm::vec2(1.0f);
 		glm::vec2 mSize = glm::vec2(1.0f);
+
+		glm::vec2 mWorldPosition = glm::vec2(0.0f);
 	public:
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(PL_SER(mGuiUuid), PL_SER(mGuiName), PL_SER(mGuiType), PL_SER(mComponentUuid), PL_SER(mGuiParentUuid), PL_SER(mGuiChildren));
+			archive(PL_SER(mGuiUuid), PL_SER(mGuiName), PL_SER(mGuiType), PL_SER(mComponentUuid), PL_SER(mGuiParentUuid), PL_SER(mGuiChildren), PL_SER(mPosition), PL_SER(mSize));
 		}
 	};
 }

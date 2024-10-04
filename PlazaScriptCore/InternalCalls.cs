@@ -25,6 +25,11 @@ namespace Plaza
         public extern static UInt64 NewEntity();
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static bool Component_IsEnabled(UInt64 uuid, Type componentType);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void Component_SetEnabled(UInt64 uuid, Type componentType, bool value);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static bool HasComponent(UInt64 uuid, Type componentType);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void AddComponent(UInt64 uuid, Type componentType);
@@ -580,6 +585,33 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void AudioSource_SetPitch(UInt64 uuid, float value);
         #endregion AudioSource
+
+        #region GuiComponent
+        [MethodImplAttribute(MethodImplOptions.InternalCall)] 
+        public extern static UInt64 GuiComponent_GuiGetByName(UInt64 componentUuid, string name);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static string GuiComponent_GuiGetName(UInt64 componentUuid, UInt64 guiUuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static UInt64 GuiComponent_GuiGetParentUuid(UInt64 componentUuid, UInt64 guiUuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static GuiType GuiComponent_GuiGetType(UInt64 componentUuid, UInt64 guiUuid);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void GuiComponent_GuiGetLocalPosition(UInt64 componentUuid, UInt64 guiUuid, out Vector2 position);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void GuiComponent_GuiSetLocalPosition(UInt64 componentUuid, UInt64 guiUuid, ref Vector2 position);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void GuiComponent_GuiGetLocalSize(UInt64 componentUuid, UInt64 guiUuid, out Vector2 size);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void GuiComponent_GuiSetLocalSize(UInt64 componentUuid, UInt64 guiUuid, ref Vector2 size);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void GuiComponent_GuiButtonSetText(UInt64 componentUuid, UInt64 guiUuid, string name);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void GuiComponent_GuiTextSetText(UInt64 componentUuid, UInt64 guiUuid, string name);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void GuiComponent_GuiButtonSetScale(UInt64 componentUuid, UInt64 guiUuid, float scale);
+        
+
+        #endregion GuiComponent
 
         #endregion Components
 

@@ -1443,12 +1443,17 @@ namespace Plaza {
 		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
 		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
 		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+		for (const PlPushConstants& pushConstant : pipeline->mPushConstants) {
+			vkCmdPushConstants(mCommandBuffer, vulkanPipeline->mShaders->mPipelineLayout, PlRenderStageToVkShaderStage(pushConstant.mStage), pushConstant.mOffset, pushConstant.mStride, pushConstant.mData);
+		}
 
 		std::vector<glm::mat4> rectanglesTransform = std::vector<glm::mat4>();
 		std::vector<glm::mat4> buttonsTransform = std::vector<glm::mat4>();
 		std::vector<glm::mat4> textsTransform = std::vector<glm::mat4>();
 		std::vector<glm::mat4>* vector;
 		for (auto& [key, value] : Scene::GetActiveScene()->guiComponents) {
+			if (!value.mEnabled)
+				continue;
 			for (auto& [itemUuid, item] : value.mGuiItems) {
 				switch (item->mGuiType) {
 				case GuiType::PL_GUI_RECTANGLE: vector = &rectanglesTransform; break;
@@ -1532,12 +1537,15 @@ namespace Plaza {
 		int numLetters = 0;
 		vmaMapMemory(VulkanRenderer::GetRenderer()->mVmaAllocator, textsBuffer->GetAllocation(VulkanRenderer::GetRenderer()->mCurrentFrame), (void**)&mapped);
 		for (auto& [key, value] : Scene::GetActiveScene()->guiComponents) {
+			if (!value.mEnabled)
+				continue;
+
 			for (auto& [itemUuid, item] : value.mGuiItems) {
 				if (item->mGuiType != GuiType::PL_GUI_BUTTON)
 					continue;
 
 				GuiButton* button = static_cast<GuiButton*>(item.get());
-				VulkanGuiRenderer::AddText(button->mText + std::to_string(count), button->GetWorldPosition().x, button->GetWorldPosition().y, button->mTextScale, VulkanGuiRenderer::TextAlign::alignLeft, mapped, numLetters);
+				VulkanGuiRenderer::AddText(button->mText, button->GetWorldPosition().x, button->GetWorldPosition().y, button->mTextScale, VulkanGuiRenderer::TextAlign::alignLeft, mapped, numLetters);
 				count++;
 
 			}

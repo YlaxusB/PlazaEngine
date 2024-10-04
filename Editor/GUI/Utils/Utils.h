@@ -14,12 +14,16 @@ namespace Plaza::Editor::Utils {
 			if (ImGui::Button("Remove Component")) {
 				Scene::GetActiveScene()->entities.find(component->mUuid)->second.RemoveComponent(component);
 				deleted = true;
-			}
+			}			
+			ImGui::SameLine();
+			ImGui::Checkbox("Enabled", &component->mEnabled);
 			ImGui::SameLine();
 			ImGui::SetCursorPos(old);
 			header = ImGui::CollapsingHeader(name.c_str(), ImGuiTreeNodeFlags_DefaultOpen);
 			ImGui::SameLine();
 			ImGui::Button("Remove Component");
+			ImGui::SameLine();
+			ImGui::Checkbox("Enabled", &component->mEnabled);
 			if (deleted)
 				header = false;
 		}

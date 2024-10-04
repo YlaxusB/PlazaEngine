@@ -318,6 +318,12 @@ namespace Plaza {
 		this->mainSceneEntity = this->GetEntity(this->mainSceneEntityUuid);
 		this->mainSceneEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 
+		for (auto& [componentUuid, component] : guiComponents) {
+			for (auto& [key, value] : component.mGuiItems) {
+				glm::mat4 parentTransform = component.HasGuiItem(value->mGuiParentUuid) ? component.GetGuiItem<GuiItem>(value->mGuiParentUuid)->mTransform : glm::mat4(1.0f);
+				GuiItem::UpdateSelfAndChildrenTransform(value.get(), parentTransform);
+			}
+		}
 		entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>();
 		entitiesNames.reserve(entities.size());
 		for (auto& [key, value] : entities) {

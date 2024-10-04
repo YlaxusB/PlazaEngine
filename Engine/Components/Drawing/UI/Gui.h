@@ -17,6 +17,9 @@ namespace Plaza {
 			auto item = std::make_shared<T>(newGuiName);
 			item->mGuiParentUuid = parentUuid;
 			mGuiItems.emplace(item->mGuiUuid, item);
+
+			glm::mat4 parentTransform = this->HasGuiItem(item->mGuiParentUuid) ? this->GetGuiItem<GuiItem>(item->mGuiParentUuid)->mTransform : glm::mat4(1.0f);
+			GuiItem::UpdateSelfAndChildrenTransform(item.get(), parentTransform);
 			return item;
 		}
 
@@ -25,13 +28,16 @@ namespace Plaza {
 			mGuiItems.emplace(item->mGuiUuid, item);
 			if (item->mGuiParentUuid != 0)
 				mGuiItems[item->mGuiParentUuid]->mGuiChildren.push_back(item->mGuiUuid);
+
+			glm::mat4 parentTransform = this->HasGuiItem(item->mGuiParentUuid) ? this->GetGuiItem<GuiItem>(item->mGuiParentUuid)->mTransform : glm::mat4(1.0f);
+			GuiItem::UpdateSelfAndChildrenTransform(item.get(), parentTransform);
 			return item;
 		}
 
 		template<typename T>
-		std::shared_ptr<T> GetGuiItem(uint64_t uuid) {
+		T* GetGuiItem(uint64_t uuid) {
 			if (this->HasGuiItem(uuid))
-				return mGuiItems.at(uuid);
+				return static_cast<T*>(mGuiItems.at(uuid).get());
 			else
 				return nullptr;
 		}

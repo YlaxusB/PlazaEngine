@@ -3879,6 +3879,8 @@ namespace Plaza {
 		std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
 		std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
 		for (const auto& [key, value] : Scene::GetActiveScene()->meshRendererComponents) {
+			if (!value.mEnabled)
+				continue;
 			const auto& transformIt = Scene::GetActiveScene()->transformComponents.find(key);
 			if (transformIt != Scene::GetActiveScene()->transformComponents.end() && value.renderGroup) {
 				// mInstanceModelMatrices.push_back(glm::mat4(1.0f));

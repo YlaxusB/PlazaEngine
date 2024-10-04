@@ -16,5 +16,5 @@ void main(void)
    // uv = uv * 2.0 - 1.0; // Convert to range [-1, 1]
 
     // Draw a simple white plane
-    outColor = vec4(1.0, 1.0, 1.0, 1.0); // White color
+    outColor = vec4(0.3, 0.3, 0.3, 0.5); // White color
 }

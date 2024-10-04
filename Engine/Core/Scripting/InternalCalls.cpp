@@ -11,6 +11,7 @@
 #include "Engine/Components/Physics/Collider.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
+#include "Engine/Components/Drawing/UI/GuiButton.h"
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Scripting/FieldManager.h"
 #include "Engine/Core/Physics.h"
@@ -79,6 +80,45 @@ namespace Plaza {
 		Z
 	};
 
+	static Component* CreateComponentByName(uint64_t uuid, MonoReflectionType* componentType) {
+		if (!uuid)
+			return nullptr;
+		MonoType* monoType = mono_reflection_type_get_type(componentType);
+		if (Mono::mEntityHasComponentFunctions.find(monoType) != Mono::mEntityHasComponentFunctions.end()) {
+			return Mono::mEntityAddComponentFunctions[monoType](Scene::GetActiveScene()->entities.at(uuid));
+		}
+		return nullptr;
+	}
+
+	static Component* GetComponentByClassName(uint64_t uuid, MonoReflectionType* componentType) {
+		if (!uuid)
+			return nullptr;
+		MonoType* monoType = mono_reflection_type_get_type(componentType);
+		if (Mono::mEntityHasComponentFunctions.find(monoType) != Mono::mEntityHasComponentFunctions.end()) {
+			return Mono::mEntityGetComponentFunctions[monoType](Scene::GetActiveScene()->entities.at(uuid));
+		}
+		return nullptr;
+	}
+
+	static bool Component_IsEnabled(uint64_t uuid, MonoReflectionType* componentType) {
+		if (Scene::GetActiveScene()->entities.find(uuid) == Scene::GetActiveScene()->entities.end())
+			return false;
+
+		auto* component = GetComponentByClassName(uuid, componentType);
+		if (component)
+			return component->mEnabled;
+		else
+			return false;
+	}
+
+	static void Component_SetEnabled(uint64_t uuid, MonoReflectionType* componentType, bool value) {
+		if (Scene::GetActiveScene()->entities.find(uuid) == Scene::GetActiveScene()->entities.end())
+			return;
+
+		auto* component = GetComponentByClassName(uuid, componentType);
+		component->SetEnabled(value);
+	}
+
 	static bool HasComponent(uint64_t uuid, MonoReflectionType* componentType) {
 		if (Scene::GetActiveScene()->entities.find(uuid) == Scene::GetActiveScene()->entities.end())
 			return false;
@@ -96,16 +136,6 @@ namespace Plaza {
 			classNameWithoutNamespace = classNameWithoutNamespace.substr(namespaceEndPos + 1);
 		}
 		return classNameWithoutNamespace;
-	}
-
-	static Component* CreateComponentByName(uint64_t uuid, MonoReflectionType* componentType) {
-		if (!uuid)
-			return nullptr;
-		MonoType* monoType = mono_reflection_type_get_type(componentType);
-		if (Mono::mEntityHasComponentFunctions.find(monoType) != Mono::mEntityHasComponentFunctions.end()) {
-			return Mono::mEntityAddComponentFunctions[monoType](Scene::GetActiveScene()->entities.at(uuid));
-		}
-		return nullptr; // Component type not found
 	}
 
 	static void AddComponent(uint64_t uuid, MonoReflectionType* componentType) {
@@ -1090,6 +1120,110 @@ namespace Plaza {
 	}
 #pragma endregion AudioSource
 
+#pragma region GuiComponent
+	static uint64_t GuiComponent_GuiGetByName(uint64_t componentUuid, MonoString* name) {
+		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
+		if (component) {
+			char* nameCStr = mono_string_to_utf8(name);
+			for (auto& [key, value] : component->mGuiItems) {
+				if (value->mGuiName == nameCStr) {
+					return value->mGuiUuid;
+				}
+			}
+		}
+		return 0;
+	}
+
+	static MonoString* GuiComponent_GuiGetName(uint64_t componentUuid, uint64_t guiUuid) {
+		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
+		if (component) {
+			if (component->HasGuiItem(guiUuid))
+				return mono_string_new(Mono::mAppDomain, component->GetGuiItem<GuiItem>(guiUuid)->mGuiName.c_str());
+		}
+		return nullptr;
+	}
+
+	static uint64_t GuiComponent_GuiGetParentUuid(uint64_t componentUuid, uint64_t guiUuid) {
+		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
+		if (component) {
+			if (component->HasGuiItem(guiUuid))
+				return component->GetGuiItem<GuiItem>(guiUuid)->mGuiParentUuid;
+		}
+		return 0;
+	}
+
+	static GuiType GuiComponent_GuiGetType(uint64_t componentUuid, uint64_t guiUuid) {
+		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
+		if (component) {
+			if (component->HasGuiItem(guiUuid))
+				return component->GetGuiItem<GuiItem>(guiUuid)->mGuiType;
+		}
+		return GuiType::PL_GUI_RECTANGLE;
+	}
+
+	static void GuiComponent_GuiGetLocalPosition(uint64_t componentUuid, uint64_t guiUuid, glm::vec2* out) {
+		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
+		if (component) {
+			if (component->HasGuiItem(guiUuid))
+				*out = component->GetGuiItem<GuiItem>(guiUuid)->GetLocalPosition();
+		}
+	}
+
+	static void GuiComponent_GuiSetLocalPosition(uint64_t componentUuid, uint64_t guiUuid, glm::vec2* position) {
+		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
+		if (component) {
+			if (component->HasGuiItem(guiUuid))
+				component->GetGuiItem<GuiItem>(guiUuid)->SetPosition(*position);
+		}
+	}
+
+	static void GuiComponent_GuiGetLocalSize(uint64_t componentUuid, uint64_t guiUuid, glm::vec2* out) {
+		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
+		if (component) {
+			if (component->HasGuiItem(guiUuid))
+				*out = component->GetGuiItem<GuiItem>(guiUuid)->GetLocalSize();
+		}
+	}
+
+	static void GuiComponent_GuiSetLocalSize(uint64_t componentUuid, uint64_t guiUuid, glm::vec2* size) {
+		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
+		if (component) {
+			if (component->HasGuiItem(guiUuid))
+				component->GetGuiItem<GuiItem>(guiUuid)->SetSize(*size);
+		}
+	}
+
+	static void GuiComponent_GuiButtonSetText(uint64_t componentUuid, uint64_t guiUuid, MonoString* monoString) {
+		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
+		if (component) {
+			if (component->HasGuiItem(guiUuid)) {
+				char* textCStr = mono_string_to_utf8(monoString);
+				component->GetGuiItem<GuiButton>(guiUuid)->mText = textCStr;
+			}
+		}
+	}
+	static void GuiComponent_GuiButtonSetScale(uint64_t componentUuid, uint64_t guiUuid, float scale) {
+		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
+		if (component) {
+			if (component->HasGuiItem(guiUuid)) {
+				component->GetGuiItem<GuiButton>(guiUuid)->mTextScale = scale;
+			}
+		}
+	}
+
+	static void GuiComponent_GuiTextSetText(uint64_t componentUuid, uint64_t guiUuid, MonoString* monoString) {
+		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
+		if (component) {
+			if (component->HasGuiItem(guiUuid)) {
+				char* textCStr = mono_string_to_utf8(monoString);
+				// MOVE IT TO USE GUITEXT INSTEAD OF GUIBUTTON
+				component->GetGuiItem<GuiButton>(guiUuid)->mText = textCStr;
+			}
+		}
+	}
+
+#pragma endregion GuiComponent
+
 #pragma endregion Components
 
 #pragma region Time
@@ -1124,6 +1258,8 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::EntitySetParent", EntitySetParent);
 		mono_add_internal_call("Plaza.InternalCalls::EntityGetChildren", EntityGetChildren);
 		mono_add_internal_call("Plaza.InternalCalls::EntityDelete", EntityDelete);
+		mono_add_internal_call("Plaza.InternalCalls::Component_IsEnabled", Component_IsEnabled);
+		mono_add_internal_call("Plaza.InternalCalls::Component_SetEnabled", Component_SetEnabled);
 		mono_add_internal_call("Plaza.InternalCalls::HasComponent", HasComponent);
 		mono_add_internal_call("Plaza.InternalCalls::AddComponent", AddComponent);
 		mono_add_internal_call("Plaza.InternalCalls::RemoveComponent", RemoveComponent);
@@ -1200,6 +1336,18 @@ namespace Plaza {
 		PL_ADD_INTERNAL_CALL("AudioSource_SetVolume");
 		PL_ADD_INTERNAL_CALL("AudioSource_GetPitch");
 		PL_ADD_INTERNAL_CALL("AudioSource_SetPitch");
+
+		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiGetByName", GuiComponent_GuiGetByName);
+		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiGetName", GuiComponent_GuiGetName);
+		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiGetParentUuid", GuiComponent_GuiGetParentUuid);
+		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiGetType", GuiComponent_GuiGetType);
+		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiGetLocalPosition", GuiComponent_GuiGetLocalPosition);
+		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiSetLocalPosition", GuiComponent_GuiSetLocalPosition);
+		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiGetLocalSize", GuiComponent_GuiGetLocalSize);
+		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiSetLocalSize", GuiComponent_GuiSetLocalSize);
+		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiButtonSetText", GuiComponent_GuiButtonSetText);
+		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiTextSetText", GuiComponent_GuiTextSetText);
+		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiButtonSetScale", GuiComponent_GuiButtonSetScale);
 
 		mono_add_internal_call("Plaza.InternalCalls::Time_GetDeltaTime", Time_GetDeltaTime);
 

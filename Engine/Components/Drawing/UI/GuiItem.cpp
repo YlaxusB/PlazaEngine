@@ -38,7 +38,7 @@ namespace Plaza {
 		//GuiItem::UpdateLocalTransform(item, parentTransform);
 		//item->mTransform = parentTransform * item->mTransform;
 		for (uint64_t& uuid : item->mGuiChildren) {
-			GuiItem::UpdateSelfAndChildrenTransform(Scene::GetActiveScene()->GetComponent<GuiComponent>(item->mComponentUuid)->GetGuiItem<GuiItem>(uuid).get(), item->mTransform);
+			GuiItem::UpdateSelfAndChildrenTransform(Scene::GetActiveScene()->GetComponent<GuiComponent>(item->mComponentUuid)->GetGuiItem<GuiItem>(uuid), item->mTransform);
 		}
 		item->mTransform = glm::scale(parentTransform, 1.0f / scale) * (glm::translate(glm::mat4(1.0f), glm::vec3(item->GetLocalPosition(), 0.0f))) * glm::scale(glm::mat4(1.0f), glm::vec3(item->GetLocalSize(), 1.0f));
 	}

@@ -11,6 +11,11 @@ namespace Plaza {
 	class Component {
 	public:
 		uint64_t mUuid;
+		bool mEnabled = true;
+
+		inline bool IsEnabled() { return mEnabled; };
+		inline void SetEnabled(bool value) { mEnabled = value; };
+
 		Entity* GetGameObject();
 		virtual ~Component() = default;
 		Component() {
@@ -19,7 +24,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(PL_SER(mUuid));
+			archive(PL_SER(mUuid), PL_SER(mEnabled));
 		}
 	};
 }

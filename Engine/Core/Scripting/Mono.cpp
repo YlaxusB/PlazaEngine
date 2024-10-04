@@ -27,6 +27,7 @@ char* ConvertConstCharToChar(const char* constCharString) {
 namespace Plaza {
 	std::unordered_map<MonoType*, std::function<bool(Entity)>> Mono::mEntityHasComponentFunctions = std::unordered_map<MonoType*, std::function<bool(Entity)>>();
 	std::unordered_map<MonoType*, std::function<Component* (Entity)>> Mono::mEntityAddComponentFunctions = std::unordered_map<MonoType*, std::function<Component* (Entity)>>();
+	std::unordered_map<MonoType*, std::function<Component* (Entity)>> Mono::mEntityGetComponentFunctions = std::unordered_map<MonoType*, std::function<Component* (Entity)>>();
 	MonoDomain* Mono::mAppDomain = nullptr;
 	MonoAssembly* Mono::mCoreAssembly = nullptr;
 	MonoDomain* Mono::mMonoRootDomain = nullptr;
@@ -333,6 +334,7 @@ namespace Plaza {
 		MonoType* managedType = mono_reflection_type_from_name(managedTypeName.data(), Mono::mCoreImage);
 		Mono::mEntityHasComponentFunctions[managedType] = [](Entity entity) { return entity.HasComponent<Component>(); };
 		Mono::mEntityAddComponentFunctions[managedType] = [](Entity entity) { return entity.AddComp<Component>(); };
+		Mono::mEntityGetComponentFunctions[managedType] = [](Entity entity) { return entity.GetComponent<Component>(); };
 	}
 
 	void Mono::RegisterComponents() {

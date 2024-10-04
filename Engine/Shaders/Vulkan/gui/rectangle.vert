@@ -31,6 +31,6 @@ void main(void)
 	mat4 model = mat4(instanceMatrix[0], instanceMatrix[1], instanceMatrix[2], instanceMatrix[3]);
 
     // Perform multiplication
-    gl_Position = pushConstants.matrix * vec4(inPosition.xy, 0.0f, 1.0f);
+    gl_Position = pushConstants.matrix * model * vec4(inPosition.xy, 0.0f, 1.0f);
     outUV = inTexCoord;
 }

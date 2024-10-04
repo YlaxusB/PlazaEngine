@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 using Plaza;
 
 namespace Plaza
@@ -156,6 +158,17 @@ namespace Plaza
     {
         public UInt64 Uuid;
         public Entity Entity { get; internal set; }
+        public bool Enabled
+        {
+            get
+            {
+                return InternalCalls.Component_IsEnabled(this.Uuid, this.GetType());
+            }
+            set
+            {
+                InternalCalls.Component_SetEnabled(this.Uuid, this.GetType(), value);
+            }
+        }
     }
 
 
@@ -686,6 +699,110 @@ namespace Plaza
         }
     }
 
+    public enum GuiType
+    {
+        PL_GUI_RECTANGLE = 0,
+        PL_GUI_BUTTON,
+        PL_GUI_TEXT
+    };
+
+    public class GuiItem
+    {
+        public UInt64 GuiUuid = 0;
+
+        public GuiItem() { }
+        public GuiItem(ulong uuid)
+        {
+            GuiUuid = uuid;
+        }
+
+        public string GuiName
+        {
+            get
+            {
+                return InternalCalls.GuiComponent_GuiGetName(this.GuiComponentUuid, this.GuiUuid);
+            }
+        }
+        public UInt64 GuiComponentUuid = 0;
+        public UInt64 GuiParentUuid
+        {
+            get
+            {
+                return InternalCalls.GuiComponent_GuiGetParentUuid(this.GuiComponentUuid, this.GuiUuid);
+            }
+        }
+        public List<UInt64> GuiChildren = new List<UInt64>();
+        public GuiType GuiType        
+        {
+            get
+            {
+                return InternalCalls.GuiComponent_GuiGetType(this.GuiComponentUuid, this.GuiUuid);
+            }
+        }
+
+        public Vector2 LocalPosition
+        {
+            get
+            {
+                InternalCalls.GuiComponent_GuiGetLocalPosition(this.GuiComponentUuid, this.GuiUuid, out Vector2 position);
+                return position;
+            }
+            set
+            {
+                InternalCalls.GuiComponent_GuiSetLocalPosition(this.GuiComponentUuid, this.GuiUuid, ref value);
+            }
+        }
+        public Vector2 LocalSize
+        {
+            get
+            {
+                InternalCalls.GuiComponent_GuiGetLocalSize(this.GuiComponentUuid, this.GuiUuid, out Vector2 size);
+                return size;
+            }
+            set
+            {
+                InternalCalls.GuiComponent_GuiSetLocalSize(this.GuiComponentUuid, this.GuiUuid, ref value);
+            }
+        }
+    }
+
+    public class GuiRectangle : GuiItem
+    {
+
+    }
+
+    public class GuiButton : GuiItem
+    {
+        public string Text 
+        {
+            set
+            {
+                InternalCalls.GuiComponent_GuiButtonSetText(this.GuiComponentUuid, this.GuiUuid, value);
+            }
+        }
+        public float FontScale
+        {
+            set
+            {
+                InternalCalls.GuiComponent_GuiButtonSetScale(this.GuiComponentUuid, this.GuiUuid, value);
+            }
+        }
+
+    }
+
+
+    public class GuiComponent : Component
+    {
+        //List<GuiItem> GuiItems = new List<GuiItem>();
+
+        public T FindGuiByName<T>(string name) where T : GuiItem, new()
+        {
+            T gui = new T();
+            gui.GuiUuid = InternalCalls.GuiComponent_GuiGetByName(this.Uuid, name);
+            gui.GuiComponentUuid = this.Uuid;
+            return gui;
+        }
+    }
 
     #endregion
 }

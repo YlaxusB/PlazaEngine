@@ -299,20 +299,33 @@ namespace Plaza {
 		//this->mRenderer->AddTrackerToImage(this->mImageView, "Text Rendering", nullptr, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 
-	void VulkanGuiRenderer::AddText(std::string text, float x, float y, float scale, TextAlign align, glm::vec4* mapped, int& letters)
+	void VulkanGuiRenderer::AddText(std::string text, float x, float y, float scale, TextAlign align, glm::vec4*& mapped, int& letters)
 	{
+		static bool stbInitialized = false;
+		static const uint32_t fontWidth = STB_FONT_consolas_24_latin1_BITMAP_WIDTH;
+		static const uint32_t fontHeight = STB_FONT_consolas_24_latin1_BITMAP_HEIGHT;
+
+		static unsigned char font24pixels[fontHeight][fontWidth];
+		static stb_fontchar stbFontData[STB_FONT_consolas_24_latin1_NUM_CHARS];
+
+		if (!stbInitialized) {
+			stb_font_consolas_24_latin1(stbFontData, font24pixels, fontHeight);
+			stbInitialized = true;
+		}
+
+
 		const uint32_t firstChar = STB_FONT_consolas_24_latin1_FIRST_CHAR;
 
 		assert(mapped != nullptr);
 
-		frameBufferWidth = new uint32_t((uint32_t)Application::Get()->appSizes->sceneSize.x);
-		frameBufferHeight = new uint32_t((uint32_t)Application::Get()->appSizes->sceneSize.y);
+		uint32_t frameBufferWidth = (uint32_t)Application::Get()->appSizes->sceneSize.x;
+		uint32_t frameBufferHeight = (uint32_t)Application::Get()->appSizes->sceneSize.y;
 
-		const float charW = 1.5f * scale / *frameBufferWidth;
-		const float charH = 1.5f * scale / *frameBufferHeight;
+		const float charW = 1.5f * scale / *&frameBufferWidth;
+		const float charH = 1.5f * scale / *&frameBufferHeight;
 
-		float fbW = (float)*frameBufferWidth;
-		float fbH = (float)*frameBufferHeight;
+		float fbW = (float)*&frameBufferWidth;
+		float fbH = (float)*&frameBufferHeight;
 		x = (x / fbW * 2.0f) - 1.0f;
 		y = (y / fbH * 2.0f) - 1.0f;
 
@@ -335,8 +348,8 @@ namespace Plaza {
 		case alignLeft:
 			break;
 		}
-		float xOffset = 0.0f;//-(Application::Get()->appSizes->sceneImageStart.x / Application::Get()->appSizes->appSize.x);
-		float yOffset = 0.0f;//-(Application::Get()->appSizes->sceneImageStart.y / Application::Get()->appSizes->appSize.y);
+		float xOffset = 0.0f;//-(Application->appSizes->sceneImageStart.x / Application->appSizes->appSize.x);
+		float yOffset = 0.0f;//-(Application->appSizes->sceneImageStart.y / Application->appSizes->appSize.y);
 		// Generate a uv mapped quad per char in the new text
 		for (auto letter : text)
 		{
@@ -377,17 +390,17 @@ namespace Plaza {
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mTextPipeline->mShaders->mPipeline);
 		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mTextPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSet, 0, NULL);
 
-		vkMapMemory(*mDevice, mMemory, 0, VK_WHOLE_SIZE, 0, (void**)&mapped);
+		vkMapMemory(*mDevice, mMemory, 0, VK_WHOLE_SIZE, 0, (void**)&mappede);
 		numLetters = 0;
 
 		for (auto& [key, value] : Scene::GetActiveScene()->UITextRendererComponents) {
-			this->AddText(value.mText, value.mPosX, value.mPosY, value.mScale, TextAlign::alignLeft, mapped, numLetters);
+			this->AddText(value.mText, value.mPosX, value.mPosY, value.mScale, TextAlign::alignLeft, mappede, numLetters);
 		}
 
 
 
 		vkUnmapMemory(*mDevice, mMemory);
-		mapped = nullptr;
+		mappede = nullptr;
 
 		VkDeviceSize offsets = 0;
 		vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &mBuffer, &offsets);

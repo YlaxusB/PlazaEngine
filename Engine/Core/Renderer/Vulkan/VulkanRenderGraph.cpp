@@ -25,7 +25,7 @@ namespace Plaza {
 
 		this->AddTexture(make_shared<VulkanTexture>(VulkanRenderer::GetRenderer()->mMaxBindlessTextures, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(1, 1, 1), 1, 0, "TexturesBuffer"));
 
-		this->AddTexture(make_shared<VulkanTexture>(1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(STB_FONT_consolas_24_latin1_BITMAP_WIDTH, STB_FONT_consolas_24_latin1_BITMAP_HEIGHT, 1), 1, 1, "FontTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R8_UNORM, glm::vec3(STB_FONT_consolas_24_latin1_BITMAP_WIDTH, STB_FONT_consolas_24_latin1_BITMAP_HEIGHT, 1), 1, 1, "FontTexture"));
 		this->AddTexture(make_shared<VulkanTexture>(1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution, skyboxResolution, 1), 1, 1, "EquirectangularTexture"));
 		this->AddTexture(make_shared<VulkanTexture>(1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution, skyboxResolution, 1), 1, 6, "CubeMapTexture"));
 		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R16G16_SFLOAT, glm::vec3(brdfSize, brdfSize, 1), 1, 1, "SamplerBRDFLUT"));
@@ -76,7 +76,7 @@ namespace Plaza {
 		this->AddBuffer(std::make_shared<PlVkBuffer>(PL_BUFFER_STORAGE_BUFFER, clusterCount, sizeof(Lighting::Tile), bufferCount, static_cast<PlBufferUsage>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST), PL_MEMORY_USAGE_CPU_TO_GPU, "ClustersBuffer"));
 		this->AddBuffer(std::make_shared<PlVkBuffer>(PL_BUFFER_STORAGE_BUFFER, clusterCount, sizeof(glm::vec2), bufferCount, static_cast<PlBufferUsage>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST), PL_MEMORY_USAGE_CPU_TO_GPU, "TilesDepthBuffer"));
 		this->AddBuffer(std::make_shared<PlVkBuffer>(PL_BUFFER_STORAGE_BUFFER, 1024, sizeof(glm::mat4), bufferCount, static_cast<PlBufferUsage>(PL_BUFFER_USAGE_VERTEX_BUFFER), PL_MEMORY_USAGE_CPU_TO_GPU, "RectanglesTransformBuffer"));
-		this->AddBuffer(std::make_shared<PlVkBuffer>(PL_BUFFER_STORAGE_BUFFER, 1024 * 8, sizeof(glm::vec4), bufferCount, static_cast<PlBufferUsage>(PL_BUFFER_USAGE_VERTEX_BUFFER), PL_MEMORY_USAGE_CPU_TO_GPU, "GuiTextVerticesBuffer"));
+		this->AddBuffer(std::make_shared<PlVkBuffer>(PL_BUFFER_STORAGE_BUFFER, 1024 * 2, sizeof(glm::vec4), bufferCount, static_cast<PlBufferUsage>(PL_BUFFER_USAGE_VERTEX_BUFFER), PL_MEMORY_USAGE_CPU_TO_GPU, "GuiTextVerticesBuffer"));
 
 		uint64_t a = alignof(Lighting::LightStruct);
 		uint64_t b = sizeof(Lighting::LightStruct);
@@ -397,8 +397,9 @@ namespace Plaza {
 
 		// Final Post Processing
 		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Final Post Processing Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false))
-			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_GENERAL, 0, 0, this->GetSharedTexture("BloomTexture")))
-			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("OutFinalPostProcessTexture")));
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_GENERAL, 0, 0, this->GetSharedTexture("BloomTexture")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("FontTexture")))
+			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("FinalTexture")));
 
 		struct FinalPostProcessingPC {
 			float exposure;
@@ -421,16 +422,8 @@ namespace Plaza {
 			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
 			{ pl::pushConstantRange(PL_STAGE_FRAGMENT, 0, sizeof(FinalPostProcessingPC)) }
 		));
-		this->AddRenderPassCallback("Final Post Processing Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-			plazaRenderPass->mPipelines[0]->UpdatePushConstants<FinalPostProcessingPC>(0, FinalPostProcessingPC(VulkanRenderer::GetRenderer()->exposure, VulkanRenderer::GetRenderer()->gamma));
-			});
 
 		// Gui
-		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Gui Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_GUI, gPassSize, false))
-			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("FontTexture")))
-			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_GENERAL, 0, 0, this->GetSharedTexture("OutFinalPostProcessTexture")))
-			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("FinalTexture")));
-
 		struct GuiShadersPC {
 			glm::mat4 matrix;
 		};
@@ -452,22 +445,35 @@ namespace Plaza {
 			{ pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(GuiShadersPC)) },
 			{ 1 }
 		);
-		this->GetRenderPass("Gui Pass")->AddPipeline(guiPipelineInfo);
+		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(guiPipelineInfo);
 		guiPipelineInfo.renderMethod = PL_RENDER_PASS_GUI_BUTTON;
 		guiPipelineInfo.shaderStages = { pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\button.vert", "main"),
 				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\button.frag", "main") };
-		this->GetRenderPass("Gui Pass")->AddPipeline(guiPipelineInfo);
+		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(guiPipelineInfo);
 
+		guiPipelineInfo.depthStencilState = pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS);
+		guiPipelineInfo.topology = PL_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+		guiPipelineInfo.vertexBindingDescriptions = { pl::vertexInputBindingDescription(0, sizeof(glm::vec4), PL_VERTEX_INPUT_RATE_VERTEX), pl::vertexInputBindingDescription(1, sizeof(glm::vec4), PL_VERTEX_INPUT_RATE_VERTEX) };
+		guiPipelineInfo.vertexAttributeDescriptions = { pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32_SFLOAT, 0), pl::vertexInputAttributeDescription(1, 1
+			, PL_FORMAT_R32G32_SFLOAT, sizeof(glm::vec2)) };
 		guiPipelineInfo.renderMethod = PL_RENDER_PASS_GUI_TEXT;
 		guiPipelineInfo.shaderStages = { pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\text.vert", "main"),
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\text.frag", "main") };
-		this->GetRenderPass("Gui Pass")->AddPipeline(guiPipelineInfo);
+		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(guiPipelineInfo);
 
-		this->AddRenderPassCallback("Gui Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-			plazaRenderPass->mPipelines[0]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
+		//this->AddRenderPassCallback("Gui Pass", [&, guiPass](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+		//	guiPass->mPipelines[0]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
+		//	guiPass->mPipelines[1]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
+		//	guiPass->mPipelines[2]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
+		//	});
+
+		this->AddRenderPassCallback("Final Post Processing Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+			plazaRenderPass->mPipelines[0]->UpdatePushConstants<FinalPostProcessingPC>(0, FinalPostProcessingPC(VulkanRenderer::GetRenderer()->exposure, VulkanRenderer::GetRenderer()->gamma));
 			plazaRenderPass->mPipelines[1]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
 			plazaRenderPass->mPipelines[2]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
+			plazaRenderPass->mPipelines[3]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
 			});
+
 
 		this->OrderPasses();
 	}
@@ -1292,7 +1298,7 @@ namespace Plaza {
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
 		}
-		}
+	}
 
 	void VulkanRenderPass::RenderIndirectBuffer(PlazaPipeline* pipeline) {
 		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
@@ -1438,8 +1444,42 @@ namespace Plaza {
 		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
 		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
 
+		std::vector<glm::mat4> rectanglesTransform = std::vector<glm::mat4>();
+		std::vector<glm::mat4> buttonsTransform = std::vector<glm::mat4>();
+		std::vector<glm::mat4> textsTransform = std::vector<glm::mat4>();
+		std::vector<glm::mat4>* vector;
+		for (auto& [key, value] : Scene::GetActiveScene()->guiComponents) {
+			for (auto& [itemUuid, item] : value.mGuiItems) {
+				switch (item->mGuiType) {
+				case GuiType::PL_GUI_RECTANGLE: vector = &rectanglesTransform; break;
+				case GuiType::PL_GUI_BUTTON: vector = &buttonsTransform; break;
+				case GuiType::PL_GUI_TEXT: vector = &buttonsTransform; break;
+				}
+				vector->push_back(item->mTransform);
+			}
+		}
 
+		PlVkBuffer* buffer = VulkanRenderer::GetRenderer()->mRenderGraph->GetBuffer<PlVkBuffer>("RectanglesTransformBuffer");
+		Mesh* meshe = AssetsManager::GetMesh(1);
+		VulkanRenderer::GetRenderer()->mInstanceModelMatrices.resize(VulkanRenderer::GetRenderer()->mInstanceModelMatrices.size() + rectanglesTransform.size());
+		if (rectanglesTransform.size() > 0) {
+			for (unsigned int i = 0; i < rectanglesTransform.size(); ++i) {
+				VulkanRenderer::GetRenderer()->mInstanceModelMatrices[meshe->instanceOffset + i] = rectanglesTransform[i];
+			}
+		}
+		void* data;
+		size_t bufferSize = sizeof(glm::mat4) * VulkanRenderer::GetRenderer()->mInstanceModelMatrices.size();
+		vmaMapMemory(VulkanRenderer::GetRenderer()->mVmaAllocator, buffer->GetAllocation(VulkanRenderer::GetRenderer()->mCurrentFrame), &data);
+		memcpy(data, VulkanRenderer::GetRenderer()->mInstanceModelMatrices.data(), bufferSize);
+		vmaUnmapMemory(VulkanRenderer::GetRenderer()->mVmaAllocator, buffer->GetAllocation(VulkanRenderer::GetRenderer()->mCurrentFrame));
 
+		VkDeviceSize offsets[1] = { 0 };
+		vkCmdBindVertexBuffers(mCommandBuffer, 1, 1, &buffer->GetBuffer(Application::Get()->mRenderer->mCurrentFrame), offsets);
+		for (auto& meshUuid : pipeline->mCreateInfo.staticMeshesUuid) {
+			Mesh* mesh = AssetsManager::GetMesh(meshUuid);
+			if (!mesh) mesh = AssetsManager::GetMesh(1);
+			vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), glm::max<int>(rectanglesTransform.size(), 1), mesh->indicesOffset, mesh->verticesOffset, mesh->instanceOffset);
+		}
 	}
 
 	void VulkanRenderPass::RenderGuiButton(PlazaPipeline* pipeline) {
@@ -1484,40 +1524,34 @@ namespace Plaza {
 		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
 		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
 
+		PlVkBuffer* textsBuffer = VulkanRenderer::GetRenderer()->mRenderGraph->GetBuffer<PlVkBuffer>("GuiTextVerticesBuffer");
+
+		glm::vec4* mapped = nullptr;
+		std::vector<glm::vec4> data = std::vector<glm::vec4>();
+		int count = 0;
+		int numLetters = 0;
+		vmaMapMemory(VulkanRenderer::GetRenderer()->mVmaAllocator, textsBuffer->GetAllocation(VulkanRenderer::GetRenderer()->mCurrentFrame), (void**)&mapped);
 		for (auto& [key, value] : Scene::GetActiveScene()->guiComponents) {
 			for (auto& [itemUuid, item] : value.mGuiItems) {
 				if (item->mGuiType != GuiType::PL_GUI_BUTTON)
 					continue;
 
-				PlVkBuffer* textsBuffer = VulkanRenderer::GetRenderer()->mRenderGraph->GetBuffer<PlVkBuffer>("GuiTextVerticesBuffer");
-				glm::vec4* mapped;
-				VkCommandBuffer cmdBuffer = mCommandBuffer;
-
-				vmaMapMemory(VulkanRenderer::GetRenderer()->mVmaAllocator, textsBuffer->GetAllocation(VulkanRenderer::GetRenderer()->mCurrentFrame), (void**)&mapped);
-				//memcpy(data, VulkanRenderer::GetRenderer()->mInstanceModelMatrices.data(), bufferSize);
-
-				//vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, textsBuffer->GetMemory(VulkanRenderer::GetRenderer()->mCurrentFrame), 0, VK_WHOLE_SIZE, 0, (void**)&mapped);
-				int numLetters = 0;
-
 				GuiButton* button = static_cast<GuiButton*>(item.get());
-				//for (auto& [key, value] : Scene::GetActiveScene()->UITextRendererComponents) {
-				static_cast<VulkanGuiRenderer*>(VulkanRenderer::GetRenderer()->mGuiRenderer)->AddText(button->mText, button->GetPosition().x, button->GetPosition().y, button->mTextScale, VulkanGuiRenderer::TextAlign::alignLeft, mapped, numLetters);
-				//}
+				VulkanGuiRenderer::AddText(button->mText + std::to_string(count), button->GetPosition().x, button->GetPosition().y, button->mTextScale, VulkanGuiRenderer::TextAlign::alignLeft, mapped, numLetters);
+				count++;
 
-				vmaUnmapMemory(VulkanRenderer::GetRenderer()->mVmaAllocator, textsBuffer->GetAllocation(VulkanRenderer::GetRenderer()->mCurrentFrame));
-				//vkUnmapMemory(VulkanRenderer::GetRenderer()->mDevice, textsBuffer->GetMemory(VulkanRenderer::GetRenderer()->mCurrentFrame));
-				mapped = nullptr;
-
-				VkDeviceSize offsets = 0;
-				vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &textsBuffer->GetBuffer(VulkanRenderer::GetRenderer()->mCurrentFrame), &offsets);
-				vkCmdBindVertexBuffers(cmdBuffer, 1, 1, &textsBuffer->GetBuffer(VulkanRenderer::GetRenderer()->mCurrentFrame), &offsets);
-
-				// One draw command for every character. This is okay for a debug overlay, but not optimal
-				// In a real-world application one would try to batch draw commands
-				for (uint32_t j = 0; j < numLetters; j++) {
-					vkCmdDraw(cmdBuffer, 4, 1, j * 4, 0);
-				}
 			}
 		}
+		vmaUnmapMemory(VulkanRenderer::GetRenderer()->mVmaAllocator, textsBuffer->GetAllocation(VulkanRenderer::GetRenderer()->mCurrentFrame));
+		mapped = nullptr;
+		VkDeviceSize offsets = 0;
+		vkCmdBindVertexBuffers(mCommandBuffer, 0, 1, &textsBuffer->GetBuffer(VulkanRenderer::GetRenderer()->mCurrentFrame), &offsets);
+		vkCmdBindVertexBuffers(mCommandBuffer, 1, 1, &textsBuffer->GetBuffer(VulkanRenderer::GetRenderer()->mCurrentFrame), &offsets);
+
+		// One draw command for every character. This is okay for a debug overlay, but not optimal
+		// In a real-world application one would try to batch draw commands
+		for (uint32_t j = 0; j < numLetters; j++) {
+			vkCmdDraw(mCommandBuffer, 4, 1, j * 4, 0);
+		}
 	}
-	}
+}

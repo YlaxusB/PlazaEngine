@@ -2,6 +2,9 @@
 
 layout(location = 0) out vec4 outColor;
 
+layout (binding = 0) uniform sampler2D samplerTexture;
+layout (binding = 1) uniform sampler2D fontTexture;
+
 layout(push_constant) uniform PushConstants{
     mat4 matrix;
 } pushConstants;

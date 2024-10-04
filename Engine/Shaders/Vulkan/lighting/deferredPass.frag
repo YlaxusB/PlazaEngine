@@ -284,6 +284,11 @@ void main()
             //float atten = light.radius / (pow(dist, light.cutoff) + 1.0);
             vec3 Lo = specularContribution(lightDirection, V, N, F0, metalness, roughness, diff);
            lighting += diff + Lo * atten;
+
+
+           //vec3 Lo = (kD * Diffuse / PI + specular) * radiance * NdotL;
+           //lgihting += Lo;
+
            //lighting += FragPos;//FragPos;//lightColor * atten;
            //}
         }    

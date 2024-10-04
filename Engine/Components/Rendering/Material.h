@@ -3,8 +3,13 @@
 
 #include "Engine/Components/Component.h"
 //#include "Engine/Components/Rendering/Mesh.h"
+#include "ThirdParty/cereal/cereal/types/polymorphic.hpp"
 #include "Engine/Core/Renderer/Texture.h"
 #include "Engine/Core/AssetsManager/Asset.h"
+
+
+CEREAL_REGISTER_TYPE(Texture);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Asset, Texture);
 
 namespace Plaza {
 	struct Material : public Asset {

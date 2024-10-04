@@ -17,7 +17,7 @@ namespace Plaza {
 		void RenderText(Drawing::UI::TextRenderer* textRendererComponent = nullptr) override;
 		void Terminate() override;
 		VkRenderPass mRenderPass;
-		void AddText(std::string text, float x, float y, float scale, TextAlign align, glm::vec4* mapped, int& letters);
+		static void AddText(std::string text, float x, float y, float scale, TextAlign align, glm::vec4*& mapped, int& letters);
 		stb_fontchar stbFontData[STB_FONT_consolas_24_latin1_NUM_CHARS];
 		void FlushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue, VkCommandPool pool, bool free);
 	private:
@@ -46,11 +46,9 @@ namespace Plaza {
 		// Passed from the sample
 		VkQueue mQueue;
 		VkDevice* mDevice;
-		uint32_t* frameBufferWidth;
-		uint32_t* frameBufferHeight;
 		std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 		// Pointer to mapped vertex buffer
-		glm::vec4* mapped = nullptr;
+		glm::vec4* mappede = nullptr;
 		
 	};
 }

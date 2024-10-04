@@ -136,7 +136,7 @@ namespace Plaza {
 		const auto& it = mTextures.find(uuid);
 		if (it != mTextures.end())
 			return mTextures.at(uuid);
-		return new Texture();
+		return nullptr;
 	}
 
 	bool AssetsManager::TextureExists(uint64_t uuid) {

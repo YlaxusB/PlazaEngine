@@ -76,11 +76,11 @@ namespace Plaza::Editor {
 			ImGui::PushID(itemIndex);
 
 			ImGui::Text(std::string("Name: " + item->mGuiName).c_str());
-			glm::vec2 pos = item->GetPosition();
+			glm::vec2 pos = item->GetLocalPosition();
 			if (ImGui::DragFloat2("Position", &pos.x))
 				item->SetPosition(pos);
 
-			glm::vec2 size = item->GetSize();
+			glm::vec2 size = item->GetLocalSize();
 			if (ImGui::DragFloat2("Size", &size.x))
 				item->SetSize(size);
 			AddGuiItem(gui, item->mGuiUuid);

@@ -437,7 +437,7 @@ namespace Plaza {
 			PL_TOPOLOGY_TRIANGLE_LIST,
 			false,
 			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) }),
+			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true, PL_BLEND_FACTOR_SRC_ALPHA, PL_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, PL_BLEND_OP_ADD, PL_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, PL_BLEND_FACTOR_ONE) }),
 			pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
 			pl::pipelineViewportStateCreateInfo(1, 1),
 			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
@@ -1537,7 +1537,7 @@ namespace Plaza {
 					continue;
 
 				GuiButton* button = static_cast<GuiButton*>(item.get());
-				VulkanGuiRenderer::AddText(button->mText + std::to_string(count), button->GetPosition().x, button->GetPosition().y, button->mTextScale, VulkanGuiRenderer::TextAlign::alignLeft, mapped, numLetters);
+				VulkanGuiRenderer::AddText(button->mText + std::to_string(count), button->GetWorldPosition().x, button->GetWorldPosition().y, button->mTextScale, VulkanGuiRenderer::TextAlign::alignLeft, mapped, numLetters);
 				count++;
 
 			}

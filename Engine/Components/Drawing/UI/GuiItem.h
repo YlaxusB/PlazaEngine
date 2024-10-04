@@ -32,8 +32,11 @@ namespace Plaza {
 
 		GuiComponent* GetOwnerComponent();
 
-		glm::vec2 GetPosition() { return mPosition; }
-		glm::vec2 GetSize() { return mSize; }
+		glm::vec2 GetLocalPosition() { return mPosition; }
+		glm::vec2 GetLocalSize() { return mSize; }
+
+		glm::vec2 GetWorldPosition() { return glm::vec2(mTransform[3]); }
+		glm::vec2 GetWorldSize() { return mSize; }
 
 		void SetPosition(glm::vec2 newPosition);
 		void SetSize(glm::vec2 newSize);

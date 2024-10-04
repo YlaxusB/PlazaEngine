@@ -18,6 +18,9 @@
 #include "Engine/Core/AssetsManager/AssetsManager.h"
 
 namespace Plaza {
+	static void CloseGame() {
+		glfwSetWindowShouldClose(Application::Get()->mWindow->glfwWindow, true);
+	}
 
 	void GetComponentMap(uint64_t uuid, std::string name, Component* component) {
 		if (name == typeid(Transform).name()) {
@@ -1211,6 +1214,16 @@ namespace Plaza {
 		}
 	}
 
+	static void GuiComponent_GuiButtonAddCallback(uint64_t componentUuid, uint64_t guiUuid, uint64_t scriptUuid, MonoString* monoString) {
+		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
+		if (component) {
+			if (component->HasGuiItem(guiUuid)) {
+				char* functionNameCStr = mono_string_to_utf8(monoString);
+				component->GetGuiItem<GuiButton>(guiUuid)->AddScriptCallback(scriptUuid, functionNameCStr);
+			}
+		}
+	}
+
 	static void GuiComponent_GuiTextSetText(uint64_t componentUuid, uint64_t guiUuid, MonoString* monoString) {
 		GuiComponent* component = Scene::GetActiveScene()->GetComponent<GuiComponent>(componentUuid);
 		if (component) {
@@ -1234,6 +1247,8 @@ namespace Plaza {
 
 	void InternalCalls::Init() {
 		//PL_ADD_INTERNAL_CALL(GetPositionCall);
+		mono_add_internal_call("Plaza.InternalCalls::CloseGame", CloseGame);
+
 		mono_add_internal_call("Plaza.InternalCalls::FindEntityByNameCall", FindEntityByNameCall);
 		mono_add_internal_call("Plaza.InternalCalls::NewEntity", NewEntity);
 		mono_add_internal_call("Plaza.InternalCalls::Instantiate", Instantiate);
@@ -1348,6 +1363,7 @@ namespace Plaza {
 		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiButtonSetText", GuiComponent_GuiButtonSetText);
 		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiTextSetText", GuiComponent_GuiTextSetText);
 		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiButtonSetScale", GuiComponent_GuiButtonSetScale);
+		mono_add_internal_call("Plaza.InternalCalls::GuiComponent_GuiButtonAddCallback", GuiComponent_GuiButtonAddCallback);
 
 		mono_add_internal_call("Plaza.InternalCalls::Time_GetDeltaTime", Time_GetDeltaTime);
 

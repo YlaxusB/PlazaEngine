@@ -75,7 +75,12 @@ namespace Plaza::Editor {
 			itemIndex++;
 			ImGui::PushID(itemIndex);
 
-			ImGui::InputText("Item Name:", item->mGuiName.data(), item->mGuiName.length() + 256);
+			char buf2[512];
+			strcpy_s(buf2, item->mGuiName.c_str());
+			if (ImGui::InputTextEx("Item Name", "Item Name", buf2, 512, ImVec2(0, 0), ImGuiInputTextFlags_EnterReturnsTrue))
+				item->mGuiName = buf2;
+			//ImGui::InputText("Item Name:", item->mGuiName.data(), item->mGuiName.length() + 256);
+
 			glm::vec2 pos = item->GetLocalPosition();
 			if (ImGui::DragFloat2("Position", &pos.x))
 				item->SetPosition(pos);

@@ -788,6 +788,10 @@ namespace Plaza
             }
         }
 
+        public void AddCallback(UInt64 scriptUuid, string functionName)
+        {
+            InternalCalls.GuiComponent_GuiButtonAddCallback(this.GuiComponentUuid, this.GuiUuid, scriptUuid, functionName);
+        }
     }
 
 

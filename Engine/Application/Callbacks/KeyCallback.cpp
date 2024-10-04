@@ -9,6 +9,7 @@
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "Engine/Core/Input/Input.h"
 #include "Editor/GUI/guiMain.h"
+
 using namespace Plaza;
 uint64_t lastUuid;
 
@@ -141,9 +142,7 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 	}
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS && Application::Get()->focusedMenu == "Scene") {
-#ifdef GAME_MODE
-		glfwSetWindowShouldClose(Application::Get()->mWindow->glfwWindow, true);
-#else
+#ifdef EDITOR_MODE
 		ImGui::SetWindowFocus("Editor");
 #endif
 	}

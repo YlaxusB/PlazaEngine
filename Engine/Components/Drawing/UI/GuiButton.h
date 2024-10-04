@@ -12,6 +12,17 @@ namespace Plaza {
 		float mScale = 1.0f;
 		float mTextScale = 1.0f;
 		glm::vec4 mColor = glm::vec4(1.0f);
+		std::unordered_map<uint64_t, std::string> mScriptsFunctionNameToCallWhenClicked = std::unordered_map<uint64_t, std::string>();
+
+		void AddScriptCallback(uint64_t scriptUuid, std::string functionName) {
+			mScriptsFunctionNameToCallWhenClicked.emplace(scriptUuid, functionName);
+		}
+
+		GuiButton() { mGuiUuid = Plaza::UUID::NewUUID(); }
+
+		void CallScriptsCallback();
+
+		bool MouseIsInsideButton(glm::vec2 mousePos);
 
 		GuiButton(std::string guiName, std::string text, float posX, float posY, float sizeX, float sizeY, float scale, float textScale, glm::vec4 color) :
 			GuiItem(guiName), mText(text), mPosX(posX), mPosY(posY), mSizeX(sizeX), mSizeY(sizeY), mScale(scale), mTextScale(textScale), mColor(color) {

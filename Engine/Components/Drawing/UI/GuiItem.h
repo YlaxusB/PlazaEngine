@@ -30,6 +30,8 @@ namespace Plaza {
 
 		GuiItem() { mGuiUuid = Plaza::UUID::NewUUID(); }
 
+		virtual ~GuiItem() = default;
+
 		GuiComponent* GetOwnerComponent();
 
 		glm::vec2 GetLocalPosition() { return mPosition; }

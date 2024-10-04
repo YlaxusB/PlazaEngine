@@ -2,7 +2,7 @@
 #include "CallbacksHeader.h"
 #include "Engine/Application/ApplicationSizes.h"
 #include "Editor/GUI/guiMain.h"
-
+#include "Engine/Components/Drawing/UI/GuiButton.h"
 
 using namespace Plaza::Editor;
 using namespace Plaza;
@@ -16,6 +16,20 @@ void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, 
 
 	for (auto& tool : Editor::Gui::sEditorTools) {
 		tool.second->OnMouseClick(button, action, mods);
+	}
+
+	if (Application::Get()->runningScene && Application::Get()->focusedMenu == "Scene") {
+		for (auto& [key, value] : Scene::GetActiveScene()->guiComponents) {
+			for (auto& [itemKey, itemValue] : value.mGuiItems) {
+				if (itemValue->mGuiType == GuiType::PL_GUI_BUTTON) {
+					double x;
+					double y;
+					glfwGetCursorPos(window, &x, &y);
+					if (static_cast<GuiButton*>(itemValue.get())->MouseIsInsideButton(glm::vec2(x, y)))
+						static_cast<GuiButton*>(itemValue.get())->CallScriptsCallback();
+				}
+			}
+		}
 	}
 
 	//if (Application::Get()->hoveredMenu != "File Explorer" && Application::Get()->hoveredMenu != "Inspector")

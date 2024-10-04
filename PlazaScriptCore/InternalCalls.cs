@@ -20,6 +20,9 @@ namespace Plaza
     {
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void CloseGame();
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static ulong FindEntityByNameCall(string name);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static UInt64 NewEntity();
@@ -541,9 +544,9 @@ namespace Plaza
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void Camera_GetProjectionMatrix(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static void Camera_GetViewMatrix(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3); 
+        public extern static void Camera_GetViewMatrix(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
-        public extern static void Camera_GetInverseMVP(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3); 
+        public extern static void Camera_GetInverseMVP(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void Camera_GetInverseView(UInt64 uuid, out Vector4 row0, out Vector4 row1, out Vector4 row2, out Vector4 row3);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
@@ -587,7 +590,7 @@ namespace Plaza
         #endregion AudioSource
 
         #region GuiComponent
-        [MethodImplAttribute(MethodImplOptions.InternalCall)] 
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static UInt64 GuiComponent_GuiGetByName(UInt64 componentUuid, string name);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static string GuiComponent_GuiGetName(UInt64 componentUuid, UInt64 guiUuid);
@@ -609,7 +612,8 @@ namespace Plaza
         public extern static void GuiComponent_GuiTextSetText(UInt64 componentUuid, UInt64 guiUuid, string name);
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         public extern static void GuiComponent_GuiButtonSetScale(UInt64 componentUuid, UInt64 guiUuid, float scale);
-        
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        public extern static void GuiComponent_GuiButtonAddCallback(UInt64 componentUuid, UInt64 guiUuid, UInt64 scriptUuid, string functionName);
 
         #endregion GuiComponent
 

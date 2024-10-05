@@ -15,6 +15,7 @@ namespace Plaza {
 			GuiItem(guiName), mPosX(posX), mPosY(posY), mSizeX(sizeX), mSizeY(sizeY), mScale(scale), mColor(color) {
 
 		};
+		GuiRectangle() : GuiItem() { }
 
 		template <class Archive>
 		void serialize(Archive& archive) {

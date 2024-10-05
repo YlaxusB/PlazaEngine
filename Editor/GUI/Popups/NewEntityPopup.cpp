@@ -70,6 +70,17 @@ namespace Plaza::Editor {
 				NewEntity("Cylinder", parent, DefaultModels::Cylinder(), true, true);
 			}
 
+			if (ImGui::MenuItem("Capsule"))
+			{
+				Entity* obj = NewEntity("Capsule", parent, DefaultModels::Capsule(), true, true);
+				Transform* transform = obj->GetComponent<Transform>();
+				transform->scale = glm::vec3(1.0f, 1.0f, 1.0f);
+				transform->UpdateChildrenTransform();
+				Collider* collider = new Collider(obj->uuid);
+				collider->CreateShape(ColliderShape::ColliderShapeEnum::CAPSULE, transform);
+				obj->AddComponent<Collider>(collider);
+			}
+
 			ImGui::EndMenu();
 		}
 	}

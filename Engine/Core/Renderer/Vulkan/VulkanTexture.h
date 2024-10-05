@@ -2,6 +2,8 @@
 #include "Renderer.h"
 #include <stb_image.h>
 #include <string>
+#include "ThirdParty/cereal/cereal/types/polymorphic.hpp"
+
 namespace Plaza {
 	class VulkanTexture : public Texture {
 	public:
@@ -64,3 +66,6 @@ namespace Plaza {
 		friend VulkanRenderer;
 	};
 }
+
+CEREAL_REGISTER_TYPE(VulkanTexture);
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Texture, VulkanTexture);

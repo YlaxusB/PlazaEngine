@@ -397,6 +397,13 @@ namespace Plaza {
 					//shape->release();
 					newShape = Physics::m_physics->createShape(heightGeometry, *material);
 				}
+				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::CAPSULE) {
+					physx::PxCapsuleGeometry capsuleGeometry = geometry.capsule();
+					capsuleGeometry.radius = scale.x / 2.0f;
+					capsuleGeometry.halfHeight = scale.y;
+					//shape->release();
+					newShape = Physics::m_physics->createShape(capsuleGeometry, *material);
+				}
 				else {
 					std::cout << "Shape not supported for scaling" << std::endl;
 				}

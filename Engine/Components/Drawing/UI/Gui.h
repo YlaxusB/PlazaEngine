@@ -2,6 +2,7 @@
 #include "Engine/Components/Component.h"
 #include "GuiItem.h"
 #include "GuiButton.h"
+#include "GuiRectangle.h"
 #include "ThirdParty/cereal/cereal/types/polymorphic.hpp"
 
 
@@ -56,5 +57,6 @@ namespace Plaza {
 	};
 }
 
+CEREAL_REGISTER_TYPE(GuiRectangle);
 CEREAL_REGISTER_TYPE(GuiButton);
 //CEREAL_REGISTER_POLYMORPHIC_RELATION(GuiItem, GuiButton);

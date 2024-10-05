@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/Components/Component.h"
 #include <ThirdParty/AL/include/AL/al.h>
+#include "Engine/Core/AssetsManager/AssetsManager.h"
 namespace Plaza {
 	enum class AudioFileFormat
 	{
@@ -11,6 +12,7 @@ namespace Plaza {
 	public:
 		float mPosition[3] = { 0.0f, 0.0f, 0.0f };
 		std::string mSourcePath;
+		uint64_t mAudioAssetUuid = 0;
 		ALuint mSource = 0;
 		void Play();
 		void Stop();
@@ -41,7 +43,12 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Component>(this), PL_SER(mPosition), PL_SER(mSourcePath), PL_SER(mSource), PL_SER(mLoop), PL_SER(mSpatial), PL_SER(mPitch), PL_SER(mGain));
+			archive(cereal::base_class<Component>(this), PL_SER(mPosition), PL_SER(mSourcePath), PL_SER(mSource), PL_SER(mLoop), PL_SER(mSpatial), PL_SER(mPitch), PL_SER(mGain), PL_SER(mAudioAssetUuid));
+
+			if (mAudioAssetUuid && AssetsManager::GetAsset(mAudioAssetUuid) != nullptr) {
+				this->mSourcePath = AssetsManager::GetAsset(mAudioAssetUuid)->mAssetPath.string();
+				this->LoadFile(mSourcePath);
+			}
 		}
 	};
 }

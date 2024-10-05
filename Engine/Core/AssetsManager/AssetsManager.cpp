@@ -29,10 +29,12 @@ namespace Plaza {
 		AssetsManager::mAssetTypeByExtension.emplace(Standards::sceneExtName, AssetType::SCENE);
 		AssetsManager::mAssetTypeByExtension.emplace(Standards::animationExtName, AssetType::ANIMATION);
 		AssetsManager::mAssetTypeByExtension.emplace(".cs", AssetType::SCRIPT);
+		AssetsManager::mAssetTypeByExtension.emplace(".mp3", AssetType::AUDIO);
 		AssetsManager::mAssetTypeByExtension.emplace("", AssetType::NONE);
 
 		AssetsManager::mAssetsTypesWithMetaData.emplace(AssetType::TEXTURE);
 		AssetsManager::mAssetsTypesWithMetaData.emplace(AssetType::SCRIPT);
+		AssetsManager::mAssetsTypesWithMetaData.emplace(AssetType::AUDIO);
 
 		Texture* defaultTexture = new Texture();
 		defaultTexture->mAssetUuid = 1;

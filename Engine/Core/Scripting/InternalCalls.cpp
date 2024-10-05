@@ -19,7 +19,13 @@
 
 namespace Plaza {
 	static void CloseGame() {
+#ifdef EDITOR_MODE
+		Editor::Filewatcher::AddToMainThread([]() {
+			Scene::Stop();
+			});
+#else
 		glfwSetWindowShouldClose(Application::Get()->mWindow->glfwWindow, true);
+#endif
 	}
 
 	void GetComponentMap(uint64_t uuid, std::string name, Component* component) {
@@ -309,6 +315,8 @@ namespace Plaza {
 				if (parentIt != Scene::GetActiveScene()->entities.end())
 					it->second.ChangeParent(it->second.GetParent(), parentIt->second);
 			}
+
+			Scene::GetActiveScene()->GetComponent<Transform>(uuid)->UpdateSelfAndChildrenTransform();
 		}
 	}
 

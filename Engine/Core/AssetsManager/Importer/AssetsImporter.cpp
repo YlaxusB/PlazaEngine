@@ -63,6 +63,9 @@ namespace Plaza {
 		case AssetExtension::PSD:
 			return AssetsImporter::ImportTexture(asset, uuid);
 			break;
+		case AssetExtension::MP3:
+			return AssetsImporter::ImportTexture(asset, uuid);
+			break;
 		}
 
 		return outPath;

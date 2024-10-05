@@ -5,6 +5,8 @@
 #include "Engine/Application/FileDialog/FileDialog.h"
 #include "Engine/Core/Audio/Audio.h"
 #include "Editor/GUI/Utils/DataVisualizer.h"
+#include "Editor/GUI/FileExplorer/FileExplorer.h"
+
 namespace Plaza::Editor {
 	static class AudioSourceInspector {
 	public:
@@ -15,9 +17,16 @@ namespace Plaza::Editor {
 				ImGui::BeginTable("AudioSourceSettings", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
 
 				if (Utils::AddTableButton("Select File", nullptr)) {
-					std::string filePath = FileDialog::OpenFileDialog(".mp3");
-					Audio::Init();
-					component->LoadFile(filePath);
+					//std::string filePath = FileDialog::OpenFileDialog(".mp3");
+					Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".mp3"), {}, Editor::Gui::FileExplorer::currentDirectory);
+					if (asset) {
+						Audio::Init();
+
+						component->mAudioAssetUuid = asset->mAssetUuid;
+						if (asset)
+							component->LoadFile(asset->mAssetPath.string());
+					}
+					//component->LoadFile(filePath);
 				}
 
 				if (Utils::AddTableButton("Play Sound", nullptr)) {

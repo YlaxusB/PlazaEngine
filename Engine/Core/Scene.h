@@ -140,6 +140,8 @@ namespace Plaza {
 		std::unordered_map<std::string, std::unordered_set<uint64_t>> entitiesNames;
 
 		RenderGroup* AddRenderGroup(Mesh* newMesh, std::vector<Material*> newMaterials, bool resizeBuffer = true) {
+			if (!newMesh)
+				return nullptr;
 			bool foundNewRenderGroup = this->renderGroupsFindMap.find(std::pair<uint64_t, std::vector<uint64_t>>(newMesh->uuid, Material::GetMaterialsUuids(newMaterials))) != this->renderGroupsFindMap.end();
 			if (foundNewRenderGroup) {
 				uint64_t uuid = this->renderGroupsFindMap.at(std::pair<uint64_t, std::vector<uint64_t>>(newMesh->uuid, Material::GetMaterialsUuids(newMaterials)));

@@ -12,6 +12,7 @@ namespace Plaza {
 		DLL,
 		MESH,
 		ANIMATION,
+		AUDIO,
 		UNKNOWN,
 	};
 }

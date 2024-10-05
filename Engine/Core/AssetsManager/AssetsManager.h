@@ -8,6 +8,7 @@
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 #include "Asset.h"
 #include "Engine/Components/Physics/PhysicsMaterial.h"
+#include "Engine/Core/Scripting/Script.h"
 
 namespace Plaza {
 	class AssetsListStructure : public std::unordered_map<uint64_t, Asset*> {

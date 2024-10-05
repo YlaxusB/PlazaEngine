@@ -273,6 +273,7 @@ namespace Plaza {
 			newCollider->mUuid = instantiatedEntity->uuid;
 			newCollider->mRigidActor = nullptr;
 			for (auto& shape : colliderIt->second.mShapes) {
+				shape->mPxShape = Physics::GetPhysXShape(shape.get(), &Physics::GetDefaultPhysicsMaterial());
 				physx::PxGeometryHolder geometry = shape->mPxShape->getGeometry();
 				physx::PxMaterial* shapeMaterial = Physics::defaultMaterial;
 				// Create a new shape with the same properties

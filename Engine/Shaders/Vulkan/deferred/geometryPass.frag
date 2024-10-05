@@ -282,8 +282,9 @@ void main() {
     //ambient *= material.intensity;
 
     vec3 color = (ambient * ubo.directionalLightColor.xyz + Lo) * material.intensity; //+ ubo.directionalLightColor.xyz; // Directional Light
-    color *= vec3(1.0 - ShadowCalculation(FragPos.xyz, N)) + ubo.ambientLightColor.xyz; //+ ubo.ambientLightColor.xyz); // Shadow
-
+    color *= vec3(1.0) + ubo.ambientLightColor.xyz; //+ ubo.ambientLightColor.xyz); // Shadow
+    // TEMPORARILY REMOVED SHADOWS BECAUSE IT MAKES THE LD56 GAME TERRIBLE
+    // color *= vec3(1.0 - ShadowCalculation(FragPos.xyz, N)) + ubo.ambientLightColor.xyz;
     vec3 FinalColor = color;
 
     #ifdef SHOW_CASCADES

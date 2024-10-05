@@ -1545,7 +1545,7 @@ namespace Plaza {
 					continue;
 
 				GuiButton* button = static_cast<GuiButton*>(item.get());
-				VulkanGuiRenderer::AddText(button->mText, button->GetWorldPosition().x, button->GetWorldPosition().y, button->mTextScale, VulkanGuiRenderer::TextAlign::alignLeft, mapped, numLetters);
+				VulkanGuiRenderer::AddText(button->mText, button->GetWorldPosition().x, button->GetWorldPosition().y, button->mTextScale, VulkanGuiRenderer::TextAlign::alignCenter, mapped, numLetters);
 				count++;
 
 			}

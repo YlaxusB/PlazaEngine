@@ -10,7 +10,9 @@ namespace Plaza {
 		}
 		uint64_t mAssetUuid = 0;
 		std::string mAssetName = "";
-		std::filesystem::path mAssetPath;
+		std::filesystem::path mAssetPath = std::filesystem::path{};
+
+		~Asset() {}
 
 		std::string GetExtension() {
 			return mAssetPath.extension().string();

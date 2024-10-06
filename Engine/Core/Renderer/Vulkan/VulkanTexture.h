@@ -14,6 +14,11 @@ namespace Plaza {
 			: Texture(descriptorCount, imageUsage, imageType, viewType, format, resolution, mipCount, layersCount, name) {
 
 		}
+		~VulkanTexture() {
+			if (mAssetUuid == 12548774789157804853) {
+				std::cout << "here \n";
+		}
+		};
 
 		VkDescriptorSet mDescriptorSet = VK_NULL_HANDLE;
 		static inline int mLastBindingIndex = 1;

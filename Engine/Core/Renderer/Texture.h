@@ -99,7 +99,7 @@ namespace Plaza {
 			return;
 		}
 
-		~Texture() = default;
+		~Texture() {};
 
 		template <class Archive>
 		void serialize(Archive& archive) {

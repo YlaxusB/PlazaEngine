@@ -67,6 +67,8 @@ namespace Plaza::Editor {
 			if (key == defaultMaterialUuid || key == 0)
 				continue;
 			value->GetDeserializedTextures();
+			if (value->diffuse->mAssetUuid == 12548774789157804853)
+				std::cout << "here \n";
 			if (value->diffuse->mAssetUuid)
 				value->diffuse = std::shared_ptr<Texture>(AssetsManager::GetTexture(value->diffuse->mAssetUuid));
 			if (value->normal->mAssetUuid)

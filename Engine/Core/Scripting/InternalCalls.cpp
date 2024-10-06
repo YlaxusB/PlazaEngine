@@ -301,7 +301,7 @@ namespace Plaza {
 	static uint64_t EntityGetParent(uint64_t uuid) {
 		auto it = Scene::GetActiveScene()->entities.find(uuid);
 		if (it != Scene::GetActiveScene()->entities.end()) {
-			return it->second.uuid;
+			return it->second.parentUuid;
 		}
 	}
 	static void EntitySetParent(uint64_t uuid, uint64_t parentUuid) {

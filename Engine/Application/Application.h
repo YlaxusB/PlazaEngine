@@ -82,6 +82,8 @@ namespace Plaza {
 
 		EngineClass* engine = new EngineClass();
 		Window* mWindow = new Window();
+
+		Editor::EditorClass* GetEditor() { return mEditor; }
 		Editor::EditorClass* mEditor = new Editor::EditorClass();
 
 		static void Init() {

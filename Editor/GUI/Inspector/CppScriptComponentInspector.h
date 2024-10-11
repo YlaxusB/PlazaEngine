@@ -79,7 +79,6 @@ namespace Plaza::Editor {
 			ImGui::PushID("CppScriptComponentInspector");
 			if (Utils::ComponentInspectorHeader(scriptComponent, "Script Component")) {
 				int sliderIndex = 0;
-				ImGui::Text("helo");
 				// Get the fields of the class
 				for (auto& [key, scriptClass] : scriptComponent->scriptClasses) {
 					MonoClassField* field = NULL;

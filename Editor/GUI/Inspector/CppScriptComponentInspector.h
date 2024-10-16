@@ -8,17 +8,20 @@ namespace Plaza::Editor {
 		void CreateRespectiveInteractor(MonoObject* monoObject, MonoClassField* field, int& sliderIndex, MonoClass* monoClass = nullptr) {
 			int type = mono_type_get_type(mono_field_get_type(field));
 
+			std::string fieldName = mono_field_get_name(field);
+			std::string fieldId = "##: " + std::to_string(sliderIndex) + fieldName;
+
 			if (type == MONO_TYPE_R4 || type == MONO_TYPE_R8) { // Float
 				float value;
 				mono_field_get_value(monoObject, field, &value);
-				if (ImGui::DragFloat("##: " + sliderIndex, &value)) {
+				if (ImGui::DragFloat(fieldId.c_str(), &value)) {
 					mono_field_set_value(monoObject, field, &value);
 				}
 			}
 			else if (type == MONO_TYPE_I4) { // Int
 				int value;
 				mono_field_get_value(monoObject, field, &value);
-				if (ImGui::DragInt("## " + sliderIndex, &value)) {
+				if (ImGui::DragInt(fieldId.c_str(), &value)) {
 					mono_field_set_value(monoObject, field, &value);
 				}
 			}
@@ -30,7 +33,7 @@ namespace Plaza::Editor {
 				// Create a non-const character buffer and copy the characters
 				char* charBuffer = new char[stringValue.length() + 1];
 				strcpy_s(charBuffer, stringValue.length() + 1, stringValue.c_str());
-				if (ImGui::InputText("## " + sliderIndex, charBuffer, 2048)) {
+				if (ImGui::InputText(fieldId.c_str(), charBuffer, 2048)) {
 					uint64_t result = 0;
 					result = std::strtoull(charBuffer, nullptr, 10);
 					mono_field_set_value(monoObject, field, &result);
@@ -63,7 +66,6 @@ namespace Plaza::Editor {
 					}
 				}
 			}
-
 			sliderIndex++;
 		}
 

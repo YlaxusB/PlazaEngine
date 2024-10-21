@@ -3,7 +3,7 @@
 #define NOMINMAX
 #endif
 #include <Windows.h>
-#include <ThirdParty/glad/glad.h>
+#include "ThirdParty/glad/glad.h"
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_RIGHT_HANDED
@@ -59,3 +59,4 @@
 #include "Editor/Settings/EditorSettings.h"
 #include "Engine/Core/AssetsManager/AssetsManager.h"
 #include "Engine/Threads/ThreadManager.h"
+#include "Engine/Core/Engine.h"

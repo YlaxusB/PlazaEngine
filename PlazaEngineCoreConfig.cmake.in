@@ -1,0 +1,30 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Add EngineCore's targets
+include("${CMAKE_CURRENT_LIST_DIR}/PlazaEngineCoreTargets.cmake")
+
+find_dependency(glfw REQUIRED)
+find_dependency(OpenAL REQUIRED)
+find_dependency(freetype REQUIRED)
+find_dependency(Tracy REQUIRED)
+
+# Add include directories for the target
+get_target_property(PlazaEngineCore_INCLUDE_DIRS PlazaEngineCore INTERFACE_INCLUDE_DIRECTORIES)
+
+# Set the include directories for the consumer
+set(PlazaEngineCore_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/../../include" "${PlazaEngineCore_INCLUDE_DIRS}" "${OpenAL_INCLUDE_DIRS}")
+
+# Make include directory available for consuming projects
+set(PlazaEngineCore_LIBRARIES PlazaEngine::PlazaEngineCore OpenAL)
+
+# Provide include directories for consumers
+include(CMakePackageConfigHelpers)
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/PlazaEngineCoreConfig.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/PlazaEngineCoreConfig.cmake"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/PlazaEngineCore"
+)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/PlazaEngineCoreConfig.cmake"
+              DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/PlazaEngineCore")

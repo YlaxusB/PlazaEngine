@@ -3,6 +3,7 @@
 #include <vector>
 #include "RendererTypes.h"
 #include "Engine/Core/AssetsManager/Asset.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
 	struct TextureInfo {
@@ -48,7 +49,7 @@ namespace Plaza {
 		}
 	};
 
-	class Texture : public Asset {
+	class PLAZA_API Texture : public Asset {
 	public:
 		glm::vec4 rgba = glm::vec4(1.0f);
 		int mIndexHandle = -1;

@@ -1,5 +1,12 @@
 #pragma once
 //#include "Engine/Core/ModelLoader/Model.h"
+
+#ifdef ENGINE_EXPORTS
+#define PLAZA_API __declspec(dllexport)
+#else
+#define PLAZA_API  __declspec(dllimport)
+#endif
+
 namespace Plaza {
 	class EngineClass {
 	public:

@@ -3,9 +3,12 @@
 #include <stb_image.h>
 #include <string>
 #include "ThirdParty/cereal/cereal/types/polymorphic.hpp"
+#include "Engine/Core/Renderer/Texture.h"
+#include "Engine/Core/Renderer/Vulkan/Renderer.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class VulkanTexture : public Texture {
+	class PLAZA_API VulkanTexture : public Texture {
 	public:
 		VkDescriptorSet GetDescriptorSet() override;
 

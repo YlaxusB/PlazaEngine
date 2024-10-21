@@ -2,7 +2,6 @@
 //#include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Application/ApplicationSizes.h"
 #include "Engine/Components/Core/Camera.h"
-#include "Engine/Application/Application.h"
 
 #include "Engine/Application/EditorCamera.h"
 #include "Engine/Shaders/Shader.h"

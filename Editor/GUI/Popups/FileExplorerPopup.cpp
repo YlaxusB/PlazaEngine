@@ -22,6 +22,24 @@ namespace Plaza::Editor {
 
 			if (ImGui::BeginMenu("Script"))
 			{
+				if (ImGui::MenuItem("C++ Script"))
+				{
+					Editor::File::changingName = Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed" + ".h");
+					Editor::File::changingName = std::filesystem::path{ Editor::File::changingName }.filename().string();
+					Editor::File::firstFocus = true;
+					CppScript* script = new CppScript();
+					script->mAssetUuid = Plaza::UUID::NewUUID();
+					script->mAssetName = Editor::File::changingName;
+
+					script->mAssetPath = Gui::FileExplorer::currentDirectory + "\\" + Editor::File::changingName;
+
+					Metadata::CreateMetadataFile(script);
+
+					std::filesystem::path metaDataPath = script->mAssetPath;
+					metaDataPath.replace_extension(Standards::metadataExtName);
+					AssetsReader::ReadAssetAtPath(metaDataPath);
+				}
+
 				if (ImGui::MenuItem("C# Script"))
 				{
 					//Editor::File::changingName = Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed.cs");

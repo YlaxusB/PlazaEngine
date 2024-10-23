@@ -9,6 +9,7 @@
 #include "Picking.h"
 #include "GuiRenderer.h"
 #include "RenderGraph.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
 
@@ -22,7 +23,7 @@ namespace Plaza {
 		std::string name;
 	};
 
-	class Renderer {
+	class PLAZA_API Renderer {
 	public:
 
 		std::vector<TrackedImage> mTrackedImages = std::vector<TrackedImage>();

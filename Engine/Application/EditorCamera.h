@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Engine/Application/Application.h"
-#include "Engine/Application/EntryPoint.h"
+#include "EntryPoint.h"
 #include "Engine/Application/ApplicationSizes.h"
 #include "Engine/Components/Core/Camera.h"
 

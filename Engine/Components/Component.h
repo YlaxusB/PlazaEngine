@@ -1,14 +1,12 @@
 #pragma once
-#include "Engine/Core/Time.h"
-#include "ThirdParty/GLFW/include/GLFW/glfw3.h"
 #include <string>
 #include <vector>
 #include "Engine/Core/UUID.h"
-#include "ThirdParty/glad/glad.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
 	class Entity;
-	class Component {
+	class PLAZA_API Component {
 	public:
 		uint64_t mUuid;
 		bool mEnabled = true;

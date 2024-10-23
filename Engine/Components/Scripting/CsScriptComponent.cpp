@@ -1,5 +1,5 @@
 #include "Engine/Core/PreCompiledHeaders.h"
-#include "CppScriptComponent.h"
+#include "CsScriptComponent.h"
 namespace Plaza {
 	CsScriptComponent::CsScriptComponent(uint64_t uuid) {
 		this->mUuid = uuid;

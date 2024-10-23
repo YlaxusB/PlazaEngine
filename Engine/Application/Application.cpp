@@ -19,6 +19,7 @@
 #include "Engine/Core/Physics.h"
 #include "Engine/Components/Core/Camera.h"
 #include "Engine/Core/Scripting/Mono.h"
+#include "Engine/Core/Scripting/Scripting.h"
 #include "Editor/Filewatcher.h"
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Audio/Audio.h"
@@ -36,7 +37,13 @@ using namespace Plaza::Editor;
 #define DEFAULT_GRAPHICAL_API "Vulkan"
 
 namespace Plaza {
-	Application* Application::sApplication = nullptr;
+	void Application::Init() {
+		sApplication = new Application();
+		Application::Get()->CreateApplication();
+		Application::Get()->Loop();
+		Application::Get()->Terminate();
+	}
+
 	Plaza::Application::Application() {
 		editorCamera = new Plaza::Camera(glm::vec3(0.0f, 0.0f, 5.0f));
 		editorCamera->isEditorCamera = true;
@@ -230,8 +237,7 @@ namespace Plaza {
 
 		/* Update Scripts */
 		if (Application::Get()->runningScene) {
-			PLAZA_PROFILE_SECTION("Mono Update");
-			Mono::Update();
+			Scripting::Update();
 		}
 
 		/* Update Physics */

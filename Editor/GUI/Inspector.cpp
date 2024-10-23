@@ -6,6 +6,7 @@
 #include "Editor/GUI/Inspector/SceneInspector.h"
 #include "Editor/GUI/Inspector/ColliderInspector.h"
 #include "Editor/GUI/Inspector/CppScriptComponentInspector.h"
+#include "Editor/GUI/Inspector/CsScriptComponentInspector.h"
 #include "Editor/GUI/Inspector/AudioListenerInspector.h"
 #include "Editor/GUI/Inspector/AudioSourceInspector.h"
 #include "Editor/GUI/Inspector/CameraInspector.h"
@@ -81,6 +82,8 @@ namespace Plaza::Editor {
 		if (activeScene->colliderComponents.contains(uuid))
 			components.push_back(&activeScene->colliderComponents.at(uuid));
 
+		if (activeScene->cppScriptComponents.contains(uuid))
+			components.push_back(&activeScene->cppScriptComponents.at(uuid));
 		if (activeScene->csScriptComponents.contains(uuid)) {
 			auto range = activeScene->csScriptComponents.equal_range(uuid);
 			for (auto it = range.first; it != range.second; ++it) {
@@ -121,8 +124,11 @@ namespace Plaza::Editor {
 		else if (Collider* collider = dynamic_cast<Collider*>(component)) {
 			Plaza::Editor::ColliderInspector::ColliderInspector(collider);
 		}
+		else if (CppScriptComponent* cppScriptComponent = dynamic_cast<CppScriptComponent*>(component)) {
+			Plaza::Editor::CppScriptComponentInspector::CppScriptComponentInspector(cppScriptComponent);
+		}
 		else if (CsScriptComponent* csScriptComponent = dynamic_cast<CsScriptComponent*>(component)) {
-			Plaza::Editor::CppScriptComponentInspector::CppScriptComponentInspector(csScriptComponent);
+			Plaza::Editor::CsScriptComponentInspector::CsScriptComponentInspector(csScriptComponent);
 		}
 		else if (AudioSource* audioSource = dynamic_cast<AudioSource*>(component)) {
 			Plaza::Editor::AudioSourceInspector::AudioSourceInspector(audioSource);

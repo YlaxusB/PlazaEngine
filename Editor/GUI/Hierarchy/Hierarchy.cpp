@@ -7,9 +7,11 @@
 
 #include "Editor/GUI/Popups/NewEntityPopup.h"
 #include "Engine/Core/Scripting/Mono.h"
+#include "Engine/Core/Scripting/CppScriptFactory.h"
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Core/RenderGroup.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
+
 
 namespace Plaza::Editor {
 	void HierarchyWindow::Init() {
@@ -281,9 +283,42 @@ namespace Plaza::Editor {
 					HierarchyWindow::Item::firstFocus = true;
 				}
 
-				if (ImGui::BeginMenu("Script"))
+				if (ImGui::BeginMenu("C++ Script"))
 				{
-					for (auto& [key, value] : AssetsManager::mScripts) { //Application::Get()->activeProject->scripts) {
+					for (auto& [key, value] : AssetsManager::mScripts) {
+						if (value->GetExtension() != ".h")
+							continue;
+
+						//TODO: FIX SCRIPTS WITH INCORRECT NAME AND REMOVE THE BELOW HACK USING THE ASSET
+						Asset* asset = AssetsManager::GetAsset(key);
+						if (ImGui::MenuItem(value->mAssetName.c_str())) {
+							CppScriptComponent* component = Scene::GetActiveScene()->GetComponent<CppScriptComponent>(entity.uuid);
+							if (!component) {
+								component = new CppScriptComponent(entity.uuid);
+								entity.AddComponent<CppScriptComponent>(component);
+							}
+							CppScript* script = ScriptFactory::CreateScript(std::filesystem::path(value->mAssetName).stem().string());
+							if (!script) {
+								PL_CORE_ERROR("Added Script is a nullptr");
+								continue;
+							}
+							component->mScriptsUuid.push_back(value->mAssetUuid);
+							component->mScripts.push_back(script);
+							if (Application::Get()->runningScene) {
+								script->OnStart();
+							}
+							//entity.AddComponent<CppScriptComponent>(component);
+						}
+					}
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("C# Script"))
+				{
+					for (auto& [key, value] : AssetsManager::mScripts) {
+						if (value->GetExtension() != ".cs")
+							continue;
 						//TODO: FIX SCRIPTS WITH INCORRECT NAME AND REMOVE THE BELOW HACK USING THE ASSET
 						Asset* asset = AssetsManager::GetAsset(key);
 						if (ImGui::MenuItem(value->mAssetName.c_str())) {

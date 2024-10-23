@@ -3,7 +3,7 @@
 #include "Engine/Components/Core/Entity.h"
 #include "Engine/Components/Core/Transform.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
-#include "Engine/Components/Scripting/CppScriptComponent.h"
+#include "Engine/Components/Scripting/CsScriptComponent.h"
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
 #include "Engine/Components/Drawing/UI/Gui.h"
 #include "Engine/Core/Scene.h"
@@ -174,6 +174,8 @@ namespace Plaza {
 			this->RemoveComponent<RigidBody>();
 		if (this->HasComponent<Camera>())
 			this->RemoveComponent<Camera>();
+		if (this->HasComponent<CppScriptComponent>())
+			this->RemoveComponent<CppScriptComponent>();
 		if (this->HasComponent<CsScriptComponent>()) {
 			this->RemoveComponent<CsScriptComponent>();
 			Scene::GetActiveScene()->csScriptComponents.erase(this->uuid);

@@ -1,8 +1,9 @@
 #pragma once
 #include "PushConstants.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class PlazaPipeline {
+	class PLAZA_API PlazaPipeline {
 	public:
 		std::vector<PlPushConstants> mPushConstants = std::vector<PlPushConstants>();
 		uint64_t mIndirectBufferOffset = 0;

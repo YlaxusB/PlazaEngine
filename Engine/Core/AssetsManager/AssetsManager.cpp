@@ -28,6 +28,7 @@ namespace Plaza {
 		AssetsManager::mAssetTypeByExtension.emplace(".tga", AssetType::TEXTURE);
 		AssetsManager::mAssetTypeByExtension.emplace(Standards::sceneExtName, AssetType::SCENE);
 		AssetsManager::mAssetTypeByExtension.emplace(Standards::animationExtName, AssetType::ANIMATION);
+		AssetsManager::mAssetTypeByExtension.emplace(".h", AssetType::SCRIPT);
 		AssetsManager::mAssetTypeByExtension.emplace(".cs", AssetType::SCRIPT);
 		AssetsManager::mAssetTypeByExtension.emplace(".mp3", AssetType::AUDIO);
 		AssetsManager::mAssetTypeByExtension.emplace("", AssetType::NONE);

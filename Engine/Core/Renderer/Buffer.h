@@ -1,9 +1,10 @@
 #pragma once
 #include "ThirdParty/include/VulkanMemoryAllocator/vk_mem_alloc.h"
 #include "RendererTypes.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class PlBuffer {
+	class PLAZA_API PlBuffer {
 	public:
 		PlBuffer() {};
 		PlBuffer(PlBufferType type, uint64_t maxItems, uint16_t stride, uint8_t bufferCount, PlBufferUsage bufferUsage, PlMemoryUsage memoryUsage, const std::string& name)

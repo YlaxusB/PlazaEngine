@@ -1,4 +1,5 @@
-#include "Engine/Core/PreCompiledHeaders.h"
+//#include "Engine/Core/PreCompiledHeaders.h"
+#include "Engine/Core/Scene.h"
 #include "Component.h"
 
 namespace Plaza {

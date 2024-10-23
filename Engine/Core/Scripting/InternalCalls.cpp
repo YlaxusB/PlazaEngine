@@ -9,13 +9,14 @@
 #include "Engine/Components/Rendering/MeshRenderer.h"
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Components/Physics/Collider.h"
-#include "Engine/Components/Scripting/CppScriptComponent.h"
+#include "Engine/Components/Scripting/CsScriptComponent.h"
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
 #include "Engine/Components/Drawing/UI/GuiButton.h"
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Scripting/FieldManager.h"
 #include "Engine/Core/Physics.h"
 #include "Engine/Core/AssetsManager/AssetsManager.h"
+#include "Engine/Core/Time.h"
 
 namespace Plaza {
 	static void CloseGame() {

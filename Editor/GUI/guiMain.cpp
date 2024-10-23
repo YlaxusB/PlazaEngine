@@ -12,7 +12,7 @@
 #include "Engine/Components/Core/Entity.h"
 #include "Engine/Application/ApplicationSizes.h"
 #include "Engine/Editor/Editor.h"
-#include "Engine/Application/EntryPoint.h"
+//#include "EntryPoint.h"
 #include "Editor/GUI/Inspector.h"
 #include "Editor/GUI/Inspector/TransformInspector.h"
 #include "Editor/GUI/FpsCounter.h"

@@ -37,8 +37,6 @@
 #include "ThirdParty/mono/include/mono/metadata/assembly.h"
 #include <ThirdParty/cereal/cereal/archives/binary.hpp>
 #include <ThirdParty/cereal/cereal/types/polymorphic.hpp>
-#define PL_SER(T) CEREAL_NVP(T)
-
 
 #include <iostream>
 #include <random>
@@ -50,7 +48,8 @@
 #include <chrono>
 #include <variant>
 
-#include "Engine/Application/EntryPoint.h"
+#include "Engine/Application/Application.h"
+//#include "EntryPoint.h"
 #include "Engine/Core/Standards.h"
 #include "Engine/Core/UUID.h"
 #include "Engine/Components/Core/Entity.h"

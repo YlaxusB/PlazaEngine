@@ -18,19 +18,24 @@ using namespace Plaza;
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Audio/Audio.h"
 #include "Editor/Settings/SettingsSerializer.h"
+#include "Engine/Core/Scripting/CppScriptFactory.h"
 
 #include <windows.h>
 #include <codecvt>
 
+typedef int (*MyFunctionType)(int, int);
 int main() {
 	Log::Init();
 	PL_CORE_INFO("Start");
+	HMODULE gameDll = LoadLibrary("CppTestingPlaza.dll");
+	if (gameDll == NULL) {
+		// Error loading the DLL
+		DWORD errorMessageID = GetLastError();
+		std::cerr << "Failed to load DLL, error: " << errorMessageID << std::endl;
+	}
+	std::cout << Plaza::ScriptFactory::GetRegistry().size() << "\n";
 	Application::Init();
-	Application::Get()->CreateApplication();
-	Application::Get()->Loop();
-	Application::Get()->Terminate();
 	return 0;
-#
 }
 
 int CALLBACK WinMain(

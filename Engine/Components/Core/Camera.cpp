@@ -49,7 +49,7 @@ namespace Plaza {
 
 	}
 
-	void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch)
+	void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch)
 	{
 		xoffset *= MouseSensitivity;
 		yoffset *= MouseSensitivity;

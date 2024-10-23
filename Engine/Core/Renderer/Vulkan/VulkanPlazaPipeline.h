@@ -2,9 +2,10 @@
 #include "Engine/Core/Renderer/PlazaPipeline.h"
 #include "VulkanShaders.h"
 #include "VulkanComputeShaders.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class VulkanPlazaPipeline : public PlazaPipeline {
+	class PLAZA_API VulkanPlazaPipeline : public PlazaPipeline {
 	public:
 		VulkanPlazaPipeline() {};
 		VulkanPlazaPipeline(PlPipelineCreateInfo createInfo) : PlazaPipeline(createInfo) {};

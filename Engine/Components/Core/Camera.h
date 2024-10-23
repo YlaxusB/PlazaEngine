@@ -9,9 +9,10 @@ const float SENSITIVITY = 0.1f;
 const float ZOOM = 60.0f;
 
 #include "Engine/Components/Core/Transform.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	struct Plane
+	struct PLAZA_API  Plane
 	{
 		glm::vec3 normal = { 0.f, 1.f, 0.f }; // unit vector
 		float     distance = 0.f;        // Distance with origin
@@ -28,7 +29,7 @@ namespace Plaza {
 			return glm::dot(normal, point) - distance;
 		}
 	};
-	struct ViewFrustum {
+	struct PLAZA_API  ViewFrustum {
 		Plane topFace;
 		Plane bottomFace;
 
@@ -38,7 +39,7 @@ namespace Plaza {
 		Plane farFace;
 		Plane nearFace;
 	};
-	class Camera : public Component {
+	class PLAZA_API Camera : public Component {
 	public:
 		enum Camera_Movement {
 			FORWARD,
@@ -110,7 +111,7 @@ namespace Plaza {
 		void ProcessKeyboard(Camera_Movement direction, float deltaTime);
 
 		// processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-		void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
+		void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
 
 		// processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
 		void ProcessMouseScroll(float yoffset)

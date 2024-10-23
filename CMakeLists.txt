@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
 
-# Export PlazaEngineCore
-configure_file(PlazaEngineCoreConfig.cmake.in "${CMAKE_CURRENT_BINARY_DIR}/PlazaEngineCoreConfig.cmake" @ONLY)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/PlazaEngineCoreConfig.cmake" DESTINATION "lib/cmake/PlazaEngineCore")
-
 if(POLICY CMP0091) # Force thidparty libraries to use static MSVC
     cmake_policy(SET CMP0091 NEW)
 endif()
@@ -171,39 +167,39 @@ endif()
 #target_include_directories(PlazaEngineCore PUBLIC "lib/")
 
 target_include_directories(PlazaEngineCore PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/AL/include/AL>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/cereal/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/DirectXTex/DirectXTex/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/filesystem/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/FileWathcer/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/freetype/include/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/glad/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/GLFW/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/glm/>
-    #$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Json/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/minimp3/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/include/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/premake/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/stb/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/spdlog/include/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/tinyobjloader/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/uuid_v4/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vswhere/>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vulkan/vulkan/>
+    "${CMAKE_CURRENT_SOURCE_DIR}/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/AL/include/AL"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/cereal/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/DirectXTex/DirectXTex/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/filesystem/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/FileWathcer/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/freetype/include/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/glad/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/GLFW/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/glm/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Json/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/minimp3/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/include/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/premake/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/stb/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/spdlog/include/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/tinyobjloader/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/uuid_v4/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vswhere/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vulkan/vulkan/"
     
-    $<INSTALL_INTERFACE:include>
+    #$<INSTALL_INTERFACE:include>
 )
 
 target_precompile_headers(PlazaEngineCore PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
 
-target_compile_definitions(PlazaEngineCore PRIVATE ENGINE_EXPORTS)
 add_dependencies(PlazaEngineCore PhysX)
 #target_include_directories(PlazaEngineCore PUBLIC "ThirdParty/imgui/")
 target_link_libraries(PlazaEngineCore PUBLIC  glfw OpenAL freetype TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib"  DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
+target_compile_definitions(PlazaEngineCore PRIVATE ENGINE_EXPORTS)
 
 
 set_target_properties(PlazaEngineCore PROPERTIES
@@ -211,10 +207,10 @@ set_target_properties(PlazaEngineCore PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"  # For the .lib (import library)
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"  # For shared libs
 )
-
+  set_property(TARGET PlazaEngineCore PROPERTY CXX_STANDARD 20)
 
 # PlazaEngine and PlazaShippingGame
-add_executable(PlazaEngine  "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}")
+add_executable(PlazaEngine  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp")
 
 set_target_properties(PlazaEngine PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"  # For the DLL
@@ -222,33 +218,33 @@ set_target_properties(PlazaEngine PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"  # For shared libs
 )
 
-target_include_directories(PlazaEngine PRIVATE
-"./"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/AL/include/AL"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/cereal/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/DirectXTex/DirectXTex/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/filesystem/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/FileWathcer/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/freetype/include/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/glad/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/GLFW/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/glm/"
-#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Json/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/minimp3/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/include/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/include/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/premake/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/stb/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/spdlog/include/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/tinyobjloader/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/ufbx/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/uuid_v4/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vswhere/"
-"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vulkan/vulkan/"
-    # Add other third-party directories here
-)
+#target_include_directories(PlazaEngine PRIVATE
+#"./"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/AL/include/AL"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/cereal/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/DirectXTex/DirectXTex/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/filesystem/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/FileWathcer/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/freetype/include/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/glad/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/GLFW/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/glm/"
+##"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Json/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/KHR/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/minimp3/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/include/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/include/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/premake/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/stb/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/spdlog/include/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/tinyobjloader/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/ufbx/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/uuid_v4/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vswhere/"
+#"${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vulkan/vulkan/"
+#    # Add other third-party directories here
+#)
 
 
 add_executable(PlazaShippingGame "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}")
@@ -271,12 +267,12 @@ set_target_properties(PlazaShippingGame PROPERTIES
 target_compile_definitions(PlazaEngine PUBLIC  PX_PHYSX_STATIC_LIB)
 target_compile_definitions(PlazaEngine PUBLIC  EDITOR_MODE)
 target_compile_options(PlazaEngine PUBLIC  /WX-)
-target_compile_definitions(PlazaEngine PUBLIC ENGINE_EXPORTS)
+target_compile_definitions(PlazaEngine PRIVATE ENGINE_EXPORTS)
 
 target_compile_definitions(PlazaShippingGame PUBLIC  GAME_MODE)
 target_compile_definitions(PlazaShippingGame PUBLIC  PX_PHYSX_STATIC_LIB)
 target_compile_options(PlazaShippingGame PUBLIC  /WX-)
-#target_compile_definitions(PlazaShippingGame PUBLIC ENGINE_EXPORTS)
+#target_compile_definitions(PlazaShippingGame PRIVATE ENGINE_EXPORTS)
 
 target_precompile_headers(PlazaEngine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
 target_precompile_headers(PlazaShippingGame PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
@@ -294,66 +290,68 @@ link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib")
 target_include_directories(PlazaEngine PUBLIC "lib/")
 target_include_directories(PlazaShippingGame PUBLIC "lib/")
 
-target_link_libraries(PlazaEngine PUBLIC PlazaEngineCore)
-target_link_libraries(PlazaShippingGame PUBLIC PlazaEngineCore)
+#add_dependencies(PlazaEngine PlazaEngineCore)
+target_link_libraries(PlazaEngine PRIVATE PlazaEngineCore)
+target_link_libraries(PlazaShippingGame PRIVATE PlazaEngineCore)
 
-# Export the EngineCore and its dependencies
-install(TARGETS PlazaEngineCore EXPORT PlazaEngineCoreTargets
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib
-    RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include
-    PUBLIC_HEADER DESTINATION include)
 
-if(TARGET glfw)
-    install(TARGETS glfw EXPORT PlazaEngineCoreTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        INCLUDES DESTINATION include)
-endif()
-
-if(TARGET OpenAL)
-    install(TARGETS OpenAL EXPORT PlazaEngineCoreTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        INCLUDES DESTINATION include)
-endif()
-
-if(TARGET freetype)
-    install(TARGETS freetype EXPORT PlazaEngineCoreTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        INCLUDES DESTINATION include)
-endif()
-
-if(TARGET DirectXTex)
-    install(TARGETS DirectXTex EXPORT PlazaEngineCoreTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin
-        INCLUDES DESTINATION include)
-endif()
-
-# Make sure TracyClient is also part of the export
-if(TARGET TracyClient)
-    install(TARGETS TracyClient EXPORT PlazaEngineCoreTargets
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        RUNTIME DESTINATION bin)
-endif()
-
-install(EXPORT PlazaEngineCoreTargets
-    FILE PlazaEngineCoreConfig.cmake
-    NAMESPACE PlazaEngine::
-    DESTINATION lib/cmake/PlazaEngineCore)
-
-# Export additional necessary files
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" DESTINATION include)
-
-add_custom_target(combined ALL
-  COMMAND ${CMAKE_AR} rc libcombined.lib $<TARGET_FILE:glfw> $<TARGET_FILE:OpenAL> $<TARGET_FILE:freetype> $<TARGET_FILE:TracyClient> 
-  $<TARGET_FILE:DirectXTex> $<TARGET_FILE:Vulkan::Vulkan>  $<TARGET_FILE:PlazaEngineCore>)
-  #target_link_libraries(PlazaEngineCore PUBLIC  glfw OpenAL freetype TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib"  DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
+## Export the EngineCore and its dependencies
+#install(TARGETS PlazaEngineCore EXPORT PlazaEngineCoreTargets
+#    LIBRARY DESTINATION lib
+#    ARCHIVE DESTINATION lib
+#    RUNTIME DESTINATION bin
+#    INCLUDES DESTINATION include
+#    PUBLIC_HEADER DESTINATION include)
+#
+#if(TARGET glfw)
+#    install(TARGETS glfw EXPORT PlazaEngineCoreTargets
+#        LIBRARY DESTINATION lib
+#        ARCHIVE DESTINATION lib
+#        RUNTIME DESTINATION bin
+#        INCLUDES DESTINATION include)
+#endif()
+#
+#if(TARGET OpenAL)
+#    install(TARGETS OpenAL EXPORT PlazaEngineCoreTargets
+#        LIBRARY DESTINATION lib
+#        ARCHIVE DESTINATION lib
+#        RUNTIME DESTINATION bin
+#        INCLUDES DESTINATION include)
+#endif()
+#
+#if(TARGET freetype)
+#    install(TARGETS freetype EXPORT PlazaEngineCoreTargets
+#        LIBRARY DESTINATION lib
+#        ARCHIVE DESTINATION lib
+#        RUNTIME DESTINATION bin
+#        INCLUDES DESTINATION include)
+#endif()
+#
+#if(TARGET DirectXTex)
+#    install(TARGETS DirectXTex EXPORT PlazaEngineCoreTargets
+#        LIBRARY DESTINATION lib
+#        ARCHIVE DESTINATION lib
+#        RUNTIME DESTINATION bin
+#        INCLUDES DESTINATION include)
+#endif()
+#
+## Make sure TracyClient is also part of the export
+#if(TARGET TracyClient)
+#    install(TARGETS TracyClient EXPORT PlazaEngineCoreTargets
+#        LIBRARY DESTINATION lib
+#        ARCHIVE DESTINATION lib
+#        RUNTIME DESTINATION bin)
+#endif()
+#
+#install(EXPORT PlazaEngineCoreTargets
+#    FILE PlazaEngineCoreConfig.cmake
+#    NAMESPACE PlazaEngine::
+#    DESTINATION lib/cmake/PlazaEngineCore)
+#
+## Export additional necessary files
+#install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" DESTINATION include)
+#
+#add_custom_target(combined ALL
+#  COMMAND ${CMAKE_AR} rc libcombined.lib $<TARGET_FILE:glfw> $<TARGET_FILE:OpenAL> $<TARGET_FILE:freetype> $<TARGET_FILE:TracyClient> 
+#  $<TARGET_FILE:DirectXTex> $<TARGET_FILE:Vulkan::Vulkan>  $<TARGET_FILE:PlazaEngineCore>)
+#  #target_link_libraries(PlazaEngineCore PUBLIC  glfw OpenAL freetype TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib"  DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)

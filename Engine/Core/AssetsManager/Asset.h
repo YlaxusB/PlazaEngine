@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <string>
 #include "Engine/Core/Engine.h"
+#include "Engine/Core/UUID.h"
 
 namespace Plaza {
 	class PLAZA_API Asset {

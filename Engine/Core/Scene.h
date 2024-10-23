@@ -24,6 +24,7 @@
 #include "Engine/Components/Physics/CharacterController.h"
 #include "Engine/Components/Physics/Collider.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
+#include "Engine/Components/Scripting/CsScriptComponent.h"
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
 #include "Engine/Components/Drawing/UI/Gui.h"
 #include "Engine/Components/Audio/AudioSource.h"
@@ -118,6 +119,7 @@ namespace Plaza {
 		ComponentMultiMap<uint64_t, MeshRenderer> meshRendererComponents;
 		ComponentMultiMap<uint64_t, RigidBody> rigidBodyComponents;
 		ComponentMultiMap<uint64_t, Collider> colliderComponents;
+		ComponentMultiMap<uint64_t, CppScriptComponent> cppScriptComponents;
 		ComponentMultiMap<uint64_t, CsScriptComponent> csScriptComponents;
 		ComponentMultiMap<uint64_t, Plaza::Drawing::UI::TextRenderer> UITextRendererComponents;
 		ComponentMultiMap<uint64_t, AudioSource> audioSourceComponents;
@@ -241,6 +243,7 @@ namespace Plaza {
 			componentsMap["class Plaza::MeshRenderer"] = &meshRendererComponents;
 			componentsMap["class Plaza::RigidBody"] = &rigidBodyComponents;
 			componentsMap["class Plaza::Collider"] = &colliderComponents;
+			componentsMap["class Plaza::CppScriptComponent"] = &cppScriptComponents;
 			componentsMap["class Plaza::CsScriptComponent"] = &csScriptComponents;
 			componentsMap["class Plaza::Drawing::UI::TextRenderer"] = &UITextRendererComponents;
 			componentsMap["class Plaza::AudioSource"] = &audioSourceComponents;
@@ -258,7 +261,7 @@ namespace Plaza {
 
 			archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(mainSceneEntityUuid), PL_SER(entities), PL_SER(transformComponents), PL_SER(cameraComponents), PL_SER(meshRendererComponents),
 				PL_SER(rigidBodyComponents), PL_SER(colliderComponents), PL_SER(csScriptComponents), PL_SER(UITextRendererComponents), PL_SER(audioSourceComponents),
-				PL_SER(audioListenerComponents), PL_SER(lightComponents), PL_SER(characterControllerComponents), PL_SER(animationComponentComponents), PL_SER(guiComponents));
+				PL_SER(audioListenerComponents), PL_SER(lightComponents), PL_SER(characterControllerComponents), PL_SER(animationComponentComponents), PL_SER(guiComponents), PL_SER(cppScriptComponents));
 
 			if (!mainSceneEntity)
 				mainSceneEntity = &entities.at(mainSceneEntityUuid);

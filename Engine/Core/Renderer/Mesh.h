@@ -5,7 +5,7 @@
 #include <ThirdParty/cereal/cereal/types/string.hpp>
 #include <ThirdParty/cereal/cereal/types/vector.hpp>
 #include <ThirdParty/cereal/cereal/cereal.hpp>
-
+#include <vector>
 
 namespace Plaza {
 
@@ -216,7 +216,7 @@ namespace Plaza {
 		MeshType meshType = MeshType::Triangle;
 		bool temporaryMesh = false;
 		bool mImportedMesh = false;
-		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
+		std::vector<glm::mat4> instanceModelMatrices = std::vector<glm::mat4>();
 		uint64_t uuid;
 		uint64_t meshId;
 		float farthestVertex = 0.0f;
@@ -224,14 +224,14 @@ namespace Plaza {
 		std::string meshName;
 		uint64_t modelUuid;
 
-		vector<glm::vec3> vertices = vector<glm::vec3>();
-		vector<unsigned int> indices = vector<unsigned int>();
-		vector<glm::vec3> normals = vector<glm::vec3>();
-		vector<glm::vec2> uvs = vector<glm::vec2>();
-		vector<glm::vec3> tangent = vector<glm::vec3>();
-		vector<unsigned int> materialsIndices = vector<unsigned int>();
-		vector<BonesHolder> bonesHolder;
-		map<uint64_t, Bone> uniqueBonesInfo = map<uint64_t, Bone>();
+		std::vector<glm::vec3> vertices = std::vector<glm::vec3>();
+		std::vector<unsigned int> indices = std::vector<unsigned int>();
+		std::vector<glm::vec3> normals = std::vector<glm::vec3>();
+		std::vector<glm::vec2> uvs = std::vector<glm::vec2>();
+		std::vector<glm::vec3> tangent = std::vector<glm::vec3>();
+		std::vector<unsigned int> materialsIndices = std::vector<unsigned int>();
+		std::vector<BonesHolder> bonesHolder;
+		std::map<uint64_t, Bone> uniqueBonesInfo = std::map<uint64_t, Bone>();
 
 		//vector<std::array<int, MAX_BONE_INFLUENCE>> boneIds;
 		//vector<std::array<float, MAX_BONE_INFLUENCE>> weights;

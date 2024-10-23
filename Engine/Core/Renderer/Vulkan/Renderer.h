@@ -34,7 +34,7 @@ namespace Plaza {
 		std::vector<VkPresentModeKHR> presentModes;
 	};
 
-	class VulkanRenderer : public Renderer {
+	class PLAZA_API VulkanRenderer : public Renderer {
 	public:
 		VulkanRenderer() {};
 		std::array<int, MAX_BONE_INFLUENCE> GetBoneIds(std::vector<uint64_t>& bones);

@@ -25,7 +25,7 @@
 namespace Plaza {
 	class Camera;
 	class Window;
-	class Application {
+	class PLAZA_API Application {
 	public:
 		void CreateApplication();
 		void GetPaths();
@@ -85,14 +85,12 @@ namespace Plaza {
 		Editor::EditorClass* GetEditor() { return mEditor; }
 		Editor::EditorClass* mEditor = new Editor::EditorClass();
 
-		static void Init() {
-			sApplication = new Application();
-		}
+		static void Init();
 		static inline Application* Get() {
 			return sApplication;
 		}
 
 	private:
-		static Application* sApplication;
+		static inline Application* sApplication = nullptr;
 	};
 }

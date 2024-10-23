@@ -1,8 +1,9 @@
 #pragma once
 #include "spdlog/spdlog.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class Log {
+	class PLAZA_API Log {
 	public:
 		static void Init();
 

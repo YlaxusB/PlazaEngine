@@ -2,7 +2,7 @@
 #include <unordered_set>
 #include "Engine/Core/AssetsManager/Asset.h"
 namespace Plaza {
-	class Script : public Asset {
+	class PLAZA_API Script : public Asset {
 	public:
 		Script() {
 			this->lastModifiedDate = std::chrono::system_clock::now();

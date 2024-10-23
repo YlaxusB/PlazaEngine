@@ -7,6 +7,10 @@
 #define PLAZA_API  __declspec(dllimport)
 #endif
 
+#include <ThirdParty/cereal/cereal/archives/binary.hpp>
+#include <ThirdParty/cereal/cereal/types/polymorphic.hpp>
+#define PL_SER(T) CEREAL_NVP(T)
+
 namespace Plaza {
 	class EngineClass {
 	public:

@@ -302,8 +302,8 @@ namespace Plaza::Editor {
 								PL_CORE_ERROR("Added Script is a nullptr");
 								continue;
 							}
-							component->mScriptsUuid.push_back(value->mAssetUuid);
-							component->mScripts.push_back(script);
+							script->mAssetUuid = value->mAssetUuid;
+							component->AddScript(script);
 							if (Application::Get()->runningScene) {
 								script->OnStart();
 							}

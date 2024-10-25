@@ -38,6 +38,7 @@ using namespace Plaza::Editor;
 
 namespace Plaza {
 	void Application::Init() {
+		PL_CORE_INFO("Start");
 		sApplication = new Application();
 		Application::Get()->CreateApplication();
 		Application::Get()->Loop();

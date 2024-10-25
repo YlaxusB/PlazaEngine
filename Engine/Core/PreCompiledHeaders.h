@@ -59,3 +59,4 @@
 #include "Engine/Core/AssetsManager/AssetsManager.h"
 #include "Engine/Threads/ThreadManager.h"
 #include "Engine/Core/Engine.h"
+#include "Engine/Core/FilesManager/FilesManager.h"

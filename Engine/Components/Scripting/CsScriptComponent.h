@@ -3,8 +3,10 @@
 #include "Engine/Components/Component.h"
 #include "Engine/Core/Scripting/Mono.h"
 #include <cereal/archives/json.hpp>
+#include "Engine/Core/Engine.h"
+
 namespace Plaza {
-	class PlazaScriptClass {
+	class PLAZA_API PlazaScriptClass {
 	public:
 		PlazaScriptClass(MonoClass* klass, std::string namespaceName, std::string className, std::string dllPath, uint64_t uuid, MonoDomain* domain) {
 			Init(klass, namespaceName, className, dllPath, uuid, domain);
@@ -53,7 +55,7 @@ namespace Plaza {
 		}
 	};
 
-	class CsScriptComponent : public  Component {
+	class PLAZA_API CsScriptComponent : public  Component {
 	public:
 		CsScriptComponent() {}
 		CsScriptComponent(uint64_t uuid);

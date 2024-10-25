@@ -32,6 +32,7 @@
 #include "Engine/Components/Rendering/AnimationComponent.h"
 
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
+#include "Engine/Core/Engine.h"
 //#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 
 using namespace std;
@@ -102,7 +103,7 @@ namespace Plaza {
 		Entity* find(uint64_t findUuid);
 		~GameObjectList() = default;
 	};
-	class Scene : public Asset {
+	class PLAZA_API Scene : public Asset {
 	public:
 		bool mIsDeleting = false;
 

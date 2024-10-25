@@ -6,6 +6,7 @@
 #include "Engine/Core/RenderGroup.h"
 #include "Engine/Components/Core/Transform.h"
 #include "Engine/Components/Rendering/Material.h"
+#include "Engine/Core/Engine.h"
 
 using namespace std;
 namespace Plaza {
@@ -43,7 +44,7 @@ namespace Plaza {
 			return Index;
 		}
 	};
-	class MeshRenderer : public Component {
+	class PLAZA_API MeshRenderer : public Component {
 	public:
 		bool castShadows = true;
 		string aiMeshName;

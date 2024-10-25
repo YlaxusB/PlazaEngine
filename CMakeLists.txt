@@ -15,7 +15,7 @@ if (MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE INTERNAL "")
     add_compile_options(/MP)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX- /W4 /O2")
-
+    add_compile_options(/bigobj)
 endif()
 
 set(BUILD_STATIC_LIB ON)

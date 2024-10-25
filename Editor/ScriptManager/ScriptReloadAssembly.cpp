@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ScriptManager.h"
 #include "Engine/Core/Scripting/Mono.h"
+#include "Engine/Core/Scripting/Scripting.h"
 
 /*
 		 Get all fields and group them in a map
@@ -99,7 +100,9 @@ namespace Plaza::Editor {
 #else
 			ScriptManager::ReloadScriptsAssembly((Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + "copy.dll").c_str());
 #endif //  GAME_REL
-	}
+		}
+
+		Scripting::LoadProjectCppDll(*Application::Get()->activeProject);
 }
 
 	void ScriptManager::ReloadSpecificAssembly(std::string scriptPath) {

@@ -1,20 +1,21 @@
 #pragma once
+#include "Engine/Core/Engine.h"
+
 namespace Plaza {
-	class Mono {
+	class PLAZA_API Mono {
 	public:
-		static MonoDomain* mAppDomain;
-		static MonoAssembly* mCoreAssembly;
-		static MonoDomain* mMonoRootDomain;
-		static MonoImage* mCoreImage;
-		static MonoObject* mEntityObject;
-		static MonoClass* mEntityClass;
+		static inline MonoDomain* mAppDomain = nullptr;
+		static inline MonoAssembly* mCoreAssembly = nullptr;
+		static inline MonoDomain* mMonoRootDomain = nullptr;
+		static inline MonoImage* mCoreImage = nullptr;
+		static inline MonoObject* mEntityObject = nullptr;
+		static inline MonoClass* mEntityClass = nullptr;
+		static inline MonoAssembly* mScriptAssembly = nullptr;
+		static inline MonoImage* mScriptImage = nullptr;
 
-		static MonoAssembly* mScriptAssembly;
-		static MonoImage* mScriptImage;
-
-		static std::unordered_map<MonoType*, std::function<bool(Entity)>> mEntityHasComponentFunctions;
-		static std::unordered_map<MonoType*, std::function<Component* (Entity)>> mEntityAddComponentFunctions;
-		static std::unordered_map<MonoType*, std::function<Component* (Entity)>> mEntityGetComponentFunctions;
+		static inline std::unordered_map<MonoType*, std::function<bool(Entity)>> mEntityHasComponentFunctions = std::unordered_map<MonoType*, std::function<bool(Entity)>>();
+		static inline std::unordered_map<MonoType*, std::function<Component* (Entity)>> mEntityAddComponentFunctions = std::unordered_map<MonoType*, std::function<Component* (Entity)>>();
+		static inline std::unordered_map<MonoType*, std::function<Component* (Entity)>> mEntityGetComponentFunctions = std::unordered_map<MonoType*, std::function<Component* (Entity)>>();
 		static void Init();
 		static void OnStartAll(bool callOnStart = true);
 		static void OnStart(MonoObject* monoObject);

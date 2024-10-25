@@ -2,13 +2,14 @@
 //#include "Engine/Core/Renderer/OpenGL/OpenGLMesh.h"
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Core/Renderer/Mesh.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
 	struct Asset;
 	struct Material;
-	class RenderGroup {
+	class PLAZA_API RenderGroup {
 	public:
-		static GLenum renderMode;
+		static inline GLenum renderMode = GL_TRIANGLES;
 		uint64_t uuid = -1;
 		Mesh* mesh = nullptr;
 		bool mImportedMesh = false;
@@ -65,5 +66,3 @@ namespace Plaza {
 		static bool SceneHasRenderGroup(RenderGroup* renderGroup);
 	};
 }
-
-inline GLenum RenderGroup::renderMode = GL_TRIANGLES;

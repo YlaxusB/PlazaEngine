@@ -11,6 +11,7 @@
 #include <mutex>
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "ThirdParty/mono/include/mono/metadata/mono-debug.h"
+#include "Engine/Core/Scripting/Scripting.h"
 
 namespace Plaza {
 	void Scene::Copy(Scene* baseScene) {
@@ -169,6 +170,8 @@ namespace Plaza {
 		for (auto& [key, value] : Scene::GetActiveScene()->rigidBodyComponents) {
 			value.Init();
 		}
+
+		Scripting::LoadProjectCppDll(*Application::Get()->activeProject);
 
 		for (auto& [key, value] : Scene::GetActiveScene()->characterControllerComponents) {
 			value.Init();

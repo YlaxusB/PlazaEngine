@@ -4,6 +4,8 @@
 #include "Engine/Components/Core/Transform.h"
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
+#include "Engine/Core/Engine.h"
+
 namespace Plaza {
 
 	struct ColliderShape {
@@ -29,7 +31,7 @@ namespace Plaza {
 			archive(PL_SER(mEnum), PL_SER(mMeshUuid));
 		}
 	};
-	class Collider : public Component {
+	class PLAZA_API Collider : public Component {
 	public:
 		glm::vec3 lastScale = glm::vec3(1.0f);
 		Collider() {};

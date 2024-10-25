@@ -6,11 +6,13 @@
 #include <string>
 #include "Engine/Application/Application.h"
 #include "Engine/Core/ComponentMapStructure.h"
+#include "Engine/Core/Engine.h"
+
 //#include "Engine/Core/Scene.h"
 namespace Plaza {
 	class Scene;
 
-	class Entity {
+	class PLAZA_API Entity {
 	public:
 		uint64_t uuid;
 		uint64_t parentUuid;

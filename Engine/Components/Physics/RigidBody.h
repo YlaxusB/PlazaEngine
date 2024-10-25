@@ -1,8 +1,9 @@
 #pragma once
 #include "Engine/Components/Component.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class RigidBody : public Component {
+	class PLAZA_API RigidBody : public Component {
 	public:
 		//physx::PxRigidStatic* rb;
 		//physx::PxMaterial* mMaterial;

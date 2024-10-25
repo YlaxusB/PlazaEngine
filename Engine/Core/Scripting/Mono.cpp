@@ -25,18 +25,6 @@ char* ConvertConstCharToChar(const char* constCharString) {
 
 #define PL_ADD_INTERNAL_CALL(name) mono_add_internal_call("Plaza.InternalCalls::" #name, (void*)InternalCalls::name)
 namespace Plaza {
-	std::unordered_map<MonoType*, std::function<bool(Entity)>> Mono::mEntityHasComponentFunctions = std::unordered_map<MonoType*, std::function<bool(Entity)>>();
-	std::unordered_map<MonoType*, std::function<Component* (Entity)>> Mono::mEntityAddComponentFunctions = std::unordered_map<MonoType*, std::function<Component* (Entity)>>();
-	std::unordered_map<MonoType*, std::function<Component* (Entity)>> Mono::mEntityGetComponentFunctions = std::unordered_map<MonoType*, std::function<Component* (Entity)>>();
-	MonoDomain* Mono::mAppDomain = nullptr;
-	MonoAssembly* Mono::mCoreAssembly = nullptr;
-	MonoDomain* Mono::mMonoRootDomain = nullptr;
-	MonoImage* Mono::mCoreImage = nullptr;
-	MonoObject* Mono::mEntityObject = nullptr;
-	MonoClass* Mono::mEntityClass = nullptr;
-
-	MonoAssembly* Mono::mScriptAssembly = nullptr;
-	MonoImage* Mono::mScriptImage = nullptr;
 	char* ReadBytes(const std::string& filepath, uint32_t* outSize)
 	{
 		std::ifstream stream(filepath, std::ios::binary | std::ios::ate);

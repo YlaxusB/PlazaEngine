@@ -6,9 +6,10 @@
 
 #include "Engine/Components/Core/Entity.h"
 #include "Engine/Components/Component.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class Transform : public Plaza::Component {
+	class PLAZA_API Transform : public Plaza::Component {
 	public:
 		bool haveCamera = false;
 		glm::vec3 position = { 0,0,0 };

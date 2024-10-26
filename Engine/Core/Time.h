@@ -5,7 +5,7 @@
 using namespace std;
 using namespace std::chrono;
 namespace Plaza {
-	class Time
+	class PLAZA_API Time
 	{
 	public:
 		static inline uint64_t mUniqueTriangles = 0;
@@ -21,7 +21,7 @@ namespace Plaza {
 		static void Update();
 	};
 
-	class Profiler {
+	class PLAZA_API Profiler {
 	public:
 		string name;
 		int divider;

@@ -292,11 +292,11 @@ namespace Plaza {
 			return &it->second;
 		return nullptr;
 	}
-	Entity* Scene::GetEntityByName(std::string name) {
-		if (Scene::GetActiveScene()->entitiesNames.find(name) != Scene::GetActiveScene()->entitiesNames.end()) {
-			for (const auto& element : Scene::GetActiveScene()->entitiesNames.at(name)) {
-				if (Scene::GetActiveScene()->entities.find(element) != Scene::GetActiveScene()->entities.end())
-					return &Scene::GetActiveScene()->entities.at(element);
+	Entity* Scene::GetEntityByName(const std::string& name) {
+		if (entitiesNames.find(name) != entitiesNames.end()) {
+			for (const auto& element : entitiesNames.at(name)) {
+				if (entities.find(element) != entities.end())
+					return &entities.at(element);
 			}
 		}
 		return nullptr;
@@ -332,5 +332,36 @@ namespace Plaza {
 		for (auto& [key, value] : entities) {
 			entitiesNames[value.name].insert(key);
 		}
+	}
+
+	void Scene::InitializeScenes() {
+		sEditorScene = std::make_shared<Scene>();
+		sRuntimeScene = std::make_shared<Scene>();
+	}
+
+	Scene* Scene::GetEditorScene() {
+		return sEditorScene.get();
+	}
+	void Scene::SetEditorScene(std::shared_ptr<Scene> scene) {
+		sEditorScene = scene;
+	}
+	void Scene::ClearEditorScene() {
+		sEditorScene.reset();
+		sEditorScene = std::make_shared<Scene>();
+	}
+	Scene* Scene::GetRuntimeScene() {
+		return sRuntimeScene.get();
+	}
+	Scene* Scene::GetActiveScene() {
+		return sActiveScene;
+	}
+	void Scene::SetActiveScene(Scene* scene) {
+		sActiveScene = scene;
+	}
+
+	void Scene::Terminate() {
+		sActiveScene = nullptr;
+		sEditorScene.reset();
+		sRuntimeScene.reset();
 	}
 }

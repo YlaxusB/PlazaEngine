@@ -4,15 +4,15 @@
 #include "GuiButton.h"
 #include "GuiRectangle.h"
 #include "ThirdParty/cereal/cereal/types/polymorphic.hpp"
-
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	struct GuiMesh {
+	struct PLAZA_API GuiMesh {
 		std::vector<glm::vec2> mVertices = std::vector<glm::vec2>();
 		std::vector<unsigned int> mIndices = std::vector<unsigned int>();
 	};
 
-	class GuiComponent : public Component {
+	class PLAZA_API GuiComponent : public Component {
 	public:
 		std::unordered_map<uint64_t, std::shared_ptr<GuiItem>> mGuiItems = std::unordered_map<uint64_t, std::shared_ptr<GuiItem>>();
 

@@ -1,8 +1,9 @@
 #pragma once
 #include "Engine/Components/Component.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class CharacterController : public Component {
+	class PLAZA_API CharacterController : public Component {
 	public:
 		CharacterController(uint64_t uuid = 0) {
 			this->mUuid = uuid != 0 ? uuid : Plaza::UUID::NewUUID();

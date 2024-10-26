@@ -1,9 +1,10 @@
 #pragma once
 #include "Engine/Core/Renderer/Mesh.h"
 #include "Engine/Core/AssetsManager/Asset.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class Animation : public Asset {
+	class PLAZA_API Animation : public Asset {
 	public:
 		float mStartTime = 0.0f;
 		float mEndTime = 0.0f;

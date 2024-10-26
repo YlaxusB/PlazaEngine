@@ -107,7 +107,7 @@ namespace Plaza {
 	public:
 		bool mIsDeleting = false;
 
-		std::unordered_map<std::variant<uint64_t, std::string>, Entity*> gameObjectsMap;
+		//std::unordered_map<std::variant<uint64_t, std::string>, Entity*> gameObjectsMap;
 
 		Entity* mainSceneEntity = nullptr;
 		uint64_t mainSceneEntityUuid;
@@ -221,7 +221,7 @@ namespace Plaza {
 
 		void RemoveEntity(uint64_t uuid);
 		Entity* GetEntity(uint64_t uuid);
-		Entity* GetEntityByName(std::string name);
+		Entity* GetEntityByName(const std::string& name);
 		template<typename T>
 		T* GetComponent(uint64_t uuid) {
 			return GetEntity(uuid)->GetComponent<T>();
@@ -276,37 +276,16 @@ namespace Plaza {
 			*/
 		}
 
-		static void InitializeScenes() {
-			sEditorScene = std::make_shared<Scene>();
-			sRuntimeScene = std::make_shared<Scene>();
-		}
-
-		static Scene* GetEditorScene() {
-			return sEditorScene.get();
-		}
-		static void SetEditorScene(std::shared_ptr<Scene> scene) {
-			sEditorScene = scene;
-		}
-		static void ClearEditorScene() {
-			sEditorScene.reset();
-			sEditorScene = std::make_shared<Scene>();
-		}
-		static Scene* GetRuntimeScene() {
-			return sRuntimeScene.get();
-		}
-		static Scene* GetActiveScene() {
-			return sActiveScene;
-		}
-		static void SetActiveScene(Scene* scene) {
-			sActiveScene = scene;
-		}
+		static void InitializeScenes();
+		static Scene* GetEditorScene();
+		static void SetEditorScene(std::shared_ptr<Scene> scene);
+		static void ClearEditorScene();
+		static Scene* GetRuntimeScene();
+		static Scene* GetActiveScene();
+		static void SetActiveScene(Scene* scene);
 		static void NewRuntimeScene(Scene* baseScene);
 
-		static void Terminate() {
-			sActiveScene = nullptr;
-			sEditorScene.reset();
-			sRuntimeScene.reset();
-		}
+		static void Terminate();
 	private:
 		static inline std::shared_ptr<Scene> sEditorScene = nullptr;
 		static inline std::shared_ptr<Scene> sRuntimeScene = nullptr;

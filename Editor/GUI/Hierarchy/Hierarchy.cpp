@@ -296,6 +296,7 @@ namespace Plaza::Editor {
 							if (!component) {
 								component = new CppScriptComponent(entity.uuid);
 								entity.AddComponent<CppScriptComponent>(component);
+								component = entity.GetComponent<CppScriptComponent>();
 							}
 							CppScript* script = ScriptFactory::CreateScript(std::filesystem::path(value->mAssetName).stem().string());
 							if (!script) {

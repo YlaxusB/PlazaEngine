@@ -2,13 +2,15 @@
 #include "Engine/Components/Component.h"
 #include <ThirdParty/AL/include/AL/al.h>
 #include "Engine/Core/AssetsManager/AssetsManager.h"
+#include "Engine/Core/Engine.h"
+
 namespace Plaza {
 	enum class AudioFileFormat
 	{
 		None = 0,
 		MP3
 	};
-	class AudioSource : public Component {
+	class PLAZA_API AudioSource : public Component {
 	public:
 		float mPosition[3] = { 0.0f, 0.0f, 0.0f };
 		std::string mSourcePath;

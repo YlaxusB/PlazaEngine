@@ -1,14 +1,15 @@
 #pragma once
 #include "UI.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza::Drawing::UI {
-	struct Character {
+	struct PLAZA_API Character {
 		unsigned int TextureID;
 		glm::ivec2   Size;     
 		glm::ivec2   Bearing;  
 		unsigned int Advance;
 	};
-	class TextRenderer : public Component {
+	class PLAZA_API TextRenderer : public Component {
 	public:
 		std::map<GLchar, Character> mCharacters;
 		std::string mText;

@@ -1,7 +1,9 @@
 #pragma once
 #include "Engine/Components/Component.h"
+#include "Engine/Core/Engine.h"
+
 namespace Plaza {
-	class AudioListener : public Component {
+	class PLAZA_API AudioListener : public Component {
 	public:
 		glm::vec3 mPosition;
 		glm::vec3 mOrientation;

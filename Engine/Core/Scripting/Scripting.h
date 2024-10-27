@@ -17,5 +17,6 @@ namespace Plaza {
 	private:
 		static void LoadCppDll(const std::filesystem::path& path);
 		static inline HMODULE sCurrentLoadedCppDll;
+		static inline int sReloadIndex = 0;
 	};
 }

@@ -9,7 +9,8 @@
 namespace Plaza {
 	void Scripting::LoadProjectCppDll(const Editor::Project& project) {
 		Scripting::UnloadAllScripts();
-		ScriptFactory::GetRegistry().clear();
+		ScriptFactory::GetCreateRegistry().clear();
+		ScriptFactory::GetDeleteRegistry().clear();
 		Scripting::UnloadCurrentLoadedCppDll();
 
 		std::filesystem::path dllPath = std::filesystem::path(project.mAssetPath).parent_path() / "bin" / ("GameLib.dll");
@@ -17,15 +18,29 @@ namespace Plaza {
 			PL_CORE_WARN("C++ Game Dll not found");
 			return;
 		}
-		std::filesystem::path newPath = FilesManager::CreateFileCopy(dllPath);
+		std::filesystem::path copyFolder = ("bin/copy" + std::to_string(sReloadIndex) + "/");
+		FilesManager::CreateNewDirectory(std::filesystem::path(project.mAssetPath).parent_path() / copyFolder);
 
-		Scripting::LoadCppDll(newPath);
+		std::filesystem::path dllPastePath = std::filesystem::path(project.mAssetPath).parent_path() / copyFolder / ("GameLib.dll");
+		dllPastePath = FilesManager::CopyPasteFile(dllPath, dllPastePath, false);
+
+		// Get the pdb and make a copy of it
+		std::filesystem::path pdbPath = std::filesystem::path(project.mAssetPath).parent_path() / "bin" / ("GameLib.pdb");
+		std::filesystem::path pdbPastePath = std::filesystem::path(dllPastePath);
+		pdbPastePath.replace_extension(".pdb");
+		if (FilesManager::PathExists(pdbPath))
+			FilesManager::CopyPasteFile(pdbPath, pdbPastePath, true);
+
+		Scripting::LoadCppDll(dllPastePath);
 		Scripting::ReloadAllScripts();
+
+		sReloadIndex++;
 	}
 
 	void Scripting::ReloadAllScripts() {
 		for (auto& [componentUuid, component] : Scene::GetActiveScene()->cppScriptComponents) {
-			for (uint64_t& uuid : component.mScriptsUuid) {
+			std::vector<uint64_t> scriptsUuid = component.mScriptsUuid;
+			for (uint64_t uuid : scriptsUuid) {
 				CppScript* script = ScriptFactory::CreateScript(std::filesystem::path(AssetsManager::GetAsset(uuid)->mAssetName).stem().string());
 				script->mAssetUuid = uuid;
 				component.AddScript(script);
@@ -37,7 +52,8 @@ namespace Plaza {
 		for (auto& [componentUuid, component] : Scene::GetActiveScene()->cppScriptComponents) {
 			for (auto& script : component.mScripts) {
 				component.mScripts.erase(std::find(component.mScripts.begin(), component.mScripts.end(), script));
-				delete script;
+				ScriptFactory::DeleteScript(script);
+				//delete script;
 			}
 		}
 	}
@@ -61,7 +77,7 @@ namespace Plaza {
 		sCurrentLoadedCppDll = LoadLibrary(path.string().c_str());
 		if (sCurrentLoadedCppDll == NULL) {
 			DWORD errorMessageID = GetLastError();
-			PL_CORE_WARN("Failed to load DLL, error: ", errorMessageID);
+			PL_CORE_WARN("Failed to load DLL, error: ${0}", errorMessageID);
 			return;
 		}
 	}

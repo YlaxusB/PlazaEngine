@@ -12,4 +12,15 @@ namespace Plaza {
 		virtual void OnUpdate() {};
 		virtual void OnTerminate() {};
 	};
+
+	class PLAZA_API CppEditorScript : public Script {
+	public:
+		CppEditorScript() {
+			this->lastModifiedDate = std::chrono::system_clock::now();
+		}
+
+		virtual void OnStart() {};
+		virtual void OnUpdate() {};
+		virtual void OnTerminate() {};
+	};
 }

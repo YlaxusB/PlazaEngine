@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.25)
 
 if(POLICY CMP0091) # Force thidparty libraries to use static MSVC
     cmake_policy(SET CMP0091 NEW)
@@ -77,6 +77,7 @@ set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-${CMAKE_BUILD_TYPE}")
 set(PHYSX_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx")
 set(PX_OUTPUT_LIB_DIR "${BUILD_DIR}/libs")
 set(PX_OUTPUT_BIN_DIR "${BUILD_DIR}/bin")
+#set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 OPTION(COPY_EXTERNAL_DLLS "Control the copying of external DLLs" OFF) # PhysX external dlls
 option(PX_BUILDSNIPPETS "Generate the snippets" OFF)
@@ -152,6 +153,10 @@ set(MONO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/lib/${CMAKE_BUILD_TYP
 
 # PlazaEngineCore
 add_library(PlazaEngineCore SHARED "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}")
+
+include(GenerateExportHeader)
+generate_export_header(PlazaEngineCore)
+
 set_target_properties(PlazaEngineCore PROPERTIES
     VS_GLOBAL_MONO_USE_STATIC_C_RUNTIME "true"
     VS_GLOBAL_MONO_USE_STATIC_LIBMONO "true"

@@ -77,7 +77,6 @@ set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-${CMAKE_BUILD_TYPE}")
 set(PHYSX_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx")
 set(PX_OUTPUT_LIB_DIR "${BUILD_DIR}/libs")
 set(PX_OUTPUT_BIN_DIR "${BUILD_DIR}/bin")
-#set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 OPTION(COPY_EXTERNAL_DLLS "Control the copying of external DLLs" OFF) # PhysX external dlls
 option(PX_BUILDSNIPPETS "Generate the snippets" OFF)
@@ -124,8 +123,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /C2220")
 
 #link_directories("${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/lib/${CMAKE_BUILD_TYPE}")
 
-file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Editor/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Renderer/stb_font_consolas_24_latin1.inl")
-file(GLOB_RECURSE MY_SOURCES2 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.cpp" )
+file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Editor/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Editor/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Renderer/stb_font_consolas_24_latin1.inl")
+file(GLOB_RECURSE MY_SOURCES2 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.h")
 
 set(IMGUI_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/imgui.cpp"
@@ -152,10 +151,7 @@ set(PHYSX_LIBS
 set(MONO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/lib/${CMAKE_BUILD_TYPE}")
 
 # PlazaEngineCore
-add_library(PlazaEngineCore SHARED "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}")
-
-include(GenerateExportHeader)
-generate_export_header(PlazaEngineCore)
+add_library(PlazaEngineCore SHARED "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" ${MY_SOURCES} ${MY_SOURCES2})
 
 set_target_properties(PlazaEngineCore PROPERTIES
     VS_GLOBAL_MONO_USE_STATIC_C_RUNTIME "true"

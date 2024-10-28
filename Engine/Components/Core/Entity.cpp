@@ -43,7 +43,7 @@ namespace Plaza {
 
 	}
 
-	std::unordered_map<std::string, void*> Entity::GetAllComponentsMaps() {
+	std::unordered_map<std::string, void*>& Entity::GetAllComponentsMaps() {
 		return Scene::GetActiveScene()->componentsMap;
 	}
 

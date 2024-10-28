@@ -6,6 +6,7 @@
 #include <ThirdParty/cereal/cereal/types/vector.hpp>
 #include <ThirdParty/cereal/cereal/cereal.hpp>
 #include <vector>
+#include <array>
 
 namespace Plaza {
 

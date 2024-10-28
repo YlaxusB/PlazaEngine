@@ -30,13 +30,14 @@ namespace Plaza {
 		~Entity();
 		void Delete();
 
-		static std::unordered_map<std::string, void*> GetAllComponentsMaps();
+		static std::unordered_map<std::string, void*>& GetAllComponentsMaps();
 
 		template<typename T>
 		T* GetComponent() {
 			Component* component = nullptr;
 			std::string className = typeid(T).name();
-			ComponentMultiMap<uint64_t, T>* components = static_cast<ComponentMultiMap<uint64_t, T>*>(GetAllComponentsMaps().find(className)->second);
+			const std::unordered_map<std::string, void*>& map = GetAllComponentsMaps();
+			ComponentMultiMap<uint64_t, T>* components = static_cast<ComponentMultiMap<uint64_t, T>*>(map.find(className)->second);
 			auto it = components->find(this->uuid);
 			if (it != components->end()) {
 				component = &(it->second);

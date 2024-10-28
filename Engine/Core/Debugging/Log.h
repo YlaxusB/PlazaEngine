@@ -11,8 +11,8 @@ namespace Plaza {
 		static inline std::shared_ptr<spdlog::logger>& GetClientLogger() { return sClientLogger; }
 
 	private:
-		static inline std::shared_ptr<spdlog::logger> sCoreLogger;
-		static inline std::shared_ptr<spdlog::logger> sClientLogger;
+		static inline std::shared_ptr<spdlog::logger> sCoreLogger = nullptr;
+		static inline std::shared_ptr<spdlog::logger> sClientLogger = nullptr;
 	};
 }
 

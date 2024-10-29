@@ -5,7 +5,7 @@
 #include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class Entity;
+	class PLAZA_API Entity;
 	class PLAZA_API Component {
 	public:
 		uint64_t mUuid;

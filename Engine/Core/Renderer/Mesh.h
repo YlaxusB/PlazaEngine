@@ -48,7 +48,7 @@ namespace Plaza {
 		}
 	};
 
-	struct Bone {
+	struct PLAZA_API Bone {
 		uint64_t mId = -1;
 		uint64_t mParentId = -1;
 		uint64_t mHandlerIndex = -1;
@@ -65,7 +65,7 @@ namespace Plaza {
 		std::vector<uint64_t> mChildren = std::vector<uint64_t>();
 		Bone() {};
 
-		struct Keyframe {
+		struct PLAZA_API Keyframe {
 			double time;
 			glm::vec3 position;
 			glm::quat orientation;
@@ -178,7 +178,7 @@ namespace Plaza {
 		}
 	};
 
-	struct BonesHolder {
+	struct PLAZA_API BonesHolder {
 		std::vector<uint64_t> mBones = std::vector<uint64_t>();
 		std::vector<float> mWeights = std::vector<float>();
 		//std::vector<unsigned int> mBonesIds = std::vector<unsigned int>();
@@ -209,7 +209,7 @@ namespace Plaza {
 		glm::vec4 minVector = glm::vec4(glm::vec3(std::numeric_limits<float>::max()), 1.0f);
 	};
 
-	class Mesh {
+	class PLAZA_API Mesh {
 	public:
 		RendererAPI api;
 		BoundingBox mBoundingBox{};

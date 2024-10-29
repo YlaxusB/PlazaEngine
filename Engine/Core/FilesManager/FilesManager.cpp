@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "FilesManager.h"
+#include <regex>
 
 namespace Plaza {
 	std::filesystem::path FilesManager::CopyPasteFile(const std::filesystem::path& from, const std::filesystem::path& to, bool override) {
@@ -61,5 +62,23 @@ namespace Plaza {
 			return false;
 		}
 		return true;
+	}
+
+	void FilesManager::CreateFileWithData(const std::filesystem::path& path, const char* data) {
+		std::ofstream file(path);
+		if (file.is_open()) {
+			// Convert data to a string
+			std::string content(data);
+
+			// Replace any occurrences of "\r\n" with "\n"
+			content = std::regex_replace(content, std::regex("\r\n"), "\n");
+
+			// Write to file
+			file << content;
+			file.close();
+		}
+		else {
+			PL_CORE_ERROR("Failed to open file");
+		}
 	}
 }

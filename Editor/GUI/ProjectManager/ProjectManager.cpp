@@ -45,6 +45,7 @@ namespace Plaza {
 					const std::string outputDirectory = Application::Get()->activeProject->mAssetPath.parent_path().string(); // Specify the desired output directory
 					ProjectGenerator::GenerateSolution(solutionName, projectName, outputDirectory);
 					ProjectGenerator::GenerateProject(projectName, outputDirectory);
+					ProjectGenerator::PasteAllProjectFiles(outputDirectory);
 
 					// Create scripts holder file
 					//ScriptManagerSerializer::Create(Application::Get()->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);

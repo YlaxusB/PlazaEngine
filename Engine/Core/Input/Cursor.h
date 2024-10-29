@@ -1,6 +1,8 @@
 #pragma once
+#include "Engine/Core/Engine.h"
+
 namespace Plaza {
-	class Input::Cursor {
+	class PLAZA_API Input::Cursor {
 	public:
 		static bool show;
 

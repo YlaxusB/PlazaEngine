@@ -17,6 +17,10 @@ namespace Plaza {
 			std::map<std::string, Script> scripts;
 			std::map<std::string, MonoObject*> monoObjects;
 
+			static void PasteCmakeFile(const std::filesystem::path& directory);
+			static void PasteGitIgnore(const std::filesystem::path& directory);
+			static void PasteAllProjectFiles(const std::filesystem::path& directory);
+
 			template <class Archive>
 			void serialize(Archive& archive) {
 				archive(mAssetUuid, mAssetName, creationDate, lastModifyDate, mLastSceneUuid);

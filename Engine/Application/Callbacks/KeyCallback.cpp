@@ -103,7 +103,7 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 			Application::Get()->showCascadeLevels = !Application::Get()->showCascadeLevels;
 
 		if (key == GLFW_KEY_N && action == GLFW_PRESS) {
-			Editor::selectedGameObject->GetComponent<MeshRenderer>()->LoadHeightMap("C:\\Users\\Giovane\\Desktop\\Workspace\\heightmap.save");
+
 		}
 		//if (key == GLFW_KEY_G && action == GLFW_PRESS)
 		//	Scene::GetActiveScene()->entities[Editor::selectedGameObject->uuid].RemoveComponent<RigidBody>();

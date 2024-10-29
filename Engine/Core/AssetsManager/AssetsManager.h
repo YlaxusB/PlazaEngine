@@ -9,6 +9,11 @@
 #include "Asset.h"
 #include "Engine/Components/Physics/PhysicsMaterial.h"
 #include "Engine/Core/Scripting/Script.h"
+#ifndef COMPILING_GAME_DLL
+#include "battery/embed.hpp"
+#endif
+#include <string>
+#include <string_view>
 
 namespace Plaza {
 	class AssetsListStructure : public std::unordered_map<uint64_t, Asset*> {
@@ -109,6 +114,18 @@ namespace Plaza {
 		static void RemoveAssetUuidPath(uint64_t assetUuid);
 		static void ChangeAssetPath(uint64_t assetUuid, std::string newPath);
 		static Asset* GetAssetOrImport(std::string path, uint64_t uuid = 0, std::string outDirectory = "");
+
+#ifndef COMPILING_GAME_DLL
+		template <b::embed_string_literal identifier>
+		static const char* GetEmbedResource() {
+			return b::embed<identifier>().data();
+		}
+#else
+		template <std::basic_string identifier>
+		static const char* GetEmbedResource() {
+			return nullptr;
+		}
+#endif
 
 		static void ReadFolderContent(std::string path, bool readSubFolders);
 	};

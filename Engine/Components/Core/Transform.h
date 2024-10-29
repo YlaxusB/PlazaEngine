@@ -4,7 +4,7 @@
 #include "ThirdParty/glm/gtc/type_ptr.hpp"
 
 
-#include "Engine/Components/Core/Entity.h"
+//#include "Engine/Components/Core/Entity.h"
 #include "Engine/Components/Component.h"
 #include "Engine/Core/Engine.h"
 

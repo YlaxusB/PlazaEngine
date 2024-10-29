@@ -6,7 +6,7 @@
 #include "ThirdParty/cereal/cereal/types/polymorphic.hpp"
 #include "Engine/Core/Renderer/Texture.h"
 #include "Engine/Core/AssetsManager/Asset.h"
-
+#include "ThirdParty/glm/common.hpp"
 
 CEREAL_REGISTER_TYPE(Texture);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Asset, Texture);

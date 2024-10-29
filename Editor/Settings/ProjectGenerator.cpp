@@ -1,7 +1,28 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ProjectGenerator.h"
 #include "Editor/GUI/Utils/Filesystem.h"
+#include "Engine/Core/FilesManager/FilesManager.h"
+#include <filesystem>
+#include "Engine/Core/AssetsManager/AssetsManager.h"
+
 namespace Plaza::Editor {
+    void ProjectGenerator::PasteCmakeFile(const std::filesystem::path& directory) {
+        std::filesystem::path cmakeFilePath = directory / "CMakeLists.txt";
+        FilesManager::CreateFileWithData(cmakeFilePath, AssetsManager::GetEmbedResource<"Editor/DefaultAssets/NewProject/CMakeLists.txt">());
+        std::filesystem::path cmakePresetsFilePath = directory / "CMakePresets.json";
+        FilesManager::CreateFileWithData(cmakePresetsFilePath, AssetsManager::GetEmbedResource<"Editor/DefaultAssets/NewProject/CMakePresets.json">());
+    }
+
+    void ProjectGenerator::PasteGitIgnore(const std::filesystem::path& directory) {
+        std::filesystem::path filePath = directory / ".gitignore";
+        FilesManager::CreateFileWithData(filePath, AssetsManager::GetEmbedResource<"Editor/DefaultAssets/NewProject/.gitignore">());
+    }
+
+    void ProjectGenerator::PasteAllProjectFiles(const std::filesystem::path& directory) {
+        ProjectGenerator::PasteCmakeFile(directory);
+        ProjectGenerator::PasteGitIgnore(directory);
+    }
+
 	void ProjectGenerator::GenerateSolution(const std::string& solutionName, const std::string& projectName, const std::string& outputDirectory) {
         // Specify the project name and Plaza root dir and also change the backslashes to forwardslesh
         const char* ProjectName = projectName.c_str();

@@ -101,4 +101,21 @@ namespace Plaza::Editor {
 		}
 		std::cout << "Finished Deserializing \n";
 	}
+
+	void Project::PasteCmakeFile(const std::filesystem::path& directory) {
+		std::filesystem::path cmakeFilePath = directory / "CMakeLists.txt";
+		FilesManager::CreateFileWithData(cmakeFilePath, AssetsManager::GetEmbedResource<"Editor/DefaultAssets/NewProject/CMakeLists.txt">());
+		std::filesystem::path cmakePresetsFilePath = directory / "CMakePresets.json";
+		FilesManager::CreateFileWithData(cmakePresetsFilePath, AssetsManager::GetEmbedResource<"Editor/DefaultAssets/NewProject/CMakePresets.json">());
+	}
+
+	void Project::PasteGitIgnore(const std::filesystem::path& directory) {
+		std::filesystem::path filePath = directory / ".gitignore";
+		FilesManager::CreateFileWithData(filePath, AssetsManager::GetEmbedResource<"Editor/DefaultAssets/NewProject/.gitignore">());
+	}
+
+	void Project::PasteAllProjectFiles(const std::filesystem::path& directory) {
+		Project::PasteCmakeFile(directory);
+		Project::PasteGitIgnore(directory);
+	}
 }

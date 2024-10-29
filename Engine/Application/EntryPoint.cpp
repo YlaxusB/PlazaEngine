@@ -23,7 +23,10 @@ using namespace Plaza;
 #include <windows.h>
 #include <codecvt> 
 
+//#include "Embed.h"
+
 int main() {
+	//EmbedResources::Init();
 	Log::Init();
 	Application::Init();
 	return 0;

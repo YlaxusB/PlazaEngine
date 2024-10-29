@@ -5,6 +5,8 @@
 #include "Editor/SessionCache/Cache.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Engine/Core/AssetsManager/AssetsReader.h"
+#include "Editor/Settings/ProjectGenerator.h"
+
 namespace Plaza {
 	namespace Editor {
 		void CopyDirectory(const std::filesystem::path& source, const std::filesystem::path& destination) {
@@ -41,14 +43,8 @@ namespace Plaza {
 		void Gui::MainMenuBar::Begin() {
 			// MenuBar / TitleBar
 			ImGui::BeginMainMenuBar();
-			//
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::Button("Build")) {
-					//std::string compileCommand = "mcs -target:library -out:\"" + dllPath.parent_path().string() + "\\" + dllPath.stem().string() + ".dll\" " + "\"" + std::string(scriptPath) + "\"";
-					//compileCommand += " -reference:\"" + Application::Get()->dllPath + "\\PlazaScriptCore.dll\"";
-					/*
-					msbuild.exe "C:\Users\Giovane\Desktop\Workspace\Plaza\Engine\..\OpenGLEngine.sln" /p:Configuration=GameRel /t:Build /p:OutDir="C:\Users\Giovane\Desktop\Workspace\PlazaGames\daldal\build\\"
-					*/
 					std::string devEnv = " \"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\msbuild.exe\" ";
 					std::string outPath = "\"" + Application::Get()->projectPath + "\\..\\" + Application::Get()->activeProject->mAssetName + "build\\\\\"";
 					std::string command = "\"" + devEnv + "\"" + Application::Get()->enginePath + "\\..\\OpenGLEngine.sln\" /p:Configuration=GameRel /t:Build /p:PROJECT_NAME=YourMacroValue /p:OutDir=" + outPath + "\"";
@@ -59,13 +55,6 @@ namespace Plaza {
 
 					/* Copy assets and scripts into Content Folder inside build folder */
 					CopyDirectory(Application::Get()->projectPath, newMainFolderPath);
-					//try {
-					//	filesystem::copy(Application::Get()->projectPath, newMainFolderPath, filesystem::copy_options::recursive);
-					//	std::cout << "Project Folder copied successfully.\n";
-					//}
-					//catch (const filesystem::filesystem_error& e) {
-					//	std::cerr << "Error: " << e.what() << std::endl;
-					//}
 
 					EngineSettings oldSettings = Application::Get()->mSettings;
 					EngineSettings newSettings;
@@ -110,8 +99,6 @@ namespace Plaza {
 					Application::Get()->activeProject = std::make_unique<Project>();
 					Cache::Serialize(Application::Get()->enginePathAppData + "\\cache.yaml");
 					Application::Get()->focusedMenu = "ProjectManager";
-					//free(Scene::GetEditorScene());
-					//free(Application::Get()->runtimeScene);
 				}
 
 				if (ImGui::Button("New Scene")) {
@@ -164,6 +151,20 @@ namespace Plaza {
 						Scene::SetActiveScene(Scene::GetEditorScene());
 						Scene::GetActiveScene()->RecalculateAddedComponents();
 					}
+				}
+
+				if (ImGui::BeginMenu("Project")) {
+
+					if (ImGui::BeginMenu("Update Project Files")) {
+						if (ImGui::MenuItem("Update All"))
+							ProjectGenerator::PasteAllProjectFiles(Application::Get()->activeProject->mAssetPath.parent_path());
+						if (ImGui::MenuItem("Update CMake file"))
+							ProjectGenerator::PasteCmakeFile(Application::Get()->activeProject->mAssetPath.parent_path());
+						if (ImGui::MenuItem("Update Git Ignore"))
+							ProjectGenerator::PasteGitIgnore(Application::Get()->activeProject->mAssetPath.parent_path());
+						ImGui::EndMenu();
+					}
+					ImGui::EndMenu();
 				}
 				ImGui::EndMenu();
 			}

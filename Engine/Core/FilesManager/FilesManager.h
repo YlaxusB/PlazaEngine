@@ -15,5 +15,7 @@ namespace Plaza {
 		static bool PathExists(const std::filesystem::path& path);
 		static bool PathIsDirectory(const std::filesystem::path& path);
 		static bool PathMustExist(const std::filesystem::path& path);
+
+		static void CreateFileWithData(const std::filesystem::path& path, const char* data);
 	};
 }

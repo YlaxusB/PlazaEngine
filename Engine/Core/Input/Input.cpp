@@ -7,7 +7,9 @@ namespace Plaza {
 	}
 
 	bool Input::GetKeyDown(int key) {
-		return glfwGetKey(Application::Get()->mWindow->glfwWindow, key) == GLFW_PRESS;
+		if (Application::Get()->focusedMenu == "Scene") {
+			return glfwGetKey(Application::Get()->mWindow->glfwWindow, key) == GLFW_PRESS;
+		}
 	}
 
 	bool Input::GetKeyDownOnce()
@@ -21,5 +23,19 @@ namespace Plaza {
 	bool Input::GetKeyReleasedOnce()
 	{
 		return false;
+	}
+
+	bool Input::GetMouseDown(int button) {
+		if (Application::Get()->focusedMenu == "Scene") {
+			return glfwGetMouseButton(Application::Get()->mWindow->glfwWindow, button) == GLFW_PRESS;
+		}
+	}
+
+	glm::vec2 Input::GetScreenSize() {
+#ifdef EDITOR_MODE
+		return  glm::vec2(Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y);
+#else
+		return Application::Get()->appSizes->sceneSize;
+#endif
 	}
 }

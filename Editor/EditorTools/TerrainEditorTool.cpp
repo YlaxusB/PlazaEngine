@@ -61,7 +61,7 @@ namespace Plaza {
 
 			std::vector<glm::vec3> tangents;
 			std::vector<unsigned int> materials{ 0 };
-			Mesh* mesh = &Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false, {}, {});
+			Mesh* mesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false, {}, {});
 			return mesh;
 		}
 		void TerrainEditorTool::CreateTerrain(unsigned int x, unsigned int y, unsigned int z) {

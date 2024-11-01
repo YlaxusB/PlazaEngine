@@ -25,14 +25,14 @@ namespace Plaza {
 		std::string scene = "Editor Scene";
 		Transform();
 		Transform(const Transform&) = default;
-		glm::quat GetLocalQuaternion();
-		glm::vec3 GetLocalEuler();
-		glm::quat GetWorldQuaternion();
-		glm::vec3 GetWorldEuler();
-		glm::mat4 GetTransform(glm::vec3 position, glm::vec3 scale);
-		glm::mat4 GetTransform(glm::vec3 position);
-		glm::mat4 GetTransform();
-		glm::mat4 GetLocalMatrix();
+		const glm::quat& GetLocalQuaternion();
+		const glm::vec3& GetLocalEuler();
+		const glm::quat& GetWorldQuaternion();
+		const glm::vec3& GetWorldEuler();
+		const glm::mat4& GetTransform(glm::vec3 position, glm::vec3 scale);
+		const glm::mat4& GetTransform(glm::vec3 position);
+		const glm::mat4& GetTransform();
+		const glm::mat4& GetLocalMatrix();
 		void UpdateSelfAndChildrenTransform();
 		void UpdateObjectTransform(Entity* entity);
 		void UpdateChildrenTransform(Entity* entity);
@@ -40,7 +40,7 @@ namespace Plaza {
 		void UpdateChildrenScale(Entity* entity);
 		void UpdateChildrenScale();
 		void MoveTowards(glm::vec3 vector);
-		glm::vec3 MoveTowardsReturn(glm::vec3 vector);
+		const glm::vec3& MoveTowardsReturn(glm::vec3 vector);
 
 		void UpdateWorldMatrix();
 		void UpdateLocalMatrix();
@@ -55,9 +55,9 @@ namespace Plaza {
 
 		void Rotate(glm::vec3 vector);
 
-		glm::vec3 GetWorldPosition();
-		glm::vec3 GetWorldRotation();
-		glm::vec3 GetWorldScale();
+		const glm::vec3& GetWorldPosition();
+		const glm::vec3& GetWorldRotation();
+		const glm::vec3& GetWorldScale();
 
 		void UpdatePhysics();
 

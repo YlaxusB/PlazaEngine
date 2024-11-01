@@ -125,6 +125,8 @@ namespace Plaza {
 			UpdateFrustum();
 		}
 
+		glm::vec3 ScreenPositionToRay(const glm::vec2& position, const glm::vec2& size);
+
 		template <class Archive>
 		void serialize(Archive& archive) {
 			archive(cereal::base_class<Component>(this), PL_SER(isEditorCamera), PL_SER(Position), PL_SER(Front), PL_SER(Up), PL_SER(Right), PL_SER(WorldUp),

@@ -3276,7 +3276,7 @@ namespace Plaza {
 			VulkanTexture::mLastBindingIndex++;
 	}
 
-	std::array<int, MAX_BONE_INFLUENCE> VulkanRenderer::GetBoneIds(std::vector<uint64_t>& bones) {
+	std::array<int, MAX_BONE_INFLUENCE> VulkanRenderer::GetBoneIds(const std::vector<uint64_t>& bones) {
 		std::array<int, MAX_BONE_INFLUENCE> ids = std::array<int, MAX_BONE_INFLUENCE>();
 		for (int i = 0; i < 4; ++i) {
 			if (bones.size() > i && bones[i] > 0 && this->mBones.find(bones[i]) != this->mBones.end())
@@ -3292,38 +3292,34 @@ namespace Plaza {
 		return ids;
 	}
 	static int bonesIndex = 0;
-	Mesh& VulkanRenderer::CreateNewMesh(
-		vector<glm::vec3>& vertices,
-		vector<glm::vec3>& normals,
-		vector<glm::vec2>& uvs,
-		vector<glm::vec3>& tangent,
-		vector<unsigned int>& indices,
-		vector<unsigned int>& materialsIndices,
+	Mesh* VulkanRenderer::CreateNewMesh(
+		const std::vector<glm::vec3>& vertices,
+		const std::vector<glm::vec3>& normals,
+		const std::vector<glm::vec2>& uvs,
+		const std::vector<glm::vec3>& tangent,
+		const std::vector<unsigned int>& indices,
+		const std::vector<unsigned int>& materialsIndices,
 		bool usingNormal,
-		vector<BonesHolder> bonesHolder,
-		vector<Bone> uniqueBonesInfo) {
-		VulkanMesh& vulkMesh = *new VulkanMesh(vertices,
+		const std::vector<BonesHolder>& bonesHolder,
+		const std::vector<Bone>& uniqueBonesInfo) {
+		VulkanMesh* vulkMesh = new VulkanMesh(vertices,
 			normals,
 			uvs,
 			tangent,
 			indices,
 			usingNormal,
 			bonesHolder);
-
 		vector<Vertex> convertedVertices;
 		convertedVertices.reserve(vertices.size());
 
 		for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
 			uint64_t siz = mBones.size();
 			uint64_t siz1 = mBones.size() + 1;
-			uniqueBonesInfo[i].mChildren.clear();
+//			uniqueBonesInfo[i].mChildren.clear();
 
 			if (this->mBones.find(uniqueBonesInfo[i].mId) == this->mBones.end() && uniqueBonesInfo[i].mName != "bone") {
 				this->mBones.emplace(uniqueBonesInfo[i].mId, Bone{ uniqueBonesInfo[i].mId, uniqueBonesInfo[i].mParentId, mBones.size(), uniqueBonesInfo[i].mName, uniqueBonesInfo[i].mOffset });
-
 			}
-			if (this->mBones[uniqueBonesInfo[i].mId].mId > 1000)
-				std::cout << "bigger \n";
 		}
 
 		//for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
@@ -3335,16 +3331,7 @@ namespace Plaza {
 		//}
 
 		for (unsigned int i = 0; i < vertices.size(); i++) {
-			vulkMesh.CalculateVertexInBoundingBox(vertices[i]);
-
-			if (materialsIndices.size() > i && materialsIndices[i] > 16536)
-				std::cout << "very big material index \n";
-
-			for (int j = 0; j < 4; ++j) {
-				if (bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0 && bonesHolder[i].mWeights.size() > j && bonesHolder[i].mWeights[j] != 0 && this->GetBoneIds(bonesHolder[i].mBones)[j] == -1) {
-					std::cout << "very wrong \n";
-				}
-			}
+			vulkMesh->CalculateVertexInBoundingBox(vertices[i]);
 
 			Vertex vertex{
 				vertices[i],
@@ -3359,8 +3346,6 @@ namespace Plaza {
 					continue;
 				//vertex.weights[i] = 1.0f;
 				if (mBones.find(vertex.boneIds[j]) != mBones.end()) {
-					if (mBones[vertex.boneIds[j]].mId > 1000)
-						std::cout << "bigger 2 \n";
 					//vertex.boneIds[i] = mBones[vertex.boneIds[i]].mId;
 				}
 				else {
@@ -3372,10 +3357,10 @@ namespace Plaza {
 			convertedVertices.push_back(vertex);
 		}
 
-		vulkMesh.verticesCount = vertices.size();
-		vulkMesh.verticesOffset = this->mBufferTotalVertices;
-		vulkMesh.indicesCount = indices.size();
-		vulkMesh.indicesOffset = this->mBufferTotalIndices;
+		vulkMesh->verticesCount = vertices.size();
+		vulkMesh->verticesOffset = this->mBufferTotalVertices;
+		vulkMesh->indicesCount = indices.size();
+		vulkMesh->indicesOffset = this->mBufferTotalIndices;
 
 		// Add vertices to the big vertex buffer
 		VkDeviceSize newDataSize = sizeof(Vertex) * convertedVertices.size();
@@ -3445,6 +3430,7 @@ namespace Plaza {
 		indirectCommand.firstInstance = mTotalInstances;
 		indirectCommand.indexCount = indices.size();
 		indirectCommand.instanceCount = 1;
+
 		this->mIndirectCommands.push_back(indirectCommand);
 		mTotalInstances++;
 		mIndirectDrawCount++;
@@ -3588,7 +3574,7 @@ namespace Plaza {
 
 	Mesh* VulkanRenderer::RestartMesh(Mesh* mesh) {
 		uint64_t oldUuid = mesh->uuid;
-		Mesh* newMesh = &this->CreateNewMesh(mesh->vertices,
+		Mesh* newMesh = this->CreateNewMesh(mesh->vertices,
 			mesh->normals,
 			mesh->uvs,
 			mesh->tangent,

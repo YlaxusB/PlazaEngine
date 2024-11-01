@@ -16,11 +16,6 @@ if (MSVC)
     set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "Embedded")
 endif()
 
-#if(POLICY CMP0141)
-#  cmake_policy(SET CMP0141 NEW)
-#  set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-#endif()
-
 set(BUILD_STATIC_LIB ON)
 set(TARGET_BUILD_PLATFORM "windows")
 set(PLATFORM "Windows")
@@ -76,13 +71,11 @@ target_include_directories(GameLib PRIVATE
     "${ENGINE_SOURCE_DIR}/ThirdParty/vulkan/vulkan/"
 )
 
+link_directories("${CMAKE_SOURCE_DIR}/bin")
+
 set_property(TARGET GameLib PROPERTY CXX_STANDARD 20)
 
 target_link_libraries(GameLib PUBLIC PlazaEngineCore)
-
-#set_target_properties(GameLib PROPERTIES
-#    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin"
-#)
 
 set(OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 add_custom_command(TARGET GameLib POST_BUILD
@@ -93,10 +86,10 @@ add_custom_command(TARGET GameLib POST_BUILD
     "${OUTPUT_DIRECTORY}"
 )
 
-#add_custom_command(TARGET GameLib POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E remove
-#    "$<TARGET_PDB_FILE:GameLib>"
-#)
-
 add_custom_target(CopyGameLib ALL DEPENDS GameLib)
 add_custom_target(DeleteGamePDB ALL DEPENDS GameLib)
+
+add_custom_command(TARGET GameLib
+                   PRE_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/bin/PlazaEngineCore.lib" "${CMAKE_CURRENT_BINARY_DIR}/"
+                   COMMENT "Copying PlazaEngineCore.lib to game project folder")

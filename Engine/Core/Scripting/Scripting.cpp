@@ -22,7 +22,7 @@ namespace Plaza {
 		FilesManager::CreateNewDirectory(std::filesystem::path(project.mAssetPath).parent_path() / copyFolder);
 
 		std::filesystem::path dllPastePath = std::filesystem::path(project.mAssetPath).parent_path() / copyFolder / ("GameLib.dll");
-		dllPastePath = FilesManager::CopyPasteFile(dllPath, dllPastePath, false);
+		dllPastePath = FilesManager::CopyPasteFile(dllPath, dllPastePath, true);
 
 		// Get the pdb and make a copy of it
 		std::filesystem::path pdbPath = std::filesystem::path(project.mAssetPath).parent_path() / "bin" / ("GameLib.pdb");
@@ -44,6 +44,7 @@ namespace Plaza {
 				CppScript* script = ScriptFactory::CreateScript(std::filesystem::path(AssetsManager::GetAsset(uuid)->mAssetName).stem().string());
 				script->mAssetUuid = uuid;
 				component.AddScript(script);
+				script->OnStart();
 			}
 		}
 	}
@@ -51,7 +52,8 @@ namespace Plaza {
 	void Scripting::UnloadAllScripts() {
 		for (auto& [componentUuid, component] : Scene::GetActiveScene()->cppScriptComponents) {
 			for (auto& script : component.mScripts) {
-				component.mScripts.erase(std::find(component.mScripts.begin(), component.mScripts.end(), script));
+				if (std::find(component.mScripts.begin(), component.mScripts.end(), script) != component.mScripts.end())
+					component.mScripts.erase(std::find(component.mScripts.begin(), component.mScripts.end(), script));
 				ScriptFactory::DeleteScript(script);
 				//delete script;
 			}

@@ -242,3 +242,20 @@ target_include_directories(PlazaShippingGame PUBLIC "lib/")
 target_link_libraries(PlazaEngine PRIVATE PlazaEngineCore)
 target_link_libraries(PlazaShippingGame PRIVATE PlazaEngineCore)
 
+# Copy the PlazaEngineCore.lib to game project folder (if found)
+set(JSON_FILE_PATH "$ENV{APPDATA}/PlazaEngine/cache.plzcache")
+file(READ "${JSON_FILE_PATH}" json_content)
+string(REGEX MATCH "\"value0\"[ \t\r\n]*:[ \t\r\n]*\"([^\"]+)\"" matched_value0 ${json_content})
+if (matched_value0)
+    string(REGEX REPLACE ".*\"([^\"]*)\".*" "\\1" project_path ${matched_value0})
+    get_filename_component(parent_path "${project_path}" DIRECTORY)
+
+else()
+    message(FATAL_ERROR "Failed to find project path in JSON file.")
+endif()
+
+set(target_path "${parent_path}/bin/")
+add_custom_command(TARGET PlazaEngineCore
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_LINKER_FILE:PlazaEngineCore> ${target_path}
+                   COMMENT "Copying PlazaEngineCore.lib to game project folder")

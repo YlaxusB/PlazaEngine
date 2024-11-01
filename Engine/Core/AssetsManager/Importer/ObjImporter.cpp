@@ -210,7 +210,7 @@ namespace Plaza {
 				}
 
 				std::vector<unsigned int> materials{ 0 };
-				Mesh& mesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);// new Mesh();
+				Mesh& mesh = *Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);// new Mesh();
 				MeshRenderer* meshRenderer = new MeshRenderer(&mesh, material);
 				meshRenderer->mMaterials.push_back(material);
 				newEntity->AddComponent<MeshRenderer>(meshRenderer);

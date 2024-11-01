@@ -339,38 +339,6 @@ namespace Plaza {
 #pragma endregion Entity
 
 #pragma region Physics
-	class MyQueryFilterCallback : public physx::PxQueryFilterCallback {
-	public:
-		virtual physx::PxQueryHitType::Enum preFilter(
-			const physx::PxFilterData& filterData,
-			const physx::PxShape* shape,
-			const physx::PxRigidActor* actor,
-			physx::PxHitFlags& queryFlags) override
-		{
-			if (actor && actor->userData == mEntityToIgnore) {
-				return physx::PxQueryHitType::eNONE;
-			}
-			return physx::PxQueryHitType::eBLOCK;
-		}
-
-		// Set the entity to ignore
-		void setEntityToIgnore(void* entityToIgnore) {
-			mEntityToIgnore = entityToIgnore;
-		}
-
-		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit, const physx::PxShape* shape, const physx::PxRigidActor* actor) override {
-			return physx::PxQueryHitType::eTOUCH;
-		}
-
-	private:
-		void* mEntityToIgnore = nullptr;
-	};
-
-	struct RaycastHit {
-		uint64_t hitUuid;
-		glm::vec3 point;
-		glm::vec3 normal;
-	};
 	physx::PxVec3 glmToPx(glm::vec3 vector) {
 		return physx::PxVec3(vector.x, vector.y, vector.z);
 	}

@@ -1,5 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Camera.h"
+#include "Engine/Core/Scripting/CppHelper.h"
+
 namespace Plaza {
 	Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
 	{
@@ -154,4 +156,17 @@ namespace Plaza {
 			}
 		}
 	};
+
+	glm::vec3 Camera::ScreenPositionToRay(const glm::vec2& position, const glm::vec2& size) {
+		float x = (2.0f * position.x) / size.x - 1.0f; 
+		float y = 1.0f - (2.0f * position.y) / size.y;
+		float z = 1.0f;
+
+
+		glm::vec4 rayClip = glm::vec4(x, y, -1.0f, 1.0f); 
+		glm::vec4 rayEye = glm::inverse(this->GetProjectionMatrix()) * rayClip;
+		rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f); 
+		glm::vec3 rayWorld = glm::vec3(glm::inverse(this->GetViewMatrix()) * rayEye);
+		return glm::normalize(rayWorld);
+	}
 }

@@ -1,9 +1,10 @@
 #pragma once
 #include "Engine/Core/Renderer/Mesh.h"
 #include "Renderer.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class VulkanMesh : public Mesh {
+	class PLAZA_API VulkanMesh : public Mesh {
 	public:
 		struct InstanceBuffer {
 			VkBuffer buffer{ VK_NULL_HANDLE };

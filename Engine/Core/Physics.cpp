@@ -94,23 +94,6 @@ namespace Plaza {
 			std::cout << "shit" << std::endl;
 		}
 	};
-	physx::PxDefaultAllocator Physics::m_defaultAllocatorCallback;
-	physx::PxDefaultErrorCallback Physics::m_defaultErrorCallback;
-	physx::PxDefaultCpuDispatcher* Physics::m_dispatcher = NULL;
-	physx::PxTolerancesScale Physics::m_toleranceScale;
-	physx::PxFoundation* Physics::m_foundation = NULL;
-	physx::PxPhysics* Physics::m_physics = NULL;
-	physx::PxScene* Physics::m_scene = NULL;
-	physx::PxMaterial* Physics::m_material = NULL;
-	physx::PxPvd* Physics::m_pvd = NULL;
-
-	physx::PxMaterial* Physics::defaultMaterial = nullptr;
-
-	const float Physics::maxFrameAdvance = 0.1f;
-	float Physics::accumulatedTime = 0.0f;
-	float Physics::stepSize = 1 / 60.0f;
-
-	bool Physics::m_canRun = true;
 
 	bool Physics::Advance(float dt) {
 		PLAZA_PROFILE_SECTION("Advance");
@@ -360,6 +343,10 @@ namespace Plaza {
 		return Physics::m_physics->createMaterial(staticFriction, dynamicFriction, restitution);
 	}
 
+	PhysicsMaterial& Physics::GetDefaultPhysicsMaterial() {
+		return AssetsManager::GetPhysicsMaterial(0.5f, 0.5f, 0.5f);
+	}
+
 	void Physics::InitDefaultGeometries() {
 		sCookedGeometries.emplace(1, new physx::PxBoxGeometry(0.5f, 0.5f, 0.5f));
 		sCookedGeometries.emplace(2, new physx::PxPlaneGeometry());
@@ -459,5 +446,24 @@ namespace Plaza {
 
 	void Physics::DeleteShape() {
 
+	}
+	void Physics::Raycast(glm::vec3 origin, glm::vec3 direction, RaycastHit& hit) {
+		MyQueryFilterCallback filterCallback{};
+		filterCallback.setEntityToIgnore(reinterpret_cast<void*>(0));
+		physx::PxQueryFilterData filterData(physx::PxQueryFlag::ePREFILTER | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC);
+
+		physx::PxRaycastBuffer hitPhysx;
+		bool status = Physics::m_scene->raycast(physx::PxVec3(origin.x, origin.y, origin.z), physx::PxVec3(direction.x, direction.y, direction.z), 15000.0f, hitPhysx, physx::PxHitFlag::eDEFAULT, filterData, &filterCallback);
+		if (status) {
+			hit.hitUuid = (uint64_t)hitPhysx.block.actor->userData;
+			hit.point = glm::vec3(hitPhysx.block.position.x, hitPhysx.block.position.y, hitPhysx.block.position.z);
+			hit.normal = glm::vec3(hitPhysx.block.normal.x, hitPhysx.block.normal.y, hitPhysx.block.normal.z);
+		}
+		else
+			hit.missed = true;
+	}
+
+	physx::PxVec3 Physics::GlmToPhysX(const glm::vec3& vector) {
+		return physx::PxVec3(vector.x, vector.y, vector.z);
 	}
 }

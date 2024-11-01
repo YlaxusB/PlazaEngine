@@ -53,16 +53,16 @@ namespace Plaza {
 		virtual void RecordImGuiFrame(std::vector<ImDrawData*> drawDatas) = 0;
 		virtual void UpdateMainProgressBar(float percentage) = 0;
 
-		virtual Mesh& CreateNewMesh(
-			vector<glm::vec3>& vertices,
-			vector<glm::vec3>& normals,
-			vector<glm::vec2>& uvs,
-			vector<glm::vec3>& tangent,
-			vector<unsigned int>& indices,
-			vector<unsigned int>& materialsIndices,
+		virtual Mesh* CreateNewMesh(
+			const std::vector<glm::vec3>& vertices,
+			const std::vector<glm::vec3>& normals,
+			const std::vector<glm::vec2>& uvs,
+			const std::vector<glm::vec3>& tangent,
+			const std::vector<unsigned int>& indices,
+			const std::vector<unsigned int>& materialsIndices,
 			bool usingNormal,
-			vector<BonesHolder> boneIds = vector<BonesHolder>(),
-			vector<Bone>  uniqueBonesInfo = vector<Bone>()) = 0;
+			const std::vector<BonesHolder>& boneIds = std::vector<BonesHolder>(),
+			const std::vector<Bone>&  uniqueBonesInfo = std::vector<Bone>()) = 0;
 		virtual void DeleteMesh(Mesh& mesh) = 0;
 		virtual Mesh* RestartMesh(Mesh* mesh) = 0;
 		virtual void DrawRenderGroupInstanced(RenderGroup* renderGroup) = 0;

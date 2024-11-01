@@ -10,11 +10,11 @@
 namespace Plaza {
 	Transform::Transform() {};
 
-	glm::vec3 Transform::GetWorldPosition() {
+	const glm::vec3& Transform::GetWorldPosition() {
 		return this->modelMatrix[3];
 	}
 
-	glm::vec3 Transform::GetWorldRotation() {
+	const glm::vec3& Transform::GetWorldRotation() {
 		glm::vec3 scale;
 		glm::vec3 translation;
 		glm::quat rotation;
@@ -24,7 +24,7 @@ namespace Plaza {
 		return glm::eulerAngles(rotation);
 	}
 
-	glm::vec3 Transform::GetWorldScale() {
+	const glm::vec3& Transform::GetWorldScale() {
 		glm::vec3 scale;
 
 		scale.x = glm::length(modelMatrix[0]);
@@ -40,7 +40,7 @@ namespace Plaza {
 	/// <param name="position"></param>
 	/// <param name="vec3"></param>
 	/// <returns></returns>
-	glm::mat4 Transform::GetTransform(glm::vec3 position, glm::vec3 scale)
+	const glm::mat4& Transform::GetTransform(glm::vec3 position, glm::vec3 scale)
 	{
 		glm::mat4 parentMatrix;
 		if (Scene::GetActiveScene()->entities.at(this->mUuid).parentUuid == 0) {
@@ -53,10 +53,10 @@ namespace Plaza {
 		return this->modelMatrix;
 	}
 
-	glm::mat4 Transform::GetTransform() {
+	const glm::mat4& Transform::GetTransform() {
 		return GetTransform(this->worldPosition, this->worldScale);
 	}
-	glm::mat4 Transform::GetTransform(glm::vec3 position) {
+	const glm::mat4& Transform::GetTransform(glm::vec3 position) {
 		return GetTransform(position, this->worldScale);
 	}
 
@@ -79,7 +79,7 @@ namespace Plaza {
 	/// Returns the Quaternion of the Transform Local Rotation in radians
 	/// </summary>
 	/// <returns></returns>
-	glm::quat Transform::GetLocalQuaternion() {
+	const glm::quat& Transform::GetLocalQuaternion() {
 		return glm::normalize(glm::quat_cast(this->localMatrix));
 	}
 
@@ -87,9 +87,8 @@ namespace Plaza {
 	/// Returns the Quaternion of the Transform World Rotation in radians
 	/// </summary>
 	/// <returns></returns>
-	glm::quat Transform::GetWorldQuaternion() {
-		return glm::quat(glm::mat3(this->modelMatrix));
-		//return glm::normalize(glm::quat_cast(this->modelMatrix));
+	const glm::quat& Transform::GetWorldQuaternion() {
+		return glm::normalize(glm::quat_cast(this->modelMatrix));
 	}
 
 	void Transform::UpdateLocalMatrix() {
@@ -106,7 +105,7 @@ namespace Plaza {
 		//return this->localMatrix;
 	}
 
-	glm::mat4 Transform::GetLocalMatrix() {
+	const glm::mat4& Transform::GetLocalMatrix() {
 		return this->localMatrix;
 	}
 
@@ -181,17 +180,17 @@ namespace Plaza {
 		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
 		glm::vec3 leftVector = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
 		glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
-		this->relativePosition += forwardVector * vector.x + leftVector * vector.z + upVector * vector.y;
+		this->relativePosition += leftVector * vector.x + forwardVector * vector.z + upVector * vector.y;
 		this->UpdateSelfAndChildrenTransform();
 	}
 
-	glm::vec3 Transform::MoveTowardsReturn(glm::vec3 vector) {
+	const glm::vec3& Transform::MoveTowardsReturn(glm::vec3 vector) {
 		glm::mat4 matrix = this->GetTransform();
 		glm::vec3 currentPosition = glm::vec3(matrix[3]);
 		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
 		glm::vec3 leftVector = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
 		glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
-		glm::vec3 outVector = forwardVector * vector.x + leftVector * vector.z + upVector * vector.y;
+		glm::vec3 outVector = leftVector * vector.x + forwardVector * vector.z + upVector * vector.y;
 		return outVector;
 	}
 

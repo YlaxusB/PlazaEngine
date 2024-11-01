@@ -15,8 +15,8 @@ namespace Plaza {
 		static void AddFunctionToOnKeyPress(std::function<void()> function, Editor::GuiLayer layer = Editor::GuiLayer::SCENE, Editor::GuiState layerState = Editor::GuiState::FOCUSED) {
 
 		}
-
-
+		static bool GetMouseDown(int button);
+		static glm::vec2 GetScreenSize();
 
 	private:
 

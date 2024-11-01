@@ -14,6 +14,7 @@
 #endif
 #include <string>
 #include <string_view>
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
 	class AssetsListStructure : public std::unordered_map<uint64_t, Asset*> {
@@ -26,7 +27,7 @@ namespace Plaza {
 		SerializablePrefab mSerializablePrefab;
 	};
 
-	class AssetsManager {
+	class PLAZA_API AssetsManager {
 	public:
 		static inline AssetsListStructure mAssets = AssetsListStructure();
 		static inline std::map<std::filesystem::path, uint64_t> mAssetsUuidByPath = std::map<std::filesystem::path, uint64_t>();

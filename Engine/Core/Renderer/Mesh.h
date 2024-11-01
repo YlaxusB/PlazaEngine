@@ -7,6 +7,7 @@
 #include <ThirdParty/cereal/cereal/cereal.hpp>
 #include <vector>
 #include <array>
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
 
@@ -190,7 +191,7 @@ namespace Plaza {
 			}
 			return bonesArray;
 		}
-		std::array<float, MAX_BONE_INFLUENCE> GetBoneWeights() {
+		std::array<float, MAX_BONE_INFLUENCE> GetBoneWeights() const {
 			std::array<float, MAX_BONE_INFLUENCE> weightArray = std::array<float, MAX_BONE_INFLUENCE>();
 			for (unsigned int i = 0; i < mBones.size() && i < MAX_BONE_INFLUENCE; ++i) {
 				weightArray[i] = this->mWeights[i];

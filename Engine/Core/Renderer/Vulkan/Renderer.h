@@ -37,7 +37,7 @@ namespace Plaza {
 	class PLAZA_API VulkanRenderer : public Renderer {
 	public:
 		VulkanRenderer() {};
-		std::array<int, MAX_BONE_INFLUENCE> GetBoneIds(std::vector<uint64_t>& bones);
+		std::array<int, MAX_BONE_INFLUENCE> GetBoneIds(const std::vector<uint64_t>& bones);
 
 		std::map<uint64_t, Bone> mBones = std::map<uint64_t, Bone>();
 		VkSemaphore semaphore;
@@ -97,16 +97,16 @@ namespace Plaza {
 			VkImageLayout layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
 		);
 
-		Mesh& CreateNewMesh(
-			vector<glm::vec3>& vertices,
-			vector<glm::vec3>& normals,
-			vector<glm::vec2>& uvs,
-			vector<glm::vec3>& tangent,
-			vector<unsigned int>& indices,
-			vector<unsigned int>& materialsIndices,
+		Mesh* CreateNewMesh(
+			const std::vector<glm::vec3>& vertices,
+			const std::vector<glm::vec3>& normals,
+			const std::vector<glm::vec2>& uvs,
+			const std::vector<glm::vec3>& tangent,
+			const std::vector<unsigned int>& indices,
+			const std::vector<unsigned int>& materialsIndices,
 			bool usingNormal,
-			vector<BonesHolder> bonesHolder = vector<BonesHolder>(),
-			vector<Bone> uniqueBonesInfo = vector<Bone>()) override;
+			const std::vector<BonesHolder>& bonesHolder = vector<BonesHolder>(),
+			const std::vector<Bone>& uniqueBonesInfo = vector<Bone>()) override;
 		void UpdateMeshVertices(Mesh& mesh);
 		void DeleteMesh(Mesh& mesh) override;
 		Mesh* RestartMesh(Mesh* mesh);

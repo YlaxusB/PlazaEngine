@@ -1,9 +1,10 @@
 #pragma once
 #include "Engine/Components/Component.h"
 #include "Engine/Core/AssetsManager/Asset.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class PhysicsMaterial : public Asset{
+	class PLAZA_API PhysicsMaterial : public Asset{
 	public:
 		float mStaticFriction = 0.5f;
 		float mDynamicFriction = 0.5f;
@@ -33,7 +34,7 @@ namespace Plaza {
 
 namespace std {
     template<>
-    struct hash<Plaza::PhysicsMaterial> {
+    struct PLAZA_API hash<Plaza::PhysicsMaterial> {
         std::size_t operator()(const Plaza::PhysicsMaterial& material) const {
             std::size_t hashValue = 0;
             std::hash<float> floatHasher;

@@ -58,7 +58,7 @@ namespace Plaza {
 		Bone(uint64_t id, uint64_t parentId, uint64_t handlerIndex, std::string name, glm::mat4 offset = glm::mat4(1.0f)) : mId(id), mParentId(parentId), mHandlerIndex(handlerIndex), mName(name), mOffset(offset) {};
 		float weight = 0.0f;
 		glm::vec3 mPosition = glm::vec3(0.0f);
-		glm::vec3 mRotation =glm::vec3(0.0f);
+		glm::vec3 mRotation = glm::vec3(0.0f);
 		glm::vec3 mScale = glm::vec3(1.0f);
 		glm::mat4 mLocalTransform = glm::mat4(1.0f);
 		glm::mat4 mTransform = glm::mat4(1.0f);
@@ -279,12 +279,52 @@ namespace Plaza {
 			mBoundingBox.maxVector.z = std::max(mBoundingBox.maxVector.z, vertex.z);
 		}
 
+		void CalculateTangent() {
+			for (size_t i = 0; i < indices.size(); i += 3) {
+				// Get the indices of the triangle vertices
+				unsigned int i0 = indices[i];
+				unsigned int i1 = indices[i + 1];
+				unsigned int i2 = indices[i + 2];
+
+				// Get the vertices and UVs of the triangle
+				glm::vec3 v0 = vertices[i0];
+				glm::vec3 v1 = vertices[i1];
+				glm::vec3 v2 = vertices[i2];
+
+				glm::vec2 uv0 = uvs[i0];
+				glm::vec2 uv1 = uvs[i1];
+				glm::vec2 uv2 = uvs[i2];
+
+				// Edges of the triangle
+				glm::vec3 deltaPos1 = v1 - v0;
+				glm::vec3 deltaPos2 = v2 - v0;
+
+				// UV delta
+				glm::vec2 deltaUV1 = uv1 - uv0;
+				glm::vec2 deltaUV2 = uv2 - uv0;
+
+				// Calculate the tangent
+				float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+				glm::vec3 tangentVec = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+
+				// Store the tangent for each vertex of the triangle
+				tangent[i0] += tangentVec;
+				tangent[i1] += tangentVec;
+				tangent[i2] += tangentVec;
+			}
+
+			// Normalize tangents
+			for (size_t i = 0; i < tangent.size(); ++i) {
+				tangent[i] = glm::normalize(tangent[i]);
+			}
+		}
+
 		template <class Archive>
 		void serialize(Archive& archive) {
 			verticesCount = vertices.size();
 			indicesCount = indices.size();
 			archive(PL_SER(uuid), PL_SER(meshId), PL_SER(mImportedMesh), PL_SER(id), PL_SER(meshName), PL_SER(modelUuid), PL_SER(vertices),
-			 PL_SER(verticesCount), PL_SER(indices), PL_SER(indicesCount), PL_SER(normals), PL_SER(uvs), PL_SER(tangent), PL_SER(materialsIndices), PL_SER(bonesHolder), PL_SER(uniqueBonesInfo));
+				PL_SER(verticesCount), PL_SER(indices), PL_SER(indicesCount), PL_SER(normals), PL_SER(uvs), PL_SER(tangent), PL_SER(materialsIndices), PL_SER(bonesHolder), PL_SER(uniqueBonesInfo));
 		}
 	};
 }

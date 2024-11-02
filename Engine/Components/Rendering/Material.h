@@ -17,8 +17,8 @@ namespace Plaza {
 		unsigned int mIndexHandle = -1;
 		std::shared_ptr<Texture> diffuse = std::make_shared<Texture>(glm::vec4(1.0f), 1.0f);
 		std::shared_ptr<Texture> normal = std::make_shared<Texture>(glm::vec4(1.0f), 1.0f);
-		std::shared_ptr<Texture> metalness = std::make_shared<Texture>(glm::vec4(1.0f), 0.35f);
-		std::shared_ptr<Texture> roughness = std::make_shared<Texture>(glm::vec4(1.0f), 1.0f);
+		std::shared_ptr<Texture> metalness = std::make_shared<Texture>(glm::vec4(1.0f), 0.15f);
+		std::shared_ptr<Texture> roughness = std::make_shared<Texture>(glm::vec4(1.0f), 0.5f);
 		std::shared_ptr<Texture> height = std::make_shared<Texture>(glm::vec4(1.0f), 1.0f);
 		std::shared_ptr<Texture> aoMap = std::make_shared<Texture>(glm::vec4(1.0f), 1.0f);
 		glm::vec2 flip = glm::vec2(1.0f);

@@ -234,6 +234,8 @@ namespace Plaza {
 		std::string engineDllPath = std::filesystem::path{ Application::Get()->enginePath }.parent_path().string() + "\\PlazaScriptCore\\obj\\Release\\PlazaScriptCore.dll";
 		bool foundDllInEngineFolder = std::filesystem::exists(engineDllPath);
 		if (foundDllInEngineFolder) {
+			if (!std::filesystem::exists(Application::Get()->projectPath + "\\Binaries"))
+				std::filesystem::create_directory(Application::Get()->projectPath + "\\Binaries");
 			std::filesystem::copy_file(engineDllPath, Application::Get()->projectPath + "\\Binaries\\PlazaScriptCore.dll", std::filesystem::copy_options::update_existing);
 		}
 #endif

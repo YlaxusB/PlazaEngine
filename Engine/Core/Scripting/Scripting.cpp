@@ -13,25 +13,14 @@ namespace Plaza {
 		ScriptFactory::GetDeleteRegistry().clear();
 		Scripting::UnloadCurrentLoadedCppDll();
 
-		std::filesystem::path dllPath = std::filesystem::path(project.mAssetPath).parent_path() / "bin" / ("GameLib.dll");
-		if (!FilesManager::PathExists(dllPath)) {
-			PL_CORE_WARN("C++ Game Dll not found");
+#ifdef EDITOR_MODE
+		bool loaded = Scripting::LoadCppDll(Scripting::CopyPasteDevelopmentLibraryFiles(project));
+#else
+		bool loaded = xScripting::LoadCppDll(project.mAssetPath.parent_path() / "GameLib.dll");
+#endif
+		if (!loaded)
 			return;
-		}
-		std::filesystem::path copyFolder = ("bin/copy" + std::to_string(sReloadIndex) + "/");
-		FilesManager::CreateNewDirectory(std::filesystem::path(project.mAssetPath).parent_path() / copyFolder);
 
-		std::filesystem::path dllPastePath = std::filesystem::path(project.mAssetPath).parent_path() / copyFolder / ("GameLib.dll");
-		dllPastePath = FilesManager::CopyPasteFile(dllPath, dllPastePath, true);
-
-		// Get the pdb and make a copy of it
-		std::filesystem::path pdbPath = std::filesystem::path(project.mAssetPath).parent_path() / "bin" / ("GameLib.pdb");
-		std::filesystem::path pdbPastePath = std::filesystem::path(dllPastePath);
-		pdbPastePath.replace_extension(".pdb");
-		if (FilesManager::PathExists(pdbPath))
-			FilesManager::CopyPasteFile(pdbPath, pdbPastePath, true);
-
-		Scripting::LoadCppDll(dllPastePath);
 		Scripting::ReloadAllScripts();
 
 		sReloadIndex++;
@@ -60,6 +49,28 @@ namespace Plaza {
 		}
 	}
 
+	std::filesystem::path Scripting::CopyPasteDevelopmentLibraryFiles(const Editor::Project& project) {
+		std::filesystem::path dllPath = std::filesystem::path(project.mAssetPath).parent_path() / "bin" / ("GameLib.dll");
+		if (!FilesManager::PathExists(dllPath)) {
+			PL_CORE_WARN("C++ Game Dll not found");
+			return dllPath;
+		}
+		std::filesystem::path copyFolder = ("bin/copy" + std::to_string(sReloadIndex) + "/");
+		FilesManager::CreateNewDirectory(std::filesystem::path(project.mAssetPath).parent_path() / copyFolder);
+
+		std::filesystem::path dllPastePath = std::filesystem::path(project.mAssetPath).parent_path() / copyFolder / ("GameLib.dll");
+		dllPastePath = FilesManager::CopyPasteFile(dllPath, dllPastePath, true);
+
+		// Get the pdb and make a copy of it
+		std::filesystem::path pdbPath = std::filesystem::path(project.mAssetPath).parent_path() / "bin" / ("GameLib.pdb");
+		std::filesystem::path pdbPastePath = std::filesystem::path(dllPastePath);
+		pdbPastePath.replace_extension(".pdb");
+		if (FilesManager::PathExists(pdbPath))
+			FilesManager::CopyPasteFile(pdbPath, pdbPastePath, true);
+
+		return dllPastePath;
+	}
+
 	void Scripting::PasteEngineLibToGameProject(const Editor::Project& project) {
 
 	}
@@ -75,13 +86,18 @@ namespace Plaza {
 		}
 	}
 
-	void Scripting::LoadCppDll(const std::filesystem::path& path) {
+	bool Scripting::LoadCppDll(const std::filesystem::path& path) {
+		if (!FilesManager::PathExists(path)) {
+			PL_CORE_WARN("Dll not found");
+			return false;
+		}
 		sCurrentLoadedCppDll = LoadLibrary(path.string().c_str());
 		if (sCurrentLoadedCppDll == NULL) {
 			DWORD errorMessageID = GetLastError();
 			PL_CORE_WARN("Failed to load DLL, error: ${0}", errorMessageID);
-			return;
+			return false;
 		}
+		return true;
 	}
 
 	void Scripting::UnloadCurrentLoadedCppDll() {

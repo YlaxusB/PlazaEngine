@@ -12,10 +12,11 @@ namespace Plaza {
 		static void UnloadAllScripts();
 		static void Update();
 
+		static std::filesystem::path CopyPasteDevelopmentLibraryFiles(const Editor::Project& project);
 		static void PasteEngineLibToGameProject(const Editor::Project& project);
 		static void UnloadCurrentLoadedCppDll();
 	private:
-		static void LoadCppDll(const std::filesystem::path& path);
+		static bool LoadCppDll(const std::filesystem::path& path);
 		static inline HMODULE sCurrentLoadedCppDll;
 		static inline int sReloadIndex = 0;
 	};

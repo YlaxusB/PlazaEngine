@@ -160,12 +160,12 @@ vec3 getNormalFromMap(vec3 N) {
     vec3 bumpNormal = texture(textures[material.normalIndex], fragTexCoord).xyz * 2.0 - 1.0;
     //bumpNormal *= -1.0;
 	vec3 tangentNormal = Tangent;
-    tangentNormal.y *= -1.0;
+    //tangentNormal.y *= -1.0;
     vec3 bitangentNormal = cross(N, tangentNormal);
 
     mat3 TBN = mat3(tangentNormal, bitangentNormal, N);
     vec3 newNormal = normalize(inTBN * bumpNormal);
-    return -newNormal;
+    return newNormal;
         
         //vec3 t0 = cross(N, vec3(1, 0, 0));
         //if(dot(t0, t0) < 0.001)
@@ -189,7 +189,7 @@ vec3 F_Schlick(float cosTheta, vec3 F0)
 
 vec3 F_SchlickR(float cosTheta, vec3 F0, float roughness)
 {
-	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
 vec3 prefilteredReflection(vec3 R, float roughness) {
@@ -238,9 +238,10 @@ void main() {
 
     vec3 N = normalize(inNormal.xyz);
     if(material.normalIndex > -1) {
-        N = getNormalFromMap(inNormal.xyz);
+        N = getNormalFromMap(N);
     }
 
+    //N = Tangent;
     float metallic = material.metalnessFloat;
     float roughness = material.roughnessFloat;
 
@@ -252,16 +253,25 @@ void main() {
         roughness = texture(textures[material.roughnessIndex], fragTexCoord).r;
     }
 
-    vec3 V =  normalize(ubo.viewPos.xyz - (worldPos.xyz));
+    vec3 viewP = ubo.viewPos.xyz;
+    //viewP.y = -1.0f;
+    vec3 V =  normalize(viewP - (worldPos.xyz));
+    vec3 Ve = V;
+    //Ve.y = 1.0f - Ve.y;
+    float NdotV = dot(N, Ve);
+    //NdotV = 1.0f - NdotV;
+    if (NdotV < 0.0) {
+        N = -N;
+        NdotV = 1.0f - NdotV;
+    }
     vec3 R = reflect(-V, N); 
 
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
-    vec3 F = F_SchlickR(max(dot(N, V), 0.0), F0, roughness);
+    float maxNdotV = max(NdotV, 0.0);
+    vec3 F = F_SchlickR(maxNdotV, F0, roughness);
 
-    vec3 kD = 1.0 - F;
-    kD *= 1.0 - metallic;
+    vec3 kD = (1.0 - F) * (1.0 - metallic);
 
     vec3 L = normalize(ubo.lightDirection.xyz); // Directional light direction
 
@@ -272,17 +282,18 @@ void main() {
 
     const float MAX_REFLECTION_LOD = 9.0;
     vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;   
-    vec2 brdfCoord = vec2(max(dot(N, V), 0.0), roughness);
+    vec2 brdfCoord = vec2(maxNdotV, roughness);
     vec2 brdf  = texture(samplerBRDFLUT, brdfCoord).rg;
     vec3 reflection = prefilteredReflection(R, roughness).rgb;	
     vec3 specular = reflection * (F * brdf.x + brdf.y);
 
     float ambientOcclusion = 1.0f;
-    vec3 ambient = (kD * diffuse) + specular * ambientOcclusion;
+    vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
     //ambient *= material.intensity;
 
     vec3 color = (ambient * ubo.directionalLightColor.xyz + Lo) * material.intensity; //+ ubo.directionalLightColor.xyz; // Directional Light
      color *= vec3(1.0 - ShadowCalculation(FragPos.xyz, N)) + ubo.ambientLightColor.xyz;
+     //color = vec3(1.0 - ShadowCalculation(FragPos.xyz, vec3(1.0f)));
     vec3 FinalColor = color;
 
     #ifdef SHOW_CASCADES

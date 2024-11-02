@@ -3309,6 +3309,12 @@ namespace Plaza {
 			indices,
 			usingNormal,
 			bonesHolder);
+		//vulkMesh->tangent.resize(vertices.size() - vulkMesh->tangent.size());
+		for (unsigned int i = 0; i < vertices.size(); ++i) {
+			vulkMesh->tangent.push_back(glm::vec3(0.0f));
+		}
+		vulkMesh->CalculateTangent();
+
 		vector<Vertex> convertedVertices;
 		convertedVertices.reserve(vertices.size());
 

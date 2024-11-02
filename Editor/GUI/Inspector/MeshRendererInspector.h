@@ -20,7 +20,8 @@ namespace Plaza::Editor {
 				if (ImGui::TreeNodeEx("Materials List", ImGuiTreeNodeFlags_DefaultOpen)) {
 					unsigned int index = 0;
 					for (Material* material : meshRenderer->mMaterials) {
-						ImGui::PushID(material->mAssetUuid);
+						std::string idString = std::to_string(material->mAssetUuid) + "meshRendererMaterial";
+						ImGui::PushID(idString.c_str());
 						std::string treeNodeName = std::to_string(index) + ": " + material->mAssetName;
 						bool treeNodeOpen = ImGui::TreeNode(treeNodeName.c_str());
 						ImGui::SameLine();

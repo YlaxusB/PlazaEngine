@@ -291,8 +291,9 @@ void main() {
     vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
     //ambient *= material.intensity;
 
+    float shadow = (1.0f - ShadowCalculation(FragPos.xyz, N)) * 20.0f;
     vec3 color = (ambient * ubo.directionalLightColor.xyz) * material.intensity; //+ ubo.directionalLightColor.xyz; // Directional Light
-     color *= Lo * vec3(1.0f - (ShadowCalculation(FragPos.xyz, N))) + ubo.ambientLightColor.xyz;
+     color *= Lo * shadow + ubo.ambientLightColor.xyz;
 
      //color = vec3(1.0 - ShadowCalculation(FragPos.xyz, vec3(1.0f)));
     vec3 FinalColor = color;
@@ -316,7 +317,7 @@ void main() {
 
 
     /* Geometry */
-    gOthers = vec4(specular.x, metallic, roughness, 1.0f);
+    gOthers = vec4(specular.x, material.metalnessIndex > -1 ? 1.0f - metallic : metallic, roughness, 1.0f);
     //gPosition = vec4(worldPos);
     gDiffuse = vec4(FinalColor, 1.0f);
 

@@ -279,10 +279,10 @@ void main()
 
             vec3 N = normalize(Normal);
             float NdotL = max(0.0, dot(N, lightDirection));
-            vec3 lightColor = light.color * light.intensity;
+            vec3 lightColor = light.color * light.intensity ;
             vec3 diff = min(lightColor * Diffuse * NdotL * atten, lightColor);
             //float atten = light.radius / (pow(dist, light.cutoff) + 1.0);
-            vec3 Lo = lightColor * atten * specularContribution(lightDirection, V, N, F0, metalness, roughness, Diffuse);
+            vec3 Lo = lightColor * (specularContribution(lightDirection, V, N, F0, metalness, roughness, Diffuse) * atten);
            lighting += Lo;
 
 

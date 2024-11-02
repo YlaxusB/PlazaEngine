@@ -163,7 +163,7 @@ vec3 getNormalFromMap(vec3 N) {
     //tangentNormal.y *= -1.0;
     vec3 bitangentNormal = cross(N, tangentNormal);
 
-    mat3 TBN = mat3(tangentNormal, bitangentNormal, N);
+    mat3 TBN = mat3(tangentNormal, bitangentNormal, bumpNormal);
     vec3 newNormal = normalize(inTBN * bumpNormal);
     return newNormal;
         
@@ -242,8 +242,8 @@ void main() {
     }
 
     //N = Tangent;
-    float metallic = material.metalnessFloat;
-    float roughness = material.roughnessFloat;
+    float metallic = 0.98f - min(material.metalnessFloat, 0.98f);
+    float roughness = min(material.roughnessFloat, 0.98f);
 
     if(material.metalnessIndex > -1) {
         metallic =  texture(textures[material.metalnessIndex], fragTexCoord).r;
@@ -291,8 +291,9 @@ void main() {
     vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
     //ambient *= material.intensity;
 
-    vec3 color = (ambient * ubo.directionalLightColor.xyz + Lo) * material.intensity; //+ ubo.directionalLightColor.xyz; // Directional Light
-     color *= vec3(1.0 - ShadowCalculation(FragPos.xyz, N)) + ubo.ambientLightColor.xyz;
+    vec3 color = (ambient * ubo.directionalLightColor.xyz) * material.intensity; //+ ubo.directionalLightColor.xyz; // Directional Light
+     color *= Lo * vec3(1.0f - (ShadowCalculation(FragPos.xyz, N))) + ubo.ambientLightColor.xyz;
+
      //color = vec3(1.0 - ShadowCalculation(FragPos.xyz, vec3(1.0f)));
     vec3 FinalColor = color;
 
@@ -315,10 +316,16 @@ void main() {
 
 
     /* Geometry */
-    gOthers.xyz = vec3(specular.x, metallic, roughness);
+    gOthers = vec4(specular.x, metallic, roughness, 1.0f);
     //gPosition = vec4(worldPos);
     gDiffuse = vec4(FinalColor, 1.0f);
-    gNormal = vec4(N.xyz, 1.0f);
+
+    if(material.normalIndex > -1) {
+        gNormal = vec4(texture(textures[material.normalIndex], fragTexCoord).xyz * 2.0 - 1.0, 1.0f);
+        gNormal = vec4(N.xyz, 1.0f);
+    } else {
+        gNormal = vec4(N.xyz, 1.0f);
+    }
 }
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)

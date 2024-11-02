@@ -21,6 +21,7 @@ namespace Plaza::Editor {
     void ProjectGenerator::PasteAllProjectFiles(const std::filesystem::path& directory) {
         ProjectGenerator::PasteCmakeFile(directory);
         ProjectGenerator::PasteGitIgnore(directory);
+        std::filesystem::create_directory(directory / "bin");
     }
 
 	void ProjectGenerator::GenerateSolution(const std::string& solutionName, const std::string& projectName, const std::string& outputDirectory) {

@@ -282,8 +282,8 @@ void main()
             vec3 lightColor = light.color * light.intensity;
             vec3 diff = min(lightColor * Diffuse * NdotL * atten, lightColor);
             //float atten = light.radius / (pow(dist, light.cutoff) + 1.0);
-            vec3 Lo = specularContribution(lightDirection, V, N, F0, metalness, roughness, diff);
-           lighting += diff + Lo * atten;
+            vec3 Lo = lightColor * atten * specularContribution(lightDirection, V, N, F0, metalness, roughness, Diffuse);
+           lighting += Lo;
 
 
            //vec3 Lo = (kD * Diffuse / PI + specular) * radiance * NdotL;

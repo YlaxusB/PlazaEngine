@@ -306,6 +306,7 @@ namespace Plaza {
 			glm::vec2 u_texel_size;
 			int u_mip_level;
 			int u_use_threshold;
+			float u_bloom_intensity;
 		};
 		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Bloom Pass", PL_STAGE_COMPUTE, PL_RENDER_PASS_HOLDER, gPassSize, false))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("BloomTexture")))
@@ -358,8 +359,9 @@ namespace Plaza {
 				constant.u_mip_level = i;
 				constant.u_threshold = glm::vec4(threshold, threshold - knee, 2.0f * knee, 0.25f * knee);
 				constant.u_use_threshold = i == 0 ? 1 : 0;
+				constant.u_bloom_intensity = VulkanRenderer::GetRenderer()->mBloom.mBloomIntensity;
 				plazaRenderPass->mDispatchSize = glm::vec3(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1);
-				plazaRenderPass->mPipelines[0]->UpdatePushConstants<BloomPassPC>(0, BloomPassPC(constant.u_threshold, constant.u_texel_size, constant.u_mip_level, constant.u_use_threshold));
+				plazaRenderPass->mPipelines[0]->UpdatePushConstants<BloomPassPC>(0, BloomPassPC(constant.u_threshold, constant.u_texel_size, constant.u_mip_level, constant.u_use_threshold, constant.u_bloom_intensity));
 				});
 
 			mipSize = mipSize / 2u;
@@ -390,8 +392,9 @@ namespace Plaza {
 				constant.u_mip_level = i;
 				constant.u_threshold = glm::vec4(threshold, threshold - knee, 2.0f * knee, 0.25f * knee);
 				constant.u_use_threshold = i == 0 ? 1 : 0;
+				constant.u_bloom_intensity = VulkanRenderer::GetRenderer()->mBloom.mBloomIntensity;
 				plazaRenderPass->mDispatchSize = glm::vec3(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1);
-				plazaRenderPass->mPipelines[0]->UpdatePushConstants<BloomPassPC>(0, BloomPassPC(constant.u_threshold, constant.u_texel_size, constant.u_mip_level, constant.u_use_threshold));
+				plazaRenderPass->mPipelines[0]->UpdatePushConstants<BloomPassPC>(0, BloomPassPC(constant.u_threshold, constant.u_texel_size, constant.u_mip_level, constant.u_use_threshold, constant.u_bloom_intensity));
 				});
 		}
 

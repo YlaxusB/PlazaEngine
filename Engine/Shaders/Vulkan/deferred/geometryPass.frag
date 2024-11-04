@@ -225,9 +225,11 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float
 
 void main() {
     //MaterialData material = materials[materialIndex];
+    float gammaCorection = 1.0f / pow(2.2f, ubo.gamma) * 3.0f;
     vec3 albedo;
     if(material.diffuseIndex > -1) { 
         vec4 textureColor = texture(textures[material.diffuseIndex], fragTexCoord);
+        //vec4 textureColor = pow(texture(textures[material.diffuseIndex], fragTexCoord), vec4(vec3(1.0f / 2.2f), 1.0f));
         if(textureColor.w <= 0.1f)
             discard;
         albedo = textureColor.xyz;
@@ -246,11 +248,11 @@ void main() {
     float roughness = min(material.roughnessFloat, 0.98f);
 
     if(material.metalnessIndex > -1) {
-        metallic =  texture(textures[material.metalnessIndex], fragTexCoord).r;
+        metallic =  texture(textures[material.metalnessIndex], fragTexCoord).r; //* (metallic * 2.0f);
     }
 
     if(material.roughnessIndex > -1) {
-        roughness = texture(textures[material.roughnessIndex], fragTexCoord).r;
+        roughness = texture(textures[material.roughnessIndex], fragTexCoord).r;//* (roughness * 2.0f);
     }
 
     vec3 viewP = ubo.viewPos.xyz;
@@ -264,11 +266,12 @@ void main() {
         N = -N;
         NdotV = 1.0f - NdotV;
     }
+    //NdotV = clamp(NdotV, -0.5f, 0.5f);
     vec3 R = reflect(-V, N); 
 
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
-    float maxNdotV = max(NdotV, 0.0);
+    float maxNdotV = max(NdotV, 0.25);
     vec3 F = F_SchlickR(maxNdotV, F0, roughness);
 
     vec3 kD = (1.0 - F) * (1.0 - metallic);
@@ -278,22 +281,24 @@ void main() {
     vec3 Lo = specularContribution(L, V, N, F0, metallic, roughness, albedo);
 
     vec3 irradiance = texture(irradianceMap, N).rgb;
-    vec3 diffuse = irradiance * albedo.xyz;
+    vec3 diffuse = irradiance * albedo.xyz ;
 
     const float MAX_REFLECTION_LOD = 9.0;
     vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;   
     vec2 brdfCoord = vec2(maxNdotV, roughness);
     vec2 brdf  = texture(samplerBRDFLUT, brdfCoord).rg;
     vec3 reflection = prefilteredReflection(R, roughness).rgb;	
-    vec3 specular = reflection * (F * brdf.x + brdf.y);
+    vec3 specular = reflection * ((F * brdf.x + brdf.y));
 
     float ambientOcclusion = 1.0f;
     vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
     //ambient *= material.intensity;
 
-    float shadow = (1.0f - ShadowCalculation(FragPos.xyz, N)) * 20.0f;
-    vec3 color = (ambient * ubo.directionalLightColor.xyz) * material.intensity; //+ ubo.directionalLightColor.xyz; // Directional Light
+    vec3 shadow = (1.0f - ShadowCalculation(FragPos.xyz, N)) * ubo.directionalLightColor.xyz;
+    vec3 color = ambient; //+ ubo.directionalLightColor.xyz; // Directional Light
      color *= Lo * shadow + ubo.ambientLightColor.xyz;
+
+    color *= pow(material.intensity, material.intensity);
 
      //color = vec3(1.0 - ShadowCalculation(FragPos.xyz, vec3(1.0f)));
     vec3 FinalColor = color;
@@ -322,7 +327,7 @@ void main() {
     gDiffuse = vec4(FinalColor, 1.0f);
 
     if(material.normalIndex > -1) {
-        gNormal = vec4(texture(textures[material.normalIndex], fragTexCoord).xyz * 2.0 - 1.0, 1.0f);
+        //gNormal = vec4(texture(textures[material.normalIndex], fragTexCoord).xyz, 1.0f);
         gNormal = vec4(N.xyz, 1.0f);
     } else {
         gNormal = vec4(N.xyz, 1.0f);

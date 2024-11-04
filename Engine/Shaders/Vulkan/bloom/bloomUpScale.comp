@@ -9,11 +9,12 @@ layout(push_constant) uniform PushConstants {
     vec2 u_texel_size;
     int u_mip_level;
     int u_use_threshold;
+    float u_bloom_intensity;
 } pushConstants;
 
 #define GROUP_SIZE         8
 #define GROUP_THREAD_COUNT (GROUP_SIZE * GROUP_SIZE)
-#define FILTER_SIZE        3
+#define FILTER_SIZE        8
 #define FILTER_RADIUS      (FILTER_SIZE / 2)
 #define TILE_SIZE          (GROUP_SIZE + 2 * FILTER_RADIUS)
 #define TILE_PIXEL_COUNT   (TILE_SIZE * TILE_SIZE)
@@ -96,7 +97,7 @@ void main()
     s += load_lds(sm_idx + TILE_SIZE    ) * 2.0;
     s += load_lds(sm_idx + TILE_SIZE + 1);
 
-    vec4 bloom = s * (1.0 / 16.0);
+    vec4 bloom = s * (1.0 / pushConstants.u_bloom_intensity);
 
 	vec4 out_pixel = imageLoad(u_output_image, pixel_coords);//vec4(0.0f, 0.0f, 0.0f, 1.0f);
     out_pixel += bloom;

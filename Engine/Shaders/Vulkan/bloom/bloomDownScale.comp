@@ -8,6 +8,7 @@ layout(push_constant) uniform PushConstants {
     vec2 u_texel_size;
     int u_mip_level;
     int u_use_threshold;
+    float u_bloom_intensity;
 } pushConstants;
 
 const float epsilon = 1.0e-4;
@@ -41,7 +42,7 @@ vec4 karis_avg(vec4 c)
 
 #define GROUP_SIZE         8
 #define GROUP_THREAD_COUNT (GROUP_SIZE * GROUP_SIZE)
-#define FILTER_SIZE        3
+#define FILTER_SIZE        8
 #define FILTER_RADIUS      (FILTER_SIZE / 2)
 #define TILE_SIZE          (GROUP_SIZE + 2 * FILTER_RADIUS)
 #define TILE_PIXEL_COUNT   (TILE_SIZE * TILE_SIZE)

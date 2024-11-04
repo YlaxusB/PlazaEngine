@@ -36,9 +36,9 @@ namespace Plaza {
 		virtual void Terminate() = 0;
 
 		glm::vec4 directionalLightColor = glm::vec4(1.0f);
-		float directionalLightIntensity = 0.7f;
+		float directionalLightIntensity = 12.0f;
 		glm::vec4 ambientLightColor = glm::vec4(1.0f);
-		float ambientLightIntensity = 0.20f;//0.3f;
+		float ambientLightIntensity = 0.10f;//0.3f;
 		glm::vec2 mScreenSize = glm::vec2(0.0f);
 		int mLightsSize;
 		std::vector<Tile> mTiles;

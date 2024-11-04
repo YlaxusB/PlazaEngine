@@ -70,10 +70,10 @@ vec2 BRDF(float NoV, float roughness)
 		vec3 H = importanceSample_GGX(Xi, roughness, N);
 		vec3 L = 2.0 * dot(V, H) * H - V;
 
-		float dotNL = max(dot(N, L), 0.0);
-		float dotNV = max(dot(N, V), 0.0);
-		float dotVH = max(dot(V, H), 0.0); 
-		float dotNH = max(dot(H, N), 0.0);
+		float dotNL = max(dot(N, L), 0.5);
+		float dotNV = max(dot(N, V), 0.5);
+		float dotVH = max(dot(V, H), 0.5); 
+		float dotNH = max(dot(H, N), 0.5);
 
 		if (dotNL > 0.0) {
 			float G = G_SchlicksmithGGX(dotNL, dotNV, roughness);

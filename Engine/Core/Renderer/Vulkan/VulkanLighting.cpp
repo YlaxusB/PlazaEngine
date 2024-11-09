@@ -164,7 +164,7 @@ namespace Plaza {
 		mDeferredEndTexture.CreateImageView(form, VK_IMAGE_ASPECT_COLOR_BIT);
 		//mDeferredEndTexture.InitDescriptorSetLayout();
 
-		VulkanRenderer::GetRenderer()->AddTrackerToImage(mDeferredEndTexture.mImageView, "Deferred End Texture", VulkanRenderer::GetRenderer()->mImGuiTextureSampler, mDeferredEndTexture.GetLayout());
+		VulkanRenderer::GetRenderer()->AddTrackerToImage(mDeferredEndTexture.mImage, "Deferred End Texture", VulkanRenderer::GetRenderer()->mImGuiTextureSampler, mDeferredEndTexture.GetTextureInfo(), mDeferredEndTexture.GetLayout());
 
 		VkDescriptorSetLayoutBinding positionLayoutBinding = plvk::descriptorSetLayoutBinding(0, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);
 		VkDescriptorSetLayoutBinding normalLayoutBinding = plvk::descriptorSetLayoutBinding(1, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr, VK_SHADER_STAGE_FRAGMENT_BIT);

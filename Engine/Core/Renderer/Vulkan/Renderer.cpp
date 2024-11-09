@@ -2460,19 +2460,19 @@ namespace Plaza {
 		VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		this->mDeferredPositionTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, false, imageUsageFlags);
 		this->mDeferredPositionTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
-		this->AddTrackerToImage(this->mDeferredPositionTexture.mImageView, "Deferred Position", this->mImGuiTextureSampler, this->mDeferredPositionTexture.GetLayout());
+		this->AddTrackerToImage(this->mDeferredPositionTexture.mImage, "Deferred Position", this->mImGuiTextureSampler, this->mDeferredPositionTexture.GetTextureInfo(), this->mDeferredPositionTexture.GetLayout());
 
 		this->mDeferredNormalTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, false, imageUsageFlags);
 		this->mDeferredNormalTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
-		this->AddTrackerToImage(this->mDeferredNormalTexture.mImageView, "Deferred Normal", this->mImGuiTextureSampler, this->mDeferredNormalTexture.GetLayout());
+		this->AddTrackerToImage(this->mDeferredNormalTexture.mImage, "Deferred Normal", this->mImGuiTextureSampler, this->mDeferredNormalTexture.GetTextureInfo(), this->mDeferredNormalTexture.GetLayout());
 
 		this->mDeferredDiffuseTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, false, imageUsageFlags);
 		this->mDeferredDiffuseTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
-		this->AddTrackerToImage(this->mDeferredDiffuseTexture.mImageView, "Deferred Diffuse", this->mImGuiTextureSampler, this->mDeferredDiffuseTexture.GetLayout());
+		this->AddTrackerToImage(this->mDeferredDiffuseTexture.mImage, "Deferred Diffuse", this->mImGuiTextureSampler, this->mDeferredDiffuseTexture.GetTextureInfo(), this->mDeferredDiffuseTexture.GetLayout());
 
 		this->mDeferredOthersTexture.CreateTextureImage(this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, false, imageUsageFlags);
 		this->mDeferredOthersTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
-		this->AddTrackerToImage(this->mDeferredOthersTexture.mImageView, "Deferred Others", this->mImGuiTextureSampler, this->mDeferredOthersTexture.GetLayout());
+		this->AddTrackerToImage(this->mDeferredOthersTexture.mImage, "Deferred Others", this->mImGuiTextureSampler, this->mDeferredOthersTexture.GetTextureInfo(), this->mDeferredOthersTexture.GetLayout());
 
 		// Render Pass
 		std::vector<VkAttachmentReference> colorReferences;
@@ -3321,7 +3321,7 @@ namespace Plaza {
 		for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
 			uint64_t siz = mBones.size();
 			uint64_t siz1 = mBones.size() + 1;
-//			uniqueBonesInfo[i].mChildren.clear();
+			//			uniqueBonesInfo[i].mChildren.clear();
 
 			if (this->mBones.find(uniqueBonesInfo[i].mId) == this->mBones.end() && uniqueBonesInfo[i].mName != "bone") {
 				this->mBones.emplace(uniqueBonesInfo[i].mId, Bone{ uniqueBonesInfo[i].mId, uniqueBonesInfo[i].mParentId, mBones.size(), uniqueBonesInfo[i].mName, uniqueBonesInfo[i].mOffset });
@@ -3780,21 +3780,61 @@ namespace Plaza {
 		mCurrentFrame = (mCurrentFrame + 1) % mMaxFramesInFlight;
 	}
 
-	void VulkanRenderer::AddTrackerToImage(VkImageView imageView,
-		std::string name,
+	void VulkanRenderer::AddTrackerToImage(VkImage image,
+		const std::string& name,
 		VkSampler textureSampler,
+		const TextureInfo& textureInfo,
 		VkImageLayout layout) {
 #ifdef EDITOR_MODE
-		Application::Get()->mThreadsManager->mFrameRendererAfterFenceThread->AddToQueue([imageView, name, textureSampler, layout]() {
-			VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(
-				textureSampler == VK_NULL_HANDLE ? VulkanRenderer::GetRenderer()->mTextureSampler : textureSampler,
-				imageView,
-				layout);
-			VulkanRenderer::GetRenderer()->mTrackedImages.push_back(TrackedImage{
-				ImTextureID(imguiDescriptorSet), std::chrono::system_clock::now(), name
-				});
+		Application::Get()->mThreadsManager->mFrameRendererAfterFenceThread->AddToQueue([image, name, textureSampler, textureInfo, layout]() {
+			VulkanTrackedImage trackedImage = VulkanTrackedImage(name, image, textureInfo, textureSampler, layout);
+			VulkanRenderer::GetRenderer()->AddTrackedImage<VulkanTrackedImage>(trackedImage);
+			//VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(
+			//	textureSampler == VK_NULL_HANDLE ? VulkanRenderer::GetRenderer()->mTextureSampler : textureSampler,
+			//	imageView,
+			//	layout);
+			//VulkanRenderer::GetRenderer()->mTrackedImages.push_back(TrackedImage{
+			//	ImTextureID(imguiDescriptorSet), std::chrono::system_clock::now(), name
+			//	});
 			});
 #endif
+	}
+
+	ImTextureID VulkanRenderer::GetTrackedImageID(TrackedImage* tracked) {
+		VulkanTrackedImage* trackedImage = static_cast<VulkanTrackedImage*>(tracked);
+		if (trackedImage->mRecalculateView == false)
+			return trackedImage->mTextureID;
+
+		if (!trackedImage->mSampler) {
+			PL_CORE_CRITICAL("TEXTURE SAMPLER CREATION NOT IMPLEMENTED");
+			trackedImage->mSampler = VulkanRenderer::GetRenderer()->mTextureSampler;
+		}
+
+		if (trackedImage->mImageView != VK_NULL_HANDLE)
+			vkDestroyImageView(VulkanRenderer::GetRenderer()->mDevice, trackedImage->mImageView, nullptr);
+
+		VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+		if (trackedImage->mTextureInfo.mImageUsage & PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT) { aspect = VK_IMAGE_ASPECT_DEPTH_BIT; };
+
+		VkImageViewCreateInfo viewInfo{};
+		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		viewInfo.image = trackedImage->mImage;
+		viewInfo.viewType = PlViewTypeToVkImageViewType(trackedImage->mTextureInfo.mViewType);
+		viewInfo.format = PlImageFormatToVkFormat(trackedImage->mTextureInfo.mFormat);
+		viewInfo.subresourceRange.baseMipLevel = trackedImage->mTrackerSetting.mMipLevel;
+		viewInfo.subresourceRange.levelCount = 1;
+		viewInfo.subresourceRange.baseArrayLayer = trackedImage->mTrackerSetting.mLayerLevel;
+		viewInfo.subresourceRange.layerCount = trackedImage->mTextureInfo.mLayersCount;
+		viewInfo.subresourceRange.aspectMask = aspect;
+
+		VkImageView imageView;
+		PLVK_CHECK_RESULT(vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &imageView));
+
+		VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(trackedImage->mSampler, imageView, trackedImage->mLayout);
+		trackedImage->mTextureID = ImTextureID(imguiDescriptorSet);
+
+		trackedImage->mRecalculateView = false;
+		return trackedImage->mTextureID;
 	}
 
 	void VulkanRenderer::UpdateMaterials() {

@@ -165,6 +165,8 @@ namespace Plaza {
 		}
 		void Gui::setupDockspace(GLFWwindow* window, Camera* camera) {
 			PLAZA_PROFILE_SECTION("Setup Dockspace");
+			Gui::sRenderingTextureViewer = false;
+
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 
@@ -237,6 +239,10 @@ namespace Plaza {
 			//if (ImGui::Begin("Asset Importer", &isAssetImporterOpen)) {
 			//	ImGui::End();
 			//}
+
+			if (!sRenderingTextureViewer) {
+
+			}
 		}
 
 
@@ -408,7 +414,7 @@ namespace Plaza {
 			ImVec2 uv1(1, 1); // top-right corner
 			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 
-			ImGui::Image(mShowSelectedImageInEditorView ? Gui::mSelectedImageInspector : ImTextureID(Application::Get()->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+			ImGui::Image(mShowSelectedImageInEditorView ? Gui::mSelectedImageInspector->mTextureID : ImTextureID(Application::Get()->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 
 			// Show the gizmo if there's a selected entity
 			std::map<std::string, File*> files = Editor::selectedFiles;
@@ -553,17 +559,30 @@ namespace Plaza {
 			ImGui::Checkbox("Show image in editor view", &mShowSelectedImageInEditorView);
 			ImGui::Checkbox("Flip Y", &mFlipY);
 
-			if (!Gui::mImageInspectorShowAllImages)
-				ImGui::Image(Gui::mSelectedImageInspector, Gui::imageSize, uv0, uv1);
+			if (!Gui::mImageInspectorShowAllImages && Gui::mSelectedImageInspector) {
+				ImGui::Image(Application::Get()->mRenderer->GetTrackedImageID(Gui::mSelectedImageInspector), Gui::imageSize, uv0, uv1);
+				int tempMipLevel = static_cast<int>(Gui::mSelectedImageInspector->mTrackerSetting.mMipLevel);
+				if (ImGui::DragInt("Mip", &tempMipLevel, 1.0f, 0, 255)) {
+					Gui::mSelectedImageInspector->mTrackerSetting.mMipLevel = tempMipLevel;
+					Gui::mSelectedImageInspector->mRecalculateView = true;
+				}
 
+				int tempLayerLevel = static_cast<int>(Gui::mSelectedImageInspector->mTrackerSetting.mLayerLevel);
+				if (ImGui::DragInt("Layer", &tempLayerLevel, 1.0f, 0, Gui::mSelectedImageInspector->mTextureInfo.mLayersCount)) {
+					Gui::mSelectedImageInspector->mTrackerSetting.mLayerLevel = tempLayerLevel;
+					Gui::mSelectedImageInspector->mRecalculateView = true;
+				}
+			}
+
+			Gui::sRenderingTextureViewer = true;
 			for (unsigned int i = 0; i < Application::Get()->mRenderer->mTrackedImages.size(); ++i) {
 				if (Gui::mImageInspectorShowAllImages) {
-					ImGui::Image(Application::Get()->mRenderer->mTrackedImages[i].mTextureID, Gui::imageSize, uv0, uv1);
+					ImGui::Image(Application::Get()->mRenderer->GetTrackedImageID(Application::Get()->mRenderer->GetTrackedImage(i)), Gui::imageSize, uv0, uv1);
 				}
 				else
 				{
-					if (ImGui::Button(Application::Get()->mRenderer->mTrackedImages[i].name.c_str())) {
-						Gui::mSelectedImageInspector = Application::Get()->mRenderer->mTrackedImages[i].mTextureID;
+					if (ImGui::Button(Application::Get()->mRenderer->mTrackedImages[i]->name.c_str())) {
+						Gui::mSelectedImageInspector = Application::Get()->mRenderer->GetTrackedImage(i);
 					}
 				}
 			}

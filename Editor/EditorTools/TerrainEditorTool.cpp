@@ -15,7 +15,7 @@ namespace Plaza {
 				for (unsigned int j = 0; j < z; ++j) {
 					vertices.push_back(glm::vec3(i, 1.0f, j));
 					normals.push_back(glm::vec3(0.0f, 1.0f, 0.0f));
-					uvs.push_back(glm::vec2(float(i % mSettings.repeatInterval) / float(mSettings.repeatInterval), float(j % mSettings.repeatInterval) / float(mSettings.repeatInterval)));
+					uvs.push_back(glm::vec2(float(i ) / float(mSettings.repeatInterval), float(j ) / float(mSettings.repeatInterval)));
 				}
 			}
 

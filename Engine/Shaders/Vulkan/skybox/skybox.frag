@@ -6,8 +6,6 @@ layout (location = 1) out vec4 gDiffuse;
 layout (location = 2) out vec4 gOthers;
 
 layout(binding = 7) uniform samplerCube prefilterMap;
-layout(binding = 8) uniform samplerCube irradianceMap;
-layout(binding = 10) uniform sampler2D equirectangularMap;
 
 layout(push_constant) uniform PushConstants{
     mat4 projection;

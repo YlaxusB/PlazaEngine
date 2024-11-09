@@ -34,6 +34,16 @@ namespace Plaza {
 		std::vector<VkPresentModeKHR> presentModes;
 	};
 
+	struct PLAZA_API VulkanTrackedImage : public TrackedImage {
+	public:
+		VulkanTrackedImage(const std::string& newName, VkImage image, const TextureInfo& textureInfo, VkSampler textureSampler, VkImageLayout layout) : mImage(image), mSampler(textureSampler), mLayout(layout), TrackedImage(newName, textureInfo) {}
+		VulkanTrackedImage() {};
+		VkImage mImage = VK_NULL_HANDLE;
+		VkSampler mSampler = VK_NULL_HANDLE;
+		VkImageLayout mLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
+		VkImageView mImageView = VK_NULL_HANDLE;
+	};
+
 	class PLAZA_API VulkanRenderer : public Renderer {
 	public:
 		VulkanRenderer() {};
@@ -90,12 +100,8 @@ namespace Plaza {
 		VkRenderPass CreateRenderPass(VkAttachmentDescription* attachmentDescs, uint32_t attachmentsCount, VkSubpassDescription* subpasses, uint32_t subpassesCount, VkSubpassDependency* dependencies, uint32_t dependenciesCount, void* next = nullptr);
 		VkFramebuffer CreateFramebuffer(VkRenderPass& renderPass, glm::vec2 size, VkImageView* pAttachmentsData, uint32_t attachmentsCount, uint32_t layers);
 
-		void AddTrackerToImage(
-			VkImageView imageView,
-			std::string name = "",
-			VkSampler textureSampler = VK_NULL_HANDLE,
-			VkImageLayout layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-		);
+		void AddTrackerToImage(VkImage image, const std::string& name = "", VkSampler textureSampler = VK_NULL_HANDLE, const TextureInfo& textureInfo = TextureInfo(), VkImageLayout layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+		ImTextureID GetTrackedImageID(TrackedImage* tracked) override;
 
 		Mesh* CreateNewMesh(
 			const std::vector<glm::vec3>& vertices,

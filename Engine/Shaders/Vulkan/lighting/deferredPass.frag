@@ -1,22 +1,5 @@
 #version 450
-
-//layout (binding = 0) uniform sampler2D gPosition;
-layout (binding = 0) uniform sampler2D gNormal;
-layout (binding = 1) uniform sampler2D gDiffuse;
-layout (binding = 2) uniform sampler2D gOthers;
-layout (binding = 3) uniform sampler2D gSceneDepth;
-
-layout(push_constant) uniform PushConstants {
-    vec3 viewPos;
-    float time;
-    mat4 view;
-    mat4 projection;
-    int lightCount;
-    vec4 ambientLightColor;
-} pushConstants;
-
-layout(location = 0) out vec4 FragColor;
-layout(location = 1) in vec2 TexCoords;
+#extension GL_EXT_nonuniform_qualifier : enable
 
 struct LightStruct {
     vec3 color;
@@ -54,52 +37,39 @@ layout (std430, binding = 5) buffer ClusterBuffer {
     Cluster[] clusters;
 };
 
-//layout (std430, binding = 6) buffer FrustumsBuffer {
-//    Frustum frustums[];
-//};
+layout(binding = 15) uniform UniformBufferObject {
+    mat4 projection;
+    mat4 view;
+    bool showCascadeLevels;
+    float farPlane;
+    float nearPlane;
+    float gamma;
+    int cascadeCount;
+    int lightCount;
+    vec4 viewPos;
+    vec4 lightDirection;
+    vec4 ambientLightColor;
+    vec4 directionalLightColor;
+    mat4 lightSpaceMatrices[16];
+    vec4 cascadePlaneDistances[16];
+} ubo;
 
-float attenuate(vec3 lightDirection, float radius) {
-	float cutoff = .99;
-	float attenuation = dot(lightDirection, lightDirection) / (100.0 * radius);
-	attenuation = 1.0 / (attenuation * 15.0 + 1.0);
-	attenuation = (attenuation - cutoff) / (cutoff);
+layout (binding = 0) uniform sampler2D gNormal;
+layout (binding = 1) uniform sampler2D gDiffuse;
+layout (binding = 2) uniform sampler2D gOthers;
+layout (binding = 3) uniform sampler2D gSceneDepth;
 
-	return clamp(attenuation, 0.0, 1.0);
-}
+layout(binding = 6) uniform sampler2D samplerBRDFLUT;
+layout(binding = 7) uniform samplerCube prefilterMap;
+layout(binding = 8) uniform samplerCube irradianceMap;
+layout(binding = 9) uniform sampler2DArray shadowsDepthMap;
+layout(binding = 10) uniform samplerCube equirectangularMap;
+
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) in vec2 TexCoords;
 
 vec2 screenSize = vec2(1820, 720);
-
 vec3 clusterSize = vec3(32, 32, 32);
-
-int roundUp(float numToRound, float multiple)
-{
-numToRound = round(numToRound);
-    if (multiple == 0)
-        return int(numToRound);
-
-    int remainder = int(numToRound) % int(multiple);
-    if (remainder == 0)
-        return int(round(numToRound));
-
-    return int(round(numToRound + multiple - remainder));
-}
-
-float roundToMultiple(float value, float multiple) {
-    return floor(value / multiple) * multiple;
-}
-
-vec2 indexToRowCol(int index, vec2 clusterCount) {
-    float col = mod(float(index), clusterCount.x);
-    float row = floor(float(index) / clusterCount.x);
-    return vec2(row, col);
-}
-
-int GetGridIndex(vec2 posXY)
-{
-    const vec2 pos = vec2(uint(posXY.x), uint(posXY.y));
-    const uint tileX = uint(ceil(screenSize.x / clusterSize.x));
-    return int((pos.x / clusterSize.x) + (tileX * (pos.y / clusterSize.x)));
-}
 
 vec4 HeatMap(int clusterIndex, int numLights)
 {
@@ -127,11 +97,8 @@ vec4 HeatMap(int clusterIndex, int numLights)
     return vec4(color, 1.0f);
 }
 
-vec2 worldToScreen(vec3 position){
-    vec4 viewSpace = pushConstants.projection * (pushConstants.view * vec4(position, 1.0));
-    vec3 ndcPosition = viewSpace.xyz / viewSpace.w;
-    vec2 uvCoordinates = (ndcPosition.xy + 1.0) / 2.0;
-    return uvCoordinates;
+float roundToMultiple(float value, float multiple) {
+    return floor(value / multiple) * multiple;
 }
 
 int GetIndex(vec2 screenPos, vec2 clusterCount)
@@ -141,6 +108,33 @@ int GetIndex(vec2 screenPos, vec2 clusterCount)
 }
 
 const float PI = 3.14159265359;
+
+#define MAX_POINT_LIGHT_PER_TILE 2048
+//#define SHOW_HEATMAP
+
+float linearizeDepth(float depth) {
+    float far = 15000.0f;
+    float near = 0.01f;
+    return (2.0 * near * far) / (far + near - depth * (far - near));
+}
+
+float GetDepth() {
+    return texture(gSceneDepth, TexCoords).r;
+}
+
+vec3 ReconstructPosition(float depth) {
+    mat4 viewProjection = ubo.projection * ubo.view;
+    float ndcZ = (depth) * 2.0f - 1.0f; 
+    vec4 ndcPosition = vec4(gl_FragCoord.xy * (1.0f / screenSize) * 2.0 - 1.0, (depth), 1.0);
+    ndcPosition.y *= -1;
+    vec4 worldPosition = inverse(viewProjection) * ndcPosition;
+    worldPosition.xyz /= worldPosition.w;
+    return worldPosition.xyz;
+}
+
+vec3 CalculatePointLight() {
+    return vec3(1.0f);
+}
 
 float D_GGX(float dotNH, float roughness)
 {
@@ -159,16 +153,25 @@ float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
     return GL * GV;
 }
 
+vec3 F_SchlickR(float cosTheta, vec3 F0, float roughness)
+{
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+vec3 prefilteredReflection(vec3 R, float roughness) {
+	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
+	float lod = roughness * MAX_REFLECTION_LOD;
+	float lodf = floor(lod);
+	float lodc = ceil(lod);
+	vec3 a = textureLod(prefilterMap, R, lodf).rgb;
+	vec3 b = textureLod(prefilterMap, R, lodc).rgb;
+	return mix(a, b, lod - lodf);
+}
+
 vec3 F_Schlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
-
-vec3 F_SchlickR(float cosTheta, vec3 F0, float roughness)
-{
-	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
-}
-
 
 vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness, vec3 materialColor)
 {
@@ -191,75 +194,183 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float
     return color;
 }
 
-#define MAX_POINT_LIGHT_PER_TILE 2048
-//#define SHOW_HEATMAP
+float ShadowCalculation(vec3 fragPosWorldSpace, vec3 Normal)
+{
+    // select cascade layer
+    vec4 fragPosViewSpace = ubo.view * vec4(fragPosWorldSpace, 1.0);
+    float depthValue = abs(fragPosViewSpace.z);
+    int layer = ubo.cascadeCount;
+    for (int i = 0; i < ubo.cascadeCount - 1; ++i)
+    {
+        if (depthValue < ubo.cascadePlaneDistances[i].x)
+        {
+            layer = i;
+            break;
+        }
+    }
 
-float linearizeDepth(float depth) {
-    float far = 15000.0f;
-    float near = 0.01f;
-    return (2.0 * near * far) / (far + near - depth * (far - near));
+    vec4 fragPosLightSpace = (ubo.lightSpaceMatrices[layer]) * vec4(fragPosWorldSpace.xyz, 1.0f);
+    // perform perspective divide
+    vec4 projCoords = fragPosLightSpace / fragPosLightSpace.w;
+    float currentDepth = projCoords.z;
+    projCoords = projCoords * 0.5 + 0.5;
+    projCoords.y = 1 - projCoords.y;
+
+    float shadowFromDepthMap = texture( shadowsDepthMap, vec3(projCoords.xy, float(layer))).r;
+
+    // keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    if (currentDepth > 1.0)
+    {
+        return 0.0f;
+    }
+    // calculate bias (based on depth map resolution and slope)
+    float bias = max(0.0005 * (1.0 - dot(Normal, ubo.lightDirection.xyz)), 0.00005);
+    const float biasModifier = 0.5f;
+    if (layer == ubo.cascadeCount)
+    {
+        bias *= 1 / (ubo.farPlane * biasModifier);
+    }
+    else
+    {
+        bias *= 1 / ((ubo.cascadePlaneDistances[layer].x) * biasModifier);
+    }
+    bias = 0.0005;
+    float distanceToCamera = distance(ubo.viewPos.xyz, projCoords.xyz);
+    
+    bias = 0.0001;
+    float floatVal = 3 - (texture(shadowsDepthMap, vec3(projCoords.xyz)).r * 2.3);
+    int pcfCount = 5;// + int(floatVal);
+    float mapSize = 4096.0 * 4;
+    float texelSize = (1.0 / mapSize * 2) * floatVal;
+    float total = 0.0;
+    float totalTexels = (pcfCount * 2.0 + 1.0) * (pcfCount * 2.0 + 1.0);
+    // PCF
+    float shadow = 0.0;
+    //vec2 texelSize = 1.0 / vec2(textureSize(shadowsDepthMap, 0));
+    for(int x = -pcfCount; x <= pcfCount; ++x)
+    {
+        for(int y = -pcfCount; y <= pcfCount; ++y)
+        {
+            float pcfDepth = texture(shadowsDepthMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
+            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= totalTexels; 
+    return shadow;
+}
+
+vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float metallic, float roughness, vec3 shadow) {
+    vec3 viewP = ubo.viewPos.xyz;
+    //viewP.y = -1.0f;
+    vec3 V =  normalize(viewP - (fragPos.xyz));
+    vec3 Ve = V;
+    //Ve.y = 1.0f - Ve.y;
+    float NdotV = dot(normal, Ve);
+    //NdotV = 1.0f - NdotV;
+    if (NdotV < 0.0) {
+        normal = -normal;
+        NdotV = 1.0f - NdotV;
+    }
+    //NdotV = clamp(NdotV, -0.5f, 0.5f);
+    vec3 R = reflect(-V, normal); 
+
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
+
+    float maxNdotV = max(NdotV, 0.25);
+    vec3 F = F_SchlickR(maxNdotV, F0, roughness);
+
+    vec3 kD = (1.0 - F) * (1.0 - metallic);
+
+    vec3 L = normalize(ubo.lightDirection.xyz); // Directional light direction
+
+    vec3 Lo = specularContribution(L, V, normal, F0, metallic, roughness, albedo);
+
+    vec3 irradiance = texture(irradianceMap, normal).rgb;
+    vec3 diffuse = irradiance * albedo.xyz ;
+
+    const float MAX_REFLECTION_LOD = 9.0;
+    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;   
+    vec2 brdfCoord = vec2(maxNdotV, roughness);
+    vec2 brdf  = texture(samplerBRDFLUT, brdfCoord).rg;
+    vec3 reflection = prefilteredReflection(R, roughness).rgb;	
+    vec3 specular = reflection * ((F * brdf.x + brdf.y));
+
+    float ambientOcclusion = 1.0f;
+    vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
+    //ambient *= material.intensity;
+
+    shadow = (1.0f - ShadowCalculation(fragPos.xyz, normal)) * ubo.directionalLightColor.xyz;
+    vec3 color = ambient; //+ ubo.directionalLightColor.xyz; // Directional Light
+     color *= Lo * shadow + ubo.ambientLightColor.xyz;
+     return color;
+   // vec3 V =  normalize(ubo.viewPos.xyz - fragPos);
+   // float NdotV = dot(normal, V);
+   // if (NdotV < 0.0) {
+   //     normal = -normal;
+   //     NdotV = 1.0f - NdotV;
+   // }
+   //
+   // vec3 R = reflect(-V, normal); 
+   //
+   // vec3 F0 = mix(vec3(0.04), albedo, metallic);
+   //
+   // float maxNdotV = max(NdotV, 0.25);
+   // vec3 F = F_SchlickR(maxNdotV, F0, roughness);
+   //
+   // vec3 kD = (1.0 - F) * (1.0 - metallic);
+   //
+   // vec3 L = normalize(ubo.lightDirection.xyz); // Directional light direction
+   //
+   // vec3 Lo = specularContribution(L, V, normal, F0, metallic, roughness, albedo);
+   // vec3 irradiance = texture(irradianceMap, normal).rgb;
+   // vec3 diffuse = irradiance * albedo.xyz;
+   //
+   // const float MAX_REFLECTION_LOD = 9.0;
+   // vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;   
+   // vec2 brdfCoord = vec2(maxNdotV, roughness);
+   // vec2 brdf  = texture(samplerBRDFLUT, brdfCoord).rg;
+   // vec3 reflection = prefilteredReflection(R, roughness).rgb;	
+   // vec3 specular = reflection * ((F * brdf.x + brdf.y));
+   //
+   // float ambientOcclusion = 1.0f;
+   // vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
+   // ambient *= Lo * shadow + ubo.ambientLightColor.xyz;
+   // return ambient;
 }
 
 void main()
 {  
-    // retrieve data from gbuffer
+    float depth = GetDepth();
+    vec3 FragPos = ReconstructPosition(depth);
     vec3 Diffuse = texture(gDiffuse, TexCoords).xyz;
-    // then calculate lighting as usual
-    vec3 lighting  = vec3(0.0f);//Diffuse * 0.1; // hard-coded ambient component
+    vec3 Normal = texture(gNormal, TexCoords).rgb;
+    const vec3 Others = texture(gOthers, TexCoords).xyz;
+    const float Specular = Others.x;
+    const float metalness = 1.0f - Others.y;
+    const float roughness = Others.z;
 
-    mat4 viewProjection = pushConstants.projection * pushConstants.view;
-       float depth = (texture(gSceneDepth, TexCoords).r);
-       float ndcZ = (depth) * 2.0f - 1.0f; 
-        vec4 ndcPosition = vec4(gl_FragCoord.xy * (1.0f / screenSize) * 2.0 - 1.0, (depth), 1.0);
-        ndcPosition.y *= -1;
-        vec4 worldPosition = inverse(viewProjection) * ndcPosition;
-        worldPosition.xyz /= worldPosition.w;
-      vec3 FragPos = worldPosition.xyz;
+    vec3 lighting  = vec3(0.0f);
 
-      //vec2 inv_resolution = vec2(1.0f / screenSize);
-      //vec4 clip = vec4(gl_FragCoord.xy * inv_resolution * 2.0 - 1.0, depth, 1.0);
-      //clip.y *= -1;
-      //vec4 world_w = inverse(viewProjection) * clip;
-      //
-      //FragPos.xyz = world_w.xyz / world_w.w;
-
-        // Reconstruct world-space position from depth
-       // vec2 screenPos = (gl_FragCoord.xy / vec2(1820.0f, 720.0f)) * 2.0 - 1.0;
-       // vec4 clipSpacePos =  vec4(fragCoord.xy * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);//vec4(screenPos.xy, depth, 1.0);
-       // vec4 viewSpacePos = inverse(pushConstants.projection) * clipSpacePos;
-       // viewSpacePos /= viewSpacePos.w;
-       // vec4 FragPos = (pushConstants.inverseView * viewSpacePos);
-       // FragPos = FragPos.xyz / FragPos.w;
-        vec2 clusterCount = ceil(screenSize / clusterSize.xy);
-        int clusterIndex = GetIndex(TexCoords, clusterCount);
-        Cluster currentCluster = clusters[clusterIndex];
-    if(pushConstants.lightCount > 0 && depth != 1.0f) {
-
-       // // Reconstruct normal from 2-component packed normal
-       // vec2 encodedNormal = texture(gNormal, TexCoords).xy;
-       // vec3 Normal;
-       // Normal.xy = encodedNormal;
-       // Normal.z = sqrt(1.0 - dot(Normal.xy, Normal.xy));
-       // Normal = normalize(Normal);
-
-        //vec3 FragPos = texture(gPosition, TexCoords).rgb;
-        vec3 Normal = texture(gNormal, TexCoords).rgb;
-        const vec3 Others = texture(gOthers, TexCoords).xyz;
-        const float Specular = Others.x;//texture(gOthers, TexCoords).x;
-        const float metalness = Others.y;//texture(gOthers, TexCoords).y;
-        const float roughness = Others.z;//texture(gOthers, TexCoords).z;
-        //vec3 spe = texture(gOthers, TexCoords).xyz;
-
-
-        vec3 viewDir  = normalize(pushConstants.viewPos - FragPos);
-
-        vec3 F0 = vec3(0.04); 
-        F0 = mix(F0, Diffuse, metalness);
-
-        vec3 V = normalize(pushConstants.viewPos - FragPos.xyz);
-
-        for (int i = 0; i < MAX_POINT_LIGHT_PER_TILE && clusters[clusterIndex].lightsIndex[i] != -1; ++i) {
-
+    vec2 clusterCount = ceil(screenSize / clusterSize.xy);
+    int clusterIndex = GetIndex(TexCoords, clusterCount);
+    Cluster currentCluster = clusters[clusterIndex];
+    vec3 color = Diffuse;
+    //if(ubo.lightCount > 0 && depth != 1.0f) {
+    if(depth != 1.0f) {
+        vec3 shadow = (1.0f - ShadowCalculation(FragPos.xyz, Normal)) * ubo.directionalLightColor.xyz;
+        color = CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow);
+       // float shadow = (1.0f - ShadowCalculation(FragPos.xyz, Normal)); //* ubo.directionalLightColor.xyz;
+       // lighting += CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow);
+        if(ubo.lightCount > 0) {
+        
+            vec3 viewDir  = normalize(ubo.viewPos.xyz - FragPos);
+        
+            vec3 F0 = vec3(0.04); 
+            F0 = mix(F0, color, metalness);
+        
+            vec3 V = normalize(ubo.viewPos.xyz - FragPos.xyz);
+        
+            for (int i = 0; i < MAX_POINT_LIGHT_PER_TILE && clusters[clusterIndex].lightsIndex[i] != -1; ++i) {
             LightStruct light = lights[clusters[clusterIndex].lightsIndex[i]];
             vec3 lightPosition = light.position; //vec3(pushConstants.view * vec4(light.position, 1.0));
 
@@ -284,22 +395,19 @@ void main()
             //float atten = light.radius / (pow(dist, light.cutoff) + 1.0);
             vec3 Lo = lightColor * (specularContribution(lightDirection, V, N, F0, metalness, roughness, Diffuse) * atten);
            lighting += Lo;
+            }    
+         }
+    }
+    //float shadow = (1.0f - ShadowCalculation(FragPos.xyz, Normal));
+    //color += lighting; //CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow); //Diffuse; //+ lighting;//FragPos; //* shadow;
+    color *= lighting + 1.0f;
+    //color *= CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow);
+    //color += lighting;
 
-
-           //vec3 Lo = (kD * Diffuse / PI + specular) * radiance * NdotL;
-           //lgihting += Lo;
-
-           //lighting += FragPos;//FragPos;//lightColor * atten;
-           //}
-        }    
-     }
-    //lighting += 1.0f;
-    vec3 color = Diffuse + lighting;
-
-#ifdef SHOW_HEATMAP
-    vec3 heatmap = HeatMap(clusterIndex, currentCluster.lightsCount).xyz;
-    color = (color + heatmap) * 0.5f;
-#endif
+//#ifdef SHOW_HEATMAP
+//    vec3 heatmap = HeatMap(clusterIndex, currentCluster.lightsCount).xyz;
+//    color = (color + heatmap) * 0.5f;
+//#endif
 
     FragColor = vec4(color, 1.0f);
 }

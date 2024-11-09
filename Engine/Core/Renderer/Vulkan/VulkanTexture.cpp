@@ -151,18 +151,18 @@ namespace Plaza {
 			// Convert std::string to std::wstring
 			std::wstring widestr = std::wstring(path.begin(), path.end());
 			const wchar_t* widecstr = widestr.c_str();
-			DirectX::LoadFromDDSFile(widecstr, DirectX::DDS_FLAGS_FORCE_RGB, &metadata, scratchImage);
+			//DirectX::LoadFromDDSFile(widecstr, DirectX::DDS_FLAGS_FORCE_RGB, &metadata, scratchImage);
 
-			texWidth = metadata.width;
-			texHeight = metadata.height;
-			texChannels = 4;
+			//texWidth = metadata.width;
+			//texHeight = metadata.height;
+			//texChannels = 4;
 
 			// Access image data			
-			const DirectX::Image* image2 = scratchImage.GetImage(0, 0, 0);
-			pixels = static_cast<stbi_uc*>(image2->pixels);
+			//const DirectX::Image* image2 = scratchImage.GetImage(0, 0, 0);
+			pixels = static_cast<stbi_uc*>(image.data.data());
 			//FlipYCoordinates(pixels, texWidth, texHeight, 3);
 
-			imageSize = image2->slicePitch;
+			imageSize = image.data.size();
 		}
 
 		this->SetFormat(VkFormatToPlImageFormat(format));

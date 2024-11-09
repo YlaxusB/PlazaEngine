@@ -237,7 +237,7 @@ namespace Plaza {
 
 		//this->mTexture2->InitDescriptorSetLayout();
 
-		VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mTexture1->mImageView, "Bloom Downscale", this->mTexture1->mSampler, VK_IMAGE_LAYOUT_GENERAL);
+		VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mTexture1->mImage, "Bloom Downscale", this->mTexture1->mSampler,this->mTexture1->GetTextureInfo(), VK_IMAGE_LAYOUT_GENERAL);
 
 		std::array<VkDescriptorSetLayoutBinding, 3> layoutBindings{};
 		layoutBindings[0].binding = 0;

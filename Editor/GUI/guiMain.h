@@ -24,6 +24,7 @@ namespace Plaza {
 }
 using namespace std;
 namespace Plaza {
+	struct TrackedImage;
 	namespace Editor {
 		class Gui {
 		public:
@@ -54,7 +55,7 @@ namespace Plaza {
 			static inline bool mImageInspectorShowAllImages = false;
 			static inline bool mShowSelectedImageInEditorView = false;
 			static inline bool mFlipY = true;
-			static inline ImTextureID mSelectedImageInspector = 0;
+			static inline TrackedImage* mSelectedImageInspector = nullptr;
 			static inline ImVec2 imageSize = ImVec2(200, 200);
 
 			static string scenePayloadName;
@@ -65,6 +66,8 @@ namespace Plaza {
 			static bool isInspectorOpen;
 			static bool isFileExplorerOpen;
 			static bool canUpdateContent;
+
+			static inline bool sRenderingTextureViewer = false;
 
 			static ImTextureID playPauseButtonImageId;
 

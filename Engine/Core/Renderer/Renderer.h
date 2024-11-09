@@ -17,20 +17,33 @@ namespace Plaza {
 		Vulkan
 	};
 
+	struct TrackerSettings {
+		uint8_t mMipLevel = 0;
+		uint8_t mLayerLevel = 0;
+	};
 	struct TrackedImage {
+		TrackedImage(const std::string& newName, const TextureInfo& info) : name(newName), mTextureInfo(info) {};
+		TrackedImage() {}
 		ImTextureID mTextureID = 0;
 		std::chrono::system_clock::time_point mCreationDate = std::chrono::system_clock::now();
 		std::string name;
+		TrackerSettings mTrackerSetting;
+		TextureInfo mTextureInfo;
+		bool mRecalculateView = true;
 	};
 
 	class PLAZA_API Renderer {
 	public:
 
-		std::vector<TrackedImage> mTrackedImages = std::vector<TrackedImage>();
+		std::vector<TrackedImage*> mTrackedImages = std::vector<TrackedImage*>();
+		TrackedImage* GetTrackedImage(unsigned int index) { return mTrackedImages[index]; };
+		template<typename T>
+		void AddTrackedImage(const T& trackedImage) { mTrackedImages.push_back(new T(trackedImage)); };
+		virtual ImTextureID GetTrackedImageID(TrackedImage* tracked) = 0;
 
 		uint32_t mCurrentFrame = 0;
 
-		float exposure = 3.0f;//4.5f;
+		float exposure = 0.5f;//4.5f;
 		float gamma = 2.2f;//2.0f;
 		glm::vec3 sunColor = glm::vec3(1.0f);
 		float mSkyboxIntensity = 1.0f;
@@ -62,7 +75,7 @@ namespace Plaza {
 			const std::vector<unsigned int>& materialsIndices,
 			bool usingNormal,
 			const std::vector<BonesHolder>& boneIds = std::vector<BonesHolder>(),
-			const std::vector<Bone>&  uniqueBonesInfo = std::vector<Bone>()) = 0;
+			const std::vector<Bone>& uniqueBonesInfo = std::vector<Bone>()) = 0;
 		virtual void DeleteMesh(Mesh& mesh) = 0;
 		virtual Mesh* RestartMesh(Mesh* mesh) = 0;
 		virtual void DrawRenderGroupInstanced(RenderGroup* renderGroup) = 0;

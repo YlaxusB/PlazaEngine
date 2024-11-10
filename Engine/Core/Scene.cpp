@@ -312,6 +312,7 @@ namespace Plaza {
 			if (value.mesh)
 				value.mMeshUuid = value.mesh->uuid;
 			value.mesh = AssetsManager::GetMesh(value.mMeshUuid);
+			value.UpdateMaterialsUuids();
 			if (value.mMaterialsUuids.size() == 0)
 				value.mMaterials = { AssetsManager::GetDefaultMaterial() };
 			else

@@ -132,9 +132,9 @@ vec3 ReconstructPosition(float depth) {
     return worldPosition.xyz;
 }
 
-vec3 CalculatePointLight() {
-    return vec3(1.0f);
-}
+//vec3 CalculatePointLight() {
+//    return vec3(1.0f);
+//}
 
 float D_GGX(float dotNH, float roughness)
 {
@@ -260,20 +260,14 @@ float ShadowCalculation(vec3 fragPosWorldSpace, vec3 Normal)
 }
 
 vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float metallic, float roughness, vec3 shadow) {
-    vec3 viewP = ubo.viewPos.xyz;
-    //viewP.y = -1.0f;
-    vec3 V =  normalize(viewP - (fragPos.xyz));
-    vec3 Ve = V;
-    //Ve.y = 1.0f - Ve.y;
-    float NdotV = dot(normal, Ve);
-    //NdotV = 1.0f - NdotV;
+    vec3 V =  normalize(ubo.viewPos.xyz - (fragPos.xyz));
+    float NdotV = dot(normal, V);
     if (NdotV < 0.0) {
         normal = -normal;
         NdotV = 1.0f - NdotV;
     }
-    //NdotV = clamp(NdotV, -0.5f, 0.5f);
-    vec3 R = reflect(-V, normal); 
 
+    vec3 R = reflect(-V, normal); 
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
     float maxNdotV = max(NdotV, 0.25);
@@ -281,7 +275,7 @@ vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float met
 
     vec3 kD = (1.0 - F) * (1.0 - metallic);
 
-    vec3 L = normalize(ubo.lightDirection.xyz); // Directional light direction
+    vec3 L = normalize(ubo.lightDirection.xyz);
 
     vec3 Lo = specularContribution(L, V, normal, F0, metallic, roughness, albedo);
 
@@ -301,41 +295,38 @@ vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float met
 
     shadow = (1.0f - ShadowCalculation(fragPos.xyz, normal)) * ubo.directionalLightColor.xyz;
     vec3 color = ambient; //+ ubo.directionalLightColor.xyz; // Directional Light
-     color *= Lo * shadow + ubo.ambientLightColor.xyz;
-     return color;
-   // vec3 V =  normalize(ubo.viewPos.xyz - fragPos);
-   // float NdotV = dot(normal, V);
-   // if (NdotV < 0.0) {
-   //     normal = -normal;
-   //     NdotV = 1.0f - NdotV;
-   // }
-   //
-   // vec3 R = reflect(-V, normal); 
-   //
-   // vec3 F0 = mix(vec3(0.04), albedo, metallic);
-   //
-   // float maxNdotV = max(NdotV, 0.25);
-   // vec3 F = F_SchlickR(maxNdotV, F0, roughness);
-   //
-   // vec3 kD = (1.0 - F) * (1.0 - metallic);
-   //
-   // vec3 L = normalize(ubo.lightDirection.xyz); // Directional light direction
-   //
-   // vec3 Lo = specularContribution(L, V, normal, F0, metallic, roughness, albedo);
-   // vec3 irradiance = texture(irradianceMap, normal).rgb;
-   // vec3 diffuse = irradiance * albedo.xyz;
-   //
-   // const float MAX_REFLECTION_LOD = 9.0;
-   // vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;   
-   // vec2 brdfCoord = vec2(maxNdotV, roughness);
-   // vec2 brdf  = texture(samplerBRDFLUT, brdfCoord).rg;
-   // vec3 reflection = prefilteredReflection(R, roughness).rgb;	
-   // vec3 specular = reflection * ((F * brdf.x + brdf.y));
-   //
-   // float ambientOcclusion = 1.0f;
-   // vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
-   // ambient *= Lo * shadow + ubo.ambientLightColor.xyz;
-   // return ambient;
+    color *= Lo * shadow + ubo.ambientLightColor.xyz;
+    return color;
+}
+
+vec3 CalculatePointLight(vec3 fragPos, vec3 albedo, vec3 normal, float roughness, vec3 lightPos, vec3 lightColor, float metallic) {
+    vec3 V = normalize(ubo.viewPos.xyz - fragPos);        // View direction
+    vec3 L = normalize(lightPos - fragPos);           // Light direction
+    float NdotL = max(dot(normal, L), 0.0);           // Lambertian diffuse
+
+    // Fresnel reflectance factor for metallic surfaces
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);      // Base reflectance
+    vec3 F = F_SchlickR(NdotL, F0, roughness);        // Fresnel term
+    vec3 kD = (1.0 - F) * (1.0 - metallic);           // Diffuse weight
+
+    // Diffuse component
+    vec3 diffuse = (kD * albedo) * lightColor * NdotL;  // Basic diffuse shading
+    //diffuse *= 1.0f;
+
+    vec3 color = diffuse + (specularContribution(L, V, normal, F0, metallic, roughness, albedo) * lightColor); // or color = ambient + diffuse + specular if those terms are used
+    return color;
+}
+
+float CalculateAttenuation(vec3 lightPos, vec3 fragPos, float minRadius, float maxRadius) {
+    float distance = length(lightPos - fragPos);
+    
+    // Compute linear attenuation based on distance and clamp within min/max range
+    float attenuation = clamp(1.0 - (distance - minRadius) / (maxRadius - minRadius), 0.0, 1.0);
+
+    // Optionally, square the attenuation to make the falloff effect smoother
+    attenuation *= attenuation;
+    
+    return attenuation;
 }
 
 void main()
@@ -357,52 +348,25 @@ void main()
     vec3 color = Diffuse;
     //if(ubo.lightCount > 0 && depth != 1.0f) {
     if(depth != 1.0f) {
+        color = vec3(0.0f);
         vec3 shadow = (1.0f - ShadowCalculation(FragPos.xyz, Normal)) * ubo.directionalLightColor.xyz;
         color = CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow);
+        lighting = vec3(1.0f);//CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow);
        // float shadow = (1.0f - ShadowCalculation(FragPos.xyz, Normal)); //* ubo.directionalLightColor.xyz;
        // lighting += CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow);
         if(ubo.lightCount > 0) {
-        
-            vec3 viewDir  = normalize(ubo.viewPos.xyz - FragPos);
-        
-            vec3 F0 = vec3(0.04); 
-            F0 = mix(F0, color, metalness);
-        
-            vec3 V = normalize(ubo.viewPos.xyz - FragPos.xyz);
-        
             for (int i = 0; i < MAX_POINT_LIGHT_PER_TILE && clusters[clusterIndex].lightsIndex[i] != -1; ++i) {
-            LightStruct light = lights[clusters[clusterIndex].lightsIndex[i]];
-            vec3 lightPosition = light.position; //vec3(pushConstants.view * vec4(light.position, 1.0));
+                LightStruct light = lights[clusters[clusterIndex].lightsIndex[i]];
+                vec3 lightPosition = light.position; //vec3(pushConstants.view * vec4(light.position, 1.0));
 
-            vec3 lightDirection = normalize(lightPosition.xyz - FragPos); // Directional light direction
-            float distance = length(lightPosition - FragPos);
-
-            //if(distance < light.radius)
-            //{
-            
-            //vec3 L = lightPosition.xyz - FragPos;
-            float dist = length(lightDirection);
-            lightDirection = normalize(lightPosition.xyz - FragPos);
-            //if(dist < 25)
-            //lighting += vec3(0.3f, 1.0f, 0.0f);
-            
-           float atten = light.radius / (pow(distance, light.cutoff) + 1.0);//light.radius / (pow(dist, light.cutoff) + 1.0);
-
-            vec3 N = normalize(Normal);
-            float NdotL = max(0.0, dot(N, lightDirection));
-            vec3 lightColor = light.color * light.intensity ;
-            vec3 diff = min(lightColor * Diffuse * NdotL * atten, lightColor);
-            //float atten = light.radius / (pow(dist, light.cutoff) + 1.0);
-            vec3 Lo = lightColor * (specularContribution(lightDirection, V, N, F0, metalness, roughness, Diffuse) * atten);
-           lighting += Lo;
+                float distance = length(lightPosition - FragPos);
+                float atten = light.radius / (pow(distance, light.cutoff));//light.radius / (pow(dist, light.cutoff) + 1.0);
+                vec3 lightColor = light.color * light.intensity ;
+                lighting *= (CalculatePointLight(FragPos, Diffuse, Normal, roughness, lightPosition, lightColor, metalness) * CalculateAttenuation(lightPosition, FragPos, light.cutoff, light.radius + light.cutoff) * 3.0f) + 1.0f;//atten;//Lo;
             }    
          }
     }
-    //float shadow = (1.0f - ShadowCalculation(FragPos.xyz, Normal));
-    //color += lighting; //CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow); //Diffuse; //+ lighting;//FragPos; //* shadow;
-    color *= lighting + 1.0f;
-    //color *= CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow);
-    //color += lighting;
+    color += max(Diffuse * (lighting - 1.0f), vec3(0.0f));
 
 //#ifdef SHOW_HEATMAP
 //    vec3 heatmap = HeatMap(clusterIndex, currentCluster.lightsCount).xyz;

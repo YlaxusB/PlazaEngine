@@ -143,7 +143,6 @@ namespace Plaza {
 		}
 		uint64_t mMeshUuid = 0;
 		std::vector<uint64_t> mMaterialsUuids = std::vector<uint64_t>();
-	private:
 		std::vector<uint64_t> UpdateMaterialsUuids() {
 			std::vector<uint64_t> oldMaterialsUuids = mMaterialsUuids;
 			mMaterialsUuids.clear();
@@ -155,5 +154,6 @@ namespace Plaza {
 			}
 			return mMaterialsUuids;
 		}
+	private:
 	};
 }

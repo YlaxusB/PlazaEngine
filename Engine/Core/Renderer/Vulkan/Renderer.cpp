@@ -92,7 +92,7 @@ namespace Plaza {
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 		VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
 		VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME,
-		VK_KHR_MULTIVIEW_EXTENSION_NAME
+		//VK_KHR_MULTIVIEW_EXTENSION_NAME
 	};
 
 	struct QueueFamilyIndices {
@@ -288,11 +288,11 @@ namespace Plaza {
 		vulkan11features.multiview = VK_TRUE;
 		vulkan11features.pNext = physicalFeatures2.pNext;
 		physicalFeatures2.pNext = &vulkan11features;
-		VkPhysicalDeviceMultiviewFeaturesKHR multiviewFeatures = {};
-		multiviewFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR;
-		//multiviewFeatures.multiview = VK_TRUE;
-		multiviewFeatures.pNext = physicalFeatures2.pNext; // Chain it with the previous structure
-		physicalFeatures2.pNext = &multiviewFeatures;
+		//VkPhysicalDeviceMultiviewFeaturesKHR multiviewFeatures = {};
+		//multiviewFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR;
+		////multiviewFeatures.multiview = VK_TRUE;
+		//multiviewFeatures.pNext = physicalFeatures2.pNext; // Chain it with the previous structure
+		//physicalFeatures2.pNext = &multiviewFeatures;
 
 		vkGetPhysicalDeviceFeatures2(mPhysicalDevice, &physicalFeatures2);
 
@@ -338,6 +338,12 @@ namespace Plaza {
 		else {
 			createInfo.enabledLayerCount = 0;
 		}
+
+		VkPhysicalDeviceMultiviewFeatures multiviewFeatures = {};
+		multiviewFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES;
+		multiviewFeatures.multiview = VK_TRUE;
+		multiviewFeatures.pNext = &physicalFeatures2;
+		createInfo.pNext = &multiviewFeatures;
 
 		if (vkCreateDevice(mPhysicalDevice, &createInfo, nullptr, &mDevice) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create logical device!");
@@ -2686,7 +2692,7 @@ namespace Plaza {
 		vmaCreateAllocator(&allocatorInfo, &mVmaAllocator);
 
 		/* Initialize buffers */
-		mMainVertexBuffer->CreateBuffer(1024 * 1024 * 8 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);		 		//mMainVertexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
+		mMainVertexBuffer->CreateBuffer(1024 * 1024 * 16 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);		 		//mMainVertexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
 		mMainIndexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);	 		//mMainIndexBuffer->CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
 
 		//CreateBuffer(1024 * 1024 * 16 * sizeof(Vertex),
@@ -2937,7 +2943,7 @@ namespace Plaza {
 
 	void VulkanRenderer::UpdateAfterRecord() {
 		VkSemaphore waitSemaphores[] = { mImageAvailableSemaphores[mCurrentFrame] };
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		VkSemaphore signalSemaphores[] = { mRenderFinishedSemaphores[mCurrentFrame] };
 
 		{
@@ -3368,29 +3374,36 @@ namespace Plaza {
 		vulkMesh->indicesCount = indices.size();
 		vulkMesh->indicesOffset = this->mBufferTotalIndices;
 
-		// Add vertices to the big vertex buffer
 		VkDeviceSize newDataSize = sizeof(Vertex) * convertedVertices.size();
+		PlVkBuffer stagingBuffer = PlVkBuffer();
+		stagingBuffer.CreateBuffer(newDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_ONLY, 0);
+		// Add vertices to the big vertex buffer
 
-		VkBuffer stagingBuffer;
-		VkDeviceMemory stagingBufferMemory;
-		CreateBuffer(newDataSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			stagingBuffer,
-			stagingBufferMemory);
+		//VkBuffer stagingBuffer;
+		//VkDeviceMemory stagingBufferMemory;
+		//CreateBuffer(newDataSize,
+		//	VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		//	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		//	stagingBuffer,
+		//	stagingBufferMemory);
 
+		//void* data;
+		//vkMapMemory(mDevice, stagingBufferMemory, 0, newDataSize, 0, &data);
+		//memcpy(data, convertedVertices.data(), static_cast<size_t>(newDataSize));
+		//vkUnmapMemory(mDevice, stagingBufferMemory);
 		void* data;
-		vkMapMemory(mDevice, stagingBufferMemory, 0, newDataSize, 0, &data);
-		memcpy(data, convertedVertices.data(), static_cast<size_t>(newDataSize));
-		vkUnmapMemory(mDevice, stagingBufferMemory);
+		vmaMapMemory(stagingBuffer.GetVmaAllocator(), stagingBuffer.GetAllocation(), &data);
+		memcpy(data, convertedVertices.data(), (size_t)newDataSize);
+		vmaUnmapMemory(stagingBuffer.GetVmaAllocator(), stagingBuffer.GetAllocation());
 
-		CopyBuffer(stagingBuffer,
+		CopyBuffer(stagingBuffer.GetBuffer(),
 			mMainVertexBuffer->GetBuffer(),
 			newDataSize,
 			mBufferTotalVertices * sizeof(Vertex));
 
-		vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
-		vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
+		//vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
+		//vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
+		stagingBuffer.Destroy();
 
 		// this->CreateVertexBuffer(convertedVertices, vulkMesh.mVertexBuffer,
 		// vulkMesh.mVertexBufferMemory);

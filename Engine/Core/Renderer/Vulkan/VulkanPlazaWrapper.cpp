@@ -30,7 +30,6 @@ namespace Plaza{
 
 	void PlVkBuffer::Destroy() {
 		for (unsigned int i = 0; i < mBuffers.size(); ++i) {
-			vmaFreeMemory(GetVmaAllocator(), mAllocations[i]);
 			vmaDestroyBuffer(GetVmaAllocator(), mBuffers[i], mAllocations[i]);
 		}
 	}

@@ -68,7 +68,7 @@ vec3 filmicTonemap(vec3 color) {
 
 void main() 
 {
-    vec4 x = pushConstants.exposure * texture(samplerTexture, inUV);
+    vec4 x = texture(samplerTexture, inUV);
     vec3 color = x.rgb;
     color = filmicTonemap(color);
     color = gammaCorrect(color);

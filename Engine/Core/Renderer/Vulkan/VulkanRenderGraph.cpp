@@ -39,6 +39,13 @@ namespace Plaza {
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "GOthers"));
 		this->AddTexture(make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "SceneDepth"));
 
+		TextureInfo info{};
+		info.mPath = "deferred";
+		this->GetTexture<VulkanTexture>("GDiffuse")->CreateTextureInfo(info);
+		this->GetTexture<VulkanTexture>("GNormal")->CreateTextureInfo(info);
+		this->GetTexture<VulkanTexture>("GOthers")->CreateTextureInfo(info);
+		this->GetTexture<VulkanTexture>("SceneDepth")->CreateTextureInfo(info);
+
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "SceneTexture"));
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "OutFinalPostProcessTexture"));
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "FinalTexture"));
@@ -73,6 +80,7 @@ namespace Plaza {
 			float farPlane;                           // 4 bytes
 			float nearPlane;                          // 4 bytes
 			float gamma;                              // 4 bytes
+			float exposure;                              // 4 bytes
 			int cascadeCount;                         // 4 bytes
 			int lightCount;                           // 4 bytes
 			alignas(16) glm::vec4 viewPos;            // 16 bytes
@@ -327,6 +335,7 @@ namespace Plaza {
 			ubo.ambientLightColor = glm::vec4(VulkanRenderer::GetRenderer()->mLighting->ambientLightColor * VulkanRenderer::GetRenderer()->mLighting->ambientLightIntensity);
 			ubo.ambientLightColor.a = 1.0f;
 			ubo.gamma = VulkanRenderer::GetRenderer()->gamma;
+			ubo.exposure = VulkanRenderer::GetRenderer()->exposure;
 
 			for (int i = 0; i < VulkanRenderer::GetRenderer()->mShadows->mCascadeCount; ++i) {
 				ubo.lightSpaceMatrices[i] = shadowPassUbo.lightSpaceMatrices[i];
@@ -982,7 +991,7 @@ namespace Plaza {
 		VkImageUsageFlags flags = 0;
 		if (GetTextureInfo().mViewType == PL_VIEW_TYPE_CUBE)
 			flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-		if (GetTextureInfo().mPath == "") {
+		if (GetTextureInfo().mPath == "" || GetTextureInfo().mPath == "deferred") {
 			this->GetTexture()->CreateTextureImage(
 				VulkanRenderer::GetRenderer()->mDevice,
 				PlImageFormatToVkFormat(GetTextureInfo().mFormat),
@@ -991,7 +1000,7 @@ namespace Plaza {
 				mTexture->mMipCount == 0 ? true : false,
 				PlImageUsageToVkImageUsage(GetTextureInfo().mImageUsage),
 				PlTextureTypeToVkImageType(GetTextureInfo().mTextureType),
-				VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_LAYOUT_UNDEFINED,
+				GetTextureInfo().mPath == "deferred" ? VK_IMAGE_TILING_LINEAR : VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_LAYOUT_UNDEFINED,
 				GetTextureInfo().mLayersCount,
 				flags,
 				false,
@@ -1026,7 +1035,8 @@ namespace Plaza {
 		VkAttachmentReference depthReference = {};
 
 		for (const auto& value : mOutputBindings) {
-			//std::vector<int> mNextPassesToUseThisBinding = std::vector<int>();
+
+		// Get next layout of each output binding of this pass
 			int nextPassToUseThisBinding = -1;
 			for (unsigned int i = mExecutionIndex; i < renderGraph->mOrderedPasses.size(); ++i) {
 				auto& pass = renderGraph->mOrderedPasses.at(i);
@@ -1064,7 +1074,7 @@ namespace Plaza {
 					loadStencilOp,
 					storeStencilOp,
 					currentLayout,
-					nextLayout));//finalLayout));//binding->mTexture->GetLayout()));
+					nextLayout));
 
 			frameBufferAttachments.push_back(binding->GetTexture()->mImageView);
 			locations.push_back(binding->mLocation);
@@ -1076,6 +1086,7 @@ namespace Plaza {
 				clearValue.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
 			mClearValues.push_back(clearValue);
 
+			// Set depth or color references based on usage
 			if (binding->GetTextureInfo().mImageUsage & PL_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT) {
 				depthReference.attachment = binding->mLocation;
 				depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
@@ -1093,29 +1104,45 @@ namespace Plaza {
 			frameBufferAttachments[i] = temporaryFrameBufferAttachments[locations[i]];
 		}
 
+		// Define the subpass description
 		VkSubpassDescription subpass = {};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.pColorAttachments = colorReferences.data();
 		subpass.colorAttachmentCount = static_cast<uint32_t>(colorReferences.size());
 		if (depthReference.layout != VK_IMAGE_LAYOUT_UNDEFINED)
 			subpass.pDepthStencilAttachment = &depthReference;
+
+		// Add external dependencies to ensure synchronization outside the render pass
 		dependencies.push_back(
-			plvk::subpassDependency(VK_SUBPASS_EXTERNAL,
-				0,
-				VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-				VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-				VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
-				0));
-		dependencies.push_back(plvk::subpassDependency(
-			VK_SUBPASS_EXTERNAL,
-			0,
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			0,
-			VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
-			0));
+			plvk::subpassDependency(VK_SUBPASS_EXTERNAL, 0,
+				VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_DEPENDENCY_BY_REGION_BIT));
+
+		// Add subpass dependencies for other stages if needed...
 		subPasses.push_back(subpass);
+		//VkSubpassDescription subpass = {};
+		//subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		//subpass.pColorAttachments = colorReferences.data();
+		//subpass.colorAttachmentCount = static_cast<uint32_t>(colorReferences.size());
+		//if (depthReference.layout != VK_IMAGE_LAYOUT_UNDEFINED)
+		//	subpass.pDepthStencilAttachment = &depthReference;
+		//dependencies.push_back(
+		//	plvk::subpassDependency(VK_SUBPASS_EXTERNAL,
+		//		0,
+		//		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+		//		VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+		//		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+		//		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
+		//		0));
+		//dependencies.push_back(plvk::subpassDependency(
+		//	VK_SUBPASS_EXTERNAL,
+		//	0,
+		//	VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		//	VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		//	0,
+		//	VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+		//	0));
+		//subPasses.push_back(subpass);
 
 		uint32_t viewMask = 0;
 		VkRenderPassMultiviewCreateInfo renderPassMultiviewCI{};
@@ -1446,7 +1473,7 @@ namespace Plaza {
 
 			vkCmdPipelineBarrier(mCommandBuffer,
 				VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-				VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+				VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
 				0,
 				0, nullptr,
 				0, nullptr,

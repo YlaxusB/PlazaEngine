@@ -786,8 +786,8 @@ namespace Plaza {
 	static float MeshRenderer_GetHeight(uint64_t uuid, float pixelX, float pixelY) {
 		auto meshRendererIt = Scene::GetActiveScene()->meshRendererComponents.find(uuid);
 		if (meshRendererIt != Scene::GetActiveScene()->meshRendererComponents.end()) {
-			return meshRendererIt->second.GetHeight(pixelX, pixelY);
 		}
+		return 0.0f;
 	}
 
 #pragma endregion Mesh Renderer Component

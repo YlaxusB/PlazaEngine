@@ -63,20 +63,20 @@ namespace Plaza {
 			float metalnessFloat = 0.5f;
 		};
 		struct UniformBufferObject {
-			glm::mat4 projection = glm::mat4(1.0f);
-			glm::mat4 view = glm::mat4(1.0f);
-			glm::mat4 model = glm::mat4(1.0f);
-			int cascadeCount = 0;
-			float farPlane = 0.0f;
-			float nearPlane = 0.0f;
-			alignas(16) glm::vec4 lightDirection = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-			alignas(16) glm::vec4 viewPos = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-			glm::mat4 lightSpaceMatrices[16] = { glm::mat4(2.0f) };
-			glm::vec4 cascadePlaneDistances[16] = { glm::vec4(1.0f) };
-			alignas(16) glm::vec4 directionalLightColor;
-			alignas(16) glm::vec4 ambientLightColor;
-			bool showCascadeLevels;
-			float gamma;
+			glm::mat4 projection;                  // 64 bytes
+			glm::mat4 view;                        // 64 bytes
+			glm::mat4 model;                       // 64 bytes
+			int cascadeCount;                      // 4 bytes
+			float farPlane;                        // 4 bytes
+			float nearPlane;                       // 4 bytes
+			alignas(16) glm::vec4 lightDirection;  // 16 bytes, forced alignment to 16 bytes
+			glm::vec4 viewPos;                     // 16 bytes
+			glm::mat4 lightSpaceMatrices[16];      // 16 * 64 bytes = 1024 bytes
+			glm::vec4 cascadePlaneDistances[16];   // 16 * 16 bytes = 256 bytes
+			glm::vec4 directionalLightColor;       // 16 bytes
+			glm::vec4 ambientLightColor;           // 16 bytes
+			alignas(4) uint32_t showCascadeLevels; // 4 bytes, bool aligns to 4 bytes (use uint32_t)
+			float gamma;                           // 4 bytes
 		};
 
 		void Init() override;

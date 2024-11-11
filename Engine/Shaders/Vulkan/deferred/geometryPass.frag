@@ -87,7 +87,7 @@ void main() {
 
     if(material.metalnessIndex > -1) {
         float factor = 1.0f - (metallic * 2.0f);
-        metallic =  (texture(textures[material.metalnessIndex], fragTexCoord).r);
+        metallic =  (texture(textures[material.metalnessIndex], fragTexCoord).r) * factor;
     }
 
     if(material.roughnessIndex > -1) {

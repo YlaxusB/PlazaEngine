@@ -34,7 +34,7 @@ namespace Plaza::Editor {
 		if (!file->name.empty()) {
 			std::string extension = std::filesystem::path{ file->directory }.extension().string();
 			if (extension == Standards::materialExtName) {
-				Editor::MaterialFileInspector::MaterialFileInspector(file);
+				Editor::MaterialFileInspector::MaterialFileInspector(AssetsManager::GetMaterial(AssetsManager::GetAsset(std::filesystem::path(file->directory))->mAssetUuid));
 			}
 			else if (extension == Standards::modelExtName) {
 				Editor::TextEditor::TextEditor(file);

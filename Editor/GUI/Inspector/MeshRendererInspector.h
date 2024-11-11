@@ -44,7 +44,7 @@ namespace Plaza::Editor {
 								continue;
 							}
 							File file = File(material->mAssetName, AssetsManager::GetAsset(material->mAssetUuid)->mAssetPath.string(), Standards::materialExtName);
-							Plaza::Editor::MaterialFileInspector::MaterialFileInspector(&file);
+							Plaza::Editor::MaterialFileInspector::MaterialFileInspector(material);
 
 							ImGui::TreePop();
 						}

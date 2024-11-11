@@ -22,15 +22,15 @@ namespace Plaza::Editor {
 				return std::shared_ptr<Texture>(AssetsManager::mTextures.find(1)->second);
 		}
 
-		MaterialFileInspector(File* file) {
-			if (!material || file != lastFile) {
-				if (AssetsManager::GetAsset(file->directory))
-				{
-					auto materialIt = AssetsManager::mMaterials.find(AssetsManager::GetAsset(file->directory)->mAssetUuid);
-					if (materialIt != AssetsManager::mMaterials.end())
-						material = materialIt->second.get();
-				}
-			}
+		MaterialFileInspector(Material* material) {
+			//if (!material || file->directory != lastFile->directory) {
+			//	if (AssetsManager::GetAsset(file->directory))
+			//	{
+			//		auto materialIt = AssetsManager::mMaterials.find(AssetsManager::GetAsset(file->directory)->mAssetUuid);
+			//		if (materialIt != AssetsManager::mMaterials.end())
+			//			material = materialIt->second.get();
+			//	}
+			//}
 
 			if (!material)
 			{
@@ -38,7 +38,8 @@ namespace Plaza::Editor {
 				return;
 			}
 
-			ImGui::Text(file->directory.c_str());
+			//ImGui::Text(file->directory.c_str());
+			ImGui::Text(material->mAssetPath.filename().string().c_str());
 
 			ImGui::BeginTable("MaterialFileInspectorTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
 			if (Utils::AddTableTexture("Diffuse: ", material->diffuse.get(), ImGuiSliderFlags_None))
@@ -57,11 +58,11 @@ namespace Plaza::Editor {
 			ImGui::InputFloat("Flip Y", &material->flip.y);
 
 			if (ImGui::Button("Apply")) {
-				material->mAssetName = std::filesystem::path{ file->directory }.stem().string();
-				AssetsSerializer::SerializeMaterial(material, file->directory, Application::Get()->mSettings.mMaterialSerializationMode);
+				//material->mAssetName = std::filesystem::path{ file->directory }.stem().string();
+				AssetsSerializer::SerializeMaterial(material, material->mAssetPath, Application::Get()->mSettings.mMaterialSerializationMode);
 			}
 
-			lastFile = file;
+			//lastFile = file;
 		}
 	};
 }

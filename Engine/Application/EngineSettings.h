@@ -16,5 +16,6 @@ namespace Plaza {
 		SerializationMode mModelSerializationMode = SerializationMode::SERIALIZE_BINARY;
 		SerializationMode mAnimationSerializationMode = SerializationMode::SERIALIZE_BINARY;
 		SerializationMode mMaterialSerializationMode = SerializationMode::SERIALIZE_JSON;
+		SerializationMode mRenderGraphSerializationMode = SerializationMode::SERIALIZE_JSON;
 	};
 }

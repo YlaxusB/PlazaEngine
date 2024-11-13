@@ -27,6 +27,11 @@ namespace Plaza {
 
 		void SetCreateInfo(PlPipelineCreateInfo createInfo) { mCreateInfo = createInfo; };
 		PlPipelineCreateInfo mCreateInfo{};
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(mPushConstants), PL_SER(mIndirectBufferOffset), PL_SER(mIndirectBufferDrawCount), PL_SER(mCreateInfo));
+		}
 	};
 }
 

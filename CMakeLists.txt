@@ -109,6 +109,10 @@ set(IMGUI_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/imgui_impl_glfw.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/imgui_impl_vulkan.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/imgui_tables.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/nodes/crude_json.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/nodes/imgui_canvas.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/nodes/imgui_node_editor.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/nodes/imgui_node_editor_api.cpp"
 )
 
 string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWER)

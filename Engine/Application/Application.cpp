@@ -131,6 +131,7 @@ namespace Plaza {
 		settings.mModelSerializationMode = SerializationMode::SERIALIZE_BINARY;
 		settings.mAnimationSerializationMode = SerializationMode::SERIALIZE_BINARY;
 		settings.mMaterialSerializationMode = SerializationMode::SERIALIZE_JSON;
+		settings.mRenderGraphSerializationMode = SerializationMode::SERIALIZE_JSON;
 	}
 
 	void Application::GetGameModeDefaultSettings(EngineSettings& settings) {
@@ -142,6 +143,7 @@ namespace Plaza {
 		settings.mModelSerializationMode = SerializationMode::SERIALIZE_BINARY;
 		settings.mAnimationSerializationMode = SerializationMode::SERIALIZE_BINARY;
 		settings.mMaterialSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		settings.mRenderGraphSerializationMode = SerializationMode::SERIALIZE_BINARY;
 	}
 
 	void Application::CheckEditorCache() {

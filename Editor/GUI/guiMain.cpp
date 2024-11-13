@@ -100,6 +100,8 @@ namespace Plaza {
 			mMainProgressBarContext->IO = mMainContext->IO;
 			mMainProgressBarContext->PlatformIO = mMainContext->PlatformIO;
 
+			Application::Get()->mEditor->mGui.mRenderGraphEditor->Init();
+
 			ImGui::SetCurrentContext(mMainContext);
 		}
 
@@ -212,6 +214,7 @@ namespace Plaza {
 
 			FileExplorer::UpdateGui();
 			Application::Get()->mEditor->mGui.mConsole->Update();
+			Application::Get()->mEditor->mGui.mRenderGraphEditor->Update();
 			ImGui::End();
 
 

@@ -10,7 +10,8 @@ namespace Plaza {
 			INSPECTOR,
 			FILE_EXPLORER,
 			ASSETS_IMPORTER,
-			CONSOLE
+			CONSOLE,
+			RENDER_GRAPH_EDITOR
 		};
 
 		enum class GuiState {
@@ -27,7 +28,7 @@ namespace Plaza {
 			}
 			virtual void Init() = 0;
 			virtual void Update() = 0;
-			virtual void OnKeyPress(int key, int scancode, int action, int mods) = 0;
+			virtual void OnKeyPress(int key, int scancode, int action, int mods) {};
 
 			//virtual void HandleKeyEvent();
 			//virtual void HandleFocusedKeyEvent();

@@ -24,7 +24,15 @@ namespace Plaza {
 		void Terminate() override;
 
 		void UpdateCommandBuffer(VkCommandBuffer commandBuffer);
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<PlazaPipeline>(this));
+		}
 	private:
 		VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
 	};
 }
+
+PL_SER_REGISTER_TYPE(VulkanPlazaPipeline);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaPipeline, VulkanPlazaPipeline);

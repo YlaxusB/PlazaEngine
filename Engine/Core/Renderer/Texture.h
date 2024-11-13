@@ -110,7 +110,11 @@ namespace Plaza {
 		void SetTextureInfo(TextureInfo textureInfo) {
 			mTextureInfo = Texture::CreateTextureInfo(textureInfo);
 		};
-		const TextureInfo& GetTextureInfo() { return *mTextureInfo; };
+		const TextureInfo& GetTextureInfo() { 
+			if (mTextureInfo == nullptr)
+				mTextureInfo = new TextureInfo();
+			return *mTextureInfo;
+		};
 	private:
 		TextureInfo* mTextureInfo = nullptr;
 

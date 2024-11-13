@@ -593,6 +593,11 @@ namespace Plaza {
 		float depthBiasClamp;
 		float depthBiasSlopeFactor;
 		float lineWidth;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(depthClampEnable), PL_SER(rasterizerDiscardEnable), PL_SER(polygonMode), PL_SER(cullMode), PL_SER(frontFace), PL_SER(depthBiasEnable), PL_SER(depthBiasConstantFactor), PL_SER(depthBiasClamp), PL_SER(depthBiasSlopeFactor), PL_SER(lineWidth));
+		}
 	};
 
 	struct PlPipelineColorBlendAttachmentState {
@@ -604,6 +609,11 @@ namespace Plaza {
 		PlBlendFactor dstAlphaBlendFactor;
 		PlBlendOp alphaBlendOp;
 		PlColorComponentFlags colorWriteMask;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(blendEnable), PL_SER(srcColorBlendFactor), PL_SER(dstColorBlendFactor), PL_SER(colorBlendOp), PL_SER(srcAlphaBlendFactor), PL_SER(dstAlphaBlendFactor), PL_SER(alphaBlendOp), PL_SER(colorWriteMask));
+		}
 	};
 
 	struct PlPipelineColorBlendStateCreateInfo {
@@ -611,6 +621,11 @@ namespace Plaza {
 		PlLogicOp logicOp;
 		std::vector<PlPipelineColorBlendAttachmentState> attachments;
 		float blendConstants[4];
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(logicOpEnable), PL_SER(logicOp), PL_SER(attachments), PL_SER(blendConstants));
+		}
 	};
 
 	struct PlStencilOpState {
@@ -621,6 +636,11 @@ namespace Plaza {
 		uint32_t       compareMask;
 		uint32_t       writeMask;
 		uint32_t       reference;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(failOp), PL_SER(passOp), PL_SER(depthFailOp), PL_SER(compareOp), PL_SER(compareMask), PL_SER(writeMask), PL_SER(reference));
+		}
 	};
 
 	struct PlPipelineDepthStencilStateCreateInfo {
@@ -633,6 +653,11 @@ namespace Plaza {
 		PlStencilOpState back;
 		float minDepthBounds;
 		float maxDepthBounds;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(depthTestEnable), PL_SER(depthWriteEnable), PL_SER(depthCompareOp), PL_SER(depthBoundsTestEnable), PL_SER(stencilTestEnable), PL_SER(front), PL_SER(back), PL_SER(minDepthBounds), PL_SER(maxDepthBounds));
+		}
 	};
 
 	struct PlViewport {
@@ -654,17 +679,32 @@ namespace Plaza {
 	struct PlPipelineViewportStateCreateInfo {
 		uint32_t viewportCount;
 		uint32_t scissorsCount;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(viewportCount), PL_SER(scissorsCount));
+		}
 	};
 
 	struct PlPipelineMultisampleStateCreateInfo {
 		PlSampleCount rasterizationSamples;
 		bool sampleShadingEnable;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(rasterizationSamples), PL_SER(sampleShadingEnable));
+		}
 	};
 
 	struct PlVertexInputBindingDescription {
 		uint32_t binding;
 		uint32_t stride;
 		PlVertexInputRate inputRate;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(binding), PL_SER(stride), PL_SER(inputRate));
+		}
 	};
 
 	struct PlVertexInputAttributeDescription {
@@ -672,18 +712,33 @@ namespace Plaza {
 		uint32_t binding;
 		PlTextureFormat format;
 		uint32_t offset;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(location), PL_SER(binding), PL_SER(format), PL_SER(offset));
+		}
 	};
 
 	struct PlPipelineShaderStageCreateInfo {
 		PlRenderStage stage;
 		std::string shadersPath;
 		std::string name;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(stage), PL_SER(shadersPath), PL_SER(name));
+		}
 	};
 
 	struct PlPushConstantRange {
 		PlRenderStage stageFlags;
 		uint32_t offset;
 		uint32_t size;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(stageFlags), PL_SER(offset), PL_SER(size));
+		}
 	};
 
 	struct PlPipelineCreateInfo {
@@ -702,6 +757,12 @@ namespace Plaza {
 		std::vector<PlDynamicState> dynamicStates;
 		std::vector<PlPushConstantRange> pushConstants;
 		std::vector<uint64_t> staticMeshesUuid;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(pipelineName), PL_SER(renderMethod), PL_SER(shaderStages), PL_SER(vertexBindingDescriptions), PL_SER(vertexAttributeDescriptions), PL_SER(topology), PL_SER(primitiveRestartEnable), PL_SER(rasterization), PL_SER(colorBlendState),
+				PL_SER(depthStencilState), PL_SER(viewPortState), PL_SER(multiSampleState), PL_SER(dynamicStates), PL_SER(pushConstants), PL_SER(staticMeshesUuid));
+		}
 	};
 
 #pragma region Initializators

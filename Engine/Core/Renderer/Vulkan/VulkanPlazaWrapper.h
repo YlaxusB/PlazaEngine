@@ -32,7 +32,10 @@ namespace Plaza {
 			}
 			return mMemories[index];
 		}
-
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<PlBuffer>(this));
+		}
 	private:
 		std::vector<VkBuffer> mBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mMemories = std::vector<VkDeviceMemory>();
@@ -40,4 +43,10 @@ namespace Plaza {
 
 		void UpdateDataHelper(unsigned int index, const void* newData, size_t size);
 	};
+
+	/*	CEREAL_REGISTER_TYPE(B);
+	CEREAL_REGISTER_POLYMORPHIC_RELATION(PlBuffer, B);*/
+
 }
+PL_SER_REGISTER_TYPE(PlVkBuffer);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(PlBuffer, PlVkBuffer);

@@ -2,10 +2,12 @@
 #include "PlazaShaders.h"
 #include "Texture.h"
 #include "Buffer.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class PlazaShadersBinding {
+	class PLAZA_API PlazaShadersBinding {
 	public:
+		PlazaShadersBinding() {}
 		std::string mName;
 		uint64_t mDescriptorCount = 1;
 		PlRenderStage mStage = PL_STAGE_ALL;
@@ -16,10 +18,16 @@ namespace Plaza {
 
 		virtual void Compile(std::set<std::string>& compiledBindings) {};
 		virtual void Destroy() {};
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(mName), PL_SER(mDescriptorCount), PL_SER(mStage), PL_SER(mLocation), PL_SER(mBinding), PL_SER(mBindingType), PL_SER(mMaxBindlessResources));
+		}
 	};
 
-	class PlazaBufferBinding : public PlazaShadersBinding {
+	class PLAZA_API PlazaBufferBinding : public PlazaShadersBinding {
 	public:
+		PlazaBufferBinding() {}
 		PlazaBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage, std::shared_ptr<PlBuffer> buffer) {
 			mBinding = binding;
 			mDescriptorCount = descriptorCount;
@@ -62,12 +70,18 @@ namespace Plaza {
 		//PlMemoryUsage GetMemoryUsage() {
 		//	return mMemoryUsage;
 		//}
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<PlazaShadersBinding>(this), PL_SER(mBuffer));
+		}
 	private:
 
 	};
 
-	class PlazaTextureBinding : public PlazaShadersBinding {
+	class PLAZA_API PlazaTextureBinding : public PlazaShadersBinding {
 	public:
+		PlazaTextureBinding() {}
 		PlazaTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType, PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel, uint16_t baseLayerLevel, std::shared_ptr<Texture> texture)
 			: mBufferType(bufferType) {
 			mLocation = location;
@@ -94,12 +108,18 @@ namespace Plaza {
 		}
 
 		std::shared_ptr<Texture> mTexture = nullptr;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<PlazaShadersBinding>(this), PL_SER(mBufferType), PL_SER(mInitialLayout), PL_SER(mBaseMipLevel), PL_SER(mBaseLayerLevel), PL_SER(mBaseLayerLevel), PL_SER(mTexture));
+		}
 	private:
 	};
 
 	class PlazaRenderGraph;
-	class PlazaRenderPass {
+	class PLAZA_API PlazaRenderPass {
 	public:
+		PlazaRenderPass() {}
 		PlazaRenderPass(std::string name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) : mName(name), mStage(stage), mRenderMethod(renderMethod), mRenderSize(size), mFlipViewPort(flipViewPort) {}
 
 		std::string mName = "";
@@ -123,6 +143,7 @@ namespace Plaza {
 
 
 		std::function<void(PlazaRenderGraph*, PlazaRenderPass*)> mCallback = [](PlazaRenderGraph*, PlazaRenderPass*) {};
+
 
 		virtual void Compile(PlazaRenderGraph* renderGraph) {};
 		virtual void Execute(PlazaRenderGraph* renderGraph) {
@@ -217,6 +238,12 @@ namespace Plaza {
 			return pass.get();
 		}
 		std::vector<std::shared_ptr<PlazaRenderPass>> mChildPasses = std::vector<std::shared_ptr<PlazaRenderPass>>();
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(mName), PL_SER(mStage), PL_SER(mRenderMethod), PL_SER(mMultiViewCount), PL_SER(mRenderSize), PL_SER(mDispatchSize), PL_SER(mFlipViewPort),
+				PL_SER(mPipelines), PL_SER(mInputBindings), PL_SER(mInputBindingNames), PL_SER(mOutputBindings), PL_SER(mOutputBindingNames), PL_SER(mChildPasses));
+		}
 	private:
 		virtual void CompileGraphics(PlazaRenderGraph* renderGraph) { };
 	};
@@ -229,31 +256,11 @@ namespace Plaza {
 		shared_ptr<PlazaShadersBinding> binding = nullptr;
 	};
 
-	class PlazaRenderGraph {
+	class PLAZA_API PlazaRenderGraph : public Asset {
 	public:
+		PlazaRenderGraph() {}
 		virtual void BuildDefaultRenderGraph() {
-			//this->AddRenderPass(std::make_shared<PlazaRenderPass>("Deferred Geometry Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT))
-			//	->AddInputResource(std::make_shared<PlazaBufferBinding>(1, 0, PlazaBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_ALL, "UniformBufferObject"))
-			//	->AddInputResource(std::make_shared<PlazaBufferBinding>(1, 20, PlazaBufferType::PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, "TexturesBuffer"))
-			//	->AddInputResource(std::make_shared<PlazaBufferBinding>(1, 6, PlazaBufferType::PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, "samplerBRDFLUT"))
-			//	->AddInputResource(std::make_shared<PlazaBufferBinding>(1, 7, PlazaBufferType::PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, "prefilterMap"))
-			//	->AddInputResource(std::make_shared<PlazaBufferBinding>(1, 8, PlazaBufferType::PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, "irradianceMap"))
-			//	->AddInputResource(std::make_shared<PlazaBufferBinding>(1, 9, PlazaBufferType::PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, "shadowsDepthMap"))
-			//	->AddInputResource(std::make_shared<PlazaBufferBinding>(1, 19, PlazaBufferType::PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, "materialsBuffer"))
-			//	->AddInputResource(std::make_shared<PlazaBufferBinding>(1, 1, PlazaBufferType::PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, "boneMatrices"))
-			//	->AddInputResource(std::make_shared<PlazaBufferBinding>(1, 2, PlazaBufferType::PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, "renderGroupOffsetsBuffer"))
-			//	->AddInputResource(std::make_shared<PlazaBufferBinding>(1, 3, PlazaBufferType::PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, "renderGroupMaterialsOffsetsBuffer"))
-			//	->AddOutputResource(std::make_shared<PlazaTextureBinding>(1, 0, 0, PlazaBufferType::PL_BUFFER_SAMPLER, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "GPosition"))
-			//	->AddOutputResource(std::make_shared<PlazaTextureBinding>(1, 1, 0, PlazaBufferType::PL_BUFFER_SAMPLER, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "GDiffuse"))
-			//	->AddOutputResource(std::make_shared<PlazaTextureBinding>(1, 2, 0, PlazaBufferType::PL_BUFFER_SAMPLER, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "GNormal"))
-			//	->AddOutputResource(std::make_shared<PlazaTextureBinding>(1, 3, 0, PlazaBufferType::PL_BUFFER_SAMPLER, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "GOthers"));
-			//
-			//this->AddRenderPass(std::make_shared<PlazaRenderPass>("Deferred Lighting Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT))
-			//	->AddInputResource(std::make_shared<PlazaTextureBinding>(1, 0, 0, PlazaBufferType::PL_BUFFER_SAMPLER, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "GPosition"))
-			//	->AddInputResource(std::make_shared<PlazaTextureBinding>(1, 0, 1, PlazaBufferType::PL_BUFFER_SAMPLER, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "GDiffuse"))
-			//	->AddInputResource(std::make_shared<PlazaTextureBinding>(1, 0, 2, PlazaBufferType::PL_BUFFER_SAMPLER, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "GNormal"))
-			//	->AddInputResource(std::make_shared<PlazaTextureBinding>(1, 0, 3, PlazaBufferType::PL_BUFFER_SAMPLER, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "GOthers"))
-			//	->AddOutputResource(std::make_shared<PlazaTextureBinding>(1, 0, 0, PlazaBufferType::PL_BUFFER_SAMPLER, PlazaTextureType::PL_TYPE_2D, PlazaTextureFormat::PL_FORMAT_R32G32B32_SFLOAT, glm::vec3(2560, 1080, 1), 1, 1, "SceneTexture"));
+
 		}
 
 		virtual void Execute(uint8_t imageIndex, uint8_t currentFrame) {};
@@ -356,6 +363,11 @@ namespace Plaza {
 		}
 
 		std::map<std::string, std::shared_ptr<PlBuffer>> mBuffers = std::map<std::string, std::shared_ptr<PlBuffer>>();
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<Asset>(this), PL_SER(mBuffers), PL_SER(mTextures), PL_SER(mPasses), PL_SER(mShadersBindings));
+		}
 	private:
 		std::map<std::string, std::shared_ptr<Texture>> mTextures = std::map<std::string, std::shared_ptr<Texture>>();
 
@@ -370,3 +382,8 @@ namespace Plaza {
 		unsigned int numSamples = 32u;
 	};
 }
+
+PL_SER_REGISTER_TYPE(PlazaTextureBinding);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaShadersBinding, PlazaTextureBinding);
+PL_SER_REGISTER_TYPE(PlazaBufferBinding);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaShadersBinding, PlazaBufferBinding);

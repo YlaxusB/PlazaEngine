@@ -28,6 +28,10 @@ namespace Plaza {
 		}
 		virtual void Destroy() {};
 
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(mName), PL_SER(mType), PL_SER(mMaxItems), PL_SER(mStride), PL_SER(mBufferCount), PL_SER(mCurrentItemCount), PL_SER(mCurrentBufferSize), PL_SER(mBufferUsage), PL_SER(mMemoryUsage), PL_SER(mMemoryProperties));
+		}
 	private:
 		virtual void UpdateDataHelper(unsigned int index, const void* newData, size_t size) = 0;
 	};

@@ -891,8 +891,9 @@ namespace Plaza {
 		}
 	}
 
-	class VulkanBufferBinding : public PlazaBufferBinding {
+	class PLAZA_API VulkanBufferBinding : public PlazaBufferBinding {
 	public:
+		VulkanBufferBinding() {}
 		VulkanBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage, std::shared_ptr<PlBuffer> buffer)
 			: PlazaBufferBinding(descriptorCount, binding, type, stage, buffer) {};
 		virtual void Compile(std::set<std::string>& compiledBindings) override;
@@ -913,11 +914,16 @@ namespace Plaza {
 			return plvk::writeDescriptorSet(descriptorSet, this->mBinding, 0, PlBufferTypeToVkDescriptorType(mBuffer->mType), mDescriptorCount, nullptr, bufferInfo);
 		}
 
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<PlazaBufferBinding>(this));
+		}
 	private:
 	};
 
-	class VulkanTextureBinding : public PlazaTextureBinding {
+	class PLAZA_API VulkanTextureBinding : public PlazaTextureBinding {
 	public:
+		VulkanTextureBinding() {}
 		VulkanTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType, PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel, uint16_t baseLayerLevel, std::shared_ptr<Texture> texture)
 			: PlazaTextureBinding(descriptorCount, location, binding, bufferType, renderStage, initialLayout, baseMipLevel, baseLayerLevel, texture) {
 			mName = texture->mAssetName;
@@ -950,12 +956,17 @@ namespace Plaza {
 
 		VkImageView mNonDefaultView = VK_NULL_HANDLE;
 		//std::shared_ptr<VulkanTexture> mTexture = nullptr;
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<PlazaTextureBinding>(this));
+		}
 	private:
 
 	};
 
-	class VulkanRenderPass : public PlazaRenderPass {
+	class PLAZA_API VulkanRenderPass : public PlazaRenderPass {
 	public:
+		VulkanRenderPass() {}
 		VulkanRenderPass(std::string name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) : PlazaRenderPass(name, stage, renderMethod, size, flipViewPort) {}
 		//std::vector<std::shared_ptr<VulkanPlazaPipeline>> mPipelines = std::vector<std::shared_ptr<VulkanPlazaPipeline>>();
 
@@ -1009,6 +1020,11 @@ namespace Plaza {
 
 		std::vector<VkDescriptorSet> mDescriptorSets = std::vector<VkDescriptorSet>();
 		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<PlazaRenderPass>(this));
+		}
 	private:
 		virtual void CompileGraphics(PlazaRenderGraph* renderGraph) override;
 		VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
@@ -1018,8 +1034,10 @@ namespace Plaza {
 		void GetBindingWriteInfo(const shared_ptr<PlazaShadersBinding>& binding, unsigned int i, std::vector<VkWriteDescriptorSet>& descriptorWrites, std::vector<VkDescriptorBufferInfo*>& bufferInfos, std::vector<VkDescriptorImageInfo*>& imageInfos);
 	};
 
-	class VulkanRenderGraph : public PlazaRenderGraph {
+	class PLAZA_API VulkanRenderGraph : public PlazaRenderGraph {
 	public:
+		VulkanRenderGraph() {}
+
 		void Execute(uint8_t imageIndex, uint8_t currentFrame) override;
 		void OrderPasses() override;
 		bool BindPass(std::string passName) override;
@@ -1041,7 +1059,20 @@ namespace Plaza {
 		void AddPipeline() override;
 		void CreatePipeline(PlPipelineCreateInfo createInfo) override;
 
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<PlazaRenderGraph>(this));
+		}
 	private:
 		VkCommandBuffer* mCommandBuffer = VK_NULL_HANDLE;
 	};
 }
+
+PL_SER_REGISTER_TYPE(VulkanRenderGraph);
+PL_SER_REGISTER_TYPE(VulkanRenderPass);
+PL_SER_REGISTER_TYPE(VulkanTextureBinding);
+PL_SER_REGISTER_TYPE(VulkanBufferBinding);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaRenderGraph, VulkanRenderGraph);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaRenderPass, VulkanRenderPass);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaTextureBinding, VulkanTextureBinding);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaBufferBinding, VulkanBufferBinding);

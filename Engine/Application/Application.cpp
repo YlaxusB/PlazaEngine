@@ -71,6 +71,8 @@ namespace Plaza {
 #ifdef EDITOR_MODE
 		this->CheckEditorCache();
 #endif
+		if (std::filesystem::exists(Application::Get()->enginePathAppData + "Settings" + Standards::editorSettingsExtName))
+			Application::Get()->mSettings = *AssetsSerializer::DeSerializeFile<EngineSettings>(Application::Get()->enginePathAppData + "Settings" + Standards::editorSettingsExtName, Application::Get()->mSettings.mCommonSerializationMode).get();
 		this->SetDefaultSettings();
 		Scene::InitializeScenes();
 		mRenderer->Init();
@@ -100,10 +102,10 @@ namespace Plaza {
 #else
 
 #endif
-	}
+}
 
 	/*
-	
+
 			SerializationMode mCommonSerializationMode = SerializationMode::SERIALIZE_JSON;
 		SerializationMode mMetaDataSerializationMode = SerializationMode::SERIALIZE_JSON;
 		SerializationMode mSceneSerializationMode = SerializationMode::SERIALIZE_JSON;

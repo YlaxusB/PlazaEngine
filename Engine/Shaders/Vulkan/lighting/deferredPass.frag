@@ -333,22 +333,21 @@ float CalculateAttenuation(vec3 lightPos, vec3 fragPos, float minRadius, float m
 void main()
 {  
     float depth = GetDepth();
-    vec3 FragPos = ReconstructPosition(depth);
-    vec3 Diffuse = texture(gDiffuse, TexCoords).xyz;
-    vec3 Normal = texture(gNormal, TexCoords).rgb;
-    const vec3 Others = texture(gOthers, TexCoords).xyz;
-    const float Specular = Others.x;
-    const float metalness = 1.0f - Others.y;
-    const float roughness = Others.z;
-
     vec3 lighting  = vec3(1.0f);
 
     vec2 clusterCount = ceil(screenSize / clusterSize.xy);
     int clusterIndex = GetIndex(TexCoords, clusterCount);
     Cluster currentCluster = clusters[clusterIndex];
+    const vec3 Diffuse = texture(gDiffuse, TexCoords).xyz;
     vec3 color = Diffuse;
     //if(ubo.lightCount > 0 && depth != 1.0f) {
     if(depth != 1.0f) {
+        const vec3 FragPos = ReconstructPosition(depth);
+        const vec3 Normal = texture(gNormal, TexCoords).rgb;
+        const vec3 Others = texture(gOthers, TexCoords).xyz;
+        const float Specular = Others.x;
+        const float metalness = 1.0f - Others.y;
+        const float roughness = Others.z;
         color = vec3(0.0f);
         vec3 shadow = (1.0f - ShadowCalculation(FragPos.xyz, Normal)) * ubo.directionalLightColor.xyz;
         color = CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow);

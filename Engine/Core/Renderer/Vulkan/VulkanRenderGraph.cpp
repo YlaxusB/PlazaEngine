@@ -918,9 +918,9 @@ namespace Plaza {
 	void VulkanRenderGraph::OrderPasses() {
 		std::map<std::string, BindingModifiers> bindingsModifiers = std::map<std::string, BindingModifiers>();
 
-		mOrderedPasses.clear();
+		//mOrderedPasses.clear();
 		for (const auto& [key, pass] : mPasses) {
-			mOrderedPasses.push_back(pass);
+			//mOrderedPasses.push_back(pass);
 			for (const auto& resource : pass->mInputBindings) {
 				if (bindingsModifiers.find(resource->mName) == bindingsModifiers.end())
 					bindingsModifiers.emplace(resource->mName, BindingModifiers(resource));

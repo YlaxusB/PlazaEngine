@@ -2,6 +2,10 @@
 #include "Editor/GUI/GuiWindow.h"
 #include "ThirdParty/imgui/nodes/imgui_node_editor.h"
 #include "ThirdParty/imgui/imgui_internal.h"
+#include <any>
+#include "ThirdParty/magic_enum/magic_enum.hpp"
+#include "Engine/Core/EnumReflection.h"
+#include "Engine/Core/Any.h"
 
 //namespace ed = ax::NodeEditor;
 namespace Plaza::Editor {
@@ -12,7 +16,8 @@ namespace Plaza::Editor {
 
 		NodeEditor(const std::string& name, GuiLayer layer, bool startOpen = true) : GuiWindow(layer, startOpen) { }
 
-		void Init() override;
+		void InitNodeEditor();
+		//void Init() override {};
 		void Update() override;
 		void OnKeyPress(int key, int scancode, int action, int mods) override;
 
@@ -24,16 +29,18 @@ namespace Plaza::Editor {
 		int	mNextId = 1;
 		int mNextLinkId = 1;
 		const int mPinIconSize = 24;
-		std::vector<Node>    mNodes;
-		std::vector<Link>    mLinks;
-		std::map<std::string, Node>    mTemplateNodes;
-		const float          mTouchTime = 1.0f;
+		std::vector<Node> mNodes;
+		std::vector<Link> mLinks;
+		std::map<std::string, Node> mTemplateNodes;
+		const float mTouchTime = 1.0f;
 		//std::map<ax::NodeEditor::NodeId, float, NodeIdLess> mNodeTouchTime;
 
 		int GetNextId() { return mNextId++; }
 
 		void NewNode(const std::string& nodeName);
 		void RemoveNode(int index);
+
+		void Process();
 
 		void AddNodeToCreate(const Node& newNode);
 	public:
@@ -60,7 +67,8 @@ namespace Plaza::Editor {
 		enum class PinKind
 		{
 			Output,
-			Input
+			Input,
+			Constant
 		};
 
 		enum class NodeType
@@ -71,17 +79,46 @@ namespace Plaza::Editor {
 			Comment,
 			Houdini
 		};
-		struct Pin
+		class Pin
 		{
+		public:
 			ax::NodeEditor::PinId   id;
 			Node* node;
 			std::string name;
-			PinType     type;
-			PinKind     kind;
+			PinType	type;
+			PinKind	kind;
+			//std::any value;
+			Any value;
+			int enumSize = 0;
+			int enumIndex = 0;
 
 			Pin(int newId, const char* newName, PinType newType, PinKind newKind = PinKind::Input) :
-				id(newId), node(nullptr), name(newName), type(newType), kind(newKind)
-			{
+				id(newId), node(nullptr), name(newName), type(newType), kind(newKind) { }
+
+			template<typename T>
+			T GetValue() {
+				return *value.GetValue<T>();
+			}
+
+			template<typename T>
+			void SetValue(const T& newValue, bool changeType = true) {
+				value.SetValue(newValue, changeType);
+			}
+
+			template<typename T>
+			void SetEnumValue(int newValue) {
+				static_assert(std::is_enum<T>::value, "T must be an enum type.");
+				value = static_cast<T>(newValue);
+				enumIndex = newValue;
+
+				enumSize = magic_enum::enum_count<T>();
+
+				EnumReflection::RegisterEnum<T>();
+			}
+
+			void SetEnumIndex(int newValue) {
+				value.SetValue(newValue, false);
+				enumIndex = newValue;
 			}
 		};
 		struct Node {
@@ -92,6 +129,10 @@ namespace Plaza::Editor {
 			ImColor color;
 			NodeType type;
 			ImVec2 size;
+			std::function<void()> processFunction;
+			void Process() {
+				processFunction();
+			}
 		};
 		struct Link
 		{
@@ -116,7 +157,7 @@ namespace Plaza::Editor {
 				return FLT_MAX;
 			return (g.FontSize + g.Style.ItemSpacing.y) * items_count - g.Style.ItemSpacing.y + (g.Style.WindowPadding.y * 2);
 		}
-		bool BeginNodeCombo(const char* label, const char* preview_value, ImGuiComboFlags flags, ImVec2& pos);
+		bool BeginNodeCombo(const char* label, const char* preview_value, ImGuiComboFlags flags);
 
 		void EndNodeCombo();
 	};

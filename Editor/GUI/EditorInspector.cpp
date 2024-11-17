@@ -14,8 +14,8 @@ namespace Plaza::Editor {
 
                /* Editor Settings */
                if (Utils::ComponentInspectorHeader(nullptr, "Settings")) {
-                    if (ImGui::Checkbox("VSync", &Application::Get()->mEditor->mSettings.mVsync)) {
-                         Application::Get()->mEditor->mSettings.ReapplyAllSettings();
+                    if (ImGui::Checkbox("VSync", &Application::Get()->mSettings.mVsync)) {
+                         //Application::Get()->mEditor->mSettings.ReapplyAllSettings();
                     }
 
                     ImGui::Checkbox("Show Cascade Levels", &Application::Get()->showCascadeLevels);
@@ -33,7 +33,8 @@ namespace Plaza::Editor {
                     ImGui::DragFloat("Ambient Intesnity", &VulkanRenderer::GetRenderer()->mLighting->ambientLightIntensity);
 
                     if (ImGui::Button("Save Settings")) {
-                         Editor::EditorSettingsSerializer::Serialize();
+                         //Editor::EditorSettingsSerializer::Serialize();
+                        AssetsSerializer::SerializeFile<EngineSettings>(Application::Get()->mSettings, Application::Get()->enginePathAppData + "Settings" + Standards::editorSettingsExtName, Application::Get()->mSettings.mCommonSerializationMode);
                     }
                }
 

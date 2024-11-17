@@ -13,5 +13,6 @@ namespace Plaza {
 		static inline std::string animationExtName = engineExtName + "anim";
 		static inline std::string editorCacheExtName = engineExtName + "cache";
 		static inline std::string plazaRenderGraph = engineExtName + "grph";
+		static inline std::string editorSettingsExtName = engineExtName + "cfg";
 	};
 }

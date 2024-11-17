@@ -1,56 +1,50 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "NodeEditor.h"
 #include "Engine/Application/FileDialog/FileDialog.h"
+#include <algorithm>
+#include <vector>
+#include <iostream>
+#include "Editor/GUI/Inspector/Primitives/PrimitivesInspector.h"
 
-//namespace ed = ax::NodeEditor;
 namespace Plaza::Editor {
-	void NodeEditor::Init() {
+	void NodeEditor::InitNodeEditor() {
 		ax::NodeEditor::Config config;
 		config.SettingsFile = "Simple.json";
 		mContext = ax::NodeEditor::CreateEditor(&config);
-
-		Node node = Node();
-		node.name = "Multiply";
-		node.inputs.push_back(Pin(0, "X", PinType::Float));
-		node.outputs.push_back(Pin(0, "Y", PinType::Float, PinKind::Output));
-		AddNodeToCreate(node);
-		node.name = "Enum";
-		node.inputs[0].type = PinType::Enum;
-		node.outputs[0].type = PinType::Enum;
-		AddNodeToCreate(node);
 	};
 
-	enum class VkFormat {
-		VK_FORMAT_UNDEFINED,
-		VK_FORMAT_D32_SFLOAT,
-		VK_FORMAT_D24_UNORM_S8_UINT,
-		// Add other formats as needed
-	};
+	void NodeEditor::Process() {
+		ax::NodeEditor::SetCurrentEditor(mContext);
+		int nodeCount = ax::NodeEditor::GetNodeCount();
+		std::vector<ax::NodeEditor::NodeId> orderedNodeIds;
+		orderedNodeIds.resize(static_cast<size_t>(nodeCount));
+		ax::NodeEditor::GetOrderedNodeIds(orderedNodeIds.data(), nodeCount);
+		for (unsigned int i = 0; i < nodeCount; ++i) {
+			ax::NodeEditor::NodeId nodeId = orderedNodeIds[i];
 
-	// Convert VkFormat to string for display in combo box
-	const char* VkFormatToString(VkFormat format) {
-		switch (format) {
-		case VkFormat::VK_FORMAT_UNDEFINED: return "VK_FORMAT_UNDEFINED";
-		case VkFormat::VK_FORMAT_D32_SFLOAT: return "VK_FORMAT_D32_SFLOAT";
-		case VkFormat::VK_FORMAT_D24_UNORM_S8_UINT: return "VK_FORMAT_D24_UNORM_S8_UINT";
-		default: return "Unknown";
+			auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const Node& node) {
+				return node.id == nodeId.Get();
+				});
+			if (it != mNodes.end())
+				std::swap(*it, mNodes[i]);
+		}
+		ax::NodeEditor::SetCurrentEditor(nullptr);
+
+		for (const auto& node : mNodes) {
+			node.processFunction();
 		}
 	}
 
 	void NodeEditor::Update() {
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
-		static VkFormat selectedFormat = VkFormat::VK_FORMAT_UNDEFINED;  // Default value
 
-		// Create a combo box for VkFormat enum
-		const char* formats[] = {
-			VkFormatToString(VkFormat::VK_FORMAT_UNDEFINED),
-			VkFormatToString(VkFormat::VK_FORMAT_D32_SFLOAT),
-			VkFormatToString(VkFormat::VK_FORMAT_D24_UNORM_S8_UINT),
-			// Add more formats as needed
-		};
-		const char* currentFormat = VkFormatToString(selectedFormat);
 		if (ImGui::Begin("Render Graph Editor", &mExpanded, windowFlags)) {
 			ImGui::BeginChild("Selection", ImVec2(300.0f, 0));
+
+			if (ImGui::Button("Process")) {
+				this->Process();
+			}
+
 			for (const auto& [key, value] : mTemplateNodes) {
 				if (ImGui::Button(("Add: " + value.name).c_str())) {
 					this->NewNode(value.name);
@@ -82,31 +76,32 @@ namespace Plaza::Editor {
 			ax::NodeEditor::EndPin();
 			ax::NodeEditor::EndNode();
 
-			for (const auto& node : mNodes) {
+			for (auto& node : mNodes) {
 				ax::NodeEditor::BeginNode(uniqueId++);
 				ImGui::Text(node.name.c_str());
-				for (const auto& input : node.inputs) {
+				for (auto& input : node.inputs) {
 					cursorPos = ImGui::GetWindowPos();
-					if (input.type == PinType::Enum) {
-						//if (ImGui::Button("Select"))
-						//	ImGui::OpenPopup("EnumPopup");
-						ImVec2 pos;
-						if (NodeEditor::BeginNodeCombo("Format", currentFormat, ImGuiComboFlags_PopupAlignLeft, pos)) {
-							ImGui::SetNextWindowPos(pos);
-							ax::NodeEditor::Suspend();
-							if (ImGui::Begin("New Window")) {
-								for (int i = 0; i < IM_ARRAYSIZE(formats); ++i) {
-									bool isSelected = (currentFormat == formats[i]);
-									if (ImGui::Selectable(formats[i], isSelected)) {
-										selectedFormat = static_cast<VkFormat>(i);  // Set selected enum value
-									}
-								}
-								ImGui::End();
-								ax::NodeEditor::Resume();
-							}
-							NodeEditor::EndNodeCombo();
-						}
+					if (input.type == PinType::Enum || input.kind == PinKind::Constant || input.kind == PinKind::Input) {
+						const char* name = input.value.type().raw_name();
+						ImGui::PushID(uniqueId++);
+						PrimitivesInspector::InspectAny(input.value);
+						//if (NodeEditor::BeginNodeCombo("Format", EnumReflection::GetEnumName(name, input.enumIndex), ImGuiComboFlags_PopupAlignLeft)) {
+						//	for (int i = 0; i < input.enumSize; ++i) {
+						//		ImGui::PushID(uniqueId++);
+						//		bool isSelected = (EnumReflection::GetEnumName(name, i) == EnumReflection::GetEnumName(name, input.enumIndex));
+						//		//bool isSelected = false;
+						//		if (ImGui::Selectable(EnumReflection::GetEnumName(name, i), isSelected)) {
+						//			input.SetEnumIndex(i);
+						//		}
+						//		ImGui::PopID();
+						//	}
+						//	NodeEditor::EndNodeCombo();
+						//}
+						ImGui::PopID();
 					}
+					//else if (input.kind == PinKind::Constant) {
+					//	PrimitivesInspector::InspectAny(input.value);
+					//}
 					else {
 						ax::NodeEditor::BeginPin(uniqueId++, ax::NodeEditor::PinKind::Input);
 						ImGui::Text(input.name.c_str());
@@ -202,7 +197,7 @@ namespace Plaza::Editor {
 		//mNodes.back().Outputs.emplace_back(GetNextId(), "False", PinType::Flow);
 	}
 
-	bool NodeEditor::BeginNodeCombo(const char* label, const char* preview_value, ImGuiComboFlags flags, ImVec2& pos)
+	bool NodeEditor::BeginNodeCombo(const char* label, const char* preview_value, ImGuiComboFlags flags)
 	{
 		using namespace ImGui;
 
@@ -285,7 +280,7 @@ namespace Plaza::Editor {
 
 		// Set default position without using CalcWindowExpectedSize
 		ImVec2 size_expected(w, CalcMaxPopupHeightFromItemCount(8)); // Estimate expected size
-		pos = frame_bb.GetBL();
+		ImVec2 pos = frame_bb.GetBL();
 		if (flags & ImGuiComboFlags_PopupAlignLeft)
 			pos.x -= size_expected.x - w;
 
@@ -295,7 +290,7 @@ namespace Plaza::Editor {
 		// Move ed::Suspend and ed::Resume here
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_Popup | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove;
 
-		//ax::NodeEditor::Suspend();
+		ax::NodeEditor::Suspend();
 		PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(style.FramePadding.x, style.WindowPadding.y));
 
 		bool ret = Begin(name, NULL, window_flags);
@@ -314,7 +309,7 @@ namespace Plaza::Editor {
 	void NodeEditor::EndNodeCombo() {
 		ImGui::EndPopup();
 
-		//ax::NodeEditor::Resume();
+		ax::NodeEditor::Resume();
 		//ImGui::SetWindowPos(ImVec2(500.0f, 200.0f));
 	}
 }

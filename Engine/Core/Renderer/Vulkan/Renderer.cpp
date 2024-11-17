@@ -455,8 +455,9 @@ namespace Plaza {
 			}
 		}
 #elif EDITOR_MODE
+		VkPresentModeKHR mode = Application::Get()->mSettings.mVsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_MAILBOX_KHR;
 		for (const auto& availablePresentMode : availablePresentModes) {
-			if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) { //  VK_PRESENT_MODE_FIFO_KHR = Vsync
+			if (availablePresentMode == mode) { //  VK_PRESENT_MODE_FIFO_KHR = Vsync
 				return availablePresentMode; //  VK_PRESENT_MODE_MAILBOX_KHR = No Limit
 			}
 		}

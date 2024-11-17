@@ -183,6 +183,10 @@ add_dependencies(PlazaEngineCore PhysX)
 target_link_libraries(PlazaEngineCore PUBLIC  glfw OpenAL freetype TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib"  DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 target_compile_definitions(PlazaEngineCore PRIVATE ENGINE_EXPORTS)
 
+if(MSVC)
+ target_compile_options(PlazaEngineCore PRIVATE "/MP")
+endif()
+
 
 set_target_properties(PlazaEngineCore PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"  # For the DLL

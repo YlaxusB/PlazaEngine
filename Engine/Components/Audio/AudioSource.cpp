@@ -38,7 +38,7 @@ namespace Plaza {
 		alSourcefv(mSource, AL_POSITION, mPosition);
 	}
 
-	void AudioSource::SetPosition(glm::vec3 vec3)
+	void AudioSource::SetPosition(const glm::vec3& vec3)
 	{
 		mPosition[0] = vec3.x;
 		mPosition[1] = vec3.y;

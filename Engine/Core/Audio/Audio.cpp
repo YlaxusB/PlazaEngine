@@ -77,5 +77,9 @@ namespace Plaza {
 			alListenerfv(AL_VELOCITY, listenerVel);
 			alListenerfv(AL_ORIENTATION, listenerOrientation);
 		}
+
+		for (auto& [key, value] : Scene::GetActiveScene()->audioSourceComponents) {
+			value.SetPosition(Scene::GetActiveScene()->GetComponent<Transform>(key)->GetWorldPosition());
+		}
 	}
 }

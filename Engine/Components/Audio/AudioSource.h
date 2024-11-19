@@ -26,7 +26,7 @@ namespace Plaza {
 		float mGain = 1.0f;
 
 		void SetPosition(float x, float y, float z);
-		void SetPosition(glm::vec3 vec3);
+		void SetPosition(const glm::vec3& vec3);
 		void SetGain(float value);
 		void SetPitch(float value);
 		void SetLoop(bool loop);

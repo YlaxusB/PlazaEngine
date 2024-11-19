@@ -33,6 +33,8 @@ namespace Plaza::Editor {
 		std::vector<Link> mLinks;
 		std::map<std::string, Node> mTemplateNodes;
 		const float mTouchTime = 1.0f;
+		static inline Any* sEnumToShowOnPopup = nullptr;
+		static inline bool sOpenNodeEditorPopup = false;
 		//std::map<ax::NodeEditor::NodeId, float, NodeIdLess> mNodeTouchTime;
 
 		int GetNextId() { return mNextId++; }
@@ -113,7 +115,14 @@ namespace Plaza::Editor {
 
 				enumSize = magic_enum::enum_count<T>();
 
-				EnumReflection::RegisterEnum<T>();
+				std::vector<const char*> names = std::vector<const char*>();
+				for (int i = 0; i < enumSize; ++i) {
+					names.push_back(magic_enum::enum_name(T(i)).data());
+				}
+				if (names.size() > 0 && (names[0] == nullptr || (names.size() > 1 && names[1] == nullptr)))
+					EnumReflection::RegisterBitmaskEnum<T>();
+				else
+					EnumReflection::RegisterEnum<T>();
 			}
 
 			void SetEnumIndex(int newValue) {

@@ -5,11 +5,11 @@ namespace Plaza::Editor {
 	public:
 		static void Init();
 
-		static bool InspectAny(Any& any);
+		static bool InspectAny(Any& any, const std::string& comboPopupName = "");
 
 		static bool InspectString(const std::string& name, std::string& value);
 		static bool InspectBool(const std::string& name, bool& value);
-		static bool InspectEnum(Any& any);
+		static bool InspectEnum(Any& any, const std::string& comboPopupName = "");
 		static bool InspectFloat(const std::string& name, float& value);
 		static bool InspectInt(const std::string& name, int& value);
 		static bool InspectUInt(const std::string& name, unsigned int& value);

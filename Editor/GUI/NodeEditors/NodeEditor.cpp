@@ -84,7 +84,7 @@ namespace Plaza::Editor {
 					if (input.type == PinType::Enum || input.kind == PinKind::Constant || input.kind == PinKind::Input) {
 						const char* name = input.value.type().raw_name();
 						ImGui::PushID(uniqueId++);
-						PrimitivesInspector::InspectAny(input.value);
+						PrimitivesInspector::InspectAny(input.value, "NodeEditorEnumPopup");
 						//if (NodeEditor::BeginNodeCombo("Format", EnumReflection::GetEnumName(name, input.enumIndex), ImGuiComboFlags_PopupAlignLeft)) {
 						//	for (int i = 0; i < input.enumSize; ++i) {
 						//		ImGui::PushID(uniqueId++);
@@ -157,7 +157,51 @@ namespace Plaza::Editor {
 				ax::NodeEditor::Link(link.id, link.startPinID, link.endPinID);
 			}
 
+			ax::NodeEditor::Suspend();
+			if (sOpenNodeEditorPopup) {
+				ImGui::OpenPopup("NodeEditorEnumPopup");
+				sOpenNodeEditorPopup = false;
+			}
+			if (ImGui::BeginPopup("NodeEditorEnumPopup")) {
+				const char* typeRawName = sEnumToShowOnPopup->type().raw_name();
+				const std::vector<const char*>& enumNames = EnumReflection::GetEnumNames(typeRawName);
+				int index = 0;
+				for (const char* name : enumNames) {
+					bool selected = EnumReflection::GetEnumName(typeRawName, index);
+					bool clicked = ImGui::Selectable(name, &selected);
+
+
+					sEnumToShowOnPopup->SetValue<int>(index, false);
+					if (clicked) {
+						sEnumToShowOnPopup = nullptr;
+						break;
+					};
+					index++;
+				}
+
+				//if (sEnumToShowOnPopup)
+				//	PrimitivesInspector::InspectAny(*sEnumToShowOnPopup);
+
+				//for (int i = 0; i < items.size(); ++i)
+				//{
+				//	bool is_selected = (current_item == i);
+				//	if (ImGui::Selectable(items[i].c_str(), is_selected))
+				//	{
+				//		current_item = i; // Update the selected item
+				//		ImGui::CloseCurrentPopup();
+				//	}
+				//
+				//	if (is_selected)
+				//		ImGui::SetItemDefaultFocus(); // Focus on the currently selected item
+				//}
+				ImGui::EndPopup();
+			}
+			else
+				sEnumToShowOnPopup = nullptr;
+			ax::NodeEditor::Resume();
+
 			ax::NodeEditor::End();
+
 			ax::NodeEditor::SetCurrentEditor(nullptr);
 			//if (ImGui::BeginPopup("EnumPopup"))
 			//{

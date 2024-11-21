@@ -34,3 +34,6 @@
 [submodule "ThirdParty/embed"]
 	path = ThirdParty/embed
 	url = https://github.com/batterycenter/embed
+[submodule "ThirdParty/pfr"]
+	path = ThirdParty/pfr
+	url = https://github.com/boostorg/pfr.git

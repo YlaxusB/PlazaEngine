@@ -69,9 +69,14 @@ namespace Plaza::Editor {
 				//	using FieldType = std::decay_t<decltype(field)>;
 				//	field = node.inputs[i].GetValue<FieldType>();
 				//	});
-				T* ptr = node.inputs[0].nodes[1]->outputs[0].value.GetValue<T>();
-				obj = *node.inputs[0].nodes[1]->outputs[0].value.GetValue<T>();//node.inputs[0].GetValue<T>();
-				node.outputs[0].SetValue<T>(obj);
+				if (node.inputs[0].nodes.size() > 1) {
+					T* ptr = node.inputs[0].nodes[1]->outputs[0].value.GetValue<T>();
+					obj = *node.inputs[0].nodes[1]->outputs[0].value.GetValue<T>();//node.inputs[0].GetValue<T>();
+					node.outputs[0].SetValue<T>(obj);
+				}
+				else {
+					node.outputs[0].SetValue<T>(T());
+				}
 				};
 			this->AddNodeToCreate(finalNode);
 
@@ -91,7 +96,10 @@ namespace Plaza::Editor {
 			Object,
 			Function,
 			Delegate,
-			Enum
+			Enum,
+			Vector2,
+			Vector3,
+			Vector4
 		};
 
 		enum class PinKind
@@ -214,6 +222,7 @@ namespace Plaza::Editor {
 				Node node = Node();
 				node.name = typeName;
 				AddInputPin(node, Pin(0, typeName.c_str(), NodeEditor::PinType::Enum, PinKind::Constant));
+				node.inputs[0].value.SetValue(T());
 				AddOutputPin(node, Pin(0, "Out", NodeEditor::PinType::Enum, PinKind::Output));
 				node.processFunction = [](Node& node) {
 					node.outputs[0].SetValue<T>(node.inputs[0].GetValue<T>(), false);

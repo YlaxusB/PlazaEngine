@@ -121,6 +121,7 @@ namespace Plaza {
 	public:
 		PlazaRenderPass() {}
 		PlazaRenderPass(std::string name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) : mName(name), mStage(stage), mRenderMethod(renderMethod), mRenderSize(size), mFlipViewPort(flipViewPort) {}
+		PlazaRenderPass(const PlazaRenderPass& other) = default;
 
 		std::string mName = "";
 		int16_t mExecutionIndex = 0;
@@ -299,18 +300,22 @@ namespace Plaza {
 		}
 
 		template<typename T>
-		T* GetTexture(std::string name) {
+		T* GetTexture(const std::string& name) {
 			assert(mTextures.find(name) != mTextures.end());
 			return dynamic_cast<T*>(mTextures.at(name).get());
 		}
 
+		bool HasTexture(const std::string& name) {
+			return mTextures.find(name) != mTextures.end();
+		}
+
 		template<typename T>
-		T* GetBuffer(std::string name) {
+		T* GetBuffer(const std::string& name) {
 			assert(mBuffers.find(name) != mBuffers.end());
 			return dynamic_cast<T*>(mBuffers.at(name).get());
 		}
 
-		std::shared_ptr<PlazaRenderPass> GetSharedRenderPass(std::string name) {
+		std::shared_ptr<PlazaRenderPass> GetSharedRenderPass(const std::string& name) {
 			if (mPasses.find(name) != mPasses.end())
 				return mPasses.find(name)->second;
 			return nullptr;
@@ -337,6 +342,7 @@ namespace Plaza {
 		std::vector<std::shared_ptr<PlazaRenderPass>> mOrderedPasses = std::vector<std::shared_ptr<PlazaRenderPass>>();
 		std::vector<std::vector<std::shared_ptr<PlazaShadersBinding>>> mOrderedReadBindings = std::vector<std::vector<std::shared_ptr<PlazaShadersBinding>>>();
 		std::vector<std::vector<std::shared_ptr<PlazaShadersBinding>>> mOrderedWriteBindings = std::vector<std::vector<std::shared_ptr<PlazaShadersBinding>>>();
+		std::map<uint64_t, TextureInfo> mUsedTexturesInfo = std::map<uint64_t, TextureInfo>();
 
 
 		static std::vector<PlVertexInputBindingDescription> VertexGetBindingDescription() {
@@ -362,14 +368,22 @@ namespace Plaza {
 			return attributeDescriptions;
 		}
 
+		virtual void CompileNotBoundBuffers() {};
+
 		std::map<std::string, std::shared_ptr<PlBuffer>> mBuffers = std::map<std::string, std::shared_ptr<PlBuffer>>();
+
+		void UpdateUsedTexturesInfo() {
+			for (const auto& texture : mTextures) {
+				mUsedTexturesInfo.emplace(texture.second->GetTextureInfo().mUuid, texture.second->GetTextureInfo());
+			}
+		}
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Asset>(this), PL_SER(mBuffers), PL_SER(mTextures), PL_SER(mPasses), PL_SER(mShadersBindings));
+			archive(cereal::base_class<Asset>(this), PL_SER(mBuffers), PL_SER(mTextures), PL_SER(mPasses), PL_SER(mShadersBindings), PL_SER(mOrderedPasses), PL_SER(mUsedTexturesInfo));
 		}
-	private:
 		std::map<std::string, std::shared_ptr<Texture>> mTextures = std::map<std::string, std::shared_ptr<Texture>>();
+	private:
 
 	};
 

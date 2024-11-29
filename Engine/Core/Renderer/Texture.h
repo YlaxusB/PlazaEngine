@@ -18,6 +18,7 @@ namespace Plaza {
 		std::string mPath = "";
 		PlSamplerAddressMode mSamplerAddressMode = PL_SAMPLER_ADDRESS_MODE_REPEAT;
 		bool mIsHdr = false;
+		uint64_t mUuid = 0;
 
 		bool operator==(const TextureInfo& other) const {
 			return mDescriptorCount == other.mDescriptorCount &&
@@ -30,6 +31,11 @@ namespace Plaza {
 				mPath == other.mPath &&
 				mSamplerAddressMode == other.mSamplerAddressMode &&
 				mIsHdr == other.mIsHdr;
+		}
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(mUuid), PL_SER(mDescriptorCount), PL_SER(mTextureType), PL_SER(mViewType), PL_SER(mFormat), PL_SER(mImageUsage), PL_SER(mLayersCount), PL_SER(mInitialLayout), PL_SER(mPath), PL_SER(mSamplerAddressMode), PL_SER(mIsHdr));
 		}
 	};
 
@@ -56,6 +62,7 @@ namespace Plaza {
 		float mIntensity = 1.0f;
 		glm::vec3 mResolution = glm::vec3(1, 1, 1);
 		uint8_t mMipCount = 1;
+		uint64_t mTextureInfoUuid = 0;
 
 		Texture() {
 			this->SetTextureInfo(TextureInfo{});
@@ -104,11 +111,18 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(PL_SER(mAssetUuid), PL_SER(rgba), PL_SER(mIntensity));
+			//auto infoHash = TextureInfoHash(TextureInfo{});
+			//if (mTextureInfo)
+			//	infoHash = TextureInfoHash(mTextureInfo);
+			archive(cereal::base_class<Asset>(this), PL_SER(rgba), PL_SER(mIntensity), PL_SER(mResolution), PL_SER(mMipCount), PL_SER(mTextureInfoUuid));
+			//if (sTexturesInfo.find(infoHash) != sTexturesInfo.end()) {
+			//	mTextureInfo = sTexturesInfo.at(infoHash);
+			//}
 		}
 
 		void SetTextureInfo(TextureInfo textureInfo) {
 			mTextureInfo = Texture::CreateTextureInfo(textureInfo);
+			mTextureInfoUuid = mTextureInfo->mUuid;
 		};
 		const TextureInfo& GetTextureInfo() { 
 			if (mTextureInfo == nullptr)
@@ -122,21 +136,23 @@ namespace Plaza {
 	public:
 		/* Static */
 		static TextureInfo* CreateTextureInfo(TextureInfo& info) {
-			if (!Texture::HasTextureInfo(info))
-				mTexturesInfo.emplace(info);
+			if (!Texture::HasTextureInfo(info)) {
+				info.mUuid = Plaza::UUID::NewUUID();
+				sTexturesInfo.emplace(info);
+			}
 			return Texture::GetTextureInfo(info);
 		}
-		static bool HasTextureInfo(TextureInfo& info) {
-			return mTexturesInfo.find(info) != mTexturesInfo.end();
+		static bool HasTextureInfo(const TextureInfo& info) {
+			return sTexturesInfo.find(info) != sTexturesInfo.end();
 		}
-		static TextureInfo* GetTextureInfo(TextureInfo& info) {
-			auto it = mTexturesInfo.find(info);
-			if (it != mTexturesInfo.end()) {
+		static TextureInfo* GetTextureInfo(const TextureInfo& info) {
+			auto it = sTexturesInfo.find(info);
+			if (it != sTexturesInfo.end()) {
 				return const_cast<TextureInfo*>(&(*it));
 			}
 			return nullptr;
 		}
 	private:
-		static inline std::unordered_set<TextureInfo, TextureInfoHash> mTexturesInfo = std::unordered_set<TextureInfo, TextureInfoHash>();
+		static inline std::unordered_set<TextureInfo, TextureInfoHash> sTexturesInfo = std::unordered_set<TextureInfo, TextureInfoHash>();
 	};
 }

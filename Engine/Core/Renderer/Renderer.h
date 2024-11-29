@@ -54,7 +54,7 @@ namespace Plaza {
 		Skybox* mSkybox;
 		Picking* mPicking;
 		GuiRenderer* mGuiRenderer;
-		PlazaRenderGraph* mRenderGraph;
+		PlazaRenderGraph* mRenderGraph = nullptr;
 		const unsigned int mMaxFramesInFlight = 2;
 		const uint64_t mMaxBindlessTextures = 16536;
 
@@ -65,6 +65,7 @@ namespace Plaza {
 		virtual void RenderImGuiFrame(std::vector<ImDrawData*> drawDatas) = 0;
 		virtual void RecordImGuiFrame(std::vector<ImDrawData*> drawDatas) = 0;
 		virtual void UpdateMainProgressBar(float percentage) = 0;
+		virtual void UpdateImGuiDisplayTexture(Texture* texture) = 0;
 
 		virtual Mesh* CreateNewMesh(
 			const std::vector<glm::vec3>& vertices,

@@ -92,6 +92,7 @@ namespace Plaza {
 		void InitVulkanImGui();
 		void NewFrameGUI() override;
 		void UpdateGUI() override;
+		void UpdateImGuiDisplayTexture(Texture* texture) override;
 		ImTextureID GetFrameImage() override;
 
 		void UploadBindlessTexture(VulkanTexture* texture, int index = -1);
@@ -140,7 +141,7 @@ namespace Plaza {
 		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel = 0, unsigned int arrayLayerCount = 1);
 		VkCommandBuffer* mActiveCommandBuffer;
 
-		VulkanRenderGraph* mRenderGraph;
+		VulkanRenderGraph* mRenderGraph = nullptr;
 
 		void ChangeFinalDescriptorImageView(VkImageView newImageView);
 		VkFormat mFinalDeferredFormat = VK_FORMAT_R32G32B32A32_SFLOAT;

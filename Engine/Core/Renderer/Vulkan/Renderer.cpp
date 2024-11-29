@@ -2656,7 +2656,7 @@ namespace Plaza {
 		this->mSkybox = new VulkanSkybox();
 		this->mPicking = new VulkanPicking();
 		this->mGuiRenderer = new VulkanGuiRenderer();
-		this->mRenderGraph = new VulkanRenderGraph();
+		//this->mRenderGraph = new VulkanRenderGraph();
 
 		this->mGuiRenderer->Init();
 
@@ -2787,113 +2787,123 @@ namespace Plaza {
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 		vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &semaphore);
 
-		PL_CORE_INFO("Build Default RenderGraph");
-		this->mRenderGraph->BuildDefaultRenderGraph();
-		PL_CORE_INFO("Initialize RenderGraph");
-		this->InitializeRenderGraph(mRenderGraph);
-		PL_CORE_INFO("Compile RenderGraph");
-		mRenderGraph->Compile();
-		for (auto& [key, value] : mRenderGraph->mBuffers) {
-			if (mRenderGraph->mCompiledBindings.find(value->mName) == mRenderGraph->mCompiledBindings.end()) {
-				value->CreateBuffer(value->mMaxItems * value->mStride, PlBufferUsageToVkBufferUsage(value->mBufferUsage), PlMemoryUsageToVmaMemoryUsage(value->mMemoryUsage), 0, value->mBufferCount);
-				value->CreateMemory(0, value->mBufferCount);
-			}
-		}
-
-		/* Stage FTBI font data to the font texture */
-		const uint32_t fontWidth = STB_FONT_consolas_24_latin1_BITMAP_WIDTH;
-		const uint32_t fontHeight = STB_FONT_consolas_24_latin1_BITMAP_HEIGHT;
-
-		static unsigned char font24pixels[fontHeight][fontWidth];
-		stb_font_consolas_24_latin1(static_cast<VulkanGuiRenderer*>(mGuiRenderer)->stbFontData, font24pixels, fontHeight);
-
-
-		struct {
-			VkDeviceMemory memory;
-			VkBuffer buffer;
-		} stagingBuffer;
-
-		VkMemoryRequirements memReqs;
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		vkGetImageMemoryRequirements(mDevice, mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage, &memReqs);
-		allocInfo.allocationSize = memReqs.size;
-		allocInfo.memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-		VkBufferCreateInfo bufferCreateInfo{};
-		bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferCreateInfo.size = allocInfo.allocationSize;
-		bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		vkCreateBuffer(mDevice, &bufferCreateInfo, nullptr, &stagingBuffer.buffer);
-
-		// Get memory requirements for the staging buffer (alignment, memory type bits)
-		vkGetBufferMemoryRequirements(mDevice, stagingBuffer.buffer, &memReqs);
-
-		allocInfo.allocationSize = memReqs.size;
-		// Get memory type index for a host visible buffer
-		allocInfo.memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-		vkAllocateMemory(mDevice, &allocInfo, nullptr, &stagingBuffer.memory);
-		vkBindBufferMemory(mDevice, stagingBuffer.buffer, stagingBuffer.memory, 0);
-
-		uint8_t* data;
-		vkMapMemory(mDevice, stagingBuffer.memory, 0, allocInfo.allocationSize, 0, (void**)&data);
-		// Size of the font texture is WIDTH * HEIGHT * 1 byte (only one channel)
-		memcpy(data, &font24pixels[0][0], fontWidth * fontHeight);
-		vkUnmapMemory(mDevice, stagingBuffer.memory);
-
-		// Copy to image
-
-		VkCommandBuffer copyCmd = CreateCommandBuffer();
-		VkCommandBufferBeginInfo cmdBufferBeginInfo{};
-		cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		vkBeginCommandBuffer(copyCmd, &cmdBufferBeginInfo);
-
-		// Prepare for transfer
-		//  vks::tools::setImageLayout(
-		//  	copyCmd,
-		//  	image,
-		//  	VK_IMAGE_ASPECT_COLOR_BIT,
-		//  	VK_IMAGE_LAYOUT_UNDEFINED,
-		//  	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		TransitionImageLayout(mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage, VK_FORMAT_R8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
-
-		VkBufferImageCopy bufferCopyRegion = {};
-		bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		bufferCopyRegion.imageSubresource.mipLevel = 0;
-		bufferCopyRegion.imageSubresource.layerCount = 1;
-		bufferCopyRegion.imageExtent.width = fontWidth;
-		bufferCopyRegion.imageExtent.height = fontHeight;
-		bufferCopyRegion.imageExtent.depth = 1;
-
-		vkCmdCopyBufferToImage(
-			copyCmd,
-			stagingBuffer.buffer,
-			mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage,
-			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-			1,
-			&bufferCopyRegion
-		);
-
-		// Prepare for shader read
-		//    vks::tools::setImageLayout(
-		//    	copyCmd,
-		//    	image,
-		//    	VK_IMAGE_ASPECT_COLOR_BIT,
-		//    	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		//    	VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-		static_cast<VulkanGuiRenderer*>(mGuiRenderer)->FlushCommandBuffer(copyCmd, mGraphicsQueue, mCommandPool, true);
-
-		TransitionImageLayout(mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage, VK_FORMAT_R8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
-
-		vkFreeMemory(mDevice, stagingBuffer.memory, nullptr);
-		vkDestroyBuffer(mDevice, stagingBuffer.buffer, nullptr);
-
-		mRenderGraph->RunSkyboxRenderGraph(mRenderGraph->BuildSkyboxRenderGraph());
-
+		//PL_CORE_INFO("Build Default RenderGraph");
+		//this->mRenderGraph->BuildDefaultRenderGraph();
+		//AssetsSerializer::SerializeFile<VulkanRenderGraph>(*this->mRenderGraph, "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\FPS2\\Assets\\RenderGraphs\\MainGraph.plzgrph", Application::Get()->mSettings.mRenderGraphSerializationMode);
+		//this->mRenderGraph = new VulkanRenderGraph(*AssetsSerializer::DeSerializeFile<VulkanRenderGraph>("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\FPS2\\Assets\\RenderGraphs\\MainGraph.plzgrph", Application::Get()->mSettings.mRenderGraphSerializationMode).get());
+		//
+		//int index = 0;
+		//for (const auto& texture : mRenderGraph->mTextures) {
+		//	texture.second->SetTextureInfo(mRenderGraph->mUsedTexturesInfo[texture.second->mTextureInfoUuid]);
+		//	//mRenderGraph->mUsedTexturesInfo.emplace(texture.second->GetTextureInfo().mUuid, texture.second->GetTextureInfo());
+		//	index++;
+		//}
+		//
+		//PL_CORE_INFO("Initialize RenderGraph");
+		//this->InitializeRenderGraph(mRenderGraph);
+		//PL_CORE_INFO("Compile RenderGraph");
+		//mRenderGraph->Compile();
+		//mRenderGraph->CompileNotBoundBuffers();
+		////for (auto& [key, value] : mRenderGraph->mBuffers) {
+		////	if (mRenderGraph->mCompiledBindings.find(value->mName) == mRenderGraph->mCompiledBindings.end()) {
+		////		value->CreateBuffer(value->mMaxItems * value->mStride, PlBufferUsageToVkBufferUsage(value->mBufferUsage), PlMemoryUsageToVmaMemoryUsage(value->mMemoryUsage), 0, value->mBufferCount);
+		////		value->CreateMemory(0, value->mBufferCount);
+		////	}
+		////}
+		//
+		///* Stage FTBI font data to the font texture */
+		//const uint32_t fontWidth = STB_FONT_consolas_24_latin1_BITMAP_WIDTH;
+		//const uint32_t fontHeight = STB_FONT_consolas_24_latin1_BITMAP_HEIGHT;
+		//
+		//static unsigned char font24pixels[fontHeight][fontWidth];
+		//stb_font_consolas_24_latin1(static_cast<VulkanGuiRenderer*>(mGuiRenderer)->stbFontData, font24pixels, fontHeight);
+		//
+		//
+		//struct {
+		//	VkDeviceMemory memory;
+		//	VkBuffer buffer;
+		//} stagingBuffer;
+		//
+		//VkMemoryRequirements memReqs;
+		//VkMemoryAllocateInfo allocInfo{};
+		//allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		//vkGetImageMemoryRequirements(mDevice, mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage, &memReqs);
+		//allocInfo.allocationSize = memReqs.size;
+		//allocInfo.memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		//
+		//VkBufferCreateInfo bufferCreateInfo{};
+		//bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		//bufferCreateInfo.size = allocInfo.allocationSize;
+		//bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		//bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		//
+		//vkCreateBuffer(mDevice, &bufferCreateInfo, nullptr, &stagingBuffer.buffer);
+		//
+		//// Get memory requirements for the staging buffer (alignment, memory type bits)
+		//vkGetBufferMemoryRequirements(mDevice, stagingBuffer.buffer, &memReqs);
+		//
+		//allocInfo.allocationSize = memReqs.size;
+		//// Get memory type index for a host visible buffer
+		//allocInfo.memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		//
+		//vkAllocateMemory(mDevice, &allocInfo, nullptr, &stagingBuffer.memory);
+		//vkBindBufferMemory(mDevice, stagingBuffer.buffer, stagingBuffer.memory, 0);
+		//
+		//uint8_t* data;
+		//vkMapMemory(mDevice, stagingBuffer.memory, 0, allocInfo.allocationSize, 0, (void**)&data);
+		//// Size of the font texture is WIDTH * HEIGHT * 1 byte (only one channel)
+		//memcpy(data, &font24pixels[0][0], fontWidth * fontHeight);
+		//vkUnmapMemory(mDevice, stagingBuffer.memory);
+		//
+		//// Copy to image
+		//
+		//VkCommandBuffer copyCmd = CreateCommandBuffer();
+		//VkCommandBufferBeginInfo cmdBufferBeginInfo{};
+		//cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		//vkBeginCommandBuffer(copyCmd, &cmdBufferBeginInfo);
+		//
+		//// Prepare for transfer
+		////  vks::tools::setImageLayout(
+		////  	copyCmd,
+		////  	image,
+		////  	VK_IMAGE_ASPECT_COLOR_BIT,
+		////  	VK_IMAGE_LAYOUT_UNDEFINED,
+		////  	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		//TransitionImageLayout(mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage, VK_FORMAT_R8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
+		//
+		//VkBufferImageCopy bufferCopyRegion = {};
+		//bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		//bufferCopyRegion.imageSubresource.mipLevel = 0;
+		//bufferCopyRegion.imageSubresource.layerCount = 1;
+		//bufferCopyRegion.imageExtent.width = fontWidth;
+		//bufferCopyRegion.imageExtent.height = fontHeight;
+		//bufferCopyRegion.imageExtent.depth = 1;
+		//
+		//vkCmdCopyBufferToImage(
+		//	copyCmd,
+		//	stagingBuffer.buffer,
+		//	mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage,
+		//	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		//	1,
+		//	&bufferCopyRegion
+		//);
+		//
+		//// Prepare for shader read
+		////    vks::tools::setImageLayout(
+		////    	copyCmd,
+		////    	image,
+		////    	VK_IMAGE_ASPECT_COLOR_BIT,
+		////    	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		////    	VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		//
+		//static_cast<VulkanGuiRenderer*>(mGuiRenderer)->FlushCommandBuffer(copyCmd, mGraphicsQueue, mCommandPool, true);
+		//
+		//TransitionImageLayout(mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage, VK_FORMAT_R8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
+		//
+		//vkFreeMemory(mDevice, stagingBuffer.memory, nullptr);
+		//vkDestroyBuffer(mDevice, stagingBuffer.buffer, nullptr);
+		//
+		//mRenderGraph->RunSkyboxRenderGraph(mRenderGraph->BuildSkyboxRenderGraph());
 #ifdef EDITOR_MODE
 		Editor::Gui::Init(Application::Get()->mWindow->glfwWindow);
 #endif
@@ -2914,9 +2924,14 @@ namespace Plaza {
 		this->UpdatePreRecord();
 
 		mActiveCommandBuffer = &mCommandBuffers[mCurrentFrame];
-		mRenderGraph->UpdateCommandBuffer(mCommandBuffers[mCurrentFrame]);
 
-		mRenderGraph->Execute(mCurrentImage, mCurrentFrame);
+		if (mRenderGraph) {
+			mRenderGraph->UpdateCommandBuffer(mCommandBuffers[mCurrentFrame]);
+			mRenderGraph->Execute(mCurrentImage, mCurrentFrame);
+		}
+		else {
+			RecordImGuiFrame({ ImGui::GetDrawData() });
+		}
 
 		this->UpdateAfterRecord();
 	}
@@ -3031,6 +3046,8 @@ namespace Plaza {
 
 		{
 			PLAZA_PROFILE_SECTION("Render ImGui");
+			if (drawDatas.size() == 0)
+				drawDatas.push_back(ImGui::GetDrawData());
 			for (ImDrawData* drawData : drawDatas) {
 				ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
 			}
@@ -3142,10 +3159,9 @@ namespace Plaza {
 
 		ImGui_ImplVulkan_SetMinImageCount(mMaxFramesInFlight);
 
-		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(
-			mImGuiTextureSampler,
-			mRenderGraph->GetTexture<VulkanTexture>("FinalTexture")->mImageView,
-			VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		if (mRenderGraph && mRenderGraph->HasTexture("FinalTexture")) {
+			mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mImGuiTextureSampler, mRenderGraph->GetTexture<VulkanTexture>("FinalTexture")->mImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		}
 
 		//		mFinalSceneDescriptorSet =
 		// ImGui_ImplVulkan_AddTexture(mTextureSampler,
@@ -3186,6 +3202,11 @@ namespace Plaza {
 	void VulkanRenderer::UpdateGUI() {
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(),
 			mCommandBuffers[mCurrentFrame]);
+	}
+
+	void VulkanRenderer::UpdateImGuiDisplayTexture(Texture* texture) {
+		VulkanTexture* vulkanTexture = static_cast<VulkanTexture*>(texture);
+		mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(mImGuiTextureSampler, vulkanTexture->mImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 
 	ImTextureID

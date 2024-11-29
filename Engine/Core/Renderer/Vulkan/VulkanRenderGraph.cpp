@@ -535,6 +535,7 @@ namespace Plaza {
 
 
 		this->OrderPasses();
+		this->UpdateUsedTexturesInfo();
 	}
 
 	VulkanRenderGraph* VulkanRenderGraph::BuildSkyboxRenderGraph() {

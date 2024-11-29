@@ -968,6 +968,7 @@ namespace Plaza {
 	public:
 		VulkanRenderPass() {}
 		VulkanRenderPass(std::string name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) : PlazaRenderPass(name, stage, renderMethod, size, flipViewPort) {}
+		VulkanRenderPass(const VulkanRenderPass& other) = default;
 		//std::vector<std::shared_ptr<VulkanPlazaPipeline>> mPipelines = std::vector<std::shared_ptr<VulkanPlazaPipeline>>();
 
 		virtual void Compile(PlazaRenderGraph* renderGraph) override;
@@ -1058,6 +1059,15 @@ namespace Plaza {
 		void RunSkyboxRenderGraph(VulkanRenderGraph* renderGraph);
 		void AddPipeline() override;
 		void CreatePipeline(PlPipelineCreateInfo createInfo) override;
+
+		void CompileNotBoundBuffers() override {
+			for (auto& [key, value] : mBuffers) {
+				if (mCompiledBindings.find(value->mName) == mCompiledBindings.end()) {
+					value->CreateBuffer(value->mMaxItems * value->mStride, PlBufferUsageToVkBufferUsage(value->mBufferUsage), PlMemoryUsageToVmaMemoryUsage(value->mMemoryUsage), 0, value->mBufferCount);
+					value->CreateMemory(0, value->mBufferCount);
+				}
+			}
+		}
 
 		template <class Archive>
 		void serialize(Archive& archive) {

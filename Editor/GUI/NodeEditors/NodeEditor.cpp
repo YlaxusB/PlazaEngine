@@ -358,6 +358,12 @@ namespace Plaza::Editor {
 			return PinType::String;
 		else if (info == typeid(bool))
 			return PinType::Bool;
+		else if (info == typeid(glm::vec2))
+			return PinType::Vector2;
+		else if (info == typeid(glm::vec3))
+			return PinType::Vector3;
+		else if (info == typeid(glm::vec4))
+			return PinType::Vector4;
 		else if (EnumReflection::HasTypeRawName(info.raw_name()))
 			return PinType::Enum;
 		else if (std::string(info.name()).starts_with("struct"))

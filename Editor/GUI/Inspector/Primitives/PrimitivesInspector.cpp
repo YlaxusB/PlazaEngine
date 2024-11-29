@@ -11,32 +11,44 @@ namespace Plaza::Editor {
 		std::string_view rawName = any.type().raw_name();
 		try {
 			if (rawName == typeid(float).raw_name()) {
-				float* value = any.GetValue<float>();//std::any_cast<float&>(any);
+				float* value = any.GetValue<float>();
 				return InspectFloat(fieldName, *value);
 			}
 			else if (rawName == typeid(int).raw_name()) {
-				int* value = any.GetValue<int>();//std::any_cast<int&>(any);
+				int* value = any.GetValue<int>();
 				return InspectInt(fieldName, *value);
 			}
 			else if (rawName == typeid(unsigned int).raw_name()) {
-				unsigned int* value = any.GetValue<unsigned int>();//std::any_cast<unsigned int&>(any);
+				unsigned int* value = any.GetValue<unsigned int>();
 				return InspectUInt(fieldName, *value);
 			}
 			else if (rawName == typeid(uint32_t).raw_name()) {
-				uint32_t* value = any.GetValue<uint32_t>();//std::any_cast<uint32_t&>(any);
+				uint32_t* value = any.GetValue<uint32_t>();
 				return InspectUInt32(fieldName, *value);
 			}
 			else if (rawName == typeid(uint64_t).raw_name()) {
-				uint64_t* value = any.GetValue<uint64_t>();//std::any_cast<uint32_t&>(any);
+				uint64_t* value = any.GetValue<uint64_t>();
 				return InspectUInt64(fieldName, *value);
 			}
 			else if (rawName == typeid(std::string).raw_name()) {
-				std::string* value = any.GetValue<string>();//std::any_cast<std::string&>(any);
+				std::string* value = any.GetValue<string>();
 				return InspectString(fieldName, *value);
 			}
 			else if (rawName == typeid(bool).raw_name()) {
-				bool* value = any.GetValue<bool>();//std::any_cast<bool&>(any);
+				bool* value = any.GetValue<bool>();
 				return InspectBool(fieldName, *value);
+			}
+			else if (rawName == typeid(glm::vec2).raw_name()) {
+				glm::vec2* value = any.GetValue<glm::vec2>();
+				return InspectVector2(fieldName, *value);
+			}
+			else if (rawName == typeid(glm::vec3).raw_name()) {
+				glm::vec3* value = any.GetValue<glm::vec3>();
+				return InspectVector3(fieldName, *value);
+			}
+			else if (rawName == typeid(glm::vec4).raw_name()) {
+				glm::vec4* value = any.GetValue<glm::vec4>();
+				return InspectVector4(fieldName, *value);
 			}
 			else if (EnumReflection::HasTypeRawName(std::string(rawName).c_str())) { // Enum
 				return PrimitivesInspector::InspectEnum(any, comboPopupName);
@@ -149,5 +161,17 @@ namespace Plaza::Editor {
 
 	bool PrimitivesInspector::InspectUInt64(const std::string& name, uint64_t& value) {
 		return ImGui::DragScalar(name.c_str(), ImGuiDataType_U64, &value);
+	}
+
+	bool PrimitivesInspector::InspectVector2(const std::string& name, glm::vec2& value) {
+		return ImGui::DragFloat2(name.c_str(), &value.x);
+	}
+
+	bool PrimitivesInspector::InspectVector3(const std::string& name, glm::vec3& value) {
+		return ImGui::DragFloat3(name.c_str(), &value.x);
+	}
+
+	bool PrimitivesInspector::InspectVector4(const std::string& name, glm::vec4& value) {
+		return ImGui::DragFloat3(name.c_str(), &value.x);
 	}
 }

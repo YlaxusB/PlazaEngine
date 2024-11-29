@@ -15,6 +15,9 @@ namespace Plaza::Editor {
 		static bool InspectUInt(const std::string& name, unsigned int& value);
 		static bool InspectUInt32(const std::string& name, uint32_t& value);
 		static bool InspectUInt64(const std::string& name, uint64_t& value);
+		static bool InspectVector2(const std::string& name, glm::vec2& value);
+		static bool InspectVector3(const std::string& name, glm::vec3& value);
+		static bool InspectVector4(const std::string& name, glm::vec4& value);
 
 		static inline std::map<const char*, std::function<bool()>> sFunctionsByRawName = std::map<const char*, std::function<bool()>>();
 	};

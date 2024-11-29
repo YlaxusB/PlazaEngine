@@ -53,6 +53,41 @@ namespace Plaza::Editor {
 		this->AddNodeToCreateByType<PlPushConstantRange>("Render Graph / Structs");
 		this->AddNodeToCreateByType<PlPipelineCreateInfo>("Render Graph / Structs");
 
+		Node renderPassNode = Node();
+		renderPassNode.name = "Render Pass";
+		this->AddInputPin(renderPassNode, Pin(0, "Pass Name", PinType::String, PinKind::Constant)).SetValue<std::string>("Render Pass");
+		this->AddInputPin(renderPassNode, Pin(0, "Stages", PinType::Enum, PinKind::Constant)).SetEnumValue<PlRenderStage>(0);
+		this->AddInputPin(renderPassNode, Pin(0, "Render Mode", PinType::Enum, PinKind::Constant)).SetEnumValue<PlRenderPassMode>(0);
+		this->AddInputPin(renderPassNode, Pin(0, "Multi view count", PinType::Int, PinKind::Constant)).SetValue<int>(0);
+		this->AddInputPin(renderPassNode, Pin(0, "Render Size", PinType::Vector2, PinKind::Constant)).SetValue<glm::vec2>(glm::vec2(1920.0f, 1080.0f));
+		this->AddInputPin(renderPassNode, Pin(0, "Dispatch Size", PinType::Vector3, PinKind::Constant)).SetValue<glm::vec3>(glm::vec3(0.0f));
+		this->AddInputPin(renderPassNode, Pin(0, "Flip Viewport", PinType::Bool, PinKind::Constant)).SetValue(true);
+		this->AddOutputPin(renderPassNode, Pin(0, "Out", PinType::Object, PinKind::Output)).value.SetType<PlazaRenderPass>();
+		renderPassNode.processFunction = [](Node& node) {
+
+			/*
+					std::string mName = "";
+		int16_t mExecutionIndex = 0;
+		int mStage = 0;
+		PlRenderPassMode mRenderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
+		uint16_t mMultiViewCount = 0;
+		glm::vec2 mRenderSize = glm::vec2(0, 0);
+		glm::vec3 mDispatchSize = glm::vec3(0, 0, 0);
+		bool mFlipViewPort = true;
+			*/
+
+			PlazaRenderPass pass{};
+			pass.mName = node.inputs[0].GetValue<std::string>();
+			pass.mStage = node.inputs[1].GetValue<PlRenderStage>();
+			pass.mRenderMethod = node.inputs[2].GetValue<PlRenderPassMode>();
+			pass.mMultiViewCount = node.inputs[3].GetValue<int>();
+			pass.mRenderSize = node.inputs[4].GetValue<glm::vec2>();
+			pass.mDispatchSize = node.inputs[5].GetValue<glm::vec3>();
+			pass.mFlipViewPort = node.inputs[6].GetValue<bool>();
+			node.outputs[0].SetValue(pass);
+			};
+		this->AddNodeToCreate(renderPassNode);
+
 		this->SetFinalNode<PlPipelineCreateInfo>();
 		this->InitNodeEditor();
 		this->SpawnNode(typeid(PlPipelineCreateInfo).name()).inputs[0].SetValue<std::string>("Draw to SwapChain Pass");
@@ -61,7 +96,6 @@ namespace Plaza::Editor {
 
 	void RenderGraphEditor::Process() {
 		ax::NodeEditor::SetCurrentEditor(mContext);
-		int nodeCount = ax::NodeEditor::GetNodeCount();
 		std::vector<uintptr_t> orderedNodeIds = this->GetOrderedNodes();
 		std::set<uintptr_t> executedNodeIds = std::set<uintptr_t>();
 		//orderedNodeIds.resize(static_cast<size_t>(nodeCount));
@@ -86,7 +120,31 @@ namespace Plaza::Editor {
 		//	node.processFunction(node);
 		//}
 		Node& finalNode = mNodes[mFinalNodeId];
-		info = finalNode.inputs[0].nodes[1]->outputs[0].GetValue<PlPipelineCreateInfo>();
+		if (finalNode.inputs[0].nodes.size() > 1)
+			info = finalNode.inputs[0].nodes[1]->outputs[0].GetValue<PlPipelineCreateInfo>();
+
+		VulkanRenderGraph* renderGraph = new VulkanRenderGraph();
+		for (auto& [key, node] : mNodes) {
+			Any& value = node.outputs[0].value;
+			if (value.type() == typeid(PlPipelineCreateInfo)) {
+				PlPipelineCreateInfo info = node.outputs[0].GetValue<PlPipelineCreateInfo>();
+				renderGraph->CreatePipeline(info);
+			}
+			else if (value.type() == typeid(PlazaRenderPass)) {
+				PlazaRenderPass pass = node.outputs[0].GetValue<PlazaRenderPass>();
+				renderGraph->AddRenderPass(std::make_shared<PlazaRenderPass>(pass));
+			}
+
+		}
+
+		renderGraph->OrderPasses();
+		renderGraph->UpdateUsedTexturesInfo();
+		renderGraph->Compile();
+		renderGraph->CompileNotBoundBuffers();
+
+		Application::Get()->mRenderer->mRenderGraph = renderGraph;
+		Application::Get()->mRenderer->UpdateImGuiDisplayTexture(Application::Get()->mRenderer->mRenderGraph->GetTexture<VulkanTexture>("FinalTexture"));
+
 		PL_CORE_INFO("Alright");
 	}
 }

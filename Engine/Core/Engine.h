@@ -19,6 +19,15 @@
 #define PL_SER_REGISTER_TYPE(T) CEREAL_REGISTER_TYPE(T)
 #define PL_SER_REGISTER_POLYMORPHIC_RELATION(A, B) CEREAL_REGISTER_POLYMORPHIC_RELATION(A, B)
 
+namespace cereal {
+	template <class Archive, typename T, std::size_t N>
+	void serialize(Archive& archive, std::array<T, N>& arr) {
+		for (auto& elem : arr) {
+			archive(elem);
+		}
+	}
+}
+
 namespace Plaza {
 	class EngineClass {
 	public:

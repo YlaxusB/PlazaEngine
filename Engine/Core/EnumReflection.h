@@ -31,7 +31,7 @@ namespace Plaza {
 				for (int i = 0; i < enumSize; ++i) {
 					names.push_back(magic_enum::enum_name(T(i)).data());
 				}
-				sEnumNamesByTypeRawName[typeid(T).raw_name()] = names;
+				sEnumNamesByTypeRawName[std::string(typeid(T).raw_name())] = names;
 			}
 
 			sBitmaskEnums.insert(typeid(T).raw_name());
@@ -58,10 +58,10 @@ namespace Plaza {
 		}
 
 		static bool HasTypeRawName(const char* rawName) {
-			return sEnumNamesByTypeRawName.find(rawName) != sEnumNamesByTypeRawName.end();
+			return sEnumNamesByTypeRawName.find(std::string(rawName)) != sEnumNamesByTypeRawName.end();
 		}
 	public:
-		static inline std::map<const char*, std::vector<const char*>> sEnumNamesByTypeRawName = std::map<const char*, std::vector<const char*>>();
+		static inline std::map<std::string, std::vector<const char*>> sEnumNamesByTypeRawName = std::map<std::string, std::vector<const char*>>();
 		static inline std::set<const char*> sBitmaskEnums = std::set<const char*>();
 	};
 }

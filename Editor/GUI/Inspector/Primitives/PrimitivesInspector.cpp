@@ -7,37 +7,48 @@
 namespace Plaza::Editor {
 	void PrimitivesInspector::Init() {
 	}
-	bool PrimitivesInspector::InspectAny(Any& any, const std::string& comboPopupName) {
+	bool PrimitivesInspector::InspectAny(Any& any, const std::string& fieldName, const std::string& comboPopupName) {
+		std::string_view rawName = any.type().raw_name();
 		try {
-			if (any.type().raw_name() == typeid(float).raw_name()) {
+			if (rawName == typeid(float).raw_name()) {
 				float* value = any.GetValue<float>();//std::any_cast<float&>(any);
-				return InspectFloat("Float", *value);
+				return InspectFloat(fieldName, *value);
 			}
-			else if (any.type().raw_name() == typeid(int).raw_name()) {
+			else if (rawName == typeid(int).raw_name()) {
 				int* value = any.GetValue<int>();//std::any_cast<int&>(any);
-				return InspectInt("Int", *value);
+				return InspectInt(fieldName, *value);
 			}
-			else if (any.type().raw_name() == typeid(unsigned int).raw_name()) {
+			else if (rawName == typeid(unsigned int).raw_name()) {
 				unsigned int* value = any.GetValue<unsigned int>();//std::any_cast<unsigned int&>(any);
-				return InspectUInt("Unsigned Int", *value);
+				return InspectUInt(fieldName, *value);
 			}
-			else if (any.type().raw_name() == typeid(uint32_t).raw_name()) {
+			else if (rawName == typeid(uint32_t).raw_name()) {
 				uint32_t* value = any.GetValue<uint32_t>();//std::any_cast<uint32_t&>(any);
-				return InspectUInt32("Unsigned Int 32", *value);
+				return InspectUInt32(fieldName, *value);
 			}
-			else if (any.type().raw_name() == typeid(std::string).raw_name()) {
+			else if (rawName == typeid(uint64_t).raw_name()) {
+				uint64_t* value = any.GetValue<uint64_t>();//std::any_cast<uint32_t&>(any);
+				return InspectUInt64(fieldName, *value);
+			}
+			else if (rawName == typeid(std::string).raw_name()) {
 				std::string* value = any.GetValue<string>();//std::any_cast<std::string&>(any);
-				return InspectString("String", *value);
+				return InspectString(fieldName, *value);
 			}
-			else if (any.type().raw_name() == typeid(bool).raw_name()) {
+			else if (rawName == typeid(bool).raw_name()) {
 				bool* value = any.GetValue<bool>();//std::any_cast<bool&>(any);
-				return InspectBool("Boolean", *value);
+				return InspectBool(fieldName, *value);
 			}
-			else if (EnumReflection::HasTypeRawName(any.type().raw_name())) { // Enum
+			else if (EnumReflection::HasTypeRawName(std::string(rawName).c_str())) { // Enum
 				return PrimitivesInspector::InspectEnum(any, comboPopupName);
+			}
+			else if (std::string(any.type().name()).starts_with("struct")) {
+				std::cerr << "Struct inspection not implemented " << any.type().name() << std::endl;
 			}
 			else { // Struct or Class
 				// Unknown type
+
+
+
 				std::cerr << "Unknown type: " << any.type().name() << std::endl;
 			}
 		}
@@ -134,5 +145,9 @@ namespace Plaza::Editor {
 
 	bool PrimitivesInspector::InspectUInt32(const std::string& name, uint32_t& value) {
 		return ImGui::DragScalar(name.c_str(), ImGuiDataType_U32, &value);
+	}
+
+	bool PrimitivesInspector::InspectUInt64(const std::string& name, uint64_t& value) {
+		return ImGui::DragScalar(name.c_str(), ImGuiDataType_U64, &value);
 	}
 }

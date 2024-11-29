@@ -620,7 +620,7 @@ namespace Plaza {
 		bool logicOpEnable;
 		PlLogicOp logicOp;
 		std::vector<PlPipelineColorBlendAttachmentState> attachments;
-		float blendConstants[4];
+		std::vector<float> blendConstants = { 1.0,1.0f, 1.0f,1.0f };
 
 		template <class Archive>
 		void serialize(Archive& archive) {

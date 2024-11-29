@@ -24,6 +24,19 @@ namespace Plaza {
 		}
 
 		template<typename T>
+		void SetValuePtr(T* value, bool changeType = true) {
+			mValue = value;//static_cast<void*>(new T(value));
+
+			if (changeType)
+				mType = &typeid(T);
+		}
+
+		template<typename T>
+		void SetType() {
+			mType = &typeid(T);
+		}
+
+		template<typename T>
 		T* GetValue() const {
 			if constexpr (std::is_reference_v<T>) {
 				return static_cast<T*>(mValue); // Return the address for references

@@ -88,7 +88,7 @@ namespace Plaza::Editor {
 			ImGui::SameLine();
 			ax::NodeEditor::SetCurrentEditor(mContext);
 			ax::NodeEditor::Begin("Node Editor", ImVec2(0.0, 0.0f));
-			int uniqueId = 1;
+			uniqueId = 1;
 			// Start drawing nodes.
 			ax::NodeEditor::BeginNode(uniqueId++);
 			ImGui::Text("Node A");
@@ -102,59 +102,7 @@ namespace Plaza::Editor {
 			ax::NodeEditor::EndNode();
 
 			for (auto& [key, node] : mNodes) {
-				ax::NodeEditor::BeginNode(node.id);
-				ImGui::Text(node.name.c_str());
-				for (auto& input : node.inputs) {
-					cursorPos = ImGui::GetWindowPos();
-					if (input.type != PinType::Object) {
-						const char* name = input.value.type().raw_name();
-						ImGui::PushID(uniqueId++);
-						if (input.isVector) {
-							for (std::any& value : *input.value.GetValue<std::vector<std::any>>()) {
-								ImGui::PushID(uniqueId++);
-
-								Any newAny = input.value;
-								newAny.SetValuePtr(&value, false);
-								PrimitivesInspector::InspectAny(newAny, input.name, "NodeEditorEnumPopup");
-
-								ImGui::PopID();
-								uniqueId++;
-							}
-							ImGui::Text(input.name.c_str());
-							ImGui::SameLine();
-							if (ImGui::Button("+")) {
-								input.value.GetValue<std::vector<std::any>>()->push_back({});
-							}
-						}
-						else
-							PrimitivesInspector::InspectAny(input.value, input.name, "NodeEditorEnumPopup");
-						//if (NodeEditor::BeginNodeCombo("Format", EnumReflection::GetEnumName(name, input.enumIndex), ImGuiComboFlags_PopupAlignLeft)) {
-						//	for (int i = 0; i < input.enumSize; ++i) {
-						//		ImGui::PushID(uniqueId++);
-						//		bool isSelected = (EnumReflection::GetEnumName(name, i) == EnumReflection::GetEnumName(name, input.enumIndex));
-						//		//bool isSelected = false;
-						//		if (ImGui::Selectable(EnumReflection::GetEnumName(name, i), isSelected)) {
-						//			input.SetEnumIndex(i);
-						//		}
-						//		ImGui::PopID();
-						//	}
-						//	NodeEditor::EndNodeCombo();
-						//}
-						ImGui::PopID();
-					}
-					else {
-						ax::NodeEditor::BeginPin(input.id, ax::NodeEditor::PinKind::Input);
-						ImGui::Text(input.name.c_str());
-						ax::NodeEditor::EndPin();
-					}
-					uniqueId++;
-				}
-				for (const auto& output : node.outputs) {
-					ax::NodeEditor::BeginPin(output.id, ax::NodeEditor::PinKind::Input);
-					ImGui::Text(output.name.c_str());
-					ax::NodeEditor::EndPin();
-				}
-				ax::NodeEditor::EndNode();
+				this->InspectNode(node, false);
 			}
 
 			static ax::NodeEditor::PinId draggedPinId;
@@ -224,6 +172,7 @@ namespace Plaza::Editor {
 				ax::NodeEditor::Link(link.id, link.startPinID, link.endPinID);
 			}
 
+			// Record popups
 			ax::NodeEditor::Suspend();
 			if (sOpenNodeEditorPopup) {
 				ImGui::OpenPopup("NodeEditorEnumPopup");
@@ -286,11 +235,75 @@ namespace Plaza::Editor {
 
 		ImGui::End();
 	};
+
 	void NodeEditor::OnKeyPress(int key, int scancode, int action, int mods) {
 
 	};
 
-	NodeEditor::Node& NodeEditor::SpawnNode(const std::string& nodeName) {
+	void NodeEditor::InspectNode(Node& node, bool inspectAsSubNode) {
+		if (!inspectAsSubNode)
+			ax::NodeEditor::BeginNode(node.id);
+		ImGui::Text(node.name.c_str());
+		for (auto& input : node.inputs) {
+			cursorPos = ImGui::GetWindowPos();
+			if (input.type != PinType::Object) {
+				const char* name = input.value.type().raw_name();
+				ImGui::PushID(uniqueId++);
+				if (input.isVector) {
+					for (std::any& value : *input.value.GetValue<std::vector<std::any>>()) {
+						ImGui::PushID(uniqueId++);
+
+						Any newAny = input.value;
+						newAny.SetValuePtr(&value, false);
+						PrimitivesInspector::InspectAny(newAny, input.name, "NodeEditorEnumPopup");
+
+						ImGui::PopID();
+						uniqueId++;
+					}
+					ImGui::Text(input.name.c_str());
+					ImGui::SameLine();
+					if (ImGui::Button("+")) {
+						input.value.GetValue<std::vector<std::any>>()->push_back({});
+						this->SpawnNode(input.value.type().name(), &input);
+					}
+					for (Node& subNode : input.subNodes) {
+						this->InspectNode(subNode, true);
+					}
+				}
+				else
+					PrimitivesInspector::InspectAny(input.value, input.name, "NodeEditorEnumPopup");
+				//if (NodeEditor::BeginNodeCombo("Format", EnumReflection::GetEnumName(name, input.enumIndex), ImGuiComboFlags_PopupAlignLeft)) {
+				//	for (int i = 0; i < input.enumSize; ++i) {
+				//		ImGui::PushID(uniqueId++);
+				//		bool isSelected = (EnumReflection::GetEnumName(name, i) == EnumReflection::GetEnumName(name, input.enumIndex));
+				//		//bool isSelected = false;
+				//		if (ImGui::Selectable(EnumReflection::GetEnumName(name, i), isSelected)) {
+				//			input.SetEnumIndex(i);
+				//		}
+				//		ImGui::PopID();
+				//	}
+				//	NodeEditor::EndNodeCombo();
+				//}
+				ImGui::PopID();
+			}
+			else {
+				ax::NodeEditor::BeginPin(input.id, ax::NodeEditor::PinKind::Input);
+				ImGui::Text(input.name.c_str());
+				ax::NodeEditor::EndPin();
+			}
+			uniqueId++;
+		}
+		if (!inspectAsSubNode) {
+			for (const auto& output : node.outputs) {
+				ax::NodeEditor::BeginPin(output.id, ax::NodeEditor::PinKind::Input);
+				ImGui::Text(output.name.c_str());
+				ax::NodeEditor::EndPin();
+			}
+			ax::NodeEditor::EndNode();
+		}
+	}
+
+	NodeEditor::Node& NodeEditor::SpawnNode(const std::string& nodeName, Pin* pinHolder) {
 		Node nodeToCopy;
 		auto it = mTemplateNodes.find(nodeName);
 		if (it != mTemplateNodes.end())
@@ -298,8 +311,17 @@ namespace Plaza::Editor {
 		else
 			nodeToCopy = mTemplateNodes.at("Empty Node");
 		uintptr_t newId = GetNextId();
-		mNodes.emplace(newId, nodeToCopy);
-		Node& newNode = mNodes.at(newId);
+		Node* nodePtr = nullptr;
+		if (pinHolder) {
+			pinHolder->subNodes.push_back(nodeToCopy);
+			nodePtr = &pinHolder->subNodes.back();
+		}
+		else
+		{
+			mNodes.emplace(newId, nodeToCopy);
+			nodePtr = &mNodes.at(newId);
+		}
+		Node& newNode = *nodePtr;//mNodes.at(newId);
 		newNode.id = newId;
 		newNode.inputs.clear();
 		newNode.outputs.clear();

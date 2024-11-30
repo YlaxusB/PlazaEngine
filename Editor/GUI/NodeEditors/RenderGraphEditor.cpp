@@ -62,7 +62,10 @@ namespace Plaza::Editor {
 		this->AddInputPin(renderPassNode, Pin(0, "Render Size", PinType::Vector2, PinKind::Constant)).SetValue<glm::vec2>(glm::vec2(1920.0f, 1080.0f));
 		this->AddInputPin(renderPassNode, Pin(0, "Dispatch Size", PinType::Vector3, PinKind::Constant)).SetValue<glm::vec3>(glm::vec3(0.0f));
 		this->AddInputPin(renderPassNode, Pin(0, "Flip Viewport", PinType::Bool, PinKind::Constant)).SetValue(true);
+		this->AddInputPin(renderPassNode, Pin(0, "Pipelines", PinType::Array, PinKind::Input)).SetValue<PlPipelineCreateInfo>(PlPipelineCreateInfo());
+		renderPassNode.inputs.back().isVector = true;
 		this->AddOutputPin(renderPassNode, Pin(0, "Out", PinType::Object, PinKind::Output)).value.SetType<PlazaRenderPass>();
+		this->AddOutputPin(renderPassNode, Pin(0, "Pipelines Out", PinType::Object, PinKind::Output)).value.SetType<PlazaRenderPass>();
 		renderPassNode.processFunction = [](Node& node) {
 
 			/*
@@ -132,7 +135,10 @@ namespace Plaza::Editor {
 			}
 			else if (value.type() == typeid(PlazaRenderPass)) {
 				PlazaRenderPass pass = node.outputs[0].GetValue<PlazaRenderPass>();
-				renderGraph->AddRenderPass(std::make_shared<PlazaRenderPass>(pass));
+				//std::string name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) : PlazaRenderPass(name, stage, renderMethod, size, flipViewPort
+				renderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>(pass.mName, pass.mStage, pass.mRenderMethod, pass.mRenderSize, pass.mFlipViewPort));
+
+				std::vector<PlPipelineCreateInfo> pipelinesInfo = node.outputs[1].GetValue<std::vector<PlPipelineCreateInfo>>();
 			}
 
 		}

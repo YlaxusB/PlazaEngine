@@ -29,6 +29,7 @@ namespace Plaza::Editor {
 		void OnKeyPress(int key, int scancode, int action, int mods) override;
 
 		void InitMathNodes();
+		void InspectNode(Node& node, bool inspectAsSubNode);
 
 		uintptr_t mFinalNodeId = 1;
 		uintptr_t mNextId = 1;
@@ -84,6 +85,8 @@ namespace Plaza::Editor {
 			mFinalNodeId = finalNode.id;
 		}
 
+	private:
+		int uniqueId = 1;
 	public:
 		enum class PinType
 		{
@@ -99,7 +102,8 @@ namespace Plaza::Editor {
 			Enum,
 			Vector2,
 			Vector3,
-			Vector4
+			Vector4,
+			Array
 		};
 
 		enum class PinKind
@@ -130,7 +134,7 @@ namespace Plaza::Editor {
 		//std::map<ax::NodeEditor::NodeId, float, NodeIdLess> mNodeTouchTime;
 
 
-		Node& SpawnNode(const std::string& nodeName);
+		Node& SpawnNode(const std::string& nodeName, Pin* pinHolder = nullptr);
 		void RemoveNode(int index);
 
 		virtual void Process();
@@ -198,6 +202,36 @@ namespace Plaza::Editor {
 				});
 			AddOutputPin(node, Pin(0, "Out", NodeEditor::PinType::Object, PinKind::Output));
 			node.processFunction = [](Node& node) {
+				for (Pin& input : node.inputs) {
+					for (Node& subNode : input.subNodes) {
+						subNode.processFunction(subNode);
+					}
+				}
+
+				T obj{};
+				boost::pfr::for_each_field(obj, [&node](auto& field, auto i) {
+					using FieldType = std::decay_t<decltype(field)>;
+					if constexpr (is_specialization_of_vector<FieldType>::value) {
+						using ContentType = typename FieldType::value_type;
+
+						std::vector<ContentType> fieldObj = std::vector<ContentType>(); // Prepare a vector to store subNode outputs.
+						for (Node& subNode : node.inputs[i].subNodes) {
+							fieldObj.push_back(subNode.outputs[0].GetValue<ContentType>());
+						}
+
+						// Assign the fieldObj directly to field if FieldType is the expected vector type.
+						field = fieldObj;
+					}
+					else if (node.inputs[i].nodes.size() > 1) {
+						field = node.inputs[i].nodes[1]->outputs[0].GetValue<FieldType>();
+					}
+					else
+						field = node.inputs[i].GetValue<FieldType>();
+
+					});
+
+				/*
+							node.processFunction = [](Node& node) {
 				T obj{};
 				boost::pfr::for_each_field(obj, [&node](auto& field, auto i) {
 					using FieldType = std::decay_t<decltype(field)>;
@@ -206,6 +240,7 @@ namespace Plaza::Editor {
 						field = node.inputs[i].nodes[1]->outputs[0].GetValue<FieldType>();
 					}
 					});
+				*/
 				node.outputs[0].SetValue<T>(obj);
 				};
 			AddNodeToCreate(node);
@@ -245,6 +280,7 @@ namespace Plaza::Editor {
 		public:
 			ax::NodeEditor::PinId   id;
 			std::vector<Node*> nodes;
+			std::vector<Node> subNodes;
 			std::string name;
 			NodeEditor::PinType	type;
 			PinKind	kind;

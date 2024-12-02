@@ -667,6 +667,11 @@ namespace Plaza {
 		float    height;
 		float    minDepth;
 		float    maxDepth;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(x), PL_SER(y), PL_SER(width), PL_SER(height), PL_SER(minDepth), PL_SER(maxDepth));
+		}
 	};
 
 	struct PlRect2D {
@@ -674,6 +679,11 @@ namespace Plaza {
 		int32_t offsetY;
 		uint32_t extentX;
 		uint32_t extentY;
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(offsetX), PL_SER(offsetY), PL_SER(extentX), PL_SER(extentY));
+		}
 	};
 
 	struct PlPipelineViewportStateCreateInfo {
@@ -903,10 +913,10 @@ namespace Plaza {
 			colorBlending.logicOpEnable = logicOpEnable;
 			colorBlending.logicOp = logicOp;
 			colorBlending.attachments = attachments;
-			colorBlending.blendConstants[0] = blendConstants[0];
-			colorBlending.blendConstants[1] = blendConstants[1];
-			colorBlending.blendConstants[2] = blendConstants[2];
-			colorBlending.blendConstants[3] = blendConstants[3];
+			colorBlending.blendConstants[0] = blendConstants.size() > 0 ? blendConstants[0] : 1.0f;
+			colorBlending.blendConstants[1] = blendConstants.size() > 1 ? blendConstants[1] : 1.0f;
+			colorBlending.blendConstants[2] = blendConstants.size() > 2 ? blendConstants[2] : 1.0f;
+			colorBlending.blendConstants[3] = blendConstants.size() > 3 ? blendConstants[3] : 1.0f;
 			return colorBlending;
 		}
 

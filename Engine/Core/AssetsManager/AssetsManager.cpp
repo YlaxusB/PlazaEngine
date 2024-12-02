@@ -31,11 +31,18 @@ namespace Plaza {
 		AssetsManager::mAssetTypeByExtension.emplace(".h", AssetType::SCRIPT);
 		AssetsManager::mAssetTypeByExtension.emplace(".cs", AssetType::SCRIPT);
 		AssetsManager::mAssetTypeByExtension.emplace(".mp3", AssetType::AUDIO);
+		AssetsManager::mAssetTypeByExtension.emplace(".vert", AssetType::SHADERS);
+		AssetsManager::mAssetTypeByExtension.emplace(".frag", AssetType::SHADERS);
+		AssetsManager::mAssetTypeByExtension.emplace(".comp", AssetType::SHADERS);
+		AssetsManager::mAssetTypeByExtension.emplace(".geom", AssetType::SHADERS);
+		AssetsManager::mAssetTypeByExtension.emplace(".tes", AssetType::SHADERS);
+		AssetsManager::mAssetTypeByExtension.emplace(".glsl", AssetType::SHADERS);
 		AssetsManager::mAssetTypeByExtension.emplace("", AssetType::NONE);
 
 		AssetsManager::mAssetsTypesWithMetaData.emplace(AssetType::TEXTURE);
 		AssetsManager::mAssetsTypesWithMetaData.emplace(AssetType::SCRIPT);
 		AssetsManager::mAssetsTypesWithMetaData.emplace(AssetType::AUDIO);
+		AssetsManager::mAssetsTypesWithMetaData.emplace(AssetType::SHADERS);
 
 		Texture* defaultTexture = new Texture();
 		defaultTexture->mAssetUuid = 1;
@@ -97,6 +104,7 @@ namespace Plaza {
 		// Rename the medadata and change its content
 		std::filesystem::rename(metaDataOldPath, metaDataNewPath);
 		metaData->mAssetName = metaDataNewPath.filename().string();
+		contentNewPath.replace_extension(std::filesystem::path{ newPath }.extension().string());
 		metaData->mContentName = contentNewPath.filename().string();
 		AssetsSerializer::SerializeFile<Metadata::MetadataStructure>(*metaData.get(), metaDataNewPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode);
 	}

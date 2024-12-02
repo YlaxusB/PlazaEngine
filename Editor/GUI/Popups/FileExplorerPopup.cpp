@@ -69,6 +69,7 @@ namespace Plaza::Editor {
 					//AssetsManager::AddScript();
 					//AssetsSerializer::SerializeFile<CsScriptComponent>();
 				}
+
 				ImGui::EndMenu();
 			}
 
@@ -87,6 +88,24 @@ namespace Plaza::Editor {
 					AssetsSerializer::SerializeMaterial(material, path, Application::Get()->mSettings.mMaterialSerializationMode);
 					//MaterialFileSerializer::Serialize(path, material);
 				}
+
+				if (ImGui::MenuItem("Shaders")) {
+					Editor::File::changingName = Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "\\Unnamed" + ".vert");
+					Editor::File::changingName = std::filesystem::path{ Editor::File::changingName }.filename().string();
+					Editor::File::firstFocus = true;
+					Asset* shadersAsset = new Asset();
+					shadersAsset->mAssetUuid = Plaza::UUID::NewUUID();
+					shadersAsset->mAssetName = Editor::File::changingName;
+
+					shadersAsset->mAssetPath = Gui::FileExplorer::currentDirectory + "\\" + Editor::File::changingName;
+
+					Metadata::CreateMetadataFile(shadersAsset);
+
+					std::filesystem::path metaDataPath = shadersAsset->mAssetPath;
+					metaDataPath.replace_extension(Standards::metadataExtName);
+					AssetsReader::ReadAssetAtPath(metaDataPath);
+				}
+
 				ImGui::EndMenu();
 			}
 

@@ -9,6 +9,7 @@
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "Engine/Core/Input/Input.h"
 #include "Editor/GUI/guiMain.h"
+#include "Engine/Application/FileDialog/FileDialog.h"
 
 using namespace Plaza;
 uint64_t lastUuid;
@@ -103,7 +104,8 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 			Application::Get()->showCascadeLevels = !Application::Get()->showCascadeLevels;
 
 		if (key == GLFW_KEY_N && action == GLFW_PRESS) {
-
+			VulkanRenderGraph* graph = new VulkanRenderGraph(*AssetsSerializer::DeSerializeFile<VulkanRenderGraph>(FileDialog::OpenFileDialog(Standards::plazaRenderGraph.c_str()), Application::Get()->mSettings.mRenderGraphSerializationMode).get());
+			Application::Get()->mEditor->mGui.mRenderGraphEditor->LoadRenderGraphNodes(graph);
 		}
 		//if (key == GLFW_KEY_G && action == GLFW_PRESS)
 		//	Scene::GetActiveScene()->entities[Editor::selectedGameObject->uuid].RemoveComponent<RigidBody>();

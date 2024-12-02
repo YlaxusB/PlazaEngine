@@ -46,7 +46,8 @@ namespace Plaza::Editor {
 		ax::NodeEditor::GetOrderedNodeIds(orderedNodeIds.data(), nodeCount);
 		for (unsigned int i = 0; i < nodeCount; ++i) {
 			ax::NodeEditor::NodeId nodeId = orderedNodeIds[i];
-			mNodes.at(nodeId.Get()).processFunction(mNodes.at(nodeId.Get()));
+			if (GetNode(nodeId.Get()))
+				GetNode(nodeId.Get())->processFunction(*GetNode(nodeId.Get()));
 			//auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const Node& node) {
 			//	return node.id == nodeId.Get();
 			//	});
@@ -55,7 +56,7 @@ namespace Plaza::Editor {
 		}
 		ax::NodeEditor::SetCurrentEditor(nullptr);
 
-		for (auto& [key, node] : mNodes) {
+		for (auto& [key, node] : mNodesData.mNodes) {
 			node.processFunction(node);
 		}
 	}
@@ -70,12 +71,41 @@ namespace Plaza::Editor {
 				this->Process();
 			}
 
+			if (ImGui::Button("Serialize Nodes")) {
+				AssetsSerializer::SerializeFile<NodesData>(mNodesData, FileDialog::SaveFileDialog(Standards::plazaRenderGraph.c_str()), Application::Get()->mSettings.mRenderGraphSerializationMode);
+				//Application::Get()->mEditor->mGui.mRenderGraphEditor->LoadRenderGraphNodes(graph);
+			}
+
+			if (ImGui::Button("DeSerialize Nodes")) {
+				std::shared_ptr<NodesData> data = AssetsSerializer::DeSerializeFile<NodesData>(FileDialog::OpenFileDialog(Standards::plazaRenderGraph.c_str()), Application::Get()->mSettings.mRenderGraphSerializationMode);
+				PL_CORE_INFO(data->mNodes.size());
+				mNodesData = NodesData();//= *data.get();
+				std::map<uintptr_t, uintptr_t> correctedIds = std::map<uintptr_t, uintptr_t>();
+				for (auto& [key, node] : data->mNodes) {
+					Node& newNode = this->SpawnNode(node.name);
+					correctedIds.emplace(newNode.id, key);
+				}
+
+				for (auto& [key, node] : mNodesData.mNodes) {
+					uintptr_t correctedId = correctedIds.at(key);
+					//if (data->mNodes[correctedId].id != key)
+					//	continue;
+					int index = 0;
+					for (auto& pin : node.inputs) {
+						pin.NewValue();
+						pin.SetValue(data->mNodes[correctedId].inputs[index].value, false);
+						index++;
+					}
+				}
+				//Application::Get()->mEditor->mGui.mRenderGraphEditor->LoadRenderGraphNodes(graph);
+			}
+
 			for (const auto& [key, value] : mTemplateNodes) {
 				if (ImGui::Button(("Add: " + value.name).c_str())) {
 					this->SpawnNode(value.name);
 				}
 			}
-			for (const auto& [key, node] : mNodes) {
+			for (const auto& [key, node] : mNodesData.mNodes) {
 				if (ImGui::Button(node.name.c_str()))
 					ax::NodeEditor::SelectNode(node.id);
 				if (ImGui::Button("Navigate to Content"))
@@ -90,18 +120,8 @@ namespace Plaza::Editor {
 			ax::NodeEditor::Begin("Node Editor", ImVec2(0.0, 0.0f));
 			uniqueId = 1;
 			// Start drawing nodes.
-			ax::NodeEditor::BeginNode(uniqueId++);
-			ImGui::Text("Node A");
-			ax::NodeEditor::BeginPin(uniqueId++, ax::NodeEditor::PinKind::Input);
-			ImGui::Text("-> In");
-			ax::NodeEditor::EndPin();
-			ImGui::SameLine();
-			ax::NodeEditor::BeginPin(uniqueId++, ax::NodeEditor::PinKind::Output);
-			ImGui::Text("Out ->");
-			ax::NodeEditor::EndPin();
-			ax::NodeEditor::EndNode();
 
-			for (auto& [key, node] : mNodes) {
+			for (auto& [key, node] : mNodesData.mNodes) {
 				this->InspectNode(node, false);
 			}
 
@@ -110,8 +130,8 @@ namespace Plaza::Editor {
 			if (ax::NodeEditor::BeginCreate()) {
 				ax::NodeEditor::PinId inputPinId, outputPinId;
 				if (ax::NodeEditor::QueryNewLink(&inputPinId, &outputPinId)) {
-					Pin* inputPin = this->mPins.find(inputPinId.Get()) != mPins.end() ? mPins[inputPinId.Get()] : nullptr;
-					Pin* outputPin = this->mPins.find(outputPinId.Get()) != mPins.end() ? mPins[outputPinId.Get()] : nullptr;
+					Pin* inputPin = GetPin(inputPinId.Get());//mNodesData.mPins.find(inputPinId.Get()) != mNodesData.mPins.end() ? mNodesData.mPins[inputPinId.Get()] : nullptr;
+					Pin* outputPin = GetPin(outputPinId.Get());//mNodesData.mPins.find(outputPinId.Get()) != mNodesData.mPins.end() ? mNodesData.mPins[outputPinId.Get()] : nullptr;
 					// QueryNewLink returns true if editor want to create new link between pins.
 					//
 					// Link can be created only for two valid pins, it is up to you to
@@ -137,12 +157,12 @@ namespace Plaza::Editor {
 						// ed::AcceptNewItem() return true when user release mouse button.
 						if (ax::NodeEditor::AcceptNewItem()) {
 							// Since we accepted new link, lets add one to our list of links.
-							mLinks.push_back({ ax::NodeEditor::LinkId(mNextLinkId++), inputPinId, outputPinId });
+							mNodesData.mLinks.push_back({ ax::NodeEditor::LinkId(mNextLinkId++), inputPinId, outputPinId });
 
 							outputPin->nodes.push_back(inputPin->nodes[0]);
 
 							// Draw new link.
-							ax::NodeEditor::Link(mLinks.back().id, mLinks.back().startPinID, mLinks.back().endPinID);
+							ax::NodeEditor::Link(mNodesData.mLinks.back().id, mNodesData.mLinks.back().startPinID, mNodesData.mLinks.back().endPinID);
 						}
 
 
@@ -156,19 +176,19 @@ namespace Plaza::Editor {
 				}
 				else if (ax::NodeEditor::AcceptNewItem()) {
 					// Dropped link on an empty space
-					Pin* draggedPin = this->mPins.find(draggedPinId.Get()) != mPins.end() ? mPins[draggedPinId.Get()] : nullptr;
+					Pin* draggedPin = mNodesData.mPins.find(draggedPinId.Get()) != mNodesData.mPins.end() ? mNodesData.mPins[draggedPinId.Get()] : nullptr;
 					if (draggedPin && draggedPin->name != "Out") {
 						Node& newNode = this->SpawnNode(draggedPin->value.type().name());
-						mLinks.push_back({ ax::NodeEditor::LinkId(mNextLinkId++), newNode.outputs[0].id, draggedPin->id });
+						mNodesData.mLinks.push_back({ ax::NodeEditor::LinkId(mNextLinkId++), newNode.outputs[0].id, draggedPin->id });
 						draggedPin->nodes.push_back(newNode.outputs[0].nodes[0]);
-						ax::NodeEditor::Link(mLinks.back().id, mLinks.back().startPinID, mLinks.back().endPinID);
+						ax::NodeEditor::Link(mNodesData.mLinks.back().id, mNodesData.mLinks.back().startPinID, mNodesData.mLinks.back().endPinID);
 					}
 
 				}
 			}
 			ax::NodeEditor::EndCreate();
 
-			for (const auto& link : mLinks) {
+			for (const auto& link : mNodesData.mLinks) {
 				ax::NodeEditor::Link(link.id, link.startPinID, link.endPinID);
 			}
 
@@ -246,32 +266,37 @@ namespace Plaza::Editor {
 		ImGui::Text(node.name.c_str());
 		for (auto& input : node.inputs) {
 			cursorPos = ImGui::GetWindowPos();
-			if (input.type != PinType::Object) {
-				const char* name = input.value.type().raw_name();
+			if (input.type != PinType::Object || input.isVector) {
+				const char* rawname = input.value.type().raw_name();
+				const char* name = input.value.type().name();
 				ImGui::PushID(uniqueId++);
 				if (input.isVector) {
-					for (std::any& value : *input.value.GetValue<std::vector<std::any>>()) {
-						ImGui::PushID(uniqueId++);
-
-						Any newAny = input.value;
-						newAny.SetValuePtr(&value, false);
-						PrimitivesInspector::InspectAny(newAny, input.name, "NodeEditorEnumPopup");
-
-						ImGui::PopID();
-						uniqueId++;
-					}
+					//std::vector<std::any> vec = *input.value.GetValue<std::vector<std::any>>();
+					//for (std::any& value : *input.value.GetValue<std::vector<std::any>>()) {
+					//	ImGui::PushID(uniqueId++);
+					//
+					//	Any newAny = input.value;
+					//	newAny.SetValuePtr(&value, false);
+					//	PrimitivesInspector::InspectAny(newAny, input.name, "NodeEditorEnumPopup");
+					//
+					//	ImGui::PopID();
+					//	uniqueId++;
+					//}
 					ImGui::Text(input.name.c_str());
 					ImGui::SameLine();
 					if (ImGui::Button("+")) {
-						input.value.GetValue<std::vector<std::any>>()->push_back({});
+						//input.value.GetValue<std::vector<std::any>>()->push_back({});
 						this->SpawnNode(input.value.type().name(), &input);
 					}
 					for (Node& subNode : input.subNodes) {
 						this->InspectNode(subNode, true);
 					}
 				}
-				else
+				else {
+					ImGui::PushID(uniqueId++);
 					PrimitivesInspector::InspectAny(input.value, input.name, "NodeEditorEnumPopup");
+					ImGui::PopID();
+				}
 				//if (NodeEditor::BeginNodeCombo("Format", EnumReflection::GetEnumName(name, input.enumIndex), ImGuiComboFlags_PopupAlignLeft)) {
 				//	for (int i = 0; i < input.enumSize; ++i) {
 				//		ImGui::PushID(uniqueId++);
@@ -287,17 +312,19 @@ namespace Plaza::Editor {
 				ImGui::PopID();
 			}
 			else {
-				ax::NodeEditor::BeginPin(input.id, ax::NodeEditor::PinKind::Input);
-				ImGui::Text(input.name.c_str());
-				ax::NodeEditor::EndPin();
+				//ax::NodeEditor::BeginPin(input.id, ax::NodeEditor::PinKind::Input);
+				//ImGui::Text(input.name.c_str());
+				//ax::NodeEditor::EndPin();
 			}
-			uniqueId++;
 		}
+
 		if (!inspectAsSubNode) {
 			for (const auto& output : node.outputs) {
+				ImGui::PushID(uniqueId++);
 				ax::NodeEditor::BeginPin(output.id, ax::NodeEditor::PinKind::Input);
 				ImGui::Text(output.name.c_str());
 				ax::NodeEditor::EndPin();
+				ImGui::PopID();
 			}
 			ax::NodeEditor::EndNode();
 		}
@@ -318,8 +345,8 @@ namespace Plaza::Editor {
 		}
 		else
 		{
-			mNodes.emplace(newId, nodeToCopy);
-			nodePtr = &mNodes.at(newId);
+			mNodesData.mNodes.emplace(newId, nodeToCopy);
+			nodePtr = &mNodesData.mNodes.at(newId);
 		}
 		Node& newNode = *nodePtr;//mNodes.at(newId);
 		newNode.id = newId;
@@ -330,12 +357,14 @@ namespace Plaza::Editor {
 			Pin newInput = input;
 			newInput.id = GetNextId();
 			newInput.nodes.clear();
+			newInput.NewValue();
 			this->AddInputPin(newNode, newInput);
 		}
 		for (const auto& output : nodeToCopy.outputs) {
 			Pin newOutput = output;
 			newOutput.id = GetNextId();
 			newOutput.nodes.clear();
+			newOutput.NewValue();
 			this->AddOutputPin(newNode, newOutput);
 		}
 		for (const auto& subNode : nodeToCopy.subNodes) {
@@ -388,6 +417,8 @@ namespace Plaza::Editor {
 			return PinType::Vector4;
 		else if (EnumReflection::HasTypeRawName(info.raw_name()))
 			return PinType::Enum;
+		else if (std::string(info.name()).starts_with("class"))
+			return PinType::Object;
 		else if (std::string(info.name()).starts_with("struct"))
 			return PinType::Object;
 		else if (std::string(info.name()).starts_with("enum"))
@@ -400,13 +431,13 @@ namespace Plaza::Editor {
 
 	std::vector<uintptr_t> NodeEditor::GetOrderedNodes() {
 		std::vector<uintptr_t> order = std::vector<uintptr_t>();
-		for (auto& [key, value] : mNodes) {
+		for (auto& [key, value] : mNodesData.mNodes) {
 			value.mOrderIndex = order.size();
 			order.push_back(key);
 		}
 
 		unsigned int index = 0;
-		for (const auto& [key, value] : mNodes) {
+		for (const auto& [key, value] : mNodesData.mNodes) {
 			std::vector<uintptr_t> dependencies = std::vector<uintptr_t>();
 			for (const Pin& pin : value.inputs) {
 				if (pin.nodes.size() > 1) {
@@ -415,10 +446,12 @@ namespace Plaza::Editor {
 			}
 			unsigned int dependencyIndex = index + 1;
 			for (uintptr_t dependency : dependencies) {
-				int from = mNodes.at(dependency).mOrderIndex;
+				if (!GetNode(dependency))
+					continue;
+				int from = GetNode(dependency)->mOrderIndex;
 				int to = dependencyIndex;
-				order.insert(order.begin() + to, order[mNodes.at(dependency).mOrderIndex]);
-				mNodes.at(dependency).mOrderIndex = dependencyIndex;
+				order.insert(order.begin() + to, order[GetNode(dependency)->mOrderIndex]);
+				GetNode(dependency)->mOrderIndex = dependencyIndex;
 				dependencyIndex++;
 			}
 			index++;

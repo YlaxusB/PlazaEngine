@@ -8,6 +8,7 @@ namespace Plaza {
 	class PLAZA_API PlazaShadersBinding {
 	public:
 		PlazaShadersBinding() {}
+		PlazaShadersBinding(const PlazaShadersBinding& other) = default;
 		std::string mName;
 		uint64_t mDescriptorCount = 1;
 		PlRenderStage mStage = PL_STAGE_ALL;
@@ -15,6 +16,7 @@ namespace Plaza {
 		uint8_t mBinding = 0;
 		PlBindingType mBindingType = PlBindingType::PL_BINDING_UNDEFINED;
 		uint64_t mMaxBindlessResources = 0;
+		std::string mResourceName = "";
 
 		virtual void Compile(std::set<std::string>& compiledBindings) {};
 		virtual void Destroy() {};
@@ -28,6 +30,7 @@ namespace Plaza {
 	class PLAZA_API PlazaBufferBinding : public PlazaShadersBinding {
 	public:
 		PlazaBufferBinding() {}
+		PlazaBufferBinding(const PlazaBufferBinding& other) = default;
 		PlazaBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage, std::shared_ptr<PlBuffer> buffer) {
 			mBinding = binding;
 			mDescriptorCount = descriptorCount;
@@ -35,10 +38,12 @@ namespace Plaza {
 			mBindingType = PL_BINDING_BUFFER;
 			mBuffer = buffer;
 			mName = buffer->mName;
+			mBufferType = type;
 			//mStride = stride;
 			//mMaxItems = maxItems;
 			//mBufferCount = bufferCount;
 		}
+		PlBufferType mBufferType;
 
 		std::shared_ptr<PlBuffer> mBuffer = nullptr;
 
@@ -82,6 +87,7 @@ namespace Plaza {
 	class PLAZA_API PlazaTextureBinding : public PlazaShadersBinding {
 	public:
 		PlazaTextureBinding() {}
+		PlazaTextureBinding(const PlazaTextureBinding& other) = default;
 		PlazaTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType, PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel, uint16_t baseLayerLevel, std::shared_ptr<Texture> texture)
 			: mBufferType(bufferType) {
 			mLocation = location;
@@ -381,6 +387,12 @@ namespace Plaza {
 		template <class Archive>
 		void serialize(Archive& archive) {
 			archive(cereal::base_class<Asset>(this), PL_SER(mBuffers), PL_SER(mTextures), PL_SER(mPasses), PL_SER(mShadersBindings), PL_SER(mOrderedPasses), PL_SER(mUsedTexturesInfo));
+
+			int index = 0;
+			for (const auto& texture : mTextures) {
+				texture.second->SetTextureInfo(mUsedTexturesInfo[texture.second->mTextureInfoUuid]);
+				index++;
+			}
 		}
 		std::map<std::string, std::shared_ptr<Texture>> mTextures = std::map<std::string, std::shared_ptr<Texture>>();
 	private:

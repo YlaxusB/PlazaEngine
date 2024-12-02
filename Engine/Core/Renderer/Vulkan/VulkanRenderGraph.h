@@ -894,6 +894,7 @@ namespace Plaza {
 	class PLAZA_API VulkanBufferBinding : public PlazaBufferBinding {
 	public:
 		VulkanBufferBinding() {}
+		VulkanBufferBinding(const VulkanBufferBinding& other) = default;
 		VulkanBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage, std::shared_ptr<PlBuffer> buffer)
 			: PlazaBufferBinding(descriptorCount, binding, type, stage, buffer) {};
 		virtual void Compile(std::set<std::string>& compiledBindings) override;
@@ -924,6 +925,7 @@ namespace Plaza {
 	class PLAZA_API VulkanTextureBinding : public PlazaTextureBinding {
 	public:
 		VulkanTextureBinding() {}
+		VulkanTextureBinding(const VulkanTextureBinding& other) = default;
 		VulkanTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType, PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel, uint16_t baseLayerLevel, std::shared_ptr<Texture> texture)
 			: PlazaTextureBinding(descriptorCount, location, binding, bufferType, renderStage, initialLayout, baseMipLevel, baseLayerLevel, texture) {
 			mName = texture->mAssetName;

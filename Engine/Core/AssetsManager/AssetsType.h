@@ -13,6 +13,7 @@ namespace Plaza {
 		MESH,
 		ANIMATION,
 		AUDIO,
+		SHADERS,
 		UNKNOWN,
 	};
 }

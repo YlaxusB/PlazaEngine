@@ -38,6 +38,9 @@ namespace Plaza {
 			case AssetType::SCRIPT:
 				AssetsLoader::LoadScript(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
 				break;
+			case AssetType::SHADERS:
+				AssetsManager::AddShaders(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
+				break;
 			default:
 				AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata)));
 				break;

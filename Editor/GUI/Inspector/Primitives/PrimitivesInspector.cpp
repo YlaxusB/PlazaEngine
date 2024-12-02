@@ -96,10 +96,13 @@ namespace Plaza::Editor {
 
 			// Display checkboxes for each bitmask value
 			if (ImGui::TreeNode(any.type().name())) {
+				const std::vector<int>& enumValues = EnumReflection::GetEnumValues(typeRawName);
+
 				for (int i = 0; i < enumNames.size(); ++i) {
 					if (enumNames[i] == nullptr)
 						continue;
-					int flag = 1 << i; // Get the bitmask value for this index
+
+					int flag = enumValues[i]; // Get the actual bitmask value
 					bool isSet = (currentValue & flag) != 0;
 
 					if (ImGui::Checkbox(enumNames[i], &isSet)) {

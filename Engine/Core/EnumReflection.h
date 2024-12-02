@@ -29,7 +29,7 @@ namespace Plaza {
 			if (sEnumNamesByTypeRawName.find(typeid(T).raw_name()) == sEnumNamesByTypeRawName.end()) {
 				std::vector<const char*> names = std::vector<const char*>();
 				for (int i = 0; i < enumSize; ++i) {
-					names.push_back(magic_enum::enum_name(T(i)).data());
+					names.push_back(magic_enum::enum_name(T(1 << i)).data());
 				}
 				sEnumNamesByTypeRawName[std::string(typeid(T).raw_name())] = names;
 			}
@@ -55,6 +55,15 @@ namespace Plaza {
 			if (it != sEnumNamesByTypeRawName.end())
 				return it->second;
 			return std::vector<const char*>();
+		}
+
+		static std::vector<int> GetEnumValues(const char* typeRawName) {
+			std::vector<int> values = std::vector<int>();
+			values.resize(GetEnumNames(typeRawName).size());
+			for (int i = 0; i < values.size(); i++) {
+				values[i] = 1 << i;
+			}
+			return values;
 		}
 
 		static bool HasTypeRawName(const char* rawName) {

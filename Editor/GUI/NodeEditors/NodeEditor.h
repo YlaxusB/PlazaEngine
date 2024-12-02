@@ -18,7 +18,6 @@ namespace Plaza::Editor {
 		class Pin;
 		class Link;
 
-		std::string mName = "";
 		ax::NodeEditor::EditorContext* mContext = nullptr;
 
 		NodeEditor(const std::string& name, GuiLayer layer, bool startOpen = true) : GuiWindow(layer, startOpen) { }
@@ -31,18 +30,51 @@ namespace Plaza::Editor {
 		void InitMathNodes();
 		void InspectNode(Node& node, bool inspectAsSubNode);
 
+		struct NodesData : public Asset {
+			std::map<uintptr_t, Node> mNodes = std::map<uintptr_t, Node>();
+			std::map<std::string, Node*> mNodesByName = std::map<std::string, Node*>();
+			std::vector<Link> mLinks;
+			std::map<uintptr_t, Pin*> mPins = std::map<uintptr_t, Pin*>();
+
+			template <class Archive>
+			void serialize(Archive& archive) {
+				archive(PL_SER(mNodes), PL_SER(mLinks));
+			}
+		} mNodesData;
+
+		Node* GetNode(uintptr_t id) {
+			if (mNodesData.mNodes.find(id) != mNodesData.mNodes.end())
+				return &mNodesData.mNodes.at(id);
+			return nullptr;
+		}
+		Pin* GetPin(uintptr_t id) {
+			if (mNodesData.mPins.find(id) != mNodesData.mPins.end())
+				return mNodesData.mPins.at(id);
+			return nullptr;
+		}
+
+
+		std::string mName = "";
+		int mNextLinkId = 1;
+		const int mPinIconSize = 24;
+		std::map<std::string, Node> mTemplateNodes;
+		const float mTouchTime = 1.0f;
+		static inline Any* sEnumToShowOnPopup = nullptr;
+		static inline bool sOpenNodeEditorPopup = false;
 		uintptr_t mFinalNodeId = 1;
 		uintptr_t mNextId = 1;
 		const uintptr_t& GetNextId() {
-			return mNextId++;
+			while (GetNode(mNextId) != nullptr) {
+				mNextId++;
+			}
+			return mNextId;
 		}
 
-		std::map<uintptr_t, Pin*> mPins = std::map<uintptr_t, Pin*>();
 		Pin& AddInputPin(Node& node, Pin pin) {
 			pin.id = GetNextId();
 			pin.nodes.push_back(&node);
 			node.inputs.emplace_back(pin);
-			mPins.emplace(pin.id.Get(), &node.inputs.back());
+			mNodesData.mPins.emplace(pin.id.Get(), &node.inputs.back());
 			return node.inputs.back();
 		}
 		Pin& AddOutputPin(Node& node, Pin pin) {
@@ -50,7 +82,7 @@ namespace Plaza::Editor {
 			mNextId++;
 			pin.nodes.push_back(&node);
 			node.outputs.emplace_back(pin);
-			mPins.emplace(pin.id.Get(), &node.outputs.back());
+			mNodesData.mPins.emplace(pin.id.Get(), &node.outputs.back());
 			return node.outputs.back();
 		}
 
@@ -121,18 +153,6 @@ namespace Plaza::Editor {
 			Comment,
 			Houdini
 		};
-		//struct NodeIdLess;
-		int mNextLinkId = 1;
-		const int mPinIconSize = 24;
-		std::map<uintptr_t, Node> mNodes = std::map<uintptr_t, Node>();
-		std::map<std::string, Node*> mNodesByName = std::map<std::string, Node*>();
-		std::vector<Link> mLinks;
-		std::map<std::string, Node> mTemplateNodes;
-		const float mTouchTime = 1.0f;
-		static inline Any* sEnumToShowOnPopup = nullptr;
-		static inline bool sOpenNodeEditorPopup = false;
-		//std::map<ax::NodeEditor::NodeId, float, NodeIdLess> mNodeTouchTime;
-
 
 		Node& SpawnNode(const std::string& nodeName, Pin* pinHolder = nullptr);
 		void RemoveNode(int index);
@@ -216,7 +236,8 @@ namespace Plaza::Editor {
 
 						std::vector<ContentType> fieldObj = std::vector<ContentType>(); // Prepare a vector to store subNode outputs.
 						for (Node& subNode : node.inputs[i].subNodes) {
-							fieldObj.push_back(subNode.outputs[0].GetValue<ContentType>());
+							if (subNode.outputs[0].value.mValue != nullptr)
+								fieldObj.push_back(subNode.outputs[0].GetValue<ContentType>());
 						}
 
 						// Assign the fieldObj directly to field if FieldType is the expected vector type.
@@ -290,6 +311,7 @@ namespace Plaza::Editor {
 			int enumIndex = 0;
 			bool isVector = false;
 
+			Pin() {};
 			Pin(int newId, const char* newName, NodeEditor::PinType newType, PinKind newKind = PinKind::Input) :
 				id(newId), nodes(std::vector<Node*>()), name(newName), type(newType), kind(newKind) { }
 
@@ -300,7 +322,22 @@ namespace Plaza::Editor {
 
 			template<typename T>
 			void SetValue(const T& newValue, bool changeType = true) {
-				value.SetValue(newValue, changeType);
+				if (changeType) {
+					mFactory = [newValue, this]() -> void* {
+						T* val = new T();
+						*val = newValue;
+						value.SetValue<T>(newValue, true);
+						return val;
+						};
+				}
+				else
+					value.SetValue(newValue, false);
+			}
+
+			void NewValue() {
+				if (mFactory)
+					value.mValue = mFactory();
+				//value.SetValue(mFactory());
 			}
 
 			template<typename T>
@@ -325,6 +362,18 @@ namespace Plaza::Editor {
 				value.SetValue(newValue, false);
 				enumIndex = newValue;
 			}
+
+			template <class Archive>
+			void serialize(Archive& archive) {
+				uintptr_t newId = id.Get();
+				if (isVector)
+					value.SetValuePtr<int>(nullptr, false);
+				archive(PL_SER(newId), PL_SER(subNodes), PL_SER(name), PL_SER(type), PL_SER(kind), PL_SER(value), PL_SER(enumSize), PL_SER(enumIndex), PL_SER(isVector));
+				id = newId;
+			}
+
+		private:
+			std::function<void* ()> mFactory;
 		};
 		class Node {
 		public:
@@ -333,13 +382,18 @@ namespace Plaza::Editor {
 			std::vector<Pin> inputs;
 			std::vector<Pin> outputs;
 			std::vector<Node> subNodes;
-			ImColor color;
+			ImColor color = ImColor(1.0f, 1.0f, 1.0f, 1.0f);
 			NodeType type;
-			ImVec2 size;
+			ImVec2 size = ImVec2(0, 0);
 			std::function<void(Node& node)> processFunction;
 			unsigned int mOrderIndex = 0;
 			void Process() {
 				processFunction(*this);
+			}
+
+			template <class Archive>
+			void serialize(Archive& archive) {
+				archive(PL_SER(id), PL_SER(name), PL_SER(inputs), PL_SER(outputs), PL_SER(subNodes), PL_SER(type));
 			}
 		};
 		struct Link
@@ -349,11 +403,23 @@ namespace Plaza::Editor {
 			ax::NodeEditor::PinId startPinID;
 			ax::NodeEditor::PinId endPinID;
 
-			ImColor color;
+			ImColor color = ImColor(1.0f, 1.0f, 1.0f, 1.0f);;
 
+			Link() {};
 			Link(ax::NodeEditor::LinkId id, ax::NodeEditor::PinId startPinId, ax::NodeEditor::PinId endPinId) :
 				id(id), startPinID(startPinId), endPinID(endPinId), color(255, 255, 255)
 			{
+			}
+
+			template <class Archive>
+			void serialize(Archive& archive) {
+				uintptr_t newId = id.Get();
+				uintptr_t newStartPinId = startPinID.Get();
+				uintptr_t newEndPinId = endPinID.Get();
+				archive(PL_SER(newId), PL_SER(newStartPinId), PL_SER(newEndPinId));
+				id = newId;
+				startPinID = newStartPinId;
+				endPinID = newEndPinId;
 			}
 		};
 	private:

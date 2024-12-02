@@ -321,10 +321,10 @@ namespace Plaza {
 			colorBlending.logicOp = logicOp;
 			colorBlending.attachmentCount = attachmentCount;
 			colorBlending.pAttachments = pAttachments;
-			colorBlending.blendConstants[0] = blendConstants[0];
-			colorBlending.blendConstants[1] = blendConstants[1];
-			colorBlending.blendConstants[2] = blendConstants[2];
-			colorBlending.blendConstants[3] = blendConstants[3];
+			colorBlending.blendConstants[0] = blendConstants.size() > 0 ? blendConstants[0] : 1.0f;
+			colorBlending.blendConstants[1] = blendConstants.size() > 1 ? blendConstants[1] : 1.0f;
+			colorBlending.blendConstants[2] = blendConstants.size() > 2 ? blendConstants[2] : 1.0f;
+			colorBlending.blendConstants[3] = blendConstants.size() > 3 ? blendConstants[3] : 1.0f;
 			return colorBlending;
 		}
 

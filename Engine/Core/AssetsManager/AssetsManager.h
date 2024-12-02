@@ -43,6 +43,8 @@ namespace Plaza {
 		static inline std::unordered_map<uint64_t, Animation> mLoadedAnimations = std::unordered_map<uint64_t, Animation>();
 		static inline std::unordered_map<uint64_t, Asset*> mSceneAssets = std::unordered_map<uint64_t, Asset*>();
 		static inline std::unordered_map<uint64_t, Script*> mScripts = std::unordered_map<uint64_t, Script*>();
+		static inline std::unordered_map<std::string, std::filesystem::path> mShaders = std::unordered_map<std::string, std::filesystem::path>();
+
 
 		static inline std::unordered_map<AssetType, std::unordered_set<uint64_t>> mTypeMap = std::unordered_map<AssetType, std::unordered_set<uint64_t>>();
 
@@ -109,6 +111,16 @@ namespace Plaza {
 		static void AddScript(Script* script);
 		static Script* GetScript(uint64_t uuid);
 		static void RemoveScript(uint64_t uuid);
+
+		static void AddShaders(Asset* asset) {
+			mShaders.emplace(asset->mAssetPath.filename().string(), asset->mAssetPath);
+		}
+		static std::string GetShadersPath(const std::string& path) {
+			if (mShaders.find(path) != mShaders.end()) {
+				return mShaders.at(path).string();
+			}
+			return "";
+		}
 
 		static Asset* LoadMetadataAsAsset(std::filesystem::path path);
 		static Asset* LoadBinaryFileAsAsset(std::filesystem::path path);

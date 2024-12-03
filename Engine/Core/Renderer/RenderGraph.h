@@ -9,7 +9,7 @@ namespace Plaza {
 	public:
 		PlazaShadersBinding() {}
 		PlazaShadersBinding(const PlazaShadersBinding& other) = default;
-		std::string mName;
+		std::string mName = "";
 		uint64_t mDescriptorCount = 1;
 		PlRenderStage mStage = PL_STAGE_ALL;
 		uint8_t mLocation = 0;

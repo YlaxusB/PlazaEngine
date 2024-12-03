@@ -61,6 +61,26 @@ namespace Plaza::Editor {
 		}
 	}
 
+	void NodeEditor::CopyDeSerializedInput(Pin& from, Pin& to) {
+		to.subNodes.clear();
+		for (Node& subNode : from.subNodes) {
+			//pin.subNodes.push_back(subNode);
+			SpawnNode(subNode.name, &to, false);
+		}
+
+		Any::CopyValue(from.value, to.value);
+
+		int subNodeIndex = 0;
+		for (Node& subNode : to.subNodes) {
+			int inputIndex = 0;
+			for (Pin& input : subNode.inputs) {
+				CopyDeSerializedInput(from.subNodes[subNodeIndex].inputs[inputIndex], input);
+				inputIndex++;
+			}
+			subNodeIndex++;
+		}
+	}
+
 	void NodeEditor::Update() {
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
 
@@ -82,7 +102,7 @@ namespace Plaza::Editor {
 				mNodesData = NodesData();//= *data.get();
 				std::map<uintptr_t, uintptr_t> correctedIds = std::map<uintptr_t, uintptr_t>();
 				for (auto& [key, node] : data->mNodes) {
-					Node& newNode = this->SpawnNode(node.name);
+					Node& newNode = this->SpawnNode(node.name, nullptr, false);
 					correctedIds.emplace(newNode.id, key);
 				}
 
@@ -92,8 +112,16 @@ namespace Plaza::Editor {
 					//	continue;
 					int index = 0;
 					for (auto& pin : node.inputs) {
-						pin.NewValue();
-						pin.SetValue(data->mNodes[correctedId].inputs[index].value, false);
+						//pin.subNodes.clear();
+						//for (Node& subNode : data->mNodes[correctedId].inputs[index].subNodes) {
+						//	//pin.subNodes.push_back(subNode);
+						//	SpawnNode(subNode.name, &pin, false);
+						//}
+						//data->mNodes[correctedId].inputs[index].value.mCopyValueFactory = pin.value.mCopyValueFactory;
+
+						//pin.NewValue();
+						//pin.value.SetValuePtr(data->mNodes[correctedId].inputs[index].value.CopyValue(), false);
+						CopyDeSerializedInput(data->mNodes[correctedId].inputs[index], pin);
 						index++;
 					}
 				}
@@ -286,7 +314,7 @@ namespace Plaza::Editor {
 					ImGui::SameLine();
 					if (ImGui::Button("+")) {
 						//input.value.GetValue<std::vector<std::any>>()->push_back({});
-						this->SpawnNode(input.value.type().name(), &input);
+						this->SpawnNode(input.value.type().name(), &input, false);
 					}
 					for (Node& subNode : input.subNodes) {
 						this->InspectNode(subNode, true);
@@ -312,9 +340,11 @@ namespace Plaza::Editor {
 				ImGui::PopID();
 			}
 			else {
-				//ax::NodeEditor::BeginPin(input.id, ax::NodeEditor::PinKind::Input);
-				//ImGui::Text(input.name.c_str());
-				//ax::NodeEditor::EndPin();
+				ImGui::PushID(uniqueId++);
+				ax::NodeEditor::BeginPin(input.id, ax::NodeEditor::PinKind::Input);
+				ImGui::Text(input.name.c_str());
+				ax::NodeEditor::EndPin();
+				ImGui::PopID();
 			}
 		}
 
@@ -330,7 +360,7 @@ namespace Plaza::Editor {
 		}
 	}
 
-	NodeEditor::Node& NodeEditor::SpawnNode(const std::string& nodeName, Pin* pinHolder) {
+	NodeEditor::Node& NodeEditor::SpawnNode(const std::string& nodeName, Pin* pinHolder, bool useDefaultValue) {
 		Node nodeToCopy;
 		auto it = mTemplateNodes.find(nodeName);
 		if (it != mTemplateNodes.end())
@@ -353,22 +383,26 @@ namespace Plaza::Editor {
 		newNode.inputs.clear();
 		newNode.outputs.clear();
 		newNode.subNodes.clear();
-		for (const auto& input : nodeToCopy.inputs) {
+		for (auto& input : nodeToCopy.inputs) {
 			Pin newInput = input;
+			newInput.NewValue();
 			newInput.id = GetNextId();
 			newInput.nodes.clear();
-			newInput.NewValue();
+			//newInput.value = Any();
+			if (useDefaultValue)
+				newInput.NewValue();
 			this->AddInputPin(newNode, newInput);
 		}
 		for (const auto& output : nodeToCopy.outputs) {
 			Pin newOutput = output;
 			newOutput.id = GetNextId();
 			newOutput.nodes.clear();
-			newOutput.NewValue();
+			if (useDefaultValue)
+				newOutput.NewValue();
 			this->AddOutputPin(newNode, newOutput);
 		}
 		for (const auto& subNode : nodeToCopy.subNodes) {
-			newNode.subNodes.push_back(this->SpawnNode(subNode.name));
+			newNode.subNodes.push_back(this->SpawnNode(subNode.name, nullptr, useDefaultValue));
 		}
 		return newNode;
 	}

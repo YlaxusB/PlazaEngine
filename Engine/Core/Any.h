@@ -10,7 +10,9 @@ namespace Plaza {
 	class Any {
 	public:
 		Any() noexcept
-			: mType(&typeid(void)) {}
+			: mType(&typeid(void)) {
+			//mTypeRawName = mType->raw_name();
+		}
 
 		~Any() {
 			Reset();
@@ -22,8 +24,10 @@ namespace Plaza {
 
 			if (changeType) {
 				mSize = sizeof(T);
-				this->RegisterType<T>();
+				//if (mValue)
+				Any::RegisterType<T>();
 				mType = &typeid(T);
+				mTypeRawName = mType->raw_name();
 			}
 		}
 
@@ -31,17 +35,19 @@ namespace Plaza {
 		void SetValuePtr(T* value, bool changeType = true) {
 			mValue = value;//static_cast<void*>(new T(value));
 
-			if (changeType) {
-				mSize = sizeof(T);
-				this->RegisterType<T>();
-				mType = &typeid(T);
-			}
+			//if (changeType) {
+			//	//mSize = sizeof(T);
+			//	if (mValue)
+			//		this->RegisterType<T>();
+			//	mType = &typeid(T);
+			//}
 		}
 
 		template<typename T>
 		void SetType() {
-			this->RegisterType<T>();
+			Any::RegisterType<T>();
 			mType = &typeid(T);
+			mTypeRawName = mType->raw_name();
 		}
 
 		template<typename T>
@@ -52,6 +58,13 @@ namespace Plaza {
 			else {
 				return static_cast<T*>(mValue);
 			}
+		}
+
+		static void CopyValue(Any& from, Any& to) {
+			if (sCopyValueFactoryByRawName.find(from.mTypeRawName) != sCopyValueFactoryByRawName.end())
+				sCopyValueFactoryByRawName.at(from.mTypeRawName)(from, to);
+			else if (sCopyValueFactoryByRawName.find(to.mTypeRawName) != sCopyValueFactoryByRawName.end())
+				sCopyValueFactoryByRawName.at(to.mTypeRawName)(from, to);
 		}
 
 		template <typename T>
@@ -67,6 +80,7 @@ namespace Plaza {
 			//	delete mValue; // Type-safe deletion
 			mValue = nullptr;
 			mType = &typeid(void);
+			mTypeRawName = mType->raw_name();
 		}
 
 		void* mValue = nullptr;
@@ -76,35 +90,51 @@ namespace Plaza {
 		struct always_false : std::false_type {};
 		template <class Archive>
 		void serialize(Archive& archive) {
-			if (mValue == nullptr)
-				return;
 
+			archive(PL_SER(mTypeRawName));
+			if (mTypeRawName == "")
+				return;
 			if constexpr (std::is_same_v<Archive, cereal::JSONOutputArchive> ||
 				std::is_same_v<Archive, cereal::JSONInputArchive>) {
 				// Handle JSON-specific serialization or deserialization
 				if constexpr (Archive::is_saving::value) {
-					// JSON serialization
-					// Example: archive(value);
-					mJsonSerialize(archive, mValue);
+					if (mValue == nullptr)
+						return;
+
+					if (EnumReflection::sEnumNamesByTypeRawName.find(mTypeRawName) != EnumReflection::sEnumNamesByTypeRawName.end())
+						sJsonSerializeByRawName[typeid(int).raw_name()](archive, *this);
+					else
+						sJsonSerializeByRawName[mTypeRawName](archive, *this);
 				}
 				else if constexpr (Archive::is_loading::value) {
 					// JSON deserialization
 					// Example: archive(value);
-					mJsonDeSerialize(archive, mValue);
+					if (EnumReflection::sEnumNamesByTypeRawName.find(mTypeRawName) != EnumReflection::sEnumNamesByTypeRawName.end())
+						sJsonDeSerializeByRawName[typeid(int).raw_name()](archive, *this);
+					else
+						sJsonDeSerializeByRawName[mTypeRawName](archive, *this);
 				}
 			}
 			else if constexpr (std::is_same_v<Archive, cereal::BinaryOutputArchive> ||
 				std::is_same_v<Archive, cereal::BinaryInputArchive>) {
 				// Handle Binary-specific serialization or deserialization
 				if constexpr (Archive::is_saving::value) {
+					if (mValue == nullptr)
+						return;
 					// Binary serialization
 					// Example: archive(value);
-					mBinarySerialize(archive, mValue);
+					if (EnumReflection::sEnumNamesByTypeRawName.find(mTypeRawName) != EnumReflection::sEnumNamesByTypeRawName.end())
+						sBinarySerializeByRawName[typeid(int).raw_name()](archive, *this);
+					else
+						sBinarySerializeByRawName[mTypeRawName](archive, *this);
 				}
 				else if constexpr (Archive::is_loading::value) {
 					// Binary deserialization
 					// Example: archive(value);
-					mBinaryDeSerialize(archive, mValue);
+					if (EnumReflection::sEnumNamesByTypeRawName.find(mTypeRawName) != EnumReflection::sEnumNamesByTypeRawName.end())
+						sBinaryDeSerializeByRawName[typeid(int).raw_name()](archive, *this);
+					else
+						sBinaryDeSerializeByRawName[mTypeRawName](archive, *this);
 				}
 			}
 			else {
@@ -113,36 +143,54 @@ namespace Plaza {
 		}
 
 		template<typename T>
-		void RegisterType() {
+		static void RegisterType() {
+			//mTypeRawName = mType->raw_name();
+			std::string typeRawName = typeid(T).raw_name();
+			if (sRegisteredRawNames.find(typeRawName) != sRegisteredRawNames.end())
+				return;
 			// Setup serialization
-			mJsonSerialize = [this](cereal::JSONOutputArchive& archive, void* value) {
-				T* newValue = static_cast<T*>(value);
+			sJsonSerializeByRawName.emplace(typeRawName, [](cereal::JSONOutputArchive& archive, Any& any) {
+				T* newValue = static_cast<T*>(any.mValue);
 				archive(*newValue); // Serialize the value
-				};
-			mBinarySerialize = [this](cereal::BinaryOutputArchive& archive, void* value) {
-				T* newValue = static_cast<T*>(value);
+				});
+			sBinarySerializeByRawName.emplace(typeRawName, [](cereal::BinaryOutputArchive& archive, Any& any) {
+				T* newValue = static_cast<T*>(any.mValue);
 				archive(*newValue); // Serialize the value
-				};
+				});
 
 			// Setup deserialization
-			mJsonDeSerialize = [this](cereal::JSONInputArchive& archive, void* value) {
+			sJsonDeSerializeByRawName.emplace(typeRawName, [](cereal::JSONInputArchive& archive, Any& any) {
 				T newValue;
 				archive(newValue); // Deserialize into newValue
-				this->SetValue(newValue, false); // Store the new value
-				};
-			mBinaryDeSerialize = [this](cereal::BinaryInputArchive& archive, void* value) {
+				any.SetValue(newValue, false); // Store the new valu)e
+				});
+			sBinaryDeSerializeByRawName.emplace(typeRawName, [](cereal::BinaryInputArchive& archive, Any& any) {
 				T newValue;
 				archive(newValue); // Deserialize into newValue
-				this->SetValue(newValue, false); // Store the new value
-				};
+				any.SetValue(newValue, false); // Store the new valu)e
+				});
+
+			sCopyValueFactoryByRawName.emplace(typeRawName, [](Any& from, Any& to) {
+				if (from.mValue == nullptr)
+					return;
+				T* newValue = new T(*from.GetValue<T>());
+				//archive(newValue);
+				//any.SetValue(newValue, false);
+				to.mValue = static_cast<void*>(newValue);
+				});
+
 		}
 
-		std::function<void(cereal::JSONOutputArchive&, void*)> mJsonSerialize;
-		std::function<void(cereal::JSONInputArchive&, void*)> mJsonDeSerialize;
+		static inline std::set<std::string> sRegisteredRawNames = std::set<std::string>();
+		static inline std::unordered_map<std::string, std::function<void(cereal::JSONOutputArchive&, Any& any)>> sJsonSerializeByRawName = std::unordered_map<std::string, std::function<void(cereal::JSONOutputArchive&, Any& any)>>();
+		static inline std::unordered_map<std::string, std::function<void(cereal::JSONInputArchive&, Any& any)>> sJsonDeSerializeByRawName = std::unordered_map<std::string, std::function<void(cereal::JSONInputArchive&, Any& any)>>();
 
-		std::function<void(cereal::BinaryOutputArchive&, void*)> mBinarySerialize;
-		std::function<void(cereal::BinaryInputArchive&, void*)> mBinaryDeSerialize;
+		static inline std::unordered_map<std::string, std::function<void(cereal::BinaryOutputArchive&, Any& any)>> sBinarySerializeByRawName = std::unordered_map<std::string, std::function<void(cereal::BinaryOutputArchive&, Any& any)>>();
+		static inline std::unordered_map<std::string, std::function<void(cereal::BinaryInputArchive&, Any& any)>> sBinaryDeSerializeByRawName = std::unordered_map<std::string, std::function<void(cereal::BinaryInputArchive&, Any& any)>>();
+
+		static inline std::map<std::string, std::function<void(Any& from, Any& to)>> sCopyValueFactoryByRawName = std::map<std::string, std::function<void(Any& from, Any& to)>>();
 	private:
 		const std::type_info* mType;
+		std::string mTypeRawName = "";
 	};
 }

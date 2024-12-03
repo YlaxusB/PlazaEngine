@@ -1345,7 +1345,7 @@ namespace Plaza {
 		VulkanRenderer::GetRenderer()->mActiveCommandBuffer = &commandBuffer;
 		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mSwapChainImages[currentFrame], VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-		VulkanRenderer::GetRenderer()->UpdateInstancesData();
+		//VulkanRenderer::GetRenderer()->UpdateInstancesData();
 
 		for (unsigned int i = 0; i < mOrderedPasses.size(); ++i) {
 			this->GetRenderPass(mOrderedPasses[i]->mName)->UpdateCommandBuffer(commandBuffer);

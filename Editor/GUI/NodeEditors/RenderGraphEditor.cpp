@@ -207,12 +207,12 @@ namespace Plaza::Editor {
 		//orderedNodeIds.resize(static_cast<size_t>(nodeCount));
 		//ax::NodeEditor::GetOrderedNodeIds(orderedNodeIds.data(), nodeCount);
 		PlPipelineCreateInfo info{};
-		GetNode(mFinalNodeId)->outputs[0].SetValue<PlPipelineCreateInfo>(info);
+		//GetNode(mFinalNodeId)->outputs[0].SetValue<PlPipelineCreateInfo>(info);
 		for (int i = orderedNodeIds.size() - 1; i >= 0; i--) {
 			uintptr_t nodeId = orderedNodeIds[i];
-			if (executedNodeIds.find(nodeId) != executedNodeIds.end() || GetNode(mFinalNodeId) == nullptr)
+			if (executedNodeIds.find(nodeId) != executedNodeIds.end() || GetNode(nodeId) == nullptr)
 				continue;
-			GetNode(mFinalNodeId)->Process();//.processFunction(mNodes.at(nodeId));
+			GetNode(nodeId)->Process();//.processFunction(mNodes.at(nodeId));
 			executedNodeIds.emplace(nodeId);
 			//auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const Node& node) {
 			//	return node.id == nodeId.Get();
@@ -225,9 +225,9 @@ namespace Plaza::Editor {
 		//for (auto& node : mNodes) {
 		//	node.processFunction(node);
 		//}
-		Node& finalNode = *GetNode(mFinalNodeId);
-		if (finalNode.inputs[0].nodes.size() > 1)
-			info = finalNode.inputs[0].nodes[1]->outputs[0].GetValue<PlPipelineCreateInfo>();
+		//Node& finalNode = *GetNode(mFinalNodeId);
+		//if (finalNode.inputs[0].nodes.size() > 1)
+		//	info = finalNode.inputs[0].nodes[1]->outputs[0].GetValue<PlPipelineCreateInfo>();
 
 		VulkanRenderGraph* renderGraph = new VulkanRenderGraph();
 
@@ -239,6 +239,7 @@ namespace Plaza::Editor {
 			}
 			else if (value.type() == typeid(BufferNodeStruct)) {
 				BufferNodeStruct buffer = node.outputs[0].GetValue<BufferNodeStruct>();
+				buffer.bufferCount = 2;
 				renderGraph->AddBuffer(std::make_shared<PlVkBuffer>(buffer.type, buffer.maxItems, buffer.stride, buffer.bufferCount, buffer.bufferUsage, buffer.memoryUsage, buffer.name));
 			}
 		}
@@ -295,6 +296,7 @@ namespace Plaza::Editor {
 		renderGraph->CompileNotBoundBuffers();
 
 		Application::Get()->mRenderer->mRenderGraph = renderGraph;
+		VulkanRenderer::GetRenderer()->mRenderGraph = renderGraph;
 		Application::Get()->mRenderer->UpdateImGuiDisplayTexture(Application::Get()->mRenderer->mRenderGraph->GetTexture<VulkanTexture>("FinalTexture"));
 
 		AssetsSerializer::SerializeFile<VulkanRenderGraph>(*renderGraph, FileDialog::SaveFileDialog(""), Application::Get()->mSettings.mRenderGraphSerializationMode);

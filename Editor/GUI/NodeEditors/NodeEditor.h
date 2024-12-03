@@ -29,6 +29,7 @@ namespace Plaza::Editor {
 
 		void InitMathNodes();
 		void InspectNode(Node& node, bool inspectAsSubNode);
+		void CopyDeSerializedInput(Pin& from, Pin& to);
 
 		struct NodesData : public Asset {
 			std::map<uintptr_t, Node> mNodes = std::map<uintptr_t, Node>();
@@ -64,7 +65,7 @@ namespace Plaza::Editor {
 		uintptr_t mFinalNodeId = 1;
 		uintptr_t mNextId = 1;
 		const uintptr_t& GetNextId() {
-			while (GetNode(mNextId) != nullptr) {
+			while (GetNode(mNextId++) != nullptr) {
 				mNextId++;
 			}
 			return mNextId;
@@ -154,7 +155,7 @@ namespace Plaza::Editor {
 			Houdini
 		};
 
-		Node& SpawnNode(const std::string& nodeName, Pin* pinHolder = nullptr);
+		Node& SpawnNode(const std::string& nodeName, Pin* pinHolder = nullptr, bool useDefaultValue = true);
 		void RemoveNode(int index);
 
 		virtual void Process();
@@ -198,6 +199,7 @@ namespace Plaza::Editor {
 					if constexpr (is_specialization_of_vector<FieldType>::value) {
 						// Is a vector
 						using ContentType = typename FieldType::value_type;
+						Any::RegisterType<ContentType>();
 						node.subNodes.push_back(this->SpawnNode(typeid(ContentType).name()));
 					}
 					else
@@ -205,16 +207,20 @@ namespace Plaza::Editor {
 				}
 				else {
 					this->AddInputPin(node, Pin(i, fieldName.data(), NodeEditor::ChoosePinType(typeid(FieldType))));
+					Any::RegisterType<FieldType>();
 					if constexpr (std::is_enum_v<FieldType>) {
 						node.inputs.back().SetEnumValue<FieldType>(0);
+						node.inputs.back().NewValue();
 					}
 					else {
 						node.inputs.back().SetValue<FieldType>({});
+						node.inputs.back().NewValue();
 					}
 
 					if constexpr (is_specialization_of_vector<FieldType>::value) {
 						using ContentType = typename FieldType::value_type;
 						node.inputs.back().value.SetType<ContentType>();//SetValue<ContentType>({});
+						Any::RegisterType<ContentType>();
 						node.inputs.back().isVector = true;
 					}
 				}
@@ -323,20 +329,22 @@ namespace Plaza::Editor {
 			template<typename T>
 			void SetValue(const T& newValue, bool changeType = true) {
 				if (changeType) {
-					mFactory = [newValue, this]() -> void* {
+					value.SetValue<T>(newValue, true);
+					mFactory = [newValue](Any& any) -> void* {
 						T* val = new T();
 						*val = newValue;
-						value.SetValue<T>(newValue, true);
+						any.SetValue<T>(newValue, true);
 						return val;
 						};
 				}
 				else
 					value.SetValue(newValue, false);
+				Any::RegisterType<T>();
 			}
 
 			void NewValue() {
 				if (mFactory)
-					value.mValue = mFactory();
+					value.mValue = mFactory(this->value);
 				//value.SetValue(mFactory());
 			}
 
@@ -368,12 +376,21 @@ namespace Plaza::Editor {
 				uintptr_t newId = id.Get();
 				if (isVector)
 					value.SetValuePtr<int>(nullptr, false);
-				archive(PL_SER(newId), PL_SER(subNodes), PL_SER(name), PL_SER(type), PL_SER(kind), PL_SER(value), PL_SER(enumSize), PL_SER(enumIndex), PL_SER(isVector));
-				id = newId;
+				if (name == "Pipelines") {
+					std::cout << "here \n";
+				}
+				archive(PL_SER(newId), PL_SER(subNodes), PL_SER(name), PL_SER(type), PL_SER(kind), PL_SER(enumSize), PL_SER(enumIndex), PL_SER(isVector));
+				if (name == "Pipelines") {
+					std::cout << "here \n";
+				}
+
+				if (!isVector && kind != PinKind::Output)
+					archive(PL_SER(value));
+
 			}
 
 		private:
-			std::function<void* ()> mFactory;
+			std::function<void* (Any& any)> mFactory;
 		};
 		class Node {
 		public:

@@ -123,7 +123,7 @@ void main() {
     worldPos.xyz = vec3(finalModel);
     gl_Position = ubo.projection * ubo.view * finalModel;
 
-    Normal.xyz = normalize(mat3(finalInstanceMatrix) * inNormal);
+    Normal.xyz = normalize(mat3(ubo.view) * mat3(finalInstanceMatrix) * inNormal);
     // Calculate tangent and bitangent
     vec3 edge1 = vec3(finalInstanceMatrix * vec4(inPosition + vec3(1.0, 0.0, 0.0), 1.0)) - vec3(finalModel);
     vec3 edge2 = vec3(finalInstanceMatrix * vec4(inPosition + vec3(0.0, 1.0, 0.0), 1.0)) - vec3(finalModel);
@@ -139,6 +139,13 @@ void main() {
 
     // Set the TBN matrix
     outTBN = mat3(tangent, bitangent, Normal);
+
+vec3 viewNormal = Normal;
+vec3 viewTangent = normalize(mat3(ubo.view) * tangent);
+vec3 viewBitangent = normalize(mat3(ubo.view) * bitangent);
+
+// Construct the TBN matrix in view space
+outTBN = mat3(viewTangent, viewBitangent, viewNormal);
 
     uint materialIndex = renderGroupMaterialsOffsets[vertexMaterialIndex + renderGroupOffsets[gl_InstanceIndex]];//meshRendererMaterials[vertexMaterialIndex];//22;
 

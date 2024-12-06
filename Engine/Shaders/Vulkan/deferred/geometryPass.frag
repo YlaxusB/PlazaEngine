@@ -53,7 +53,7 @@ layout (location = 2) out vec4 gOthers;
 
 layout(binding = 20) uniform sampler2D textures[];
 
-vec3 GetNormalFromMap(vec3 N) {
+vec3 GetNormalFromMap() {
     vec3 bumpNormal = texture(textures[material.normalIndex], fragTexCoord).xyz * 2.0 - 1.0;
     return normalize(inTBN * bumpNormal);
 }
@@ -74,12 +74,12 @@ void main() {
 
     vec3 N = normalize(inNormal.xyz);
     if(material.normalIndex > -1) {
-        N = GetNormalFromMap(N);
+        N = -GetNormalFromMap();
     }
-    vec3 V =  normalize(ubo.viewPos.xyz - (worldPos.xyz));
+    vec3 V =  normalize(-worldPos.xyz);
     float NdotV = dot(N, V);
     if (NdotV < 0.0) {
-        N = -N;
+        //N = -N;
     }
 
     float metallic = material.metalnessFloat;

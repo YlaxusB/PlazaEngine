@@ -57,6 +57,7 @@ namespace Plaza {
 		bloomInfo.mSamplerAddressMode = PL_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 		this->GetTexture<VulkanTexture>("BloomTexture")->SetTextureInfo(bloomInfo);
 
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "SSRTexture"));
 		// this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "BloomFinalTexture"));
 
 		std::string skyboxPath;
@@ -454,9 +455,60 @@ namespace Plaza {
 				});
 		}
 
+		// Screen Space reflections
+		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Screen Space Reflections Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GNormal")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_GENERAL, 0, 0, this->GetSharedTexture("BloomTexture")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GOthers")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("SceneDepth")))
+			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("SSRTexture")));
+
+		struct SSRPushConstants {
+			glm::vec4 screenSize;
+			glm::mat4 projection;
+			glm::mat4 view;
+			glm::mat4 lensProjection;
+		};
+		this->GetRenderPass("Screen Space Reflections Pass")->AddPipeline(pl::pipelineCreateInfo(
+			"ScreenSpaceReflectionsShaders",
+			PL_RENDER_PASS_FULL_SCREEN_QUAD,
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\ssr\\ssr.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\ssr\\ssr.frag", "main") },
+			VertexGetBindingDescription(),
+			VertexGetAttributeDescriptions(),
+			PL_TOPOLOGY_TRIANGLE_LIST,
+			false,
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) }),
+			pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
+			pl::pipelineViewportStateCreateInfo(1, 1),
+			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
+			{ pl::pushConstantRange(PL_STAGE_FRAGMENT, 0, sizeof(SSRPushConstants)) },
+			{  }
+		));
+		this->AddRenderPassCallback("Screen Space Reflections Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+			plazaRenderPass->mPipelines[0]->UpdatePushConstants<SSRPushConstants>(0, SSRPushConstants(glm::vec4(Application::Get()->appSizes->sceneSize, 0.0f, 1.0f), Application::Get()->activeCamera->GetProjectionMatrix(), Application::Get()->activeCamera->GetViewMatrix(), Application::Get()->activeCamera->GetProjectionMatrix()));
+			});
+		/*
+layout (binding = 0) uniform sampler2D sceneTexture;
+layout (binding = 1) uniform sampler2D normalTexture;
+layout (binding = 2) uniform sampler2D depthTexture;
+
+layout (location = 0) in vec2 inUV;
+layout (location = 0) out vec4 fragColor;
+
+layout(push_constant) uniform PushConstants {
+	vec2 screenSize;
+	mat4 projection;
+	mat4 view;
+	mat4 lensProjection;
+} pushConstants;
+		*/
+
 		// Final Post Processing
 		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Final Post Processing Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false))
-			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_GENERAL, 0, 0, this->GetSharedTexture("BloomTexture")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("SSRTexture")))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("FontTexture")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("FinalTexture")));
 
@@ -1345,7 +1397,7 @@ namespace Plaza {
 		VulkanRenderer::GetRenderer()->mActiveCommandBuffer = &commandBuffer;
 		//VulkanRenderer::GetRenderer()->TransitionImageLayout(VulkanRenderer::GetRenderer()->mSwapChainImages[currentFrame], VK_FORMAT_B8G8R8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
-		//VulkanRenderer::GetRenderer()->UpdateInstancesData();
+		VulkanRenderer::GetRenderer()->UpdateInstancesData();
 
 		for (unsigned int i = 0; i < mOrderedPasses.size(); ++i) {
 			this->GetRenderPass(mOrderedPasses[i]->mName)->UpdateCommandBuffer(commandBuffer);

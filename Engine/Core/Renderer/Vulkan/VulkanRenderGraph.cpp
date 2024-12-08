@@ -465,6 +465,7 @@ namespace Plaza {
 
 		struct SSRPushConstants {
 			glm::vec4 screenSize;
+			glm::vec4 cameraPos;
 			glm::mat4 projection;
 			glm::mat4 view;
 			glm::mat4 lensProjection;
@@ -488,7 +489,7 @@ namespace Plaza {
 			{  }
 		));
 		this->AddRenderPassCallback("Screen Space Reflections Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-			plazaRenderPass->mPipelines[0]->UpdatePushConstants<SSRPushConstants>(0, SSRPushConstants(glm::vec4(Application::Get()->appSizes->sceneSize, 0.0f, 1.0f), Application::Get()->activeCamera->GetProjectionMatrix(), Application::Get()->activeCamera->GetViewMatrix(), Application::Get()->activeCamera->GetProjectionMatrix()));
+			plazaRenderPass->mPipelines[0]->UpdatePushConstants<SSRPushConstants>(0, SSRPushConstants(glm::vec4(Application::Get()->appSizes->sceneSize, 0.0f, 1.0f), glm::vec4(Application::Get()->activeCamera->Position, 1.0f), Application::Get()->activeCamera->GetProjectionMatrix(), Application::Get()->activeCamera->GetViewMatrix(), Application::Get()->activeCamera->GetProjectionMatrix()));
 			});
 		/*
 layout (binding = 0) uniform sampler2D sceneTexture;

@@ -10,20 +10,22 @@ layout (location = 0) out vec4 fragColor;
 
 layout(push_constant) uniform PushConstants {
     vec4 screenSize;
+    vec4 cameraPos;
     mat4 projection;
     mat4 view;
     mat4 lensProjection;
 } pushConstants;
 
 float GetDepthUV(vec2 uv) {
+//uv.y = 1.0f - uv.y;
     return texture(depthTexture, uv).r;
 }
 
 vec3 ReconstructWorldPosition(vec2 uv) {
     mat4 viewProjection = pushConstants.projection * pushConstants.view;
     float ndcZ = GetDepthUV(uv) * 2.0f - 1.0f; 
-    vec4 ndcPosition = vec4(gl_FragCoord.xy * (1.0f / pushConstants.screenSize.xy) * 2.0 - 1.0, (GetDepthUV(uv)), 1.0);
-    ndcPosition.y *= -1;
+    vec4 ndcPosition = vec4(uv * 2.0 - 1.0, (GetDepthUV(uv)), 1.0);
+    ndcPosition.y *= -1.0f;
     vec4 worldPosition = inverse(viewProjection) * ndcPosition;
     worldPosition.xyz /= worldPosition.w;
     return worldPosition.xyz;
@@ -33,12 +35,12 @@ vec3 ReconstructWorldPosition(vec2 uv) {
 }
 
 vec3 ReconstructViewPosition(vec2 uv) {
+    mat4 viewProjection = pushConstants.projection * pushConstants.view;
     vec4 clipPos = vec4(uv * 2.0 - 1.0, GetDepthUV(uv), 1.0);
     //clipPos.y *= -1.0f;
-    vec4 viewPos = inverse(pushConstants.projection) * clipPos;
+    vec4 viewPos = inverse(viewProjection) * clipPos;
     return viewPos.xyz / viewPos.w;
 }
-
 
 
 float GetDepth() {
@@ -73,154 +75,118 @@ vec3 WorldToNDC(vec3 worldPosition) {
     return clipSpacePosition.xyz / clipSpacePosition.w; // Perspective divide
 }
 
-void main() 
-{
-    bool insideMiddle = inUV.x > 0.25f && inUV.x < 0.75 && inUV.y > 0.25f && inUV.y < 0.75f;
-    //if(!insideMiddle) {
-    //    fragColor = texture(sceneTexture, inUV);
-    //    return;
-    //}
-        
-    //vec3 normal = texture(normalTexture, inUV).xyz * 2.0 - 1.0f;
-    vec4 others = texture(othersTexture, inUV);
-    float metallic = others.y;
-    float sceneDepth = GetDepth();
-    //vec3 viewPos = ReconstructToViewPosition(inUV, sceneDepth);
-
-    if(sceneDepth >= 1.0f || metallic < 0.4f) {
-        fragColor = texture(sceneTexture, inUV);
-        return;
-    }
-    
-    float maxDistance = 18;
-    float resolution  = 0.3;
-    int   steps       = 16;
-    float thickness   = 0.5;
-    
-    vec2 texSize  = pushConstants.screenSize.xy;//textureSize(positionTexture, 0).xy;
-    vec2 texCoord = gl_FragCoord.xy / texSize;
-
-    vec4 positionFrom = vec4(WorldToViewSpace(ReconstructWorldPosition(inUV)), 1.0f);
-    vec3 unitPositionFrom = normalize(positionFrom.xyz);
-    vec3 cameraPos = -transpose(mat3(pushConstants.view)) * vec3(pushConstants.view[3]);
-    vec3 normal = normalize((texture(normalTexture, texCoord).xyz));
-    vec3 pivot  = normalize(reflect(unitPositionFrom, normal));
-
-    vec4 startView = vec4((vec3(positionFrom.xyz + (pivot *           0))), 1.0f);
-    startView.y *= -1.0f;
-    vec4 endView   = vec4((vec3(positionFrom.xyz + (pivot * maxDistance))), 1.0f);
-    endView.y *= -1.0f;
-
-      vec4 startFrag      = startView;
-       // Project to screen space.
-       startFrag      =  pushConstants.projection * startFrag;
-       // Perform the perspective divide.
-       startFrag.xyz /= startFrag.w;
-       // Convert the screen-space XY coordinates to UV coordinates.
-       startFrag.xy   = startFrag.xy * 0.5 + 0.5;
-       // Convert the UV coordinates to fragment/pixel coordnates.
-       startFrag.xy  *= texSize;
-
-  vec4 endFrag      = endView;
-       endFrag      =  pushConstants.projection * endFrag;
-       endFrag.xyz /= endFrag.w;
-       endFrag.xy   = endFrag.xy * 0.5 + 0.5;
-       endFrag.xy  *= texSize;
-
-    vec2 uv;
-    vec2 frag  = startFrag.xy;
-    uv.xy = frag / texSize;
-
-    float deltaX    = endFrag.x - startFrag.x;
-    float deltaY    = endFrag.y - startFrag.y;
-
-    float useX      = abs(deltaX) >= abs(deltaY) ? 1 : 0;
-    float delta     = mix(abs(deltaY), abs(deltaX), useX) * clamp(resolution, 0, 1);
-
-    vec2  increment = vec2(deltaX, deltaY) / max(delta, 0.001);
-
-    float search0 = 0;
-    float search1 = 0;
-    
-    int hit0 = 0;
-    int hit1 = 0;
-    
-    float viewDistance = sceneDepth;///startView.y;
-    float depth        = thickness;
-    float i = 0;
-
-    vec4 positionTo = positionFrom;
-    for (i = 0; i < int(delta); ++i) {
-        if(i > 150) {
-            hit0 = 3;
-            break;
-        }
-        frag      += increment;
-        uv.xy      = frag / texSize;
-        positionTo = vec4(WorldToViewSpace(ReconstructWorldPosition(inUV)), 1.0f);
-
-        search1 =   mix((frag.y - startFrag.y) / deltaY, (frag.x - startFrag.x) / deltaX, useX);
-
-        search1 = clamp(search1, 0.0, 1.0);
-
-        viewDistance = (startView.y * endView.y) / mix(endView.y, startView.y, search1);
-        depth        = viewDistance - positionTo.y;
-
-        if (depth > 0 && depth < thickness) {
-          hit0 = 1;
-          break;
-        } else {
-          search0 = search1;
-        }
-    }
-
-    search1 = search0 + ((search1 - search0) / 2.0);
-
-    steps *= hit0;
-
-    for (i = 0; i < steps; ++i) {
-        frag       = mix(startFrag.xy, endFrag.xy, search1);
-        uv.xy      = frag / texSize;
-        positionTo = vec4(WorldToViewSpace(ReconstructWorldPosition(inUV)), 1.0f);//texture(sceneTexture, uv.xy);
-        
-        viewDistance = (startView.y * endView.y) / mix(endView.y, startView.y, search1);
-        depth        = viewDistance - positionTo.y;
-        
-        if (depth > 0 && depth < thickness) {
-          hit1 = 1;
-          search1 = search0 + ((search1 - search0) / 2);
-        } else {
-          float temp = search1;
-          search1 = search1 + ((search1 - search0) / 2);
-          search0 = temp;
-        }
-    }
-
-    if(hit0 == 1) {
-        //fragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
-        fragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
-    } else if (hit0 == 3) {
-        fragColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);
-    }
-    else {
-        fragColor = vec4(0.0f, 0.0f, 1.0f, 1.0f);
-    }
-
-            fragColor = vec4(texture(normalTexture, texCoord).xyz, 1.0f);
-            fragColor = vec4(texture(sceneTexture, inUV).xyz + texture(sceneTexture, uv).xyz * 0.3f, 1.0f);
-            //fragColor = vec4(texture(sceneTexture, inUV).xyz, 1.0f);
-            //fragColor = vec4(WorldToViewSpace(ReconstructWorldPosition(inUV)), 1.0f);
+vec3 reconstructViewPos(float depth, vec2 uv, mat4 invProj, vec2 screenSize) {
+    vec2 ndc = uv * 2.0 - 1.0;
+    vec4 clipSpacePos = vec4(ndc, depth, 1.0);
+    clipSpacePos.y *= -1.0f;
+    vec4 viewSpacePos = invProj * clipSpacePos;
+    viewSpacePos /= max(viewSpacePos.w, 0.0001); // Prevent divide-by-zero
+    return viewSpacePos.xyz;
 }
 
+void main() {
+    // Step 1: Read inputs and set up basic data
+    vec2 texSize = pushConstants.screenSize.xy;
+    vec2 texCoord = clamp(inUV, vec2(0.0), vec2(1.0)); // Clamp UV to avoid out-of-bounds access
+    float sceneDepth = GetDepthUV(texCoord);
 
-//vec3 PositionFromDepth(float depth) {
-//    float z = depth * 2.0 - 1.0;
-//
-//    vec4 clipSpacePosition = vec4(inUV * 2.0 - 1.0, z, 1.0);
-//    vec4 viewSpacePosition = (pushConstants.projection * pushConstants.view)* clipSpacePosition;
-//
-//    // Perspective division
-//    viewSpacePosition /= viewSpacePosition.w;
-//
-//    return viewSpacePosition.xyz;
-//}
+    // Return early if depth is at maximum (background or invalid data)
+    if (sceneDepth >= 1.0f) {
+        fragColor = texture(sceneTexture, texCoord);
+        return;
+    }
+
+    // Step 2: Reconstruct view-space position from depth
+    vec3 viewPos = reconstructViewPos(sceneDepth, texCoord, inverse(pushConstants.projection), texSize);
+    // Read and normalize the normal map
+    vec3 normal = normalize(texture(normalTexture, texCoord).xyz);
+    // Step 3: Compute the reflection vector
+    vec3 unitViewPos = normalize(viewPos);
+// Step 2: Reconstruct world-space position and normal
+vec4 ndcPos = vec4(viewPos, 1.0f);
+//ndcPos.y *= -1.0f; //+ 1.0f;
+vec3 worldPos = (inverse(pushConstants.view) * ndcPos).xyz; // Transform viewPos to world space
+mat3 normalMatrix = transpose((mat3(pushConstants.view)));
+vec3 worldNormal = normalize(normalMatrix * normal);
+
+// Step 3: Compute the reflection vector in world space
+vec3 unitWorldViewPos = normalize(worldPos - pushConstants.cameraPos.xyz); // Direction from camera to the point in world space
+vec3 worldPivot = normalize(reflect(unitWorldViewPos, worldNormal)); // Reflection in world space
+
+// Step 4: Transform the reflection vector back to view space
+mat3 piv = mat3(pushConstants.view);
+vec3 pivot = ((piv) * worldPivot); // Transform reflection vector back to view space
+
+
+//fragColor = vec4(vec3(reconstructViewPos(GetDepthUV(inUV.xy), inUV.xy, inverse(pushConstants.projection), texSize)).z), 1.0f);
+//return;
+
+
+    // Step 4: Define ray marching parameters
+    float maxDistance = 16.0;
+    float resolution = 0.3;
+    int steps = 4;
+    float thickness = 0.5;
+
+    // Define start and end positions in view space
+    vec4 startView = vec4(viewPos, 1.0);
+    vec4 endView = vec4(viewPos + pivot * maxDistance, 1.0);
+
+    // Project start and end view-space positions to screen space
+    vec4 startFrag = (pushConstants.projection * startView);
+    startFrag.xyz /= max(startFrag.w, 0.0001); // Perspective divide
+    startFrag.xy = (startFrag.xy * 0.5 + 0.5) * texSize;
+
+    vec4 endFrag = (pushConstants.projection * endView);
+    endFrag.xyz /= max(endFrag.w, 0.0001); // Perspective divide
+    endFrag.xy = (endFrag.xy * 0.5 + 0.5) * texSize;
+
+    // Step 5: Initialize ray marching variables
+    vec2 frag = startFrag.xy;
+    vec2 increment = (endFrag.xy - startFrag.xy) / float(steps);
+
+    float viewDistance = reconstructViewPos(GetDepthUV(inUV), inUV, inverse(pushConstants.projection), texSize).z;//sceneDepth;
+    float depth = 0.0;
+    bool hit = false;
+
+    vec3 viewPosTo = viewPos;
+    // Step 6: Perform ray marching
+    for (int i = 0; i < steps; ++i) {
+        // Advance the ray along the reflection vector
+        frag += increment;
+        vec2 uv = frag / texSize;
+
+        // Clamp UV to prevent sampling out of bounds
+        uv = clamp(uv, vec2(0.0), vec2(1.0));
+
+        // Reconstruct view-space position at this sample point
+        uv.y = 1.0f - uv.y;
+        viewPosTo = reconstructViewPos(GetDepthUV(uv), uv, inverse(pushConstants.projection), texSize);
+        // Compute the depth difference
+        depth = viewDistance - viewPosTo.z;
+
+        if (depth > 0.0 && depth < thickness) {
+            hit = true;
+            break;
+        }
+    }
+
+    // Step 7: Compute visibility based on ray hit
+    float visibility = 1.0;
+   if (hit) {
+       visibility = 1.0
+          * (1.0 - max(dot(-unitViewPos, pivot), 0.0)) // Angle effect
+           * (1.0 - clamp(depth / thickness, 0.0, 1.0)) // Thickness effect
+           * (1.0 - clamp(length(viewPosTo - viewPos) / maxDistance, 0.0, 1.0)); // Distance effect
+   }
+    //visibility = clamp(visibility, 0.0, 1.0);
+    //frag.y = 1.0f - frag.y;
+    // Step 8: Combine base color with reflection
+    vec3 baseColor = texture(sceneTexture, texCoord).rgb;
+    frag = frag / texSize;
+    frag.y = 1.0f - frag.y;
+    vec3 reflectionColor = texture(sceneTexture, frag).rgb;
+
+    fragColor = vec4(baseColor + reflectionColor * visibility * 0.3, 1.0);
+   // fragColor = vec4(visibility, visibility, visibility, 1.0f);
+}

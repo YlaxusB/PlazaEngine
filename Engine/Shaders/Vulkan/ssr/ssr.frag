@@ -91,57 +91,47 @@ void main() {
     float sceneDepth = GetDepthUV(texCoord);
 
     // Return early if depth is at maximum (background or invalid data)
-    if (sceneDepth >= 1.0f) {
+    if (sceneDepth >= 1.0f || 1.0f - texture(othersTexture, inUV).y < 0.4f) {
         fragColor = texture(sceneTexture, texCoord);
         return;
     }
 
-    // Step 2: Reconstruct view-space position from depth
     vec3 viewPos = reconstructViewPos(sceneDepth, texCoord, inverse(pushConstants.projection), texSize);
-    // Read and normalize the normal map
     vec3 normal = normalize(texture(normalTexture, texCoord).xyz);
-    // Step 3: Compute the reflection vector
     vec3 unitViewPos = normalize(viewPos);
-// Step 2: Reconstruct world-space position and normal
-vec4 ndcPos = vec4(viewPos, 1.0f);
-//ndcPos.y *= -1.0f; //+ 1.0f;
-vec3 worldPos = (inverse(pushConstants.view) * ndcPos).xyz; // Transform viewPos to world space
-mat3 normalMatrix = transpose((mat3(pushConstants.view)));
-vec3 worldNormal = normalize(normalMatrix * normal);
 
-// Step 3: Compute the reflection vector in world space
-vec3 unitWorldViewPos = normalize(worldPos - pushConstants.cameraPos.xyz); // Direction from camera to the point in world space
-vec3 worldPivot = normalize(reflect(unitWorldViewPos, worldNormal)); // Reflection in world space
+    vec4 ndcPos = vec4(viewPos, 1.0f);
+    vec3 worldPos = (inverse(pushConstants.view) * ndcPos).xyz;
+    mat3 normalMatrix = transpose((mat3(pushConstants.view)));
+    vec3 worldNormal = normalize(normalMatrix * normal);
 
-// Step 4: Transform the reflection vector back to view space
+    vec3 cameraPos = pushConstants.cameraPos.xyz;
+vec3 unitWorldViewPos = normalize(worldPos - cameraPos);
+vec3 worldPivot = normalize(reflect(unitWorldViewPos, worldNormal));
+
 mat3 piv = mat3(pushConstants.view);
-vec3 pivot = ((piv) * worldPivot); // Transform reflection vector back to view space
+vec3 pivot = ((piv) * worldPivot);
 
 
-//fragColor = vec4(vec3(reconstructViewPos(GetDepthUV(inUV.xy), inUV.xy, inverse(pushConstants.projection), texSize)).z), 1.0f);
+fragColor = vec4(pivot, 1.0f);
 //return;
 
-
-    // Step 4: Define ray marching parameters
-    float maxDistance = 16.0;
+    float maxDistance = 8.0;
     float resolution = 0.3;
     int steps = 4;
     float thickness = 0.5;
 
-    // Define start and end positions in view space
     vec4 startView = vec4(viewPos, 1.0);
     vec4 endView = vec4(viewPos + pivot * maxDistance, 1.0);
 
-    // Project start and end view-space positions to screen space
     vec4 startFrag = (pushConstants.projection * startView);
-    startFrag.xyz /= max(startFrag.w, 0.0001); // Perspective divide
+    startFrag.xyz /= max(startFrag.w, 0.0001);
     startFrag.xy = (startFrag.xy * 0.5 + 0.5) * texSize;
 
     vec4 endFrag = (pushConstants.projection * endView);
-    endFrag.xyz /= max(endFrag.w, 0.0001); // Perspective divide
+    endFrag.xyz /= max(endFrag.w, 0.0001);
     endFrag.xy = (endFrag.xy * 0.5 + 0.5) * texSize;
 
-    // Step 5: Initialize ray marching variables
     vec2 frag = startFrag.xy;
     vec2 increment = (endFrag.xy - startFrag.xy) / float(steps);
 
@@ -150,19 +140,14 @@ vec3 pivot = ((piv) * worldPivot); // Transform reflection vector back to view s
     bool hit = false;
 
     vec3 viewPosTo = viewPos;
-    // Step 6: Perform ray marching
     for (int i = 0; i < steps; ++i) {
-        // Advance the ray along the reflection vector
         frag += increment;
         vec2 uv = frag / texSize;
 
-        // Clamp UV to prevent sampling out of bounds
+        uv.y = 1.0f - uv.y;
         uv = clamp(uv, vec2(0.0), vec2(1.0));
 
-        // Reconstruct view-space position at this sample point
-        uv.y = 1.0f - uv.y;
         viewPosTo = reconstructViewPos(GetDepthUV(uv), uv, inverse(pushConstants.projection), texSize);
-        // Compute the depth difference
         depth = viewDistance - viewPosTo.z;
 
         if (depth > 0.0 && depth < thickness) {
@@ -171,22 +156,24 @@ vec3 pivot = ((piv) * worldPivot); // Transform reflection vector back to view s
         }
     }
 
-    // Step 7: Compute visibility based on ray hit
     float visibility = 1.0;
-   if (hit) {
+    if (hit) {
        visibility = 1.0
           * (1.0 - max(dot(-unitViewPos, pivot), 0.0)) // Angle effect
            * (1.0 - clamp(depth / thickness, 0.0, 1.0)) // Thickness effect
            * (1.0 - clamp(length(viewPosTo - viewPos) / maxDistance, 0.0, 1.0)); // Distance effect
-   }
-    //visibility = clamp(visibility, 0.0, 1.0);
-    //frag.y = 1.0f - frag.y;
-    // Step 8: Combine base color with reflection
+    }
+
+    visibility = clamp(visibility, 0.0, 1.0);
     vec3 baseColor = texture(sceneTexture, texCoord).rgb;
     frag = frag / texSize;
     frag.y = 1.0f - frag.y;
+    if(frag.y > 1.0f || frag.y < 0.0f)
+        visibility = 0.0f;
+    frag.y = clamp(frag.y, 0.0, 1.0);
     vec3 reflectionColor = texture(sceneTexture, frag).rgb;
 
-    fragColor = vec4(baseColor + reflectionColor * visibility * 0.3, 1.0);
-   // fragColor = vec4(visibility, visibility, visibility, 1.0f);
+    fragColor = vec4(baseColor + reflectionColor * visibility * 0.8, 1.0);
+    //fragColor = vec4(vec3(depth), 1.0f);
+    //fragColor = vec4(vec3(viewPosTo), 1.0f);
 }

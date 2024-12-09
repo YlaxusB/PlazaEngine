@@ -281,7 +281,7 @@ vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float met
         NdotV = 1.0f - NdotV;
     }
 
-    vec3 R = reflect(-V, normal); 
+    vec3 R = mat3(inverse(ubo.view)) * reflect(-V, normal); 
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
     float maxNdotV = max(NdotV, 0.25);

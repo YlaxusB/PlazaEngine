@@ -56,12 +56,12 @@ float GetDepth() {
 
 vec3 WorldToViewSpace(vec3 worldPosition) {
     vec4 viewSpacePosition = pushConstants.view * vec4(worldPosition, 1.0);
-    return viewSpacePosition.xyz; // Convert back to vec3
+    return viewSpacePosition.xyz;
 }
 
 vec4 WorldToClipSpace(vec3 worldPosition) {
     vec4 clipSpacePosition = pushConstants.projection * pushConstants.view * vec4(worldPosition, 1.0);
-    return clipSpacePosition; // Keep as vec4 for clip space
+    return clipSpacePosition;
 }
 
 vec3 ClipToNDC(vec4 clipSpacePosition) {
@@ -69,10 +69,8 @@ vec3 ClipToNDC(vec4 clipSpacePosition) {
 }
 
 vec3 WorldToNDC(vec3 worldPosition) {
-    // World to clip space
     vec4 clipSpacePosition = pushConstants.projection * pushConstants.view * vec4(worldPosition, 1.0);
-    // Clip to NDC
-    return clipSpacePosition.xyz / clipSpacePosition.w; // Perspective divide
+    return clipSpacePosition.xyz / clipSpacePosition.w;
 }
 
 vec3 reconstructViewPos(float depth, vec2 uv, mat4 invProj, vec2 screenSize) {
@@ -80,17 +78,15 @@ vec3 reconstructViewPos(float depth, vec2 uv, mat4 invProj, vec2 screenSize) {
     vec4 clipSpacePos = vec4(ndc, depth, 1.0);
     clipSpacePos.y *= -1.0f;
     vec4 viewSpacePos = invProj * clipSpacePos;
-    viewSpacePos /= max(viewSpacePos.w, 0.0001); // Prevent divide-by-zero
+    viewSpacePos /= viewSpacePos.w;
     return viewSpacePos.xyz;
 }
 
 void main() {
-    // Step 1: Read inputs and set up basic data
     vec2 texSize = pushConstants.screenSize.xy;
-    vec2 texCoord = clamp(inUV, vec2(0.0), vec2(1.0)); // Clamp UV to avoid out-of-bounds access
+    vec2 texCoord = clamp(inUV, vec2(0.0), vec2(1.0));
     float sceneDepth = GetDepthUV(texCoord);
 
-    // Return early if depth is at maximum (background or invalid data)
     if (sceneDepth >= 1.0f || 1.0f - texture(othersTexture, inUV).y < 0.4f) {
         fragColor = texture(sceneTexture, texCoord);
         return;

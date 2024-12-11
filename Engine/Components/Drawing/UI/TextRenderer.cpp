@@ -1,9 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "TextRenderer.h"
 
-#include <ThirdParty/freetype/include/ft2build.h>
-#include FT_FREETYPE_H
-
 namespace Plaza::Drawing::UI {
 	TextRenderer::TextRenderer() {
 		//Init(Application::Get()->enginePath + "\\Font\\Roboto-Medium.ttf");

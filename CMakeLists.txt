@@ -65,7 +65,6 @@ set(BUILD_SHARED_LIBS OFF)
 add_subdirectory("ThirdParty/AL/")
 add_subdirectory("ThirdParty/DirectXTex/")
 add_subdirectory("ThirdParty/embed/")
-add_subdirectory("ThirdParty/freetype/")
 add_subdirectory("ThirdParty/GLFW/")
 add_subdirectory("ThirdParty/pfr/")
 add_subdirectory("ThirdParty/Tracy/")
@@ -156,7 +155,6 @@ target_include_directories(PlazaEngineCore PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/DirectXTex/DirectXTex/"
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/filesystem/"
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/FileWathcer/"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/freetype/include/"
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/glad/"
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/GLFW/"
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/glm/"
@@ -181,7 +179,7 @@ target_precompile_headers(PlazaEngineCore PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/E
 
 add_dependencies(PlazaEngineCore PhysX)
 #target_include_directories(PlazaEngineCore PUBLIC "ThirdParty/imgui/")
-target_link_libraries(PlazaEngineCore PUBLIC  glfw OpenAL freetype TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib"  DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan Boost::pfr)
+target_link_libraries(PlazaEngineCore PUBLIC  glfw OpenAL TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib"  DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan Boost::pfr)
 target_compile_definitions(PlazaEngineCore PRIVATE ENGINE_EXPORTS)
 
 if(MSVC)

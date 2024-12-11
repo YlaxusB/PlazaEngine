@@ -51,7 +51,6 @@ target_include_directories(GameLib PRIVATE
     "${ENGINE_SOURCE_DIR}/ThirdParty/DirectXTex/DirectXTex/"
     "${ENGINE_SOURCE_DIR}/ThirdParty/filesystem/"
     "${ENGINE_SOURCE_DIR}/ThirdParty/FileWathcer/"
-    "${ENGINE_SOURCE_DIR}/ThirdParty/freetype/include/"
     "${ENGINE_SOURCE_DIR}/ThirdParty/glad/"
     "${ENGINE_SOURCE_DIR}/ThirdParty/GLFW/"
     "${ENGINE_SOURCE_DIR}/ThirdParty/glm/"

@@ -9,6 +9,10 @@
 /lib/assimp-vc143-mtd.lib
 lib/assimp-vc143-mtd.lib
 /lib/assimp-vc143-mt.lib
+*.dir
+/pvdruntime_bin
+/sdk_source_bin
+
 
 # Ignore generated assets or logs
 /assets/
@@ -19,6 +23,8 @@ lib/assimp-vc143-mtd.lib
 *.suo
 *.user
 *.sln
+*.vcxproj
+*.filters
 /.vs
 /CMakeFiles/
 /CMakeCache.txt

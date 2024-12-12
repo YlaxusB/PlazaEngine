@@ -158,6 +158,7 @@ namespace Plaza::Editor {
 		Node& SpawnNode(const std::string& nodeName, Pin* pinHolder = nullptr, bool useDefaultValue = true);
 		void RemoveNode(int index);
 
+		virtual void SpawnLockedNodes() {};
 		virtual void Process();
 
 		void AddNodeToCreate(const Node& newNode);

@@ -247,8 +247,8 @@ namespace Plaza::Editor {
 		for (auto& [key, node] : mNodesData.mNodes) {
 			Any& value = node.outputs[0].value;
 			if (value.type() == typeid(PlPipelineCreateInfo)) {
-				PlPipelineCreateInfo info = node.outputs[0].GetValue<PlPipelineCreateInfo>();
-				renderGraph->CreatePipeline(info);
+				//PlPipelineCreateInfo info = node.outputs[0].GetValue<PlPipelineCreateInfo>();
+				//renderGraph->CreatePipeline(info);
 			}
 			else if (value.type() == typeid(PlazaRenderPass)) {
 				PlazaRenderPass pass = node.outputs[0].GetValue<PlazaRenderPass>();
@@ -299,12 +299,43 @@ namespace Plaza::Editor {
 		VulkanRenderer::GetRenderer()->mRenderGraph = renderGraph;
 		Application::Get()->mRenderer->UpdateImGuiDisplayTexture(Application::Get()->mRenderer->mRenderGraph->GetTexture<VulkanTexture>("FinalTexture"));
 
-		AssetsSerializer::SerializeFile<VulkanRenderGraph>(*renderGraph, FileDialog::SaveFileDialog(""), Application::Get()->mSettings.mRenderGraphSerializationMode);
+		//AssetsSerializer::SerializeFile<VulkanRenderGraph>(*renderGraph, FileDialog::SaveFileDialog(""), Application::Get()->mSettings.mRenderGraphSerializationMode);
 
 		PL_CORE_INFO("Alright");
 	}
 
 	void RenderGraphEditor::LoadRenderGraphNodes(PlazaRenderGraph* renderGraph) {
 		PL_CORE_INFO("Loaded");
+	}
+
+	void RenderGraphEditor::SpawnLockedNodes() {
+		/*
+		struct BufferNodeStruct {
+			PlBufferType type = PlBufferType::PL_BUFFER_UNIFORM_BUFFER;
+			uint64_t maxItems = 0;
+			uint16_t stride = 0;
+			uint8_t bufferCount = 0;
+			PlBufferUsage bufferUsage = PlBufferUsage::PL_BUFFER_USAGE_STORAGE_BUFFER;
+			PlMemoryUsage memoryUsage = PlMemoryUsage::PL_MEMORY_USAGE_CPU_TO_GPU;
+			std::string name = "";
+			std::string resourceName = "";
+
+			template <class Archive>
+			void serialize(Archive& archive) {
+				archive(PL_SER(type), PL_SER(maxItems), PL_SER(stride), PL_SER(bufferCount), PL_SER(bufferUsage), PL_SER(memoryUsage), PL_SER(name), PL_SER(resourceName));
+			}
+		};
+		*/
+
+
+		//Node& materialsBufferNode = this->SpawnNode(typeid(BufferNodeStruct).name());
+		//materialsBufferNode.inputs[0].SetValue(PlBufferType::PL_BUFFER_STORAGE_BUFFER, false);
+		//materialsBufferNode.inputs[1].SetValue<uint64_t>(1024 * 16, true);
+		//materialsBufferNode.inputs[2].SetValue(sizeof(Material), false);
+		//materialsBufferNode.inputs[3].SetValue(Application::Get()->mRenderer->mMaxFramesInFlight, false);
+		//materialsBufferNode.inputs[4].SetValue(PL_BUFFER_USAGE_STORAGE_BUFFER, false);
+		//materialsBufferNode.inputs[5].SetValue(PL_MEMORY_USAGE_CPU_TO_GPU, false);
+		//materialsBufferNode.inputs[6].SetValue<std::string>("MaterialsBuffer", false);
+		//materialsBufferNode.inputs[7].SetValue<std::string>("MaterialsBuffer", false);
 	}
 }

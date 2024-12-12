@@ -9,6 +9,9 @@ namespace Plaza::Editor {
 			ImGui::PushID("CppScriptComponentInspector");
 			if (Utils::ComponentInspectorHeader(scriptComponent, "Cpp Script Component")) {
 				ImGui::Text("Cpp Component");
+				for (CppScript* script : scriptComponent->mScripts) {
+					script->OnUpdateEditorGUI();
+				}
 			}
 			ImGui::PopID();
 		}

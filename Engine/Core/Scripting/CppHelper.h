@@ -19,6 +19,7 @@
 #include "Engine/Components/Rendering/MeshRenderer.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
 
+#include "ThirdParty/imgui/imgui.h"
 
 namespace Plaza {
 	class PLAZA_API Mathf {
@@ -28,7 +29,10 @@ namespace Plaza {
 	};
 	class PLAZA_API CppHelper {
 	public:
+		static Entity* NewEntity(const std::string& name);
 		static Entity* FindEntity(const std::string& name);
+		static Entity* FindEntity(uint64_t uuid);
+		static Entity* Instantiate(Entity* entityToInstantiate);
 		static glm::vec3 MousePosToRayDirection(float fov, const glm::vec2& position, const glm::vec2& screenSize);
 	};
 }

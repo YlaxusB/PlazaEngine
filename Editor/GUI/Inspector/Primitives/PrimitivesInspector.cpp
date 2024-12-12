@@ -22,6 +22,14 @@ namespace Plaza::Editor {
 				unsigned int* value = any.GetValue<unsigned int>();
 				return InspectUInt(fieldName, *value);
 			}
+			else if (rawName == typeid(uint8_t).raw_name()) {
+				uint8_t* value = any.GetValue<uint8_t>();
+				return InspectUInt8(fieldName, *value);
+			}
+			else if (rawName == typeid(uint16_t).raw_name()) {
+				uint16_t* value = any.GetValue<uint16_t>();
+				return InspectUInt16(fieldName, *value);
+			}
 			else if (rawName == typeid(uint32_t).raw_name()) {
 				uint32_t* value = any.GetValue<uint32_t>();
 				return InspectUInt32(fieldName, *value);
@@ -158,6 +166,14 @@ namespace Plaza::Editor {
 		return ImGui::DragScalar(name.c_str(), ImGuiDataType_U32, &value);
 	}
 
+	bool PrimitivesInspector::InspectUInt8(const std::string& name, uint8_t& value) {
+		return ImGui::DragScalar(name.c_str(), ImGuiDataType_U8, &value);
+	}
+
+	bool PrimitivesInspector::InspectUInt16(const std::string& name, uint16_t& value) {
+		return ImGui::DragScalar(name.c_str(), ImGuiDataType_U16, &value);
+	}
+	
 	bool PrimitivesInspector::InspectUInt32(const std::string& name, uint32_t& value) {
 		return ImGui::DragScalar(name.c_str(), ImGuiDataType_U32, &value);
 	}

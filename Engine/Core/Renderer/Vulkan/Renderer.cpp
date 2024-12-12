@@ -4058,16 +4058,16 @@ namespace Plaza {
 			bufferInfo.offset = 0;
 			bufferInfo.range = VK_WHOLE_SIZE;
 
-			VkWriteDescriptorSet descriptorWrite = {};
-			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrite.dstSet = this->GetGeometryPassDescriptorSet(mCurrentFrame); // this->mDescriptorSets[mCurrentFrame];
-			descriptorWrite.dstBinding = 19;
-			descriptorWrite.dstArrayElement = 0;
-			descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-			descriptorWrite.descriptorCount = 1;
-			descriptorWrite.pBufferInfo = &bufferInfo;
-
-			vkUpdateDescriptorSets(mDevice, 1, &descriptorWrite, 0, nullptr);
+			//VkWriteDescriptorSet descriptorWrite = {};
+			//descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			//descriptorWrite.dstSet = this->GetGeometryPassDescriptorSet(mCurrentFrame); // this->mDescriptorSets[mCurrentFrame];
+			//descriptorWrite.dstBinding = 19;
+			//descriptorWrite.dstArrayElement = 0;
+			//descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+			//descriptorWrite.descriptorCount = 1;
+			//descriptorWrite.pBufferInfo = &bufferInfo;
+			//
+			//vkUpdateDescriptorSets(mDevice, 1, &descriptorWrite, 0, nullptr);
 		}
 
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {

@@ -125,6 +125,8 @@ namespace Plaza::Editor {
 						index++;
 					}
 				}
+
+				SpawnLockedNodes();
 				//Application::Get()->mEditor->mGui.mRenderGraphEditor->LoadRenderGraphNodes(graph);
 			}
 
@@ -299,17 +301,6 @@ namespace Plaza::Editor {
 				const char* name = input.value.type().name();
 				ImGui::PushID(uniqueId++);
 				if (input.isVector) {
-					//std::vector<std::any> vec = *input.value.GetValue<std::vector<std::any>>();
-					//for (std::any& value : *input.value.GetValue<std::vector<std::any>>()) {
-					//	ImGui::PushID(uniqueId++);
-					//
-					//	Any newAny = input.value;
-					//	newAny.SetValuePtr(&value, false);
-					//	PrimitivesInspector::InspectAny(newAny, input.name, "NodeEditorEnumPopup");
-					//
-					//	ImGui::PopID();
-					//	uniqueId++;
-					//}
 					ImGui::Text(input.name.c_str());
 					ImGui::SameLine();
 					if (ImGui::Button("+")) {
@@ -325,18 +316,6 @@ namespace Plaza::Editor {
 					PrimitivesInspector::InspectAny(input.value, input.name, "NodeEditorEnumPopup");
 					ImGui::PopID();
 				}
-				//if (NodeEditor::BeginNodeCombo("Format", EnumReflection::GetEnumName(name, input.enumIndex), ImGuiComboFlags_PopupAlignLeft)) {
-				//	for (int i = 0; i < input.enumSize; ++i) {
-				//		ImGui::PushID(uniqueId++);
-				//		bool isSelected = (EnumReflection::GetEnumName(name, i) == EnumReflection::GetEnumName(name, input.enumIndex));
-				//		//bool isSelected = false;
-				//		if (ImGui::Selectable(EnumReflection::GetEnumName(name, i), isSelected)) {
-				//			input.SetEnumIndex(i);
-				//		}
-				//		ImGui::PopID();
-				//	}
-				//	NodeEditor::EndNodeCombo();
-				//}
 				ImGui::PopID();
 			}
 			else {
@@ -385,7 +364,9 @@ namespace Plaza::Editor {
 		newNode.subNodes.clear();
 		for (auto& input : nodeToCopy.inputs) {
 			Pin newInput = input;
+			const std::type_info& oldInfo = newInput.value.type();
 			newInput.NewValue();
+			newInput.value.SetType(oldInfo);
 			newInput.id = GetNextId();
 			newInput.nodes.clear();
 			//newInput.value = Any();

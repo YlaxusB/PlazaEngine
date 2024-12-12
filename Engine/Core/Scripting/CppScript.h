@@ -7,10 +7,11 @@ namespace Plaza {
 		CppScript() {
 			this->lastModifiedDate = std::chrono::system_clock::now();
 		}
-		
+
 		virtual void OnStart() {};
 		virtual void OnUpdate() {};
 		virtual void OnTerminate() {};
+		virtual void OnUpdateEditorGUI() {};
 	};
 
 	class PLAZA_API CppEditorScript : public Script {

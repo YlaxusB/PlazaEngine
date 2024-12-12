@@ -11,6 +11,7 @@ namespace Plaza::Editor {
 		RenderGraphEditor(GuiLayer layer, bool startOpen = true) : NodeEditor("RenderGraphEditor", layer, startOpen) { }
 		void Init() override;
 		void Process() override;
+		void SpawnLockedNodes() override;
 		//void Update() override;
 		//void OnKeyPress(int key, int scancode, int action, int mods) override;
 

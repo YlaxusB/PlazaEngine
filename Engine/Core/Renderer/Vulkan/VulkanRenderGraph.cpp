@@ -1082,7 +1082,7 @@ layout(push_constant) uniform PushConstants {
 	}
 
 	void VulkanRenderPass::CompileGraphics(PlazaRenderGraph* renderGraph) {
-		glm::vec2 biggestSize = glm::vec2(0.0f);
+		glm::vec2 biggestSize = this->mRenderSize;//glm::vec2(0.0f);
 		std::vector<VkImageView> frameBufferAttachments{};
 		std::vector<VkSubpassDescription> subPasses{};
 		std::vector<VkSubpassDependency> dependencies{};

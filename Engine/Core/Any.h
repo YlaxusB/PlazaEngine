@@ -50,6 +50,11 @@ namespace Plaza {
 			mTypeRawName = mType->raw_name();
 		}
 
+		void SetType(const type_info& type) {
+			mType = &type;
+			mTypeRawName = mType->raw_name();
+		}
+
 		template<typename T>
 		T* GetValue() const {
 			if constexpr (std::is_reference_v<T>) {
@@ -111,7 +116,7 @@ namespace Plaza {
 					// Example: archive(value);
 					if (EnumReflection::sEnumNamesByTypeRawName.find(mTypeRawName) != EnumReflection::sEnumNamesByTypeRawName.end())
 						sJsonDeSerializeByRawName[typeid(int).raw_name()](archive, *this);
-					else
+					else if (sJsonDeSerializeByRawName.find(mTypeRawName) != sJsonDeSerializeByRawName.end())
 						sJsonDeSerializeByRawName[mTypeRawName](archive, *this);
 				}
 			}

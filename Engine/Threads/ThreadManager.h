@@ -4,6 +4,7 @@
 namespace Plaza {
 	class ThreadsManager {
 	public:
+		Thread* mAssetsLoadingThread = new Thread();
 		Thread* mFrameStartThread = new Thread();
 		Thread* mFrameEndThread = new Thread();
 		Thread* mFrameRendererStartThread = new Thread();

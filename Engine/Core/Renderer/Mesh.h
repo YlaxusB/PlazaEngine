@@ -269,7 +269,7 @@ namespace Plaza {
 			}
 		}
 
-		void CalculateVertexInBoundingBox(glm::vec3 vertex) {
+		void CalculateVertexInBoundingBox(const glm::vec3& vertex) {
 			mBoundingBox.minVector.x = std::min(mBoundingBox.minVector.x, vertex.x);
 			mBoundingBox.minVector.y = std::min(mBoundingBox.minVector.y, vertex.y);
 			mBoundingBox.minVector.z = std::min(mBoundingBox.minVector.z, vertex.z);
@@ -282,9 +282,9 @@ namespace Plaza {
 		void CalculateTangent() {
 			for (size_t i = 0; i < indices.size(); i += 3) {
 				// Get the indices of the triangle vertices
-				unsigned int i0 = indices[i];
-				unsigned int i1 = indices[i + 1];
-				unsigned int i2 = indices[i + 2];
+				const unsigned int& i0 = indices[i];
+				const unsigned int& i1 = indices[i + 1];
+				const unsigned int& i2 = indices[i + 2];
 
 				// Get the vertices and UVs of the triangle
 				glm::vec3 v0 = vertices[i0];

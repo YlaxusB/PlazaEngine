@@ -87,10 +87,10 @@ void main() {
     vec2 texCoord = clamp(inUV, vec2(0.0), vec2(1.0));
     float sceneDepth = GetDepthUV(texCoord);
 
-    if (sceneDepth >= 1.0f || 1.0f - texture(othersTexture, inUV).y < 0.4f) {
-        fragColor = texture(sceneTexture, texCoord);
+    //if (sceneDepth >= 1.0f || 1.0f - texture(othersTexture, inUV).y < 0.4f) {
+        fragColor = texture(sceneTexture, inUV);
         return;
-    }
+    //}
 
     vec3 viewPos = reconstructViewPos(sceneDepth, texCoord, inverse(pushConstants.projection), texSize);
     vec3 normal = normalize(texture(normalTexture, texCoord).xyz);

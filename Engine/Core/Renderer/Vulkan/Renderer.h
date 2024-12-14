@@ -19,6 +19,7 @@
 #include "ThirdParty/include/VulkanMemoryAllocator/vk_mem_alloc.h"
 #include "VulkanPlazaWrapper.h"
 #include "Engine/Core/Debugging/Log.h"
+#include <stb_image.h>
 
 #define PLVK_CHECK_RESULT(x) { \
 	VkResult res = (x); \
@@ -129,16 +130,16 @@ namespace Plaza {
 
 		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-			unsigned int layerCount = 1, unsigned int mipCount = 1, bool forceSynchronization = true, VkCommandBuffer commandBuffer = VK_NULL_HANDLE);
+			unsigned int layerCount = 1, unsigned int mipCount = 1, bool forceSynchronization = true, VkCommandBuffer commandBuffer = VK_NULL_HANDLE, bool createOwnCommandPool = false);
 		void TransitionTextureLayout(VulkanTexture& texture, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, unsigned int layerCount = 1, unsigned int mipCount = 1, bool forceSynchronization = true);
 
 		void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 		//VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D, unsigned int layerCount = 1, unsigned int mipCount = 1, unsigned int baseMipLevel = 0);
 
-		VkCommandBuffer BeginSingleTimeCommands();
-		void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
-		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel = 0, unsigned int arrayLayerCount = 1);
+		VkCommandBuffer BeginSingleTimeCommands(bool createOwnCommandPool = false, VkCommandPool* commandPool = nullptr);
+		void EndSingleTimeCommands(VkCommandBuffer commandBuffer, VkCommandPool commandPool = VK_NULL_HANDLE);
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel = 0, unsigned int arrayLayerCount = 1, bool createOwnCommandPool = false);
 		VkCommandBuffer* mActiveCommandBuffer;
 
 		VulkanRenderGraph* mRenderGraph = nullptr;
@@ -163,7 +164,7 @@ namespace Plaza {
 
 		void UpdateMaterials();
 
-		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0, bool createOwnCommandPool = false);
 		void CopyImage(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
 		void CopyTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout, VulkanTexture* dstTexture, VkImageLayout dstLayout, VkCommandBuffer commandBuffer = VK_NULL_HANDLE);
 		VkSampler mImGuiTextureSampler;
@@ -207,10 +208,11 @@ namespace Plaza {
 		PlVkBuffer* mMainVertexBuffer = new PlVkBuffer();
 		PlVkBuffer* mMainIndexBuffer = new PlVkBuffer();
 
-		uint64_t mBufferTotalVertices = 0;
-		uint64_t mBufferTotalIndices = 0;
-		uint64_t mIndirectDrawCount = 0;
+		std::atomic<uint64_t> mBufferTotalVertices = 0;
+		std::atomic<uint64_t> mBufferTotalIndices = 0;
+		std::atomic<uint64_t> mIndirectDrawCount = 0;
 		uint64_t mTotalInstances = 0;
+		std::atomic<uint64_t> mTotalInstancesNewMesh = 0;
 		std::vector<VkDrawIndexedIndirectCommand> mIndirectCommands = std::vector<VkDrawIndexedIndirectCommand>();
 
 		std::vector<VkBuffer> mIndirectBuffers = std::vector<VkBuffer>();

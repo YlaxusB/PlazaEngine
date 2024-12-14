@@ -32,6 +32,10 @@ namespace Plaza::Editor {
 
 				if (ImGui::Button("Load animations from FBX")) {
 					std::string path = FileDialog::OpenFileDialog(".fbx");
+					for (auto& [key, value] : Scene::GetActiveScene()->mPlayingAnimations) {
+						value->Stop();
+					}
+					Scene::GetActiveScene()->mPlayingAnimations.clear();
 					component->GetAnimation(path, VulkanRenderer::GetRenderer()->mBones, index);
 				}
 
@@ -39,7 +43,9 @@ namespace Plaza::Editor {
 					//ImGui::BeginChild(std::string("Animation: " + animation.mName).c_str());
 					ImGui::PushID(std::string("Animation: " + animation.mAssetName).c_str());
 					if (ImGui::Button(std::string("Play" + animation.mAssetName).c_str())) {
-						Scene::GetActiveScene()->mPlayingAnimations.clear();
+						for (auto& [key, value] : Scene::GetActiveScene()->mPlayingAnimations) {
+							value->Stop();
+						}
 						animation.Play();
 					}
 					float time = animation.mCurrentTime;

@@ -25,6 +25,7 @@
 #include <set>
 #include <stdexcept>
 #include <vector>
+#include <future>
 
 #include "ThirdParty/imgui/imgui.h"
 #include "ThirdParty/imgui/imgui_impl_vulkan.h"
@@ -1700,8 +1701,10 @@ namespace Plaza {
 	void VulkanRenderer::CopyBuffer(VkBuffer srcBuffer,
 		VkBuffer dstBuffer,
 		VkDeviceSize size,
-		VkDeviceSize offset) {
-		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+		VkDeviceSize offset,
+		bool createOwnCommandPool) {
+		VkCommandPool commandPool;
+		VkCommandBuffer commandBuffer = BeginSingleTimeCommands(createOwnCommandPool, &commandPool);
 
 		VkBufferCopy copyRegion{};
 		copyRegion.size = size;
@@ -1709,7 +1712,7 @@ namespace Plaza {
 		copyRegion.dstOffset = offset;
 		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-		EndSingleTimeCommands(commandBuffer);
+		EndSingleTimeCommands(commandBuffer, commandPool);
 	}
 
 	void VulkanRenderer::CopyTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout, VulkanTexture* dstTexture, VkImageLayout dstLayout, VkCommandBuffer commandBuffer) {
@@ -2123,13 +2126,30 @@ namespace Plaza {
 		vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
 	}
 
-	VkCommandBuffer
-		VulkanRenderer::BeginSingleTimeCommands() {
+	VkCommandBuffer VulkanRenderer::BeginSingleTimeCommands(bool createOwnCommandPool, VkCommandPool* commandPool) {
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = mCommandPool;
 		allocInfo.commandBufferCount = 1;
+
+		if (createOwnCommandPool) {
+			QueueFamilyIndices queueFamilyIndices = findQueueFamilies(mPhysicalDevice, mSurface);
+
+			VkCommandPoolCreateInfo poolInfo{};
+			poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+			poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+			poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+
+			if (vkCreateCommandPool(mDevice, &poolInfo, nullptr, commandPool) != VK_SUCCESS) {
+				throw std::runtime_error("Failed to create command pool for thread");
+			}
+			allocInfo.commandPool = *commandPool;
+		}
+		else {
+			allocInfo.commandPool = mCommandPool;
+		}
+		if (commandPool)
+			*commandPool = allocInfo.commandPool;
 
 		VkCommandBuffer commandBuffer;
 		vkAllocateCommandBuffers(mDevice, &allocInfo, &commandBuffer);
@@ -2143,7 +2163,7 @@ namespace Plaza {
 		return commandBuffer;
 	}
 
-	void VulkanRenderer::EndSingleTimeCommands(VkCommandBuffer commandBuffer) {
+	void VulkanRenderer::EndSingleTimeCommands(VkCommandBuffer commandBuffer, VkCommandPool commandPool) {
 		vkEndCommandBuffer(commandBuffer);
 
 		VkSubmitInfo submitInfo{};
@@ -2151,10 +2171,13 @@ namespace Plaza {
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffer;
 
+		static std::mutex queueMutex;
+		std::lock_guard<std::mutex> lock(queueMutex);
 		vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
 		vkQueueWaitIdle(mGraphicsQueue);
 
-		vkFreeCommandBuffers(mDevice, mCommandPool, 1, &commandBuffer);
+		/* TODO: FREE COMMAND POOL */
+		vkFreeCommandBuffers(mDevice, commandPool == VK_NULL_HANDLE ? mCommandPool : commandPool, 1, &commandBuffer);
 	}
 
 	void VulkanRenderer::TransitionImageLayout(VkImage image,
@@ -2165,15 +2188,18 @@ namespace Plaza {
 		unsigned int layerCount,
 		unsigned int mipCount,
 		bool forceSynchronization,
-		VkCommandBuffer commandBuffer) {
+		VkCommandBuffer commandBuffer,
+		bool createOwnCommandPool) {
 
 		if (oldLayout == newLayout)
 			oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
+		VkCommandPool commandPool = mCommandPool;
 		if (forceSynchronization)
-			commandBuffer = BeginSingleTimeCommands();
+			commandBuffer = BeginSingleTimeCommands(createOwnCommandPool, &commandPool);
 		else
 			commandBuffer = commandBuffer != VK_NULL_HANDLE ? commandBuffer : *mActiveCommandBuffer;
+
 
 		VkImageMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -2289,7 +2315,7 @@ namespace Plaza {
 			&barrier);
 
 		if (forceSynchronization)
-			EndSingleTimeCommands(commandBuffer);
+			EndSingleTimeCommands(commandBuffer, commandPool);
 	}
 
 	void VulkanRenderer::TransitionTextureLayout(VulkanTexture& texture,
@@ -2314,8 +2340,10 @@ namespace Plaza {
 		uint32_t width,
 		uint32_t height,
 		uint32_t mipLevel,
-		unsigned int arrayLayerCount) {
-		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+		unsigned int arrayLayerCount,
+		bool createOwnCommandPool) {
+		VkCommandPool commandPool = mCommandPool;
+		VkCommandBuffer commandBuffer = BeginSingleTimeCommands(createOwnCommandPool, &commandPool);
 
 		VkBufferImageCopy region{};
 		region.bufferOffset = 0;
@@ -2337,7 +2365,7 @@ namespace Plaza {
 			1,
 			&region);
 
-		EndSingleTimeCommands(commandBuffer);
+		EndSingleTimeCommands(commandBuffer, commandPool);
 	}
 
 	//VkImageView
@@ -2791,14 +2819,14 @@ namespace Plaza {
 		this->mRenderGraph->BuildDefaultRenderGraph();
 		//AssetsSerializer::SerializeFile<VulkanRenderGraph>(*this->mRenderGraph, "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\FPS2\\Assets\\RenderGraphs\\MainGraph.plzgrph", Application::Get()->mSettings.mRenderGraphSerializationMode);
 		//this->mRenderGraph = new VulkanRenderGraph(*AssetsSerializer::DeSerializeFile<VulkanRenderGraph>("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\FPS2\\Assets\\RenderGraphs\\MainGraph.plzgrph", Application::Get()->mSettings.mRenderGraphSerializationMode).get());
-		
+
 		int index = 0;
 		for (const auto& texture : mRenderGraph->mTextures) {
 			texture.second->SetTextureInfo(mRenderGraph->mUsedTexturesInfo[texture.second->mTextureInfoUuid]);
 			//mRenderGraph->mUsedTexturesInfo.emplace(texture.second->GetTextureInfo().mUuid, texture.second->GetTextureInfo());
 			index++;
 		}
-		
+
 		PL_CORE_INFO("Initialize RenderGraph");
 		this->InitializeRenderGraph(mRenderGraph);
 		PL_CORE_INFO("Compile RenderGraph");
@@ -2810,58 +2838,58 @@ namespace Plaza {
 		//		value->CreateMemory(0, value->mBufferCount);
 		//	}
 		//}
-		
+
 		/* Stage FTBI font data to the font texture */
 		const uint32_t fontWidth = STB_FONT_consolas_24_latin1_BITMAP_WIDTH;
 		const uint32_t fontHeight = STB_FONT_consolas_24_latin1_BITMAP_HEIGHT;
-		
+
 		static unsigned char font24pixels[fontHeight][fontWidth];
 		stb_font_consolas_24_latin1(static_cast<VulkanGuiRenderer*>(mGuiRenderer)->stbFontData, font24pixels, fontHeight);
-		
-		
+
+
 		struct {
 			VkDeviceMemory memory;
 			VkBuffer buffer;
 		} stagingBuffer;
-		
+
 		VkMemoryRequirements memReqs;
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		vkGetImageMemoryRequirements(mDevice, mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage, &memReqs);
 		allocInfo.allocationSize = memReqs.size;
 		allocInfo.memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		
+
 		VkBufferCreateInfo bufferCreateInfo{};
 		bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferCreateInfo.size = allocInfo.allocationSize;
 		bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		
+
 		vkCreateBuffer(mDevice, &bufferCreateInfo, nullptr, &stagingBuffer.buffer);
-		
+
 		// Get memory requirements for the staging buffer (alignment, memory type bits)
 		vkGetBufferMemoryRequirements(mDevice, stagingBuffer.buffer, &memReqs);
-		
+
 		allocInfo.allocationSize = memReqs.size;
 		// Get memory type index for a host visible buffer
 		allocInfo.memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		
+
 		vkAllocateMemory(mDevice, &allocInfo, nullptr, &stagingBuffer.memory);
 		vkBindBufferMemory(mDevice, stagingBuffer.buffer, stagingBuffer.memory, 0);
-		
+
 		uint8_t* data;
 		vkMapMemory(mDevice, stagingBuffer.memory, 0, allocInfo.allocationSize, 0, (void**)&data);
 		// Size of the font texture is WIDTH * HEIGHT * 1 byte (only one channel)
 		memcpy(data, &font24pixels[0][0], fontWidth * fontHeight);
 		vkUnmapMemory(mDevice, stagingBuffer.memory);
-		
+
 		// Copy to image
-		
+
 		VkCommandBuffer copyCmd = CreateCommandBuffer();
 		VkCommandBufferBeginInfo cmdBufferBeginInfo{};
 		cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		vkBeginCommandBuffer(copyCmd, &cmdBufferBeginInfo);
-		
+
 		// Prepare for transfer
 		//  vks::tools::setImageLayout(
 		//  	copyCmd,
@@ -2870,7 +2898,7 @@ namespace Plaza {
 		//  	VK_IMAGE_LAYOUT_UNDEFINED,
 		//  	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 		TransitionImageLayout(mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage, VK_FORMAT_R8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
-		
+
 		VkBufferImageCopy bufferCopyRegion = {};
 		bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		bufferCopyRegion.imageSubresource.mipLevel = 0;
@@ -2878,7 +2906,7 @@ namespace Plaza {
 		bufferCopyRegion.imageExtent.width = fontWidth;
 		bufferCopyRegion.imageExtent.height = fontHeight;
 		bufferCopyRegion.imageExtent.depth = 1;
-		
+
 		vkCmdCopyBufferToImage(
 			copyCmd,
 			stagingBuffer.buffer,
@@ -2887,7 +2915,7 @@ namespace Plaza {
 			1,
 			&bufferCopyRegion
 		);
-		
+
 		// Prepare for shader read
 		//    vks::tools::setImageLayout(
 		//    	copyCmd,
@@ -2895,14 +2923,14 @@ namespace Plaza {
 		//    	VK_IMAGE_ASPECT_COLOR_BIT,
 		//    	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		//    	VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		
+
 		static_cast<VulkanGuiRenderer*>(mGuiRenderer)->FlushCommandBuffer(copyCmd, mGraphicsQueue, mCommandPool, true);
-		
+
 		TransitionImageLayout(mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage, VK_FORMAT_R8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
-		
+
 		vkFreeMemory(mDevice, stagingBuffer.memory, nullptr);
 		vkDestroyBuffer(mDevice, stagingBuffer.buffer, nullptr);
-		
+
 		mRenderGraph->RunSkyboxRenderGraph(mRenderGraph->BuildSkyboxRenderGraph());
 #ifdef EDITOR_MODE
 		Editor::Gui::Init(Application::Get()->mWindow->glfwWindow);
@@ -2927,6 +2955,7 @@ namespace Plaza {
 
 		if (mRenderGraph) {
 			mRenderGraph->UpdateCommandBuffer(mCommandBuffers[mCurrentFrame]);
+			VulkanRenderer::GetRenderer()->UpdateInstancesData();
 			mRenderGraph->Execute(mCurrentImage, mCurrentFrame);
 		}
 		else {
@@ -3265,16 +3294,16 @@ namespace Plaza {
 			texture->mAssetUuid = uuid;
 		texture->mAssetPath = path;
 		if (std::filesystem::exists(path)) {
-			bool textureCreated = texture->CreateTextureImage(mDevice, path, PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), true);
-			if (!textureCreated) {
-				UploadBindlessTexture(texture);
-				return texture;
-			}
+			Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([texture, path, this]() {
+				bool textureCreated = texture->CreateTextureImage(mDevice, path, PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), true);
+				if (!textureCreated) {
+					UploadBindlessTexture(texture);
+					return nullptr;
+				}
 
-			//texture->CreateTextureSampler();
-			texture->CreateImageView(PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), VK_IMAGE_ASPECT_COLOR_BIT);
-			//texture->InitDescriptorSetLayout();
-			UploadBindlessTexture(texture);
+				texture->CreateImageView(PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), VK_IMAGE_ASPECT_COLOR_BIT);
+				UploadBindlessTexture(texture);
+				});
 		}
 		return texture;
 	}
@@ -3296,10 +3325,10 @@ namespace Plaza {
 		imageInfo.imageView = texture->mImageView;
 		imageInfo.sampler = VulkanRenderer::GetRenderer()->mTextureSampler;
 		for (size_t i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; i++) {
-			VkWriteDescriptorSet descriptorWrite = plvk::writeDescriptorSet(VulkanRenderer::GetRenderer()->GetGeometryPassDescriptorSet(i), 20, index == -1 ? VulkanTexture::mLastBindingIndex : index, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo);
+			VkWriteDescriptorSet descriptorWrite = plvk::writeDescriptorSet(VulkanRenderer::GetRenderer()->GetGeometryPassDescriptorSet(i), 20, index == -1 ? VulkanTexture::mLastBindingIndex.load() : index, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo);
 			vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, 1, &descriptorWrite, 0, nullptr);
 		}
-		texture->mIndexHandle = index == -1 ? VulkanTexture::mLastBindingIndex : index;
+		texture->mIndexHandle = index == -1 ? VulkanTexture::mLastBindingIndex.load() : index;
 		if (index == -1)
 			VulkanTexture::mLastBindingIndex++;
 	}
@@ -3320,6 +3349,7 @@ namespace Plaza {
 		return ids;
 	}
 	static int bonesIndex = 0;
+	static std::mutex queueMutex;
 	Mesh* VulkanRenderer::CreateNewMesh(
 		const std::vector<glm::vec3>& vertices,
 		const std::vector<glm::vec3>& normals,
@@ -3337,144 +3367,128 @@ namespace Plaza {
 			indices,
 			usingNormal,
 			bonesHolder);
-		//vulkMesh->tangent.resize(vertices.size() - vulkMesh->tangent.size());
-		for (unsigned int i = 0; i < vertices.size(); ++i) {
-			vulkMesh->tangent.push_back(glm::vec3(0.0f));
-		}
-		vulkMesh->CalculateTangent();
-
-		vector<Vertex> convertedVertices;
-		convertedVertices.reserve(vertices.size());
-
-		for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
-			uint64_t siz = mBones.size();
-			uint64_t siz1 = mBones.size() + 1;
-			//			uniqueBonesInfo[i].mChildren.clear();
-
-			if (this->mBones.find(uniqueBonesInfo[i].mId) == this->mBones.end() && uniqueBonesInfo[i].mName != "bone") {
-				this->mBones.emplace(uniqueBonesInfo[i].mId, Bone{ uniqueBonesInfo[i].mId, uniqueBonesInfo[i].mParentId, mBones.size(), uniqueBonesInfo[i].mName, uniqueBonesInfo[i].mOffset });
-			}
-		}
-
-		//for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
-		//	uint64_t siz = mBones.size();
-		//	uint64_t siz1 = mBones.size() + 1;
-		//	if (uniqueBonesInfo[i].mParentId != 0 && this->mBones.find(uniqueBonesInfo[i].mParentId) != this->mBones.end()) {
-		//		this->mBones.at(uniqueBonesInfo[i].mParentId).mChildren.push_back(uniqueBonesInfo[i].mId);
-		//	}
-		//}
-
-		for (unsigned int i = 0; i < vertices.size(); i++) {
-			vulkMesh->CalculateVertexInBoundingBox(vertices[i]);
-
-			Vertex vertex{
-				vertices[i],
-				(normals.size() > i) ? normals[i] : glm::vec3(1.0f),
-				(uvs.size() > i) ? uvs[i] : glm::vec2(0.0f),
-				(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f),
-				(materialsIndices.size() > i) ? materialsIndices[i] : 0,
-				(bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0) ? this->GetBoneIds(bonesHolder[i].mBones) : std::array<int, MAX_BONE_INFLUENCE>{-1, -1, -1, -1},
-				(bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0) ? bonesHolder[i].GetBoneWeights() : std::array<float, MAX_BONE_INFLUENCE>{0, 0, 0, 0} };
-			for (int j = 0; j < 4; ++j) {
-				if (vertex.boneIds[j] <= 0)
-					continue;
-				//vertex.weights[i] = 1.0f;
-				if (mBones.find(vertex.boneIds[j]) != mBones.end()) {
-					//vertex.boneIds[i] = mBones[vertex.boneIds[i]].mId;
-				}
-				else {
-					//mBones.emplace(vertex.boneIds[i], Bone{ mBones.size() + 1, uniqueBonesInfo[vertex.boneIds[i]].mParentId, uniqueBonesInfo[vertex.boneIds[i]].mName });
-					//vertex.boneIds[i] = mBones[vertex.boneIds[i]].mId;
-				}
-			}
-			//vertex.weights = { 1.0f, 1.0f, 1.0f, 1.0f };
-			convertedVertices.push_back(vertex);
-		}
 
 		vulkMesh->verticesCount = vertices.size();
 		vulkMesh->verticesOffset = this->mBufferTotalVertices;
 		vulkMesh->indicesCount = indices.size();
 		vulkMesh->indicesOffset = this->mBufferTotalIndices;
-
-		VkDeviceSize newDataSize = sizeof(Vertex) * convertedVertices.size();
-		PlVkBuffer stagingBuffer = PlVkBuffer();
-		stagingBuffer.CreateBuffer(newDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_ONLY, 0);
-		// Add vertices to the big vertex buffer
-
-		//VkBuffer stagingBuffer;
-		//VkDeviceMemory stagingBufferMemory;
-		//CreateBuffer(newDataSize,
-		//	VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		//	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		//	stagingBuffer,
-		//	stagingBufferMemory);
-
-		//void* data;
-		//vkMapMemory(mDevice, stagingBufferMemory, 0, newDataSize, 0, &data);
-		//memcpy(data, convertedVertices.data(), static_cast<size_t>(newDataSize));
-		//vkUnmapMemory(mDevice, stagingBufferMemory);
-		void* data;
-		vmaMapMemory(stagingBuffer.GetVmaAllocator(), stagingBuffer.GetAllocation(), &data);
-		memcpy(data, convertedVertices.data(), (size_t)newDataSize);
-		vmaUnmapMemory(stagingBuffer.GetVmaAllocator(), stagingBuffer.GetAllocation());
-
-		CopyBuffer(stagingBuffer.GetBuffer(),
-			mMainVertexBuffer->GetBuffer(),
-			newDataSize,
-			mBufferTotalVertices * sizeof(Vertex));
-
-		//vkDestroyBuffer(mDevice, stagingBuffer, nullptr);
-		//vkFreeMemory(mDevice, stagingBufferMemory, nullptr);
-		stagingBuffer.Destroy();
-
-		// this->CreateVertexBuffer(convertedVertices, vulkMesh.mVertexBuffer,
-		// vulkMesh.mVertexBufferMemory);
-
-		// this->CreateIndexBuffer(indices, vulkMesh.mIndexBuffer,
-		// vulkMesh.mIndexBufferMemory);
-
-		// Add vertices to the big index buffer
-
-		VkDeviceSize indicesDataSize = sizeof(unsigned int) * indices.size();
-
-		VkBuffer indexStagingBuffer;
-		VkDeviceMemory indexStagingBufferMemory;
-		CreateBuffer(indicesDataSize,
-			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			indexStagingBuffer,
-			indexStagingBufferMemory);
-		//PlBuffer indexStagingBuffer;
-		//indexStagingBuffer.CreateBuffer(newDataSize, )
-		//vmaMapMemory(indexStagingBuffer.GetVmaAllocator(), indexStagingBuffer.GetAllocation(), &data2);
-		//memcpy(data2, indices.data(), static_cast<size_t>(indicesDataSize));
-		//vmaUnmapMemory(indexStagingBuffer.GetVmaAllocator(), indexStagingBuffer.GetAllocation());
-
-		void* data2;
-		vkMapMemory(mDevice, indexStagingBufferMemory, 0, indicesDataSize, 0, &data2);
-		memcpy(data2, indices.data(), static_cast<size_t>(indicesDataSize));
-		vkUnmapMemory(mDevice, indexStagingBufferMemory);
-
-		CopyBuffer(indexStagingBuffer,
-			mMainIndexBuffer->GetBuffer(),
-			indicesDataSize,
-			mBufferTotalIndices * sizeof(unsigned int));
-
-		vkDestroyBuffer(mDevice, indexStagingBuffer, nullptr);
-		vkFreeMemory(mDevice, indexStagingBufferMemory, nullptr);
-
+		uint64_t oldTotalVertices = mBufferTotalVertices;
+		uint64_t oldTotalIndices = mBufferTotalIndices;
 		mBufferTotalVertices += vertices.size();
 		mBufferTotalIndices += indices.size();
-		VkDrawIndexedIndirectCommand indirectCommand{};
-		indirectCommand.firstIndex = mBufferTotalIndices - indices.size();
-		indirectCommand.vertexOffset = mBufferTotalVertices - vertices.size();
-		indirectCommand.firstInstance = mTotalInstances;
-		indirectCommand.indexCount = indices.size();
-		indirectCommand.instanceCount = 1;
 
-		this->mIndirectCommands.push_back(indirectCommand);
-		mTotalInstances++;
-		mIndirectDrawCount++;
+		Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([&, vulkMesh, indices, vertices, normals, uvs, tangent, materialsIndices, usingNormal, bonesHolder, uniqueBonesInfo, oldTotalVertices, oldTotalIndices]() {
+			//vulkMesh->tangent.resize(vertices.size() - vulkMesh->tangent.size());
+			for (unsigned int i = 0; i < vertices.size(); ++i) {
+				vulkMesh->tangent.push_back(glm::vec3(0.0f));
+			}
+			vulkMesh->CalculateTangent();
+
+			vector<Vertex> convertedVertices;
+			convertedVertices.reserve(vertices.size());
+
+			for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
+				uint64_t siz = mBones.size();
+				uint64_t siz1 = mBones.size() + 1;
+				//			uniqueBonesInfo[i].mChildren.clear();
+
+				if (this->mBones.find(uniqueBonesInfo[i].mId) == this->mBones.end() && uniqueBonesInfo[i].mName != "bone") {
+					this->mBones.emplace(uniqueBonesInfo[i].mId, Bone{ uniqueBonesInfo[i].mId, uniqueBonesInfo[i].mParentId, mBones.size(), uniqueBonesInfo[i].mName, uniqueBonesInfo[i].mOffset });
+				}
+			}
+
+			//for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
+			//	uint64_t siz = mBones.size();
+			//	uint64_t siz1 = mBones.size() + 1;
+			//	if (uniqueBonesInfo[i].mParentId != 0 && this->mBones.find(uniqueBonesInfo[i].mParentId) != this->mBones.end()) {
+			//		this->mBones.at(uniqueBonesInfo[i].mParentId).mChildren.push_back(uniqueBonesInfo[i].mId);
+			//	}
+			//}
+
+			for (unsigned int i = 0; i < vertices.size(); i++) {
+				vulkMesh->CalculateVertexInBoundingBox(vertices[i]);
+
+				Vertex vertex{
+					vertices[i],
+					(normals.size() > i) ? normals[i] : glm::vec3(1.0f),
+					(uvs.size() > i) ? uvs[i] : glm::vec2(0.0f),
+					(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f),
+					(materialsIndices.size() > i) ? materialsIndices[i] : 0,
+					(bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0) ? this->GetBoneIds(bonesHolder[i].mBones) : std::array<int, MAX_BONE_INFLUENCE>{-1, -1, -1, -1},
+					(bonesHolder.size() > i && bonesHolder[i].mBones.size() > 0) ? bonesHolder[i].GetBoneWeights() : std::array<float, MAX_BONE_INFLUENCE>{0, 0, 0, 0} };
+				for (int j = 0; j < 4; ++j) {
+					if (vertex.boneIds[j] <= 0)
+						continue;
+					//vertex.weights[i] = 1.0f;
+					if (mBones.find(vertex.boneIds[j]) != mBones.end()) {
+						//vertex.boneIds[i] = mBones[vertex.boneIds[i]].mId;
+					}
+					else {
+						//mBones.emplace(vertex.boneIds[i], Bone{ mBones.size() + 1, uniqueBonesInfo[vertex.boneIds[i]].mParentId, uniqueBonesInfo[vertex.boneIds[i]].mName });
+						//vertex.boneIds[i] = mBones[vertex.boneIds[i]].mId;
+					}
+				}
+				//vertex.weights = { 1.0f, 1.0f, 1.0f, 1.0f };
+				convertedVertices.push_back(vertex);
+			}
+
+			VkDeviceSize newDataSize = sizeof(Vertex) * convertedVertices.size();
+			PlVkBuffer stagingBuffer = PlVkBuffer();
+			stagingBuffer.CreateBuffer(newDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_ONLY, 0);
+			// Add vertices to the big vertex buffer
+
+			void* data;
+			vmaMapMemory(stagingBuffer.GetVmaAllocator(), stagingBuffer.GetAllocation(), &data);
+			memcpy(data, convertedVertices.data(), (size_t)newDataSize);
+			vmaUnmapMemory(stagingBuffer.GetVmaAllocator(), stagingBuffer.GetAllocation());
+
+			CopyBuffer(stagingBuffer.GetBuffer(),
+				mMainVertexBuffer->GetBuffer(),
+				newDataSize,
+				oldTotalVertices * sizeof(Vertex),
+				true);
+
+			stagingBuffer.Destroy();
+
+			VkDeviceSize indicesDataSize = sizeof(unsigned int) * indices.size();
+
+			VkBuffer indexStagingBuffer;
+			VkDeviceMemory indexStagingBufferMemory;
+			CreateBuffer(indicesDataSize,
+				VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+				indexStagingBuffer,
+				indexStagingBufferMemory);
+
+			void* data2;
+			vkMapMemory(mDevice, indexStagingBufferMemory, 0, indicesDataSize, 0, &data2);
+			memcpy(data2, indices.data(), static_cast<size_t>(indicesDataSize));
+			vkUnmapMemory(mDevice, indexStagingBufferMemory);
+
+			CopyBuffer(indexStagingBuffer,
+				mMainIndexBuffer->GetBuffer(),
+				indicesDataSize,
+				oldTotalIndices * sizeof(unsigned int),
+				true);
+
+			vkDestroyBuffer(mDevice, indexStagingBuffer, nullptr);
+			vkFreeMemory(mDevice, indexStagingBufferMemory, nullptr);
+
+			std::lock_guard<std::mutex> lock(queueMutex);
+
+			//VkDrawIndexedIndirectCommand indirectCommand{};
+			//indirectCommand.firstIndex = mBufferTotalIndices;
+			//indirectCommand.vertexOffset = mBufferTotalVertices;
+			//indirectCommand.firstInstance = mTotalInstancesNewMesh;
+			//indirectCommand.indexCount = indices.size();
+			//indirectCommand.instanceCount = 1;
+
+			//this->mIndirectCommands.push_back(indirectCommand);
+			mTotalInstancesNewMesh++;
+			//mIndirectDrawCount++;
+			});
+		//uploadThread.detach();
+
 		return vulkMesh;
 	}
 
@@ -4116,6 +4130,33 @@ namespace Plaza {
 			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
 			memcpy(data, renderGroupOffsets.data(), sizeof(uint32_t) * renderGroupOffsets.size());
 			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+		}
+
+		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
+			PLAZA_PROFILE_SECTION("Animation Controller");
+			this->EarlyAnimationController();
+			std::unordered_set<int> matricesIds = std::unordered_set<int>();
+			std::vector<glm::mat4> matrices = std::vector<glm::mat4>();
+			matrices.resize(this->mBones.size() + 5);
+			for (const auto& [key, value] : mBones) {
+
+				if (value.mName != "bone") {
+					matrices[value.mHandlerIndex] = (value.mTransform) * value.mOffset;
+				}
+			}
+
+			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("BoneMatricesBuffer");
+			VkDeviceSize bufferSize = matrices.size() * sizeof(glm::mat4);
+			void* data;
+			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
+			memcpy(data, matrices.data(), static_cast<size_t>(bufferSize));
+			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+
+			//VkDeviceSize bufferSize = matrices.size() * sizeof(glm::mat4);//sizeof(glm::mat4) * 1024 * 1024 * 16;
+			//void* data;
+			//vkMapMemory(mDevice, this->mBoneMatricesBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
+			//memcpy(data, matrices.data(), static_cast<size_t>(bufferSize));
+			//vkUnmapMemory(mDevice, this->mBoneMatricesBufferMemories[mCurrentFrame]);
 		}
 
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {

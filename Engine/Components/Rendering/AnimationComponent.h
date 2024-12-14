@@ -48,7 +48,7 @@ namespace Plaza {
 		std::vector<int64_t> mBonesIds = std::vector<int64_t>();
 	};
 
-	class AnimationComponent : public Component {
+	PLAZA_API class AnimationComponent : public Component {
 	public:
 		float mImportScale = 1.0f;//0.01f;
 		std::vector<Animation> mAnimations = std::vector<Animation>();

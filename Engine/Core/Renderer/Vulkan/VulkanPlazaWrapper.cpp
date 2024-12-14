@@ -1,11 +1,12 @@
 #include "VulkanPlazaWrapper.h"
 #include "Renderer.h"
 
-namespace Plaza{
+namespace Plaza {
 	VmaAllocator PlVkBuffer::GetVmaAllocator() {
-			return VulkanRenderer::GetRenderer()->mVmaAllocator;
+		return VulkanRenderer::GetRenderer()->mVmaAllocator;
 	}
 
+	static std::mutex vmaMutex;
 	void PlVkBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VmaMemoryUsage vmaUsage, VmaAllocationCreateFlags flags, unsigned int buffersCount) {
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -19,16 +20,21 @@ namespace Plaza{
 
 		mBuffers.resize(buffersCount);
 		mAllocations.resize(buffersCount);
+
+		std::lock_guard<std::mutex> lock(vmaMutex);
 		for (unsigned int i = 0; i < buffersCount; ++i) {
 			vmaCreateBuffer(GetVmaAllocator(), &bufferInfo, &allocInfo, &mBuffers[i], &mAllocations[i], nullptr);
 		}
 	}
 
 	void PlVkBuffer::CreateMemory(VmaAllocationCreateFlags flags, unsigned int buffersCount) {
-	
+
 	}
 
 	void PlVkBuffer::Destroy() {
+		static std::mutex destroyMutex;
+		std::lock_guard<std::mutex> lock(destroyMutex);
+		std::lock_guard<std::mutex> lock2(vmaMutex);
 		for (unsigned int i = 0; i < mBuffers.size(); ++i) {
 			vmaDestroyBuffer(GetVmaAllocator(), mBuffers[i], mAllocations[i]);
 		}

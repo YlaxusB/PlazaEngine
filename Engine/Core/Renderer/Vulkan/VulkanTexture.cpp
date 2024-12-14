@@ -240,13 +240,13 @@ namespace Plaza {
 
 			vkBindImageMemory(device, mImage, mImageMemory, 0);
 
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1U, 1, this->mMipCount);
-			VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1U, 1, this->mMipCount, true, VK_NULL_HANDLE, true);
+			VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 0, 1, true);
 			//TODO: FIX VALIDATION ERROR WHEN GENERATING MIP MAP
 			if (generateMipMaps)
 				GenerateMipmaps(this->mImage, texWidth, texHeight, this->mMipCount, imageFormat, 1);
 			else
-				VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1U, 1, this->mMipCount);
+				VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1U, 1, this->mMipCount, true, VK_NULL_HANDLE, true);
 			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			vkDestroyBuffer(device, mStagingBuffer, nullptr);
 			vkFreeMemory(device, mStagingBufferMemory, nullptr);

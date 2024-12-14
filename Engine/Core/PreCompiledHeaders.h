@@ -15,7 +15,6 @@
 #include <ThirdParty/glm/gtx/euler_angles.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <ThirdParty/glm/gtx/quaternion.hpp>
-#include <ThirdParty/stb/stb_image.h>
 #include <ThirdParty/imgui/imgui_internal.h>
 #include <ThirdParty/imgui/imgui.h>
 #include <ThirdParty/imgui/imgui_impl_glfw.h>

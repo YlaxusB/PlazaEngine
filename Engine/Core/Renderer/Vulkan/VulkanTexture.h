@@ -1,7 +1,7 @@
 #pragma once
 #include "Renderer.h"
-#include <stb_image.h>
 #include <string>
+#include "Engine/stb_image.h"
 #include "ThirdParty/cereal/cereal/types/polymorphic.hpp"
 #include "Engine/Core/Renderer/Texture.h"
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
@@ -25,7 +25,7 @@ namespace Plaza {
 		~VulkanTexture() { };
 
 		VkDescriptorSet mDescriptorSet = VK_NULL_HANDLE;
-		static inline int mLastBindingIndex = 1;
+		static inline std::atomic<int> mLastBindingIndex = 1;
 		VkDescriptorSetLayout mDescriptorSetLayout = VK_NULL_HANDLE;
 		VkImage mImage = VK_NULL_HANDLE;
 		VkDeviceMemory mImageMemory = VK_NULL_HANDLE;

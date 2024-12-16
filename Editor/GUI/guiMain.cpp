@@ -202,9 +202,9 @@ namespace Plaza {
 
 			Gui::beginScene(*Application::Get()->activeCamera);
 
-			Gui::beginEditor(*Application::Get()->activeCamera);
-
 			Gui::beginAssetsViewer(*Application::Get()->activeCamera);
+
+			Gui::beginProfiler();
 
 			Gui::beginInspector(*camera);
 
@@ -215,6 +215,7 @@ namespace Plaza {
 			FileExplorer::UpdateGui();
 			Application::Get()->mEditor->mGui.mConsole->Update();
 			Application::Get()->mEditor->mGui.mRenderGraphEditor->Update();
+			Gui::beginEditor(*Application::Get()->activeCamera);
 			ImGui::End();
 
 
@@ -238,6 +239,7 @@ namespace Plaza {
 			for (auto& editorTool : Gui::sEditorTools) {
 				editorTool.second->UpdateGui();
 			}
+
 
 			//if (ImGui::Begin("Asset Importer", &isAssetImporterOpen)) {
 			//	ImGui::End();
@@ -651,6 +653,53 @@ namespace Plaza {
 			}
 			if (ImGui::IsWindowHovered())
 				Application::Get()->hoveredMenu = "AssetsViewer";
+
+			ImGui::End();
+		}
+
+		void Gui::beginProfiler() {
+			PLAZA_PROFILE_SECTION("Begin Profiler");
+			ApplicationSizes& appSizes = *Application::Get()->appSizes;
+			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
+			Entity* selectedGameObject = Editor::selectedGameObject;
+
+			// Set the window to be the content size + header size
+			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove;
+
+			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
+			windowFlags |= ImGuiWindowFlags_NoScrollbar;
+
+			ImGui::SetNextWindowSize(ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y));
+
+			ImGuiStyle& style = ImGui::GetStyle();
+
+			// Adjust padding and margin sizes
+			style.WindowPadding = ImVec2(0.0f, 0.0f);  // Change window padding
+			if (ImGui::Begin("Profiler", &Gui::isSceneOpen, windowFlags)) {
+				for (const auto& [key, value] : Profiler::sProfilers) {
+					if(ImGui::TreeNode(key.c_str())) {
+						value->OrderSections();
+
+						ImGui::Text("Total Time: ");
+						ImGui::SameLine();
+						ImGui::Text(std::string(std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(value->GetNanoSeconds()).count()) + " Milliseconds").c_str());
+
+						for (const SectionProfiler& section : value->mSections) {
+							ImGui::Text(std::string(section.mName + " " + std::to_string(section.mDurationNanoSeconds / 1000 / 100) + " Milliseconds").c_str());
+						}
+						ImGui::TreePop();
+					}
+				}
+			};
+			if (ImGui::IsWindowFocused())
+			{
+				if (Application::Get()->focusedMenu != "Profiler") {
+					glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+				}
+				Application::Get()->focusedMenu = "Profiler";
+			}
+			if (ImGui::IsWindowHovered())
+				Application::Get()->hoveredMenu = "Profiler";
 
 			ImGui::End();
 		}

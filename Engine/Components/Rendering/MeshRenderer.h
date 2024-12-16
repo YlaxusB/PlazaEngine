@@ -32,6 +32,7 @@ namespace Plaza {
 			mUuid = Plaza::UUID::NewUUID();
 		}
 
+		void AddMaterial(Material* newMaterial);
 		void ChangeMaterial(Material* newMaterial, unsigned int index = 0);
 		void ChangeMesh(Mesh* newMesh);
 

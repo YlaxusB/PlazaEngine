@@ -44,8 +44,12 @@ namespace Plaza {
 		//this->renderGroup.~shared_ptr();
 	}
 
+	void MeshRenderer::AddMaterial(Material* newMaterial) {
+		this->mMaterials.push_back(newMaterial);
+		this->renderGroup = Scene::GetActiveScene()->AddRenderGroup(new RenderGroup(this->mesh, this->mMaterials));
+		//this->renderGroup->ChangeMaterial(newMaterial);
+	}
 	void MeshRenderer::ChangeMaterial(Material* newMaterial, unsigned int index) {
-		uint64_t oldUuid = newMaterial->mAssetUuid;
 		this->mMaterials[index] = newMaterial;
 		this->renderGroup = Scene::GetActiveScene()->AddRenderGroup(new RenderGroup(this->mesh, this->mMaterials));
 		//this->renderGroup->ChangeMaterial(newMaterial);

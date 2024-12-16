@@ -51,7 +51,25 @@ namespace Plaza::Editor {
 		std::map<std::string, Script> scripts = std::map<std::string, Script>();
 		/* Iterate over all files and subfolders of the project folder to load assets */
 		std::string path = Application::Get()->activeProject->mAssetPath.parent_path().string();
+		Profiler::NewProfiler("TextureLoading");
+		Profiler::NewProfiler("ReadGameAssets");
+		/*
+				if (asset->GetExtension() == Standards::metadataExtName)
+			AssetsLoader::LoadMetadata(asset);
+		else
+			AssetsManager::NewAsset<Asset>(asset->mAssetUuid, asset->mAssetPath.string());
+
+		if (asset->GetExtension() == Standards::modelExtName)
+			AssetsLoader::LoadPrefab(asset);
+		else if (asset->GetExtension() == Standards::materialExtName)
+			AssetsLoader::LoadMaterial(asset, Application::Get()->mSettings.mCommonSerializationMode);
+		else if (asset->GetExtension() == Standards::animationExtName)
+			AssetsLoader::LoadAnimation(asset, Application::Get()->mSettings.mAnimationSerializationMode);
+		*/
+		SectionProfiler profiler;
 		AssetsManager::ReadFolderContent(path, true);
+		profiler.Stop();
+		Profiler::GetProfiler("ReadGameAssets")->AddDuration(profiler.GetDuration());
 		//for (auto entry = filesystem::recursive_directory_iterator(Application::Get()->activeProject->mAssetPath.parent_path(), filesystem::directory_options::skip_permission_denied); entry != filesystem::end(entry); ++entry) {
 		//	if (entry->is_directory() && entry->path().filename().string().ends_with(".ignore")) {
 		//		entry.disable_recursion_pending();

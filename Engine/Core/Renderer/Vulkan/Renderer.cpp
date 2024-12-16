@@ -2166,18 +2166,43 @@ namespace Plaza {
 	void VulkanRenderer::EndSingleTimeCommands(VkCommandBuffer commandBuffer, VkCommandPool commandPool) {
 		vkEndCommandBuffer(commandBuffer);
 
+		VkSemaphoreCreateInfo semaphoreCreateInfo{};
+		semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+		VkSemaphore semaphore;
+		if (vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &semaphore) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create semaphore!");
+		}
+
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffer;
+		submitInfo.pSignalSemaphores = &semaphore;
+		submitInfo.signalSemaphoreCount = 1;
 
 		static std::mutex queueMutex;
 		std::lock_guard<std::mutex> lock(queueMutex);
-		vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-		vkQueueWaitIdle(mGraphicsQueue);
+
+		QueueFamilyIndices queueFamilyIndices = findQueueFamilies(mPhysicalDevice, mSurface);
+
+		// Create a new queue for this specific thread/task
+		float queuePriority = 1.0f;
+		VkDeviceQueueCreateInfo queueCreateInfo{};
+		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+		queueCreateInfo.queueCount = 1;
+		queueCreateInfo.pQueuePriorities = &queuePriority;
+
+		VkQueue newQueue;
+		vkGetDeviceQueue(mDevice, queueFamilyIndices.graphicsFamily.value(), 0, &newQueue);
+
+
+		vkQueueSubmit(newQueue, 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(newQueue);
 
 		/* TODO: FREE COMMAND POOL */
 		vkFreeCommandBuffers(mDevice, commandPool == VK_NULL_HANDLE ? mCommandPool : commandPool, 1, &commandBuffer);
+		vkDestroySemaphore(mDevice, semaphore, nullptr);
 	}
 
 	void VulkanRenderer::TransitionImageLayout(VkImage image,
@@ -3293,8 +3318,11 @@ namespace Plaza {
 		if (uuid != 0)
 			texture->mAssetUuid = uuid;
 		texture->mAssetPath = path;
+		texture->mIndexHandle = VulkanTexture::mLastBindingIndex.load();
+		VulkanTexture::mLastBindingIndex++;
 		if (std::filesystem::exists(path)) {
 			Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([texture, path, this]() {
+				SectionProfiler profiler;
 				bool textureCreated = texture->CreateTextureImage(mDevice, path, PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), true);
 				if (!textureCreated) {
 					UploadBindlessTexture(texture);
@@ -3303,6 +3331,8 @@ namespace Plaza {
 
 				texture->CreateImageView(PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), VK_IMAGE_ASPECT_COLOR_BIT);
 				UploadBindlessTexture(texture);
+				profiler.Stop();
+				Profiler::GetProfiler("TextureLoading")->AddDuration(profiler.GetDuration());
 				});
 		}
 		return texture;
@@ -3325,12 +3355,9 @@ namespace Plaza {
 		imageInfo.imageView = texture->mImageView;
 		imageInfo.sampler = VulkanRenderer::GetRenderer()->mTextureSampler;
 		for (size_t i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; i++) {
-			VkWriteDescriptorSet descriptorWrite = plvk::writeDescriptorSet(VulkanRenderer::GetRenderer()->GetGeometryPassDescriptorSet(i), 20, index == -1 ? VulkanTexture::mLastBindingIndex.load() : index, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo);
+			VkWriteDescriptorSet descriptorWrite = plvk::writeDescriptorSet(VulkanRenderer::GetRenderer()->GetGeometryPassDescriptorSet(i), 20, texture->mIndexHandle, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo);
 			vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, 1, &descriptorWrite, 0, nullptr);
 		}
-		texture->mIndexHandle = index == -1 ? VulkanTexture::mLastBindingIndex.load() : index;
-		if (index == -1)
-			VulkanTexture::mLastBindingIndex++;
 	}
 
 	std::array<int, MAX_BONE_INFLUENCE> VulkanRenderer::GetBoneIds(const std::vector<uint64_t>& bones) {
@@ -3377,7 +3404,7 @@ namespace Plaza {
 		mBufferTotalVertices += vertices.size();
 		mBufferTotalIndices += indices.size();
 
-		Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([&, vulkMesh, indices, vertices, normals, uvs, tangent, materialsIndices, usingNormal, bonesHolder, uniqueBonesInfo, oldTotalVertices, oldTotalIndices]() {
+		//Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([&, vulkMesh, indices, vertices, normals, uvs, tangent, materialsIndices, usingNormal, bonesHolder, uniqueBonesInfo, oldTotalVertices, oldTotalIndices]() {
 			//vulkMesh->tangent.resize(vertices.size() - vulkMesh->tangent.size());
 			for (unsigned int i = 0; i < vertices.size(); ++i) {
 				vulkMesh->tangent.push_back(glm::vec3(0.0f));
@@ -3474,8 +3501,6 @@ namespace Plaza {
 			vkDestroyBuffer(mDevice, indexStagingBuffer, nullptr);
 			vkFreeMemory(mDevice, indexStagingBufferMemory, nullptr);
 
-			std::lock_guard<std::mutex> lock(queueMutex);
-
 			//VkDrawIndexedIndirectCommand indirectCommand{};
 			//indirectCommand.firstIndex = mBufferTotalIndices;
 			//indirectCommand.vertexOffset = mBufferTotalVertices;
@@ -3486,7 +3511,7 @@ namespace Plaza {
 			//this->mIndirectCommands.push_back(indirectCommand);
 			mTotalInstancesNewMesh++;
 			//mIndirectDrawCount++;
-			});
+			//});
 		//uploadThread.detach();
 
 		return vulkMesh;

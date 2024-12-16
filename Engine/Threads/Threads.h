@@ -19,6 +19,8 @@ namespace Plaza {
 				mRunning = true;
 				while (mRunning) {
 					UpdateParallel();
+					if (mQueue.size() == 0)
+						mRunning = false;
 				}
 				mRunning = false;
 				});

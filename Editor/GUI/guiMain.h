@@ -51,6 +51,7 @@ namespace Plaza {
 			static void beginInspector(Camera camera);
 			static void beginImageInspector(Camera camera);
 			static void beginAssetsViewer(Camera camera);
+			static void beginProfiler();
 			static void beginMainProgressBar(float percentage);
 
 			static inline bool mImageInspectorShowAllImages = false;

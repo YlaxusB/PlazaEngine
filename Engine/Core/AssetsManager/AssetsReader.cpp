@@ -17,11 +17,14 @@ namespace Plaza {
         return true;
     }
 	Asset* AssetsReader::ReadAssetAtPath(std::filesystem::path path) {
+        SectionProfiler section(path.string());
 		std::string extension = path.extension().string();
 		if (AssetsLoader::mSupportedLoadFormats.find(extension) == AssetsLoader::mSupportedLoadFormats.end())
 			return nullptr;
 		shared_ptr<Asset> asset = AssetsSerializer::DeSerializeFile<Asset>(path.string(), IsJsonFile(path.string()) ? SerializationMode::SERIALIZE_JSON : SerializationMode::SERIALIZE_BINARY);
 		AssetsLoader::LoadAsset(asset.get());
+        section.Stop();
+        Profiler::GetProfiler("ReadGameAssets")->AddSection(section);
 		return AssetsManager::GetAsset(asset->mAssetUuid);
 	}
 }

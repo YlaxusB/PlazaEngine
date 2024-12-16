@@ -21,33 +21,33 @@ namespace Plaza {
 		static void Update();
 	};
 
-	class PLAZA_API Profiler {
-	public:
-		string name;
-		int divider;
-		Profiler(string name_t, int divider_t = 10) : name(name_t) {
-			this->divider = divider_t;
-			Start();
-		}
-		high_resolution_clock::time_point startTime;
-		high_resolution_clock::time_point endTime;
-		void Start() {
-			if (Time::frameCount % divider)
-				startTime = std::chrono::high_resolution_clock::now();
-		}
-		void Stop() {
-			if (Time::frameCount % divider) {
-				endTime = std::chrono::high_resolution_clock::now();
-				Print();
-			}
-		}
-
-		void Print() {
-			if (Time::frameCount % divider) {
-				auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-				// Print the execution time
-				std::cout << name << ": " << duration.count() << " ms" << std::endl;
-			}
-		}
-	};
+	//class PLAZA_API Profiler {
+	//public:
+	//	string name;
+	//	int divider;
+	//	Profiler(string name_t, int divider_t = 10) : name(name_t) {
+	//		this->divider = divider_t;
+	//		Start();
+	//	}
+	//	high_resolution_clock::time_point startTime;
+	//	high_resolution_clock::time_point endTime;
+	//	void Start() {
+	//		if (Time::frameCount % divider)
+	//			startTime = std::chrono::high_resolution_clock::now();
+	//	}
+	//	void Stop() {
+	//		if (Time::frameCount % divider) {
+	//			endTime = std::chrono::high_resolution_clock::now();
+	//			Print();
+	//		}
+	//	}
+	//
+	//	void Print() {
+	//		if (Time::frameCount % divider) {
+	//			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+	//			// Print the execution time
+	//			std::cout << name << ": " << duration.count() << " ms" << std::endl;
+	//		}
+	//	}
+	//};
 }

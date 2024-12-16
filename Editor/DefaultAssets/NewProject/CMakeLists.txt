@@ -37,11 +37,12 @@ set(ENGINE_SOURCE_DIR "C:/Users/Giovane/Desktop/Workspace/PlazaEngine")
 
 file(GLOB_RECURSE GAME_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Assets/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Assets/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/Scripts/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Scripts/*.h")
 add_library(GameLib SHARED ${GAME_SOURCES})
+target_precompile_headers(GameLib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Assets/Scripts/pch.h")
 
 target_compile_definitions(GameLib PUBLIC  PX_PHYSX_STATIC_LIB)
 target_compile_definitions(GameLib PUBLIC  EDITOR_MODE)
 target_compile_definitions(GameLib PUBLIC  COMPILING_GAME_DLL)
-  target_link_options(GameLib PUBLIC "/INCREMENTAL /PDBALTPATH:$<TARGET_PDB_FILE_NAME:GameLib>")
+target_link_options(GameLib PUBLIC "/INCREMENTAL /PDBALTPATH:$<TARGET_PDB_FILE_NAME:GameLib>")
 
 target_include_directories(GameLib PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/"

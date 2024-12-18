@@ -51,6 +51,20 @@ void SimplifyMesh(std::vector<Plaza::Vertex>& vertices, std::vector<unsigned int
 
 namespace Plaza {
 
+	void Collider::OnInstantiate(Component* componentToInstantiate) {
+		mShapes.clear();
+		mRigidActor = nullptr;
+		for (auto& shape : static_cast<Collider*>(componentToInstantiate)->mShapes) {
+			shape->mPxShape = Physics::GetPhysXShape(shape.get(), &Physics::GetDefaultPhysicsMaterial());
+			physx::PxGeometryHolder geometry = shape->mPxShape->getGeometry();
+			physx::PxMaterial* shapeMaterial = Physics::defaultMaterial;
+			// Create a new shape with the same properties
+			physx::PxShape* newShape = Physics::m_physics->createShape(geometry.triangleMesh(), *shapeMaterial, false);
+			mShapes.push_back(std::make_shared<ColliderShape>(newShape, shape->mEnum, shape->mMeshUuid));
+		}
+		//Scene::GetActiveScene()->colliderComponents.find(mUuid)->second.Init(nullptr);
+	}
+
 	Collider::Collider(std::uint64_t uuid, RigidBody* rigidBody) {
 		this->mUuid = uuid;
 		if (Application::Get()->runningScene)

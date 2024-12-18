@@ -2,6 +2,14 @@
 #include "Engine/Components/Rendering/MeshRenderer.h"
 
 namespace Plaza {
+	void MeshRenderer::OnInstantiate(Component* componentToInstantiate) {
+		MeshRenderer* component = static_cast<MeshRenderer*>(componentToInstantiate);
+		instanced = true;
+		mesh = component->mesh;
+		mMaterials = component->mMaterials;
+		renderGroup = component->renderGroup;
+	}
+
 	MeshRenderer::MeshRenderer(Plaza::Mesh* initialMesh, bool addToScene) {
 		this->mUuid = Plaza::UUID::NewUUID();
 		this->mesh = initialMesh;//std::make_unique<Mesh>(initialMesh);

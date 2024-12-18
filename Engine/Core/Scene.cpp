@@ -23,8 +23,6 @@ namespace Plaza {
 			if (it != baseScene->transformComponents.end()) {
 				Transform* transform = new Transform(*gameObj.second.GetComponent<Transform>());
 				transform->mUuid = newObj->uuid;
-				transform->scene = "Runtime Scene";
-				transform->scene = "Runtime Scene";
 				newObj->RemoveComponent<Transform>();
 				newObj->AddComponent<Transform>(transform);
 				newObj->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
@@ -230,7 +228,8 @@ namespace Plaza {
 
 		// Change active scene, update the selected object scene, delete runtime and set running to false.
 		Editor::selectedGameObject = nullptr;
-		delete(Application::Get()->runtimeScene);
+		//delete(Application::Get()->runtimeScene);
+		Scene::sRuntimeScene.reset();
 		Application::Get()->runningScene = false;
 		Scene::SetActiveScene(Scene::GetEditorScene());
 		Application::Get()->activeCamera = Application::Get()->editorCamera;

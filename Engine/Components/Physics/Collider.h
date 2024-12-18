@@ -41,6 +41,7 @@ namespace Plaza {
 		physx::PxRigidBody* pxRigidBody = nullptr;
 		physx::PxMaterial* material = nullptr;
 		bool mDynamic = false;
+		virtual void OnInstantiate(Component* componentToInstantiate) override;
 		Collider(std::uint64_t uuid, RigidBody* rigidBody = nullptr);
 		~Collider() override;
 		void RemoveActor();

@@ -5,6 +5,7 @@
 #include "CppScript.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
 #include "Engine/Core/Scripting/CppScriptFactory.h"
+#include "Engine/Core/Input/Input.h"
 
 namespace Plaza {
 	void Scripting::LoadProjectCppDll(const Editor::Project& project) {
@@ -78,6 +79,8 @@ namespace Plaza {
 	void Scripting::Update() {
 		PLAZA_PROFILE_SECTION("Scripting: Update");
 		Mono::Update();
+
+		Input::SetFocusedMenuCheck("Scene");
 
 		for (auto& [key, value] : Scene::GetActiveScene()->cppScriptComponents) {
 			for (auto& script : value.mScripts) {

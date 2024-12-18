@@ -65,6 +65,7 @@ namespace Plaza {
 			ImGuiIO& io = ImGui::GetIO();
 			io.DeltaTime = Time::deltaTime;
 			io.DisplaySize = ImVec2(Application::Get()->appSizes->appSize.x, Application::Get()->appSizes->appSize.y);
+			Input::SetFocusedMenuCheck("Editor");
 			Gui::setupDockspace(Application::Get()->mWindow->glfwWindow, Application::Get()->activeCamera);
 			//else if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
 			//	Application::Get()->mRenderer->UpdateGUI();

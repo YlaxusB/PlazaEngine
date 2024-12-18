@@ -2196,7 +2196,6 @@ namespace Plaza {
 		VkQueue newQueue;
 		vkGetDeviceQueue(mDevice, queueFamilyIndices.graphicsFamily.value(), 0, &newQueue);
 
-
 		vkQueueSubmit(newQueue, 1, &submitInfo, VK_NULL_HANDLE);
 		vkQueueWaitIdle(newQueue);
 
@@ -3404,7 +3403,9 @@ namespace Plaza {
 		mBufferTotalVertices += vertices.size();
 		mBufferTotalIndices += indices.size();
 
+		//static std::vector<std::future<void>> futures;
 		//Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([&, vulkMesh, indices, vertices, normals, uvs, tangent, materialsIndices, usingNormal, bonesHolder, uniqueBonesInfo, oldTotalVertices, oldTotalIndices]() {
+		//futures.push_back(std::async(std::launch::async, [&, vulkMesh, indices, vertices, normals, uvs, tangent, materialsIndices, usingNormal, bonesHolder, uniqueBonesInfo, oldTotalVertices, oldTotalIndices]() {
 			//vulkMesh->tangent.resize(vertices.size() - vulkMesh->tangent.size());
 			for (unsigned int i = 0; i < vertices.size(); ++i) {
 				vulkMesh->tangent.push_back(glm::vec3(0.0f));
@@ -3511,7 +3512,7 @@ namespace Plaza {
 			//this->mIndirectCommands.push_back(indirectCommand);
 			mTotalInstancesNewMesh++;
 			//mIndirectDrawCount++;
-			//});
+			//}));
 		//uploadThread.detach();
 
 		return vulkMesh;

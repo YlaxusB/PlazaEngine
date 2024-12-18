@@ -5,6 +5,10 @@
 #include "Editor/GUI/gizmo.h"
 using namespace physx;
 namespace Plaza {
+	void RigidBody::OnInstantiate(Component* componentToInstantiate) {
+		this->Init();
+	}
+
 	RigidBody::RigidBody(uint64_t uuid, bool initWithPhysics, bool dynamic) {
 		if (initWithPhysics) {
 			this->mUuid = uuid;
@@ -60,7 +64,7 @@ namespace Plaza {
 	RigidBody::~RigidBody() {
 		//if (mRigidActor) 
 		//	Physics::m_scene->removeActor(*mRigidActor);
-		
+
 	}
 
 	glm::vec3 QuaternionToEulerAngles(const physx::PxQuat& quat) {

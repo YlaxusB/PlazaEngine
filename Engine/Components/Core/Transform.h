@@ -11,6 +11,8 @@
 namespace Plaza {
 	class PLAZA_API Transform : public Plaza::Component {
 	public:
+		virtual void OnInstantiate(Component* componentToInstantiate) override;
+
 		bool haveCamera = false;
 		glm::vec3 position = { 0,0,0 };
 		glm::vec3 worldPosition = { 0, 0, 0 };
@@ -22,7 +24,6 @@ namespace Plaza {
 		glm::vec3 worldScale = { 1, 1, 1 };
 		glm::mat4 modelMatrix = glm::mat4(1.0f);
 		glm::mat4 localMatrix = glm::mat4(1.0f);
-		std::string scene = "Editor Scene";
 		Transform();
 		Transform(const Transform&) = default;
 		const glm::quat& GetLocalQuaternion();

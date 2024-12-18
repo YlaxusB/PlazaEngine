@@ -8,6 +8,13 @@
 //#include "Editor/GUI/gizmo.h"
 //#include "Engine/Components/Core/Entity.h"
 namespace Plaza {
+	void Transform::OnInstantiate(Component* componentToInstantiate) {
+		Transform* component = static_cast<Transform*>(componentToInstantiate);
+		this->SetRelativePosition(component->relativePosition);
+		this->SetRelativeRotation(glm::eulerAngles(component->rotation));
+		this->scale = component->scale;
+	}
+
 	Transform::Transform() {};
 
 	const glm::vec3& Transform::GetWorldPosition() {
@@ -206,7 +213,7 @@ namespace Plaza {
 		this->UpdateSelfAndChildrenTransform();
 	}
 
-	void Transform::SetRelativeScale(glm::vec3 vector) { 
+	void Transform::SetRelativeScale(glm::vec3 vector) {
 		this->scale = vector;
 		this->UpdateSelfAndChildrenTransform();
 		auto it = Scene::GetActiveScene()->colliderComponents.find(this->mUuid);

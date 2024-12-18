@@ -7,7 +7,7 @@ namespace Plaza {
 	}
 
 	bool Input::GetKeyDown(int key) {
-		if (Application::Get()->focusedMenu == "Scene") {
+		if (Application::Get()->focusedMenu == mCheckFocusedMenu) {
 			return glfwGetKey(Application::Get()->mWindow->glfwWindow, key) == GLFW_PRESS;
 		}
 	}
@@ -26,7 +26,7 @@ namespace Plaza {
 	}
 
 	bool Input::GetMouseDown(int button) {
-		if (Application::Get()->focusedMenu == "Scene") {
+		if (Application::Get()->focusedMenu == mCheckFocusedMenu) {
 			return glfwGetMouseButton(Application::Get()->mWindow->glfwWindow, button) == GLFW_PRESS;
 		}
 	}
@@ -37,5 +37,9 @@ namespace Plaza {
 #else
 		return Application::Get()->appSizes->sceneSize;
 #endif
+	}
+
+	void Input::SetFocusedMenuCheck(const std::string& menu) {
+		mCheckFocusedMenu = menu;
 	}
 }

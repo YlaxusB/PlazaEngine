@@ -3,6 +3,7 @@
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include <ThirdParty/cereal/cereal/archives/binary.hpp>
+#include <future>
 
 namespace Plaza {
 	void AssetsLoader::LoadAsset(Asset* asset) {
@@ -25,7 +26,7 @@ namespace Plaza {
 		return scene;
 	}
 
-	SerializablePrefab DeserializePrefab(std::string path, SerializationMode serializationMode) {
+	SerializablePrefab AssetsLoader::DeserializePrefab(const std::string& path, const SerializationMode& serializationMode) {
 		SerializablePrefab prefab{};
 
 		std::shared_ptr<Serp> loadedPrefab = AssetsSerializer::DeSerializeFile<Serp>(path, serializationMode);
@@ -36,7 +37,7 @@ namespace Plaza {
 		return prefab;
 	}
 
-	void LoadDeserializedEntity(const SerializableEntity& deserializedEntity, std::unordered_map<uint64_t, uint64_t>& equivalentUuids, bool loadToScene) {
+	void AssetsLoader::LoadDeserializedEntity(const SerializableEntity& deserializedEntity, std::unordered_map<uint64_t, uint64_t>& equivalentUuids, bool loadToScene) {
 		Entity* newEntity = new Entity(deserializedEntity.name, Scene::GetActiveScene()->mainSceneEntity, loadToScene);
 		newEntity->equivalentPrefabUuid = deserializedEntity.entityUuid;
 		equivalentUuids.emplace(deserializedEntity.entityUuid, newEntity->uuid);
@@ -73,10 +74,10 @@ namespace Plaza {
 		}
 	}
 
-	void AssetsLoader::LoadPrefabToMemory(Asset* asset) {
-		if (!asset)
-			return;
-		SerializablePrefab deserializedPrefab = DeserializePrefab(asset->mAssetPath.string(), Application::Get()->mSettings.mModelSerializationMode);
+	void AssetsLoader::LoadPrefabToMemory(const std::string& path) {
+		//if (!asset)
+		//	return;
+		SerializablePrefab deserializedPrefab = AssetsLoader::DeserializePrefab(path, Application::Get()->mSettings.mModelSerializationMode);
 
 		for (const SerializableEntity& deserializedEntity : deserializedPrefab.entities) {
 			for (const std::shared_ptr<SerializableComponents> component : deserializedEntity.components) {
@@ -124,14 +125,22 @@ namespace Plaza {
 		}
 	}
 
+	static std::vector<std::future<void>> futures;
 	void AssetsLoader::LoadPrefab(Asset* asset) {
-		if (AssetsManager::mLoadedModels.find(asset->mAssetUuid) != AssetsManager::mLoadedModels.end()) {
-			LoadPrefabToScene(AssetsManager::mLoadedModels.at(asset->mAssetUuid), true);
-		}
-		else {
-			LoadPrefabToMemory(asset);
-			if (AssetsManager::mLoadedModels.find(asset->mAssetUuid) != AssetsManager::mLoadedModels.end())
-				LoadPrefabToScene(AssetsManager::mLoadedModels.at(asset->mAssetUuid), true);
-		}
+		Asset assetCopy = *asset;
+		//Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([assetCopy]() {
+		//	//futures.push_back(std::async(std::launch::async, [assetCopy]() {
+		//	if (AssetsManager::mLoadedModels.find(assetCopy.mAssetUuid) != AssetsManager::mLoadedModels.end()) {
+		//		LoadPrefabToScene(AssetsManager::mLoadedModels.at(assetCopy.mAssetUuid), true);
+		//	}
+		//	else {
+		//		//static std::mutex queueMutex;
+		//		//std::lock_guard<std::mutex> lock(queueMutex);
+		//		LoadPrefabToMemory(assetCopy.mAssetPath.string());
+		//		if (AssetsManager::mLoadedModels.find(assetCopy.mAssetUuid) != AssetsManager::mLoadedModels.end())
+		//			LoadPrefabToScene(AssetsManager::mLoadedModels.at(assetCopy.mAssetUuid), true);
+		//	}
+		//	//	}));
+		//	});
 	}
 }

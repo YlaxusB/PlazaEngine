@@ -39,6 +39,7 @@ namespace Plaza {
 		//	this->SetSpatial(other.mSpatial);
 		//}
 
+		virtual void OnInstantiate(Component* componentToInstantiate) override;
 		~AudioSource() override {
 			//this->Stop();
 		}

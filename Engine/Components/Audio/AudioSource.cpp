@@ -15,6 +15,14 @@ namespace Plaza {
 		return AudioFileFormat::None;
 	}
 
+	void AudioSource::OnInstantiate(Component* componentToInstantiate) {
+		AudioSource* audioSource = static_cast<AudioSource*>(componentToInstantiate);
+		this->SetGain(audioSource->mGain);
+		this->SetPitch(audioSource->mPitch);
+		this->SetLoop(audioSource->mLoop);
+		this->SetSpatial(audioSource->mSpatial);
+	}
+
 	void AudioSource::Play() {
 		alSourcePlay(mSource);
 	};

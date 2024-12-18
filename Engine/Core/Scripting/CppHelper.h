@@ -21,6 +21,8 @@
 
 #include "ThirdParty/imgui/imgui.h"
 
+#include "Engine/Core/Scripting/CppUtilities/PerlinNoise.h"
+
 namespace Plaza {
 	class PLAZA_API Mathf {
 	public:

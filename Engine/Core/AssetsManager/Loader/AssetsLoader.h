@@ -48,7 +48,7 @@ namespace Plaza {
 		}
 		static std::shared_ptr<Scene> LoadScene(Asset* asset, SerializationMode serializationMode);
 		static void LoadPrefab(Asset* asset);
-		static void LoadPrefabToMemory(Asset* asset);
+		static void LoadPrefabToMemory(const std::string& path);
 		static void LoadPrefabToScene(LoadedModel* model, bool loadToScene);
 		static void LoadScript(Asset* asset) {
 			AssetsManager::AddScript(static_cast<Script*>(asset));
@@ -67,5 +67,9 @@ namespace Plaza {
 		static Material* LoadMaterial(Asset* asset, SerializationMode serializationMode);
 		static void LoadModel(Asset* asset) {};
 		static Animation& LoadAnimation(Asset* asset, SerializationMode serializationMode);
+
+	private:
+		static SerializablePrefab DeserializePrefab(const std::string& path, const SerializationMode& serializationMode);
+		static void LoadDeserializedEntity(const SerializableEntity& deserializedEntity, std::unordered_map<uint64_t, uint64_t>& equivalentUuids, bool loadToScene);
 	};
 }

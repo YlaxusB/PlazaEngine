@@ -46,13 +46,29 @@ namespace Plaza {
 		}
 
 		template<typename T>
-		T* AddComponent(T* component, bool addToComponentsList = true) {
+		T* NewComponent(bool addToComponentsList = true) {
+			if (this->HasComponent<T>())
+				return this->RemoveComponent<T>();
+			T* component = new T();
 			component->mUuid = this->uuid;
 
 			std::string className = typeid(T).name();
 			if (addToComponentsList) {
-				auto& components = *static_cast<ComponentMultiMap<uint64_t, T>*>(GetAllComponentsMaps()[className]);
-				components.emplace(component->mUuid, *component);
+				static_cast<ComponentMultiMap<uint64_t, T>*>(GetAllComponentsMaps()[className])->AddComponent(component);
+			}
+
+			return component;
+		}
+
+		template<typename T>
+		T* AddComponent(T* component, bool addToComponentsList = true) {
+			if (this->HasComponent<T>())
+				return this->GetComponent<T>();
+			component->mUuid = this->uuid;
+
+			std::string className = typeid(T).name();
+			if (addToComponentsList) {
+				static_cast<ComponentMultiMap<uint64_t, T>*>(GetAllComponentsMaps()[className])->AddComponent(component);
 			}
 
 			return dynamic_cast<T*>(component);
@@ -67,9 +83,28 @@ namespace Plaza {
 			std::string className = typeid(T).name();
 			auto& components = *static_cast<ComponentMultiMap<uint64_t, Component>*>(GetAllComponentsMaps()[className]);
 			if (components.find(this->uuid) != components.end()) {
-				components.find(this->uuid)->second.~Component();
-				components.erase(components.find(this->uuid));
+				components.RemoveComponent(&components.at(this->uuid));
 			}
+		}
+
+		template<typename T>
+		T* InstantiateComponent(T* componentToInstantiate, bool addToComponentsList = true) {
+			T* component = nullptr;
+			if (this->HasComponent<T>())
+				component = this->GetComponent<T>();
+			else
+				component = new T(*componentToInstantiate);
+			
+			component->mUuid = this->uuid;
+			component->OnInstantiate();
+			
+			std::string className = typeid(T).name();
+			if (addToComponentsList) {
+				auto& components = *static_cast<ComponentMultiMap<uint64_t, T>*>(GetAllComponentsMaps()[typeid(T).name()]);
+				components.emplace(component->mUuid, *component);
+			}
+			
+			return component;
 		}
 		//{
 		//Plaza::GetComponentMap(T);
@@ -89,9 +124,8 @@ namespace Plaza {
 
 		// Check if the Entity haves the Component
 		template<typename T>
-		bool HasComponent() {
-			std::string className = typeid(T).name();
-			auto& components = *static_cast<ComponentMultiMap<uint64_t, Component>*>(GetAllComponentsMaps()[className]);
+		bool HasComponent(std::string* className = nullptr) {
+			auto& components = *static_cast<ComponentMultiMap<uint64_t, Component>*>(GetAllComponentsMaps()[className ? *className : typeid(T).name()]);
 			if (components.find(this->uuid) != components.end())
 				return true;
 			return false;
@@ -116,7 +150,7 @@ namespace Plaza {
 				}
 			}
 			auto newParentIt = std::find(newParent->childrenUuid.begin(), newParent->childrenUuid.end(), this->uuid);
-			if (newParentIt == newParent->childrenUuid.end()) {	
+			if (newParentIt == newParent->childrenUuid.end()) {
 				newParent->childrenUuid.push_back(this->uuid);
 			}
 		}

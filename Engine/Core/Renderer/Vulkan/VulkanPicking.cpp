@@ -270,7 +270,7 @@ namespace Plaza {
 
 	void VulkanPicking::DrawMeshToPickingTexture(const MeshRenderer& meshRenderer, VkCommandBuffer& commandBuffer) {
 		VulkanMesh* mesh = (VulkanMesh*)meshRenderer.mesh;
-		if (mesh->vertices.size() < 3) {
+		if (!mesh || mesh->vertices.size() < 3) {
 			return;
 		}
 		

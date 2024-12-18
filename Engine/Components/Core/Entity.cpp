@@ -240,140 +240,21 @@ namespace Plaza {
 		}
 	}
 
-	uint64_t  Entity::Instantiate(uint64_t uuid) {
+	uint64_t Entity::Instantiate(uint64_t uuid) {
 		PLAZA_PROFILE_SECTION("Instantiate");
 		if (Scene::GetActiveScene()->entities.find(uuid) == Scene::GetActiveScene()->entities.end())
 			return 0;
 		Entity* entityToInstantiate = &Scene::GetActiveScene()->entities.find(uuid)->second;
 		Entity* instantiatedEntity = new Entity(entityToInstantiate->name, &Scene::GetActiveScene()->entities.find(entityToInstantiate->parentUuid)->second);
 		instantiatedEntity = &Scene::GetActiveScene()->entities.find(instantiatedEntity->uuid)->second;
+		uint64_t newUuid = instantiatedEntity->uuid;
 
-		Transform* toInstantiateTransform = &Scene::GetActiveScene()->transformComponents.find(entityToInstantiate->uuid)->second;
-		Transform* newTransform = &Scene::GetActiveScene()->transformComponents.find(instantiatedEntity->uuid)->second;
-		newTransform->SetRelativePosition(toInstantiateTransform->relativePosition);
-		newTransform->SetRelativeRotation(glm::eulerAngles(toInstantiateTransform->rotation));
-		newTransform->scale = toInstantiateTransform->scale;
-
-		auto meshRendererIt = Scene::GetActiveScene()->meshRendererComponents.find(entityToInstantiate->uuid);
-		if (meshRendererIt != Scene::GetActiveScene()->meshRendererComponents.end()) {
-			PLAZA_PROFILE_SECTION("MeshRenderer");
-			//MeshRenderer* meshRendererToInstantiate = meshRendererIt->second;
-			MeshRenderer* newMeshRenderer = new MeshRenderer();
-			newMeshRenderer->mUuid = instantiatedEntity->uuid;
-			newMeshRenderer->instanced = true;
-			newMeshRenderer->mesh = meshRendererIt->second.mesh;//shared_ptr<Mesh>(meshRendererToInstantiate->mesh);
-			newMeshRenderer->mMaterials = meshRendererIt->second.mMaterials;
-			newMeshRenderer->renderGroup = meshRendererIt->second.renderGroup;
-			instantiatedEntity->AddComponent<MeshRenderer>(newMeshRenderer);
-		}
-
-		auto colliderIt = Scene::GetActiveScene()->colliderComponents.find(entityToInstantiate->uuid);
-		if (colliderIt != Scene::GetActiveScene()->colliderComponents.end()) {
-			PLAZA_PROFILE_SECTION("Collider");
-			Collider* newCollider = new Collider(colliderIt->second);
-			newCollider->mShapes.clear();
-			newCollider->mUuid = instantiatedEntity->uuid;
-			newCollider->mRigidActor = nullptr;
-			for (auto& shape : colliderIt->second.mShapes) {
-				shape->mPxShape = Physics::GetPhysXShape(shape.get(), &Physics::GetDefaultPhysicsMaterial());
-				physx::PxGeometryHolder geometry = shape->mPxShape->getGeometry();
-				physx::PxMaterial* shapeMaterial = Physics::defaultMaterial;
-				// Create a new shape with the same properties
-				physx::PxShape* newShape = Physics::m_physics->createShape(geometry.triangleMesh(), *shapeMaterial, false);
-				newCollider->mShapes.push_back(std::make_shared<ColliderShape>(newShape, shape->mEnum, shape->mMeshUuid));
-			}
-			instantiatedEntity->AddComponent<Collider>(newCollider);//->Init(nullptr);
-			Scene::GetActiveScene()->colliderComponents.find(instantiatedEntity->uuid)->second.Init(nullptr);
-		}
-
-		auto rigidBodyIt = Scene::GetActiveScene()->rigidBodyComponents.find(entityToInstantiate->uuid);
-		if (rigidBodyIt != Scene::GetActiveScene()->rigidBodyComponents.end()) {
-			PLAZA_PROFILE_SECTION("RigidBody");
-			RigidBody* newRigidBody = new RigidBody(rigidBodyIt->second);
-			newRigidBody->mUuid = instantiatedEntity->uuid;
-			instantiatedEntity->AddComponent<RigidBody>(newRigidBody);
-			instantiatedEntity->GetComponent<RigidBody>()->Init();
-		}
-
-		auto csScriptComponentIt = Scene::GetActiveScene()->csScriptComponents.find(entityToInstantiate->uuid);
-		if (csScriptComponentIt != Scene::GetActiveScene()->csScriptComponents.end()) {
-			PLAZA_PROFILE_SECTION("CsScriptComponent");
-			auto range = Scene::GetActiveScene()->csScriptComponents.equal_range(entityToInstantiate->uuid);
-			vector<CsScriptComponent*> scriptsToAdd = vector<CsScriptComponent*>();
-			for (auto it = range.first; it != range.second && it != Scene::GetActiveScene()->csScriptComponents.end(); ++it) {
-				if (it->second.mUuid == entityToInstantiate->uuid) {
-					CsScriptComponent* newScript = new CsScriptComponent(instantiatedEntity->uuid);
-					newScript->mScriptUuid = instantiatedEntity->GetComponent<CsScriptComponent>()->mScriptUuid;
-					newScript->Init();
-
-					/* Get all fields from the entity to instantiate */
-					std::map<std::string, Field*> fields = std::map<std::string, Field*>();
-					//for (auto [key, value] : it->second.scriptClasses) { fields = FieldManager::GetFieldsValues(value->monoObject); };
-
-					/* Apply all fields to the instantiated entity */
-					uint64_t key = newScript->mUuid;
-					//for (auto [scriptClassKey, scriptClassValue] : newScript->scriptClasses) {
-					//	MonoClassField* monoField = NULL;
-					//	void* iter = NULL;
-					//	while ((monoField = mono_class_get_fields(mono_object_get_class(scriptClassValue->monoObject), &iter)) != NULL)
-					//	{
-					//		int type = mono_type_get_type(mono_field_get_type(monoField));
-					//		if (type != MONO_TYPE_ARRAY && type != MONO_TYPE_CLASS) {
-					//			if (fields.find(mono_field_get_name(monoField)) != fields.end())
-					//				FieldManager::FieldSetValue(type, fields.at(mono_field_get_name(monoField))->mValue, scriptClassValue->monoObject, monoField, fields.at(mono_field_get_name(monoField)));
-					//		}
-					//		else if (type == MONO_TYPE_CLASS) {
-					//			MonoObject* currentFieldMonoObject = nullptr;
-					//			mono_field_get_value(scriptClassValue->monoObject, mono_class_get_field_from_name(mono_object_get_class(scriptClassValue->monoObject), mono_field_get_name(monoField)), &currentFieldMonoObject);
-					//			if (fields.find(mono_field_get_name(monoField)) != fields.end())
-					//				FieldManager::FieldSetValue(type, fields.at(mono_field_get_name(monoField))->mValue, scriptClassValue->monoObject, monoField, fields.at(mono_field_get_name(monoField)));
-					//		}
-					//	}
-					//}
-
-					Application::Get()->activeProject->scripts.at(it->second.scriptPath).entitiesUsingThisScript.emplace(instantiatedEntity->uuid);
-					if (Application::Get()->runningScene) {
-						for (auto& [key, value] : newScript->scriptClasses) {
-							Mono::OnStart(value->monoObject);
-						}
-					}
-
-					scriptsToAdd.push_back(newScript);
-				}
-			}
-			for (CsScriptComponent* script : scriptsToAdd) {
-				instantiatedEntity->AddComponent<CsScriptComponent>(script);
+		for (auto& [key, value] : Scene::GetActiveScene()->componentsMap) {
+			auto& components = *static_cast<ComponentMultiMap<uint64_t, Component>*>(value);
+			if (components.find(uuid) != components.end()) {
+				components.InstantiateComponent(newUuid, &components.at(uuid));
 			}
 		}
-
-		auto audioSourceIt = Scene::GetActiveScene()->audioSourceComponents.find(entityToInstantiate->uuid);
-		if (audioSourceIt != Scene::GetActiveScene()->audioSourceComponents.end()) {
-			PLAZA_PROFILE_SECTION("AudioSource");
-			AudioSource* newAudioSource = new AudioSource(audioSourceIt->second);
-			newAudioSource->mUuid = instantiatedEntity->uuid;
-			newAudioSource->SetGain(audioSourceIt->second.mGain);
-			newAudioSource->SetPitch(audioSourceIt->second.mPitch);
-			newAudioSource->SetLoop(audioSourceIt->second.mLoop);
-			newAudioSource->SetSpatial(audioSourceIt->second.mSpatial);
-			instantiatedEntity->AddComponent<AudioSource>(newAudioSource);
-		}
-
-		auto lightIt = Scene::GetActiveScene()->lightComponents.find(entityToInstantiate->uuid);
-		if (lightIt != Scene::GetActiveScene()->lightComponents.end()) {
-			PLAZA_PROFILE_SECTION("Light");
-			Light* newLight = new Light(lightIt->second);
-			newLight->mUuid = instantiatedEntity->uuid;
-			instantiatedEntity->AddComponent<Light>(newLight);
-		}
-
-		auto characterControllerIt = Scene::GetActiveScene()->characterControllerComponents.find(entityToInstantiate->uuid);
-		if (characterControllerIt != Scene::GetActiveScene()->characterControllerComponents.end()) {
-			PLAZA_PROFILE_SECTION("Light");
-			CharacterController* newCharacterController = new CharacterController(characterControllerIt->second);
-			newCharacterController->mUuid = instantiatedEntity->uuid;
-			instantiatedEntity->AddComponent<CharacterController>(newCharacterController);
-		}
-
 
 		/* Instantiate children */
 		for (unsigned int i = 0; i < entityToInstantiate->childrenUuid.size(); i++) {
@@ -384,10 +265,6 @@ namespace Plaza {
 			//instantiatedEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 		}
 
-		//instantiatedEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
-		//if (instantiatedEntity->HasComponent<Collider>()) {
-		//	instantiatedEntity->GetComponent<Collider>()->UpdateShapeScale(instantiatedEntity->GetComponent<Transform>()->GetWorldScale());
-		//}
 		return instantiatedEntity->uuid;
 	}
 }

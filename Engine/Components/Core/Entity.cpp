@@ -262,7 +262,6 @@ namespace Plaza {
 			uint64_t uuid = Instantiate(childUuid);
 			if (uuid)
 				Scene::GetActiveScene()->entities.at(uuid).ChangeParent(&Scene::GetActiveScene()->entities.at(uuid).GetParent(), instantiatedEntity);
-			//instantiatedEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
 		}
 
 		return instantiatedEntity->uuid;

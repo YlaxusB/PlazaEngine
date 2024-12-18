@@ -11,7 +11,7 @@ namespace Plaza {
 	public:
 		std::function<T* ()> NewInstanceFactory;
 		std::function<T* (T*)> CopyInstanceFactory;
-		std::function<T* (uint64_t, T&)> EmplaceFactory;
+		std::function<T* (uint64_t, T&, ComponentMultiMap<Key, T>* map)> EmplaceFactory;
 
 		ComponentMultiMap() {
 			NewInstanceFactory = []() -> T* {
@@ -20,9 +20,9 @@ namespace Plaza {
 			CopyInstanceFactory = [](T* instanceToCopy) -> T* {
 				return new T(*instanceToCopy);
 				};
-			EmplaceFactory = [this](uint64_t uuid, T& obj) -> T* {
-				auto result = this->emplace(uuid, obj);
-				return nullptr;//&result.first->second;
+			EmplaceFactory = [](uint64_t uuid, T& obj, ComponentMultiMap<Key, T>* map) -> T* {
+				auto result = map->emplace(uuid, obj);
+				return &map->at(uuid);
 				};
 		}
 
@@ -79,13 +79,7 @@ namespace Plaza {
 
 			std::string className = typeid(T).name();
 			if (addToComponentsList) {
-				EmplaceFactory(uuid, *component);
-				//return EmplaceFactory(uuid, *component);
-				//this->emplace(component->mUuid, *CopyInstanceFactory(componentToInstantiate));
-				//component = &this->at(component->mUuid);
-				//component->mUuid = uuid;
-				//component->OnInstantiate(componentToInstantiate);
-				//return &this->at(component->mUuid);
+				return EmplaceFactory(uuid, *component, this);
 			}
 
 			return component;

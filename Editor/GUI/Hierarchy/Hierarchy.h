@@ -22,11 +22,11 @@ namespace Plaza::Editor {
 		public:
 			Entity& currentObj;
 			Entity& selectedGameObject;
-			std::string payloadName = "TreeNodeItemPayload";
+			static inline std::string payloadName = "TreeNodeItemPayload";
 			static bool firstFocus;
 
-			Item(Entity& entity, Entity*& selectedGameObject);
-			void HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax);
+			static void NewItem(Entity& entity, Entity*& selectedGameObject);
+			static void HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax);
 
 			static void ItemPopup(Entity& entity);
 		};

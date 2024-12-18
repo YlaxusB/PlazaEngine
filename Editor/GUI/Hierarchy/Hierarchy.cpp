@@ -49,7 +49,7 @@ namespace Plaza::Editor {
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-		HierarchyWindow::Item(Scene::GetActiveScene()->entities[Scene::GetActiveScene()->mainSceneEntity->uuid], selectedGameObject);
+		HierarchyWindow::Item::NewItem(Scene::GetActiveScene()->entities[Scene::GetActiveScene()->mainSceneEntity->uuid], selectedGameObject);
 		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
 
@@ -67,7 +67,7 @@ namespace Plaza::Editor {
 
 	bool HierarchyWindow::Item::firstFocus = false;
 	float inputTextWidth = 0;
-	HierarchyWindow::Item::Item(Entity& entity, Entity*& selectedGameObject) : currentObj(entity), selectedGameObject(*selectedGameObject) {
+	void HierarchyWindow::Item::NewItem(Entity& entity, Entity*& selectedGameObject) {
 		const float height = 9.0f;
 		// Push the entity id, to prevent it to collpases all the treenodes with same id
 		ImGui::PushID(entity.uuid);
@@ -185,7 +185,7 @@ namespace Plaza::Editor {
 				ImGui::EndDragDropSource();
 			}
 
-			HierarchyWindow::Item::HierarchyDragDrop(entity, &currentObj, treeNodeMin, treeNodeMax);
+			HierarchyWindow::Item::HierarchyDragDrop(entity, &entity, treeNodeMin, treeNodeMax);
 		}
 		bool treePop = !entity.changingName && !nameChanged;
 		if (ImGui::IsItemHovered() || ImGui::IsPopupOpen("ItemPopup")) {
@@ -200,7 +200,7 @@ namespace Plaza::Editor {
 		{
 			for (uint64_t child : entity.childrenUuid)
 			{
-				HierarchyWindow::Item(Scene::GetActiveScene()->entities[child], selectedGameObject);
+				HierarchyWindow::Item::NewItem(Scene::GetActiveScene()->entities[child], selectedGameObject);
 			}
 			if (treePop)
 				ImGui::TreePop();

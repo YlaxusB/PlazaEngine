@@ -13,8 +13,6 @@ namespace Plaza {
 	MeshRenderer::MeshRenderer(Plaza::Mesh* initialMesh, bool addToScene) {
 		this->mUuid = Plaza::UUID::NewUUID();
 		this->mesh = initialMesh;//std::make_unique<Mesh>(initialMesh);
-		if (addToScene)
-			Scene::GetActiveScene()->meshRenderers.emplace_back(this);
 	}
 
 	MeshRenderer::MeshRenderer(Plaza::Mesh* initialMesh, std::vector<Material*> materials, bool addToScene) {
@@ -37,8 +35,6 @@ namespace Plaza {
 			//Scene::GetActiveScene()->renderGroupsFindMap.emplace(std::make_pair(meshUuid, materialUuid), renderGroupUuid);
 			this->renderGroup = &Scene::GetActiveScene()->renderGroups.at(renderGroupUuid);
 		}
-		if (addToScene)
-			Scene::GetActiveScene()->meshRenderers.emplace_back(this);
 
 	}
 

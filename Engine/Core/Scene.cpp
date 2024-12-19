@@ -86,13 +86,13 @@ namespace Plaza {
 	}
 
 	void Scene::RemoveMeshRenderer(uint64_t uuid) {
-		auto it = std::find_if(Scene::GetEditorScene()->meshRenderers.begin(), Scene::GetEditorScene()->meshRenderers.end(), [uuid](MeshRenderer* meshRenderer) {
-			return meshRenderer->mUuid == uuid;
-			});
-
-		if (it != Scene::GetEditorScene()->meshRenderers.end()) {
-			Scene::GetEditorScene()->meshRenderers.erase(it);
-		}
+		//auto it = std::find_if(Scene::GetEditorScene()->meshRenderers.begin(), Scene::GetEditorScene()->meshRenderers.end(), [uuid](MeshRenderer* meshRenderer) {
+		//	return meshRenderer->mUuid == uuid;
+		//	});
+		//
+		//if (it != Scene::GetEditorScene()->meshRenderers.end()) {
+		//	Scene::GetEditorScene()->meshRenderers.erase(it);
+		//}
 	}
 
 	void Scene::Play() {
@@ -250,8 +250,8 @@ namespace Plaza {
 		Entity* entity = this->GetEntity(uuid);
 		std::vector<uint64_t> children = entity->childrenUuid;
 		for (uint64_t child : children) {
-			if (Scene::GetActiveScene()->entities.find(child) != Scene::GetActiveScene()->entities.end())
-				Scene::GetActiveScene()->RemoveEntity(child);
+			if (this->entities.find(child) != this->entities.end())
+				this->RemoveEntity(child);
 			//Scene::GetActiveScene()->entities.at(child).~Entity();
 		}
 		if (entity->HasComponent<Transform>())
@@ -279,10 +279,10 @@ namespace Plaza {
 			Editor::selectedGameObject = nullptr;
 
 		entity->GetParent().childrenUuid.erase(std::remove(entity->GetParent().childrenUuid.begin(), entity->GetParent().childrenUuid.end(), entity->uuid), entity->GetParent().childrenUuid.end());
-		if (Scene::GetActiveScene()->entitiesNames.find(entity->name) != Scene::GetActiveScene()->entitiesNames.end())
-			Scene::GetActiveScene()->entitiesNames.erase(Scene::GetActiveScene()->entitiesNames.find(entity->name));
+		if (this->entitiesNames.find(entity->name) != this->entitiesNames.end())
+			this->entitiesNames.erase(this->entitiesNames.find(entity->name));
 
-		Scene::GetActiveScene()->entities.extract(entity->uuid);
+		this->entities.extract(entity->uuid);
 	}
 
 	Entity* Scene::GetEntity(uint64_t uuid) {

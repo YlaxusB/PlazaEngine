@@ -132,9 +132,6 @@ namespace Plaza {
 
 		std::unordered_map<std::string, void*> componentsMap;
 
-		std::vector<MeshRenderer*> meshRenderers;
-		std::unordered_map<std::string, uint64_t> materialsNames;
-
 		std::unordered_map<uint64_t, RenderGroup> renderGroups;
 		std::unordered_map<std::pair<uint64_t, std::vector<uint64_t>>, uint64_t, PairHash> renderGroupsFindMap;
 		std::unordered_map<uint64_t, uint64_t> renderGroupsFindMapWithMeshUuid;
@@ -204,7 +201,7 @@ namespace Plaza {
 		void InitMainEntity() {
 			mainSceneEntity = new Entity("Scene");
 			mainSceneEntityUuid = mainSceneEntity->uuid;
-			mainSceneEntity->parentUuid = Scene::GetActiveScene()->mainSceneEntity->uuid;
+			mainSceneEntity->parentUuid = this->mainSceneEntity->uuid;
 		};
 
 		void RecalculateAddedComponents();

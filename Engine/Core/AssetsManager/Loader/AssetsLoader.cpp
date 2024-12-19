@@ -128,19 +128,19 @@ namespace Plaza {
 	static std::vector<std::future<void>> futures;
 	void AssetsLoader::LoadPrefab(Asset* asset) {
 		Asset assetCopy = *asset;
-		//Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([assetCopy]() {
-		//	//futures.push_back(std::async(std::launch::async, [assetCopy]() {
-		//	if (AssetsManager::mLoadedModels.find(assetCopy.mAssetUuid) != AssetsManager::mLoadedModels.end()) {
-		//		LoadPrefabToScene(AssetsManager::mLoadedModels.at(assetCopy.mAssetUuid), true);
-		//	}
-		//	else {
-		//		//static std::mutex queueMutex;
-		//		//std::lock_guard<std::mutex> lock(queueMutex);
-		//		LoadPrefabToMemory(assetCopy.mAssetPath.string());
-		//		if (AssetsManager::mLoadedModels.find(assetCopy.mAssetUuid) != AssetsManager::mLoadedModels.end())
-		//			LoadPrefabToScene(AssetsManager::mLoadedModels.at(assetCopy.mAssetUuid), true);
-		//	}
-		//	//	}));
-		//	});
+		Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([assetCopy]() {
+			//futures.push_back(std::async(std::launch::async, [assetCopy]() {
+			if (AssetsManager::mLoadedModels.find(assetCopy.mAssetUuid) != AssetsManager::mLoadedModels.end()) {
+				LoadPrefabToScene(AssetsManager::mLoadedModels.at(assetCopy.mAssetUuid), true);
+			}
+			else {
+				//static std::mutex queueMutex;
+				//std::lock_guard<std::mutex> lock(queueMutex);
+				LoadPrefabToMemory(assetCopy.mAssetPath.string());
+				if (AssetsManager::mLoadedModels.find(assetCopy.mAssetUuid) != AssetsManager::mLoadedModels.end())
+					LoadPrefabToScene(AssetsManager::mLoadedModels.at(assetCopy.mAssetUuid), true);
+			}
+			//	}));
+			});
 	}
 }

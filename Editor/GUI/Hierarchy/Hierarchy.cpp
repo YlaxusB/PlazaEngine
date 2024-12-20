@@ -49,7 +49,7 @@ namespace Plaza::Editor {
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-		HierarchyWindow::Item::NewItem(Scene::GetActiveScene()->entities[Scene::GetActiveScene()->mainSceneEntity->uuid], selectedGameObject);
+		HierarchyWindow::Item::NewItem(Scene::GetActiveScene()->entities[Scene::GetActiveScene()->mainSceneEntity->uuid], selectedGameObject, mScene);
 		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
 
@@ -67,7 +67,7 @@ namespace Plaza::Editor {
 
 	bool HierarchyWindow::Item::firstFocus = false;
 	float inputTextWidth = 0;
-	void HierarchyWindow::Item::NewItem(Entity& entity, Entity*& selectedGameObject) {
+	void HierarchyWindow::Item::NewItem(Entity& entity, Entity*& selectedGameObject, Scene* scene) {
 		const float height = 9.0f;
 		// Push the entity id, to prevent it to collpases all the treenodes with same id
 		ImGui::PushID(entity.uuid);
@@ -128,7 +128,7 @@ namespace Plaza::Editor {
 				ImGui::SetKeyboardFocusHere();
 			}
 			float currentIndent = ImGui::GetCursorPosX();
-			if (entity.GetParent().childrenUuid.size() <= 0)
+			if (Scene::GetActiveScene()->GetEntity(entity.parentUuid)->childrenUuid.size() <= 0)
 				ImGui::SetCursorPosX(currentIndent + 0);
 			else
 				ImGui::SetCursorPosX(currentIndent + 20);
@@ -189,7 +189,7 @@ namespace Plaza::Editor {
 		}
 		bool treePop = !entity.changingName && !nameChanged;
 		if (ImGui::IsItemHovered() || ImGui::IsPopupOpen("ItemPopup")) {
-			HierarchyWindow::Item::ItemPopup(entity);
+			HierarchyWindow::Item::ItemPopup(entity, scene);
 		}
 
 		if (ImGui::IsPopupOpen("ItemPopup")) {
@@ -211,70 +211,62 @@ namespace Plaza::Editor {
 		ImGui::PopID();
 	};
 
-	void HierarchyWindow::Item::ItemPopup(Entity& entity) {
+	void HierarchyWindow::Item::ItemPopup(Entity& entity, Scene* scene) {
 		if (ImGui::BeginPopupContextWindow("ItemPopup"))
 		{
 			if (ImGui::BeginMenu("Add Component"))
 			{
 				if (ImGui::MenuItem("Mesh Renderer"))
 				{
-					MeshRenderer* meshRenderer = new MeshRenderer();
+					MeshRenderer* meshRenderer = scene->AddComponent<MeshRenderer>(entity.uuid);
 					meshRenderer->mMaterials.push_back(AssetsManager::GetDefaultMaterial());
 					meshRenderer->instanced = true;
-					entity.AddComponent<MeshRenderer>(meshRenderer);
 				}
 
 				if (ImGui::MenuItem("Rigid Body Dynamic"))
 				{
-					RigidBody* rigidBody = new RigidBody(entity.uuid, Application::Get()->runningScene);
+					RigidBody* rigidBody = scene->AddComponent<RigidBody>(entity.uuid);
 					rigidBody->mUuid = entity.uuid;
 					//Collider* collider = new Collider(entity.uuid);
 					//entity.AddComponent<Collider>(collider);
 					//entity.GetComponent<Collider>()->Init();
-					entity.AddComponent<RigidBody>(rigidBody);
 				}
 
 				if (ImGui::MenuItem("Rigid Body Non Dynamic"))
 				{
-					RigidBody* rigidBody = new RigidBody(entity.uuid, Application::Get()->runningScene, false);
+					RigidBody* rigidBody = scene->AddComponent<RigidBody>(entity.uuid);
 					rigidBody->dynamic = false;
 					rigidBody->mUuid = entity.uuid;
-					entity.AddComponent<RigidBody>(rigidBody);
 				}
 
 				if (ImGui::MenuItem("Collider"))
 				{
-					Collider* collider = new Collider(entity.uuid);
-					entity.AddComponent<Collider>(collider);
+					Collider* collider = scene->AddComponent<Collider>(entity.uuid);
 				}
 
 				if (ImGui::MenuItem("Camera"))
 				{
-					Camera* camera = new Camera();
+					Camera* camera = scene->AddComponent<Camera>(entity.uuid);
 					camera->mUuid = entity.uuid;
-					entity.AddComponent<Camera>(camera);
 				}
 
 				if (ImGui::MenuItem("Text Renderer"))
 				{
-					Plaza::Drawing::UI::TextRenderer* textRenderer = new Plaza::Drawing::UI::TextRenderer();
+					Plaza::Drawing::UI::TextRenderer* textRenderer = scene->AddComponent<Plaza::Drawing::UI::TextRenderer>(entity.uuid);
 					textRenderer->Init(Application::Get()->activeProject->mAssetPath.parent_path().string() + "\\font.ttf");
 					textRenderer->mUuid = entity.uuid;
-					entity.AddComponent<Plaza::Drawing::UI::TextRenderer>(textRenderer);
 				}
 
 				if (ImGui::MenuItem("Audio Source"))
 				{
-					AudioSource* audioSource = new AudioSource();
+					AudioSource* audioSource = scene->AddComponent<AudioSource>(entity.uuid);
 					audioSource->mUuid = entity.uuid;
-					entity.AddComponent<AudioSource>(audioSource);
 				}
 
 				if (ImGui::MenuItem("Audio Listener"))
 				{
-					AudioListener* audioListener = new AudioListener();
+					AudioListener* audioListener = scene->AddComponent<AudioListener>(entity.uuid);
 					audioListener->mUuid = entity.uuid;
-					entity.AddComponent<AudioListener>(audioListener);
 				}
 
 				if (ImGui::MenuItem("Rename")) {
@@ -294,9 +286,7 @@ namespace Plaza::Editor {
 						if (ImGui::MenuItem(value->mAssetName.c_str())) {
 							CppScriptComponent* component = Scene::GetActiveScene()->GetComponent<CppScriptComponent>(entity.uuid);
 							if (!component) {
-								component = new CppScriptComponent(entity.uuid);
-								entity.AddComponent<CppScriptComponent>(component);
-								component = entity.GetComponent<CppScriptComponent>();
+								component = scene->AddComponent<CppScriptComponent>(entity.uuid);
 							}
 							CppScript* script = ScriptFactory::CreateScript(std::filesystem::path(value->mAssetName).stem().string());
 							if (!script) {
@@ -323,7 +313,7 @@ namespace Plaza::Editor {
 						//TODO: FIX SCRIPTS WITH INCORRECT NAME AND REMOVE THE BELOW HACK USING THE ASSET
 						Asset* asset = AssetsManager::GetAsset(key);
 						if (ImGui::MenuItem(value->mAssetName.c_str())) {
-							CsScriptComponent* script = new CsScriptComponent(entity.uuid);
+							CsScriptComponent* script = scene->AddComponent<CsScriptComponent>(entity.uuid);
 							script->mScriptUuid = value->mAssetUuid;
 							//std::string csFileName = filesystem::path{ key }.replace_extension(".cs").string();
 							script->Init();
@@ -333,7 +323,6 @@ namespace Plaza::Editor {
 									Mono::OnStart(value->monoObject);
 								}
 							}
-							entity.AddComponent<CsScriptComponent>(script);
 						}
 					}
 
@@ -342,30 +331,26 @@ namespace Plaza::Editor {
 
 				if (ImGui::MenuItem("Light"))
 				{
-					Light* light = new Light();
+					Light* light = scene->AddComponent<Light>(entity.uuid);
 					light->mUuid = entity.uuid;
-					entity.AddComponent<Light>(light);
 				}
 
 				if (ImGui::MenuItem("Character Controller"))
 				{
-					CharacterController* characterController = new CharacterController();
+					CharacterController* characterController = scene->AddComponent<CharacterController>(entity.uuid);
 					characterController->mUuid = entity.uuid;
-					entity.AddComponent<CharacterController>(characterController);
 				}
 
 				if (ImGui::MenuItem("Animation"))
 				{
-					AnimationComponent* animationComponent = new AnimationComponent();
+					AnimationComponent* animationComponent = scene->AddComponent<AnimationComponent>(entity.uuid);
 					animationComponent->mUuid = entity.uuid;
-					entity.AddComponent<AnimationComponent>(animationComponent);
 				}
 
 				if (ImGui::MenuItem("Gui"))
 				{
-					GuiComponent* guiComponent = new GuiComponent();
+					GuiComponent* guiComponent = scene->AddComponent<GuiComponent>(entity.uuid);
 					guiComponent->mUuid = entity.uuid;
-					entity.AddComponent<GuiComponent>(guiComponent);
 				}
 
 				ImGui::EndMenu();

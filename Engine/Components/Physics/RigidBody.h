@@ -67,6 +67,6 @@ namespace Plaza {
 		}
 	private:
 
-		shared_ptr<Transform> transform;
+		shared_ptr<TransformComponent> transform;
 	};
 }

@@ -199,7 +199,8 @@ namespace Plaza {
 			Gui::MainMenuBar::Begin();
 
 			//Gui::beginHierarchyView(gameFrameBuffer);
-			Application::Get()->mEditor->mGui.mHierarchy.Update();
+			Application::Get()->mEditor->mGui.mHierarchy.mScene = Scene::GetActiveScene();
+			Application::Get()->mEditor->mGui.mHierarchy.Update(Scene::GetActiveScene());
 
 			Gui::beginScene(*Application::Get()->activeCamera);
 
@@ -425,7 +426,7 @@ namespace Plaza {
 			// Show the gizmo if there's a selected entity
 			std::map<std::string, File*> files = Editor::selectedFiles;
 			selectedGameObject = Editor::selectedGameObject;
-			if (selectedGameObject && selectedGameObject->GetComponent<Transform>() != nullptr && selectedGameObject->parentUuid != 0) {
+			if (selectedGameObject && selectedGameObject->GetComponent<TransformComponent>() != nullptr && selectedGameObject->parentUuid != 0) {
 				ImGuizmoHelper::IsDrawing = true;
 				Editor::Gizmo::Draw(selectedGameObject, camera);
 			}

@@ -177,9 +177,9 @@ namespace Plaza {
 			std::string name = node->name.data;
 
 			Entity* entity = new Entity(name, mainEntity, true);
-			entity->GetComponent<Transform>()->SetRelativePosition(ConvertUfbxVec3(transform.translation));
-			entity->GetComponent<Transform>()->SetRelativeRotation(ConvertUfbxQuat(transform.rotation));
-			entity->GetComponent<Transform>()->SetRelativeScale(ConvertUfbxVec3(transform.scale));
+			entity->GetComponent<TransformComponent>()->SetRelativePosition(ConvertUfbxVec3(transform.translation));
+			entity->GetComponent<TransformComponent>()->SetRelativeRotation(ConvertUfbxQuat(transform.rotation));
+			entity->GetComponent<TransformComponent>()->SetRelativeScale(ConvertUfbxVec3(transform.scale));
 
 			entities.emplace(entity->uuid, entity);
 			meshIndexEntityMap.emplace(ufbxMesh->element_id, entity->uuid);

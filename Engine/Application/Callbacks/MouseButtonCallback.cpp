@@ -57,7 +57,7 @@ void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, 
 			yposGame = appSizes.sceneSize.y - (lastY - appSizes.sceneImageStart.y - 35);
 			uint64_t clickUuid = 0;
 
-			if (Editor::selectedGameObject && Editor::selectedGameObject->GetComponent<Transform>() != nullptr && Editor::selectedGameObject->parentUuid != 0)
+			if (Editor::selectedGameObject && Editor::selectedGameObject->GetComponent<TransformComponent>() != nullptr && Editor::selectedGameObject->parentUuid != 0)
 				ImGuizmoHelper::IsDrawing = true;
 			else
 				ImGuizmoHelper::IsDrawing = false;

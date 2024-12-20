@@ -10,6 +10,7 @@ namespace Plaza::Editor {
 		HierarchyWindow(GuiLayer layer, bool startOpen = true) : GuiWindow(layer, startOpen) {
 			
 		}
+		Scene* mScene = nullptr;
 
 		void Init() override;
 		void Update() override;
@@ -25,10 +26,10 @@ namespace Plaza::Editor {
 			static inline std::string payloadName = "TreeNodeItemPayload";
 			static bool firstFocus;
 
-			static void NewItem(Entity& entity, Entity*& selectedGameObject);
+			static void NewItem(Entity& entity, Entity*& selectedGameObject, Scene* scene);
 			static void HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax);
 
-			static void ItemPopup(Entity& entity);
+			static void ItemPopup(Entity& entity, Scene* scene);
 		};
 	};
 	//class Gui::Hierarchy {

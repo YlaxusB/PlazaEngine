@@ -41,46 +41,47 @@ namespace Plaza::Editor {
 		}
 
 
-		TransformInspector(Entity* entity) {
-			if (Utils::ComponentInspectorHeader(entity->GetComponent<Transform>(), "Transform")) {
-				glm::vec3 startingPosition = entity->GetComponent<Transform>()->relativePosition;
-				glm::quat startingRotation = entity->GetComponent<Transform>()->rotation;
-				glm::vec3 startingScale = entity->GetComponent<Transform>()->scale;
+		TransformInspector(Scene* scene, Entity* entity) {
+			TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
+			if (Utils::ComponentInspectorHeader(transform, "Transform")) {
+				glm::vec3 startingPosition = transform->relativePosition;
+				glm::quat startingRotation = transform->rotation;
+				glm::vec3 startingScale = transform->scale;
 
-				glm::vec3& currentPosition = entity->GetComponent<Transform>()->relativePosition;
-				glm::quat& currentRotation = entity->GetComponent<Transform>()->rotation;
-				glm::vec3 rotationField = glm::degrees(entity->GetComponent<Transform>()->rotationEuler);//glm::degrees(glm::eulerAngles(currentRotation));
-				glm::vec3& currentScale = entity->GetComponent<Transform>()->scale;
+				glm::vec3& currentPosition = transform->relativePosition;
+				glm::quat& currentRotation = transform->rotation;
+				glm::vec3 rotationField = glm::degrees(transform->rotationEuler);//glm::degrees(glm::eulerAngles(currentRotation));
+				glm::vec3& currentScale = transform->scale;
 
-				if (glm::quat(entity->GetComponent<Transform>()->rotationEuler) != currentRotation)
-					rotationField = glm::degrees(glm::eulerAngles(entity->GetComponent<Transform>()->rotation));
+				if (glm::quat(transform->rotationEuler) != currentRotation)
+					rotationField = glm::degrees(glm::eulerAngles(transform->rotation));
 
 				if (Utils::DragFloat3("Position: ", currentPosition, 0.1f)) {
 					//ImGuiSliderFlags_Logarithmic
-					entity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+					transform->UpdateSelfAndChildrenTransform();
 				}
 
 				ImGui::PushID("Rotation");
 				if (Utils::DragFloat3("Rotation: ", rotationField, 0.1f)) {
 					//ImGuiSliderFlags_Logarithmic
 					glm::vec3 radians = glm::radians(rotationField);
-					entity->GetComponent<Transform>()->rotationEuler = radians;
-					entity->GetComponent<Transform>()->rotation = glm::quat(radians);
+					transform->rotationEuler = radians;
+					transform->rotation = glm::quat(radians);
 					//currentRotation *= glm::quat(glm::inverse(currentRotation) * glm::quat(radians));//glm::quat(glm::vec3(fmod(radians.x, 360.0f), fmod(radians.y, 360.0f), fmod(radians.z, 360.0f)));
-					entity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+					transform->UpdateSelfAndChildrenTransform();
 				}
 				ImGui::PopID();
 
 				ImGui::PushID("Scale");
 				if (Utils::DragFloat3("Scale: ", currentScale, 0.1f)) {
 					//ImGuiSliderFlags_Logarithmic
-					entity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+					transform->UpdateSelfAndChildrenTransform();
 				}
 
 				if (currentPosition != startingPosition || currentRotation != startingRotation || currentScale != startingScale) {
 
 //					entity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
-					if (Scene::GetActiveScene()->rigidBodyComponents.find(entity->uuid) != Scene::GetActiveScene()->rigidBodyComponents.end()) {
+					if (scene->HasComponent<RigidBody>(entity->uuid)) {
 						//RigidBody* rigidBody = &Scene::GetActiveScene()->rigidBodyComponents.at(entity->uuid);
 						//rigidBody->UpdateGlobalPose();
 					}

@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 #include "Engine/Utils/vectorUtils.h"
+#include "Engine/ECS/ECSManager.h"
 using namespace Plaza;
 void payloadDrop(Plaza::Entity* entity, Plaza::Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, const ImGuiPayload* payload);
 void InsertBefore(Plaza::Entity* payloadObj, Plaza::Entity* currentObj);
@@ -47,34 +48,35 @@ void payloadDrop(Plaza::Entity* entity, Plaza::Entity* currentObj, ImVec2 treeNo
 			InsertAsChild(payloadObj, currentObj);
 		}
 	}
-} 
+}
 
-void InsertBefore(Plaza::Entity* payloadObj, Plaza::Entity* currentObj) {
+void InsertBefore(Plaza::Entity* payloadObj, Plaza::Entity* currentObj, Scene* scene) {
 	// Becomes child of the target's parent
-	Entity& payloadParent = payloadObj->GetParent();
-	Entity& currentObject = currentObj->GetParent();
-	payloadObj->GetParent().childrenUuid.erase(std::remove(payloadObj->GetParent().childrenUuid.begin(), payloadObj->GetParent().childrenUuid.end(), payloadObj->uuid), payloadObj->GetParent().childrenUuid.end()); // Erase this object from its old parent
-	Scene::GetActiveScene()->entities.at(payloadObj->uuid).parentUuid = currentObj->parentUuid; // changes his parent to the target's parent
+	Entity& payloadParent = *scene->GetEntity(payloadObj->uuid);
+	Entity& currentObject = *scene->GetEntity(currentObj->uuid);
+	scene->GetEntity(payloadObj->uuid)->childrenUuid.erase(std::remove(scene->GetEntity(payloadObj->uuid)->childrenUuid.begin(), scene->GetEntity(payloadObj->uuid)->childrenUuid.end(), payloadObj->uuid), scene->GetEntity(payloadObj->uuid)->childrenUuid.end()); // Erase this object from its old parent
+	scene->entities.at(payloadObj->uuid).parentUuid = currentObj->parentUuid; // changes his parent to the target's parent
 	payloadObj->parentUuid = currentObj->parentUuid;
-	int currentObjIt = std::min(Utils::Vector::indexOf(currentObj->GetParent().childrenUuid, currentObj->uuid), 1);
-	Scene::GetActiveScene()->entities.at(payloadObj->GetParent().uuid).childrenUuid.insert(currentObj->GetParent().childrenUuid.begin() + currentObjIt, payloadObj->uuid); // Changes the target position in the vector of the parent's children
+	int currentObjIt = std::min(Utils::Vector::indexOf(scene->GetEntity(currentObj->uuid)->childrenUuid, currentObj->uuid), 1);
+	scene->GetEntity(scene->GetEntity(payloadObj->uuid)->uuid)->childrenUuid.insert(scene->GetEntity(currentObj->parentUuid)->childrenUuid.begin() + currentObjIt, payloadObj->uuid); // Changes the target position in the vector of the parent's children
 	//  PayloadObj index now must be currentObj index - 1, so it comes before
 
 	// Update positions
-	payloadObj->GetParent().GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+	scene->GetComponent<TransformComponent>(payloadObj->parentUuid)->UpdateSelfAndChildrenTransform();
 }
 
-void InsertAfter(Plaza::Entity* payloadObj, Plaza::Entity* currentObj) {
-	payloadObj->GetParent().childrenUuid.erase(std::remove(payloadObj->GetParent().childrenUuid.begin(), payloadObj->GetParent().childrenUuid.end(), payloadObj->uuid), payloadObj->GetParent().childrenUuid.end());
+void InsertAfter(Plaza::Entity* payloadObj, Plaza::Entity* currentObj, Scene* scene) {
+	scene->GetEntity(payloadObj->parentUuid)->childrenUuid.erase(std::remove(scene->GetEntity(payloadObj->parentUuid)->childrenUuid.begin(), scene->GetEntity(payloadObj->parentUuid)->childrenUuid.end(), payloadObj->uuid), scene->GetEntity(payloadObj->parentUuid)->childrenUuid.end());
 	Scene::GetActiveScene()->entities.at(payloadObj->uuid).parentUuid = currentObj->parentUuid;
-	Entity& currentObjParent = currentObj->GetParent();
-	currentObj->GetParent().childrenUuid.insert(currentObj->GetParent().childrenUuid.begin() + Utils::Vector::indexOf(currentObj->GetParent().childrenUuid, currentObj->uuid) + 1, payloadObj->uuid);
-	payloadObj->GetParent().GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+	Entity& currentObjParent = *scene->GetEntity(currentObj->parentUuid);
+	scene->GetEntity(currentObj->parentUuid)->childrenUuid.insert(scene->GetEntity(currentObj->parentUuid)->childrenUuid.begin() + Utils::Vector::indexOf(scene->GetEntity(currentObj->parentUuid)->childrenUuid, currentObj->uuid) + 1, payloadObj->uuid);
+	ECS::TransformComponent::UpdateSelfAndChildrenTransform(scene->GetComponent<TransformComponent>(payloadObj->parentUuid));
 }
 
-void InsertAsChild(Plaza::Entity* payloadObj, Plaza::Entity* currentObj) {
+void InsertAsChild(Plaza::Entity* payloadObj, Plaza::Entity* currentObj, Scene* scene) {
 	payloadObj = &Scene::GetActiveScene()->entities.at(payloadObj->uuid);
-	payloadObj->ChangeParent(&payloadObj->GetParent(), currentObj);
+	//FIX: Before ECS it was using change parent, that also added the payloadobj to the parent's childrens vector
+	scene->GetEntity(payloadObj->parentUuid)->parentUuid = currentObj->uuid;
 	//payloadObj->GetParent().childrenUuid.erase(std::remove(payloadObj->GetParent().childrenUuid.begin(), payloadObj->GetParent().childrenUuid.end(), payloadObj->uuid), payloadObj->GetParent().childrenUuid.end());
 	//Scene::GetActiveScene()->entities.at(payloadObj->uuid).parentUuid = currentObj->uuid;
 	//currentObj->childrenUuid.insert(currentObj->childrenUuid.begin(), payloadObj->uuid);

@@ -78,8 +78,8 @@ namespace Plaza {
 
 	void RigidBody::Update() {
 		if (canUpdate) {
-			Transform& transform = *Scene::GetActiveScene()->entities.at(this->mUuid).GetComponent<Transform>();
-			Transform& parentTransform = Scene::GetActiveScene()->transformComponents.at(this->GetGameObject()->parentUuid);
+			TransformComponent& transform = *Scene::GetActiveScene()->entities.at(this->mUuid).GetComponent<TransformComponent>();
+			TransformComponent& parentTransform = Scene::GetActiveScene()->transformComponents.at(this->GetGameObject()->parentUuid);
 			// Convert Px to Glm
 			physx::PxTransform pxTransform = mRigidActor->getGlobalPose();
 			PxQuat rotationQuaternion = pxTransform.q;
@@ -97,7 +97,7 @@ namespace Plaza {
 	}
 	void RigidBody::UpdateGlobalPose() {
 		if (this->mRigidActor) {
-			Transform& transform = *Scene::GetActiveScene()->entities.at(this->mUuid).GetComponent<Transform>();
+			TransformComponent& transform = *Scene::GetActiveScene()->entities.at(this->mUuid).GetComponent<TransformComponent>();
 			physx::PxTransform* pxTransform = Physics::ConvertMat4ToPxTransform(transform.modelMatrix);
 			this->mRigidActor->setGlobalPose(*pxTransform);
 		}

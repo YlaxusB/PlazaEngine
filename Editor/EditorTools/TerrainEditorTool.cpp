@@ -73,7 +73,7 @@ namespace Plaza {
 			AssetsManager::AddMesh(mesh);
 
 			MeshRenderer* meshRenderer = new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, false);
-			entity->AddComponent<MeshRenderer>(meshRenderer);
+			//FIX: entity->AddComponent<MeshRenderer>(meshRenderer);
 
 		}
 
@@ -267,9 +267,9 @@ namespace Plaza {
 					if (!entity)
 						return;
 
-					glm::vec4 localPosition = glm::inverse(entity->GetComponent<Transform>()->GetTransform()) * clickPosition;
+					glm::vec4 localPosition = glm::inverse(Scene::GetActiveScene()->GetComponent<TransformComponent>(entity->uuid)->GetTransform()) * clickPosition;
 
-					Mesh* mesh = entity->GetComponent<MeshRenderer>()->mesh;
+					Mesh* mesh = Scene::GetActiveScene()->GetComponent<MeshRenderer>(entity->uuid)->mesh;
 
 					uint32_t nearestVertexIndex = (glm::round<int>(localPosition.x) * mSettings.x) + (glm::round<int>(localPosition.z));//(mSettings.x / localPosition.x) * (mSettings.z / localPosition.z);
 					if (nearestVertexIndex > mesh->vertices.size() - 1)

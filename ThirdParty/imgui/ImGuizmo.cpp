@@ -254,8 +254,8 @@ namespace IMGUIZMO_NAMESPACE
             return (x * v.x) + (y * v.y) + (z * v.z);
         }
 
-        void Transform(const matrix_t& matrix);
-        void Transform(const vec_t& s, const matrix_t& matrix);
+        void TransformComponent(const matrix_t& matrix);
+        void TransformComponent(const vec_t& s, const matrix_t& matrix);
 
         void TransformVector(const matrix_t& matrix);
         void TransformPoint(const matrix_t& matrix);
@@ -404,7 +404,7 @@ namespace IMGUIZMO_NAMESPACE
         }
     };
 
-    void vec_t::Transform(const matrix_t& matrix)
+    void vec_t::TransformComponent(const matrix_t& matrix)
     {
         vec_t out;
 
@@ -419,10 +419,10 @@ namespace IMGUIZMO_NAMESPACE
         w = out.w;
     }
 
-    void vec_t::Transform(const vec_t& s, const matrix_t& matrix)
+    void vec_t::TransformComponent(const vec_t& s, const matrix_t& matrix)
     {
         *this = s;
-        Transform(matrix);
+        TransformComponent(matrix);
     }
 
     void vec_t::TransformPoint(const matrix_t& matrix)
@@ -822,10 +822,10 @@ namespace IMGUIZMO_NAMESPACE
         const float zNear = gContext.mReversed ? (1.f - FLT_EPSILON) : 0.f;
         const float zFar = gContext.mReversed ? 0.f : (1.f - FLT_EPSILON);
 
-        rayOrigin.Transform(makeVect(mox, moy, zNear, 1.f), mViewProjInverse);
+        rayOrigin.TransformComponent(makeVect(mox, moy, zNear, 1.f), mViewProjInverse);
         rayOrigin *= 1.f / rayOrigin.w;
         vec_t rayEnd;
-        rayEnd.Transform(makeVect(mox, moy, zFar, 1.f), mViewProjInverse);
+        rayEnd.TransformComponent(makeVect(mox, moy, zFar, 1.f), mViewProjInverse);
         rayEnd *= 1.f / rayEnd.w;
         rayDir = Normalized(rayEnd - rayOrigin);
     }
@@ -1065,8 +1065,8 @@ namespace IMGUIZMO_NAMESPACE
 
         // projection reverse
         vec_t nearPos, farPos;
-        nearPos.Transform(makeVect(0, 0, 1.f, 1.f), gContext.mProjectionMat);
-        farPos.Transform(makeVect(0, 0, 2.f, 1.f), gContext.mProjectionMat);
+        nearPos.TransformComponent(makeVect(0, 0, 1.f, 1.f), gContext.mProjectionMat);
+        farPos.TransformComponent(makeVect(0, 0, 2.f, 1.f), gContext.mProjectionMat);
 
         gContext.mReversed = (nearPos.z / nearPos.w) > (farPos.z / farPos.w);
 

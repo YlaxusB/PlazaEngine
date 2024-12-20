@@ -1,6 +1,10 @@
 #pragma once
-#include "Engine/Core/Renderer/Renderer.h"
+
+namespace Plaza {
+	enum RendererAPI;
+}
 namespace Plaza::Editor{
+
 	static class Settings {
 	public:
 		std::string mName = "editor";

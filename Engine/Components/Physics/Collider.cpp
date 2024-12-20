@@ -324,7 +324,7 @@ namespace Plaza {
 		//delete mesh;
 	}
 
-	void Collider::CreateShape(ColliderShape::ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh) {
+	void Collider::CreateShape(ColliderShape::ColliderShapeEnum shapeEnum, TransformComponent* transform, Mesh* mesh) {
 		if (shapeEnum == ColliderShape::ColliderShapeEnum::BOX) {
 			physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
 			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::BOX, 0));
@@ -468,7 +468,7 @@ namespace Plaza {
 		return rotationQuaternion;
 	}
 
-	void Collider::UpdatePose(Transform* transform) {
+	void Collider::UpdatePose(TransformComponent* transform) {
 		PLAZA_PROFILE_SECTION("Collider: Update Pose");
 		if (transform) {
 			if (this->mRigidActor) {
@@ -489,6 +489,6 @@ namespace Plaza {
 	}
 
 	void Collider::UpdatePose() {
-		this->UpdatePose(this->GetGameObject()->GetComponent<Transform>());
+		this->UpdatePose(this->GetGameObject()->GetComponent<TransformComponent>());
 	}
 }

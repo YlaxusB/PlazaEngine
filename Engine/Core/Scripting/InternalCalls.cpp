@@ -30,8 +30,8 @@ namespace Plaza {
 	}
 
 	void GetComponentMap(uint64_t uuid, std::string name, Component* component) {
-		if (name == typeid(Transform).name()) {
-			Scene::GetActiveScene()->transformComponents.emplace(uuid, *dynamic_cast<Transform*>(component));
+		if (name == typeid(TransformComponent).name()) {
+			Scene::GetActiveScene()->transformComponents.emplace(uuid, *dynamic_cast<TransformComponent*>(component));
 		}
 		else if (name == typeid(MeshRenderer).name()) {
 			Scene::GetActiveScene()->meshRendererComponents.emplace(uuid, *dynamic_cast<MeshRenderer*>(component));
@@ -59,8 +59,8 @@ namespace Plaza {
 
 	void RemoveComponentFromEntity(uint64_t uuid, std::string name, Component* component) {
 		Entity& ent = Scene::GetActiveScene()->entities.at(uuid);
-		if (name == typeid(Transform).name()) {
-			ent.RemoveComponent<Transform>();
+		if (name == typeid(TransformComponent).name()) {
+			ent.RemoveComponent<TransformComponent>();
 		}
 		else if (name == typeid(MeshRenderer).name()) {
 			ent.RemoveComponent<MeshRenderer>();
@@ -80,7 +80,7 @@ namespace Plaza {
 
 	static uint64_t NewEntity() {
 		Entity* newEntity = new Entity("New Entity", Scene::GetActiveScene()->mainSceneEntity, true);
-		newEntity->GetComponent<Transform>()->UpdateChildrenTransform();
+		newEntity->GetComponent<TransformComponent>()->UpdateChildrenTransform();
 		return newEntity->uuid;
 	}
 
@@ -317,7 +317,7 @@ namespace Plaza {
 					it->second.ChangeParent(it->second.GetParent(), parentIt->second);
 			}
 
-			Scene::GetActiveScene()->GetComponent<Transform>(uuid)->UpdateSelfAndChildrenTransform();
+			Scene::GetActiveScene()->GetComponent<TransformComponent>(uuid)->UpdateSelfAndChildrenTransform();
 		}
 	}
 
@@ -401,7 +401,7 @@ namespace Plaza {
 
 #pragma region Components
 
-#pragma region Transform Component
+#pragma region TransformComponent Component
 	static void SetPosition(uint64_t uuid, glm::vec3* vec3) {
 		PLAZA_PROFILE_SECTION("Mono: Set Position");
 		Scene::GetActiveScene()->transformComponents.find(uuid)->second.SetRelativePosition(*vec3);
@@ -499,7 +499,7 @@ namespace Plaza {
 
 
 
-#pragma endregion Transform Component
+#pragma endregion TransformComponent Component
 
 #pragma region Mesh Renderer Component
 	static void MeshRenderer_SetMaterial(uint64_t uuid, uint64_t materialUuid) {

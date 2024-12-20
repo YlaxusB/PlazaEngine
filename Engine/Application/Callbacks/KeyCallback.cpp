@@ -29,7 +29,7 @@ Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true
 	//obj->changingName = true;
 	//Scene::GetActiveScene()->entities.at(obj->uuid).changingName = true;
 	//Gui::Hierarchy::Item::firstFocus = true;
-	obj->GetComponent<Transform>()->UpdateChildrenTransform();
+	obj->GetComponent<TransformComponent>()->UpdateChildrenTransform();
 	MeshRenderer* meshRenderer = new MeshRenderer(mesh, AssetsManager::GetDefaultMaterial());
 	meshRenderer->instanced = true;
 	//meshRenderer->mesh = new Mesh(*mesh);
@@ -76,7 +76,7 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 		if (key == GLFW_KEY_T && action == GLFW_PRESS) {
 			for (int i = 0; i < 1000; ++i) {
 				Entity* obj = NewEntity("Sphere", Scene::GetActiveScene()->mainSceneEntity, Editor::DefaultModels::Cube(), true, true);
-				Transform* transform = obj->GetComponent<Transform>();
+				TransformComponent* transform = obj->GetComponent<TransformComponent>();
 				transform->relativePosition = randomVec3();
 				transform->UpdateSelfAndChildrenTransform();
 				Collider* collider = new Collider(obj->uuid);
@@ -111,15 +111,15 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 		//	Scene::GetActiveScene()->entities[Editor::selectedGameObject->uuid].RemoveComponent<RigidBody>();
 
 		if (key == GLFW_KEY_U && action == GLFW_PRESS)
-			Application::Get()->activeCamera->Position = Plaza::Editor::selectedGameObject->GetComponent<Transform>()->GetWorldPosition();
+			Application::Get()->activeCamera->Position = Plaza::Editor::selectedGameObject->GetComponent<TransformComponent>()->GetWorldPosition();
 
 		if (key == GLFW_KEY_END && action == GLFW_PRESS) {
-			Editor::selectedGameObject->GetComponent<Transform>()->rotation *= glm::quat(glm::vec3(0.0f, 0.1f, 0.0f));
-			Editor::selectedGameObject->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+			Editor::selectedGameObject->GetComponent<TransformComponent>()->rotation *= glm::quat(glm::vec3(0.0f, 0.1f, 0.0f));
+			Editor::selectedGameObject->GetComponent<TransformComponent>()->UpdateSelfAndChildrenTransform();
 		}
 		if (key == GLFW_KEY_HOME && action == GLFW_PRESS) {
-			Editor::selectedGameObject->GetComponent<Transform>()->rotation *= glm::quat(glm::vec3(0.0f, -0.1f, 0.0f));
-			Editor::selectedGameObject->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
+			Editor::selectedGameObject->GetComponent<TransformComponent>()->rotation *= glm::quat(glm::vec3(0.0f, -0.1f, 0.0f));
+			Editor::selectedGameObject->GetComponent<TransformComponent>()->UpdateSelfAndChildrenTransform();
 		}
 
 		// Play and Pause

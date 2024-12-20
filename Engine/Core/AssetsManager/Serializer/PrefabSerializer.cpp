@@ -6,7 +6,7 @@
 #include <ThirdParty/cereal/cereal/types/polymorphic.hpp>
 
 namespace Plaza {
-	SerializableTransform* ConvertTransform(Transform* transform) {
+	SerializableTransform* ConvertTransform(TransformComponent* transform) {
 		SerializableTransform* serializableTransform = new SerializableTransform();
 		serializableTransform->uuid = transform->mUuid;
 		serializableTransform->type = SerializableComponentType::TRANSFORM;
@@ -25,8 +25,8 @@ namespace Plaza {
 		serializableEntity.childrenUuid = entity->childrenUuid;
 
 		unsigned int componentCount = 0;
-		if (entity->HasComponent<Transform>()) {
-			serializableEntity.components.push_back(std::shared_ptr<SerializableComponents>(ConvertTransform(entity->GetComponent<Transform>())));
+		if (entity->HasComponent<TransformComponent>()) {
+			serializableEntity.components.push_back(std::shared_ptr<SerializableComponents>(ConvertTransform(entity->GetComponent<TransformComponent>())));
 			componentCount++;
 		}
 		if (entity->HasComponent<MeshRenderer>()) {

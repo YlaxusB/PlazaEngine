@@ -67,48 +67,49 @@ namespace Plaza::Editor {
 		uint64_t uuid = Editor::selectedGameObject->uuid;
 		Scene* activeScene = Scene::GetActiveScene();
 
-		if (activeScene->transformComponents.contains(uuid))
-			components.push_back(&activeScene->transformComponents.at(uuid));
-
-		if (activeScene->meshRendererComponents.contains(uuid))
-			components.push_back(&activeScene->meshRendererComponents.at(uuid));
-
-		if (activeScene->cameraComponents.contains(uuid))
-			components.push_back(&activeScene->cameraComponents.at(uuid));
-
-		if (activeScene->rigidBodyComponents.contains(uuid))
-			components.push_back(&activeScene->rigidBodyComponents.at(uuid));
-
-		if (activeScene->colliderComponents.contains(uuid))
-			components.push_back(&activeScene->colliderComponents.at(uuid));
-
-		if (activeScene->cppScriptComponents.contains(uuid))
-			components.push_back(&activeScene->cppScriptComponents.at(uuid));
-		if (activeScene->csScriptComponents.contains(uuid)) {
-			auto range = activeScene->csScriptComponents.equal_range(uuid);
-			for (auto it = range.first; it != range.second; ++it) {
-				components.push_back(&it->second);
-			}
-		}
-
-		if (activeScene->audioSourceComponents.contains(uuid))
-			components.push_back(&activeScene->audioSourceComponents.at(uuid));
-		if (activeScene->audioListenerComponents.contains(uuid))
-			components.push_back(&activeScene->audioListenerComponents.at(uuid));
-		if (activeScene->lightComponents.contains(uuid))
-			components.push_back(&activeScene->lightComponents.at(uuid));
-		if (activeScene->characterControllerComponents.contains(uuid))
-			components.push_back(&activeScene->characterControllerComponents.at(uuid));
-		if (activeScene->UITextRendererComponents.contains(uuid))
-			components.push_back(&activeScene->UITextRendererComponents.at(uuid));
-		if (activeScene->animationComponentComponents.contains(uuid))
-			components.push_back(&activeScene->animationComponentComponents.at(uuid));
-		if (activeScene->guiComponents.contains(uuid))
-			components.push_back(&activeScene->guiComponents.at(uuid));
+		//FIX: Update the components inspector
+		//if (activeScene->transformComponents.contains(uuid))
+		//	components.push_back(&activeScene->transformComponents.at(uuid));
+		//
+		//if (activeScene->meshRendererComponents.contains(uuid))
+		//	components.push_back(&activeScene->meshRendererComponents.at(uuid));
+		//
+		//if (activeScene->cameraComponents.contains(uuid))
+		//	components.push_back(&activeScene->cameraComponents.at(uuid));
+		//
+		//if (activeScene->rigidBodyComponents.contains(uuid))
+		//	components.push_back(&activeScene->rigidBodyComponents.at(uuid));
+		//
+		//if (activeScene->colliderComponents.contains(uuid))
+		//	components.push_back(&activeScene->colliderComponents.at(uuid));
+		//
+		//if (activeScene->cppScriptComponents.contains(uuid))
+		//	components.push_back(&activeScene->cppScriptComponents.at(uuid));
+		//if (activeScene->csScriptComponents.contains(uuid)) {
+		//	auto range = activeScene->csScriptComponents.equal_range(uuid);
+		//	for (auto it = range.first; it != range.second; ++it) {
+		//		components.push_back(&it->second);
+		//	}
+		//}
+		//
+		//if (activeScene->audioSourceComponents.contains(uuid))
+		//	components.push_back(&activeScene->audioSourceComponents.at(uuid));
+		//if (activeScene->audioListenerComponents.contains(uuid))
+		//	components.push_back(&activeScene->audioListenerComponents.at(uuid));
+		//if (activeScene->lightComponents.contains(uuid))
+		//	components.push_back(&activeScene->lightComponents.at(uuid));
+		//if (activeScene->characterControllerComponents.contains(uuid))
+		//	components.push_back(&activeScene->characterControllerComponents.at(uuid));
+		//if (activeScene->UITextRendererComponents.contains(uuid))
+		//	components.push_back(&activeScene->UITextRendererComponents.at(uuid));
+		//if (activeScene->animationComponentComponents.contains(uuid))
+		//	components.push_back(&activeScene->animationComponentComponents.at(uuid));
+		//if (activeScene->guiComponents.contains(uuid))
+		//	components.push_back(&activeScene->guiComponents.at(uuid));
 	}
 
 	void Inspector::ComponentInspector::CreateRespectiveInspector(Component* component) {
-		if (Transform* transform = dynamic_cast<Transform*>(component)) {
+		if (TransformComponent* transform = dynamic_cast<TransformComponent*>(component)) {
 			Editor::Gui::TransformInspector inspector{ Editor::selectedGameObject };
 		}
 		else if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {

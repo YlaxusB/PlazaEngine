@@ -43,10 +43,10 @@ namespace Plaza::Editor {
 		ImGuizmo::SetRect(appSizes.sceneImageStart.x, appSizes.sceneImageStart.y, appSizes.sceneSize.x, appSizes.sceneSize.y);
 
 		// Get the object transform and camera matrices
-		Transform& a = *entity->GetComponent<Transform>();
-		Transform& b = *entity->GetComponent<Transform>();
-		auto& parentTransform = *Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<Transform>();
-		auto& transform = *entity->GetComponent<Transform>();
+		TransformComponent& a = *entity->GetComponent<TransformComponent>();
+		TransformComponent& b = *entity->GetComponent<TransformComponent>();
+		auto& parentTransform = *Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<TransformComponent>();
+		auto& transform = *entity->GetComponent<TransformComponent>();
 
 		glm::mat4 projection = camera.GetProjectionMatrix();
 		glm::mat4 view = camera.GetViewMatrix();

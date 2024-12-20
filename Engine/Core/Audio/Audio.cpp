@@ -79,7 +79,7 @@ namespace Plaza {
 		}
 
 		for (auto& [key, value] : Scene::GetActiveScene()->audioSourceComponents) {
-			value.SetPosition(Scene::GetActiveScene()->GetComponent<Transform>(key)->GetWorldPosition());
+			value.SetPosition(Scene::GetActiveScene()->GetComponent<TransformComponent>(key)->GetWorldPosition());
 		}
 	}
 }

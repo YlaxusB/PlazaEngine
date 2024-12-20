@@ -8,20 +8,20 @@
 //#include "Editor/GUI/gizmo.h"
 //#include "Engine/Components/Core/Entity.h"
 namespace Plaza {
-	void Transform::OnInstantiate(Component* componentToInstantiate) {
-		Transform* component = static_cast<Transform*>(componentToInstantiate);
+	void TransformComponent::OnInstantiate(Component* componentToInstantiate) {
+		TransformComponent* component = static_cast<TransformComponent*>(componentToInstantiate);
 		this->SetRelativePosition(component->relativePosition);
 		this->SetRelativeRotation(glm::eulerAngles(component->rotation));
 		this->scale = component->scale;
 	}
 
-	Transform::Transform() {};
+	TransformComponent::TransformComponent() {};
 
-	const glm::vec3& Transform::GetWorldPosition() {
+	const glm::vec3& TransformComponent::GetWorldPosition() {
 		return this->modelMatrix[3];
 	}
 
-	const glm::vec3& Transform::GetWorldRotation() {
+	const glm::vec3& TransformComponent::GetWorldRotation() {
 		glm::vec3 scale;
 		glm::vec3 translation;
 		glm::quat rotation;
@@ -31,7 +31,7 @@ namespace Plaza {
 		return glm::eulerAngles(rotation);
 	}
 
-	const glm::vec3& Transform::GetWorldScale() {
+	const glm::vec3& TransformComponent::GetWorldScale() {
 		glm::vec3 scale;
 
 		scale.x = glm::length(modelMatrix[0]);
@@ -47,27 +47,27 @@ namespace Plaza {
 	/// <param name="position"></param>
 	/// <param name="vec3"></param>
 	/// <returns></returns>
-	const glm::mat4& Transform::GetTransform(glm::vec3 position, glm::vec3 scale)
+	const glm::mat4& TransformComponent::GetTransform(glm::vec3 position, glm::vec3 scale)
 	{
 		glm::mat4 parentMatrix;
 		if (Scene::GetActiveScene()->entities.at(this->mUuid).parentUuid == 0) {
 			parentMatrix = glm::mat4(1.0f);
 		}
 		else {
-			parentMatrix = this->GetGameObject()->GetParent().GetComponent<Transform>()->modelMatrix;
+			parentMatrix = this->GetGameObject()->GetParent().GetComponent<TransformComponent>()->modelMatrix;
 		}
 		this->modelMatrix = parentMatrix * this->GetLocalMatrix();
 		return this->modelMatrix;
 	}
 
-	const glm::mat4& Transform::GetTransform() {
+	const glm::mat4& TransformComponent::GetTransform() {
 		return GetTransform(this->worldPosition, this->worldScale);
 	}
-	const glm::mat4& Transform::GetTransform(glm::vec3 position) {
+	const glm::mat4& TransformComponent::GetTransform(glm::vec3 position) {
 		return GetTransform(position, this->worldScale);
 	}
 
-	void Transform::UpdateWorldMatrix() {
+	void TransformComponent::UpdateWorldMatrix() {
 		PLAZA_PROFILE_SECTION("Transform: Update World Matrix");
 		uint64_t parentUuid = Scene::GetActiveScene()->entities.find(this->mUuid)->second.parentUuid;
 		if (parentUuid && Scene::GetActiveScene()->transformComponents.find(parentUuid) != Scene::GetActiveScene()->transformComponents.end()) {
@@ -86,7 +86,7 @@ namespace Plaza {
 	/// Returns the Quaternion of the Transform Local Rotation in radians
 	/// </summary>
 	/// <returns></returns>
-	const glm::quat& Transform::GetLocalQuaternion() {
+	const glm::quat& TransformComponent::GetLocalQuaternion() {
 		return glm::normalize(glm::quat_cast(this->localMatrix));
 	}
 
@@ -94,11 +94,11 @@ namespace Plaza {
 	/// Returns the Quaternion of the Transform World Rotation in radians
 	/// </summary>
 	/// <returns></returns>
-	const glm::quat& Transform::GetWorldQuaternion() {
+	const glm::quat& TransformComponent::GetWorldQuaternion() {
 		return glm::normalize(glm::quat_cast(this->modelMatrix));
 	}
 
-	void Transform::UpdateLocalMatrix() {
+	void TransformComponent::UpdateLocalMatrix() {
 		PLAZA_PROFILE_SECTION("Transform: Update Local Matrix");
 		if (this->relativePosition != this->lastRelativePositionLocalMatrix || this->rotation != this->lastRotationLocalMatrix || this->scale != this->lastScaleLocalMatrix) {
 			this->localMatrix = glm::translate(glm::mat4(1.0f), this->relativePosition)
@@ -112,7 +112,7 @@ namespace Plaza {
 		//return this->localMatrix;
 	}
 
-	const glm::mat4& Transform::GetLocalMatrix() {
+	const glm::mat4& TransformComponent::GetLocalMatrix() {
 		return this->localMatrix;
 	}
 
@@ -122,19 +122,19 @@ namespace Plaza {
 	/// </summary>
 	glm::vec3 newWorldPosition(Entity* entity) {
 		glm::mat4 rotationMatrix = glm::mat4(1.0f);
-		rotationMatrix *= glm::toMat4(glm::quat(Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<Transform>()->worldRotation));
-		rotationMatrix = glm::scale(rotationMatrix, Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<Transform>()->worldScale);
-		glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(entity->GetComponent<Transform>()->relativePosition, 1.0f));
-		glm::vec3 finalWorldPoint = transformedPoint + Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<Transform>()->worldPosition;
+		rotationMatrix *= glm::toMat4(glm::quat(Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<TransformComponent>()->worldRotation));
+		rotationMatrix = glm::scale(rotationMatrix, Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<TransformComponent>()->worldScale);
+		glm::vec3 transformedPoint = glm::vec3(rotationMatrix * glm::vec4(entity->GetComponent<TransformComponent>()->relativePosition, 1.0f));
+		glm::vec3 finalWorldPoint = transformedPoint + Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<TransformComponent>()->worldPosition;
 		return finalWorldPoint;
 	}
 	/// <summary>
 	/// First rotates with parent rotation and then its own rotation.
 	/// </summary>
 	glm::vec3 newWorldRotation(Entity* entity) {
-		glm::mat4 newRotationMatrix = glm::translate(glm::mat4(1.0f), entity->GetComponent<Transform>()->worldPosition)
-			* glm::toMat4(glm::quat(Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<Transform>()->worldRotation))
-			* glm::toMat4(glm::quat(entity->GetComponent<Transform>()->rotation))
+		glm::mat4 newRotationMatrix = glm::translate(glm::mat4(1.0f), entity->GetComponent<TransformComponent>()->worldPosition)
+			* glm::toMat4(glm::quat(Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<TransformComponent>()->worldRotation))
+			* glm::toMat4(glm::quat(entity->GetComponent<TransformComponent>()->rotation))
 			* glm::scale(glm::mat4(1.0f), glm::vec3(1.0f));
 
 		glm::vec3 eulerAngles = glm::eulerAngles(glm::quat_cast(newRotationMatrix));
@@ -144,14 +144,14 @@ namespace Plaza {
 
 
 
-	void Transform::UpdateObjectTransform(Entity* entity) {
-		Transform& transform = *entity->GetComponent<Transform>();
+	void TransformComponent::UpdateObjectTransform(Entity* entity) {
+		TransformComponent& transform = *entity->GetComponent<TransformComponent>();
 		transform.UpdateWorldMatrix();
 		//transform.UpdatePhysics();
 	}
 
 
-	void Transform::UpdateChildrenTransform(Entity* entity) {
+	void TransformComponent::UpdateChildrenTransform(Entity* entity) {
 		UpdateObjectTransform(entity);
 
 		for (uint64_t child : entity->childrenUuid) {
@@ -161,7 +161,7 @@ namespace Plaza {
 		}
 	}
 
-	void Transform::UpdateSelfAndChildrenTransform() {
+	void TransformComponent::UpdateSelfAndChildrenTransform() {
 		PLAZA_PROFILE_SECTION("Transform: Update Self And Children Transform");
 		this->UpdateLocalMatrix();
 		this->UpdateWorldMatrix();
@@ -175,13 +175,13 @@ namespace Plaza {
 		}
 	}
 
-	void Transform::UpdateChildrenTransform() {
+	void TransformComponent::UpdateChildrenTransform() {
 		if (mUuid) {
 			UpdateChildrenTransform(&Scene::GetActiveScene()->entities[mUuid]);
 		}
 	}
 
-	void Transform::MoveTowards(glm::vec3 vector) {
+	void TransformComponent::MoveTowards(glm::vec3 vector) {
 		glm::mat4 matrix = this->GetTransform();
 		glm::vec3 currentPosition = glm::vec3(matrix[3]);
 		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
@@ -191,7 +191,7 @@ namespace Plaza {
 		this->UpdateSelfAndChildrenTransform();
 	}
 
-	const glm::vec3& Transform::MoveTowardsReturn(glm::vec3 vector) {
+	const glm::vec3& TransformComponent::MoveTowardsReturn(glm::vec3 vector) {
 		glm::mat4 matrix = this->GetTransform();
 		glm::vec3 currentPosition = glm::vec3(matrix[3]);
 		glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
@@ -202,18 +202,18 @@ namespace Plaza {
 	}
 
 	// Set Functions
-	void Transform::SetRelativePosition(glm::vec3 vector) {
+	void TransformComponent::SetRelativePosition(glm::vec3 vector) {
 		PLAZA_PROFILE_SECTION("Transform: Set Relative Position");
 		this->relativePosition = vector;
 		this->UpdateSelfAndChildrenTransform();
 	}
 
-	void Transform::SetRelativeRotation(glm::quat quat) {
+	void TransformComponent::SetRelativeRotation(glm::quat quat) {
 		this->rotation = quat;
 		this->UpdateSelfAndChildrenTransform();
 	}
 
-	void Transform::SetRelativeScale(glm::vec3 vector) {
+	void TransformComponent::SetRelativeScale(glm::vec3 vector) {
 		this->scale = vector;
 		this->UpdateSelfAndChildrenTransform();
 		auto it = Scene::GetActiveScene()->colliderComponents.find(this->mUuid);
@@ -222,7 +222,7 @@ namespace Plaza {
 		}
 	}
 
-	void Transform::UpdatePhysics() {
+	void TransformComponent::UpdatePhysics() {
 		PLAZA_PROFILE_SECTION("Transform: Update Physics");
 		auto it = Scene::GetActiveScene()->colliderComponents.find(this->mUuid);
 		if (it != Scene::GetActiveScene()->colliderComponents.end()) {
@@ -231,7 +231,7 @@ namespace Plaza {
 		}
 	}
 
-	void Transform::Rotate(glm::vec3 vector) {
+	void TransformComponent::Rotate(glm::vec3 vector) {
 		glm::vec3 position, rotation, scale;
 
 		// Convert the rotation component from PxQuat to glm::quat
@@ -247,7 +247,7 @@ namespace Plaza {
 		Editor::Gizmo::DecomposeTransform(gizmoTransform, position, rotation, scale);
 
 		// --- Rotation
-		glm::mat4 updatedTransform = glm::inverse(this->GetGameObject()->GetParent().GetComponent<Transform>()->GetTransform()) * glm::toMat4(glm::quat(rotation));
+		glm::mat4 updatedTransform = glm::inverse(this->GetGameObject()->GetParent().GetComponent<TransformComponent>()->GetTransform()) * glm::toMat4(glm::quat(rotation));
 
 		glm::vec3 updatedPosition, updatedRotation, updatedScale;
 		Editor::Gizmo::DecomposeTransform(updatedTransform, updatedPosition, updatedRotation, updatedScale); // The rotation is radians

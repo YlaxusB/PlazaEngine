@@ -52,7 +52,7 @@ namespace Plaza {
 		void RemoveCollider();
 		void Update() {};
 
-		void CreateShape(ColliderShape::ColliderShapeEnum shapeEnum, Transform* transform, Mesh* mesh = nullptr);
+		void CreateShape(ColliderShape::ColliderShapeEnum shapeEnum, TransformComponent* transform, Mesh* mesh = nullptr);
 		void AddShape(ColliderShape* shape);
 		void AddConvexMeshShape(Mesh* mesh);
 		void AddMeshShape(Mesh* mesh);
@@ -68,7 +68,7 @@ namespace Plaza {
 		void SetFlags(Collider* collider, physx::PxRigidDynamicLockFlags flags);
 
 		void UpdatePose();
-		void UpdatePose(Transform* transform);
+		void UpdatePose(TransformComponent* transform);
 
 		template <class Archive>
 		void serialize(Archive& archive) {

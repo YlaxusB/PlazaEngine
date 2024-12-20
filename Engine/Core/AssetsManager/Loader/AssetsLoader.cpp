@@ -46,9 +46,9 @@ namespace Plaza {
 		for (std::shared_ptr<SerializableComponents> component : deserializedEntity.components) {
 			if (typeid(*component.get()) == typeid(SerializableTransform)) {
 				SerializableTransform deserializedTransform = *(SerializableTransform*)(component.get());
-				newEntity->GetComponent<Transform>()->SetRelativePosition(deserializedTransform.position);
-				newEntity->GetComponent<Transform>()->SetRelativeRotation(deserializedTransform.rotation);
-				newEntity->GetComponent<Transform>()->SetRelativeScale(deserializedTransform.scale);
+				newEntity->GetComponent<TransformComponent>()->SetRelativePosition(deserializedTransform.position);
+				newEntity->GetComponent<TransformComponent>()->SetRelativeRotation(deserializedTransform.rotation);
+				newEntity->GetComponent<TransformComponent>()->SetRelativeScale(deserializedTransform.scale);
 			}
 			if (typeid(*component.get()) == typeid(SerializableMeshRenderer)) {
 				SerializableMeshRenderer deserializedMeshRenderer = *(SerializableMeshRenderer*)(component.get());

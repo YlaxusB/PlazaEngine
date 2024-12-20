@@ -224,7 +224,7 @@ namespace Plaza {
 		}
 	}
 
-	physx::PxTransform Physics::GetPxTransform(Transform& transform) {
+	physx::PxTransform Physics::GetPxTransform(TransformComponent& transform) {
 		//// Create a dynamic rigid body
 		glm::quat quaternion = glm::normalize(transform.GetWorldQuaternion());
 		physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);

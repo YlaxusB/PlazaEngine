@@ -9,7 +9,7 @@
 #include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	class PLAZA_API Transform : public Plaza::Component {
+	class PLAZA_API TransformComponent : public Plaza::Component {
 	public:
 		virtual void OnInstantiate(Component* componentToInstantiate) override;
 
@@ -24,8 +24,8 @@ namespace Plaza {
 		glm::vec3 worldScale = { 1, 1, 1 };
 		glm::mat4 modelMatrix = glm::mat4(1.0f);
 		glm::mat4 localMatrix = glm::mat4(1.0f);
-		Transform();
-		Transform(const Transform&) = default;
+		TransformComponent();
+		TransformComponent(const TransformComponent&) = default;
 		const glm::quat& GetLocalQuaternion();
 		const glm::vec3& GetLocalEuler();
 		const glm::quat& GetWorldQuaternion();
@@ -67,13 +67,6 @@ namespace Plaza {
 			archive(cereal::base_class<Component>(this), PL_SER(relativePosition), PL_SER(rotation), PL_SER(scale));
 		}
 	private:
-		/* Matrices calculation cache */
-		glm::mat4 lastLocalMatrix = glm::mat4(-1.0f);
-		glm::vec3 lastRelativePositionLocalMatrix = glm::vec3(-1.0f);
-		glm::quat lastRotationLocalMatrix = glm::quat(-1.0f, -1.0f, -1.0f, -1.0f);
-		glm::vec3 lastScaleLocalMatrix = glm::vec3(-1.0f);
-
-		glm::mat4 lastParentModelMatrix = glm::mat4(-1.0f);
 		//this->localMatrix = glm::translate(glm::mat4(1.0f), this->relativePosition)
 		//	* glm::toMat4(glm::quat(rotation))
 		//	* glm::scale(glm::mat4(1.0f), scale);

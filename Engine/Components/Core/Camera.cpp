@@ -137,7 +137,7 @@ namespace Plaza {
 		}
 		else {
 			if (this->mUuid && Scene::GetActiveScene()->transformComponents.find(this->mUuid) != Scene::GetActiveScene()->transformComponents.end()) {
-				Transform* transform = &Scene::GetActiveScene()->transformComponents.at(this->mUuid);
+				TransformComponent* transform = &Scene::GetActiveScene()->transformComponents.at(this->mUuid);
 				glm::mat4 transformationMatrix = transform->modelMatrix;
 
 				/*

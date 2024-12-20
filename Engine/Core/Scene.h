@@ -33,6 +33,7 @@
 
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
 #include "Engine/Core/Engine.h"
+#include "Engine/ECS/ECSManager.h"
 //#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 
 using namespace std;
@@ -112,25 +113,20 @@ namespace Plaza {
 		Entity* mainSceneEntity = nullptr;
 		uint64_t mainSceneEntityUuid;
 
+		//std::unique_ptr<ECSManager> mECS;
+		static inline int sComponentCounter;
+		template <class T>
+		int GetId()
+		{
+			static int sComponentId = sComponentCounter++;
+			return sComponentId;
+		}
+
+
 		std::map<uint64_t, Animation*> mPlayingAnimations = std::map<uint64_t, Animation*>();
 
 		std::unordered_map<uint64_t, Entity> entities;
-		ComponentMultiMap<uint64_t, Transform> transformComponents;
-		ComponentMultiMap<uint64_t, Camera> cameraComponents;
-		ComponentMultiMap<uint64_t, MeshRenderer> meshRendererComponents;
-		ComponentMultiMap<uint64_t, RigidBody> rigidBodyComponents;
-		ComponentMultiMap<uint64_t, Collider> colliderComponents;
-		ComponentMultiMap<uint64_t, CppScriptComponent> cppScriptComponents;
-		ComponentMultiMap<uint64_t, CsScriptComponent> csScriptComponents;
-		ComponentMultiMap<uint64_t, Plaza::Drawing::UI::TextRenderer> UITextRendererComponents;
-		ComponentMultiMap<uint64_t, AudioSource> audioSourceComponents;
-		ComponentMultiMap<uint64_t, AudioListener> audioListenerComponents;
-		ComponentMultiMap<uint64_t, Light> lightComponents;
-		ComponentMultiMap<uint64_t, CharacterController> characterControllerComponents;
-		ComponentMultiMap<uint64_t, AnimationComponent> animationComponentComponents;
-		ComponentMultiMap<uint64_t, GuiComponent> guiComponents;
-
-		std::unordered_map<std::string, void*> componentsMap;
+		std::vector<ComponentPool> mComponentPools = std::vector<ComponentPool>();
 
 		std::unordered_map<uint64_t, RenderGroup> renderGroups;
 		std::unordered_map<std::pair<uint64_t, std::vector<uint64_t>>, uint64_t, PairHash> renderGroupsFindMap;
@@ -139,6 +135,50 @@ namespace Plaza {
 
 		std::unordered_map<std::string, std::unordered_set<uint64_t>> entitiesNames;
 
+		Entity* NewEntity()
+		{
+			uint64_t uuid = Plaza::UUID::NewUUID();
+			entities.emplace(uuid, Entity("NewEntity", nullptr, uuid));
+			return &entities.at(uuid);
+		}
+
+		Entity* GetEntity(uint64_t id) {
+			if (entities.find(id) == entities.end())
+				return nullptr;
+			return &entities.at(id);
+		}
+
+		template<typename T>
+		bool HasComponent(uint64_t id) {
+			return this->GetEntity(id)->mComponentMask.test(GetId<T>());
+		}
+
+		template<typename T>
+		T* AddComponent(uint64_t id) {
+			int componentId = GetId<T>();
+			if (mComponentPools.size() < componentId)
+				mComponentPools.resize(componentId + 1, nullptr);
+			if (mComponentPools[componentId] == nullptr)
+				mComponentPools[componentId] = new ComponentPool(sizeof(T));
+
+			T* component = new (mComponentPools[componentId].Get(id)) T();
+			entities[id].mComponentMask.set(componentId);
+			return component;
+		}
+
+		template<typename T>
+		T* GetComponent(uint64_t id) {
+			int componentId = GetId<T>();
+			if (!entities[id].mComponentMask.test(componentId))
+				return nullptr;
+			return static_cast<T*>(mComponentPools[componentId].Get(id));
+		}
+
+		template<typename T>
+		void RemoveComponent(uint64_t id) {
+			
+		}
+		
 		RenderGroup* AddRenderGroup(Mesh* newMesh, std::vector<Material*> newMaterials, bool resizeBuffer = true) {
 			if (!newMesh)
 				return nullptr;
@@ -146,9 +186,6 @@ namespace Plaza {
 			if (foundNewRenderGroup) {
 				uint64_t uuid = this->renderGroupsFindMap.at(std::pair<uint64_t, std::vector<uint64_t>>(newMesh->uuid, Material::GetMaterialsUuids(newMaterials)));
 				RenderGroup* renderGroup = &this->renderGroups.at(uuid);
-				//renderGroup->mCount++;
-				//if (resizeBuffer && renderGroup->mBufferSize < renderGroup->mCount)
-				//	renderGroup->ResizeInstanceBuffer(0);
 				return renderGroup;
 			}
 			else if (!foundNewRenderGroup)
@@ -157,8 +194,6 @@ namespace Plaza {
 				newRenderGroup.mCount++;
 				this->renderGroups.emplace(newRenderGroup.uuid, newRenderGroup);
 				this->renderGroupsFindMapWithMeshUuid.emplace(newRenderGroup.mesh->uuid, newRenderGroup.uuid);
-				//;;this->renderGroupsFindMapWithMaterialUuid.emplace(newRenderGroup->material->uuid, newRenderGroup->uuid);
-				//;;this->renderGroupsFindMap.emplace(std::make_pair(newRenderGroup->mesh->uuid, newRenderGroup->material->uuid), newRenderGroup->uuid);
 				return &this->renderGroups.at(newRenderGroup.uuid);
 			}
 		}
@@ -188,10 +223,6 @@ namespace Plaza {
 				EraseFoundMap(this->renderGroups, renderGroup->uuid);
 				if (renderGroup->mesh)
 					EraseFoundMap(this->renderGroupsFindMapWithMeshUuid, renderGroup->mesh->uuid);
-				//if (renderGroup->material)
-				//	EraseFoundMap(this->renderGroupsFindMapWithMaterialUuid, renderGroup->material->uuid);
-				//if (renderGroup->mesh && renderGroup->material)
-				//	EraseFoundMap(this->renderGroupsFindMap, std::pair<uint64_t, uint64_t>(renderGroup->mesh->uuid, renderGroup->material->uuid));
 			}
 		}
 
@@ -206,8 +237,6 @@ namespace Plaza {
 
 		void RecalculateAddedComponents();
 
-		//unordered_map<uint64_t, Transform*> meshRenderersComponents;
-
 		void Copy(Scene* baseScene);
 		static void Play(); // Starts the game
 		static void Stop(); // Finishes the game
@@ -216,61 +245,17 @@ namespace Plaza {
 			mIsDeleting = true;
 		};
 
-		void RemoveEntity(uint64_t uuid);
-		Entity* GetEntity(uint64_t uuid);
-		Entity* GetEntityByName(const std::string& name);
-		template<typename T>
-		T* GetComponent(uint64_t uuid) {
-			return GetEntity(uuid)->GetComponent<T>();
-		}
-		template<typename T>
-		bool HasComponent(uint64_t uuid) {
-			return GetEntity(uuid)->HasComponent<T>();
-			//return map.find(uuid) != map.end();
-		}
-		template<typename T>
-		void RemoveComponent(uint64_t uuid) {
-			return GetEntity(uuid)->RemoveComponent<T>();
-		}
-
-		void RemoveMeshRenderer(uint64_t uuid);
-
-		void RegisterMaps() {
-			componentsMap["class Plaza::Transform"] = &transformComponents;
-			componentsMap["class Plaza::Camera"] = &cameraComponents;
-			componentsMap["class Plaza::MeshRenderer"] = &meshRendererComponents;
-			componentsMap["class Plaza::RigidBody"] = &rigidBodyComponents;
-			componentsMap["class Plaza::Collider"] = &colliderComponents;
-			componentsMap["class Plaza::CppScriptComponent"] = &cppScriptComponents;
-			componentsMap["class Plaza::CsScriptComponent"] = &csScriptComponents;
-			componentsMap["class Plaza::Drawing::UI::TextRenderer"] = &UITextRendererComponents;
-			componentsMap["class Plaza::AudioSource"] = &audioSourceComponents;
-			componentsMap["class Plaza::AudioListener"] = &audioListenerComponents;
-			componentsMap["class Plaza::Light"] = &lightComponents;
-			componentsMap["class Plaza::CharacterController"] = &characterControllerComponents;
-			componentsMap["class Plaza::AnimationComponent"] = &animationComponentComponents;
-			componentsMap["class Plaza::GuiComponent"] = &guiComponents;
-		}
-
 		template <class Archive>
 		void serialize(Archive& archive) {
-			if (mainSceneEntity)
-				mainSceneEntityUuid = mainSceneEntity->uuid;
-
-			archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(mainSceneEntityUuid), PL_SER(entities), PL_SER(transformComponents), PL_SER(cameraComponents), PL_SER(meshRendererComponents),
-				PL_SER(rigidBodyComponents), PL_SER(colliderComponents), PL_SER(csScriptComponents), PL_SER(UITextRendererComponents), PL_SER(audioSourceComponents),
-				PL_SER(audioListenerComponents), PL_SER(lightComponents), PL_SER(characterControllerComponents), PL_SER(animationComponentComponents), PL_SER(guiComponents), PL_SER(cppScriptComponents));
-
-			if (!mainSceneEntity)
-				mainSceneEntity = &entities.at(mainSceneEntityUuid);
-
-			/*
-						archive(mAssetUuid, entities, transformComponents, cameraComponents, meshRendererComponents,
-				rigidBodyComponents, colliderComponents, csScriptComponents, UITextRendererComponents, audioSourceComponents,
-				audioListenerComponents, lightComponents, characterControllerComponents, animationComponentComponents, materials,
-				materialsNames, renderGroups, renderGroupsFindMap, renderGroupsFindMapWithMeshUuid, renderGroupsFindMapWithMaterialUuid,
-				entitiesNames);
-			*/
+			//if (mainSceneEntity)
+			//	mainSceneEntityUuid = mainSceneEntity->uuid;
+			//
+			//archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(mainSceneEntityUuid), PL_SER(entities), PL_SER(transformComponents), PL_SER(cameraComponents), PL_SER(meshRendererComponents),
+			//	PL_SER(rigidBodyComponents), PL_SER(colliderComponents), PL_SER(csScriptComponents), PL_SER(UITextRendererComponents), PL_SER(audioSourceComponents),
+			//	PL_SER(audioListenerComponents), PL_SER(lightComponents), PL_SER(characterControllerComponents), PL_SER(animationComponentComponents), PL_SER(guiComponents), PL_SER(cppScriptComponents));
+			//
+			//if (!mainSceneEntity)
+			//	mainSceneEntity = &entities.at(mainSceneEntityUuid);
 		}
 
 		static void InitializeScenes();

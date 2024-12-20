@@ -12,21 +12,21 @@ namespace Plaza::Editor {
 
 	static class ColliderInspector {
 	public:
-		void AddChildrenMeshShape(Collider* collider, uint64_t parentUuid) {
+		void AddChildrenMeshShape(Scene* scene, Collider* collider, uint64_t parentUuid) {
 			for (uint64_t childUuid : Scene::GetActiveScene()->entities.at(parentUuid).childrenUuid) {
-				if (Scene::GetActiveScene()->entities.at(childUuid).HasComponent<MeshRenderer>()) {
-					collider->AddConvexMeshShape(Scene::GetActiveScene()->meshRendererComponents.at(childUuid).mesh);
+				if (scene->HasComponent<MeshRenderer>(childUuid)) {
+					collider->AddConvexMeshShape(scene->GetComponent<MeshRenderer>(childUuid)->mesh);
 				}
-				AddChildrenMeshShape(collider, childUuid);
+				AddChildrenMeshShape(scene, collider, childUuid);
 			}
 		}
-		ColliderInspector(Collider* collider) {
+		ColliderInspector(Scene* scene, Collider* collider) {
 			ImGui::SetNextItemOpen(true);
 			ImVec2 old = ImGui::GetCursorPos();
 			float arrowSize = old.x + 30.0f;
 			ImGui::SetCursorPos(ImVec2(ImGui::CalcTextSize("Collider").x + arrowSize, ImGui::GetCursorPos().y));
 			if (ImGui::Button("Remove Component")) {
-				collider->GetGameObject()->RemoveComponent<Collider>();
+				scene->RemoveComponent<Collider>(collider->mUuid);
 			}
 			ImGui::SameLine();
 			ImGui::SetCursorPos(old);
@@ -54,7 +54,7 @@ namespace Plaza::Editor {
 						ImGui::CloseCurrentPopup(); // Close the context menu on right-click
 					}
 
-					Transform& transform = *Scene::GetActiveScene()->entities.at(collider->mUuid).GetComponent<Transform>();
+					TransformComponent& transform = *scene->GetComponent<TransformComponent>(collider->mUuid);
 					// Create a dynamic rigid body
 					glm::quat quaternion = transform.GetWorldQuaternion();
 					physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
@@ -90,23 +90,23 @@ namespace Plaza::Editor {
 					}
 					if (ImGui::MenuItem("Mesh"))
 					{
-						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {
-							collider->AddMeshShape(Scene::GetActiveScene()->meshRendererComponents.at(collider->mUuid).mesh);
+						if (scene->HasComponent<MeshRenderer>(collider->mUuid)) {
+							collider->AddMeshShape(scene->GetComponent<MeshRenderer>(collider->mUuid)->mesh);
 							collider->Init(nullptr);
 						}
-						if (collider->GetGameObject()->HasComponent<RigidBody>()) {
-							AddChildrenMeshShape(collider, collider->mUuid);
+						if (scene->HasComponent<RigidBody>(collider->mUuid)) {
+							AddChildrenMeshShape(scene, collider, collider->mUuid);
 
 						}
 					}
 					if (ImGui::MenuItem("Convex Mesh"))
 					{
-						if (collider->GetGameObject()->HasComponent<MeshRenderer>()) {
-							collider->AddConvexMeshShape(Scene::GetActiveScene()->meshRendererComponents.at(collider->mUuid).mesh);
+						if (scene->HasComponent<MeshRenderer>(collider->mUuid)) {
+							collider->AddConvexMeshShape(scene->GetComponent<MeshRenderer>(collider->mUuid)->mesh);
 							collider->Init(nullptr);
 						}
-						if (collider->GetGameObject()->HasComponent<RigidBody>()) {
-							AddChildrenMeshShape(collider, collider->mUuid);
+						if (scene->HasComponent<RigidBody>(collider->mUuid)) {
+							AddChildrenMeshShape(scene, collider, collider->mUuid);
 
 						}
 					}

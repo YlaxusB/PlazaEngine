@@ -43,7 +43,7 @@ namespace Plaza::Editor {
 	}
 
 	/* Component Inspector*/
-	void Inspector::ComponentInspector::CreateInspector() {
+	void Inspector::ComponentInspector::CreateInspector(Scene* scene) {
 		if (Editor::selectedGameObject) {
 			ImGui::SetCursorPosY(50);
 			ImGui::Indent(10);
@@ -54,7 +54,7 @@ namespace Plaza::Editor {
 			else {
 				ImGui::Text(Editor::selectedGameObject->name.c_str());
 				for (Component* component : components) {
-					ComponentInspector::CreateRespectiveInspector(component);
+					ComponentInspector::CreateRespectiveInspector(scene, component);
 				}
 				ImGui::Text("Parent Uuid: ");
 				std::string uuidString = std::to_string(Editor::selectedGameObject->parentUuid);
@@ -108,12 +108,12 @@ namespace Plaza::Editor {
 		//	components.push_back(&activeScene->guiComponents.at(uuid));
 	}
 
-	void Inspector::ComponentInspector::CreateRespectiveInspector(Component* component) {
+	void Inspector::ComponentInspector::CreateRespectiveInspector(Scene* scene, Component* component) {
 		if (TransformComponent* transform = dynamic_cast<TransformComponent*>(component)) {
-			Editor::Gui::TransformInspector inspector{ Editor::selectedGameObject };
+			Editor::Gui::TransformInspector inspector{ scene, Editor::selectedGameObject };
 		}
 		else if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {
-			Plaza::Editor::MeshRendererInspector::MeshRendererInspector(Editor::selectedGameObject);
+			Plaza::Editor::MeshRendererInspector::MeshRendererInspector(scene, Editor::selectedGameObject);
 			//Plaza::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
 		}
 		else if (Camera* camera = dynamic_cast<Camera*>(component)) {
@@ -123,7 +123,7 @@ namespace Plaza::Editor {
 			Plaza::Editor::RigidBodyInspector::RigidBodyInspector(rigidBody);
 		}
 		else if (Collider* collider = dynamic_cast<Collider*>(component)) {
-			Plaza::Editor::ColliderInspector::ColliderInspector(collider);
+			Plaza::Editor::ColliderInspector::ColliderInspector(scene, collider);
 		}
 		else if (CppScriptComponent* cppScriptComponent = dynamic_cast<CppScriptComponent*>(component)) {
 			Plaza::Editor::CppScriptComponentInspector::CppScriptComponentInspector(cppScriptComponent);

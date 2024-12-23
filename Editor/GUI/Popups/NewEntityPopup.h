@@ -3,6 +3,6 @@
 namespace Plaza::Editor {
 	class Popup::NewEntityPopup {
 	public:
-		static void Init(Entity* obj, Entity* parent = nullptr, Scene* scene);
+		static void Init(Entity* obj, Entity* parent, Scene* scene);
 	};
 }

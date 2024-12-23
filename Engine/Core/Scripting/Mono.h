@@ -17,9 +17,9 @@ namespace Plaza {
 		static inline std::unordered_map<MonoType*, std::function<Component* (Entity)>> mEntityAddComponentFunctions = std::unordered_map<MonoType*, std::function<Component* (Entity)>>();
 		static inline std::unordered_map<MonoType*, std::function<Component* (Entity)>> mEntityGetComponentFunctions = std::unordered_map<MonoType*, std::function<Component* (Entity)>>();
 		static void Init();
-		static void OnStartAll(bool callOnStart = true);
+		static void OnStartAll(Scene* scene, bool callOnStart = true);
 		static void OnStart(MonoObject* monoObject);
-		static void Update();
+		static void Update(Scene* scene);
 		static void RegisterComponents();
 		static MonoObject* InstantiateClass(const char* namespaceName, const char* className, MonoAssembly* assembly, MonoDomain* appDomain, uint64_t uuid = 0);
 

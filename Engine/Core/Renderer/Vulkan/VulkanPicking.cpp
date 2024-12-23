@@ -289,7 +289,7 @@ namespace Plaza {
 		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), 1, mesh->indicesOffset, mesh->verticesOffset, mesh->instanceOffset);
 	}
 
-	void VulkanPicking::DrawSelectedObjectsUuid() {
+	void VulkanPicking::DrawSelectedObjectsUuid(Scene* scene) {
 		PLAZA_PROFILE_SECTION("DrawSelectedObjectsUuid");
 
 		//VkCommandBuffer& commandBuffer = *VulkanRenderer::GetRenderer()->mActiveCommandBuffer;
@@ -335,8 +335,8 @@ namespace Plaza {
 
 		//vkCmdDrawIndexedIndirect(commandBuffer, VulkanRenderer::GetRenderer()->mIndirectBuffer, 0, VulkanRenderer::GetRenderer()->mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 
-		for (const auto& [key, value] : Scene::GetActiveScene()->meshRendererComponents) {
-			this->DrawMeshToPickingTexture(value, commandBuffer);
+		for (const uint64_t& uuid : SceneView<MeshRenderer>(scene)) {
+			this->DrawMeshToPickingTexture(*scene->GetComponent<MeshRenderer>(uuid), commandBuffer);
 		}
 
 		vkCmdEndRenderPass(commandBuffer);
@@ -415,8 +415,8 @@ namespace Plaza {
 		return ((uint64_t)uuid1 << 32) | uuid2;
 	}
 
-	uint64_t VulkanPicking::DrawAndRead(glm::vec2 pos) {
-		DrawSelectedObjectsUuid();
+	uint64_t VulkanPicking::DrawAndRead(Scene* scene, glm::vec2 pos) {
+		DrawSelectedObjectsUuid(scene);
 		return this->ReadPickingTexture(pos);
 	}
 

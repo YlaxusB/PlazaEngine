@@ -7,7 +7,7 @@ namespace Plaza {
 	class VulkanLighting : public Lighting {
 	public:
 		void Init() override;
-		void GetLights() override;
+		void GetLights(Scene* scene) override;
 		void UpdateTiles() override;
 		void DrawDeferredPass();
 		void Terminate() override;

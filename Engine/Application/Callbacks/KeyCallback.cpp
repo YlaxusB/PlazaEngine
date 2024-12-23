@@ -26,23 +26,26 @@ glm::vec3 randomVec3() {
 
 Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true, bool addToScene = true) {
 	Entity* obj = new Entity(name, parent, addToScene);
-	//obj->changingName = true;
-	//Scene::GetActiveScene()->entities.at(obj->uuid).changingName = true;
-	//Gui::Hierarchy::Item::firstFocus = true;
-	obj->GetComponent<TransformComponent>()->UpdateChildrenTransform();
-	MeshRenderer* meshRenderer = new MeshRenderer(mesh, AssetsManager::GetDefaultMaterial());
-	meshRenderer->instanced = true;
-	//meshRenderer->mesh = new Mesh(*mesh);
-	meshRenderer->mMaterials.push_back(AssetsManager::GetDefaultMaterial());
-	//RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
-	meshRenderer->renderGroup = Scene::GetActiveScene()->AddRenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
-	//meshRenderer->renderGroup->material = make_shared<Material>(*AssetsManager::GetDefaultMaterial());
-	obj->AddComponent<MeshRenderer>(meshRenderer);
-	Editor::selectedGameObject = obj;
+	// Fix: fix new entity
+	////obj->changingName = true;
+	////Scene::GetActiveScene()->entities.at(obj->uuid).changingName = true;
+	////Gui::Hierarchy::Item::firstFocus = true;
+	//obj->GetComponent<TransformComponent>()->UpdateChildrenTransform();
+	//MeshRenderer* meshRenderer = new MeshRenderer(mesh, AssetsManager::GetDefaultMaterial());
+	//meshRenderer->instanced = true;
+	////meshRenderer->mesh = new Mesh(*mesh);
+	//meshRenderer->mMaterials.push_back(AssetsManager::GetDefaultMaterial());
+	////RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
+	//meshRenderer->renderGroup = Scene::GetActiveScene()->AddRenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
+	////meshRenderer->renderGroup->material = make_shared<Material>(*AssetsManager::GetDefaultMaterial());
+	//obj->AddComponent<MeshRenderer>(meshRenderer);
+	//Editor::selectedGameObject = obj;
 
 	return obj;
 }
 void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	// FIX: Get a proper scene instead of the active scene
+	Scene* scene = Scene::GetActiveScene();
 	for (CallbackFunction callbackFunction : sOnKeyPressFunctions) {
 		bool isLayerFocused = Editor::Gui::sFocusedLayer == callbackFunction.layerToExecute;
 		if (isLayerFocused)
@@ -66,25 +69,15 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 
 		if (key == GLFW_KEY_F && action == GLFW_PRESS) {
 			if (Editor::selectedGameObject) {
-				uint64_t newUuid = Entity::Instantiate(Editor::selectedGameObject->uuid);
+				uint64_t newUuid = ECS::EntitySystem::Instantiate(Scene::GetActiveScene(), Editor::selectedGameObject->uuid);
 				if (newUuid)
-					Scene::GetActiveScene()->transformComponents.find(newUuid)->second.UpdateSelfAndChildrenTransform();
+					ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(newUuid), scene);
 				Editor::selectedGameObject = Scene::GetActiveScene()->GetEntity(newUuid);
 			}
 		}
 
 		if (key == GLFW_KEY_T && action == GLFW_PRESS) {
-			for (int i = 0; i < 1000; ++i) {
-				Entity* obj = NewEntity("Sphere", Scene::GetActiveScene()->mainSceneEntity, Editor::DefaultModels::Cube(), true, true);
-				TransformComponent* transform = obj->GetComponent<TransformComponent>();
-				transform->relativePosition = randomVec3();
-				transform->UpdateSelfAndChildrenTransform();
-				Collider* collider = new Collider(obj->uuid);
-				collider->CreateShape(ColliderShape::ColliderShapeEnum::BOX, transform);
-				obj->AddComponent<Collider>(collider);
-				//RigidBody* rigidBody = new RigidBody(obj->uuid, false);
-				//obj->AddComponent<RigidBody>(rigidBody);
-			}
+
 		}
 
 		VulkanRenderer* vulkanRenderer = (VulkanRenderer*)Application::Get()->mRenderer;
@@ -111,15 +104,13 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 		//	Scene::GetActiveScene()->entities[Editor::selectedGameObject->uuid].RemoveComponent<RigidBody>();
 
 		if (key == GLFW_KEY_U && action == GLFW_PRESS)
-			Application::Get()->activeCamera->Position = Plaza::Editor::selectedGameObject->GetComponent<TransformComponent>()->GetWorldPosition();
+			Application::Get()->activeCamera->Position = scene->GetComponent<TransformComponent>(Plaza::Editor::selectedGameObject->uuid)->GetWorldPosition();
 
 		if (key == GLFW_KEY_END && action == GLFW_PRESS) {
-			Editor::selectedGameObject->GetComponent<TransformComponent>()->rotation *= glm::quat(glm::vec3(0.0f, 0.1f, 0.0f));
-			Editor::selectedGameObject->GetComponent<TransformComponent>()->UpdateSelfAndChildrenTransform();
+
 		}
 		if (key == GLFW_KEY_HOME && action == GLFW_PRESS) {
-			Editor::selectedGameObject->GetComponent<TransformComponent>()->rotation *= glm::quat(glm::vec3(0.0f, -0.1f, 0.0f));
-			Editor::selectedGameObject->GetComponent<TransformComponent>()->UpdateSelfAndChildrenTransform();
+
 		}
 
 		// Play and Pause
@@ -134,7 +125,7 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 	if (Application::Get()->focusedMenu == "Editor" || Application::Get()->focusedMenu == "Hierarchy") {
 		if (glfwGetKey(window, GLFW_KEY_DELETE) == GLFW_PRESS && Editor::selectedGameObject) {
 			uint64_t uuid = Editor::selectedGameObject->uuid;
-			Editor::selectedGameObject->Delete();
+			ECS::EntitySystem::Delete(scene, Editor::selectedGameObject->uuid);
 			Editor::selectedGameObject = nullptr;
 		}
 	}

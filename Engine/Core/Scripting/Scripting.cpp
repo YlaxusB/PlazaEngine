@@ -8,8 +8,8 @@
 #include "Engine/Core/Input/Input.h"
 
 namespace Plaza {
-	void Scripting::LoadProjectCppDll(const Editor::Project& project) {
-		Scripting::UnloadAllScripts();
+	void Scripting::LoadProjectCppDll(Scene* scene, const Editor::Project& project) {
+		Scripting::UnloadAllScripts(scene);
 		ScriptFactory::GetCreateRegistry().clear();
 		ScriptFactory::GetDeleteRegistry().clear();
 		Scripting::UnloadCurrentLoadedCppDll();
@@ -22,13 +22,14 @@ namespace Plaza {
 		if (!loaded)
 			return;
 
-		Scripting::ReloadAllScripts();
+		Scripting::ReloadAllScripts(scene);
 
 		sReloadIndex++;
 	}
 
-	void Scripting::ReloadAllScripts() {
-		for (auto& [componentUuid, component] : Scene::GetActiveScene()->cppScriptComponents) {
+	void Scripting::ReloadAllScripts(Scene* scene) {
+		for (const uint64_t& uuid : SceneView<CppScriptComponent>(scene)) {
+			auto& component = *scene->GetComponent<CppScriptComponent>(uuid);
 			std::vector<uint64_t> scriptsUuid = component.mScriptsUuid;
 			for (uint64_t uuid : scriptsUuid) {
 				CppScript* script = ScriptFactory::CreateScript(std::filesystem::path(AssetsManager::GetAsset(uuid)->mAssetName).stem().string());
@@ -39,8 +40,9 @@ namespace Plaza {
 		}
 	}
 
-	void Scripting::UnloadAllScripts() {
-		for (auto& [componentUuid, component] : Scene::GetActiveScene()->cppScriptComponents) {
+	void Scripting::UnloadAllScripts(Scene* scene) {
+		for (const uint64_t& uuid : SceneView<CppScriptComponent>(scene)) {
+			auto& component = *scene->GetComponent<CppScriptComponent>(uuid);
 			for (auto& script : component.mScripts) {
 				if (std::find(component.mScripts.begin(), component.mScripts.end(), script) != component.mScripts.end())
 					component.mScripts.erase(std::find(component.mScripts.begin(), component.mScripts.end(), script));
@@ -76,14 +78,15 @@ namespace Plaza {
 
 	}
 
-	void Scripting::Update() {
+	void Scripting::Update(Scene* scene) {
 		PLAZA_PROFILE_SECTION("Scripting: Update");
-		Mono::Update();
+		Mono::Update(scene);
 
 		Input::SetFocusedMenuCheck("Scene");
 
-		for (auto& [key, value] : Scene::GetActiveScene()->cppScriptComponents) {
-			for (auto& script : value.mScripts) {
+		for (const uint64_t& uuid : SceneView<CppScriptComponent>(scene)) {
+			auto& component = *scene->GetComponent<CppScriptComponent>(uuid);
+			for (auto& script : component.mScripts) {
 				script->OnUpdate();
 			}
 		}

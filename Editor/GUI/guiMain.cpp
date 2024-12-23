@@ -66,7 +66,7 @@ namespace Plaza {
 			io.DeltaTime = Time::deltaTime;
 			io.DisplaySize = ImVec2(Application::Get()->appSizes->appSize.x, Application::Get()->appSizes->appSize.y);
 			Input::SetFocusedMenuCheck("Editor");
-			Gui::setupDockspace(Application::Get()->mWindow->glfwWindow, Application::Get()->activeCamera);
+			Gui::setupDockspace(Scene::GetActiveScene(), Application::Get()->mWindow->glfwWindow, Application::Get()->activeCamera);
 			//else if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
 			//	Application::Get()->mRenderer->UpdateGUI();
 			//ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), (VulkanRenderer)(Application::Get()->mRenderer)->);
@@ -166,7 +166,7 @@ namespace Plaza {
 		void Gui::changeSelectedGameObject(Entity* newSelectedGameObject) {
 			selectedGameObject = newSelectedGameObject;
 		}
-		void Gui::setupDockspace(GLFWwindow* window, Camera* camera) {
+		void Gui::setupDockspace(Scene* scene, GLFWwindow* window, Camera* camera) {
 			PLAZA_PROFILE_SECTION("Setup Dockspace");
 			Gui::sRenderingTextureViewer = false;
 
@@ -202,22 +202,22 @@ namespace Plaza {
 			Application::Get()->mEditor->mGui.mHierarchy.mScene = Scene::GetActiveScene();
 			Application::Get()->mEditor->mGui.mHierarchy.Update(Scene::GetActiveScene());
 
-			Gui::beginScene(*Application::Get()->activeCamera);
+			Gui::beginScene(scene, *Application::Get()->activeCamera);
 
-			Gui::beginAssetsViewer(*Application::Get()->activeCamera);
+			Gui::beginAssetsViewer(scene, *Application::Get()->activeCamera);
 
-			Gui::beginProfiler();
+			Gui::beginProfiler(scene);
 
-			Gui::beginInspector(*camera);
+			Gui::beginInspector(scene, *camera);
 
-			Gui::beginImageInspector(*camera);
+			Gui::beginImageInspector(scene, *camera);
 
 			//ImGui::ShowDemoWindow();
 
 			FileExplorer::UpdateGui();
-			Application::Get()->mEditor->mGui.mConsole->Update();
-			Application::Get()->mEditor->mGui.mRenderGraphEditor->Update();
-			Gui::beginEditor(*Application::Get()->activeCamera);
+			Application::Get()->mEditor->mGui.mConsole->Update(scene);
+			Application::Get()->mEditor->mGui.mRenderGraphEditor->Update(scene);
+			Gui::beginEditor(scene, *Application::Get()->activeCamera);
 			ImGui::End();
 
 
@@ -235,7 +235,7 @@ namespace Plaza {
 			//	Gui::AssetsImporter::Update();
 			//}
 
-			Application::Get()->mEditor->mGui.mAssetsImporter.Update();
+			Application::Get()->mEditor->mGui.mAssetsImporter.Update(scene);
 
 
 			for (auto& editorTool : Gui::sEditorTools) {
@@ -254,7 +254,7 @@ namespace Plaza {
 
 
 		// Create the scene view
-		inline void Gui::beginScene(Camera& camera) {
+		inline void Gui::beginScene(Scene* scene, Camera& camera) {
 			PLAZA_PROFILE_SECTION("Begin Scene");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -274,8 +274,9 @@ namespace Plaza {
 				if (sceneViewUsingEditorCamera)
 					Application::Get()->activeCamera = Application::Get()->editorCamera;
 				else {
-					if (Application::Get()->activeCamera->isEditorCamera && Scene::GetActiveScene()->cameraComponents.size() > 0)
-						Application::Get()->activeCamera = &Scene::GetActiveScene()->cameraComponents.begin()->second;
+					// FIX: Make active camera depdendant on the scene
+					//if (Application::Get()->activeCamera->isEditorCamera && Scene::GetActiveScene()->cameraComponents.size() > 0)
+					//	Application::Get()->activeCamera = &Scene::GetActiveScene()->cameraComponents.begin()->second;
 				}
 			}
 
@@ -314,15 +315,16 @@ namespace Plaza {
 				}
 				ImGui::SameLine();
 				if (ImGui::Button("Reload C# Script Assembly")) {
-					ScriptManager::ReloadScriptsAssembly();
+					ScriptManager::ReloadScriptsAssembly(scene);
 				}
 				ImGui::SameLine();
 				if (ImGui::Checkbox("Editor Camera", &sceneViewUsingEditorCamera)) {
 					if (sceneViewUsingEditorCamera)
 						Application::Get()->activeCamera = Application::Get()->editorCamera;
 					else {
-						if (Application::Get()->activeCamera->isEditorCamera && Scene::GetActiveScene()->cameraComponents.size() > 0)
-							Application::Get()->activeCamera = &Scene::GetActiveScene()->cameraComponents.begin()->second;
+						// FIX: Make active camera depdendant on the scene
+						//if (Application::Get()->activeCamera->isEditorCamera && Scene::GetActiveScene()->cameraComponents.size() > 0)
+						//	Application::Get()->activeCamera = &Scene::GetActiveScene()->cameraComponents.begin()->second;
 					}
 				}
 			}
@@ -357,7 +359,7 @@ namespace Plaza {
 		}
 
 		// Create the Editor view
-		inline void Gui::beginEditor(Camera& camera) {
+		inline void Gui::beginEditor(Scene* scene, Camera& camera) {
 			PLAZA_PROFILE_SECTION("Begin Editor");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -413,7 +415,7 @@ namespace Plaza {
 			}
 			ImGui::SameLine();
 			if (ImGui::Button("Reload C# Script Assembly")) {
-				ScriptManager::ReloadScriptsAssembly();
+				ScriptManager::ReloadScriptsAssembly(scene);
 			}
 			ImGui::PopStyleColor();
 
@@ -426,9 +428,9 @@ namespace Plaza {
 			// Show the gizmo if there's a selected entity
 			std::map<std::string, File*> files = Editor::selectedFiles;
 			selectedGameObject = Editor::selectedGameObject;
-			if (selectedGameObject && selectedGameObject->GetComponent<TransformComponent>() != nullptr && selectedGameObject->parentUuid != 0) {
+			if (selectedGameObject && scene->GetComponent<TransformComponent>(selectedGameObject->uuid) != nullptr && selectedGameObject->parentUuid != 0) {
 				ImGuizmoHelper::IsDrawing = true;
-				Editor::Gizmo::Draw(selectedGameObject, camera);
+				Editor::Gizmo::Draw(scene, selectedGameObject, camera);
 			}
 			else {
 				ImGuizmoHelper::IsDrawing = false;
@@ -453,7 +455,7 @@ namespace Plaza {
 			ImGui::End();
 		}
 
-		void Gui::beginHierarchyView() {
+		void Gui::beginHierarchyView(Scene* scene) {
 			PLAZA_PROFILE_SECTION("Begin Hierarchy");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -471,7 +473,7 @@ namespace Plaza {
 			}
 
 			appSizes.hierarchySize.x = ImGui::GetWindowSize().x;
-			HierarchyPopup::Update();
+			HierarchyPopup::Update(scene);
 
 			if (Editor::selectedGameObject)
 				Editor::selectedFiles.clear();
@@ -481,7 +483,7 @@ namespace Plaza {
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-			HierarchyWindow::Item::NewItem(Scene::GetActiveScene()->entities[Scene::GetActiveScene()->mainSceneEntity->uuid], selectedGameObject);
+			HierarchyWindow::Item::NewItem(Scene::GetActiveScene()->entities[Scene::GetActiveScene()->mainSceneEntity->uuid], selectedGameObject, scene);
 			ImGui::PopStyleVar();
 			ImGui::PopStyleVar();
 
@@ -490,7 +492,7 @@ namespace Plaza {
 			ImGui::End();
 		}
 
-		void Gui::beginInspector(Camera camera) {
+		void Gui::beginInspector(Scene* scene, Camera camera) {
 			PLAZA_PROFILE_SECTION("Begin Inspector");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -527,7 +529,7 @@ namespace Plaza {
 			else if (visibleInspector && selectedGameObject) {
 				if (selectedGameObject->parentUuid)
 					Inspector::ComponentInspector::UpdateComponents();
-				Editor::Inspector::ComponentInspector::CreateInspector();
+				Editor::Inspector::ComponentInspector::CreateInspector(scene);
 				ImGui::Text(std::to_string(selectedGameObject->uuid).c_str());
 			}
 
@@ -537,7 +539,7 @@ namespace Plaza {
 			ImGui::PopStyleVar();
 		}
 
-		void Gui::beginImageInspector(Camera camera) {
+		void Gui::beginImageInspector(Scene* scene, Camera camera) {
 			PLAZA_PROFILE_SECTION("Begin Image Inspector");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -599,7 +601,7 @@ namespace Plaza {
 			ImGui::PopStyleVar();
 		}
 
-		void Gui::beginAssetsViewer(Camera camera) {
+		void Gui::beginAssetsViewer(Scene* scene, Camera camera) {
 			PLAZA_PROFILE_SECTION("Begin Assets Viewer");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -659,7 +661,7 @@ namespace Plaza {
 			ImGui::End();
 		}
 
-		void Gui::beginProfiler() {
+		void Gui::beginProfiler(Scene* scene) {
 			PLAZA_PROFILE_SECTION("Begin Profiler");
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -679,7 +681,7 @@ namespace Plaza {
 			style.WindowPadding = ImVec2(0.0f, 0.0f);  // Change window padding
 			if (ImGui::Begin("Profiler", &Gui::isSceneOpen, windowFlags)) {
 				for (const auto& [key, value] : Profiler::sProfilers) {
-					if(ImGui::TreeNode(key.c_str())) {
+					if (ImGui::TreeNode(key.c_str())) {
 						value->OrderSections();
 
 						ImGui::Text("Total Time: ");

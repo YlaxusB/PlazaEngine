@@ -17,31 +17,32 @@ namespace Plaza {
 					uint64_t uuid1 = (uint64_t)(pairHeader.actors[0]->userData);
 					uint64_t uuid2 = (uint64_t)(pairHeader.actors[1]->userData);
 
-					//if (name != "Road")
-					//	std::cout << "Found: " << name << "\n";
-					auto it1 = Scene::GetActiveScene()->csScriptComponents.find(uuid1);
-					if (it1 != Scene::GetActiveScene()->csScriptComponents.end()) {
-						for (auto [key, value] : it1->second.scriptClasses) {
-							void* params[] =
-							{
-								(void*)(new uint64_t(uuid2)),
-								new glm::vec3(collisionPoint.x, collisionPoint.y, collisionPoint.z)
-							};
-							Mono::CallMethod(value->monoObject, value->methods.find("OnCollide")->second, params);
-						}
-					}
-
-					auto it2 = Scene::GetActiveScene()->csScriptComponents.find(uuid2);
-					if (it2 != Scene::GetActiveScene()->csScriptComponents.end()) {
-						for (auto [key, value] : it2->second.scriptClasses) {
-							void* params[] =
-							{
-								(void*)(new uint64_t(uuid1)),
-								new glm::vec3(collisionPoint.x, collisionPoint.y, collisionPoint.z)
-							};
-							Mono::CallMethod(value->monoObject, value->methods.find("OnCollide")->second, params);
-						}
-					}
+					// FIX: Reimplement physics OnContact
+					////if (name != "Road")
+					////	std::cout << "Found: " << name << "\n";
+					//auto it1 = Scene::GetActiveScene()->csScriptComponents.find(uuid1);
+					//if (it1 != Scene::GetActiveScene()->csScriptComponents.end()) {
+					//	for (auto [key, value] : it1->second.scriptClasses) {
+					//		void* params[] =
+					//		{
+					//			(void*)(new uint64_t(uuid2)),
+					//			new glm::vec3(collisionPoint.x, collisionPoint.y, collisionPoint.z)
+					//		};
+					//		Mono::CallMethod(value->monoObject, value->methods.find("OnCollide")->second, params);
+					//	}
+					//}
+					//
+					//auto it2 = Scene::GetActiveScene()->csScriptComponents.find(uuid2);
+					//if (it2 != Scene::GetActiveScene()->csScriptComponents.end()) {
+					//	for (auto [key, value] : it2->second.scriptClasses) {
+					//		void* params[] =
+					//		{
+					//			(void*)(new uint64_t(uuid1)),
+					//			new glm::vec3(collisionPoint.x, collisionPoint.y, collisionPoint.z)
+					//		};
+					//		Mono::CallMethod(value->monoObject, value->methods.find("OnCollide")->second, params);
+					//	}
+					//}
 
 
 					// Place your logic for handling collisions here
@@ -218,10 +219,11 @@ namespace Plaza {
 	}
 
 	void Physics::Update() {
-		PLAZA_PROFILE_SECTION("Update");
-		for (auto& [key, value] : Scene::GetRuntimeScene()->rigidBodyComponents) {
-			value.Update();
-		}
+		// FIX: Move this function to systems manager
+		//PLAZA_PROFILE_SECTION("Update");
+		//for (auto& [key, value] : Scene::GetRuntimeScene()->rigidBodyComponents) {
+		//	value.Update();
+		//}
 	}
 
 	physx::PxTransform Physics::GetPxTransform(TransformComponent& transform) {

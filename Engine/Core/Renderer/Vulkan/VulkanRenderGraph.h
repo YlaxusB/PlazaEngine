@@ -983,10 +983,10 @@ namespace Plaza {
 		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) override;
 		virtual void RunCompute(PlazaPipeline* pipeline) override;
 		virtual void RenderCube(PlazaPipeline* pipeline) override;
-		virtual void RenderGui(PlazaPipeline* pipeline) override;
-		virtual void RenderGuiRectangle(PlazaPipeline* pipeline)override;
-		virtual void RenderGuiButton(PlazaPipeline* pipeline) override;
-		virtual void RenderGuiText(PlazaPipeline* pipeline) override;
+		virtual void RenderGui(Scene* scene, PlazaPipeline* pipeline) override;
+		virtual void RenderGuiRectangle(Scene* scene, PlazaPipeline* pipeline)override;
+		virtual void RenderGuiButton(Scene* scene, PlazaPipeline* pipeline) override;
+		virtual void RenderGuiText(Scene* scene, PlazaPipeline* pipeline) override;
 		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
 		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
 		virtual void ResetPipelineCompiledBool() override;
@@ -1041,7 +1041,7 @@ namespace Plaza {
 	public:
 		VulkanRenderGraph() {}
 
-		void Execute(uint8_t imageIndex, uint8_t currentFrame) override;
+		void Execute(Scene* scene, uint8_t imageIndex, uint8_t currentFrame) override;
 		void OrderPasses() override;
 		bool BindPass(std::string passName) override;
 		//void Compile() override;

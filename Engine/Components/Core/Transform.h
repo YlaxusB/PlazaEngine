@@ -13,7 +13,6 @@ namespace Plaza {
 	public:
 		virtual void OnInstantiate(Component* componentToInstantiate) override;
 
-		bool haveCamera = false;
 		glm::vec3 position = { 0,0,0 };
 		glm::vec3 worldPosition = { 0, 0, 0 };
 		glm::vec3 relativePosition = { 0, 0, 0 };

@@ -24,10 +24,10 @@ namespace Plaza {
 		VkPipelineLayoutCreateInfo mPipelineLayoutInfo{};
 		VkCommandBuffer mCommandBuffer = VK_NULL_HANDLE;
 		void Init() override;
-		void DrawSelectedObjectsUuid() override;
+		void DrawSelectedObjectsUuid(Scene* scene) override;
 		void DrawOutline() override;
 		uint64_t ReadPickingTexture(glm::vec2 position) override;
-		uint64_t DrawAndRead(glm::vec2 position) override;
+		uint64_t DrawAndRead(Scene* scene, glm::vec2 position) override;
 		void Terminate() override;
 
 		VkImageView mPickingTextureImageView = VK_NULL_HANDLE;

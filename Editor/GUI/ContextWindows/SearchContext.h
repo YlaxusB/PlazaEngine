@@ -11,7 +11,7 @@ namespace Plaza::Editor {
 		char mSearchBuffer[512] = "";
 		//std::vector<std::any&> mValues;
 		void Init() override;
-		void Update() override;
+		void Update(Scene* scene) override;
 		void SetValues();
 		void OnKeyPress(int key, int scancode, int action, int mods) override {}
 		void ExecuteCallback(uint64_t uuid) {

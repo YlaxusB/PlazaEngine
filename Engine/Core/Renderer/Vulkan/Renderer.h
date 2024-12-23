@@ -83,7 +83,7 @@ namespace Plaza {
 		void Init() override;
 		void InitializeRenderGraph(PlazaRenderGraph* renderGraph) override;
 		void UpdateProjectManager() override;
-		void Render() override;
+		void Render(Scene* scene) override;
 		void RenderImGuiFrame(std::vector<ImDrawData*> drawDatas) override;
 		void RecordImGuiFrame(std::vector<ImDrawData*> drawDatas) override;
 		void UpdateMainProgressBar(float percentage) override;
@@ -97,7 +97,7 @@ namespace Plaza {
 		ImTextureID GetFrameImage() override;
 
 		void UploadBindlessTexture(VulkanTexture* texture, int index = -1);
-		void UpdateInstancesData();
+		void UpdateInstancesData(Scene* scene);
 
 		VkRenderPass CreateRenderPass(VkAttachmentDescription* attachmentDescs, uint32_t attachmentsCount, VkSubpassDescription* subpasses, uint32_t subpassesCount, VkSubpassDependency* dependencies, uint32_t dependenciesCount, void* next = nullptr);
 		VkFramebuffer CreateFramebuffer(VkRenderPass& renderPass, glm::vec2 size, VkImageView* pAttachmentsData, uint32_t attachmentsCount, uint32_t layers);
@@ -276,14 +276,13 @@ namespace Plaza {
 		void CreateCommandBuffers();
 		void CreateImGuiTextureSampler();
 
-		void UpdatePreRenderData();
+		void UpdatePreRenderData(Scene* scene);
 		void UpdatePreRecord();
 		void UpdateAfterRecord();
 
 		void CleanupSwapChain();
 		void RecreateSwapChain();
 
-		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 		float time = 0.0f;
 		bool increasing = true;
 		void CalculateBonesParentship(Bone* bone, glm::mat4 parentTransform, float time, uint64_t boneId);

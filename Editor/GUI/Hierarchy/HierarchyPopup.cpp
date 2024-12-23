@@ -6,10 +6,10 @@
 #include "Editor/GUI/Popups/NewEntityPopup.h"
 Entity* obj = nullptr;
 namespace Plaza::Editor {
-	void HierarchyPopup::Update() {
+	void HierarchyPopup::Update(Scene* scene) {
 		if (ImGui::BeginPopupContextWindow())
 		{
-			Popup::NewEntityPopup::Init(obj);
+			Popup::NewEntityPopup::Init(obj, nullptr, scene);
 
 			ImGui::EndPopup();
 

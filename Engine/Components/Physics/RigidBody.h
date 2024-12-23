@@ -5,29 +5,32 @@
 namespace Plaza {
 	class PLAZA_API RigidBody : public Component {
 	public:
+		// FIX: ----- Rework Physics -----
+
+
 		//physx::PxRigidStatic* rb;
 		//physx::PxMaterial* mMaterial;
 		virtual void OnInstantiate(Component* componentToInstantiate) override;
 		RigidBody() {};
 		RigidBody(uint64_t uuid, bool initWithPhysics, bool dynamic = true);
 		RigidBody(const RigidBody& other) = default;
-		~RigidBody();
+		~RigidBody() {}
 
 		void Init();
 
-		void Update();
-		void UpdateGlobalPose();
-		void UpdateRigidBody();
+		void Update() {}
+		void UpdateGlobalPose() {}
+		void UpdateRigidBody() {}
 
-		void AddCollidersOfChildren(uint64_t parent);
+		void AddCollidersOfChildren(uint64_t parent) {}
 
-		void ApplyForce(glm::vec3 force);
-		void AddForce(glm::vec3 force, physx::PxForceMode::Enum mode = physx::PxForceMode::eFORCE, bool autowake = true);
-		void AddTorque(glm::vec3 torque, physx::PxForceMode::Enum mode = physx::PxForceMode::eFORCE, bool autowake = true);
-		float GetDrag();
-		void SetDrag(float drag);
-		glm::vec3 GetVelocity();
-		void SetVelocity(glm::vec3 vector);
+		void ApplyForce(glm::vec3 force) {}
+		void AddForce(glm::vec3 force, physx::PxForceMode::Enum mode = physx::PxForceMode::eFORCE, bool autowake = true){}
+		void AddTorque(glm::vec3 torque, physx::PxForceMode::Enum mode = physx::PxForceMode::eFORCE, bool autowake = true){}
+		float GetDrag() { return 0.0f; }
+		void SetDrag(float drag) {}
+		glm::vec3 GetVelocity() { return glm::vec3(0.0f); }
+		void SetVelocity(glm::vec3 vector) {}
 
 		bool canUpdate = true;
 
@@ -39,8 +42,8 @@ namespace Plaza {
 		float mRestitution = 0.5f;
 
 		physx::PxRigidDynamicLockFlags rigidDynamicLockFlags;
-		void SetRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::Enum flag, bool value);
-		void SetRigidBodyFlag(physx::PxRigidBodyFlag::Enum flag, bool value);
+		void SetRigidDynamicLockFlags(physx::PxRigidDynamicLockFlag::Enum flag, bool value) {}
+		void SetRigidBodyFlag(physx::PxRigidBodyFlag::Enum flag, bool value) {}
 
 
 		bool lockRotation = false;

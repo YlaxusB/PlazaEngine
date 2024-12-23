@@ -25,7 +25,7 @@ namespace Plaza::Editor {
 		return localEulerAnglesResult;
 	}
 
-	void Gizmo::Draw(Entity* entity, Camera camera) {
+	void Gizmo::Draw(Scene* scene, Entity* entity, Camera camera) {
 
 		ApplicationSizes& appSizes = *Application::Get()->appSizes;
 		// Setup imguizmo
@@ -43,10 +43,8 @@ namespace Plaza::Editor {
 		ImGuizmo::SetRect(appSizes.sceneImageStart.x, appSizes.sceneImageStart.y, appSizes.sceneSize.x, appSizes.sceneSize.y);
 
 		// Get the object transform and camera matrices
-		TransformComponent& a = *entity->GetComponent<TransformComponent>();
-		TransformComponent& b = *entity->GetComponent<TransformComponent>();
-		auto& parentTransform = *Scene::GetActiveScene()->entities[entity->parentUuid].GetComponent<TransformComponent>();
-		auto& transform = *entity->GetComponent<TransformComponent>();
+		auto& parentTransform = *scene->GetComponent<TransformComponent>(entity->parentUuid);
+		auto& transform = *scene->GetComponent<TransformComponent>(entity->uuid);
 
 		glm::mat4 projection = camera.GetProjectionMatrix();
 		glm::mat4 view = camera.GetViewMatrix();
@@ -56,8 +54,8 @@ namespace Plaza::Editor {
 
 		ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), activeOperation, activeMode, glm::value_ptr(gizmoTransform));
 
-		RigidBody* rigidBody = entity->GetComponent<RigidBody>();
-		Collider* collider = entity->GetComponent<Collider>();
+		RigidBody* rigidBody = scene->GetComponent<RigidBody>(entity->uuid);
+		Collider* collider = scene->GetComponent<Collider>(entity->uuid);
 		if (rigidBody && rigidBody->mRigidActor != nullptr) {
 			rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, true);
 			rigidBody->canUpdate = false;

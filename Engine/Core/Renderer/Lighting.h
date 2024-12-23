@@ -31,7 +31,7 @@ namespace Plaza {
 		};
 
 		virtual void Init() = 0;
-		virtual void GetLights() = 0;
+		virtual void GetLights(Scene* scene) = 0;
 		virtual void UpdateTiles() = 0;
 		virtual void Terminate() = 0;
 

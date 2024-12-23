@@ -51,7 +51,7 @@ namespace Plaza::Editor {
 					if (Filewatcher::mMainThreadQueue.size() <= 0) {
 						Filewatcher::AddToMainThread([finalPath]() {
 							ScriptManager::RecompileDll("", "");
-							std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = FieldManager::GetAllScritpsFields();
+							std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = FieldManager::GetAllScritpsFields(Scene::GetEditorScene());
 							//Mono::OnStartAll(false);
 							//FieldManager::ApplyAllScritpsFields(allFields);
 							});

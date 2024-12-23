@@ -8,7 +8,7 @@
 bool visualizingNormals = false;
 namespace Plaza::Editor {
 	void callback(float) {
-		Application::Get()->editorCamera->Update();
+		Application::Get()->editorCamera->Update(Scene::GetActiveScene());
 		//Application::Get()->editorCamera = new Plaza::Camera(*Application::Get()->editorCamera);
 		//Application::Get()->activeCamera = Application::Get()->editorCamera;
 	}
@@ -16,7 +16,7 @@ namespace Plaza::Editor {
 
 	}
 	void callbacke2(glm::vec3) {
-		Application::Get()->editorCamera->Update();
+		Application::Get()->editorCamera->Update(Scene::GetActiveScene());
 	}
 	static class SceneInspector {
 	public:

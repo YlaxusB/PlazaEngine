@@ -14,7 +14,7 @@ namespace Plaza {
 		enum TextAlign { alignLeft, alignCenter, alignRight };
 
 		void Init() override;
-		void RenderText(Drawing::UI::TextRenderer* textRendererComponent = nullptr) override;
+		void RenderText(Scene* scene, Drawing::UI::TextRenderer* textRendererComponent = nullptr) override;
 		void Terminate() override;
 		VkRenderPass mRenderPass;
 		static void AddText(std::string text, float x, float y, float scale, TextAlign align, glm::vec4*& mapped, int& letters);

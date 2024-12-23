@@ -168,10 +168,12 @@ namespace Plaza {
 				std::cout << "Starting Scene\n";
 				Scene::Play();
 				std::cout << "Scene Played \n";
-				if (Scene::GetActiveScene()->cameraComponents.size() > 0)
-					Application::Get()->activeCamera = &Scene::GetActiveScene()->cameraComponents.begin()->second;
-				else
-					Application::Get()->activeCamera = Scene::GetActiveScene()->mainSceneEntity->AddComponent<Camera>(new Camera());
+				// FIX: Add Camera correctly again
+				//if (Scene::GetActiveScene()->cameraComponents.size() > 0)
+				//	Application::Get()->activeCamera = &Scene::GetActiveScene()->cameraComponents.begin()->second;
+				//else
+				//	Application::Get()->activeCamera = Scene::GetActiveScene()->mainSceneEntity->AddComponent<Camera>(new Camera());
+				Application::Get()->activeCamera = Scene::GetActiveScene()->AddComponent<Camera>(Scene::GetActiveScene()->mainSceneEntity->uuid);
 			}
 		}
 
@@ -230,7 +232,7 @@ namespace Plaza {
 		Application::Get()->mThreadsManager->UpdateFrameStartThread();
 
 		// Update Audio Listener
-		Audio::UpdateListener();
+		Audio::UpdateListener(Scene::GetActiveScene());
 
 		// Update Filewatcher main thread
 		Filewatcher::UpdateOnMainThread();
@@ -242,7 +244,7 @@ namespace Plaza {
 
 		/* Update Scripts */
 		if (Application::Get()->runningScene) {
-			Scripting::Update();
+			Scripting::Update(Scene::GetActiveScene());
 		}
 
 		/* Update Physics */
@@ -253,7 +255,7 @@ namespace Plaza {
 		}
 
 		// Update Camera Position and Rotation
-		Application::Get()->activeCamera->Update();
+		Application::Get()->activeCamera->Update(Scene::GetActiveScene());
 
 		// Imgui New Frame (only if running editor)
 #ifdef EDITOR_MODE
@@ -266,7 +268,7 @@ namespace Plaza {
 		Time::mUniqueTriangles = 0;
 		Time::mTotalTriangles = 0;
 
-		Application::Get()->mRenderer->Render();
+		Application::Get()->mRenderer->Render(Scene::GetActiveScene());
 
 		Application::Get()->mThreadsManager->UpdateFrameEndThread();
 

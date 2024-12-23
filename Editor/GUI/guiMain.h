@@ -38,20 +38,20 @@ namespace Plaza {
 			static inline ImGuiContext* mMainContext = nullptr;
 			static inline ImGuiContext* mMainProgressBarContext = nullptr;
 
-			static void setupDockspace(GLFWwindow* window, Camera* camera);
+			static void setupDockspace(Scene* scene, GLFWwindow* window, Camera* camera);
 			static void changeSelectedGameObject(Entity* newSelectedGameObject);
 			static void Init(GLFWwindow* window);
 			static void Delete();
 			static void Update();
 			static void NewFrame();
 
-			static void beginScene(Camera& camera);
-			static void beginEditor(Camera& camera);
-			static void beginHierarchyView();
-			static void beginInspector(Camera camera);
-			static void beginImageInspector(Camera camera);
-			static void beginAssetsViewer(Camera camera);
-			static void beginProfiler();
+			static void beginScene(Scene* scene, Camera& camera);
+			static void beginEditor(Scene* scene, Camera& camera);
+			static void beginHierarchyView(Scene* scene);
+			static void beginInspector(Scene* scene, Camera camera);
+			static void beginImageInspector(Scene* scene, Camera camera);
+			static void beginAssetsViewer(Scene* scene, Camera camera);
+			static void beginProfiler(Scene* scene);
 			static void beginMainProgressBar(float percentage);
 
 			static inline bool mImageInspectorShowAllImages = false;

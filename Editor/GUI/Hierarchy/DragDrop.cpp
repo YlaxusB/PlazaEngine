@@ -3,23 +3,23 @@
 #include "Engine/Utils/vectorUtils.h"
 #include "Engine/ECS/ECSManager.h"
 using namespace Plaza;
-void payloadDrop(Plaza::Entity* entity, Plaza::Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, const ImGuiPayload* payload);
-void InsertBefore(Plaza::Entity* payloadObj, Plaza::Entity* currentObj);
-void InsertAsChild(Plaza::Entity* payloadObj, Plaza::Entity* currentObj);
-void InsertAfter(Plaza::Entity* payloadObj, Plaza::Entity* currentObj);
+void payloadDrop(Plaza::Entity* entity, Plaza::Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, const ImGuiPayload* payload, Scene* scene);
+void InsertBefore(Plaza::Entity* payloadObj, Plaza::Entity* currentObj, Scene* scene);
+void InsertAsChild(Plaza::Entity* payloadObj, Plaza::Entity* currentObj, Scene* scene);
+void InsertAfter(Plaza::Entity* payloadObj, Plaza::Entity* currentObj, Scene* scene);
 
 
 namespace Plaza::Editor {
-	void HierarchyWindow::Item::HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax) {
+	void HierarchyWindow::Item::HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, Scene* scene) {
 		if (entity.parentUuid && ImGui::BeginDragDropTarget()) {
 			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadName.c_str())) {
-				payloadDrop(&entity, currentObj, treeNodeMin, treeNodeMax, payload);
+				payloadDrop(&entity, currentObj, treeNodeMin, treeNodeMax, payload, scene);
 			}
 			ImGui::EndDragDropTarget();
 		}
 	}
 }
-void payloadDrop(Plaza::Entity* entity, Plaza::Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, const ImGuiPayload* payload) {
+void payloadDrop(Plaza::Entity* entity, Plaza::Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, const ImGuiPayload* payload, Scene* scene) {
 	if (payload->DataSize == sizeof(Plaza::Entity*)) {
 		/* The current "object" is the one that the mouse was over when dropped*/
 		/* PayloadObj is the dragged object */
@@ -33,19 +33,19 @@ void payloadDrop(Plaza::Entity* entity, Plaza::Entity* currentObj, ImVec2 treeNo
 		ImVec2 treeNodeCenter = ImVec2(treeNodePos.x, treeNodePos.y + treeNodeSize.y / 2);
 
 		if (mousePos.y < treeNodeCenter.y - treeNodeSize.y * 0.15f) { // Top
-			InsertBefore(payloadObj, currentObj);
+			InsertBefore(payloadObj, currentObj, scene);
 		}
 		else if (mousePos.y > treeNodeCenter.y + treeNodeSize.y * 0.15f) { // Bottom
 
 			if (currentObj->childrenUuid.size() > 0) {
-				InsertAsChild(payloadObj, currentObj);
+				InsertAsChild(payloadObj, currentObj, scene);
 			}
 			else {
-				InsertAfter(payloadObj, currentObj);
+				InsertAfter(payloadObj, currentObj, scene);
 			}
 		}
 		else { // Center
-			InsertAsChild(payloadObj, currentObj);
+			InsertAsChild(payloadObj, currentObj, scene);
 		}
 	}
 }
@@ -70,7 +70,7 @@ void InsertAfter(Plaza::Entity* payloadObj, Plaza::Entity* currentObj, Scene* sc
 	Scene::GetActiveScene()->entities.at(payloadObj->uuid).parentUuid = currentObj->parentUuid;
 	Entity& currentObjParent = *scene->GetEntity(currentObj->parentUuid);
 	scene->GetEntity(currentObj->parentUuid)->childrenUuid.insert(scene->GetEntity(currentObj->parentUuid)->childrenUuid.begin() + Utils::Vector::indexOf(scene->GetEntity(currentObj->parentUuid)->childrenUuid, currentObj->uuid) + 1, payloadObj->uuid);
-	ECS::TransformComponent::UpdateSelfAndChildrenTransform(scene->GetComponent<TransformComponent>(payloadObj->parentUuid));
+	ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(payloadObj->parentUuid), scene);
 }
 
 void InsertAsChild(Plaza::Entity* payloadObj, Plaza::Entity* currentObj, Scene* scene) {

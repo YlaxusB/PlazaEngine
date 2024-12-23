@@ -8,7 +8,7 @@ namespace Plaza {
 			Console(GuiLayer layer, bool startOpen = true) : GuiWindow(layer, startOpen) { }
 
 			void Init() override;
-			void Update() override;
+			void Update(Scene* scene) override;
 
 			void Print(std::string value);
 			void AddConsoleVariable(void* value, std::string name) {

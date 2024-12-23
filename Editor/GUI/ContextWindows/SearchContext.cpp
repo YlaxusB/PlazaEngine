@@ -7,7 +7,7 @@ namespace Plaza::Editor {
 
 	}
 
-	void SearchContext::Update() {
+	void SearchContext::Update(Scene* scene) {
 		bool wasOpen = mIsOpen;
 		if (ImGui::Begin(mName.c_str(), &mIsOpen)) {
 			this->UpdateHovered();

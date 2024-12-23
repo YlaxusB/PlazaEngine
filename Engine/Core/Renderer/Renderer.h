@@ -61,7 +61,7 @@ namespace Plaza {
 		virtual void Init() = 0;
 		virtual void InitializeRenderGraph(PlazaRenderGraph* renderGraph) = 0;
 		virtual void UpdateProjectManager() = 0;
-		virtual void Render() = 0;
+		virtual void Render(Scene* scene) = 0;
 		virtual void RenderImGuiFrame(std::vector<ImDrawData*> drawDatas) = 0;
 		virtual void RecordImGuiFrame(std::vector<ImDrawData*> drawDatas) = 0;
 		virtual void UpdateMainProgressBar(float percentage) = 0;

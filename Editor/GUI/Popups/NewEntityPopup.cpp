@@ -5,7 +5,7 @@
 #include "Engine/Core/Physics.h"
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 namespace Plaza::Editor {
-	Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true, bool addToScene = true, Scene* scene) {
+	Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true, bool addToScene = true, Scene* scene = nullptr) {
 		Entity* obj = new Entity(name, parent, addToScene);
 		obj->changingName = true;
 		Scene::GetActiveScene()->entities.at(obj->uuid).changingName = true;

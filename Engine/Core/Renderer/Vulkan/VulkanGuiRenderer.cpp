@@ -385,7 +385,7 @@ namespace Plaza {
 		}
 	}
 
-	void VulkanGuiRenderer::RenderText(Drawing::UI::TextRenderer* textRendererComponent) {
+	void VulkanGuiRenderer::RenderText(Scene* scene, Drawing::UI::TextRenderer* textRendererComponent) {
 		VkCommandBuffer cmdBuffer = *mRenderer->mActiveCommandBuffer;
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mTextPipeline->mShaders->mPipeline);
 		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mTextPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSet, 0, NULL);
@@ -393,8 +393,9 @@ namespace Plaza {
 		vkMapMemory(*mDevice, mMemory, 0, VK_WHOLE_SIZE, 0, (void**)&mappede);
 		numLetters = 0;
 
-		for (auto& [key, value] : Scene::GetActiveScene()->UITextRendererComponents) {
-			this->AddText(value.mText, value.mPosX, value.mPosY, value.mScale, TextAlign::alignLeft, mappede, numLetters);
+		for (const uint64_t& uuid : SceneView<Plaza::Drawing::UI::TextRenderer>(scene)) {
+			auto& component = *scene->GetComponent<Plaza::Drawing::UI::TextRenderer>(uuid);
+			this->AddText(component.mText, component.mPosX, component.mPosY, component.mScale, TextAlign::alignLeft, mappede, numLetters);
 		}
 
 

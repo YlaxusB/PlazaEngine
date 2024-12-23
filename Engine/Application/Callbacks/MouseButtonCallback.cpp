@@ -8,6 +8,8 @@ using namespace Plaza::Editor;
 using namespace Plaza;
 
 void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+	// FIX: Implement proper way to get scene instead of active scene
+	Scene* scene = Scene::GetActiveScene();
 	for (CallbackFunction callbackFunction : sOnMouseFunctions) {
 		bool isLayerFocused = Editor::Gui::sFocusedLayer == callbackFunction.layerToExecute;
 		if (isLayerFocused)
@@ -19,8 +21,9 @@ void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, 
 	}
 
 	if (Application::Get()->runningScene && Application::Get()->focusedMenu == "Scene") {
-		for (auto& [key, value] : Scene::GetActiveScene()->guiComponents) {
-			for (auto& [itemKey, itemValue] : value.mGuiItems) {
+		for (uint64_t uuid : SceneView<GuiComponent>(scene)) {
+			GuiComponent* component = scene->GetComponent<GuiComponent>(uuid);
+			for (auto& [itemKey, itemValue] : component->mGuiItems) {
 				if (itemValue->mGuiType == GuiType::PL_GUI_BUTTON) {
 					double x;
 					double y;
@@ -57,7 +60,7 @@ void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, 
 			yposGame = appSizes.sceneSize.y - (lastY - appSizes.sceneImageStart.y - 35);
 			uint64_t clickUuid = 0;
 
-			if (Editor::selectedGameObject && Editor::selectedGameObject->GetComponent<TransformComponent>() != nullptr && Editor::selectedGameObject->parentUuid != 0)
+			if (Editor::selectedGameObject && scene->HasComponent<TransformComponent>(Editor::selectedGameObject->uuid) && Editor::selectedGameObject->parentUuid != 0)
 				ImGuizmoHelper::IsDrawing = true;
 			else
 				ImGuizmoHelper::IsDrawing = false;
@@ -67,7 +70,7 @@ void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, 
 			if (pressingLeftClick && (!ImGuizmoHelper::IsDrawing || drawingButMouseNotOverGizmo)) {
 				//	Application::Get()->pickingTexture->GenerateTexture();
 				//    	clickUuid = Application::Get()->pickingTexture->readPixel(xposGame, yposGame);
-				clickUuid = Application::Get()->mRenderer->mPicking->DrawAndRead(glm::vec2(xposGame, yposGame));
+				clickUuid = Application::Get()->mRenderer->mPicking->DrawAndRead(scene, glm::vec2(xposGame, yposGame));
 
 				auto it = Scene::GetActiveScene()->entities.find(clickUuid);
 				if (it != Scene::GetActiveScene()->entities.end()) {

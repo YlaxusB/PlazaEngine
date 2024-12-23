@@ -13,7 +13,7 @@ namespace Plaza::Editor {
 		Scene* mScene = nullptr;
 
 		void Init() override;
-		void Update() override;
+		void Update(Scene* scene) override;
 
 	private:
 		void OnKeyPress(int key, int scancode, int action, int mods) override;
@@ -27,7 +27,7 @@ namespace Plaza::Editor {
 			static bool firstFocus;
 
 			static void NewItem(Entity& entity, Entity*& selectedGameObject, Scene* scene);
-			static void HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax);
+			static void HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, Scene* scene);
 
 			static void ItemPopup(Entity& entity, Scene* scene);
 		};

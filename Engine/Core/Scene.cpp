@@ -15,6 +15,10 @@
 
 namespace Plaza {
 
+	void Scene::Copy(Scene* baseScene) {
+
+	}
+
 	void Scene::NewRuntimeScene(Scene* baseScene) {
 
 	}

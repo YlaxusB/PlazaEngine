@@ -193,9 +193,10 @@ namespace Plaza {
 		return fields;
 	}
 
-	std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> FieldManager::GetAllScritpsFields() {
+	std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> FieldManager::GetAllScritpsFields(Scene* scene) {
 		std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>>(); // Entity UUID, Class Name, Field Name
-		for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
+		for (const uint64_t& key : SceneView<CsScriptComponent>(scene)) {
+			auto& value = *scene->GetComponent<CsScriptComponent>(key);
 			for (auto& [scriptClassName, scriptClassValue] : value.scriptClasses) {
 				std::map<std::string, Field*> map = FieldManager::GetFieldsValues(scriptClassValue->monoObject);
 				std::map<std::string, std::map<std::string, Field*>> subMap = std::map<std::string, std::map<std::string, Field*>>();
@@ -206,8 +207,9 @@ namespace Plaza {
 		return allFields;
 	}
 
-	void FieldManager::ApplyAllScritpsFields(std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields) {
-		for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
+	void FieldManager::ApplyAllScritpsFields(Scene* scene, std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields) {
+		for (const uint64_t& key : SceneView<CsScriptComponent>(scene)) {
+			auto& value = *scene->GetComponent<CsScriptComponent>(key);
 			for (auto& [scriptClassKey, scriptClassValue] : value.scriptClasses) {
 				MonoClassField* monoField = NULL;
 				void* iter = NULL;

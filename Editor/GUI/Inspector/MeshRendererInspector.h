@@ -12,10 +12,10 @@ namespace Plaza::Editor {
 	public:
 		static inline SearchContext* sMaterialsSearch = new SearchContext("MaterialSearchContext");
 
-		MeshRendererInspector(Entity* entity) {
-			if (Utils::ComponentInspectorHeader(entity->GetComponent<MeshRenderer>(), "Mesh Renderer")) {
+		MeshRendererInspector(Scene* scene, Entity* entity) {
+			if (Utils::ComponentInspectorHeader(scene->GetComponent<MeshRenderer>(entity->uuid), "Mesh Renderer")) {
 				ImGui::PushID("MeshRendererInspector");
-				MeshRenderer* meshRenderer = entity->GetComponent<MeshRenderer>();
+				MeshRenderer* meshRenderer = scene->GetComponent<MeshRenderer>(entity->uuid);
 
 				if (ImGui::TreeNodeEx("Materials List", ImGuiTreeNodeFlags_DefaultOpen)) {
 					unsigned int index = 0;
@@ -61,7 +61,7 @@ namespace Plaza::Editor {
 				}
 
 				if (sMaterialsSearch->IsOpen())
-					sMaterialsSearch->Update();
+					sMaterialsSearch->Update(scene);
 				ImGui::PopID();
 			}
 

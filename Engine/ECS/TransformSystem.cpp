@@ -2,18 +2,18 @@
 #include "ECSManager.h"
 
 namespace Plaza {
-	void Transform::OnInstantiate(Component* componentToInstantiate, TransformComponent& transform) {
+	void ECS::TransformSystem::OnInstantiate(Component* componentToInstantiate, TransformComponent& transform) {
 		TransformComponent* component = static_cast<TransformComponent*>(componentToInstantiate);
 		transform.SetRelativePosition(component->relativePosition);
 		transform.SetRelativeRotation(glm::eulerAngles(component->rotation));
 		transform.scale = component->scale;
 	}
 
-	const Transform::glm::vec3& GetWorldPosition(const TransformComponent& transform) {
+	const glm::vec3& ECS::TransformSystem::GetWorldPosition(const TransformComponent& transform) {
 		return transform.modelMatrix[3];
 	}
 
-	const Transform::glm::vec3& GetWorldRotation(const TransformComponent& transform) {
+	const glm::vec3& ECS::TransformSystem::GetWorldRotation(const TransformComponent& transform) {
 		glm::vec3 scale;
 		glm::vec3 translation;
 		glm::quat rotation;
@@ -23,7 +23,7 @@ namespace Plaza {
 		return glm::eulerAngles(rotation);
 	}
 
-	const Transform::glm::vec3& GetWorldScale(const TransformComponent& transform) {
+	const glm::vec3& ECS::TransformSystem::GetWorldScale(const TransformComponent& transform) {
 		glm::vec3 scale;
 		scale.x = glm::length(transform.modelMatrix[0]);
 		scale.y = glm::length(transform.modelMatrix[1]);
@@ -31,21 +31,17 @@ namespace Plaza {
 		return scale;
 	}
 
-	void Transform::UpdateWorldMatrix(TransformComponent& transform, Scene* scene) {
+	void ECS::TransformSystem::UpdateWorldMatrix(TransformComponent& transform, Scene* scene) {
 		uint64_t parentUuid = Scene::GetActiveScene()->entities.find(transform.mUuid)->second.parentUuid;
-		if (parentUuid && Scene::GetActiveScene()->transformComponents.find(parentUuid) != Scene::GetActiveScene()->transformComponents.end()) {
-			glm::mat4 parentModelMatrix = scene->GetComponent<Transform>(parentUuid)->modelMatrix;
-			if (transform.lastParentModelMatrix != parentModelMatrix || transform.lastLocalMatrix != transform.localMatrix) {
-				transform.modelMatrix = parentModelMatrix * transform.localMatrix;
-				transform.lastParentModelMatrix = parentModelMatrix;
-				transform.lastLocalMatrix = transform.localMatrix;
-			}
+		if (parentUuid && scene->HasComponent<TransformComponent>(parentUuid)) {
+			glm::mat4 parentModelMatrix = scene->GetComponent<TransformComponent>(parentUuid)->modelMatrix;
+			transform.modelMatrix = parentModelMatrix * transform.localMatrix;
 		}
 		else
 			transform.modelMatrix = glm::mat4(1.0f) * transform.localMatrix;
 	}
 
-	const Transform::glm::quat& GetLocalQuaternion(const TransformComponent& transform) {
+	const glm::quat& ECS::TransformSystem::GetLocalQuaternion(const TransformComponent& transform) {
 		return glm::normalize(glm::quat_cast(transform.localMatrix)); // radians
 	}
 
@@ -53,28 +49,28 @@ namespace Plaza {
 	/// Returns the Quaternion of the Transform World Rotation in radians
 	/// </summary>
 	/// <returns></returns>
-	const Transform::glm::quat& GetWorldQuaternion(const TransformComponent& transform) {
+	const glm::quat& ECS::TransformSystem::GetWorldQuaternion(const TransformComponent& transform) {
 		return glm::normalize(glm::quat_cast(transform.modelMatrix));
 	}
 
-	void Transform::UpdateLocalMatrix(const TransformComponent& transform) {
+	void ECS::TransformSystem::UpdateLocalMatrix(TransformComponent& transform) {
 		transform.localMatrix = glm::translate(glm::mat4(1.0f), transform.relativePosition)
-			* glm::toMat4(rotation)
-			* glm::scale(glm::mat4(1.0f), scale);
+			* glm::toMat4(transform.rotation)
+			* glm::scale(glm::mat4(1.0f), transform.scale);
 	}
 
-	const Transform::glm::mat4& GetLocalMatrix(const TransformComponent& transform) {
+	const glm::mat4& ECS::TransformSystem::GetLocalMatrix(const TransformComponent& transform) {
 		return transform.localMatrix;
 	}
 
-	void Transform::UpdateObjectTransform(const TransformComponent& transform) {
+	void ECS::TransformSystem::UpdateObjectTransform(TransformComponent& transform) {
 		transform.UpdateWorldMatrix();
 		//transform.UpdatePhysics();
 	}
 
 
-	void Transform::UpdateChildrenTransform(Entity* entity, Scene* scene) {
-		UpdateObjectTransform(entity);
+	void ECS::TransformSystem::UpdateChildrenTransform(Entity* entity, Scene* scene) {
+		UpdateObjectTransform(*scene->GetComponent<TransformComponent>(entity->uuid));
 
 		for (uint64_t child : entity->childrenUuid) {
 			UpdateObjectTransform(*scene->GetComponent<TransformComponent>(child));
@@ -83,19 +79,14 @@ namespace Plaza {
 		}
 	}
 
-	void Transform::UpdateSelfAndChildrenTransform(const TransformComponent& transform, Scene* scene) {
+	void ECS::TransformSystem::UpdateSelfAndChildrenTransform(TransformComponent& transform, Scene* scene) {
 		UpdateLocalMatrix(transform);
 		UpdateWorldMatrix(transform, scene);
-		if (scene->runningScene)
-			transform.UpdatePhysics();
+		// FIX: Update physics
+		//if (scene->mRunning)
+		//	transform.UpdatePhysics();
 		for (uint64_t child : scene->GetEntity(transform.mUuid)->childrenUuid) {
-			UpdateSelfAndChildrenTransform(*scene->GetComponent<Transform>(child), scene);
-		}
-	}
-
-	void Transform::UpdateChildrenTransform(const TransformComponent& transform, Scene* scene) {
-		if (mUuid) {
-			UpdateChildrenTransform(scene->GetEntity(transform.mUuid), scene);
+			UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(child), scene);
 		}
 	}
 
@@ -120,21 +111,21 @@ namespace Plaza {
 	//	return outVector;
 	//}
 
-	void Transform::SetRelativePosition(TransformComponent& transform, const glm::vec3& vector) {
+	void ECS::TransformSystem::SetRelativePosition(TransformComponent& transform, const glm::vec3& vector) {
 		transform.relativePosition = vector;
 		transform.UpdateSelfAndChildrenTransform();
 	}
 
-	void Transform::SetRelativeRotation(TransformComponent& transform, const glm::quat& quat) {
+	void ECS::TransformSystem::SetRelativeRotation(TransformComponent& transform, const glm::quat& quat) {
 		transform.rotation = quat;
 		transform.UpdateSelfAndChildrenTransform();
 	}
 
-	void Transform::SetRelativeScale(TransformComponent& transform, const glm::vec3& vector, Scene* scene) {
+	void ECS::TransformSystem::SetRelativeScale(TransformComponent& transform, const glm::vec3& vector, Scene* scene) {
 		transform.scale = vector;
 		transform.UpdateSelfAndChildrenTransform();
 		if (scene->HasComponent<Collider>(transform.mUuid)) {
-			scene->GetComponent<Collider>()->UpdateShapeScale(transform.worldScale);
+			scene->GetComponent<Collider>(transform.mUuid)->UpdateShapeScale(transform.worldScale);
 		}
 	}
 }

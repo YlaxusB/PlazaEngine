@@ -1,14 +1,15 @@
 #pragma once
 
 namespace Plaza {
-	class ECSManager {
+	class PLAZA_API ECSManager {
 	public:
 
 	};
 
-	struct ComponentPool {
-		ComponentPool(size_t elementsSize) {
+	struct PLAZA_API ComponentPool {
+		ComponentPool(size_t elementsSize, int componentId) {
 			mElementSize = elementsSize;
+			mComponentId = componentId;
 		}
 
 		~ComponentPool() {
@@ -21,11 +22,17 @@ namespace Plaza {
 
 		char* mData{ nullptr };
 		size_t mElementSize{ 0 };
+		int mComponentId = 0;
 	};
 
-	class ECS {
+	class PLAZA_API ECS {
 	public:
-		class Transform {
+		class EntitySystem {
+		public:
+			static void Delete(Scene* scene, uint64_t uuid);
+			static uint64_t Instantiate(Scene* scene, uint64_t uuidToInstantiate);
+		};
+		class TransformSystem {
 		public:
 			static void OnInstantiate(Component* componentToInstantiate, TransformComponent& transform);
 			static const glm::vec3& GetWorldPosition(const TransformComponent& transform);
@@ -34,12 +41,11 @@ namespace Plaza {
 			static void UpdateWorldMatrix(TransformComponent& transform, Scene* scene);
 			static const glm::quat& GetLocalQuaternion(const TransformComponent& transform);
 			static const glm::quat& GetWorldQuaternion(const TransformComponent& transform);
-			static void UpdateLocalMatrix(const TransformComponent& transform);
+			static void UpdateLocalMatrix(TransformComponent& transform);
 			static const glm::mat4& GetLocalMatrix(const TransformComponent& transform);
-			static void UpdateObjectTransform(const TransformComponent& transform);
+			static void UpdateObjectTransform(TransformComponent& transform);
 			static void UpdateChildrenTransform(Entity* entity, Scene* scene);
-			static void UpdateSelfAndChildrenTransform(const TransformComponent& transform, Scene* scene);
-			static void UpdateChildrenTransform(const TransformComponent& transform, Scene* scene);
+			static void UpdateSelfAndChildrenTransform(TransformComponent& transform, Scene* scene);
 			static void SetRelativePosition(TransformComponent& transform, const glm::vec3& vector);
 			static void SetRelativeRotation(TransformComponent& transform, const glm::quat& quat);
 			static void SetRelativeScale(TransformComponent& transform, const glm::vec3& vector, Scene* scene);

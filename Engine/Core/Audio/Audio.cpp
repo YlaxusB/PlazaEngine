@@ -53,11 +53,11 @@ namespace Plaza {
 		alListenerfv(AL_ORIENTATION, listenerOri);
 	}
 
-	void Audio::UpdateListener() {
+	void Audio::UpdateListener(Scene* scene) {
 		PLAZA_PROFILE_SECTION("Update Audio");
-		if (Application::Get()->runningScene && Application::Get()->activeCamera != Application::Get()->editorCamera) {
-			if (Scene::GetActiveScene()->entities.find(Application::Get()->activeCamera->mUuid) != Scene::GetActiveScene()->entities.end() && Scene::GetActiveScene()->GetEntity(Application::Get()->activeCamera->mUuid)->HasComponent<AudioListener>())
-				Scene::GetActiveScene()->GetEntity(Application::Get()->activeCamera->mUuid)->GetComponent<AudioListener>()->UpdateListener();
+		if (Application::Get()->runningScene) {
+			if (auto component = scene->GetComponent<AudioListener>(Application::Get()->activeCamera->mUuid))
+				component->UpdateListener();
 		}
 		else {
 			glm::vec3 position = Application::Get()->activeCamera->Position;
@@ -78,8 +78,9 @@ namespace Plaza {
 			alListenerfv(AL_ORIENTATION, listenerOrientation);
 		}
 
-		for (auto& [key, value] : Scene::GetActiveScene()->audioSourceComponents) {
-			value.SetPosition(Scene::GetActiveScene()->GetComponent<TransformComponent>(key)->GetWorldPosition());
+		for (uint64_t uuid : SceneView<AudioSource>(scene)) {
+			AudioSource* component = scene->GetComponent<AudioSource>(uuid);
+			component->SetPosition(scene->GetComponent<TransformComponent>(uuid)->GetWorldPosition());
 		}
 	}
 }

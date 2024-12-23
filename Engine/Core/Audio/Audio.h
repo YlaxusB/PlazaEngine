@@ -8,6 +8,6 @@ namespace Plaza {
 	public:
 		static ALCdevice* sAudioDevice;
 		static void Init();
-		static void UpdateListener();
+		static void UpdateListener(Scene* scene);
 	};
 }

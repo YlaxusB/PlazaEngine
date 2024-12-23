@@ -21,7 +21,7 @@ namespace Plaza::Editor {
 		Callbacks::AddFunctionToKeyCallback({ onKeyPressLambda, GuiLayer::ASSETS_IMPORTER });
 	}
 
-	void HierarchyWindow::Update() {
+	void HierarchyWindow::Update(Scene* scene) {
 		PLAZA_PROFILE_SECTION("Begin Hierarchy");
 		ApplicationSizes& appSizes = *Application::Get()->appSizes;
 		ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
@@ -39,7 +39,7 @@ namespace Plaza::Editor {
 		}
 
 		appSizes.hierarchySize.x = ImGui::GetWindowSize().x;
-		HierarchyPopup::Update();
+		HierarchyPopup::Update(scene);
 
 		if (Editor::selectedGameObject)
 			Editor::selectedFiles.clear();
@@ -49,7 +49,7 @@ namespace Plaza::Editor {
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-		HierarchyWindow::Item::NewItem(Scene::GetActiveScene()->entities[Scene::GetActiveScene()->mainSceneEntity->uuid], selectedGameObject, mScene);
+//		HierarchyWindow::Item::NewItem(Scene::GetActiveScene()->entities[Scene::GetActiveScene()->mainSceneEntity->uuid], selectedGameObject, mScene);
 		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
 
@@ -185,7 +185,7 @@ namespace Plaza::Editor {
 				ImGui::EndDragDropSource();
 			}
 
-			HierarchyWindow::Item::HierarchyDragDrop(entity, &entity, treeNodeMin, treeNodeMax);
+			HierarchyWindow::Item::HierarchyDragDrop(entity, &entity, treeNodeMin, treeNodeMax, scene);
 		}
 		bool treePop = !entity.changingName && !nameChanged;
 		if (ImGui::IsItemHovered() || ImGui::IsPopupOpen("ItemPopup")) {
@@ -200,7 +200,7 @@ namespace Plaza::Editor {
 		{
 			for (uint64_t child : entity.childrenUuid)
 			{
-				HierarchyWindow::Item::NewItem(Scene::GetActiveScene()->entities[child], selectedGameObject);
+				HierarchyWindow::Item::NewItem(Scene::GetActiveScene()->entities[child], selectedGameObject, scene);
 			}
 			if (treePop)
 				ImGui::TreePop();
@@ -356,7 +356,7 @@ namespace Plaza::Editor {
 				ImGui::EndMenu();
 			}
 
-			Popup::NewEntityPopup::Init(&entity, &entity);
+			Popup::NewEntityPopup::Init(&entity, &entity, scene);
 
 
 

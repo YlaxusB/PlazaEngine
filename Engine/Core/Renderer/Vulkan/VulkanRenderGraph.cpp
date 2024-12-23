@@ -717,14 +717,14 @@ layout(push_constant) uniform PushConstants {
 			renderGraph->GetRenderPass("EquirectangularToCubeMapPass")->UpdateCommandBuffer(commandBuffer);
 			renderGraph->GetRenderPass("EquirectangularToCubeMapPass")->mPipelines[0]->mPushConstants[0].mData = &converterPushConstants;
 			memcpy(renderGraph->GetRenderPass("EquirectangularToCubeMapPass")->mPipelines[0]->mPushConstants[0].mData, &converterPushConstants, sizeof(EquirectangularToCubeMapPC));
-			renderGraph->GetRenderPass("EquirectangularToCubeMapPass")->Execute(renderGraph);
+			renderGraph->GetRenderPass("EquirectangularToCubeMapPass")->Execute(Scene::GetActiveScene(), renderGraph);
 		}
 
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 
 		commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
 		renderGraph->GetRenderPass("BrdfGeneratorPass")->UpdateCommandBuffer(commandBuffer);
-		renderGraph->GetRenderPass("BrdfGeneratorPass")->Execute(renderGraph);
+		renderGraph->GetRenderPass("BrdfGeneratorPass")->Execute(Scene::GetActiveScene(), renderGraph);
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 
 		commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
@@ -757,7 +757,7 @@ layout(push_constant) uniform PushConstants {
 			renderGraph->GetRenderPass("IrradianceGeneratorPass")->UpdateCommandBuffer(commandBuffer);
 			renderGraph->GetRenderPass("IrradianceGeneratorPass")->mPipelines[0]->mPushConstants[0].mData = &converterPushConstants;
 			memcpy(renderGraph->GetRenderPass("IrradianceGeneratorPass")->mPipelines[0]->mPushConstants[0].mData, &converterPushConstants, sizeof(EquirectangularToCubeMapPC));
-			renderGraph->GetRenderPass("IrradianceGeneratorPass")->Execute(renderGraph);
+			renderGraph->GetRenderPass("IrradianceGeneratorPass")->Execute(Scene::GetActiveScene(), renderGraph);
 		}
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 
@@ -795,7 +795,7 @@ layout(push_constant) uniform PushConstants {
 				renderGraph->GetRenderPass("PreFilteredGeneratorPass")->mPipelines[0]->mPushConstants[0].mData = &converterPushConstants;
 				memcpy(renderGraph->GetRenderPass("PreFilteredGeneratorPass")->mPipelines[0]->mPushConstants[0].mData, &converterPushConstants, sizeof(EquirectangularToCubeMapPC));
 				renderGraph->GetRenderPass("PreFilteredGeneratorPass")->mRenderSize = currentSize;
-				renderGraph->GetRenderPass("PreFilteredGeneratorPass")->Execute(renderGraph);
+				renderGraph->GetRenderPass("PreFilteredGeneratorPass")->Execute(Scene::GetActiveScene(), renderGraph);
 			}
 		}
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
@@ -1382,7 +1382,7 @@ layout(push_constant) uniform PushConstants {
 		renderPass->BindRenderPass();
 	}
 
-	void VulkanRenderGraph::Execute(uint8_t imageIndex, uint8_t currentFrame) {
+	void VulkanRenderGraph::Execute(Scene* scene, uint8_t imageIndex, uint8_t currentFrame) {
 		PLAZA_PROFILE_SECTION("Execute RenderGraph");
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -1408,7 +1408,7 @@ layout(push_constant) uniform PushConstants {
 				static_cast<VulkanRenderPass*>(mOrderedPasses[i].get())->mRenderPass = VulkanRenderer::GetRenderer()->mSwapchainRenderPass;
 			}
 #endif
-			this->GetRenderPass(mOrderedPasses[i]->mName)->Execute(this);
+			this->GetRenderPass(mOrderedPasses[i]->mName)->Execute(scene, this);
 		}
 
 		/* Render ImGui if in Editor build */
@@ -1536,7 +1536,7 @@ layout(push_constant) uniform PushConstants {
 		//VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 	}
 
-	void VulkanRenderPass::RenderGui(PlazaPipeline* pipeline) {
+	void VulkanRenderPass::RenderGui(Scene* scene, PlazaPipeline* pipeline) {
 		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
 		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
 		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
@@ -1547,8 +1547,9 @@ layout(push_constant) uniform PushConstants {
 		std::vector<glm::mat4> buttonsTransform = std::vector<glm::mat4>();
 		std::vector<glm::mat4> textsTransform = std::vector<glm::mat4>();
 		std::vector<glm::mat4>* vector;
-		for (auto& [key, value] : Scene::GetActiveScene()->guiComponents) {
-			for (auto& [itemUuid, item] : value.mGuiItems) {
+		for (const uint64_t& uuid : SceneView<GuiComponent>(scene)) {
+			GuiComponent& component = *scene->GetComponent<GuiComponent>(uuid);
+			for (auto& [itemUuid, item] : component.mGuiItems) {
 				switch (item->mGuiType) {
 				case GuiType::PL_GUI_RECTANGLE: vector = &rectanglesTransform; break;
 				case GuiType::PL_GUI_BUTTON: vector = &buttonsTransform; break;
@@ -1581,7 +1582,7 @@ layout(push_constant) uniform PushConstants {
 		}
 	}
 
-	void VulkanRenderPass::RenderGuiRectangle(PlazaPipeline* pipeline) {
+	void VulkanRenderPass::RenderGuiRectangle(Scene* scene, PlazaPipeline* pipeline) {
 		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
 		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
 		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
@@ -1593,10 +1594,11 @@ layout(push_constant) uniform PushConstants {
 		std::vector<glm::mat4> buttonsTransform = std::vector<glm::mat4>();
 		std::vector<glm::mat4> textsTransform = std::vector<glm::mat4>();
 		std::vector<glm::mat4>* vector;
-		for (auto& [key, value] : Scene::GetActiveScene()->guiComponents) {
-			if (!value.mEnabled)
+		for (const uint64_t& uuid : SceneView<GuiComponent>(scene)) {
+			GuiComponent& component = *scene->GetComponent<GuiComponent>(uuid);
+			if (!component.mEnabled)
 				continue;
-			for (auto& [itemUuid, item] : value.mGuiItems) {
+			for (auto& [itemUuid, item] : component.mGuiItems) {
 				switch (item->mGuiType) {
 				case GuiType::PL_GUI_RECTANGLE: vector = &rectanglesTransform; break;
 				case GuiType::PL_GUI_BUTTON: vector = &buttonsTransform; break;
@@ -1629,13 +1631,13 @@ layout(push_constant) uniform PushConstants {
 		}
 	}
 
-	void VulkanRenderPass::RenderGuiButton(PlazaPipeline* pipeline) {
+	void VulkanRenderPass::RenderGuiButton(Scene* scene, PlazaPipeline* pipeline) {
 		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
 		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
 		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
 
-		for (auto& [key, value] : Scene::GetActiveScene()->guiComponents) {
-			for (auto& [itemUuid, item] : value.mGuiItems) {
+		//for (auto& [key, value] : Scene::GetActiveScene()->guiComponents) {
+			//for (auto& [itemUuid, item] : value.mGuiItems) {
 				//if (item->mGuiType != GuiType::PL_GUI_BUTTON)
 				//	continue;
 				//
@@ -1662,11 +1664,11 @@ layout(push_constant) uniform PushConstants {
 				//for (uint32_t j = 0; j < numLetters; j++) {
 				//	vkCmdDraw(cmdBuffer, 4, 1, j * 4, 0);
 				//}
-			}
-		}
+			//}
+		//}
 	}
 
-	void VulkanRenderPass::RenderGuiText(PlazaPipeline* pipeline) {
+	void VulkanRenderPass::RenderGuiText(Scene* scene, PlazaPipeline* pipeline) {
 		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
 		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
 		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
@@ -1678,7 +1680,8 @@ layout(push_constant) uniform PushConstants {
 		int count = 0;
 		int numLetters = 0;
 		vmaMapMemory(VulkanRenderer::GetRenderer()->mVmaAllocator, textsBuffer->GetAllocation(VulkanRenderer::GetRenderer()->mCurrentFrame), (void**)&mapped);
-		for (auto& [key, value] : Scene::GetActiveScene()->guiComponents) {
+		for (const uint64_t& uuid : SceneView<GuiComponent>(scene)) {
+			GuiComponent& value = *scene->GetComponent<GuiComponent>(uuid);
 			if (!value.mEnabled)
 				continue;
 

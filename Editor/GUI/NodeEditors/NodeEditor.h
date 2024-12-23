@@ -24,7 +24,7 @@ namespace Plaza::Editor {
 
 		void InitNodeEditor();
 		//void Init() override {};
-		void Update() override;
+		void Update(Scene* scene) override;
 		void OnKeyPress(int key, int scancode, int action, int mods) override;
 
 		void InitMathNodes();

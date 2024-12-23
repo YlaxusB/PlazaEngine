@@ -7,10 +7,10 @@
 namespace Plaza {
 	class PLAZA_API Scripting {
 	public:
-		static void LoadProjectCppDll(const Editor::Project& project);
-		static void ReloadAllScripts();
-		static void UnloadAllScripts();
-		static void Update();
+		static void LoadProjectCppDll(Scene* scene, const Editor::Project& project);
+		static void ReloadAllScripts(Scene* scene);
+		static void UnloadAllScripts(Scene* scene);
+		static void Update(Scene* scene);
 
 		static std::filesystem::path CopyPasteDevelopmentLibraryFiles(const Editor::Project& project);
 		static void PasteEngineLibToGameProject(const Editor::Project& project);

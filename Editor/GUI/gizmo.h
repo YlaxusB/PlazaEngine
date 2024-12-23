@@ -24,7 +24,7 @@ using namespace Plaza::Editor;
 namespace Plaza::Editor {
 	class Gizmo {
 	public:
-		static void Draw(Entity* entity, Camera camera);
+		static void Draw(Scene* scene, Entity* entity, Camera camera);
 
 		/// <summary>
 /// Extract translation, rotation and scale from a Matrix 4 

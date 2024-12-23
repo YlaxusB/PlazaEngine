@@ -30,7 +30,7 @@ namespace Plaza {
 		Entity(std::string objName, Entity* parent = nullptr, uint64_t newUuid = 0) : name(objName) { }
 		Entity(const Entity&) = default;
 
-		void Rename(std::string newName);
+		void Rename(std::string newName) {}
 
 		template <class Archive>
 		void serialize(Archive& archive) {

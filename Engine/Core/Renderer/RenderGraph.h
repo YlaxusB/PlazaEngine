@@ -153,7 +153,7 @@ namespace Plaza {
 
 
 		virtual void Compile(PlazaRenderGraph* renderGraph) {};
-		virtual void Execute(PlazaRenderGraph* renderGraph) {
+		virtual void Execute(Scene* scene, PlazaRenderGraph* renderGraph) {
 			mCallback(renderGraph, this);
 			if (mRenderMethod != PL_RENDER_PASS_HOLDER) {
 
@@ -169,16 +169,16 @@ namespace Plaza {
 					case PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH: this->RenderIndirectBufferSpecificMesh(pipeline.get()); break;
 					case PL_RENDER_PASS_CUBE: this->RenderCube(pipeline.get()); break;
 					case PL_RENDER_PASS_COMPUTE: this->RunCompute(pipeline.get()); break;
-					case PL_RENDER_PASS_GUI: this->RenderGui(pipeline.get()); break;
-					case PL_RENDER_PASS_GUI_RECTANGLE: this->RenderGuiRectangle(pipeline.get()); break;
-					case PL_RENDER_PASS_GUI_BUTTON: this->RenderGuiButton(pipeline.get()); break;
-					case PL_RENDER_PASS_GUI_TEXT: this->RenderGuiText(pipeline.get()); break;
+					case PL_RENDER_PASS_GUI: this->RenderGui(scene, pipeline.get()); break;
+					case PL_RENDER_PASS_GUI_RECTANGLE: this->RenderGuiRectangle(scene, pipeline.get()); break;
+					case PL_RENDER_PASS_GUI_BUTTON: this->RenderGuiButton(scene, pipeline.get()); break;
+					case PL_RENDER_PASS_GUI_TEXT: this->RenderGuiText(scene, pipeline.get()); break;
 					}
 				}
 			}
 
 			for (auto& renderPass : mChildPasses) {
-				renderPass->Execute(renderGraph);
+				renderPass->Execute(scene, renderGraph);
 			}
 
 			if (mRenderMethod != PL_RENDER_PASS_HOLDER && mRenderMethod != PL_RENDER_PASS_COMPUTE)
@@ -194,10 +194,10 @@ namespace Plaza {
 		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) { };
 		virtual void RenderCube(PlazaPipeline* pipeline) { };
 		virtual void RunCompute(PlazaPipeline* pipeline) { };
-		virtual void RenderGui(PlazaPipeline* pipeline) { };
-		virtual void RenderGuiRectangle(PlazaPipeline* pipeline) { };
-		virtual void RenderGuiButton(PlazaPipeline* pipeline) { };
-		virtual void RenderGuiText(PlazaPipeline* pipeline) { };
+		virtual void RenderGui(Scene* scene, PlazaPipeline* pipeline) { };
+		virtual void RenderGuiRectangle(Scene* scene, PlazaPipeline* pipeline) { };
+		virtual void RenderGuiButton(Scene* scene, PlazaPipeline* pipeline) { };
+		virtual void RenderGuiText(Scene* scene, PlazaPipeline* pipeline) { };
 		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) { };
 		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) { };
 		virtual void ResetPipelineCompiledBool() { };
@@ -270,7 +270,7 @@ namespace Plaza {
 
 		}
 
-		virtual void Execute(uint8_t imageIndex, uint8_t currentFrame) {};
+		virtual void Execute(Scene* scene, uint8_t imageIndex, uint8_t currentFrame) {};
 		virtual void OrderPasses() {};
 		void ExecuteRenderPasses() {
 			for (auto& [key, value] : mPasses) {

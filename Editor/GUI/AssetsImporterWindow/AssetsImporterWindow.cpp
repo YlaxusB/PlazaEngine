@@ -11,7 +11,7 @@ namespace Plaza {
 				};
 			Callbacks::AddFunctionToKeyCallback({ onKeyPressLambda, GuiLayer::ASSETS_IMPORTER });
 		}
-		void AssetsImporterWindow::Update() {
+		void AssetsImporterWindow::Update(Scene* scene) {
 			if (!this->IsOpen())
 				return;
 

@@ -27,6 +27,6 @@ namespace Plaza {
 	}
 
 	Entity* CppHelper::Instantiate(Entity* entityToInstantiate) {
-		return CppHelper::FindEntity(entityToInstantiate->Instantiate(entityToInstantiate->uuid));
+		return CppHelper::FindEntity(ECS::EntitySystem::Instantiate(Scene::GetActiveScene(), entityToInstantiate->uuid));
 	}
 }

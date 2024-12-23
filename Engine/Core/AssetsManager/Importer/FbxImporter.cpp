@@ -137,282 +137,284 @@ namespace Plaza {
 	};
 
 	Entity* AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath, AssetsImporterSettings settings) {
-		ufbx_load_opts opts = { };
-		opts.target_axes = ufbx_axes_right_handed_y_up;
-		opts.target_unit_meters = 1.0f;
-		opts.target_axes = {
-			.right = UFBX_COORDINATE_AXIS_POSITIVE_X,
-			.up = UFBX_COORDINATE_AXIS_POSITIVE_Y,
-			.front = UFBX_COORDINATE_AXIS_POSITIVE_Z,
-		};
-
-		ufbx_error error;
-		ufbx_scene* scene = ufbx_load_file(asset.mPath.c_str(), &opts, &error);
-
-		if (!scene) {
-			fprintf(stderr, "Failed to load scene: %s\n", error.description.data);
-			return nullptr;
-		}
-
-		Entity* mainEntity = new Entity(std::filesystem::path{ asset.mPath }.stem().string(), Scene::GetActiveScene()->mainSceneEntity);
-
-		std::unordered_map<uint64_t, Entity*> entities = std::unordered_map<uint64_t, Entity*>();
-		std::unordered_map<uint64_t, uint64_t> meshIndexEntityMap = std::unordered_map<uint64_t, uint64_t>(); // ufbx id, plaza uuid
-		std::unordered_map<uint64_t, uint64_t> entityMeshParent = std::unordered_map<uint64_t, uint64_t>(); // Entity, Parent
-
-		std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
-		std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
-
-		bool noTangent = true;
-
-		for (size_t i = 0; i < scene->nodes.count; ++i) {
-			Application::Get()->mRenderer->UpdateMainProgressBar(float(float(i) / float(scene->nodes.count)));
-
-			ufbx_node* node = scene->nodes.data[i];
-			ufbx_mesh* ufbxMesh = node->mesh;
-			if (!ufbxMesh)
-				continue;
-			ufbx_transform& transform = node->local_transform;
-
-			std::string name = node->name.data;
-
-			Entity* entity = new Entity(name, mainEntity, true);
-			entity->GetComponent<TransformComponent>()->SetRelativePosition(ConvertUfbxVec3(transform.translation));
-			entity->GetComponent<TransformComponent>()->SetRelativeRotation(ConvertUfbxQuat(transform.rotation));
-			entity->GetComponent<TransformComponent>()->SetRelativeScale(ConvertUfbxVec3(transform.scale));
-
-			entities.emplace(entity->uuid, entity);
-			meshIndexEntityMap.emplace(ufbxMesh->element_id, entity->uuid);
-			ufbx_node* parentNode = node->parent;
-			if (parentNode)
-				entityMeshParent.emplace(entity->uuid, parentNode->element_id);
-			else
-				entityMeshParent.emplace(entity->uuid, 0);
-
-
-			Mesh* finalMesh = new Mesh();
-
-			/* Material */
-			std::vector<Material*> materials = std::vector<Material*>();
-
-			if (settings.mImportMaterials) {
-				for (ufbx_material* ufbxMaterial : node->materials) {
-
-					std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
-					bool materialIsNotLoaded = loadedMaterials.find(materialOutPath) == loadedMaterials.end();
-					if (materialIsNotLoaded) {
-						materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
-						Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
-						if (material->mAssetUuid == AssetsManager::GetDefaultMaterial()->mAssetUuid) {
-							loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
-							materials.push_back(material);
-							continue;
-						}
-						material->flip = settings.mFlipTextures;
-						loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
-						AssetsSerializer::SerializeMaterial(material, materialOutPath, Application::Get()->mSettings.mMaterialSerializationMode);
-						AssetsManager::AddMaterial(material);
-						materials.push_back(material);
-					}
-					else
-						materials.push_back(AssetsManager::GetMaterial(loadedMaterials.find(materialOutPath)->second));
-					//materials.push_back(material);
-				}
-			}
-			else
-				materials.push_back(AssetsManager::GetDefaultMaterial());
-			/* Skinning */
-			if (ufbxMesh->skin_deformers.count > 0) {
-				ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
-				for (unsigned int i = 0; i < skin->clusters.count; ++i) {
-					ufbx_skin_cluster* cluster = skin->clusters[i];
-					uint64_t parentUuid = 0;
-					if (cluster->bone_node->parent)
-						parentUuid = cluster->bone_node->bone->element_id;
-					finalMesh->uniqueBonesInfo.emplace(cluster->bone_node->bone->element_id, Bone{ cluster->bone_node->bone->element_id, parentUuid, cluster->bone_node->bone->element_id, cluster->name.data, ConvertUfbxMatrix(cluster->geometry_to_bone) });
-				}
-			}
-
-			uint64_t indices = 0;
-			size_t triangleIndicesCount = ufbxMesh->max_face_triangles * 3;
-			std::vector<uint32_t> triangleIndices = std::vector<uint32_t>();
-			triangleIndices.resize(triangleIndicesCount);
-
-			int faceIndex = 0;
-			for (ufbx_face face : ufbxMesh->faces) {
-				size_t trianglesNumber = ufbx_triangulate_face(triangleIndices.data(), triangleIndicesCount, ufbxMesh, face);
-				uint32_t materialIndex = 0;//ufbxMesh->face_material[faceIndex];
-				if (ufbxMesh->face_material.count > faceIndex)
-					materialIndex = ufbxMesh->face_material[faceIndex];
-				faceIndex++;
-				for (size_t vertexIndex = 0; vertexIndex < trianglesNumber * 3; vertexIndex++) {
-					uint32_t index = triangleIndices[vertexIndex];
-					finalMesh->indices.push_back(index);
-
-
-					glm::vec3 position = ConvertUfbxVec3(ufbxMesh->vertex_position[index]);
-					glm::vec3 normal = ConvertUfbxVec3(ufbxMesh->vertex_normal[index]);
-					glm::vec2 uv;
-					if (ufbxMesh->vertex_uv.exists)
-						uv = ConvertUfbxVec2(ufbxMesh->vertex_uv[index]);
-
-					finalMesh->vertices.push_back(position * mModelImporterScale);
-					finalMesh->normals.push_back(normal);
-					finalMesh->uvs.push_back(uv);
-					if (ufbxMesh->vertex_tangent.exists) {
-						noTangent = false;
-						finalMesh->tangent.push_back(ConvertUfbxVec3(ufbxMesh->vertex_tangent[index]));
-					}
-					else
-						finalMesh->tangent.push_back(glm::vec3(0.0f));
-
-
-
-					finalMesh->materialsIndices.push_back(materialIndex);
-
-					if (ufbxMesh->skin_deformers.count > 0) {
-						ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
-						const uint32_t vertex = ufbxMesh->vertex_indices[index];
-
-						ufbx_skin_vertex skinVertex = skin->vertices[vertex];
-						uint32_t num_weights = skinVertex.num_weights;
-						num_weights = std::min(num_weights, 4u);
-
-						float totalWeight = 0;
-						Plaza::BonesHolder holder{};
-						for (uint32_t i = 0; i < num_weights; ++i)
-						{
-							ufbx_skin_weight skin_weight = skin->weights[skinVertex.weight_begin + i];
-							holder.mBones.push_back(skin->clusters[skin_weight.cluster_index]->bone_node->bone->element_id);
-							holder.mWeights.push_back(skin_weight.weight);
-							totalWeight += skin_weight.weight;
-						}
-
-
-						if (totalWeight > 0)
-						{
-							for (uint32_t i = 0; i < num_weights; ++i)
-							{
-								holder.mWeights[i] /= totalWeight;
-							}
-						}
-						finalMesh->bonesHolder.push_back(holder);
-					}
-
-					indices++;
-				}
-			}
-
-			if (noTangent) {
-				// Initialize tangents and bitangents arrays
-				std::vector<glm::vec3> accumulatedTangents(finalMesh->vertices.size(), glm::vec3(0.0f));
-				std::vector<glm::vec3> accumulatedBitangents(finalMesh->vertices.size(), glm::vec3(0.0f));
-
-				// Calculate tangents and bitangents per triangle
-				for (size_t i = 0; i < finalMesh->indices.size(); i += 3) {
-					uint32_t i0 = finalMesh->indices[i];
-					uint32_t i1 = finalMesh->indices[i + 1];
-					uint32_t i2 = finalMesh->indices[i + 2];
-
-					glm::vec3& v0 = finalMesh->vertices[i0];
-					glm::vec3& v1 = finalMesh->vertices[i1];
-					glm::vec3& v2 = finalMesh->vertices[i2];
-
-					glm::vec2& uv0 = finalMesh->uvs[i0];
-					glm::vec2& uv1 = finalMesh->uvs[i1];
-					glm::vec2& uv2 = finalMesh->uvs[i2];
-
-					// Calculate the edges of the triangle in model space
-					glm::vec3 deltaPos1 = v1 - v0;
-					glm::vec3 deltaPos2 = v2 - v0;
-
-					// Calculate the differences in UV coordinates
-					glm::vec2 deltaUV1 = uv1 - uv0;
-					glm::vec2 deltaUV2 = uv2 - uv0;
-
-					// Calculate the tangent and bitangent
-					float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-					glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
-					glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
-
-					// Accumulate the tangents and bitangents for each vertex of the triangle
-					accumulatedTangents[i0] += tangent;
-					accumulatedTangents[i1] += tangent;
-					accumulatedTangents[i2] += tangent;
-
-					accumulatedBitangents[i0] += bitangent;
-					accumulatedBitangents[i1] += bitangent;
-					accumulatedBitangents[i2] += bitangent;
-				}
-
-				// Normalize and orthogonalize tangents and bitangents for each vertex
-				for (size_t i = 0; i < finalMesh->vertices.size(); ++i) {
-					glm::vec3& n = finalMesh->normals[i];
-					glm::vec3& t = accumulatedTangents[i];
-					glm::vec3& b = accumulatedBitangents[i];
-
-					// Gram-Schmidt orthogonalize the tangent
-					t = glm::normalize(t - n * glm::dot(n, t));
-
-					// Calculate handedness (flip the tangent direction if necessary)
-					if (glm::dot(glm::cross(n, t), b) < 0.0f) {
-						t = t * -1.0f;
-					}
-
-					// Store the final tangent in the mesh
-					finalMesh->tangent[i] = t;
-				}
-
-				finalMesh->tangent = accumulatedTangents;
-			}
-
-			vector<ufbx_vertex_stream> streams;
-			if (!finalMesh->vertices.empty())
-			{
-				streams.push_back({ finalMesh->vertices.data(), finalMesh->vertices.size(), sizeof(finalMesh->vertices[0]) });
-			}
-			if (!finalMesh->normals.empty())
-			{
-				streams.push_back({ finalMesh->normals.data(), finalMesh->normals.size(), sizeof(finalMesh->normals[0]) });
-			}
-			if (!finalMesh->uvs.empty())
-			{
-				streams.push_back({ finalMesh->uvs.data(), finalMesh->uvs.size(), sizeof(finalMesh->uvs[0]) });
-			}
-			if (!finalMesh->bonesHolder.empty())
-			{
-				streams.push_back({ finalMesh->bonesHolder.data(), finalMesh->bonesHolder.size(), sizeof(finalMesh->bonesHolder[0]) });
-			}
-			if (!finalMesh->materialsIndices.empty())
-			{
-				streams.push_back({ finalMesh->materialsIndices.data(), finalMesh->materialsIndices.size(), sizeof(finalMesh->materialsIndices[0]) });
-			}
-
-			finalMesh->indices.resize(ufbxMesh->num_triangles * 3);
-			ufbx_error error;
-			size_t num_vertices = ufbx_generate_indices(streams.data(), streams.size(), finalMesh->indices.data(), indices, NULL, &error);
-
-
-			if (materials.size() <= 0)
-				materials.push_back(AssetsManager::GetDefaultMaterial());
-			MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, materials);
-			entity->AddComponent<MeshRenderer>(meshRenderer);
-
-			Collider* collider = new Collider();
-			ColliderShape* shape = new ColliderShape(nullptr, Plaza::ColliderShape::MESH, finalMesh->uuid);
-			collider->AddShape(shape);
-			entity->AddComponent<Collider>(collider);
-		}
-
-		for (auto& [key, value] : entityMeshParent) {
-			Entity* entity = &Scene::GetActiveScene()->entities.at(key);
-			if (value != 0 && meshIndexEntityMap.find(value) != meshIndexEntityMap.end()) {
-				entity->ChangeParent(&entity->GetParent(), &Scene::GetActiveScene()->entities.at(meshIndexEntityMap.at(value)));
-			}
-		}
-
-		ufbx_free_scene(scene);
-		return Scene::GetActiveScene()->GetEntity(mainEntity->uuid);
+		return nullptr;
+		// FIX: Remake model importers
+		//ufbx_load_opts opts = { };
+		//opts.target_axes = ufbx_axes_right_handed_y_up;
+		//opts.target_unit_meters = 1.0f;
+		//opts.target_axes = {
+		//	.right = UFBX_COORDINATE_AXIS_POSITIVE_X,
+		//	.up = UFBX_COORDINATE_AXIS_POSITIVE_Y,
+		//	.front = UFBX_COORDINATE_AXIS_POSITIVE_Z,
+		//};
+		//
+		//ufbx_error error;
+		//ufbx_scene* scene = ufbx_load_file(asset.mPath.c_str(), &opts, &error);
+		//
+		//if (!scene) {
+		//	fprintf(stderr, "Failed to load scene: %s\n", error.description.data);
+		//	return nullptr;
+		//}
+		//
+		//Entity* mainEntity = new Entity(std::filesystem::path{ asset.mPath }.stem().string(), Scene::GetActiveScene()->mainSceneEntity);
+		//
+		//std::unordered_map<uint64_t, Entity*> entities = std::unordered_map<uint64_t, Entity*>();
+		//std::unordered_map<uint64_t, uint64_t> meshIndexEntityMap = std::unordered_map<uint64_t, uint64_t>(); // ufbx id, plaza uuid
+		//std::unordered_map<uint64_t, uint64_t> entityMeshParent = std::unordered_map<uint64_t, uint64_t>(); // Entity, Parent
+		//
+		//std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
+		//std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
+		//
+		//bool noTangent = true;
+		//
+		//for (size_t i = 0; i < scene->nodes.count; ++i) {
+		//	Application::Get()->mRenderer->UpdateMainProgressBar(float(float(i) / float(scene->nodes.count)));
+		//
+		//	ufbx_node* node = scene->nodes.data[i];
+		//	ufbx_mesh* ufbxMesh = node->mesh;
+		//	if (!ufbxMesh)
+		//		continue;
+		//	ufbx_transform& transform = node->local_transform;
+		//
+		//	std::string name = node->name.data;
+		//
+		//	Entity* entity = new Entity(name, mainEntity, true);
+		//	entity->GetComponent<TransformComponent>()->SetRelativePosition(ConvertUfbxVec3(transform.translation));
+		//	entity->GetComponent<TransformComponent>()->SetRelativeRotation(ConvertUfbxQuat(transform.rotation));
+		//	entity->GetComponent<TransformComponent>()->SetRelativeScale(ConvertUfbxVec3(transform.scale));
+		//
+		//	entities.emplace(entity->uuid, entity);
+		//	meshIndexEntityMap.emplace(ufbxMesh->element_id, entity->uuid);
+		//	ufbx_node* parentNode = node->parent;
+		//	if (parentNode)
+		//		entityMeshParent.emplace(entity->uuid, parentNode->element_id);
+		//	else
+		//		entityMeshParent.emplace(entity->uuid, 0);
+		//
+		//
+		//	Mesh* finalMesh = new Mesh();
+		//
+		//	/* Material */
+		//	std::vector<Material*> materials = std::vector<Material*>();
+		//
+		//	if (settings.mImportMaterials) {
+		//		for (ufbx_material* ufbxMaterial : node->materials) {
+		//
+		//			std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
+		//			bool materialIsNotLoaded = loadedMaterials.find(materialOutPath) == loadedMaterials.end();
+		//			if (materialIsNotLoaded) {
+		//				materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
+		//				Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+		//				if (material->mAssetUuid == AssetsManager::GetDefaultMaterial()->mAssetUuid) {
+		//					loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
+		//					materials.push_back(material);
+		//					continue;
+		//				}
+		//				material->flip = settings.mFlipTextures;
+		//				loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
+		//				AssetsSerializer::SerializeMaterial(material, materialOutPath, Application::Get()->mSettings.mMaterialSerializationMode);
+		//				AssetsManager::AddMaterial(material);
+		//				materials.push_back(material);
+		//			}
+		//			else
+		//				materials.push_back(AssetsManager::GetMaterial(loadedMaterials.find(materialOutPath)->second));
+		//			//materials.push_back(material);
+		//		}
+		//	}
+		//	else
+		//		materials.push_back(AssetsManager::GetDefaultMaterial());
+		//	/* Skinning */
+		//	if (ufbxMesh->skin_deformers.count > 0) {
+		//		ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
+		//		for (unsigned int i = 0; i < skin->clusters.count; ++i) {
+		//			ufbx_skin_cluster* cluster = skin->clusters[i];
+		//			uint64_t parentUuid = 0;
+		//			if (cluster->bone_node->parent)
+		//				parentUuid = cluster->bone_node->bone->element_id;
+		//			finalMesh->uniqueBonesInfo.emplace(cluster->bone_node->bone->element_id, Bone{ cluster->bone_node->bone->element_id, parentUuid, cluster->bone_node->bone->element_id, cluster->name.data, ConvertUfbxMatrix(cluster->geometry_to_bone) });
+		//		}
+		//	}
+		//
+		//	uint64_t indices = 0;
+		//	size_t triangleIndicesCount = ufbxMesh->max_face_triangles * 3;
+		//	std::vector<uint32_t> triangleIndices = std::vector<uint32_t>();
+		//	triangleIndices.resize(triangleIndicesCount);
+		//
+		//	int faceIndex = 0;
+		//	for (ufbx_face face : ufbxMesh->faces) {
+		//		size_t trianglesNumber = ufbx_triangulate_face(triangleIndices.data(), triangleIndicesCount, ufbxMesh, face);
+		//		uint32_t materialIndex = 0;//ufbxMesh->face_material[faceIndex];
+		//		if (ufbxMesh->face_material.count > faceIndex)
+		//			materialIndex = ufbxMesh->face_material[faceIndex];
+		//		faceIndex++;
+		//		for (size_t vertexIndex = 0; vertexIndex < trianglesNumber * 3; vertexIndex++) {
+		//			uint32_t index = triangleIndices[vertexIndex];
+		//			finalMesh->indices.push_back(index);
+		//
+		//
+		//			glm::vec3 position = ConvertUfbxVec3(ufbxMesh->vertex_position[index]);
+		//			glm::vec3 normal = ConvertUfbxVec3(ufbxMesh->vertex_normal[index]);
+		//			glm::vec2 uv;
+		//			if (ufbxMesh->vertex_uv.exists)
+		//				uv = ConvertUfbxVec2(ufbxMesh->vertex_uv[index]);
+		//
+		//			finalMesh->vertices.push_back(position * mModelImporterScale);
+		//			finalMesh->normals.push_back(normal);
+		//			finalMesh->uvs.push_back(uv);
+		//			if (ufbxMesh->vertex_tangent.exists) {
+		//				noTangent = false;
+		//				finalMesh->tangent.push_back(ConvertUfbxVec3(ufbxMesh->vertex_tangent[index]));
+		//			}
+		//			else
+		//				finalMesh->tangent.push_back(glm::vec3(0.0f));
+		//
+		//
+		//
+		//			finalMesh->materialsIndices.push_back(materialIndex);
+		//
+		//			if (ufbxMesh->skin_deformers.count > 0) {
+		//				ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
+		//				const uint32_t vertex = ufbxMesh->vertex_indices[index];
+		//
+		//				ufbx_skin_vertex skinVertex = skin->vertices[vertex];
+		//				uint32_t num_weights = skinVertex.num_weights;
+		//				num_weights = std::min(num_weights, 4u);
+		//
+		//				float totalWeight = 0;
+		//				Plaza::BonesHolder holder{};
+		//				for (uint32_t i = 0; i < num_weights; ++i)
+		//				{
+		//					ufbx_skin_weight skin_weight = skin->weights[skinVertex.weight_begin + i];
+		//					holder.mBones.push_back(skin->clusters[skin_weight.cluster_index]->bone_node->bone->element_id);
+		//					holder.mWeights.push_back(skin_weight.weight);
+		//					totalWeight += skin_weight.weight;
+		//				}
+		//
+		//
+		//				if (totalWeight > 0)
+		//				{
+		//					for (uint32_t i = 0; i < num_weights; ++i)
+		//					{
+		//						holder.mWeights[i] /= totalWeight;
+		//					}
+		//				}
+		//				finalMesh->bonesHolder.push_back(holder);
+		//			}
+		//
+		//			indices++;
+		//		}
+		//	}
+		//
+		//	if (noTangent) {
+		//		// Initialize tangents and bitangents arrays
+		//		std::vector<glm::vec3> accumulatedTangents(finalMesh->vertices.size(), glm::vec3(0.0f));
+		//		std::vector<glm::vec3> accumulatedBitangents(finalMesh->vertices.size(), glm::vec3(0.0f));
+		//
+		//		// Calculate tangents and bitangents per triangle
+		//		for (size_t i = 0; i < finalMesh->indices.size(); i += 3) {
+		//			uint32_t i0 = finalMesh->indices[i];
+		//			uint32_t i1 = finalMesh->indices[i + 1];
+		//			uint32_t i2 = finalMesh->indices[i + 2];
+		//
+		//			glm::vec3& v0 = finalMesh->vertices[i0];
+		//			glm::vec3& v1 = finalMesh->vertices[i1];
+		//			glm::vec3& v2 = finalMesh->vertices[i2];
+		//
+		//			glm::vec2& uv0 = finalMesh->uvs[i0];
+		//			glm::vec2& uv1 = finalMesh->uvs[i1];
+		//			glm::vec2& uv2 = finalMesh->uvs[i2];
+		//
+		//			// Calculate the edges of the triangle in model space
+		//			glm::vec3 deltaPos1 = v1 - v0;
+		//			glm::vec3 deltaPos2 = v2 - v0;
+		//
+		//			// Calculate the differences in UV coordinates
+		//			glm::vec2 deltaUV1 = uv1 - uv0;
+		//			glm::vec2 deltaUV2 = uv2 - uv0;
+		//
+		//			// Calculate the tangent and bitangent
+		//			float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
+		//			glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
+		//			glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
+		//
+		//			// Accumulate the tangents and bitangents for each vertex of the triangle
+		//			accumulatedTangents[i0] += tangent;
+		//			accumulatedTangents[i1] += tangent;
+		//			accumulatedTangents[i2] += tangent;
+		//
+		//			accumulatedBitangents[i0] += bitangent;
+		//			accumulatedBitangents[i1] += bitangent;
+		//			accumulatedBitangents[i2] += bitangent;
+		//		}
+		//
+		//		// Normalize and orthogonalize tangents and bitangents for each vertex
+		//		for (size_t i = 0; i < finalMesh->vertices.size(); ++i) {
+		//			glm::vec3& n = finalMesh->normals[i];
+		//			glm::vec3& t = accumulatedTangents[i];
+		//			glm::vec3& b = accumulatedBitangents[i];
+		//
+		//			// Gram-Schmidt orthogonalize the tangent
+		//			t = glm::normalize(t - n * glm::dot(n, t));
+		//
+		//			// Calculate handedness (flip the tangent direction if necessary)
+		//			if (glm::dot(glm::cross(n, t), b) < 0.0f) {
+		//				t = t * -1.0f;
+		//			}
+		//
+		//			// Store the final tangent in the mesh
+		//			finalMesh->tangent[i] = t;
+		//		}
+		//
+		//		finalMesh->tangent = accumulatedTangents;
+		//	}
+		//
+		//	vector<ufbx_vertex_stream> streams;
+		//	if (!finalMesh->vertices.empty())
+		//	{
+		//		streams.push_back({ finalMesh->vertices.data(), finalMesh->vertices.size(), sizeof(finalMesh->vertices[0]) });
+		//	}
+		//	if (!finalMesh->normals.empty())
+		//	{
+		//		streams.push_back({ finalMesh->normals.data(), finalMesh->normals.size(), sizeof(finalMesh->normals[0]) });
+		//	}
+		//	if (!finalMesh->uvs.empty())
+		//	{
+		//		streams.push_back({ finalMesh->uvs.data(), finalMesh->uvs.size(), sizeof(finalMesh->uvs[0]) });
+		//	}
+		//	if (!finalMesh->bonesHolder.empty())
+		//	{
+		//		streams.push_back({ finalMesh->bonesHolder.data(), finalMesh->bonesHolder.size(), sizeof(finalMesh->bonesHolder[0]) });
+		//	}
+		//	if (!finalMesh->materialsIndices.empty())
+		//	{
+		//		streams.push_back({ finalMesh->materialsIndices.data(), finalMesh->materialsIndices.size(), sizeof(finalMesh->materialsIndices[0]) });
+		//	}
+		//
+		//	finalMesh->indices.resize(ufbxMesh->num_triangles * 3);
+		//	ufbx_error error;
+		//	size_t num_vertices = ufbx_generate_indices(streams.data(), streams.size(), finalMesh->indices.data(), indices, NULL, &error);
+		//
+		//
+		//	if (materials.size() <= 0)
+		//		materials.push_back(AssetsManager::GetDefaultMaterial());
+		//	MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, materials);
+		//	entity->AddComponent<MeshRenderer>(meshRenderer);
+		//
+		//	Collider* collider = new Collider();
+		//	ColliderShape* shape = new ColliderShape(nullptr, Plaza::ColliderShape::MESH, finalMesh->uuid);
+		//	collider->AddShape(shape);
+		//	entity->AddComponent<Collider>(collider);
+		//}
+		//
+		//for (auto& [key, value] : entityMeshParent) {
+		//	Entity* entity = &Scene::GetActiveScene()->entities.at(key);
+		//	if (value != 0 && meshIndexEntityMap.find(value) != meshIndexEntityMap.end()) {
+		//		entity->ChangeParent(&entity->GetParent(), &Scene::GetActiveScene()->entities.at(meshIndexEntityMap.at(value)));
+		//	}
+		//}
+		//
+		//ufbx_free_scene(scene);
+		//return Scene::GetActiveScene()->GetEntity(mainEntity->uuid);
 	}
 
 	std::vector<Animation> AssetsImporter::ImportAnimationFBX(std::string filePath, AssetsImporterSettings settings) {

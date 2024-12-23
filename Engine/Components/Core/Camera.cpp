@@ -1,6 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Camera.h"
-#include "Engine/Core/Scripting/CppHelper.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
@@ -12,10 +12,10 @@ namespace Plaza {
 		// updateCameraVectors();
 	}
 
-	void Camera::Update() {
+	void Camera::Update(Scene* scene) {
 		if (!this->isEditorCamera)
-			Position = Scene::GetActiveScene()->transformComponents.at(this->mUuid).GetWorldPosition();
-		updateCameraVectors();
+			Position = scene->GetComponent<TransformComponent>(this->mUuid)->GetWorldPosition();
+		updateCameraVectors(scene);
 		UpdateFrustum();
 	}
 
@@ -53,6 +53,8 @@ namespace Plaza {
 
 	void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch)
 	{
+		// FIX: Implement proper way to get the scene
+		Scene* scene = Scene::GetActiveScene();
 		xoffset *= MouseSensitivity;
 		yoffset *= MouseSensitivity;
 
@@ -69,7 +71,7 @@ namespace Plaza {
 		}
 
 		// update Front, Right and Up Vectors using the updated Euler angles
-		updateCameraVectors();
+		updateCameraVectors(scene);
 
 		UpdateFrustum();
 	}
@@ -119,12 +121,9 @@ namespace Plaza {
 		return frustumCorners;
 	};
 
-	void Camera::updateCameraVectors()
+	void Camera::updateCameraVectors(Scene* scene)
 	{
-		auto it = Scene::GetActiveScene()->transformComponents.find(this->mUuid);
-		if (it != Scene::GetActiveScene()->transformComponents.end()) {
-			Scene::GetActiveScene()->transformComponents.at(this->mUuid).haveCamera = true;
-		}
+		TransformComponent* transform = scene->GetComponent<TransformComponent>(this->mUuid);
 		if (this->isEditorCamera) {
 			// calculate the new Front vector
 			glm::vec3 front;
@@ -136,8 +135,7 @@ namespace Plaza {
 			Up = glm::normalize(glm::cross(Right, Front));
 		}
 		else {
-			if (this->mUuid && Scene::GetActiveScene()->transformComponents.find(this->mUuid) != Scene::GetActiveScene()->transformComponents.end()) {
-				TransformComponent* transform = &Scene::GetActiveScene()->transformComponents.at(this->mUuid);
+			if (this->mUuid && transform) {
 				glm::mat4 transformationMatrix = transform->modelMatrix;
 
 				/*

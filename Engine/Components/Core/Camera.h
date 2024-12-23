@@ -12,6 +12,7 @@ const float ZOOM = 60.0f;
 #include "Engine/Core/Engine.h"
 
 namespace Plaza {
+	class Scene;
 	struct PLAZA_API  Plane
 	{
 		glm::vec3 normal = { 0.f, 1.f, 0.f }; // unit vector
@@ -85,10 +86,10 @@ namespace Plaza {
 			WorldUp = glm::vec3(upX, upY, upZ);
 			Yaw = yaw;
 			Pitch = pitch;
-			updateCameraVectors();
+			//updateCameraVectors();
 		}
 
-		void Update();
+		void Update(Scene* scene);
 
 		glm::mat4 GetProjectionMatrix();
 		glm::mat4 GetProjectionMatrix(float nearPlaneCustom, float farPlaneCustom);
@@ -134,6 +135,6 @@ namespace Plaza {
 		}
 	private:
 		// calculates the front vector from the Camera's (updated) Euler Angles
-		void updateCameraVectors();
+		void updateCameraVectors(Scene* scene);
 	};
 };

@@ -287,18 +287,19 @@ namespace Plaza {
 	}
 
 	// Execute OnStart on all scripts
-	void Mono::OnStartAll(bool callOnStart) {
+	void Mono::OnStartAll(Scene* scene, bool callOnStart) {
 #ifdef GAME_MODE
-		Editor::ScriptManager::ReloadScriptsAssembly();
+		Editor::ScriptManager::ReloadScriptsAssembly(scene);
 #else
 		/* Make a copy of the scripts dll, so it does not break when it updates */
 		std::string dllPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + ".dll");
 		std::string newPath = (Application::Get()->projectPath + "\\Binaries\\" + std::filesystem::path{ Application::Get()->activeProject->mAssetName }.stem().string() + "copy.dll");
-		Editor::ScriptManager::ReloadScriptsAssembly(newPath);
+		Editor::ScriptManager::ReloadScriptsAssembly(scene, newPath);
 #endif
 		if (callOnStart) {
-			for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
-				for (auto& [className, classScript] : value.scriptClasses) {
+			for (const uint64_t& uuid : SceneView<CsScriptComponent>(scene)) {
+				auto& component = *scene->GetComponent<CsScriptComponent>(uuid);
+				for (auto& [className, classScript] : component.scriptClasses) {
 					CallMethod(classScript->monoObject, classScript->onStartMethod);
 				}
 			}
@@ -306,9 +307,10 @@ namespace Plaza {
 	}
 
 	// Execute OnUpdate on all scripts
-	void Mono::Update() {
-		for (auto& [key, value] : Scene::GetActiveScene()->csScriptComponents) {
-			for (auto& [className, classScript] : value.scriptClasses) {
+	void Mono::Update(Scene* scene) {
+		for (const uint64_t& uuid : SceneView<CsScriptComponent>(scene)) {
+			auto& component = *scene->GetComponent<CsScriptComponent>(uuid);
+			for (auto& [className, classScript] : component.scriptClasses) {
 				CallMethod(classScript->monoObject, classScript->onUpdateMethod);
 			}
 		}
@@ -322,9 +324,10 @@ namespace Plaza {
 		std::string className = typeName.substr(pos + 1);
 		std::string  managedTypeName = "Plaza." + className;
 		MonoType* managedType = mono_reflection_type_from_name(managedTypeName.data(), Mono::mCoreImage);
-		Mono::mEntityHasComponentFunctions[managedType] = [](Entity entity) { return entity.HasComponent<Component>(); };
-		Mono::mEntityAddComponentFunctions[managedType] = [](Entity entity) { return entity.AddComp<Component>(); };
-		Mono::mEntityGetComponentFunctions[managedType] = [](Entity entity) { return entity.GetComponent<Component>(); };
+		// FIX: Rework Mono Has, Add and Get component with new DOD style
+		//Mono::mEntityHasComponentFunctions[managedType] = [](Entity entity) { return entity.HasComponent<Component>(); };
+		//Mono::mEntityAddComponentFunctions[managedType] = [](Entity entity) { return entity.AddComp<Component>(); };
+		//Mono::mEntityGetComponentFunctions[managedType] = [](Entity entity) { return entity.GetComponent<Component>(); };
 	}
 
 	void Mono::RegisterComponents() {

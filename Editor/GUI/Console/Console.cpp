@@ -11,7 +11,7 @@ namespace Plaza {
 
 		}
 
-		void Console::Update() {
+		void Console::Update(Scene* scene) {
 			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
 			if (ImGui::Begin("Console", &mExpanded, windowFlags)) {
 				ImGui::Checkbox("Update Indirect Instances", &mTemporaryVariables.updateIndirectInstances);

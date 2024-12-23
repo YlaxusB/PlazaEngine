@@ -32,10 +32,10 @@ namespace Plaza::Editor {
 		public:
 			static vector<Component*> components;
 
-			static void CreateInspector();
+			static void CreateInspector(Scene* scene);
 			static void UpdateComponents();
 
-			static void CreateRespectiveInspector(Component* component);
+			static void CreateRespectiveInspector(Scene* scene, Component* component);
 		};
 
 

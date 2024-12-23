@@ -81,7 +81,7 @@ namespace Plaza::Editor {
 		}
 	}
 
-	void NodeEditor::Update() {
+	void NodeEditor::Update(Scene* scene) {
 		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
 
 		if (ImGui::Begin("Render Graph Editor", &mExpanded, windowFlags)) {

@@ -113,33 +113,34 @@ namespace Plaza {
 	}
 
 	void Collider::InitCollider(RigidBody* rigidBody) {
+		// FIX: Move to systems manager
 		//this->RemoveActor();
-		physx::PxTransform pxTransform = Physics::GetPxTransform(Scene::GetActiveScene()->transformComponents.at(this->mUuid));
-		this->mRigidActor = Physics::m_physics->createRigidDynamic(pxTransform);
-		if (this->mRigidActor == nullptr)
-			this->mRigidActor = Physics::m_physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity(1.0f)));
-		if (!material) {
-			material = Physics::defaultMaterial;
-			if (this->mDynamic) {
-				material = Physics::m_physics->createMaterial(rigidBody->mStaticFriction, rigidBody->mDynamicFriction, rigidBody->mRestitution);
-			}
-		}
-		if (!mDynamic)
-			this->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
-
-
-		this->mRigidActor->userData = reinterpret_cast<void*>(this->mUuid);
-		// Attach the shapes with the material to the actor
-		for (auto& shape : mShapes) {
-			if (shape->mPxShape == nullptr) {
-				shape->mPxShape = Physics::GetPhysXShape(shape.get(), &Physics::GetDefaultPhysicsMaterial());
-			}
-
-			shape->mPxShape->userData = reinterpret_cast<void*>(this->mUuid);
-			this->mRigidActor->attachShape(*shape->mPxShape);
-		}
-		Physics::m_scene->addActor(*this->mRigidActor);
-		//this->UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(this->uuid).GetWorldScale());
+		//physx::PxTransform pxTransform = Physics::GetPxTransform(Scene::GetActiveScene()->transformComponents.at(this->mUuid));
+		//this->mRigidActor = Physics::m_physics->createRigidDynamic(pxTransform);
+		//if (this->mRigidActor == nullptr)
+		//	this->mRigidActor = Physics::m_physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity(1.0f)));
+		//if (!material) {
+		//	material = Physics::defaultMaterial;
+		//	if (this->mDynamic) {
+		//		material = Physics::m_physics->createMaterial(rigidBody->mStaticFriction, rigidBody->mDynamicFriction, rigidBody->mRestitution);
+		//	}
+		//}
+		//if (!mDynamic)
+		//	this->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
+		//
+		//
+		//this->mRigidActor->userData = reinterpret_cast<void*>(this->mUuid);
+		//// Attach the shapes with the material to the actor
+		//for (auto& shape : mShapes) {
+		//	if (shape->mPxShape == nullptr) {
+		//		shape->mPxShape = Physics::GetPhysXShape(shape.get(), &Physics::GetDefaultPhysicsMaterial());
+		//	}
+		//
+		//	shape->mPxShape->userData = reinterpret_cast<void*>(this->mUuid);
+		//	this->mRigidActor->attachShape(*shape->mPxShape);
+		//}
+		//Physics::m_scene->addActor(*this->mRigidActor);
+		////this->UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(this->uuid).GetWorldScale());
 	}
 
 	void Collider::AddConvexMeshShape(Mesh* mesh) {
@@ -359,7 +360,8 @@ namespace Plaza {
 	}
 
 	void Collider::UpdateAllShapesScale() {
-		UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(this->mUuid).GetWorldScale());
+		// FIX: Move to systems manager
+		//UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(this->mUuid).GetWorldScale());
 	}
 
 	void Collider::UpdateShapeScale(glm::vec3 scale) {
@@ -443,10 +445,11 @@ namespace Plaza {
 
 	template <typename EnumType>
 	void Collider::SetSelfAndChildrenFlag(EnumType flag, bool value) {
-		SetFlag(&Scene::GetActiveScene()->rigidBodyComponents.at(this->mUuid).mRigidActor, flag, value);
-		for (uint64_t child : Scene::GetActiveScene()->entities.at(this->mUuid).childrenUuid) {
-			SetFlag(&Scene::GetActiveScene()->rigidBodyComponents.at(child).mRigidActor, flag, value);
-		}
+		// FIX: Move to systems manager
+		//SetFlag(&Scene::GetActiveScene()->rigidBodyComponents.at(this->mUuid).mRigidActor, flag, value);
+		//for (uint64_t child : Scene::GetActiveScene()->entities.at(this->mUuid).childrenUuid) {
+		//	SetFlag(&Scene::GetActiveScene()->rigidBodyComponents.at(child).mRigidActor, flag, value);
+		//}
 	}
 
 	void Collider::SetFlag(physx::PxRigidActor* actor, physx::PxActorFlag::Enum flag, bool value) {
@@ -489,6 +492,7 @@ namespace Plaza {
 	}
 
 	void Collider::UpdatePose() {
-		this->UpdatePose(this->GetGameObject()->GetComponent<TransformComponent>());
+		// FIX: Move to systems manager
+		//this->UpdatePose(this->GetGameObject()->GetComponent<TransformComponent>());
 	}
 }

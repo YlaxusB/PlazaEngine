@@ -1171,396 +1171,17 @@ namespace Plaza {
 
 	}
 
-	void VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
-		PLAZA_PROFILE_SECTION("Record Command Buffer");
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT; // Optional
-		beginInfo.pInheritanceInfo = nullptr; // Optional
-
-		if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
-			throw std::runtime_error("failed to begin recording command buffer!");
-		}
-		mActiveCommandBuffer = &commandBuffer;
-
-		//TransitionTextureLayout(mDeferredPositionTexture, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1U, 1U, 1U, false);
-
-		VkRenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = this->mShadows->mRenderPass;
-		renderPassInfo.framebuffer = this->mShadows->mFramebuffers
-			[mCurrentFrame]; // mSwapChainFramebuffers[0];//mSwapChainFramebuffers[imageIndex];
-
-		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent.width = this->mShadows->mShadowResolution;
-		renderPassInfo.renderArea.extent.height = this->mShadows->mShadowResolution;
-		// renderPassInfo.renderArea.extent = mSwapChainExtent;
-
-		std::array<VkClearValue, 2> clearValues{};
-		clearValues[0].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
-		clearValues[1].depthStencil = { 1.0f, 0 };
-
-		VkClearValue clearDepth{};
-		clearDepth.depthStencil = { 1.0f, 0 };
-
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearDepth;
-
-		VkViewport viewport{};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = this->mShadows->mShadowResolution;
-		viewport.height = -static_cast<float>(this->mShadows->mShadowResolution);
-		viewport.y = this->mShadows->mShadowResolution;
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-		VkRect2D scissor{};
-		scissor.offset = { 0, 0 };
-		scissor.extent.width = this->mShadows->mShadowResolution;
-		scissor.extent.height = this->mShadows->mShadowResolution;
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		{
-			PLAZA_PROFILE_SECTION("Update Materials");
-			UpdateMaterials();
-		}
-
-		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
-			PLAZA_PROFILE_SECTION("Group Instances");
-			for (const auto& [key, value] : Scene::GetActiveScene()->meshRendererComponents) {
-				const auto& transformIt = Scene::GetActiveScene()->transformComponents.find(key);
-				if (transformIt != Scene::GetActiveScene()->transformComponents.end() && value.renderGroup) {
-					// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
-					// mInstanceModelMatrices.push_back(transform.modelMatrix);
-
-					value.renderGroup->AddInstance(transformIt->second.modelMatrix);
-					Time::addInstanceCalls++;
-
-					bool continueLoop = true;
-
-					// value.renderGroup->AddCascadeInstance(transform.modelMatrix, 0);
-				}
-			}
-		}
-
-		unsigned int allMaterialsCount = 0;
-		std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
-		std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
-		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances)
-		{
-			PLAZA_PROFILE_SECTION("Create Indirect Commands");
-			this->mIndirectCommands.clear();
-			//this->mIndirectCommands.resize(Scene::GetActiveScene()->renderGroups.size());
-			this->mInstanceModelMatrices.clear();
-			///this->mInstanceModelMatrices.resize(Scene::GetActiveScene()->renderGroups.size());
-			this->mInstanceModelMaterialsIndex.clear();
-			this->mInstanceModelMaterialsIndex.push_back(0);
-			this->mInstanceModelMaterialOffsets.clear();
-			//this->mInstanceModelMaterialOffsets.resize(Scene::GetActiveScene()->renderGroups.size());
-			mTotalInstances = 0;
-			mIndirectDrawCount = 0;
-			unsigned int lastRendergroupMaterialsCount = 0;
-			{
-				for (auto& [key, value] : Scene::GetActiveScene()->renderGroups) {
-					const size_t& materialsCount = value.materials.size();
-					const size_t& instanceCount = value.instanceModelMatrices.size();
-					allMaterialsCount += materialsCount;
-
-					VkDrawIndexedIndirectCommand indirectCommand{};
-					indirectCommand.firstIndex = value.mesh->indicesOffset;
-					indirectCommand.vertexOffset = value.mesh->verticesOffset;
-					indirectCommand.firstInstance = mTotalInstances;
-					indirectCommand.indexCount = value.mesh->indicesCount; // indices.size();
-					indirectCommand.instanceCount = instanceCount;
-
-					this->mIndirectCommands.push_back(indirectCommand);
-					value.mesh->instanceOffset = mTotalInstances;
-
-					for (unsigned int i = 0; i < instanceCount; ++i) {
-						this->mInstanceModelMatrices.push_back(value.instanceModelMatrices[i]);
-						renderGroupOffsets.push_back(allMaterialsCount - materialsCount);
-						this->mInstanceModelMaterialOffsets.push_back(value.instanceMaterialOffsets);
-						//this->mInstanceModelMaterialsIndex.push_back(value->instanceMaterialIndices[i]);
-
-						mTotalInstances++; //= value->instanceModelMatrices.size();
-					}
-
-					for (unsigned int i = 0; i < materialsCount; ++i) {
-						renderGroupMaterialsOffsets.push_back(value.materials[i]->mIndexHandle);
-					}
-
-					mIndirectDrawCount++;
-					value.instanceModelMatrices.clear();
-					value.instanceMaterialIndices.clear();
-					lastRendergroupMaterialsCount = materialsCount;
-				}
-			}
-		}
-
-		{
-			PLAZA_PROFILE_SECTION("Render Shadows Depth");
-			renderPassInfo.renderPass = this->mShadows->mRenderPass;
-			renderPassInfo.framebuffer = this->mShadows->mFramebuffers[mCurrentFrame];
-			vkCmdBeginRenderPass(
-				commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-			vkCmdBindPipeline(commandBuffer,
-				VK_PIPELINE_BIND_POINT_GRAPHICS,
-				this->mShadows->mShadowsShader->mPipeline);
-
-			this->mShadows->UpdateAndPushConstants(commandBuffer, 0);
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mShadows->mShadowsShader->mPipelineLayout, 0, 1, &this->mShadows->mCascades[0].mDescriptorSets[mCurrentFrame], 0, nullptr);
-
-			if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
-				PLAZA_PROFILE_SECTION("Copy Indirect Data");
-				VkDeviceSize bufferSize = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
-				void* data;
-				vkMapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
-				memcpy(data, mIndirectCommands.data(), static_cast<size_t>(bufferSize));
-				vkUnmapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame]);
-			}
-
-			if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
-				PLAZA_PROFILE_SECTION("Copy Data");
-				VkDeviceSize bufferSize = sizeof(glm::mat4) * mInstanceModelMatrices.size();
-				void* data;
-				vkMapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
-				memcpy(data, mInstanceModelMatrices.data(), static_cast<size_t>(bufferSize));
-				vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame]);
-			}
-
-			if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
-				PLAZA_PROFILE_SECTION("Bind the instance's materials");
-				VkDeviceSize bufferSize = sizeof(unsigned int) * mInstanceModelMaterialsIndex.size();
-				void* data;
-				vkMapMemory(this->mDevice, mMainInstanceMaterialBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
-				memcpy(data, mInstanceModelMaterialsIndex.data(), static_cast<size_t>(bufferSize));
-				vkUnmapMemory(this->mDevice, mMainInstanceMaterialBufferMemories[mCurrentFrame]);
-			}
-
-			if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
-				PLAZA_PROFILE_SECTION("Bind the instance material offsets");
-				VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupMaterialsOffsets.size());
-				void* data;
-				vkMapMemory(this->mDevice, mMainInstanceMaterialOffsetsBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
-				memcpy(data, renderGroupMaterialsOffsets.data(), sizeof(uint32_t) * renderGroupMaterialsOffsets.size());
-				vkUnmapMemory(this->mDevice, mMainInstanceMaterialOffsetsBufferMemories[mCurrentFrame]);
-			}
-
-			if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
-				PLAZA_PROFILE_SECTION("Bind the instance material offsets 2");
-				VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupOffsets.size());
-				void* data;
-				vkMapMemory(this->mDevice, mMainInstanceRenderGroupOffsetsBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
-				memcpy(data, renderGroupOffsets.data(), sizeof(uint32_t) * renderGroupOffsets.size());
-				vkUnmapMemory(this->mDevice, mMainInstanceRenderGroupOffsetsBufferMemories[mCurrentFrame]);
-			}
-
-			{
-				PLAZA_PROFILE_SECTION("Animation Controller");
-				this->EarlyAnimationController();
-				std::unordered_set<int> matricesIds = std::unordered_set<int>();
-				std::vector<glm::mat4> matrices = std::vector<glm::mat4>();
-				matrices.resize(this->mBones.size() + 5);
-				for (const auto& [key, value] : mBones) {
-
-					if (value.mName != "bone") {
-						matrices[value.mHandlerIndex] = (value.mTransform) * value.mOffset;
-					}
-				}
-
-
-				VkDeviceSize bufferSize = matrices.size() * sizeof(glm::mat4);//sizeof(glm::mat4) * 1024 * 1024 * 16;
-				void* data;
-				vkMapMemory(mDevice, this->mBoneMatricesBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
-				memcpy(data, matrices.data(), static_cast<size_t>(bufferSize));
-				vkUnmapMemory(mDevice, this->mBoneMatricesBufferMemories[mCurrentFrame]);
-			}
-
-			{
-				PLAZA_PROFILE_SECTION("Bind Vertex and Index buffers");
-				VkDeviceSize offsets[1] = { 0 };
-				vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer->GetBuffer(), offsets);
-				vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
-				//vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
-				vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-
-				vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
-			}
-
-			// for (const auto& [key, value] : Scene::GetActiveScene()->renderGroups) {
-			//	//	this->DrawRenderGroupShadowDepthMapInstanced(value, 0);
-			// }
-
-			vkCmdEndRenderPass(commandBuffer);
-		}
-		//TransitionTextureLayout(mDeferredPositionTexture, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1U, 1U, 1U, false);
-		// this->mPicking->DrawSelectedObjectsUuid();
-
-		// vkCmdEndRenderPass(commandBuffer);
-
-		std::array<VkClearValue, 5> geometryPassClear{};
-		geometryPassClear[0].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
-		geometryPassClear[1].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
-		geometryPassClear[2].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
-		geometryPassClear[3].color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
-		geometryPassClear[4].depthStencil = { 1.0f, 0 };
-		renderPassInfo.clearValueCount = static_cast<uint32_t>(geometryPassClear.size());
-		renderPassInfo.pClearValues = geometryPassClear.data();
-		renderPassInfo.renderPass = this->mGeometryPassRenderer.mRenderPass; // mDeferredRenderPass;
-		renderPassInfo.framebuffer = this->mGeometryPassRenderer.mFramebuffer; // mDeferredFramebuffer;
-
-		renderPassInfo.renderArea.extent.width = Application::Get()->appSizes->sceneSize.x;
-		renderPassInfo.renderArea.extent.height = Application::Get()->appSizes->sceneSize.y;
-
-		viewport.width = Application::Get()->appSizes->sceneSize.x;
-		viewport.height = -Application::Get()->appSizes->sceneSize.y;
-		viewport.y = Application::Get()->appSizes->sceneSize.y;
-		scissor.extent.width = Application::Get()->appSizes->sceneSize.x;
-		scissor.extent.height = Application::Get()->appSizes->sceneSize.y;
-
-		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		{
-			PLAZA_PROFILE_SECTION("Bind Instances Data");
-			std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
-			descriptorSets.push_back(this->mGeometryPassRenderer.mShaders->mDescriptorSets[this->mCurrentFrame]);
-
-			VkDeviceSize offsets[1] = { 0 };
-			vkCmdBindIndexBuffer(commandBuffer, mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
-			vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mMainVertexBuffer->GetBuffer(), offsets);
-			vkCmdBindVertexBuffers(commandBuffer, 1, 1, &mMainInstanceMatrixBuffers[mCurrentFrame], offsets);
-			vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-			vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-			this->mSkybox->DrawSkybox();
-			//vkCmdBindVertexBuffers(commandBuffer, 2, 1, &mMainInstanceMaterialBuffers[mCurrentFrame], offsets);
-			//vkCmdBindVertexBuffers(commandBuffer, 3, 1, &mMainInstanceMaterialOffsetsBuffers[mCurrentFrame], offsets);
-			//vkCmdBindVertexBuffers(commandBuffer, 4, 1, &mMainInstanceRenderGroupOffsetsBuffers[mCurrentFrame], offsets);
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mGeometryPassRenderer.mShaders->mPipelineLayout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
-		}
-
-		// Render the scene with textures and sampling the shadow map
-
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mGeometryPassRenderer.mShaders->mPipeline);
-		{
-			PLAZA_PROFILE_SECTION("Draw Instances");
-
-			vkCmdDrawIndexedIndirect(commandBuffer, mIndirectBuffers[mCurrentFrame], 0, mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
-		}
-
-		vkCmdEndRenderPass(commandBuffer);
-
-		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-		renderPassInfo.pClearValues = clearValues.data();
-
-		viewport.height = -Application::Get()->appSizes->sceneSize.y;
-		viewport.y = Application::Get()->appSizes->sceneSize.y;
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		// renderPassInfo.renderPass = scene;
-		renderPassInfo.renderPass = mDeferredRenderPass;
-		renderPassInfo.framebuffer = mDeferredFramebuffer;
-
-		/* Tiled Lighting */
-		{
-			PLAZA_PROFILE_SECTION("Deferred Lighting");
-			this->mLighting->GetLights();
-			this->mLighting->UpdateTiles();
-			this->mLighting->DrawDeferredPass();
-		}
-		// vkCmdBeginRenderPass(commandBuffer, &renderPassInfo,
-		// VK_SUBPASS_CONTENTS_INLINE); 
-		// vkCmdEndRenderPass(commandBuffer);
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		this->mBloom.Draw();
-		/* ----------------- this->mGuiRenderer->RenderText(nullptr) -----------------
-		 */
-		;
-
-		/* Render to ImGui or swapchain */
-		renderPassInfo.renderPass = this->mSwapchainRenderPass;
-#ifdef GAME_MODE
-		renderPassInfo.framebuffer = mSwapChainFramebuffers[imageIndex];
-#else
-		renderPassInfo.framebuffer = mFinalSceneFramebuffer;
-#endif
-
-		std::vector<VkDescriptorSet> descriptorSets = vector<VkDescriptorSet>();
-		descriptorSets.push_back(this->mSwapchainDescriptorSets[mCurrentFrame]);
-		vkCmdBeginRenderPass(
-			commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		vkCmdBindPipeline(commandBuffer,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			this->mSwapchainRenderer.mShaders->mPipeline);
-		vkCmdBindDescriptorSets(commandBuffer,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			this->mSwapchainRenderer.mShaders->mPipelineLayout,
-			0,
-			1,
-			descriptorSets.data(),
-			0,
-			nullptr);
-		this->mSwapchainRenderer.Update();
-		SwapChainPushConstant swapChainPushConstant{};
-		swapChainPushConstant.exposure = this->exposure;
-		swapChainPushConstant.gamma = this->gamma;
-		vkCmdPushConstants(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer,
-			this->mSwapchainRenderer.mShaders->mPipelineLayout,
-			VK_SHADER_STAGE_FRAGMENT_BIT,
-			0,
-			sizeof(SwapChainPushConstant),
-			&swapChainPushConstant);
-		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
-		// vkCmdDraw(commandBuffer, 3, 1, 0, 0);
-		vkCmdEndRenderPass(commandBuffer);
-
-#ifdef EDITOR_MODE
-		renderPassInfo.renderPass = mSwapchainRenderPass;
-		renderPassInfo.framebuffer = mSwapChainFramebuffers[imageIndex];
-		renderPassInfo.renderArea.extent = mSwapChainExtent;
-
-		vkCmdBeginRenderPass(
-			commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		//		vkCmdBindPipeline(commandBuffer,
-		// VK_PIPELINE_BIND_POINT_GRAPHICS, mGraphicsPipeline);
-
-		viewport.width = static_cast<float>(mSwapChainExtent.width);
-		viewport.height = static_cast<float>(mSwapChainExtent.height);
-		scissor.extent = mSwapChainExtent;
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		// vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-		// mPipelineLayout, 0, 1, &mFinalSceneDescriptorSet, 0, nullptr);
-
-		{
-			PLAZA_PROFILE_SECTION("Render ImGui");
-			ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
-		}
-
-		vkCmdEndRenderPass(commandBuffer);
-#endif
-
-		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-			throw std::runtime_error("failed to record command buffer!");
-		}
-	}
-
-	void VulkanRenderer::UpdatePreRenderData() {
+	void VulkanRenderer::UpdatePreRenderData(Scene* scene) {
 		//UpdateMaterials();
 		PLAZA_PROFILE_SECTION("Group Instances");
-		for (const auto& [key, value] : Scene::GetActiveScene()->meshRendererComponents) {
-			const auto& transformIt = Scene::GetActiveScene()->transformComponents.find(key);
-			if (transformIt != Scene::GetActiveScene()->transformComponents.end() && value.renderGroup) {
+		for (const uint64_t& uuid : SceneView<MeshRenderer, TransformComponent>(scene)) {
+			const MeshRenderer& meshRenderer = *scene->GetComponent<MeshRenderer>(uuid);
+			const TransformComponent& transform = *scene->GetComponent<TransformComponent>(uuid);
+			if (meshRenderer.renderGroup) {
 				// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 				// mInstanceModelMatrices.push_back(transform.modelMatrix);
 
-				value.renderGroup->AddInstance(transformIt->second.modelMatrix);
+				meshRenderer.renderGroup->AddInstance(transform.modelMatrix);
 				Time::addInstanceCalls++;
 
 				bool continueLoop = true;
@@ -2967,7 +2588,7 @@ namespace Plaza {
 		}
 	}
 
-	void VulkanRenderer::Render() {
+	void VulkanRenderer::Render(Scene* scene) {
 		PLAZA_PROFILE_SECTION("Render Instances");
 #ifdef EDITOR_MODE
 		ImGui::SetCurrentContext(Editor::Gui::mMainContext);
@@ -2979,8 +2600,8 @@ namespace Plaza {
 
 		if (mRenderGraph) {
 			mRenderGraph->UpdateCommandBuffer(mCommandBuffers[mCurrentFrame]);
-			VulkanRenderer::GetRenderer()->UpdateInstancesData();
-			mRenderGraph->Execute(mCurrentImage, mCurrentFrame);
+			VulkanRenderer::GetRenderer()->UpdateInstancesData(scene);
+			mRenderGraph->Execute(scene, mCurrentImage, mCurrentFrame);
 		}
 		else {
 			RecordImGuiFrame({ ImGui::GetDrawData() });
@@ -3981,20 +3602,21 @@ namespace Plaza {
 		//return this->mGeometryPassRenderer.mShaders->mDescriptorSets[frame];
 	}
 
-	void VulkanRenderer::UpdateInstancesData() {
+	void VulkanRenderer::UpdateInstancesData(Scene* scene) {
 		PLAZA_PROFILE_SECTION("Update Instances Data");
 		unsigned int allMaterialsCount = 0;
 		std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
 		std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
-		for (const auto& [key, value] : Scene::GetActiveScene()->meshRendererComponents) {
-			if (!value.mEnabled)
+		for (const uint64_t& uuid : SceneView<MeshRenderer, TransformComponent>(scene)) {
+			MeshRenderer& component = *scene->GetComponent<MeshRenderer>(uuid);
+			if (!component.mEnabled)
 				continue;
-			const auto& transformIt = Scene::GetActiveScene()->transformComponents.find(key);
-			if (transformIt != Scene::GetActiveScene()->transformComponents.end() && value.renderGroup) {
+
+			if (component.renderGroup) {
 				// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 				// mInstanceModelMatrices.push_back(transform.modelMatrix);
 
-				value.renderGroup->AddInstance(transformIt->second.modelMatrix);
+				component.renderGroup->AddInstance(scene->GetComponent<TransformComponent>(uuid)->modelMatrix);
 				Time::addInstanceCalls++;
 
 				bool continueLoop = true;
@@ -4188,8 +3810,9 @@ namespace Plaza {
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("LightsBuffer");
 			VulkanRenderer::GetRenderer()->mLighting->mLights.clear();
-			for (const auto& [key, value] : Scene::GetActiveScene()->lightComponents) {
-				glm::vec3 position = Scene::GetActiveScene()->transformComponents.at(key).GetWorldPosition();
+			for (const uint64_t& uuid : SceneView<Light>(scene)) {
+				Light& value = *scene->GetComponent<Light>(uuid);
+				const glm::vec3 position = scene->GetComponent<TransformComponent>(uuid)->GetWorldPosition();
 				VulkanRenderer::GetRenderer()->mLighting->mLights.push_back(Lighting::LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff, 0.0f });
 			}
 

@@ -287,11 +287,12 @@ namespace Plaza {
 		}
 	}
 
-	void VulkanLighting::GetLights() {
+	void VulkanLighting::GetLights(Scene* scene) {
 		this->mLights.clear();
-		for (const auto& [key, value] : Scene::GetActiveScene()->lightComponents) {
-			glm::vec3 position = Scene::GetActiveScene()->transformComponents.at(key).GetWorldPosition();
-			this->mLights.push_back(LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff });
+		for (const uint64_t& uuid : SceneView<Light>(scene)) {
+			Light& component = *scene->GetComponent<Light>(uuid);
+			const glm::vec3& position = scene->GetComponent<TransformComponent>(uuid)->GetWorldPosition();
+			this->mLights.push_back(LightStruct{ component.color, component.radius, position, component.intensity, component.cutoff });
 		}
 
 		void* data;

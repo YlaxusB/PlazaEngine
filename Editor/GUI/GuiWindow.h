@@ -27,7 +27,7 @@ namespace Plaza {
 
 			}
 			virtual void Init() = 0;
-			virtual void Update() = 0;
+			virtual void Update(Scene* scene) = 0;
 			virtual void OnKeyPress(int key, int scancode, int action, int mods) {};
 
 			//virtual void HandleKeyEvent();

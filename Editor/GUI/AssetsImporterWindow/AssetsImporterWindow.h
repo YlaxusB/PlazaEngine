@@ -12,7 +12,7 @@ namespace Plaza {
 
 
 			void Init() override;
-			void Update() override;
+			void Update(Scene* scene) override;
 
 			void OpenAssetsImporter(std::string filePath, std::string outPath) {
 				mFileToImport = filePath;

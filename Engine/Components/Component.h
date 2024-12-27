@@ -8,7 +8,7 @@ namespace Plaza {
 	class PLAZA_API Entity;
 	class PLAZA_API Component {
 	public:
-		uint64_t mUuid;
+		uint64_t mUuid = 0;
 		bool mEnabled = true;
 
 		inline bool IsEnabled() { return mEnabled; };

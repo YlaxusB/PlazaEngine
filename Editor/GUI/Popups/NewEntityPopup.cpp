@@ -6,12 +6,14 @@
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 namespace Plaza::Editor {
 	Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true, bool addToScene = true, Scene* scene = nullptr) {
-		Entity* obj = new Entity(name, parent, addToScene);
+		Entity* obj = scene->NewEntity(name, parent);//new Entity(name, parent, addToScene);
 		obj->changingName = true;
-		Scene::GetActiveScene()->entities.at(obj->uuid).changingName = true;
+		Scene::GetActiveScene()->GetEntity(obj->uuid)->changingName = true;
 		HierarchyWindow::Item::firstFocus = true;
-		scene->GetComponent<TransformComponent>(obj->uuid)->UpdateChildrenTransform();
+		ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(obj->uuid), nullptr, scene);
 		MeshRenderer* meshRenderer = scene->AddComponent<MeshRenderer>(obj->uuid);//new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, true);
+		meshRenderer->ChangeMesh(mesh);
+		meshRenderer->AddMaterial(AssetsManager::GetDefaultMaterial());
 		meshRenderer->instanced = true;
 
 		//meshRenderer->mesh = new Mesh(*mesh);
@@ -23,65 +25,66 @@ namespace Plaza::Editor {
 
 		return obj;
 	}
-	void Popup::NewEntityPopup::Init(Entity* obj, Entity* parent, Scene* scene) {
+	void Popup::NewEntityPopup::Init(Entity* parent, Scene* scene) {
 		if (!parent) {
 			parent = Scene::GetActiveScene()->mainSceneEntity;
 		}
 		//FIX: Remake new entity menu
-		//if (ImGui::BeginMenu("New Entity"))
-		//{
-		//	if (ImGui::MenuItem("Empty Entity"))
-		//	{
-		//		obj = new Entity("New Entity", parent, true);
-		//		obj->GetComponent<Transform>()->UpdateChildrenTransform();
-		//		Editor::selectedGameObject = obj;
-		//	}
-		//
-		//	if (ImGui::MenuItem("Cube"))
-		//	{
-		//		Entity* obj = NewEntity("Cube", parent, DefaultModels::Cube(), true, true);
-		//		Transform* transform = scene->GetComponent<Transform>(obj->uuid);
-		//		Collider* collider = scene->AddComponent<Collider>(obj->uuid);
-		//		collider->CreateShape(ColliderShape::ColliderShapeEnum::BOX, transform);
-		//	}
-		//
-		//	if (ImGui::MenuItem("Sphere"))
-		//	{
-		//		Entity* obj = NewEntity("Sphere", parent, DefaultModels::Sphere(), true, true);
-		//		Transform* transform = obj->GetComponent<Transform>();
-		//		Collider* collider = new Collider(obj->uuid);
-		//		collider->CreateShape(ColliderShape::ColliderShapeEnum::SPHERE, transform);
-		//		obj->AddComponent<Collider>(collider);
-		//	}
-		//
-		//	if (ImGui::MenuItem("Plane"))
-		//	{
-		//		Entity* obj = NewEntity("Plane", parent, DefaultModels::Plane(), true, true);
-		//		Transform* transform = obj->GetComponent<Transform>();
-		//		transform->scale = glm::vec3(10.0f, 0.05f, 10.0f);
-		//		transform->UpdateChildrenTransform();
-		//		Collider* collider = new Collider(obj->uuid);
-		//		collider->CreateShape(ColliderShape::ColliderShapeEnum::PLANE, transform);
-		//		obj->AddComponent<Collider>(collider);
-		//	}
-		//
-		//	if (ImGui::MenuItem("Cylinder"))
-		//	{
-		//		NewEntity("Cylinder", parent, DefaultModels::Cylinder(), true, true);
-		//	}
-		//
-		//	if (ImGui::MenuItem("Capsule"))
-		//	{
-		//		Entity* obj = NewEntity("Capsule", parent, DefaultModels::Capsule(), true, true);
-		//		Transform* transform = obj->GetComponent<Transform>();
-		//		transform->scale = glm::vec3(1.0f, 1.0f, 1.0f);
-		//		transform->UpdateChildrenTransform();
-		//		Collider* collider = new Collider(obj->uuid);
-		//		collider->CreateShape(ColliderShape::ColliderShapeEnum::CAPSULE, transform);
-		//		obj->AddComponent<Collider>(collider);
-		//	}
-		//
-		//	ImGui::EndMenu();
-		//}
+		if (ImGui::BeginMenu("New Entity"))
+		{
+			Entity* entity = nullptr;
+			if (ImGui::MenuItem("Empty Entity"))
+			{
+				entity = scene->NewEntity("New Entity", parent);//obj = new Entity("New Entity", parent, true);
+				ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(entity->uuid), nullptr, scene);
+			}
+
+			if (ImGui::MenuItem("Cube"))
+			{
+				entity = NewEntity("Cube", parent, DefaultModels::Cube(), true, true, scene);
+				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
+				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
+				collider->CreateShape(ColliderShape::ColliderShapeEnum::BOX, transform);
+			}
+
+			if (ImGui::MenuItem("Sphere"))
+			{
+				entity = NewEntity("Sphere", parent, DefaultModels::Sphere(), true, true, scene);
+				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
+				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
+				collider->CreateShape(ColliderShape::ColliderShapeEnum::SPHERE, transform);
+			}
+
+			if (ImGui::MenuItem("Plane"))
+			{
+				entity = NewEntity("Plane", parent, DefaultModels::Plane(), true, true, scene);
+				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
+				transform->mLocalScale = glm::vec3(10.0f, 0.05f, 10.0f);
+				ECS::TransformSystem::UpdateSelfAndChildrenTransform(*transform, nullptr, scene);
+				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
+				collider->CreateShape(ColliderShape::ColliderShapeEnum::PLANE, transform);
+			}
+
+			if (ImGui::MenuItem("Cylinder"))
+			{
+				NewEntity("Cylinder", parent, DefaultModels::Cylinder(), true, true, scene);
+			}
+
+			if (ImGui::MenuItem("Capsule"))
+			{
+				entity = NewEntity("Capsule", parent, DefaultModels::Capsule(), true, true, scene);
+				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
+				transform->mLocalScale = glm::vec3(1.0f, 1.0f, 1.0f);
+				ECS::TransformSystem::UpdateSelfAndChildrenTransform(*transform, nullptr, scene);
+				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
+				collider->CreateShape(ColliderShape::ColliderShapeEnum::CAPSULE, transform);
+
+			}
+
+			if (entity)
+				Editor::selectedGameObject = entity;
+
+			ImGui::EndMenu();
+		}
 	}
 }

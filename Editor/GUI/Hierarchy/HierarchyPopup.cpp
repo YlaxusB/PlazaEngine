@@ -9,7 +9,7 @@ namespace Plaza::Editor {
 	void HierarchyPopup::Update(Scene* scene) {
 		if (ImGui::BeginPopupContextWindow())
 		{
-			Popup::NewEntityPopup::Init(obj, nullptr, scene);
+			Popup::NewEntityPopup::Init(nullptr, scene);
 
 			ImGui::EndPopup();
 

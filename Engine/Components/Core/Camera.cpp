@@ -123,7 +123,7 @@ namespace Plaza {
 
 	void Camera::updateCameraVectors(Scene* scene)
 	{
-		TransformComponent* transform = scene->GetComponent<TransformComponent>(this->mUuid);
+		TransformComponent* transform = scene->GetComponent<TransformComponent>(this->mUuid);//scene->GetComponent<TransformComponent>(this->mUuid);
 		if (this->isEditorCamera) {
 			// calculate the new Front vector
 			glm::vec3 front;
@@ -136,7 +136,7 @@ namespace Plaza {
 		}
 		else {
 			if (this->mUuid && transform) {
-				glm::mat4 transformationMatrix = transform->modelMatrix;
+				glm::mat4 transformationMatrix = transform->mWorldMatrix;
 
 				/*
 				The first column (index [0]) represents the Right vector (X-axis).
@@ -156,14 +156,14 @@ namespace Plaza {
 	};
 
 	glm::vec3 Camera::ScreenPositionToRay(const glm::vec2& position, const glm::vec2& size) {
-		float x = (2.0f * position.x) / size.x - 1.0f; 
+		float x = (2.0f * position.x) / size.x - 1.0f;
 		float y = 1.0f - (2.0f * position.y) / size.y;
 		float z = 1.0f;
 
 
-		glm::vec4 rayClip = glm::vec4(x, y, -1.0f, 1.0f); 
+		glm::vec4 rayClip = glm::vec4(x, y, -1.0f, 1.0f);
 		glm::vec4 rayEye = glm::inverse(this->GetProjectionMatrix()) * rayClip;
-		rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f); 
+		rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
 		glm::vec3 rayWorld = glm::vec3(glm::inverse(this->GetViewMatrix()) * rayEye);
 		return glm::normalize(rayWorld);
 	}

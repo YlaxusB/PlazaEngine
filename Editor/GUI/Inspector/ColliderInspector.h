@@ -13,7 +13,7 @@ namespace Plaza::Editor {
 	static class ColliderInspector {
 	public:
 		void AddChildrenMeshShape(Scene* scene, Collider* collider, uint64_t parentUuid) {
-			for (uint64_t childUuid : Scene::GetActiveScene()->entities.at(parentUuid).childrenUuid) {
+			for (uint64_t childUuid : Scene::GetActiveScene()->GetEntity(parentUuid)->childrenUuid) {
 				if (scene->HasComponent<MeshRenderer>(childUuid)) {
 					collider->AddConvexMeshShape(scene->GetComponent<MeshRenderer>(childUuid)->mesh);
 				}
@@ -56,23 +56,17 @@ namespace Plaza::Editor {
 
 					TransformComponent& transform = *scene->GetComponent<TransformComponent>(collider->mUuid);
 					// Create a dynamic rigid body
-					glm::quat quaternion = transform.GetWorldQuaternion();
-					physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-
-					physx::PxTransform* pxTransform = new physx::PxTransform(
-						transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
-						pxQuaternion);
 
 					physx::PxMaterial* defaultMaterial = Physics::defaultMaterial;
 					if (ImGui::MenuItem("Box"))
 					{
-						physx::PxBoxGeometry geometry(transform.scale.x / 2.1, transform.scale.y / 2.1, transform.scale.z / 2.1);
+						physx::PxBoxGeometry geometry(transform.mLocalScale.x / 2.1, transform.mLocalScale.y / 2.1, transform.mLocalScale.z / 2.1);
 						physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
 						collider->AddShape(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::BOX, 0));
 					}
 					if (ImGui::MenuItem("Plane"))
 					{
-						physx::PxBoxGeometry geometry(transform.scale.x / 2.1, 0.001f, transform.scale.z / 2.1);
+						physx::PxBoxGeometry geometry(transform.mLocalScale.x / 2.1, 0.001f, transform.mLocalScale.z / 2.1);
 						physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
 						collider->AddShape(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::PLANE, 0));
 					}

@@ -65,7 +65,16 @@ namespace Plaza::Editor {
 	void Inspector::ComponentInspector::UpdateComponents() {
 		components.clear();
 		uint64_t uuid = Editor::selectedGameObject->uuid;
-		Scene* activeScene = Scene::GetActiveScene();
+		Scene* scene = Scene::GetActiveScene();
+
+		ComponentMask entityComponentMask = scene->GetEntity(uuid)->mComponentMask;
+		for (ComponentPool* pool : scene->mComponentPools) {
+			if (pool == nullptr)
+				continue;
+			if (entityComponentMask.test(pool->mComponentMask)) {
+				components.push_back(static_cast<Component*>(pool->Get(uuid)));
+			}
+		}
 
 		//FIX: Update the components inspector
 		//if (activeScene->transformComponents.contains(uuid))

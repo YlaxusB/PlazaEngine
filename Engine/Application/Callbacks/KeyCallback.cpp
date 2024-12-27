@@ -10,6 +10,7 @@
 #include "Engine/Core/Input/Input.h"
 #include "Editor/GUI/guiMain.h"
 #include "Engine/Application/FileDialog/FileDialog.h"
+#include "Editor/DefaultAssets/DefaultAssets.h"
 
 using namespace Plaza;
 uint64_t lastUuid;
@@ -19,27 +20,25 @@ static unsigned int cascadeIndexDebug = 2;
 glm::vec3 randomVec3() {
 	static std::random_device rd;
 	static std::mt19937 gen(rd());
-	static std::uniform_real_distribution<float> dis(-500.0f, 500.0f);
+	static std::uniform_real_distribution<float> dis(-1000.0f, 1000.0f);
 
 	return glm::vec3(dis(gen), dis(gen), dis(gen));
 }
 
-Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true, bool addToScene = true) {
-	Entity* obj = new Entity(name, parent, addToScene);
-	// Fix: fix new entity
-	////obj->changingName = true;
-	////Scene::GetActiveScene()->entities.at(obj->uuid).changingName = true;
-	////Gui::Hierarchy::Item::firstFocus = true;
-	//obj->GetComponent<TransformComponent>()->UpdateChildrenTransform();
-	//MeshRenderer* meshRenderer = new MeshRenderer(mesh, AssetsManager::GetDefaultMaterial());
-	//meshRenderer->instanced = true;
-	////meshRenderer->mesh = new Mesh(*mesh);
+Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true, bool addToScene = true, Scene* scene = nullptr) {
+	Entity* obj = scene->NewEntity(name, parent);//new Entity(name, parent, addToScene);
+	ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(obj->uuid), nullptr, scene, true);
+	MeshRenderer* meshRenderer = scene->AddComponent<MeshRenderer>(obj->uuid);//new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, true);
+	meshRenderer->ChangeMesh(mesh);
+	meshRenderer->AddMaterial(AssetsManager::GetDefaultMaterial());
+	meshRenderer->instanced = true;
+
+	//meshRenderer->mesh = new Mesh(*mesh);
 	//meshRenderer->mMaterials.push_back(AssetsManager::GetDefaultMaterial());
-	////RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->material);
-	//meshRenderer->renderGroup = Scene::GetActiveScene()->AddRenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
-	////meshRenderer->renderGroup->material = make_shared<Material>(*AssetsManager::GetDefaultMaterial());
-	//obj->AddComponent<MeshRenderer>(meshRenderer);
-	//Editor::selectedGameObject = obj;
+	//RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
+	//meshRenderer->renderGroup = Scene::GetActiveScene()->AddRenderGroup(newRenderGroup);
+	//meshRenderer->renderGroup->material = make_shared<Material>(*AssetsManager::GetDefaultMaterial());
+	Editor::selectedGameObject = obj;
 
 	return obj;
 }
@@ -71,13 +70,19 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 			if (Editor::selectedGameObject) {
 				uint64_t newUuid = ECS::EntitySystem::Instantiate(Scene::GetActiveScene(), Editor::selectedGameObject->uuid);
 				if (newUuid)
-					ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(newUuid), scene);
+					ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(newUuid), nullptr, scene);
 				Editor::selectedGameObject = Scene::GetActiveScene()->GetEntity(newUuid);
 			}
 		}
 
 		if (key == GLFW_KEY_T && action == GLFW_PRESS) {
-
+			for (int i = 0; i < 32000; ++i) {
+				Entity* entity = NewEntity("Cube", nullptr, Editor::DefaultModels::Cube(), true, true, scene);
+				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
+				ECS::TransformSystem::SetLocalPosition(*transform, scene, randomVec3());
+				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
+				collider->CreateShape(ColliderShape::ColliderShapeEnum::BOX, transform);
+			}
 		}
 
 		VulkanRenderer* vulkanRenderer = (VulkanRenderer*)Application::Get()->mRenderer;
@@ -149,4 +154,4 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 #endif
 
 
-	}
+}

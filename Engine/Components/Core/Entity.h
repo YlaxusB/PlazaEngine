@@ -16,18 +16,18 @@ namespace Plaza {
 	typedef std::bitset<MAX_COMPONENTS> ComponentMask;
 	struct PLAZA_API Entity {
 	public:
-		uint64_t uuid;
+		uint64_t uuid = 0;
 		ComponentMask mComponentMask;
-		uint64_t parentUuid;
-		uint64_t prefabUuid; // The uuid of the prefab it belongs to
-		uint64_t equivalentPrefabUuid; // The uuid of the entity in the prefab it belongs to
+		uint64_t parentUuid = 0;
+		uint64_t prefabUuid = 0; // The uuid of the prefab it belongs to
+		uint64_t equivalentPrefabUuid = 0; // The uuid of the entity in the prefab it belongs to
 		bool isPrefab = false;
 		std::vector<uint64_t> childrenUuid;
 		std::string name;
 		bool changingName = false;
 
 		Entity() {}
-		Entity(std::string objName, Entity* parent = nullptr, uint64_t newUuid = 0) : name(objName) { }
+		Entity(std::string objName, Entity* parent = nullptr, uint64_t newUuid = 0) : name(objName), uuid(newUuid) { }
 		Entity(const Entity&) = default;
 
 		void Rename(std::string newName) {}

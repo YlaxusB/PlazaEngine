@@ -267,7 +267,7 @@ namespace Plaza {
 					if (!entity)
 						return;
 
-					glm::vec4 localPosition = glm::inverse(Scene::GetActiveScene()->GetComponent<TransformComponent>(entity->uuid)->GetTransform()) * clickPosition;
+					glm::vec4 localPosition = glm::inverse(Scene::GetActiveScene()->GetComponent<TransformComponent>(entity->uuid)->GetWorldMatrix()) * clickPosition;
 
 					Mesh* mesh = Scene::GetActiveScene()->GetComponent<MeshRenderer>(entity->uuid)->mesh;
 

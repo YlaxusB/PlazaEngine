@@ -48,7 +48,7 @@ namespace Plaza::Editor {
 
 		glm::mat4 projection = camera.GetProjectionMatrix();
 		glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 gizmoTransform = transform.modelMatrix;//transform.GetTransform(entity->GetComponent<Transform>()->worldPosition);
+		glm::mat4 gizmoTransform = transform.mWorldMatrix;//transform.GetTransform(entity->GetComponent<Transform>()->worldPosition);
 		ImGuizmo::OPERATION activeOperation = Overlay::activeOperation; // Operation is translate, rotate, scale
 		ImGuizmo::MODE activeMode = Overlay::activeMode; // Mode is world or local
 
@@ -73,7 +73,7 @@ namespace Plaza::Editor {
 		}
 		if (isUsing && !glm::isnan(position.x)) {
 			// --- Rotation
-			glm::mat4 updatedTransform = glm::inverse(parentTransform.GetTransform()) * glm::toMat4(glm::quat(rotation));
+			glm::mat4 updatedTransform = glm::inverse(parentTransform.GetWorldMatrix()) * glm::toMat4(glm::quat(rotation));
 			/*
 			glm::translate(glm::mat4(1.0f), position)
 			* glm::toMat4(glm::inverse(glm::quat(parentTransform.GetWorldQuaternion())))
@@ -81,7 +81,7 @@ namespace Plaza::Editor {
 			* glm::scale(glm::mat4(1.0f), parentTransform.scale);
 			*/
 			glm::vec3 parentPosition, parentRotation, parentScale;
-			DecomposeTransform(parentTransform.modelMatrix, parentPosition, parentRotation, parentScale); // The rotation is radians
+			DecomposeTransform(parentTransform.mWorldMatrix, parentPosition, parentRotation, parentScale); // The rotation is radians
 
 			glm::vec3 updatedPosition, updatedRotation, updatedScale;
 			DecomposeTransform(updatedTransform, updatedPosition, updatedRotation, updatedScale); // The rotation is radians
@@ -95,8 +95,8 @@ namespace Plaza::Editor {
 			glm::quat quaternion = glm::quat_cast(glm::mat3(glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f))
 				* glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 1.0f, 0.0f))
 				* glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))));
-			glm::quat deltaRotation = quaternion - transform.rotation;
-			transform.rotation = rotation;
+			glm::quat deltaRotation = quaternion - transform.mLocalRotation;
+			transform.mLocalRotation = rotation;
 			//std::cout << "X: " << glm::degrees(rotation.x) << std::endl;
 			//std::cout << "Y: " << glm::degrees(rotation.y) << std::endl;
 			//std::cout << "Z: " << glm::degrees(rotation.z) << std::endl;
@@ -116,13 +116,12 @@ namespace Plaza::Editor {
 
 
 			glm::vec3 localPoint = glm::vec3(rotationMatrix * glm::vec4(position - parentPosition, 1.0f));
-			transform.relativePosition = localPoint / parentScale;//localPoint;
+			transform.mLocalPosition = localPoint / parentScale;//localPoint;
 
 			// --- Scale
 			if (activeOperation == ImGuizmo::SCALE)
-				transform.scale = scale / parentScale;//transform.GetWorldScale();//parentTransform.GetWorldScale();// = updatedScale;
-			transform.UpdateSelfAndChildrenTransform();
-
+				transform.mLocalScale = scale / parentScale;//transform.GetWorldScale();//parentTransform.GetWorldScale();// = updatedScale;
+			ECS::TransformSystem::UpdateSelfAndChildrenTransform(transform, nullptr, scene, true);
 
 
 			// Update Rigid Body Position

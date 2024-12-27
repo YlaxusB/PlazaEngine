@@ -1181,7 +1181,7 @@ namespace Plaza {
 				// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 				// mInstanceModelMatrices.push_back(transform.modelMatrix);
 
-				meshRenderer.renderGroup->AddInstance(transform.modelMatrix);
+				meshRenderer.renderGroup->AddInstance(transform.mWorldMatrix);
 				Time::addInstanceCalls++;
 
 				bool continueLoop = true;
@@ -1196,7 +1196,7 @@ namespace Plaza {
 		///this->mInstanceModelMatrices.resize(Scene::GetActiveScene()->renderGroups.size());
 		this->mInstanceModelMaterialsIndex.clear();
 		this->mInstanceModelMaterialsIndex.push_back(0);
-		this->mInstanceModelMaterialOffsets.clear();
+		//this->mInstanceModelMaterialOffsets.clear();
 		//this->mInstanceModelMaterialOffsets.resize(Scene::GetActiveScene()->renderGroups.size());
 		mTotalInstances = 0;
 		mIndirectDrawCount = 0;
@@ -1223,7 +1223,7 @@ namespace Plaza {
 				for (unsigned int i = 0; i < instanceCount; ++i) {
 					this->mInstanceModelMatrices.push_back(value.instanceModelMatrices[i]);
 					renderGroupOffsets.push_back(allMaterialsCount - materialsCount);
-					this->mInstanceModelMaterialOffsets.push_back(value.instanceMaterialOffsets);
+					//this->mInstanceModelMaterialOffsets.push_back(value.instanceMaterialOffsets);
 					//this->mInstanceModelMaterialsIndex.push_back(value->instanceMaterialIndices[i]);
 
 					mTotalInstances++; //= value->instanceModelMatrices.size();
@@ -3608,19 +3608,19 @@ namespace Plaza {
 		std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
 		std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
 		for (const uint64_t& uuid : SceneView<MeshRenderer, TransformComponent>(scene)) {
-			MeshRenderer& component = *scene->GetComponent<MeshRenderer>(uuid);
-			if (!component.mEnabled)
-				continue;
+			//if (!scene->HasComponent<MeshRenderer>(uuid))
 
-			if (component.renderGroup) {
+			MeshRenderer* component = scene->GetComponent<MeshRenderer>(uuid);
+			if (!component || !component->mEnabled)
+				continue;
+			
+			if (component->renderGroup) {
 				// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
 				// mInstanceModelMatrices.push_back(transform.modelMatrix);
-
-				component.renderGroup->AddInstance(scene->GetComponent<TransformComponent>(uuid)->modelMatrix);
+			
+				component->renderGroup->AddInstance(scene->GetComponent<TransformComponent>(uuid)->mWorldMatrix);
 				Time::addInstanceCalls++;
-
-				bool continueLoop = true;
-
+			
 				// value.renderGroup->AddCascadeInstance(transform.modelMatrix, 0);
 			}
 		}
@@ -3631,7 +3631,7 @@ namespace Plaza {
 			///this->mInstanceModelMatrices.resize(Scene::GetActiveScene()->renderGroups.size());
 			this->mInstanceModelMaterialsIndex.clear();
 			this->mInstanceModelMaterialsIndex.push_back(0);
-			this->mInstanceModelMaterialOffsets.clear();
+			//this->mInstanceModelMaterialOffsets.clear();
 			//this->mInstanceModelMaterialOffsets.resize(Scene::GetActiveScene()->renderGroups.size());
 			mTotalInstances = 0;
 			mIndirectDrawCount = 0;
@@ -3654,7 +3654,7 @@ namespace Plaza {
 				for (unsigned int i = 0; i < instanceCount; ++i) {
 					this->mInstanceModelMatrices.push_back(value.instanceModelMatrices[i]);
 					renderGroupOffsets.push_back(allMaterialsCount - materialsCount);
-					this->mInstanceModelMaterialOffsets.push_back(value.instanceMaterialOffsets);
+					//this->mInstanceModelMaterialOffsets.push_back(value.instanceMaterialOffsets);
 					//this->mInstanceModelMaterialsIndex.push_back(value->instanceMaterialIndices[i]);
 
 					mTotalInstances++; //= value->instanceModelMatrices.size();
@@ -3810,11 +3810,11 @@ namespace Plaza {
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("LightsBuffer");
 			VulkanRenderer::GetRenderer()->mLighting->mLights.clear();
-			for (const uint64_t& uuid : SceneView<Light>(scene)) {
-				Light& value = *scene->GetComponent<Light>(uuid);
-				const glm::vec3 position = scene->GetComponent<TransformComponent>(uuid)->GetWorldPosition();
-				VulkanRenderer::GetRenderer()->mLighting->mLights.push_back(Lighting::LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff, 0.0f });
-			}
+			//for (uint64_t uuid : SceneView<Light>(scene)) {
+			//	Light& value = *scene->GetComponent<Light>(uuid);
+			//	const glm::vec3 position = scene->GetComponent<TransformComponent>(uuid)->GetWorldPosition();
+			//	VulkanRenderer::GetRenderer()->mLighting->mLights.push_back(Lighting::LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff, 0.0f });
+			//}
 
 			void* data;
 			size_t bufferSize = sizeof(Lighting::LightStruct) * mLighting->mLights.size();

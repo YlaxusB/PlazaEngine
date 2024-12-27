@@ -327,7 +327,7 @@ namespace Plaza {
 
 	void Collider::CreateShape(ColliderShape::ColliderShapeEnum shapeEnum, TransformComponent* transform, Mesh* mesh) {
 		if (shapeEnum == ColliderShape::ColliderShapeEnum::BOX) {
-			physx::PxBoxGeometry geometry(transform->scale.x / 2.1, transform->scale.y / 2.1, transform->scale.z / 2.1);
+			physx::PxBoxGeometry geometry(transform->mLocalScale.x / 2.1, transform->mLocalScale.y / 2.1, transform->mLocalScale.z / 2.1);
 			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::BOX, 0));
 		}
 		else if (shapeEnum == ColliderShape::ColliderShapeEnum::SPHERE) {
@@ -335,7 +335,7 @@ namespace Plaza {
 			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::SPHERE, 0));
 		}
 		else if (shapeEnum == ColliderShape::ColliderShapeEnum::PLANE) {
-			physx::PxBoxGeometry geometry(transform->scale.x / 2.1, 0.001f, transform->scale.z / 2.1);
+			physx::PxBoxGeometry geometry(transform->mLocalScale.x / 2.1, 0.001f, transform->mLocalScale.z / 2.1);
 			this->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::PLANE, 0));
 		}
 		else if (shapeEnum == ColliderShape::ColliderShapeEnum::CAPSULE) {

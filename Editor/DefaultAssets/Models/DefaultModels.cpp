@@ -129,7 +129,7 @@ namespace Plaza::Editor {
 		// Generate sphere vertices and indices
 		const int stacks = 20;
 		const int slices = 40;
-		const float radius = 1.0f;
+		const float radius = 0.5f;
 		float PI = 3.14159265359f;
 
 		for (int i = 0; i <= stacks; ++i) {

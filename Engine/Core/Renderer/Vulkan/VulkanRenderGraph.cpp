@@ -1594,7 +1594,14 @@ layout(push_constant) uniform PushConstants {
 		std::vector<glm::mat4> buttonsTransform = std::vector<glm::mat4>();
 		std::vector<glm::mat4> textsTransform = std::vector<glm::mat4>();
 		std::vector<glm::mat4>* vector;
-		for (const uint64_t& uuid : SceneView<GuiComponent>(scene)) {
+		int id0 = scene->GetComponentId<TransformComponent>();
+		int id1 = scene->GetComponentId<AudioListener>();
+		int id2 = scene->GetComponentId<MeshRenderer>();
+		int id3 = scene->GetComponentId<GuiComponent>();
+		int id4 = scene->GetComponentId<Collider>();
+		int id5 = scene->GetComponentId<RigidBody>();
+		int id6 = scene->GetComponentId<AudioSource>();
+		for (uint64_t uuid : SceneView<GuiComponent>(scene)) {
 			GuiComponent& component = *scene->GetComponent<GuiComponent>(uuid);
 			if (!component.mEnabled)
 				continue;

@@ -14,7 +14,6 @@
 #include "Engine/Core/Scripting/Scripting.h"
 
 namespace Plaza {
-
 	void Scene::Copy(Scene* baseScene) {
 
 	}
@@ -24,8 +23,6 @@ namespace Plaza {
 	}
 
 	Scene::Scene() {
-		Scene* oldActiveScene = Scene::GetActiveScene();
-		Scene::SetActiveScene(this);
 		this->mAssetUuid = Plaza::UUID::NewUUID();
 
 		//Material* defaultMaterial = new Material();
@@ -37,8 +34,6 @@ namespace Plaza {
 		//mainSceneEntity = new Entity("Scene");
 		//mainSceneEntity->parentUuid = mainSceneEntity->uuid;
 		//mainSceneEntityUuid = mainSceneEntity->uuid;
-
-		Scene::SetActiveScene(oldActiveScene);
 	}
 
 	void Scene::Play() {

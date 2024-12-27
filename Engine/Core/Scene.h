@@ -104,34 +104,31 @@ namespace Plaza {
 		Entity* find(uint64_t findUuid);
 		~GameObjectList() = default;
 	};
+
 	class PLAZA_API Scene : public Asset {
 	public:
 		bool mIsDeleting = false;
 		bool mRunning = false;
 
-		//std::unordered_map<std::variant<uint64_t, std::string>, Entity*> gameObjectsMap;
-
-		Entity* mainSceneEntity = nullptr;
-		uint64_t mainSceneEntityUuid;
-
-		//std::unique_ptr<ECSManager> mECS;
 		static inline int sComponentCounter;
 		template <class T>
-		int GetId()
+		static int GetComponentId()
 		{
 			static int sComponentId = sComponentCounter++;
 			return sComponentId;
 		}
 
-		template <typename... Args>
-		std::array<int, sizeof...(Args)> GetIds() {
-			return { GetId<Args>()... };
-		}
+		//std::unordered_map<std::variant<uint64_t, std::string>, Entity*> gameObjectsMap;
+
+		Entity* mainSceneEntity = nullptr;
+		uint64_t mainSceneEntityUuid = 0;
+
+		//std::unique_ptr<ECSManager> mECS;
 
 
 		std::map<uint64_t, Animation*> mPlayingAnimations = std::map<uint64_t, Animation*>();
 
-		std::unordered_map<uint64_t, Entity> entities;
+		std::unordered_map<uint64_t, std::optional<Entity>> entities;
 		std::vector<ComponentPool*> mComponentPools = std::vector<ComponentPool*>();
 
 		std::unordered_map<uint64_t, RenderGroup> renderGroups;
@@ -141,48 +138,73 @@ namespace Plaza {
 
 		std::unordered_map<std::string, std::unordered_set<uint64_t>> entitiesNames;
 
-		Entity* NewEntity()
-		{
-			uint64_t uuid = entities.size();//Plaza::UUID::NewUUID();
-			entities.emplace(uuid, Entity("NewEntity", nullptr, uuid));
-			return &entities.at(uuid);
+		void SetParent(Entity* entity, Entity* parent) {
+			if (entity->parentUuid) {
+				auto& oldParentChildrenUuid = this->GetEntity(entity->parentUuid)->childrenUuid;
+				oldParentChildrenUuid.erase(std::find(oldParentChildrenUuid.begin(), oldParentChildrenUuid.end(), entity->uuid));
+			}
+
+			if (parent) {
+				entity->parentUuid = parent->uuid;
+				parent->childrenUuid.push_back(entity->uuid);
+			}
+			else if (mainSceneEntityUuid && entity->uuid != mainSceneEntityUuid) {
+				entity->parentUuid = mainSceneEntityUuid;
+				this->GetEntity(mainSceneEntityUuid)->childrenUuid.push_back(entity->uuid);
+			}
+
 		}
 
-		Entity* GetEntity(uint64_t id) {
-			if (entities.find(id) == entities.end())
+		Entity* NewEntity(const std::string& name = "", Entity* parent = nullptr)
+		{
+			uint64_t uuid = entities.size() + 1;//Plaza::UUID::NewUUID();
+			//if (entities.size() < uuid)
+			//	entities.resize(uuid + 1);
+			entities.emplace(uuid, Entity(name, nullptr, uuid));
+			this->SetParent(&entities.at(uuid).value(), parent);
+			this->AddComponent<TransformComponent>(uuid);
+			return &entities.at(uuid).value();
+		}
+
+		inline Entity* GetEntity(uint64_t id) {
+			if (!entities[id].has_value())
 				return nullptr;
-			return &entities.at(id);
+			return &entities.at(id).value();
 		}
 
 		template<typename T>
 		bool HasComponent(uint64_t id) {
-			return this->GetEntity(id)->mComponentMask.test(GetId<T>());
+			if (!entities[id].has_value())
+				return false;
+			return this->GetEntity(id)->mComponentMask.test(GetComponentId<T>());
 		}
 
 		template<typename T>
 		T* AddComponent(uint64_t id) {
-			int componentId = GetId<T>();
-			if (mComponentPools.size() < componentId)
-				mComponentPools.resize(componentId + 1);
+			int componentId = GetComponentId<T>();
+			if (mComponentPools.size() <= componentId)
+				mComponentPools.resize(componentId + 1, nullptr);
 			if (mComponentPools[componentId] == nullptr)
 				mComponentPools[componentId] = new ComponentPool(sizeof(T), componentId);
 
-			T* component = new (mComponentPools[componentId]->Get(id)) T();
-			entities[id].mComponentMask.set(componentId);
+			T* component = mComponentPools[componentId]->Add<T>(id);
+			static_cast<Component*>(component)->mUuid = id;
+			entities.at(id).value().mComponentMask.set(componentId);
 			return component;
 		}
 
 		template<typename T>
 		T* GetComponent(uint64_t id) {
-			int componentId = GetId<T>();
-			if (!entities[id].mComponentMask.test(componentId))
+			int componentId = GetComponentId<T>();
+			bool hasValue = entities[id].has_value();
+			if (!hasValue || !entities.at(id).value().mComponentMask.test(componentId))
 				return nullptr;
 			return static_cast<T*>(mComponentPools[componentId]->Get(id));
 		}
 
 		template<typename T>
 		void RemoveComponent(uint64_t id) {
-			
+
 		}
 
 		void RemoveEntity(uint64_t uuid) {
@@ -192,7 +214,7 @@ namespace Plaza {
 		Entity* GetEntityByName(const std::string& name) {
 			return nullptr;
 		}
-		
+
 		RenderGroup* AddRenderGroup(Mesh* newMesh, std::vector<Material*> newMaterials, bool resizeBuffer = true) {
 			if (!newMesh)
 				return nullptr;
@@ -207,6 +229,7 @@ namespace Plaza {
 				RenderGroup newRenderGroup = RenderGroup(newMesh, newMaterials);
 				newRenderGroup.mCount++;
 				this->renderGroups.emplace(newRenderGroup.uuid, newRenderGroup);
+				this->renderGroupsFindMap.emplace(std::pair<uint64_t, std::vector<uint64_t>>(newMesh->uuid, Material::GetMaterialsUuids(newMaterials)), newRenderGroup.uuid);
 				this->renderGroupsFindMapWithMeshUuid.emplace(newRenderGroup.mesh->uuid, newRenderGroup.uuid);
 				return &this->renderGroups.at(newRenderGroup.uuid);
 			}
@@ -244,7 +267,7 @@ namespace Plaza {
 		Scene(Scene& other) = default;
 
 		void InitMainEntity() {
-			mainSceneEntity = new Entity("Scene");
+			mainSceneEntity = this->NewEntity("Scene", nullptr);
 			mainSceneEntityUuid = mainSceneEntity->uuid;
 			mainSceneEntity->parentUuid = this->mainSceneEntity->uuid;
 		};
@@ -291,90 +314,101 @@ namespace Plaza {
 	template <typename... ComponentTypes>
 	struct PLAZA_API SceneView {
 		SceneView(Scene* scene) : mScene(scene) {
-			if (sizeof...(ComponentTypes) == 0) {
+			int componentIds[] = { Scene::GetComponentId<ComponentTypes>()... };
+			mComponentIds.assign(componentIds, componentIds + sizeof...(ComponentTypes));
+
+			if (mComponentIds.empty()) {
 				mAll = true;
 			}
 			else {
-				int componentIds[] = { scene->GetId<ComponentTypes>()... };
-				for (unsigned int i = 0; i < sizeof...(ComponentTypes); i++) {
-					mComponentMask.set(componentIds[i]);
+				// Determine the largest pool
+				size_t smallestPoolSize = 0;
+				for (int componentId : mComponentIds) {
+					if (componentId < scene->mComponentPools.size() && scene->mComponentPools[componentId]) {
+						ComponentPool* pool = scene->mComponentPools[componentId];
+						if (pool->mSize < smallestPoolSize || smallestPoolSize == 0) {
+							smallestPoolSize = pool->mSize;
+							mSmallestPool = pool;
+						}
+					}
 				}
 			}
 		}
+
+		static bool IsEntityValid(uint64_t uuid) {
+			return uuid != 0;
+		}
+
 		struct Iterator {
 			Scene* mScene;
+			ComponentPool* mSmallestPool;
 			uint64_t mIndex;
-			ComponentMask mComponentMask;
+			std::vector<int> mComponentIds;
 			bool mAll;
 
-			Iterator(Scene* scene, uint64_t index, ComponentMask mask, bool all)
-				: mScene(scene), mIndex(index), mComponentMask(mask), mAll(all) { }
+			Iterator(Scene* scene, ComponentPool* smallestPool, uint64_t index, std::vector<int> componentIds, bool all)
+				: mScene(scene), mSmallestPool(smallestPool), mIndex(index), mComponentIds(componentIds), mAll(all) { }
 
 			uint64_t operator*() const {
-				return mScene->entities[mIndex].uuid;
+				// Use the entity ID stored in the component pool
+				uint64_t entityId = static_cast<Component*>(mSmallestPool->Get(mIndex))->mUuid;
+				return entityId;
 			}
 
 			bool operator==(const Iterator& other) const {
-				return mIndex == other.mIndex || mIndex == mScene->entities.size();
+				return mIndex == other.mIndex;
 			}
 
 			bool operator!=(const Iterator& other) const {
-				return mIndex != other.mIndex && mIndex != mScene->entities.size();
+				return !(*this == other);
 			}
 
 			Iterator& operator++() {
+				int entitiesSize = mScene->entities.size();
 				do {
 					mIndex++;
-				} while (mIndex < mScene->entities.size() && !ValidIndex());
+				} while (mIndex < entitiesSize && !ValidIndex());
 				return *this;
 			}
 
 			bool ValidIndex() const {
-				return (mAll || mComponentMask == (mComponentMask & mScene->entities[mIndex].mComponentMask));
+				if (mAll) return true;
+
+				// Retrieve the entity ID from the largest pool
+				Component* entityId = static_cast<Component*>(mSmallestPool->Get(mIndex));
+				if (!SceneView::IsEntityValid(entityId->mUuid)) return false;
+
+				if (entityId->mUuid == 0 || entityId->mUuid == 14829735431805717965)
+					return false;
+				// Check if the entity has all the required components
+				//const auto& entity = mScene->entities.at(entityId->mUuid);
+				//for (int componentId : mComponentIds) {
+				//	if (!entity.mComponentMask.test(componentId)) {
+				//		return false;
+				//	}
+				//}
+				return true;
 			}
 		};
 
-		uint64_t operator*() const {
-			return mScene->entities[mIndex].uuid;
-		}
-
-		uint64_t operator==(const Iterator& other) const {
-			return mIndex == other.mIndex || mIndex == mScene->entities.size();
-		}
-
-		uint64_t operator!=(const Iterator& other) const {
-			return mIndex != other.mIndex && mIndex != mScene->entities.size();
-		}
-
-		uint64_t operator++() const {
-			do {
-				mIndex++;
-			} while (mIndex < mScene->entities.size() && !ValidIndex());
-			return *this;
-		}
-
 		const Iterator begin() const {
-			int firstIndex = 0;
-			while (firstIndex < mScene->entities.size()) //&&
-				//(mComponentMask != (mComponentMask & mScene->entities[firstIndex].mComponentMask)))
-				//|| !IsEntityValid(mScene->entities[firstIndex].id)))
-			{
-				firstIndex++;
+			if (!mSmallestPool) return end();
+			Iterator it(mScene, mSmallestPool, 0, mComponentIds, mAll);
+			int entitiesSize = mScene->entities.size();
+			while (it.mIndex < entitiesSize && !it.ValidIndex()) {
+				it.mIndex++;
 			}
-			return Iterator(mScene, firstIndex, mComponentMask, mAll);
+			return it;
 		}
 
 		const Iterator end() const {
-			return Iterator(mScene, mScene->entities.size(), mComponentMask, mAll);
+			return Iterator(mScene, mSmallestPool, mSmallestPool ? mSmallestPool->mSize : 0, mComponentIds, mAll);
 		}
 
-		bool ValidIndex() {
-			return (mAll || mComponentMask == (mComponentMask & mScene->entities[mIndex].mComponentMask));
-		}
-
-		uint64_t mIndex;
+	private:
 		Scene* mScene = nullptr;
-		ComponentMask mComponentMask;
+		std::vector<int> mComponentIds;
+		ComponentPool* mSmallestPool = nullptr;
 		bool mAll = false;
 	};
 }

@@ -483,7 +483,7 @@ namespace Plaza {
 
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-			HierarchyWindow::Item::NewItem(Scene::GetActiveScene()->entities[Scene::GetActiveScene()->mainSceneEntity->uuid], selectedGameObject, scene);
+			HierarchyWindow::Item::NewItem(*Scene::GetActiveScene()->GetEntity(Scene::GetActiveScene()->mainSceneEntity->uuid), selectedGameObject, scene);
 			ImGui::PopStyleVar();
 			ImGui::PopStyleVar();
 

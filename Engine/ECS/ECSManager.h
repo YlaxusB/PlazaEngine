@@ -5,11 +5,12 @@ namespace Plaza {
 	public:
 
 	};
-
+#define MAX_ENTITIES 65536*4
 	struct PLAZA_API ComponentPool {
-		ComponentPool(size_t elementsSize, int componentId) {
+		ComponentPool(size_t elementsSize, size_t componentMask) {
 			mElementSize = elementsSize;
-			mComponentId = componentId;
+			mComponentMask = componentMask;
+			mData = new char[mElementSize * MAX_ENTITIES];
 		}
 
 		~ComponentPool() {
@@ -20,35 +21,41 @@ namespace Plaza {
 			return mData + index * mElementSize;
 		}
 
+		template<typename T>
+		inline T* Add(size_t index) {
+			T* component = new (Get(index)) T();
+			mSize = std::max(mSize, index + 1);
+			return component;
+		}
+
 		char* mData{ nullptr };
+		size_t mSize = 0;
 		size_t mElementSize{ 0 };
-		int mComponentId = 0;
+		size_t mComponentMask;
 	};
 
 	class PLAZA_API ECS {
 	public:
 		class EntitySystem {
 		public:
+			static void SetParent(Scene* scene, Entity* child, Entity* newParent);
 			static void Delete(Scene* scene, uint64_t uuid);
 			static uint64_t Instantiate(Scene* scene, uint64_t uuidToInstantiate);
 		};
 		class TransformSystem {
 		public:
 			static void OnInstantiate(Component* componentToInstantiate, TransformComponent& transform);
-			static const glm::vec3& GetWorldPosition(const TransformComponent& transform);
-			static const glm::vec3& GetWorldRotation(const TransformComponent& transform);
-			static const glm::vec3& GetWorldScale(const TransformComponent& transform);
-			static void UpdateWorldMatrix(TransformComponent& transform, Scene* scene);
-			static const glm::quat& GetLocalQuaternion(const TransformComponent& transform);
-			static const glm::quat& GetWorldQuaternion(const TransformComponent& transform);
-			static void UpdateLocalMatrix(TransformComponent& transform);
-			static const glm::mat4& GetLocalMatrix(const TransformComponent& transform);
-			static void UpdateObjectTransform(TransformComponent& transform);
-			static void UpdateChildrenTransform(Entity* entity, Scene* scene);
-			static void UpdateSelfAndChildrenTransform(TransformComponent& transform, Scene* scene);
-			static void SetRelativePosition(TransformComponent& transform, const glm::vec3& vector);
-			static void SetRelativeRotation(TransformComponent& transform, const glm::quat& quat);
-			static void SetRelativeScale(TransformComponent& transform, const glm::vec3& vector, Scene* scene);
+			static void UpdateTransform(TransformComponent& transform, Scene* scene);
+			static void UpdateLocalMatrix(TransformComponent& transform, Scene* scene);
+			static void UpdateWorldMatrix(TransformComponent& transform, const glm::mat4& parentWorldMatrix, Scene* scene);
+			static void UpdateChildrenTransform(TransformComponent& transform, Scene* scene);
+			static void SetLocalPosition(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
+			static void SetLocalRotation(TransformComponent& transform, Scene* scene, const glm::quat& quat, bool updateWorldMatrix = true);
+			static void SetLocalScale(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
+			static void SetWorldPosition(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
+			static void SetWorldRotation(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
+			static void SetWorldScale(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
+			static void UpdateSelfAndChildrenTransform(TransformComponent& transform, TransformComponent* parentTransform, Scene* scene, bool updateLocal = true);
 
 			// FIX: Move these functions to CppHelper
 			// 

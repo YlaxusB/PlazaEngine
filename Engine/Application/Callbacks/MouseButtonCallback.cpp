@@ -72,10 +72,10 @@ void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, 
 				//    	clickUuid = Application::Get()->pickingTexture->readPixel(xposGame, yposGame);
 				clickUuid = Application::Get()->mRenderer->mPicking->DrawAndRead(scene, glm::vec2(xposGame, yposGame));
 
-				auto it = Scene::GetActiveScene()->entities.find(clickUuid);
-				if (it != Scene::GetActiveScene()->entities.end()) {
+				Entity* entity = Scene::GetActiveScene()->GetEntity(clickUuid);
+				if (entity) {
 					// Object with the specified name found
-					Plaza::Editor::Gui::changeSelectedGameObject(&it->second);
+					Plaza::Editor::Gui::changeSelectedGameObject(entity);
 				}
 				else
 					Plaza::Editor::Gui::changeSelectedGameObject(nullptr);

@@ -13,57 +13,29 @@ namespace Plaza {
 	public:
 		virtual void OnInstantiate(Component* componentToInstantiate) override;
 
-		glm::vec3 position = { 0,0,0 };
-		glm::vec3 worldPosition = { 0, 0, 0 };
-		glm::vec3 relativePosition = { 0, 0, 0 };
-		glm::quat rotation = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);
-		glm::vec3 rotationEuler = glm::vec3(0.0f);
-		glm::quat worldRotation = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);
-		glm::vec3 scale = { 1,1,1, };
-		glm::vec3 worldScale = { 1, 1, 1 };
-		glm::mat4 modelMatrix = glm::mat4(1.0f);
-		glm::mat4 localMatrix = glm::mat4(1.0f);
+		glm::vec3 mLocalPosition = { 0,0,0 };
+		glm::quat mLocalRotation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
+		glm::vec3 mLocalScale = { 1,1,1, };
+		glm::mat4 mWorldMatrix = glm::mat4(1.0f);
+		glm::mat4 mLocalMatrix = glm::mat4(1.0f);
+		bool mDirty = false;
+
 		TransformComponent();
 		TransformComponent(const TransformComponent&) = default;
-		const glm::quat& GetLocalQuaternion();
-		const glm::vec3& GetLocalEuler();
-		const glm::quat& GetWorldQuaternion();
-		const glm::vec3& GetWorldEuler();
-		const glm::mat4& GetTransform(glm::vec3 position, glm::vec3 scale);
-		const glm::mat4& GetTransform(glm::vec3 position);
-		const glm::mat4& GetTransform();
-		const glm::mat4& GetLocalMatrix();
-		void UpdateSelfAndChildrenTransform();
-		void UpdateObjectTransform(Entity* entity);
-		void UpdateChildrenTransform(Entity* entity);
-		void UpdateChildrenTransform();
-		void UpdateChildrenScale(Entity* entity);
-		void UpdateChildrenScale();
-		void MoveTowards(glm::vec3 vector);
-		const glm::vec3& MoveTowardsReturn(glm::vec3 vector);
 
-		void UpdateWorldMatrix();
-		void UpdateLocalMatrix();
+		glm::vec3 GetLocalRotation();
+		glm::quat GetLocalQuaternion() { return mLocalRotation; };
+		glm::mat4 GetWorldMatrix() { return mWorldMatrix; }
+		glm::mat4 GetLocalMatrix() { return mLocalMatrix; }
 
-		void SetRelativePosition(glm::vec3 vector);
-		void SetRelativeRotation(glm::quat quat);
-		void SetRelativeScale(glm::vec3 vector);
-
-		void SetWorldPosition(glm::vec3 vector);
-		void SetWorldRotation(glm::vec3 vector);
-		void SetWorldScale(glm::vec3 vector);
-
-		void Rotate(glm::vec3 vector);
-
-		const glm::vec3& GetWorldPosition();
-		const glm::vec3& GetWorldRotation();
-		const glm::vec3& GetWorldScale();
-
-		void UpdatePhysics();
+		glm::vec3 GetWorldPosition();
+		glm::vec3 GetWorldRotation();
+		glm::quat GetWorldQuaternion();
+		glm::vec3 GetWorldScale();
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Component>(this), PL_SER(relativePosition), PL_SER(rotation), PL_SER(scale));
+			archive(cereal::base_class<Component>(this), PL_SER(mLocalPosition), PL_SER(mLocalRotation), PL_SER(mLocalScale));
 		}
 	private:
 		//this->localMatrix = glm::translate(glm::mat4(1.0f), this->relativePosition)

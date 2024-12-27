@@ -43,7 +43,7 @@ namespace Plaza {
 			//InitializeInstanceBuffer();
 		}
 
-		void AddInstance(glm::mat4 model) {
+		inline void AddInstance(const glm::mat4& model) {
 			instanceModelMatrices.push_back(model);
 			//this->instanceMaterialIndices.push_back(material);
 		}

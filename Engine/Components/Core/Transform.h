@@ -14,7 +14,7 @@ namespace Plaza {
 		virtual void OnInstantiate(Component* componentToInstantiate) override;
 
 		glm::vec3 mLocalPosition = { 0,0,0 };
-		glm::quat mLocalRotation = glm::quat(0.0f, 0.0f, 0.0f, 1.0f);
+		glm::quat mLocalRotation = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);
 		glm::vec3 mLocalScale = { 1,1,1, };
 		glm::mat4 mWorldMatrix = glm::mat4(1.0f);
 		glm::mat4 mLocalMatrix = glm::mat4(1.0f);

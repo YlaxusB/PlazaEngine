@@ -185,6 +185,9 @@ namespace Plaza {
 			bool showDockspace = true;
 			ImGui::Begin("Main DockSpace", &showDockspace, windowFlags);
 
+			ImGui::GetIO().MouseDelta.x = Input::Cursor::deltaX;
+			ImGui::GetIO().MouseDelta.y = Input::Cursor::deltaY;
+
 			//ImGui::SetWindowPos(ImVec2(0, 0));
 
 			// Submit the DockSpace

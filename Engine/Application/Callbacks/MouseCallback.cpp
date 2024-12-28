@@ -1,5 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "CallbacksHeader.h"
+#include "Engine/Core/Input/Input.h"
+#include "Engine/Core/Input/Cursor.h"
 
 using namespace Plaza;
 using namespace Plaza::Editor;
@@ -10,6 +12,63 @@ bool Callbacks::firstMouse = true;
 float Callbacks::lastX = 0;//Application::Get()->appSizes->appSize.x / 2.0f;
 float Callbacks::lastY = 0;//Application::Get()->appSizes->appSize.y / 2.0f;
 
+void GetMonitorWorkarea(GLFWwindow* window, int& monitorX, int& monitorY, int& monitorWidth, int& monitorHeight) {
+	int windowX, windowY, windowWidth, windowHeight;
+	glfwGetWindowPos(window, &windowX, &windowY);
+	glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+	int monitorCount;
+	GLFWmonitor** monitors = glfwGetMonitors(&monitorCount);
+
+	for (unsigned int i = 0; i < monitorCount; ++i) {
+		GLFWmonitor* monitor = monitors[i];
+		int monitorWorkX, monitorWorkY, monitorWorkWidth, monitorWorkHeight;
+		glfwGetMonitorWorkarea(monitor, &monitorWorkX, &monitorWorkY, &monitorWorkWidth, &monitorWorkHeight);
+
+		bool windowOnThisMonitor = windowX < monitorWorkX + monitorWorkWidth && windowX + windowWidth > monitorWorkX && windowY < monitorWorkY + monitorWorkHeight && windowY + windowHeight > monitorWorkY;
+		if (windowOnThisMonitor) {
+			monitorX = monitorWorkX;
+			monitorY = monitorWorkY;
+			monitorWidth = monitorWorkWidth;
+			monitorHeight = monitorWorkHeight;
+			return;
+		}
+	}
+
+	GLFWmonitor* primary = glfwGetPrimaryMonitor();
+	glfwGetMonitorWorkarea(primary, &monitorX, &monitorY, &monitorWidth, &monitorHeight);
+}
+
+void HandleMouseWrap(GLFWwindow* window, double& mouseX, double& mouseY, float& lastX, float& lastY) {
+	int monitorX, monitorY, monitorWidth, monitorHeight;
+	GetMonitorWorkarea(window, monitorX, monitorY, monitorWidth, monitorHeight);
+
+	bool wrapped = false;
+	if (mouseX < monitorX) {
+		mouseX = monitorX + monitorWidth - 1;
+		wrapped = true;
+	}
+	else if (mouseX >= monitorX + monitorWidth - 1) {
+		mouseX = monitorX;
+		wrapped = true;
+	}
+	if (mouseY < monitorY) {
+		mouseY = monitorY + monitorHeight - 1;
+		wrapped = true;
+	}
+	else if (mouseY >= monitorY + monitorHeight - 1) {
+		mouseY = monitorY;
+		wrapped = true;
+	}
+
+	if (wrapped) {
+		glfwSetCursorPos(window, mouseX, mouseY);
+		lastX = (float)mouseX;
+		Input::Cursor::lastX = (float)mouseX;
+		lastY = (float)mouseY;
+		Input::Cursor::lastY = (float)mouseY;
+	}
+}
 
 
 void Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double yposIn) {
@@ -35,24 +94,10 @@ void Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double yposIn) 
 		lastY = ypos;
 	}
 
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1)) {
-		if (xpos >= Application::Get()->appSizes->appSize.x - 1.0f) {
-			glfwSetCursorPos(window, 0.0, yposIn);
-			lastX = 0.0;
-		}
-		if (xpos <= 1.0f) {
-			glfwSetCursorPos(window, Application::Get()->appSizes->appSize.x, yposIn);
-			lastX = Application::Get()->appSizes->appSize.x;
-		}
-		if (ypos >= Application::Get()->appSizes->appSize.y - 1.0f) {
-			glfwSetCursorPos(window, xposIn, 0.0);
-			lastY = 0.0;
-		}
-		if (ypos <= 1.0f) {
-			glfwSetCursorPos(window, xposIn, Application::Get()->appSizes->appSize.y);
-			lastY = Application::Get()->appSizes->appSize.y;
-		}
-
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) && !ImGui::IsDragDropActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+		double x = xposIn;
+		double y = yposIn;
+		HandleMouseWrap(window, x, y, lastX, lastY);
 	}
 }
 

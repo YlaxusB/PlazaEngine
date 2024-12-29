@@ -74,12 +74,7 @@ namespace Plaza::Editor {
 		if (isUsing && !glm::isnan(position.x)) {
 			// --- Rotation
 			glm::mat4 updatedTransform = glm::inverse(parentTransform.GetWorldMatrix()) * glm::toMat4(glm::quat(rotation));
-			/*
-			glm::translate(glm::mat4(1.0f), position)
-			* glm::toMat4(glm::inverse(glm::quat(parentTransform.GetWorldQuaternion())))
-			* glm::toMat4(glm::quat(rotation))
-			* glm::scale(glm::mat4(1.0f), parentTransform.scale);
-			*/
+
 			glm::vec3 parentPosition, parentRotation, parentScale;
 			DecomposeTransform(parentTransform.mWorldMatrix, parentPosition, parentRotation, parentScale); // The rotation is radians
 
@@ -87,9 +82,8 @@ namespace Plaza::Editor {
 			DecomposeTransform(updatedTransform, updatedPosition, updatedRotation, updatedScale); // The rotation is radians
 
 			glm::mat4 rotationMatrix = glm::inverse(glm::mat4_cast(parentTransform.GetWorldQuaternion()));
-			//	rotation = glm::eulerAngles(glm::quat(glm::inverse(transform.modelMatrix) * (glm::eulerAngleXYZ(rotation.x, rotation.y, rotation.z))));
 			rotation = updatedRotation;
-			//rotation = -parentRotation * rotation;
+
 			// Adding the deltaRotation avoid the gimbal lock
 			glm::vec3 eulerRotation = rotation;
 			glm::quat quaternion = glm::quat_cast(glm::mat3(glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f))
@@ -97,15 +91,6 @@ namespace Plaza::Editor {
 				* glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))));
 			glm::quat deltaRotation = quaternion - transform.mLocalRotation;
 			transform.mLocalRotation = rotation;
-			//std::cout << "X: " << glm::degrees(rotation.x) << std::endl;
-			//std::cout << "Y: " << glm::degrees(rotation.y) << std::endl;
-			//std::cout << "Z: " << glm::degrees(rotation.z) << std::endl;
-			//transform.rotation += rotation;
-
-			// --- Position
-			// Get the position in the world and transform it to be a localPosition in relation to the parent
-			//position = position - transform.relativePosition;
-			//position = position / parentTransform.worldScale;
 
 			glm::vec3 parentWorldRotation = parentRotation;
 			rotationMatrix =
@@ -116,34 +101,16 @@ namespace Plaza::Editor {
 
 
 			glm::vec3 localPoint = glm::vec3(rotationMatrix * glm::vec4(position - parentPosition, 1.0f));
-			transform.mLocalPosition = localPoint / parentScale;//localPoint;
+			transform.mLocalPosition = localPoint / parentScale;
 
 			// --- Scale
 			if (activeOperation == ImGuizmo::SCALE)
-				transform.mLocalScale = scale / parentScale;//transform.GetWorldScale();//parentTransform.GetWorldScale();// = updatedScale;
+				transform.mLocalScale = scale / parentScale;
 			ECS::TransformSystem::UpdateSelfAndChildrenTransform(transform, nullptr, scene, true);
 
 
-			// Update Rigid Body Position
-			//if (ImGuizmo::IsUsing()) {
-			//	glm::quat quaternion = transform.GetWorldQuaternion();
-			//	physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
-
-			//	physx::PxTransform* pxTransform = new physx::PxTransform(
-			//		transform.worldPosition.x, transform.worldPosition.y, transform.worldPosition.z,
-			//		pxQuaternion);
-
-			//	// Apply scaling to the existing pxTransform
-			//	if (rigidBody && rigidBody->mRigidActor)
-			//		rigidBody->mRigidActor->setGlobalPose(*pxTransform);
-			//	else if (collider && !collider->mDynamic && collider->mStaticPxRigidBody)
-			//		collider->mStaticPxRigidBody->setGlobalPose(*pxTransform);
-
-
-			//}
-			//transform.SetRelativeScale(transform.scale);
 			if (collider) {
-				collider->UpdateAllShapesScale();
+				ECS::ColliderSystem::UpdateAllShapesScale(scene, collider->mUuid);
 
 				//if (collider->mDynamic) {
 				//	collider->mRigidActor->is<physx::PxRigidDynamic>()->setLinearVelocity(physx::PxVec3(0.0f));
@@ -160,50 +127,37 @@ namespace Plaza::Editor {
 		if (collider && !collider->mDynamic && collider->mStaticPxRigidBody) {
 			collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
 		}
-
-		if (Application::Get()->runningScene && !ImGuizmo::IsUsing()) {
-			//collider->UpdateShapeScale(transform.worldScale);
-			//transform.SetRelativeScale(transform.worldScale);
-		}
 	}
 
 
-	bool Gizmo::DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
-	{
-		// From glm::decompose in matrix_decompose.inl
+	bool Gizmo::DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale) {
 
 		using namespace glm;
 		using T = float;
 
 		mat4 LocalMatrix(transform);
 
-		// Normalize the matrix.
 		if (epsilonEqual(LocalMatrix[3][3], static_cast<float>(0), epsilon<T>()))
 			return false;
 
-		// First, isolate perspective.  This is the messiest.
 		if (
 			epsilonNotEqual(LocalMatrix[0][3], static_cast<T>(0), epsilon<T>()) ||
 			epsilonNotEqual(LocalMatrix[1][3], static_cast<T>(0), epsilon<T>()) ||
 			epsilonNotEqual(LocalMatrix[2][3], static_cast<T>(0), epsilon<T>()))
 		{
-			// Clear the perspective partition
 			LocalMatrix[0][3] = LocalMatrix[1][3] = LocalMatrix[2][3] = static_cast<T>(0);
 			LocalMatrix[3][3] = static_cast<T>(1);
 		}
 
-		// Next take care of translation (easy).
 		translation = vec3(LocalMatrix[3]);
 		LocalMatrix[3] = vec4(0, 0, 0, LocalMatrix[3].w);
 
 		vec3 Row[3], Pdum3;
 
-		// Now get scale and shear.
 		for (length_t i = 0; i < 3; ++i)
 			for (length_t j = 0; j < 3; ++j)
 				Row[i][j] = LocalMatrix[i][j];
 
-		// Compute X scale factor and normalize first row.
 		scale.x = length(Row[0]);
 		Row[0] = detail::scale(Row[0], static_cast<T>(1));
 		scale.y = length(Row[1]);
@@ -211,11 +165,8 @@ namespace Plaza::Editor {
 		scale.z = length(Row[2]);
 		Row[2] = detail::scale(Row[2], static_cast<T>(1));
 
-		// At this point, the matrix (in rows[]) is orthonormal.
-		// Check for a coordinate system flip.  If the determinant
-		// is -1, then negate the matrix and the scaling factors.
 #if 0
-		Pdum3 = cross(Row[1], Row[2]); // v3Cross(row[1], row[2], Pdum3);
+		Pdum3 = cross(Row[1], Row[2]);
 		if (dot(Row[0], Pdum3) < 0)
 		{
 			for (length_t i = 0; i < 3; i++)
@@ -235,7 +186,6 @@ namespace Plaza::Editor {
 			rotation.x = atan2(-Row[2][0], Row[1][1]);
 			rotation.z = 0;
 		}
-
 
 		return true;
 	}

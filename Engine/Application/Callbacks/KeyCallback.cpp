@@ -81,7 +81,7 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
 				ECS::TransformSystem::SetLocalPosition(*transform, scene, randomVec3());
 				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
-				collider->CreateShape(ColliderShape::ColliderShapeEnum::BOX, transform);
+				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::BOX);
 			}
 		}
 
@@ -120,7 +120,7 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 
 		// Play and Pause
 		if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-			if (Application::Get()->runningScene)
+			if (scene->mRunning)
 				Scene::Stop();
 			else
 				Scene::Play();

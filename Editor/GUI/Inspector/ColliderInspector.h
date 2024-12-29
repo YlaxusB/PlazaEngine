@@ -86,7 +86,6 @@ namespace Plaza::Editor {
 					{
 						if (scene->HasComponent<MeshRenderer>(collider->mUuid)) {
 							collider->AddMeshShape(scene->GetComponent<MeshRenderer>(collider->mUuid)->mesh);
-							collider->Init(nullptr);
 						}
 						if (scene->HasComponent<RigidBody>(collider->mUuid)) {
 							AddChildrenMeshShape(scene, collider, collider->mUuid);
@@ -97,7 +96,6 @@ namespace Plaza::Editor {
 					{
 						if (scene->HasComponent<MeshRenderer>(collider->mUuid)) {
 							collider->AddConvexMeshShape(scene->GetComponent<MeshRenderer>(collider->mUuid)->mesh);
-							collider->Init(nullptr);
 						}
 						if (scene->HasComponent<RigidBody>(collider->mUuid)) {
 							AddChildrenMeshShape(scene, collider, collider->mUuid);

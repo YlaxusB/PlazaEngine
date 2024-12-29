@@ -55,7 +55,7 @@ namespace Plaza {
 
 	void Audio::UpdateListener(Scene* scene) {
 		PLAZA_PROFILE_SECTION("Update Audio");
-		if (Application::Get()->runningScene) {
+		if (scene->mRunning) {
 			if (auto component = scene->GetComponent<AudioListener>(Application::Get()->activeCamera->mUuid))
 				component->UpdateListener();
 		}

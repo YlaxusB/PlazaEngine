@@ -13,6 +13,14 @@ namespace Plaza {
 			mData = new char[mElementSize * MAX_ENTITIES];
 		}
 
+		ComponentPool(const ComponentPool& other) {
+			mElementSize = other.mElementSize;
+			mComponentMask = other.mComponentMask;
+			mSize = other.mSize;
+			mData = new char[mElementSize * MAX_ENTITIES];
+			std::memcpy(mData, other.mData, mElementSize * MAX_ENTITIES);
+		}
+
 		~ComponentPool() {
 			delete[] mData;
 		}
@@ -56,39 +64,27 @@ namespace Plaza {
 			static void SetWorldRotation(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
 			static void SetWorldScale(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
 			static void UpdateSelfAndChildrenTransform(TransformComponent& transform, TransformComponent* parentTransform, Scene* scene, bool updateLocal = true);
+		};
+		class ColliderSystem {
+		public:
+			static void RemoveActor(Collider* collider);
+			static void Init(RigidBody* rigidBody);
+			static void InitDynamic(RigidBody* rigidBody = nullptr) {};
+			static void InitStatic() {};
+			static void InitCollider(Collider* collider, TransformComponent* transform, RigidBody* rigidBody);
+			static void InitCollider(Scene* scene, uint64_t uuid);
+			static void RemoveCollider();
+			static void Update() {};
 
-			// FIX: Move these functions to CppHelper
-			// 
-			//void TransformComponent::MoveTowards(glm::vec3 vector) {
-			//	glm::mat4 matrix = this->GetTransform();
-			//	glm::vec3 currentPosition = glm::vec3(matrix[3]);
-			//	glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
-			//	glm::vec3 leftVector = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
-			//	glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
-			//	this->relativePosition += leftVector * vector.x + forwardVector * vector.z + upVector * vector.y;
-			//	this->UpdateSelfAndChildrenTransform();
-			//}
-			//
-			//const glm::vec3& TransformComponent::MoveTowardsReturn(glm::vec3 vector) {
-			//	glm::mat4 matrix = this->GetTransform();
-			//	glm::vec3 currentPosition = glm::vec3(matrix[3]);
-			//	glm::vec3 forwardVector = glm::normalize(glm::vec3(matrix[2]));
-			//	glm::vec3 leftVector = glm::normalize(glm::cross(glm::vec3(matrix[1]), forwardVector));
-			//	glm::vec3 upVector = glm::normalize(glm::vec3(matrix[1]));
-			//	glm::vec3 outVector = leftVector * vector.x + forwardVector * vector.z + upVector * vector.y;
-			//	return outVector;
-			//}
+			static void CreateShape(Collider* collider, TransformComponent* transform, ColliderShape::ColliderShapeEnum shapeEnum, Mesh* mesh = nullptr);
+			static void AddShape(ColliderShape* shape);
+			static void AddConvexMeshShape(Mesh* mesh);
+			static void AddMeshShape(Mesh* mesh);
+			static void AddHeightShape(float** heightData, int size);
+			static void UpdateShapeScale(Scene* scene, Collider* collider, const glm::vec3& scale);
+			static void UpdateAllShapesScale(Scene* scene, uint64_t uuid);
 
-
-			// FIX: Figure out why it is here
-			//static void UpdatePhysics() {
-			//	PLAZA_PROFILE_SECTION("Transform: Update Physics");
-			//	auto it = Scene::GetActiveScene()->colliderComponents.find(this->mUuid);
-			//	if (it != Scene::GetActiveScene()->colliderComponents.end()) {
-			//		it->second.UpdateShapeScale(this->GetWorldScale());
-			//		it->second.UpdatePose(this);
-			//	}
-			//}
+			static void UpdatePose(Collider* collider, TransformComponent* transform);
 		};
 	};
 

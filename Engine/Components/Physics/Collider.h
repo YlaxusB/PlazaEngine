@@ -42,23 +42,15 @@ namespace Plaza {
 		physx::PxMaterial* material = nullptr;
 		bool mDynamic = false;
 		virtual void OnInstantiate(Component* componentToInstantiate) override;
-		Collider(std::uint64_t uuid, RigidBody* rigidBody = nullptr);
 		~Collider() override;
 		void RemoveActor();
-		void Init(RigidBody* rigidBody);
-		void InitDynamic(RigidBody* rigidBody = nullptr) {};
-		void InitStatic() {};
-		void InitCollider(RigidBody* rigidBody = nullptr);
 		void RemoveCollider();
 		void Update() {};
 
-		void CreateShape(ColliderShape::ColliderShapeEnum shapeEnum, TransformComponent* transform, Mesh* mesh = nullptr);
 		void AddShape(ColliderShape* shape);
 		void AddConvexMeshShape(Mesh* mesh);
 		void AddMeshShape(Mesh* mesh);
 		void AddHeightShape(float** heightData, int size);
-		void UpdateShapeScale(glm::vec3 scale);
-		void UpdateAllShapesScale();
 		template <typename EnumType>
 		void SetSelfAndChildrenFlag(EnumType flag, bool value);
 
@@ -67,14 +59,9 @@ namespace Plaza {
 		void SetFlag(physx::PxRigidActor* actor, physx::PxActorFlag::Enum flag, bool value);
 		void SetFlags(Collider* collider, physx::PxRigidDynamicLockFlags flags);
 
-		void UpdatePose();
-		void UpdatePose(TransformComponent* transform);
-
 		template <class Archive>
 		void serialize(Archive& archive) {
 			archive(cereal::base_class<Component>(this), mDynamic, mShapes);
-
-			//			archive(cereal::base_class<Component>(this), CEREAL_NVP(mDynamic), cereal::make_optional(CEREAL_NVP(mShapes)));
 		}
 	};
 }

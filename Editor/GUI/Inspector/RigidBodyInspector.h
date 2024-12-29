@@ -30,8 +30,8 @@ namespace Plaza::Editor {
 				float& restitution = rigidBody->mRestitution;
 				float& density = rigidBody->density;
 				physx::PxVec3 linearVelocityPxVec;
-				if (Application::Get()->runningScene)
-					linearVelocityPxVec = body.is<physx::PxRigidDynamic>()->getLinearVelocity();
+				//if (Application::Get()->runningScene)
+				linearVelocityPxVec = body.is<physx::PxRigidDynamic>()->getLinearVelocity();
 				glm::vec3& linearVelocity = *new glm::vec3(linearVelocityPxVec.x, linearVelocityPxVec.y, linearVelocityPxVec.z);
 
 				//if (ImGui::DragFloat3("Gravity: ", &gravity.x, glm::min((gravity.x + gravity.y + gravity.z) / 300.0f, -0.01f), ImGuiInputTextFlags_CallbackEdit)) { UpdateRigidBodyCallbackVec3(gravity); };

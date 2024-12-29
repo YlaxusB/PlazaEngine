@@ -295,7 +295,7 @@ namespace Plaza::Editor {
 							}
 							script->mAssetUuid = value->mAssetUuid;
 							component->AddScript(script);
-							if (Application::Get()->runningScene) {
+							if (scene->mRunning) {
 								script->OnStart();
 							}
 							//entity.AddComponent<CppScriptComponent>(component);
@@ -315,10 +315,8 @@ namespace Plaza::Editor {
 						if (ImGui::MenuItem(value->mAssetName.c_str())) {
 							CsScriptComponent* script = scene->AddComponent<CsScriptComponent>(entity.uuid);
 							script->mScriptUuid = value->mAssetUuid;
-							//std::string csFileName = filesystem::path{ key }.replace_extension(".cs").string();
 							script->Init();
-							//Application::Get()->activeProject->scripts.at(csFileName).entitiesUsingThisScript.emplace(entity.uuid);
-							if (Application::Get()->runningScene) {
+							if (scene->mRunning) {
 								for (auto& [key, value] : script->scriptClasses) {
 									Mono::OnStart(value->monoObject);
 								}

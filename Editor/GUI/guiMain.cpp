@@ -303,7 +303,7 @@ namespace Plaza {
 			ImGuiStyle& style = ImGui::GetStyle();
 
 			// Change the background color of the button
-			if (Application::Get()->runningScene) {
+			if (scene->mRunning) {
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
 			}
 			else {
@@ -311,7 +311,7 @@ namespace Plaza {
 			}
 			if (isSceneOpen) {
 				if (ImGui::ImageButton("PlayPauseButton", ImTextureID(playPauseButtonImageId), ImVec2(25, 25))) {
-					if (Application::Get()->runningScene)
+					if (scene->mRunning)
 						Scene::Stop();
 					else
 						Scene::Play();
@@ -334,8 +334,8 @@ namespace Plaza {
 			ImGui::PopStyleColor();
 			if (isSceneOpen) {
 
-				ImVec2 uv0(0, 0); // bottom-left corner
-				ImVec2 uv1(1, 1); // top-right corner
+				ImVec2 uv0(0, 0);
+				ImVec2 uv1(1, 1);
 				appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 				ImGui::Image(ImTextureID(Application::Get()->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 				//ImGui::Image(ImTextureID(Application::Get()->textureColorbuffer), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
@@ -400,10 +400,8 @@ namespace Plaza {
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowSize().x / 2, 25));
 
-			//ImGuiStyle& style = ImGui::GetStyle();
-
 			// Change the background color of the button
-			if (Application::Get()->runningScene) {
+			if (scene->mRunning) {
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
 			}
 			else {
@@ -411,7 +409,7 @@ namespace Plaza {
 			}
 
 			if (ImGui::ImageButton("PlayPauseButton", ImTextureID(playPauseButtonImageId), ImVec2(25, 25))) {
-				if (Application::Get()->runningScene)
+				if (scene->mRunning)
 					Scene::Stop();
 				else
 					Scene::Play();

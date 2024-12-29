@@ -243,12 +243,12 @@ namespace Plaza {
 		}
 
 		/* Update Scripts */
-		if (Application::Get()->runningScene) {
+		if (Scene::GetActiveScene()->mRunning) {
 			Scripting::Update(Scene::GetActiveScene());
 		}
 
 		/* Update Physics */
-		if (Application::Get()->runningScene) {
+		if (Scene::GetActiveScene()->mRunning) {
 			PLAZA_PROFILE_SECTION("Update Physics");
 			Physics::Advance(Time::deltaTime);
 			Physics::Update();

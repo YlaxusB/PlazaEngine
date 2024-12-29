@@ -44,7 +44,7 @@ namespace Plaza::Editor {
 				entity = NewEntity("Cube", parent, DefaultModels::Cube(), true, true, scene);
 				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
 				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
-				collider->CreateShape(ColliderShape::ColliderShapeEnum::BOX, transform);
+				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::BOX);
 			}
 
 			if (ImGui::MenuItem("Sphere"))
@@ -52,7 +52,7 @@ namespace Plaza::Editor {
 				entity = NewEntity("Sphere", parent, DefaultModels::Sphere(), true, true, scene);
 				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
 				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
-				collider->CreateShape(ColliderShape::ColliderShapeEnum::SPHERE, transform);
+				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::SPHERE);
 			}
 
 			if (ImGui::MenuItem("Plane"))
@@ -62,7 +62,7 @@ namespace Plaza::Editor {
 				transform->mLocalScale = glm::vec3(10.0f, 0.05f, 10.0f);
 				ECS::TransformSystem::UpdateSelfAndChildrenTransform(*transform, nullptr, scene);
 				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
-				collider->CreateShape(ColliderShape::ColliderShapeEnum::PLANE, transform);
+				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::PLANE);
 			}
 
 			if (ImGui::MenuItem("Cylinder"))
@@ -77,7 +77,7 @@ namespace Plaza::Editor {
 				transform->mLocalScale = glm::vec3(1.0f, 1.0f, 1.0f);
 				ECS::TransformSystem::UpdateSelfAndChildrenTransform(*transform, nullptr, scene);
 				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
-				collider->CreateShape(ColliderShape::ColliderShapeEnum::CAPSULE, transform);
+				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::CAPSULE);
 
 			}
 

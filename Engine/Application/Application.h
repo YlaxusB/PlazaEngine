@@ -52,7 +52,6 @@ namespace Plaza {
 		Scene* editorScene = nullptr;
 		Scene* runtimeScene = nullptr;
 		Scene* activeScene = nullptr;
-		bool runningScene = false;
 		int drawCalls = 0;
 		bool runningEditor = true;
 
@@ -66,8 +65,6 @@ namespace Plaza {
 
 		std::string focusedMenu = "Scene";
 		std::string hoveredMenu = "Scene";
-
-		bool copyingScene = false;
 
 		Camera* editorCamera;
 		Camera* activeCamera;

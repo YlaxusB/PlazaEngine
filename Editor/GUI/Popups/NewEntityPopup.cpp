@@ -45,6 +45,7 @@ namespace Plaza::Editor {
 				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
 				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
 				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::BOX);
+				ECS::ColliderSystem::InitCollider(scene, collider->mUuid);
 			}
 
 			if (ImGui::MenuItem("Sphere"))
@@ -53,6 +54,8 @@ namespace Plaza::Editor {
 				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
 				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
 				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::SPHERE);
+				ECS::ColliderSystem::InitCollider(scene, collider->mUuid);
+				
 			}
 
 			if (ImGui::MenuItem("Plane"))
@@ -63,6 +66,7 @@ namespace Plaza::Editor {
 				ECS::TransformSystem::UpdateSelfAndChildrenTransform(*transform, nullptr, scene);
 				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
 				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::PLANE);
+				ECS::ColliderSystem::InitCollider(scene, collider->mUuid);
 			}
 
 			if (ImGui::MenuItem("Cylinder"))
@@ -78,6 +82,7 @@ namespace Plaza::Editor {
 				ECS::TransformSystem::UpdateSelfAndChildrenTransform(*transform, nullptr, scene);
 				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
 				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::CAPSULE);
+				ECS::ColliderSystem::InitCollider(scene, collider->mUuid);
 
 			}
 

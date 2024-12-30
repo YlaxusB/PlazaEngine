@@ -227,9 +227,8 @@ namespace Plaza::Editor {
 				{
 					RigidBody* rigidBody = scene->AddComponent<RigidBody>(entity.uuid);
 					rigidBody->mUuid = entity.uuid;
-					//Collider* collider = new Collider(entity.uuid);
-					//entity.AddComponent<Collider>(collider);
-					//entity.GetComponent<Collider>()->Init();
+					ECS::RigidBodySystem::Init(scene, entity.uuid);
+					ECS::ColliderSystem::InitCollider(scene, entity.uuid);
 				}
 
 				if (ImGui::MenuItem("Rigid Body Non Dynamic"))
@@ -242,6 +241,7 @@ namespace Plaza::Editor {
 				if (ImGui::MenuItem("Collider"))
 				{
 					Collider* collider = scene->AddComponent<Collider>(entity.uuid);
+					ECS::ColliderSystem::InitCollider(scene, entity.uuid);
 				}
 
 				if (ImGui::MenuItem("Camera"))

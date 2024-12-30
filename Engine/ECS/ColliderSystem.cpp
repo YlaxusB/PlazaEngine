@@ -18,6 +18,8 @@ namespace Plaza {
 	}
 	void ECS::ColliderSystem::InitCollider(Collider* collider, TransformComponent* transform, RigidBody* rigidBody) {
 		collider->RemoveActor();
+		if (rigidBody)
+			collider->mDynamic = true;
 		physx::PxTransform pxTransform = Physics::GetPxTransform(*transform);
 		collider->mRigidActor = Physics::m_physics->createRigidDynamic(pxTransform);
 		if (collider->mRigidActor == nullptr)

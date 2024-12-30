@@ -60,9 +60,9 @@ namespace Plaza {
 		if (updateLocal)
 			ECS::TransformSystem::UpdateLocalMatrix(transform, scene);
 		ECS::TransformSystem::UpdateWorldMatrix(transform, parentTransform ? parentTransform->mWorldMatrix : glm::mat4(1.0f), scene);
-		// FIX: Update physics
-		//if (scene->mRunning)
-		//	transform.UpdatePhysics();
+
+		if (scene->mRunning && scene->HasComponent<Collider>(transform.mUuid))
+			ECS::ColliderSystem::UpdatePose(scene->GetComponent<Collider>(transform.mUuid), &transform);
 		for (uint64_t child : scene->GetEntity(transform.mUuid)->childrenUuid) {
 			ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(child), &transform, scene, false);
 		}

@@ -251,7 +251,7 @@ namespace Plaza {
 		if (Scene::GetActiveScene()->mRunning) {
 			PLAZA_PROFILE_SECTION("Update Physics");
 			Physics::Advance(Time::deltaTime);
-			Physics::Update();
+			Physics::Update(Scene::GetActiveScene());
 		}
 
 		// Update Camera Position and Rotation

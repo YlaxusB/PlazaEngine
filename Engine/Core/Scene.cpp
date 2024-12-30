@@ -96,8 +96,15 @@ namespace Plaza {
 		Scene::GetActiveScene()->RecalculateAddedComponents();
 		for (const uint64_t& uuid : SceneView<Collider>(scene)) {
 			Collider& collider = *scene->GetComponent<Collider>(uuid);
+			if (scene->HasComponent<RigidBody>(uuid))
+				collider.mDynamic = true;
+			ECS::ColliderSystem::InitCollider(scene, collider.mUuid);
 			//collider.UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(collider.mUuid).GetWorldScale());
 			ECS::ColliderSystem::UpdatePose(&collider, scene->GetComponent<TransformComponent>(uuid));
+		}
+		for (const uint64_t& uuid : SceneView<RigidBody>(scene)) {
+			RigidBody& rigidBody = *scene->GetComponent<RigidBody>(uuid);
+			ECS::RigidBodySystem::Init(scene, uuid);
 		}
 #ifdef EDITOR_MODE
 		ImGui::SetWindowFocus("Scene");

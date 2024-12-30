@@ -86,6 +86,14 @@ namespace Plaza {
 
 			static void UpdatePose(Collider* collider, TransformComponent* transform);
 		};
+
+		class RigidBodySystem {
+		public:
+			static void Init(Scene* scene, uint64_t uuid);
+			static void Update(Scene* scene, uint64_t uuid);
+			static void UpdateGlobalPose(Scene* scene, uint64_t uuid);
+			static void AddCollidersOfChildren(Scene* scene, uint64_t parent);
+		};
 	};
 
 };

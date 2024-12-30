@@ -125,7 +125,6 @@ namespace Plaza {
 
 		//std::unique_ptr<ECSManager> mECS;
 
-
 		std::map<uint64_t, Animation*> mPlayingAnimations = std::map<uint64_t, Animation*>();
 
 		std::unordered_map<uint64_t, std::optional<Entity>> entities;

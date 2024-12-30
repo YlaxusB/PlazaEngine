@@ -24,7 +24,7 @@ namespace Plaza {
 			collider->mRigidActor = Physics::m_physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity(1.0f)));
 		if (!collider->material) {
 			collider->material = Physics::defaultMaterial;
-			if (collider->mDynamic) {
+			if (collider->mDynamic && rigidBody) {
 				collider->material = Physics::m_physics->createMaterial(rigidBody->mStaticFriction, rigidBody->mDynamicFriction, rigidBody->mRestitution);
 			}
 		}
@@ -54,15 +54,15 @@ namespace Plaza {
 	}
 	void ECS::ColliderSystem::CreateShape(Collider* collider, TransformComponent* transform, ColliderShape::ColliderShapeEnum shapeEnum, Mesh* mesh) {
 		if (shapeEnum == ColliderShape::ColliderShapeEnum::BOX) {
-			physx::PxBoxGeometry geometry(transform->mLocalScale.x / 2.1, transform->mLocalScale.y / 2.1, transform->mLocalScale.z / 2.1);
+			physx::PxBoxGeometry geometry(0.5f, 0.5f, 0.5f);
 			collider->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::BOX, 0));
 		}
 		else if (shapeEnum == ColliderShape::ColliderShapeEnum::SPHERE) {
-			physx::PxSphereGeometry geometry(1.0f);
+			physx::PxSphereGeometry geometry(0.5f);
 			collider->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::SPHERE, 0));
 		}
 		else if (shapeEnum == ColliderShape::ColliderShapeEnum::PLANE) {
-			physx::PxBoxGeometry geometry(transform->mLocalScale.x / 2.1, 0.001f, transform->mLocalScale.z / 2.1);
+			physx::PxBoxGeometry geometry(0.5f, 0.001f, 0.5f);
 			collider->AddShape(new ColliderShape(Physics::m_physics->createShape(geometry, *Physics::defaultMaterial), ColliderShape::ColliderShapeEnum::PLANE, 0));
 		}
 		else if (shapeEnum == ColliderShape::ColliderShapeEnum::CAPSULE) {

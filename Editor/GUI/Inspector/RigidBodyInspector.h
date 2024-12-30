@@ -9,10 +9,10 @@
 RigidBody* currentBody = nullptr;
 namespace Plaza::Editor {
 	void UpdateRigidBodyCallbackFloat(float value) {
-		currentBody->UpdateRigidBody();
+		//ECS::RigidBodySystem::UpdateRigidBody(currentBody);
 	}
 	void UpdateRigidBodyCallbackVec3(glm::vec3 vec3) {
-		currentBody->UpdateRigidBody();
+		//ECS::RigidBodySystem::UpdateRigidBody(currentBody);
 	}
 
 	static class RigidBodyInspector {

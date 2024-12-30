@@ -68,7 +68,7 @@ namespace Plaza {
 		static void Init();
 		static void InitScene();
 		static void InitPhysics();
-		static void Update();
+		static void Update(Scene* scene);
 
 		static physx::PxTransform GetPxTransform(TransformComponent& transform);
 		static physx::PxTransform* ConvertMat4ToPxTransform(const glm::mat4& mat);

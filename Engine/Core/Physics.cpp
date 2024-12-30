@@ -218,12 +218,11 @@ namespace Plaza {
 		std::cout << "Physics Initialized" << std::endl;
 	}
 
-	void Physics::Update() {
-		// FIX: Move this function to systems manager
-		//PLAZA_PROFILE_SECTION("Update");
-		//for (auto& [key, value] : Scene::GetRuntimeScene()->rigidBodyComponents) {
-		//	value.Update();
-		//}
+	void Physics::Update(Scene* scene) {
+		PLAZA_PROFILE_SECTION("Physics::Update");
+		for (const uint64_t& uuid : SceneView<RigidBody>(scene)) {
+			ECS::RigidBodySystem::Update(scene, uuid);
+		}
 	}
 
 	physx::PxTransform Physics::GetPxTransform(TransformComponent& transform) {

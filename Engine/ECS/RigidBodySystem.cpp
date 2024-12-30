@@ -4,10 +4,14 @@
 
 namespace Plaza {
 	void ECS::RigidBodySystem::Init(Scene* scene, uint64_t uuid) {
+		if (!scene->mRunning)
+			return;
 		RigidBody* rigidBody = scene->GetComponent<RigidBody>(uuid);
 		Collider* collider = scene->GetComponent<Collider>(uuid);
 		//AddCollidersOfChildren(this->uuid);
 		if (collider) {
+			if (!collider->mRigidActor)
+				ECS::ColliderSystem::InitCollider(scene, uuid);
 			rigidBody->mRigidActor = collider->mRigidActor;
 			physx::PxRigidBodyExt::setMassAndUpdateInertia(*rigidBody->mRigidActor->is<physx::PxRigidDynamic>(), physx::PxReal(rigidBody->density));
 			physx::PxRigidBodyExt::updateMassAndInertia(*rigidBody->mRigidActor->is<physx::PxRigidDynamic>(), physx::PxReal(rigidBody->density));

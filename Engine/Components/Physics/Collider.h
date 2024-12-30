@@ -34,14 +34,13 @@ namespace Plaza {
 	class PLAZA_API Collider : public Component {
 	public:
 		glm::vec3 lastScale = glm::vec3(1.0f);
-		Collider() {};
 		std::vector<std::shared_ptr<ColliderShape>> mShapes = std::vector<std::shared_ptr<ColliderShape>>();
 		physx::PxRigidActor* mRigidActor = nullptr;
 		physx::PxRigidBody* mStaticPxRigidBody = nullptr;
 		physx::PxRigidBody* pxRigidBody = nullptr;
 		physx::PxMaterial* material = nullptr;
 		bool mDynamic = false;
-		virtual void OnInstantiate(Component* componentToInstantiate) override;
+		virtual void OnInstantiate(Scene* scene, uint64_t toInstantiate) override;
 		~Collider() override;
 		void RemoveActor();
 		void RemoveCollider();

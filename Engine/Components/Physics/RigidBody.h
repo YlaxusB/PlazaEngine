@@ -10,7 +10,7 @@ namespace Plaza {
 
 		//physx::PxRigidStatic* rb;
 		//physx::PxMaterial* mMaterial;
-		virtual void OnInstantiate(Component* componentToInstantiate) override;
+		virtual void OnInstantiate(Scene* scene, uint64_t toInstantiate) override;
 		RigidBody() {};
 		RigidBody(uint64_t uuid, bool initWithPhysics, bool dynamic = true);
 		RigidBody(const RigidBody& other) = default;

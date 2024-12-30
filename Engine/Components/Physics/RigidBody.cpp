@@ -5,8 +5,9 @@
 #include "Editor/GUI/gizmo.h"
 using namespace physx;
 namespace Plaza {
-	void RigidBody::OnInstantiate(Component* componentToInstantiate) {
-		//this->Init();
+	void RigidBody::OnInstantiate(Scene* scene, uint64_t toInstantiate) {
+		if (scene->mRunning)
+			ECS::RigidBodySystem::Init(scene, this->mUuid);
 	}
 
 	RigidBody::RigidBody(uint64_t uuid, bool initWithPhysics, bool dynamic) {

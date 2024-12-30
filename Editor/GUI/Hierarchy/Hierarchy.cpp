@@ -218,14 +218,14 @@ namespace Plaza::Editor {
 			{
 				if (ImGui::MenuItem("Mesh Renderer"))
 				{
-					MeshRenderer* meshRenderer = scene->AddComponent<MeshRenderer>(entity.uuid);
+					MeshRenderer* meshRenderer = scene->NewComponent<MeshRenderer>(entity.uuid);
 					meshRenderer->mMaterials.push_back(AssetsManager::GetDefaultMaterial());
 					meshRenderer->instanced = true;
 				}
 
 				if (ImGui::MenuItem("Rigid Body Dynamic"))
 				{
-					RigidBody* rigidBody = scene->AddComponent<RigidBody>(entity.uuid);
+					RigidBody* rigidBody = scene->NewComponent<RigidBody>(entity.uuid);
 					rigidBody->mUuid = entity.uuid;
 					ECS::RigidBodySystem::Init(scene, entity.uuid);
 					ECS::ColliderSystem::InitCollider(scene, entity.uuid);
@@ -233,39 +233,39 @@ namespace Plaza::Editor {
 
 				if (ImGui::MenuItem("Rigid Body Non Dynamic"))
 				{
-					RigidBody* rigidBody = scene->AddComponent<RigidBody>(entity.uuid);
+					RigidBody* rigidBody = scene->NewComponent<RigidBody>(entity.uuid);
 					rigidBody->dynamic = false;
 					rigidBody->mUuid = entity.uuid;
 				}
 
 				if (ImGui::MenuItem("Collider"))
 				{
-					Collider* collider = scene->AddComponent<Collider>(entity.uuid);
+					Collider* collider = scene->NewComponent<Collider>(entity.uuid);
 					ECS::ColliderSystem::InitCollider(scene, entity.uuid);
 				}
 
 				if (ImGui::MenuItem("Camera"))
 				{
-					Camera* camera = scene->AddComponent<Camera>(entity.uuid);
+					Camera* camera = scene->NewComponent<Camera>(entity.uuid);
 					camera->mUuid = entity.uuid;
 				}
 
 				if (ImGui::MenuItem("Text Renderer"))
 				{
-					Plaza::Drawing::UI::TextRenderer* textRenderer = scene->AddComponent<Plaza::Drawing::UI::TextRenderer>(entity.uuid);
+					Plaza::Drawing::UI::TextRenderer* textRenderer = scene->NewComponent<Plaza::Drawing::UI::TextRenderer>(entity.uuid);
 					textRenderer->Init(Application::Get()->activeProject->mAssetPath.parent_path().string() + "\\font.ttf");
 					textRenderer->mUuid = entity.uuid;
 				}
 
 				if (ImGui::MenuItem("Audio Source"))
 				{
-					AudioSource* audioSource = scene->AddComponent<AudioSource>(entity.uuid);
+					AudioSource* audioSource = scene->NewComponent<AudioSource>(entity.uuid);
 					audioSource->mUuid = entity.uuid;
 				}
 
 				if (ImGui::MenuItem("Audio Listener"))
 				{
-					AudioListener* audioListener = scene->AddComponent<AudioListener>(entity.uuid);
+					AudioListener* audioListener = scene->NewComponent<AudioListener>(entity.uuid);
 					audioListener->mUuid = entity.uuid;
 				}
 
@@ -286,7 +286,7 @@ namespace Plaza::Editor {
 						if (ImGui::MenuItem(value->mAssetName.c_str())) {
 							CppScriptComponent* component = Scene::GetActiveScene()->GetComponent<CppScriptComponent>(entity.uuid);
 							if (!component) {
-								component = scene->AddComponent<CppScriptComponent>(entity.uuid);
+								component = scene->NewComponent<CppScriptComponent>(entity.uuid);
 							}
 							CppScript* script = ScriptFactory::CreateScript(std::filesystem::path(value->mAssetName).stem().string());
 							if (!script) {
@@ -313,7 +313,7 @@ namespace Plaza::Editor {
 						//TODO: FIX SCRIPTS WITH INCORRECT NAME AND REMOVE THE BELOW HACK USING THE ASSET
 						Asset* asset = AssetsManager::GetAsset(key);
 						if (ImGui::MenuItem(value->mAssetName.c_str())) {
-							CsScriptComponent* script = scene->AddComponent<CsScriptComponent>(entity.uuid);
+							CsScriptComponent* script = scene->NewComponent<CsScriptComponent>(entity.uuid);
 							script->mScriptUuid = value->mAssetUuid;
 							script->Init();
 							if (scene->mRunning) {
@@ -329,25 +329,25 @@ namespace Plaza::Editor {
 
 				if (ImGui::MenuItem("Light"))
 				{
-					Light* light = scene->AddComponent<Light>(entity.uuid);
+					Light* light = scene->NewComponent<Light>(entity.uuid);
 					light->mUuid = entity.uuid;
 				}
 
 				if (ImGui::MenuItem("Character Controller"))
 				{
-					CharacterController* characterController = scene->AddComponent<CharacterController>(entity.uuid);
+					CharacterController* characterController = scene->NewComponent<CharacterController>(entity.uuid);
 					characterController->mUuid = entity.uuid;
 				}
 
 				if (ImGui::MenuItem("Animation"))
 				{
-					AnimationComponent* animationComponent = scene->AddComponent<AnimationComponent>(entity.uuid);
+					AnimationComponent* animationComponent = scene->NewComponent<AnimationComponent>(entity.uuid);
 					animationComponent->mUuid = entity.uuid;
 				}
 
 				if (ImGui::MenuItem("Gui"))
 				{
-					GuiComponent* guiComponent = scene->AddComponent<GuiComponent>(entity.uuid);
+					GuiComponent* guiComponent = scene->NewComponent<GuiComponent>(entity.uuid);
 					guiComponent->mUuid = entity.uuid;
 				}
 

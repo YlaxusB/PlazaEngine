@@ -2,12 +2,8 @@
 #include "Engine/Components/Rendering/MeshRenderer.h"
 
 namespace Plaza {
-	void MeshRenderer::OnInstantiate(Component* componentToInstantiate) {
-		MeshRenderer* component = static_cast<MeshRenderer*>(componentToInstantiate);
-		instanced = true;
-		mesh = component->mesh;
-		mMaterials = component->mMaterials;
-		renderGroup = component->renderGroup;
+	void MeshRenderer::OnInstantiate(Scene* scene, uint64_t toInstantiate) {
+
 	}
 
 	MeshRenderer::MeshRenderer(Plaza::Mesh* initialMesh, bool addToScene) {

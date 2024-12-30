@@ -57,7 +57,7 @@ namespace Plaza {
 
 	class PLAZA_API CsScriptComponent : public  Component {
 	public:
-		virtual void OnInstantiate(Component* componentToInstantiate) override;
+		virtual void OnInstantiate(Scene* scene, uint64_t toInstantiate) override;
 		CsScriptComponent() {}
 		CsScriptComponent(uint64_t uuid);
 		uint64_t mScriptUuid = 0;

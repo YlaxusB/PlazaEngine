@@ -28,7 +28,7 @@ glm::vec3 randomVec3() {
 Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true, bool addToScene = true, Scene* scene = nullptr) {
 	Entity* obj = scene->NewEntity(name, parent);//new Entity(name, parent, addToScene);
 	ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(obj->uuid), nullptr, scene, true);
-	MeshRenderer* meshRenderer = scene->AddComponent<MeshRenderer>(obj->uuid);//new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, true);
+	MeshRenderer* meshRenderer = scene->NewComponent<MeshRenderer>(obj->uuid);//new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, true);
 	meshRenderer->ChangeMesh(mesh);
 	meshRenderer->AddMaterial(AssetsManager::GetDefaultMaterial());
 	meshRenderer->instanced = true;
@@ -80,7 +80,7 @@ void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int actio
 				Entity* entity = NewEntity("Cube", nullptr, Editor::DefaultModels::Cube(), true, true, scene);
 				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
 				ECS::TransformSystem::SetLocalPosition(*transform, scene, randomVec3());
-				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
+				Collider* collider = scene->NewComponent<Collider>(entity->uuid);
 				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::BOX);
 			}
 		}

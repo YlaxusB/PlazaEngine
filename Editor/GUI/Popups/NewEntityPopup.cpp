@@ -11,7 +11,7 @@ namespace Plaza::Editor {
 		Scene::GetActiveScene()->GetEntity(obj->uuid)->changingName = true;
 		HierarchyWindow::Item::firstFocus = true;
 		ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(obj->uuid), nullptr, scene);
-		MeshRenderer* meshRenderer = scene->AddComponent<MeshRenderer>(obj->uuid);//new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, true);
+		MeshRenderer* meshRenderer = scene->NewComponent<MeshRenderer>(obj->uuid);//new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, true);
 		meshRenderer->ChangeMesh(mesh);
 		meshRenderer->AddMaterial(AssetsManager::GetDefaultMaterial());
 		meshRenderer->instanced = true;
@@ -43,7 +43,7 @@ namespace Plaza::Editor {
 			{
 				entity = NewEntity("Cube", parent, DefaultModels::Cube(), true, true, scene);
 				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
-				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
+				Collider* collider = scene->NewComponent<Collider>(entity->uuid);
 				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::BOX);
 				ECS::ColliderSystem::InitCollider(scene, collider->mUuid);
 			}
@@ -52,7 +52,7 @@ namespace Plaza::Editor {
 			{
 				entity = NewEntity("Sphere", parent, DefaultModels::Sphere(), true, true, scene);
 				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
-				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
+				Collider* collider = scene->NewComponent<Collider>(entity->uuid);
 				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::SPHERE);
 				ECS::ColliderSystem::InitCollider(scene, collider->mUuid);
 				
@@ -64,7 +64,7 @@ namespace Plaza::Editor {
 				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
 				transform->mLocalScale = glm::vec3(10.0f, 0.05f, 10.0f);
 				ECS::TransformSystem::UpdateSelfAndChildrenTransform(*transform, nullptr, scene);
-				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
+				Collider* collider = scene->NewComponent<Collider>(entity->uuid);
 				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::PLANE);
 				ECS::ColliderSystem::InitCollider(scene, collider->mUuid);
 			}
@@ -80,7 +80,7 @@ namespace Plaza::Editor {
 				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
 				transform->mLocalScale = glm::vec3(1.0f, 1.0f, 1.0f);
 				ECS::TransformSystem::UpdateSelfAndChildrenTransform(*transform, nullptr, scene);
-				Collider* collider = scene->AddComponent<Collider>(entity->uuid);
+				Collider* collider = scene->NewComponent<Collider>(entity->uuid);
 				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::CAPSULE);
 				ECS::ColliderSystem::InitCollider(scene, collider->mUuid);
 

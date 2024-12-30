@@ -5,6 +5,7 @@
 #include "Engine/Core/Engine.h"
 
 namespace Plaza {
+	class Scene;
 	class PLAZA_API Entity;
 	class PLAZA_API Component {
 	public:
@@ -19,7 +20,7 @@ namespace Plaza {
 		Component() {
 			//this->componentUuid = Plaza::UUID::NewUUID();
 		}
-		virtual void OnInstantiate(Component* componentToInstantiate) {};
+		virtual void OnInstantiate(Scene* scene, uint64_t toInstantiate) {};
 
 		template <class Archive>
 		void serialize(Archive& archive) {

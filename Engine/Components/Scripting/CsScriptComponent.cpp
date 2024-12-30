@@ -1,7 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "CsScriptComponent.h"
 namespace Plaza {
-	void CsScriptComponent::OnInstantiate(Component* componentToInstantiate) {
+	void CsScriptComponent::OnInstantiate(Scene* scene, uint64_t toInstantiate) {
 		// FIX: Move this to a manager
 		//PLAZA_PROFILE_SECTION("CsScriptComponent");
 		//auto range = Scene::GetActiveScene()->csScriptComponents.equal_range(mUuid);

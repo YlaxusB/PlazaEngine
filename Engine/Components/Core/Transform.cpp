@@ -8,7 +8,7 @@
 //#include "Editor/GUI/gizmo.h"
 //#include "Engine/Components/Core/Entity.h"
 namespace Plaza {
-	void TransformComponent::OnInstantiate(Component* componentToInstantiate) {
+	void TransformComponent::OnInstantiate(Scene* scene, uint64_t toInstantiate) {
 		//TransformComponent* component = static_cast<TransformComponent*>(componentToInstantiate);
 		//this->SetRelativePosition(component->relativePosition);
 		//this->SetRelativeRotation(glm::eulerAngles(component->rotation));

@@ -5,7 +5,10 @@
 
 namespace Plaza {
 
-	void Collider::OnInstantiate(Component* componentToInstantiate) {
+	void Collider::OnInstantiate(Scene* scene, uint64_t toInstantiate) {
+		if (!scene->mRunning)
+			return;
+		Collider* componentToInstantiate = scene->GetComponent<Collider>(toInstantiate);
 		mShapes.clear();
 		mRigidActor = nullptr;
 		for (auto& shape : static_cast<Collider*>(componentToInstantiate)->mShapes) {

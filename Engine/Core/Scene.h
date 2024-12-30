@@ -161,7 +161,7 @@ namespace Plaza {
 			//	entities.resize(uuid + 1);
 			entities.emplace(uuid, Entity(name, nullptr, uuid));
 			this->SetParent(&entities.at(uuid).value(), parent);
-			this->AddComponent<TransformComponent>(uuid);
+			this->NewComponent<TransformComponent>(uuid);
 			return &entities.at(uuid).value();
 		}
 
@@ -179,14 +179,21 @@ namespace Plaza {
 		}
 
 		template<typename T>
-		T* AddComponent(uint64_t id) {
+		T* NewComponent(uint64_t id) {
 			int componentId = GetComponentId<T>();
 			if (mComponentPools.size() <= componentId)
 				mComponentPools.resize(componentId + 1, nullptr);
-			if (mComponentPools[componentId] == nullptr)
+			if (mComponentPools[componentId] == nullptr) {
 				mComponentPools[componentId] = new ComponentPool(sizeof(T), componentId);
+				mComponentPools[componentId]->mInstantiateFactory = [this, componentId](ComponentPool* pool, void* other, uint64_t newUuid) -> void* {
+					T* component = pool->New<T>(newUuid);
+					*component = *static_cast<T*>(other);
+					static_cast<Component*>(component)->mUuid = newUuid;
+					return component;
+					};
+			}
 
-			T* component = mComponentPools[componentId]->Add<T>(id);
+			T* component = mComponentPools[componentId]->New<T>(id);
 			static_cast<Component*>(component)->mUuid = id;
 			entities.at(id).value().mComponentMask.set(componentId);
 			return component;
@@ -308,6 +315,16 @@ namespace Plaza {
 		static inline std::shared_ptr<Scene> sEditorScene = nullptr;
 		static inline std::shared_ptr<Scene> sRuntimeScene = nullptr;
 		static inline Scene* sActiveScene = nullptr;
+
+		template<typename T>
+		T* InstantiateComponent(T* componentToInstantiate, uint64_t newUuid) {
+			int componentId = GetComponentId<T>();
+			if (mComponentPools[componentId] == nullptr)
+				return nullptr;
+			mComponentPools[componentId]->mInstantiateFactory(*componentToInstantiate, newUuid);
+
+			return mComponentPools[componentId]->Get(newUuid);
+		}
 	};
 
 	template <typename... ComponentTypes>
@@ -346,10 +363,10 @@ namespace Plaza {
 			bool mAll;
 
 			Iterator(Scene* scene, ComponentPool* smallestPool, uint64_t index, std::vector<int> componentIds, bool all)
-				: mScene(scene), mSmallestPool(smallestPool), mIndex(index), mComponentIds(componentIds), mAll(all) { }
+				: mScene(scene), mSmallestPool(smallestPool), mIndex(index), mComponentIds(componentIds), mAll(all) {
+			}
 
 			uint64_t operator*() const {
-				// Use the entity ID stored in the component pool
 				uint64_t entityId = static_cast<Component*>(mSmallestPool->Get(mIndex))->mUuid;
 				return entityId;
 			}

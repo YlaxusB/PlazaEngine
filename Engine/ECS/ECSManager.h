@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 
 namespace Plaza {
 	class PLAZA_API ECSManager {
@@ -30,9 +31,24 @@ namespace Plaza {
 		}
 
 		template<typename T>
-		inline T* Add(size_t index) {
+		inline T* New(size_t index) {
 			T* component = new (Get(index)) T();
 			mSize = std::max(mSize, index + 1);
+			return component;
+		}
+
+		template<typename T>
+		T* Add(size_t index, T* component = nullptr) {
+			void* storage = Get(index);
+
+			if (component == nullptr) {
+				component = new (storage) T();
+			}
+			else {
+				*reinterpret_cast<T**>(storage) = component;
+			}
+			mSize = std::max(mSize, index + 1);
+
 			return component;
 		}
 
@@ -40,6 +56,8 @@ namespace Plaza {
 		size_t mSize = 0;
 		size_t mElementSize{ 0 };
 		size_t mComponentMask;
+
+		std::function<void* (ComponentPool* pool, void*, uint64_t)> mInstantiateFactory;
 	};
 
 	class PLAZA_API ECS {

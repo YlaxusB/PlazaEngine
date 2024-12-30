@@ -11,7 +11,7 @@
 namespace Plaza {
 	class PLAZA_API TransformComponent : public Plaza::Component {
 	public:
-		virtual void OnInstantiate(Component* componentToInstantiate) override;
+		virtual void OnInstantiate(Scene* scene, uint64_t toInstantiate) override;
 
 		glm::vec3 mLocalPosition = { 0,0,0 };
 		glm::quat mLocalRotation = glm::quat(0.0f, 0.0f, 0.0f, 0.0f);

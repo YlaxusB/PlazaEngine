@@ -127,7 +127,7 @@ namespace Plaza {
 				}
 				else if (collider->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::SPHERE) {
 					physx::PxSphereGeometry sphereGeometry = geometry.sphere();
-					sphereGeometry.radius = (scale.x + scale.y + scale.z) / 3;
+					sphereGeometry.radius = (scale.x + scale.y + scale.z) / 3 / 2;
 					//shape->release();
 					newShape = Physics::m_physics->createShape(sphereGeometry, *material);
 				}

@@ -47,10 +47,10 @@ namespace Plaza {
 			uint64_t uuid = ECS::EntitySystem::Instantiate(scene, childUuid);
 			if (uuid) {
 				scene->SetParent(scene->GetEntity(uuid), scene->GetEntity(newUuid));
-				ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(uuid), scene->GetComponent<TransformComponent>(newUuid), scene);
+				//ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(uuid), scene->GetComponent<TransformComponent>(newUuid), scene);
 			}
 		}
-
+		ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(newUuid), scene->GetComponent<TransformComponent>(scene->GetEntity(entityToInstantiate->parentUuid)->uuid), scene);
 		return instantiatedEntity->uuid;
 	}
 

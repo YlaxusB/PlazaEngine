@@ -27,7 +27,11 @@ namespace Plaza {
 		return glm::eulerAngles(glm::quat_cast(mWorldMatrix));
 	}
 	glm::vec3 TransformComponent::GetWorldScale() {
-		return mWorldMatrix[1];
+		glm::vec3 scale;
+		scale.x = glm::length(glm::vec3(mWorldMatrix[0]));
+		scale.y = glm::length(glm::vec3(mWorldMatrix[1]));
+		scale.z = glm::length(glm::vec3(mWorldMatrix[2]));
+		return scale;
 	}
 
 	//const glm::vec3& TransformComponent::GetWorldPosition() {

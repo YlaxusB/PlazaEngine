@@ -97,6 +97,7 @@ namespace Plaza {
 		Scene::GetActiveScene()->RecalculateAddedComponents();
 		for (const uint64_t& uuid : SceneView<Collider>(scene)) {
 			Collider& collider = *scene->GetComponent<Collider>(uuid);
+			collider.lastScale = glm::vec3(0.0f);
 			ECS::ColliderSystem::InitCollider(scene, collider.mUuid);
 			//collider.UpdateShapeScale(Scene::GetActiveScene()->transformComponents.at(collider.mUuid).GetWorldScale());
 			ECS::ColliderSystem::UpdatePose(&collider, scene->GetComponent<TransformComponent>(uuid));

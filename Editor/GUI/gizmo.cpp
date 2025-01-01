@@ -25,7 +25,16 @@ namespace Plaza::Editor {
 		return localEulerAnglesResult;
 	}
 
+	static inline uint64_t sLastEntityUuid = 0;
 	void Gizmo::Draw(Scene* scene, Entity* entity, Camera camera) {
+		bool changedActiveEntityFromLastFrame = entity->uuid != sLastEntityUuid;
+
+		if (changedActiveEntityFromLastFrame && scene->HasComponent<RigidBody>(sLastEntityUuid)) {
+			RigidBody* rigidBody = scene->GetComponent<RigidBody>(sLastEntityUuid);
+			rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, false);
+			rigidBody->canUpdate = true;
+		}
+		sLastEntityUuid = entity->uuid;
 
 		ApplicationSizes& appSizes = *Application::Get()->appSizes;
 		// Setup imguizmo

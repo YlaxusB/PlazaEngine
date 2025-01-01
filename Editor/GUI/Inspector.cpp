@@ -129,7 +129,7 @@ namespace Plaza::Editor {
 			Plaza::Editor::CameraInspector::CameraInspector(camera);
 		}
 		else if (RigidBody* rigidBody = dynamic_cast<RigidBody*>(component)) {
-			Plaza::Editor::RigidBodyInspector::RigidBodyInspector(rigidBody);
+			Plaza::Editor::RigidBodyInspector::RigidBodyInspector(scene, rigidBody);
 		}
 		else if (Collider* collider = dynamic_cast<Collider*>(component)) {
 			Plaza::Editor::ColliderInspector::ColliderInspector(scene, collider);

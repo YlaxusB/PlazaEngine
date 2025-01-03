@@ -31,8 +31,10 @@ namespace Plaza::Editor {
 
 		if (changedActiveEntityFromLastFrame && scene->HasComponent<RigidBody>(sLastEntityUuid)) {
 			RigidBody* rigidBody = scene->GetComponent<RigidBody>(sLastEntityUuid);
-			rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, false);
-			rigidBody->canUpdate = true;
+			if (rigidBody->mRigidActor) {
+				rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, false);
+				rigidBody->canUpdate = true;
+			}
 		}
 		sLastEntityUuid = entity->uuid;
 

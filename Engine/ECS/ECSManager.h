@@ -2,10 +2,25 @@
 #include <functional>
 
 namespace Plaza {
+	typedef uint64_t EntityId;
 	class PLAZA_API ECSManager {
 	public:
 
 	};
+
+	//template<typename T>
+	//class PLAZA_API SparseSet {
+	//public:
+	//	void Add(T* component, EntityId id) {
+	//		mDenseArray.push_back(component);
+	//		mSparseMap[id] = 
+	//	}
+	//
+	//private:
+	//	std::map<EntityId, T> mSparseMap;
+	//	std::vector<T> mDenseArray;
+	//};
+
 #define MAX_ENTITIES 65536*4
 	struct PLAZA_API ComponentPool {
 		ComponentPool(size_t elementsSize, size_t componentMask) {
@@ -20,6 +35,8 @@ namespace Plaza {
 			mSize = other.mSize;
 			mData = new char[mElementSize * MAX_ENTITIES];
 			std::memcpy(mData, other.mData, mElementSize * MAX_ENTITIES);
+			mInstantiateFactory = other.mInstantiateFactory;
+			mSparseMap = other.mSparseMap;
 		}
 
 		~ComponentPool() {
@@ -27,11 +44,12 @@ namespace Plaza {
 		}
 
 		inline void* Get(size_t index) {
-			return mData + index * mElementSize;
+			return mData + mSparseMap[index] * mElementSize;
 		}
 
 		template<typename T>
 		inline T* New(size_t index) {
+			mSparseMap[index] = mSize;
 			T* component = new (Get(index)) T();
 			mSize = std::max(mSize, index + 1);
 			return component;
@@ -47,11 +65,13 @@ namespace Plaza {
 			else {
 				*reinterpret_cast<T**>(storage) = component;
 			}
+			mSparseMap[index] = mSize;
 			mSize = std::max(mSize, index + 1);
 
 			return component;
 		}
 
+		std::map<EntityId, EntityId> mSparseMap;
 		char* mData{ nullptr };
 		size_t mSize = 0;
 		size_t mElementSize{ 0 };

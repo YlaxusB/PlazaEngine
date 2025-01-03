@@ -20,7 +20,6 @@ namespace Plaza {
 		for (ComponentPool* pool : baseScene->mComponentPools) {
 			if (pool) {
 				this->mComponentPools.push_back(new ComponentPool(*pool));
-				this->mComponentPools.back()->mInstantiateFactory = pool->mInstantiateFactory;
 			}
 			else
 				this->mComponentPools.push_back(nullptr);

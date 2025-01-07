@@ -114,7 +114,7 @@ namespace Plaza {
 		template <class T>
 		static int GetComponentId()
 		{
-			static int sComponentId = sComponentCounter++;
+			static const int sComponentId = sComponentCounter++;
 			return sComponentId;
 		}
 
@@ -184,7 +184,7 @@ namespace Plaza {
 			if (mComponentPools.size() <= componentId)
 				mComponentPools.resize(componentId + 1, nullptr);
 			if (mComponentPools[componentId] == nullptr) {
-				mComponentPools[componentId] = new ComponentPool(sizeof(T), componentId);
+				mComponentPools[componentId] = new ComponentPool(sizeof(T), componentId, typeid(T).raw_name());
 				mComponentPools[componentId]->mInstantiateFactory = [this, componentId](ComponentPool* pool, void* other, uint64_t newUuid) -> void* {
 					T* component = pool->New<T>(newUuid);
 					*component = *static_cast<T*>(other);
@@ -290,15 +290,56 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			//if (mainSceneEntity)
-			//	mainSceneEntityUuid = mainSceneEntity->uuid;
-			//
-			//archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(mainSceneEntityUuid), PL_SER(entities), PL_SER(transformComponents), PL_SER(cameraComponents), PL_SER(meshRendererComponents),
-			//	PL_SER(rigidBodyComponents), PL_SER(colliderComponents), PL_SER(csScriptComponents), PL_SER(UITextRendererComponents), PL_SER(audioSourceComponents),
-			//	PL_SER(audioListenerComponents), PL_SER(lightComponents), PL_SER(characterControllerComponents), PL_SER(animationComponentComponents), PL_SER(guiComponents), PL_SER(cppScriptComponents));
-			//
-			//if (!mainSceneEntity)
-			//	mainSceneEntity = &entities.at(mainSceneEntityUuid);
+			if (mainSceneEntity)
+				mainSceneEntityUuid = mainSceneEntity->uuid;
+
+			archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(mainSceneEntityUuid), PL_SER(entities));
+
+			if constexpr (Archive::is_saving::value) {
+				size_t poolCount = mComponentPools.size();
+				archive(poolCount);
+				for (ComponentPool* pool : mComponentPools) {
+					bool exists = (pool != nullptr);
+					archive(exists);
+					if (exists) {
+						archive(*pool);
+					}
+				}
+			}
+			else if constexpr (Archive::is_loading::value) {
+				size_t poolCount;
+				archive(poolCount);
+				std::vector<ComponentPool*> deserializedPools;
+				//mComponentPools.resize(poolCount, nullptr);
+				deserializedPools.resize(poolCount, nullptr);
+
+				for (size_t i = 0; i < poolCount; ++i) {
+					bool exists;
+					archive(exists);
+					if (exists) {
+						deserializedPools[i] = new ComponentPool();
+						archive(*deserializedPools[i]);
+					}
+				}
+
+				for (ComponentPool* pool : deserializedPools) {
+					mComponentPools.push_back(pool);
+					//if (!pool)
+					//	continue;
+					//const bool componentIdAlreadyRegistered = sComponentIdHashMap.find(pool->mComponentRawNameHash) != sComponentIdHashMap.end();
+					//if (componentIdAlreadyRegistered) {
+					//	mComponentPools[sComponentIdHashMap.find(pool->mComponentRawNameHash)->second] = pool;
+					//}
+					//else {
+					//	sComponentIdHashMap[pool->mComponentRawNameHash] = sComponentIdHashMap.size();
+					//	mComponentPools[sComponentIdHashMap.find(pool->mComponentRawNameHash)->second] = pool;
+					//}
+				}
+
+			}
+
+			if (!mainSceneEntity)
+				mainSceneEntity = &entities.at(mainSceneEntityUuid);
 		}
 
 		static void InitializeScenes();

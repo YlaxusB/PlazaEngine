@@ -78,6 +78,7 @@ namespace Plaza {
 			alListenerfv(AL_ORIENTATION, listenerOrientation);
 		}
 
+		TransformComponent* comp = scene->GetComponent<TransformComponent>(0);
 		for (uint64_t uuid : SceneView<AudioSource>(scene)) {
 			AudioSource* component = scene->GetComponent<AudioSource>(uuid);
 			component->SetPosition(scene->GetComponent<TransformComponent>(uuid)->GetWorldPosition());

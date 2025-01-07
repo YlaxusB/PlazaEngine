@@ -10,10 +10,26 @@
 #include <bitset>
 
 //#include "Engine/Core/Scene.h"
+
+
+namespace cereal {
+	template <class Archive, size_t N>
+	void save(Archive& archive, const std::bitset<N>& bits) {
+		std::string bitString = bits.to_string();
+		archive(bitString);
+	}
+
+	template <class Archive, size_t N>
+	void load(Archive& archive, std::bitset<N>& bits) {
+		std::string bitString;
+		archive(bitString);
+		bits = std::bitset<N>(bitString);
+	}
+}
 namespace Plaza {
-	class Scene;
-#define MAX_COMPONENTS 64
+#define MAX_COMPONENTS 128
 	typedef std::bitset<MAX_COMPONENTS> ComponentMask;
+	class Scene;
 	struct PLAZA_API Entity {
 	public:
 		uint64_t uuid = 0;
@@ -27,20 +43,21 @@ namespace Plaza {
 		bool changingName = false;
 
 		Entity() {}
-		Entity(std::string objName, Entity* parent = nullptr, uint64_t newUuid = 0) : name(objName), uuid(newUuid) { }
+		Entity(std::string objName, Entity* parent = nullptr, uint64_t newUuid = 0) : name(objName), uuid(newUuid) {}
 		Entity(const Entity&) = default;
 
 		void Rename(std::string newName) {}
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(PL_SER(uuid), PL_SER(parentUuid), PL_SER(prefabUuid), PL_SER(equivalentPrefabUuid), PL_SER(childrenUuid), PL_SER(name));
+			archive(PL_SER(uuid), PL_SER(parentUuid), PL_SER(prefabUuid), PL_SER(equivalentPrefabUuid), PL_SER(childrenUuid), PL_SER(name), PL_SER(mComponentMask));
 		}
 
 	private:
 	};
 
 }
+
 /*
 #include <iostream>
 #include <random>

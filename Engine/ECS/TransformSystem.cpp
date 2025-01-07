@@ -53,7 +53,7 @@ namespace Plaza {
 
 	}
 
-	void ECS::TransformSystem::UpdateSelfAndChildrenTransform(TransformComponent& transform, TransformComponent* parentTransform, Scene* scene, bool updateLocal) {
+	void ECS::TransformSystem::UpdateSelfAndChildrenTransform(TransformComponent& transform, TransformComponent* parentTransform, Scene* scene, bool updateLocal, bool forceUpdateLocal) {
 		if (!parentTransform)
 			parentTransform = scene->GetComponent<TransformComponent>(scene->GetEntity(transform.mUuid)->parentUuid);
 
@@ -64,7 +64,7 @@ namespace Plaza {
 		if (scene->mRunning && scene->HasComponent<Collider>(transform.mUuid))
 			ECS::ColliderSystem::UpdatePose(scene->GetComponent<Collider>(transform.mUuid), &transform);
 		for (uint64_t child : scene->GetEntity(transform.mUuid)->childrenUuid) {
-			ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(child), &transform, scene, false);
+			ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(child), &transform, scene, forceUpdateLocal ? true : false, forceUpdateLocal);
 		}
 	}
 

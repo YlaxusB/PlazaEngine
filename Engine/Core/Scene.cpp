@@ -206,25 +206,22 @@ namespace Plaza {
 	}
 
 	void Scene::RecalculateAddedComponents() {
-		//for (auto& [key, value] : AssetsManager::mAssets) {
-		//	if (value->GetExtension() == Standards::materialExtName) {
-		//		//AssetsLoader::LoadMaterial(value, this);
-		//	}
-		//}
-		//for (auto& [key, value] : meshRendererComponents) {
-		//	if (value.mesh)
-		//		value.mMeshUuid = value.mesh->uuid;
-		//	value.mesh = AssetsManager::GetMesh(value.mMeshUuid);
-		//	value.UpdateMaterialsUuids();
-		//	if (value.mMaterialsUuids.size() == 0)
-		//		value.mMaterials = { AssetsManager::GetDefaultMaterial() };
-		//	else
-		//		value.mMaterials = AssetsManager::GetMaterialsVector(value.mMaterialsUuids);
-		//	value.renderGroup = this->AddRenderGroup(AssetsManager::GetMesh(value.mMeshUuid), value.mMaterials);
-		//}
-		//this->mainSceneEntity = this->GetEntity(this->mainSceneEntityUuid);
-		//this->mainSceneEntity->GetComponent<Transform>()->UpdateSelfAndChildrenTransform();
-		//
+		for (const uint64_t& uuid : SceneView<MeshRenderer>(this)) {
+			MeshRenderer& component = *this->GetComponent<MeshRenderer>(uuid);
+			if (component.mesh)
+				component.mMeshUuid = component.mesh->uuid;
+			component.mesh = AssetsManager::GetMesh(component.mMeshUuid);
+			component.UpdateMaterialsUuids();
+			if (component.mMaterialsUuids.size() == 0)
+				component.mMaterials = { AssetsManager::GetDefaultMaterial() };
+			else
+				component.mMaterials = AssetsManager::GetMaterialsVector(component.mMaterialsUuids);
+			component.renderGroup = this->AddRenderGroup(AssetsManager::GetMesh(component.mMeshUuid), component.mMaterials);
+		}
+
+		this->mainSceneEntity = this->GetEntity(this->mainSceneEntityUuid);
+		ECS::TransformSystem::UpdateSelfAndChildrenTransform(*this->GetComponent<TransformComponent>(mainSceneEntityUuid), nullptr, this, true, true);
+
 		//for (auto& [componentUuid, component] : guiComponents) {
 		//	for (auto& [key, value] : component.mGuiItems) {
 		//		glm::mat4 parentTransform = component.HasGuiItem(value->mGuiParentUuid) ? component.GetGuiItem<GuiItem>(value->mGuiParentUuid)->mTransform : glm::mat4(1.0f);

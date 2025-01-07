@@ -57,6 +57,8 @@ namespace Plaza {
 		this->GetPaths();
 		AssetsManager::Init();
 
+		ECS::RegisterComponents();
+
 		/* Create Renderer */
 		switch (Application::Get()->mEditor->mSettings.mDefaultRendererAPI) {
 		case RendererAPI::Vulkan:

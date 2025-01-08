@@ -8,103 +8,17 @@ namespace Plaza {
 
 	};
 
-	//template<typename T>
-	//class PLAZA_API SparseSet {
-	//public:
-	//	void Add(T* component, EntityId id) {
-	//		mDenseArray.push_back(component);
-	//		mSparseMap[id] = 
-	//	}
-	//
-	//private:
-	//	std::map<EntityId, T> mSparseMap;
-	//	std::vector<T> mDenseArray;
-	//};
-
-#define MAX_ENTITIES 65536*4
-	struct PLAZA_API ComponentPool {
-		ComponentPool() {}
-		ComponentPool(size_t elementsSize, size_t componentMask, const std::string& rawComponentName) {
-			mElementSize = elementsSize;
-			mComponentMask = componentMask;
-			mData.push_back(nullptr);
-			//mData.resize(MAX_ENTITIES); //= new char[mElementSize * MAX_ENTITIES];
-			hash<std::string> hasher;
-			mComponentRawNameHash = hasher(rawComponentName);
-		}
-
-		ComponentPool(const ComponentPool& other) {
-			mElementSize = other.mElementSize;
-			mComponentMask = other.mComponentMask;
-			mSize = other.mSize;
-			mData.resize(other.mData.size());
-			for (size_t i = 0; i < other.mData.size(); ++i) {
-				if (other.mData[i]) {
-					mData[i] = std::make_shared<Component>(*other.mData[i]);
-				}
-				else {
-					mData[i] = nullptr;
-				}
-			}
-			mInstantiateFactory = other.mInstantiateFactory;
-			mSparseMap = other.mSparseMap;
-		}
-
-		~ComponentPool() {
-			mData.clear();
-		}
-
-		inline Component* Get(size_t index) {
-			return mData[mSparseMap[index]].get();//mData + mSparseMap[index] * mElementSize;
-		}
-
-		template<typename T>
-		inline T* New(size_t index) {
-			mSize++;
-			mSparseMap[index] = mSize;
-			std::shared_ptr<T> component = std::make_shared<T>();
-			mData.push_back(component);
-			return component.get();
-		}
-
-		template<typename T>
-		T* Add(size_t index, T* component = nullptr) {
-			void* storage = Get(index);
-
-			if (component == nullptr)
-				component = new T();
-			mData.push_back(std::make_shared<T>(component));
-
-			mSparseMap[index] = mSize;
-			mSize = std::max(mSize, index + 1);
-
-			return component;
-		}
-
-		void Allocate(size_t capacity) {
-			mCapacity = capacity;
-			//mData = new char[mCapacity];
-		}
-
-		std::map<EntityId, EntityId> mSparseMap;
-		std::vector<std::shared_ptr<Component>> mData;
-		size_t mSize = 0;
-		size_t mCapacity = MAX_ENTITIES;
-		size_t mElementSize{ 0 };
-		size_t mComponentMask;
-		size_t mComponentRawNameHash;
-
-		std::function<void* (ComponentPool* pool, void*, uint64_t)> mInstantiateFactory;
-
-		template <typename Archive>
-		void serialize(Archive& archive) {
-			archive(PL_SER(mSize), PL_SER(mCapacity), PL_SER(mElementSize), PL_SER(mComponentMask), PL_SER(mComponentRawNameHash), PL_SER(mSparseMap), PL_SER(mData));
-		}
-	};
-
+	class ComponentPool;
+	class Scene;
 	class PLAZA_API ECS {
 	public:
 		static void RegisterComponents();
+		static void InstantiateComponent(ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid);
+		static inline std::vector<std::function<void* (ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid)>> sInstantiateComponentFactory{};
+	private:
+
+
+	public:
 		class EntitySystem {
 		public:
 			static void SetParent(Scene* scene, Entity* child, Entity* newParent);
@@ -157,4 +71,76 @@ namespace Plaza {
 		};
 	};
 
+#define MAX_ENTITIES 65536*4
+	struct PLAZA_API ComponentPool {
+		ComponentPool() {}
+		ComponentPool(size_t elementsSize, size_t componentMask, const std::string& rawComponentName) {
+			mElementSize = elementsSize;
+			mComponentMask = componentMask;
+			mData.push_back(nullptr);
+			hash<std::string> hasher;
+			mComponentRawNameHash = hasher(rawComponentName);
+		}
+
+		ComponentPool(ComponentPool& other) {
+			mElementSize = other.mElementSize;
+			mComponentMask = other.mComponentMask;
+			for (size_t i = 0; i < other.mData.size(); ++i) {
+				if (other.mData[i]) {
+					ECS::InstantiateComponent(&other, this, other.mData[i]->mUuid, other.mData[i]->mUuid);
+				}
+				else {
+					mData.push_back(nullptr);
+				}
+			}
+		}
+
+		~ComponentPool() {
+			mData.clear();
+		}
+
+		inline Component* Get(size_t index) {
+			if (mData.size() <= mSparseMap[index])
+				return nullptr;
+			return mData[mSparseMap[index]].get();
+		}
+
+		template<typename T>
+		inline T* New(size_t index) {
+			mSize++;
+			mSparseMap[index] = mSize;
+			std::shared_ptr<T> component = std::make_shared<T>();
+			mData.push_back(component);
+			return component.get();
+		}
+
+		template<typename T>
+		T* Add(size_t index, T* component = nullptr) {
+			void* storage = Get(index);
+
+			if (component == nullptr)
+				component = new T();
+			mData.push_back(std::make_shared<T>(component));
+
+			mSparseMap[index] = mSize;
+			mSize = std::max(mSize, index + 1);
+
+			return component;
+		}
+
+		std::map<EntityId, EntityId> mSparseMap;
+		std::vector<std::shared_ptr<Component>> mData;
+		size_t mSize = 0;
+		size_t mCapacity = MAX_ENTITIES;
+		size_t mElementSize{ 0 };
+		size_t mComponentMask;
+		size_t mComponentRawNameHash;
+
+		std::function<void* (ComponentPool* poolToAddComponent, void*, uint64_t)> mInstantiateFactory;
+
+		template <typename Archive>
+		void serialize(Archive& archive) {
+			archive(PL_SER(mSize), PL_SER(mCapacity), PL_SER(mElementSize), PL_SER(mComponentMask), PL_SER(mComponentRawNameHash), PL_SER(mSparseMap), PL_SER(mData));
+		}
+	};
 };

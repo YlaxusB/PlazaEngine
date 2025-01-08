@@ -179,19 +179,25 @@ namespace Plaza {
 		}
 
 		template<typename T>
-		T* NewComponent(uint64_t id) {
-			int componentId = GetComponentId<T>();
+		void RegisterComponent() {
+			const int componentId = GetComponentId<T>();
 			if (mComponentPools.size() <= componentId)
 				mComponentPools.resize(componentId + 1, nullptr);
 			if (mComponentPools[componentId] == nullptr) {
 				mComponentPools[componentId] = new ComponentPool(sizeof(T), componentId, typeid(T).raw_name());
-				mComponentPools[componentId]->mInstantiateFactory = [this, componentId](ComponentPool* pool, void* other, uint64_t newUuid) -> void* {
-					T* component = pool->New<T>(newUuid);
+				mComponentPools[componentId]->mInstantiateFactory = [this, componentId](ComponentPool* poolToAddComponent, void* other, uint64_t newUuid) -> void* {
+					T* component = poolToAddComponent->New<T>(newUuid);
 					*component = *static_cast<T*>(other);
 					static_cast<Component*>(component)->mUuid = newUuid;
 					return component;
 					};
 			}
+		}
+
+		template<typename T>
+		T* NewComponent(uint64_t id) {
+			const int componentId = GetComponentId<T>();
+			RegisterComponent<T>();
 
 			T* component = mComponentPools[componentId]->New<T>(id);
 			static_cast<Component*>(component)->mUuid = id;
@@ -322,8 +328,17 @@ namespace Plaza {
 					}
 				}
 
-				for (ComponentPool* pool : deserializedPools) {
-					mComponentPools.push_back(pool);
+				for (unsigned int i = 0; i < deserializedPools.size(); ++i) {
+					mComponentPools.push_back(deserializedPools[i]);
+					//for (unsigned int j = 0; j < deserializedPools[i]->mData.size(); ++j) {
+					//	if (deserializedPools[i]->mData[j])
+					//		ECS::InstantiateComponent(deserializedPool);
+					//		//deserializedPools[i]->mInstantiateFactory(mComponentPools[i], static_cast<void*>(deserializedPools[i]->mData[j].get()), deserializedPools[i]->mData[j]->mUuid);
+					//	else
+					//		mComponentPools[index]->mData.push_back(nullptr);
+					//}
+					//index++;
+					//mComponentPools.push_back(pool);
 					//if (!pool)
 					//	continue;
 					//const bool componentIdAlreadyRegistered = sComponentIdHashMap.find(pool->mComponentRawNameHash) != sComponentIdHashMap.end();
@@ -335,7 +350,7 @@ namespace Plaza {
 					//	mComponentPools[sComponentIdHashMap.find(pool->mComponentRawNameHash)->second] = pool;
 					//}
 				}
-
+				//ECS::RegisterComponents();
 			}
 
 			if (!mainSceneEntity)

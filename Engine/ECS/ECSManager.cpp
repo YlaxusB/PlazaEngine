@@ -17,7 +17,15 @@
 namespace Plaza {
 	template<typename T>
 	void RegisterComponent() {
-		Scene::GetComponentId<T>();
+		const int componentId = Scene::GetComponentId<T>();
+		if (componentId >= ECS::sInstantiateComponentFactory.size())
+			ECS::sInstantiateComponentFactory.resize(componentId + 1);
+		ECS::sInstantiateComponentFactory[componentId] = [](ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid) -> void* {
+			T* component = dstPool->New<T>(dstUuid);
+			*component = *static_cast<T*>(srcPool->Get(srcUuid));
+			static_cast<Component*>(component)->mUuid = dstUuid;
+			return component;
+			};
 	}
 
 	void ECS::RegisterComponents() {
@@ -32,6 +40,10 @@ namespace Plaza {
 		RegisterComponent<CppScriptComponent>();
 		RegisterComponent<AnimationComponent>();
 		RegisterComponent<CsScriptComponent>();
+	}
+
+	void ECS::InstantiateComponent(ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid) {
+		sInstantiateComponentFactory[srcPool->mComponentMask](srcPool, dstPool, srcUuid, dstUuid);
 	}
 }
 PL_REGISTER_COMPONENT(TransformComponent);

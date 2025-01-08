@@ -54,10 +54,10 @@ namespace Plaza {
 	void Application::CreateApplication() {
 		PL_CORE_INFO("Creating Application");
 
+		ECS::RegisterComponents();
+
 		this->GetPaths();
 		AssetsManager::Init();
-
-		ECS::RegisterComponents();
 
 		/* Create Renderer */
 		switch (Application::Get()->mEditor->mSettings.mDefaultRendererAPI) {

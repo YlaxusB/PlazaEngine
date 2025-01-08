@@ -29,7 +29,8 @@ namespace Plaza {
 		for (auto& pool : scene->mComponentPools) {
 			if (!pool || !entityToInstantiate->mComponentMask.test(pool->mComponentMask))
 				continue;
-			Component* component = (Component*)pool->mInstantiateFactory(pool, pool->Get(uuidToInstantiate), newUuid);
+			ECS::InstantiateComponent(pool, pool, uuidToInstantiate, newUuid);
+			Component* component = pool->Get(newUuid);//(Component*)pool->mInstantiateFactory(pool, pool->Get(uuidToInstantiate), newUuid);
 			instantiatedEntity->mComponentMask.set(pool->mComponentMask);
 		}
 		for (auto& pool : scene->mComponentPools) {

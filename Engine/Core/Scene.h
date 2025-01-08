@@ -118,12 +118,8 @@ namespace Plaza {
 			return sComponentId;
 		}
 
-		//std::unordered_map<std::variant<uint64_t, std::string>, Entity*> gameObjectsMap;
-
 		Entity* mainSceneEntity = nullptr;
 		uint64_t mainSceneEntityUuid = 0;
-
-		//std::unique_ptr<ECSManager> mECS;
 
 		std::map<uint64_t, Animation*> mPlayingAnimations = std::map<uint64_t, Animation*>();
 
@@ -208,7 +204,7 @@ namespace Plaza {
 		template<typename T>
 		T* GetComponent(uint64_t id) {
 			int componentId = GetComponentId<T>();
-			//bool hasValue = entities.find(id) != entities.end();
+
 			const auto& it = entities.find(id);
 			if (it == entities.end() || !it->second.mComponentMask.test(componentId))
 				return nullptr;
@@ -317,7 +313,7 @@ namespace Plaza {
 				size_t poolCount;
 				archive(poolCount);
 				std::vector<ComponentPool*> deserializedPools;
-				//mComponentPools.resize(poolCount, nullptr);
+
 				deserializedPools.resize(poolCount, nullptr);
 
 				for (size_t i = 0; i < poolCount; ++i) {
@@ -331,27 +327,7 @@ namespace Plaza {
 
 				for (unsigned int i = 0; i < deserializedPools.size(); ++i) {
 					mComponentPools.push_back(deserializedPools[i]);
-					//for (unsigned int j = 0; j < deserializedPools[i]->mData.size(); ++j) {
-					//	if (deserializedPools[i]->mData[j])
-					//		ECS::InstantiateComponent(deserializedPool);
-					//		//deserializedPools[i]->mInstantiateFactory(mComponentPools[i], static_cast<void*>(deserializedPools[i]->mData[j].get()), deserializedPools[i]->mData[j]->mUuid);
-					//	else
-					//		mComponentPools[index]->mData.push_back(nullptr);
-					//}
-					//index++;
-					//mComponentPools.push_back(pool);
-					//if (!pool)
-					//	continue;
-					//const bool componentIdAlreadyRegistered = sComponentIdHashMap.find(pool->mComponentRawNameHash) != sComponentIdHashMap.end();
-					//if (componentIdAlreadyRegistered) {
-					//	mComponentPools[sComponentIdHashMap.find(pool->mComponentRawNameHash)->second] = pool;
-					//}
-					//else {
-					//	sComponentIdHashMap[pool->mComponentRawNameHash] = sComponentIdHashMap.size();
-					//	mComponentPools[sComponentIdHashMap.find(pool->mComponentRawNameHash)->second] = pool;
-					//}
 				}
-				//ECS::RegisterComponents();
 			}
 
 			if (!mainSceneEntity)
@@ -389,8 +365,6 @@ namespace Plaza {
 		struct Iterator {
 			ComponentPool* mSmallestPool;
 			size_t mDenseIndex = 0;
-			std::vector<std::shared_ptr<Component>>::iterator mSparseMapIterator;
-			std::vector<std::shared_ptr<Component>>::iterator mSparseMapEnd;
 			bool mAll;
 
 			Iterator(ComponentPool* smallestPool, size_t index, bool all)
@@ -434,15 +408,8 @@ namespace Plaza {
 			if (!mSmallestPool)
 				return end();
 
-			auto it = mSmallestPool->mData.begin();
-			auto endIt = mSmallestPool->mData.end();
 			Iterator iterator(mSmallestPool, 1, mAll);
 			return iterator;
-
-			//while (iterator.mSparseMapIterator != endIt && !iterator.ValidIndex()) {
-			//	++iterator.mSparseMapIterator;
-			//}
-			//return Iterator(mSmallestPool, 0, mAll, true);
 		}
 
 		const Iterator end() const {

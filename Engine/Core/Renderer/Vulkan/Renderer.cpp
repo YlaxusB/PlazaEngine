@@ -3611,17 +3611,12 @@ namespace Plaza {
 			//if (!scene->HasComponent<MeshRenderer>(uuid))
 
 			MeshRenderer* component = scene->GetComponent<MeshRenderer>(uuid);
-			if (!component || !component->mEnabled)
+			if (!component->mEnabled)
 				continue;
 			
 			if (component->renderGroup) {
-				// mInstanceModelMatrices.push_back(glm::mat4(1.0f));
-				// mInstanceModelMatrices.push_back(transform.modelMatrix);
-			
 				component->renderGroup->AddInstance(scene->GetComponent<TransformComponent>(uuid)->mWorldMatrix);
 				Time::addInstanceCalls++;
-			
-				// value.renderGroup->AddCascadeInstance(transform.modelMatrix, 0);
 			}
 		}
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {

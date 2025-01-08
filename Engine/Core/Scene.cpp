@@ -93,7 +93,7 @@ namespace Plaza {
 		Scene::SetActiveScene(Scene::GetRuntimeScene());
 		Scene::sRuntimeScene->mRunning = true;
 
-		Scene::GetActiveScene()->RecalculateAddedComponents();
+		//Scene::GetActiveScene()->RecalculateAddedComponents();
 		for (const uint64_t& uuid : SceneView<Collider>(scene)) {
 			Collider& collider = *scene->GetComponent<Collider>(uuid);
 			collider.lastScale = glm::vec3(0.0f);

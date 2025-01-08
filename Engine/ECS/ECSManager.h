@@ -78,6 +78,7 @@ namespace Plaza {
 			mElementSize = elementsSize;
 			mComponentMask = componentMask;
 			mData.push_back(nullptr);
+			mSize = 1;
 			hash<std::string> hasher;
 			mComponentRawNameHash = hasher(rawComponentName);
 		}
@@ -85,12 +86,14 @@ namespace Plaza {
 		ComponentPool(ComponentPool& other) {
 			mElementSize = other.mElementSize;
 			mComponentMask = other.mComponentMask;
+			mSize = 0;
 			for (size_t i = 0; i < other.mData.size(); ++i) {
 				if (other.mData[i]) {
 					ECS::InstantiateComponent(&other, this, other.mData[i]->mUuid, other.mData[i]->mUuid);
 				}
 				else {
 					mData.push_back(nullptr);
+					mSize++;
 				}
 			}
 		}
@@ -100,17 +103,18 @@ namespace Plaza {
 		}
 
 		inline Component* Get(size_t index) {
-			if (mData.size() <= mSparseMap[index])
+			uint64_t sparsedIndex = mSparseMap[index];
+			if (mSize < sparsedIndex)
 				return nullptr;
-			return mData[mSparseMap[index]].get();
+			return mData[sparsedIndex].get();
 		}
 
 		template<typename T>
 		inline T* New(size_t index) {
-			mSize++;
 			mSparseMap[index] = mSize;
 			std::shared_ptr<T> component = std::make_shared<T>();
 			mData.push_back(component);
+			mSize++;
 			return component.get();
 		}
 
@@ -123,14 +127,14 @@ namespace Plaza {
 			mData.push_back(std::make_shared<T>(component));
 
 			mSparseMap[index] = mSize;
-			mSize = std::max(mSize, index + 1);
+			mSize++; //= std::max(mSize, index + 1);
 
 			return component;
 		}
 
 		std::map<EntityId, EntityId> mSparseMap;
 		std::vector<std::shared_ptr<Component>> mData;
-		size_t mSize = 0;
+		size_t mSize = 1;
 		size_t mCapacity = MAX_ENTITIES;
 		size_t mElementSize{ 0 };
 		size_t mComponentMask;

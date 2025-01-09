@@ -332,6 +332,10 @@ namespace Plaza {
 
 			if (!mainSceneEntity)
 				mainSceneEntity = &entities.at(mainSceneEntityUuid);
+
+			for (const auto& [key, entity]: entities) {
+				entitiesNames[entity.name].emplace(key);
+			}
 		}
 
 		static void InitializeScenes();

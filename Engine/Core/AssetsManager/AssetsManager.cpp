@@ -5,6 +5,8 @@
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Engine/Core/AssetsManager/AssetsReader.h"
 #include "Engine/Core/Physics.h"
+#include "Engine/Core/Renderer/Model.h"
+#include "Engine/Components/Core/Prefab.h"
 
 namespace Plaza {
 	void AssetsManager::Init() {
@@ -20,6 +22,7 @@ namespace Plaza {
 
 		AssetsManager::mAssetTypeByExtension.emplace(Standards::metadataExtName, AssetType::METADATA);
 		AssetsManager::mAssetTypeByExtension.emplace(Standards::modelExtName, AssetType::MODEL);
+		AssetsManager::mAssetTypeByExtension.emplace(Standards::prefabExtName, AssetType::PREFAB);
 		AssetsManager::mAssetTypeByExtension.emplace(Standards::materialExtName, AssetType::MATERIAL);
 		AssetsManager::mAssetTypeByExtension.emplace(".png", AssetType::TEXTURE);
 		AssetsManager::mAssetTypeByExtension.emplace(".jpg", AssetType::TEXTURE);
@@ -143,6 +146,21 @@ namespace Plaza {
 		return AssetsManager::mAssetsUuidByPath.find(path) != AssetsManager::mAssetsUuidByPath.end();
 	}
 
+	void AssetsManager::AddModel(std::shared_ptr<Model> model) {
+		mModels.emplace(model->mAssetUuid, model);
+	}
+
+	void AssetsManager::AddPrefab(std::shared_ptr<Prefab> prefab) {
+		mPrefabs.emplace(prefab->mAssetUuid, prefab);
+	}
+
+	Prefab* AssetsManager::GetPrefab(uint64_t uuid) {
+		const auto& it = mPrefabs.find(uuid);
+		if (it != mPrefabs.end())
+			return mPrefabs.at(uuid).get();
+		return nullptr;
+	}
+
 	Texture* AssetsManager::GetTexture(uint64_t uuid) {
 		const auto& it = mTextures.find(uuid);
 		if (it != mTextures.end())
@@ -158,7 +176,7 @@ namespace Plaza {
 	}
 
 	void AssetsManager::AddMesh(Mesh* mesh) {
-		AssetsManager::mLoadedMeshes.emplace(mesh->meshId, mesh);
+		AssetsManager::mLoadedMeshes.emplace(mesh->uuid, mesh);
 	}
 
 	Mesh* AssetsManager::GetMesh(uint64_t uuid) {
@@ -220,7 +238,7 @@ namespace Plaza {
 		return AssetsManager::GetDefaultMaterial(); //->DefaultMaterial();
 	}
 
-	std::vector<Material*> AssetsManager::GetMaterialsVector(std::vector<uint64_t>& uuids) {
+	std::vector<Material*> AssetsManager::GetMaterialsVector(const std::vector<uint64_t>& uuids) {
 		std::vector<Material*> materials = std::vector<Material*>();
 		for (unsigned int i = 0; i < uuids.size(); ++i) {
 			auto it = mMaterials.find(uuids[i]);

@@ -77,7 +77,7 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(physx::PxConvexMeshGeometry(convexMesh),
 			*Physics::defaultMaterial);
 
-		this->mShapes.push_back(std::make_shared<ColliderShape>(shape, ColliderShape::ColliderShapeEnum::CONVEX_MESH, mesh->meshId));
+		this->mShapes.push_back(std::make_shared<ColliderShape>(shape, ColliderShape::ColliderShapeEnum::CONVEX_MESH, mesh->uuid));
 		delete mesh;
 	}
 
@@ -137,7 +137,7 @@ namespace Plaza {
 		shape = Physics::m_physics->createShape(physx::PxTriangleMeshGeometry(triangleMesh),
 			*Physics::defaultMaterial);
 		auto end4 = std::chrono::high_resolution_clock::now();
-		this->mShapes.push_back(std::make_shared<ColliderShape>(shape, ColliderShape::ColliderShapeEnum::MESH, mesh->meshId));
+		this->mShapes.push_back(std::make_shared<ColliderShape>(shape, ColliderShape::ColliderShapeEnum::MESH, mesh->uuid));
 		auto end0 = std::chrono::high_resolution_clock::now();
 
 		std::cout << "Time taken by function 1: " << std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count() << " milliseconds" << std::endl;

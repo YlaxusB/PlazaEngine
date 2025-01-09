@@ -220,7 +220,6 @@ namespace Plaza {
 		bool mImportedMesh = false;
 		std::vector<glm::mat4> instanceModelMatrices = std::vector<glm::mat4>();
 		uint64_t uuid;
-		uint64_t meshId;
 		float farthestVertex = 0.0f;
 		std::string id;
 		std::string meshName;
@@ -256,7 +255,6 @@ namespace Plaza {
 
 		Mesh() {
 			this->uuid = Plaza::UUID::NewUUID();
-			this->meshId = this->uuid;
 		}
 
 		void AddInstance(glm::mat4 model) {
@@ -323,7 +321,7 @@ namespace Plaza {
 		void serialize(Archive& archive) {
 			verticesCount = vertices.size();
 			indicesCount = indices.size();
-			archive(PL_SER(uuid), PL_SER(meshId), PL_SER(mImportedMesh), PL_SER(id), PL_SER(meshName), PL_SER(modelUuid), PL_SER(vertices),
+			archive(PL_SER(uuid), PL_SER(mImportedMesh), PL_SER(id), PL_SER(meshName), PL_SER(modelUuid), PL_SER(vertices),
 				PL_SER(verticesCount), PL_SER(indices), PL_SER(indicesCount), PL_SER(normals), PL_SER(uvs), PL_SER(tangent), PL_SER(materialsIndices), PL_SER(bonesHolder), PL_SER(uniqueBonesInfo));
 		}
 	};

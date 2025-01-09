@@ -28,8 +28,8 @@ namespace Plaza {
 
 		for (const uint64_t& uuid : SceneView<MeshRenderer>(this)) {
 			MeshRenderer& meshRenderer = *this->GetComponent<MeshRenderer>(uuid);
-			if (meshRenderer.mMaterials.size() > 0 && meshRenderer.mesh) {
-				RenderGroup* newRenderGroup = new RenderGroup(meshRenderer.mesh, meshRenderer.mMaterials);
+			if (meshRenderer.mMaterialsUuids.size() > 0 && meshRenderer.GetMesh()) {
+				RenderGroup* newRenderGroup = new RenderGroup(meshRenderer.GetMesh(), meshRenderer.GetMaterials());
 				meshRenderer.renderGroup = AddRenderGroup(newRenderGroup);
 			}
 		}
@@ -195,8 +195,8 @@ namespace Plaza {
 
 		for (const uint64_t& uuid : SceneView<MeshRenderer>(Scene::GetEditorScene())) {
 			MeshRenderer& meshRenderer = *Scene::GetEditorScene()->GetComponent<MeshRenderer>(uuid);
-			if (meshRenderer.mMaterials.size() > 0 && meshRenderer.mesh) {
-				RenderGroup* newRenderGroup = new RenderGroup(meshRenderer.mesh, meshRenderer.mMaterials);
+			if (meshRenderer.mMaterialsUuids.size() > 0 && meshRenderer.GetMesh()) {
+				RenderGroup* newRenderGroup = new RenderGroup(meshRenderer.GetMesh(), meshRenderer.GetMaterials());
 				meshRenderer.renderGroup = Scene::GetEditorScene()->AddRenderGroup(newRenderGroup);
 			}
 		}
@@ -208,15 +208,7 @@ namespace Plaza {
 	void Scene::RecalculateAddedComponents() {
 		for (const uint64_t& uuid : SceneView<MeshRenderer>(this)) {
 			MeshRenderer& component = *this->GetComponent<MeshRenderer>(uuid);
-			if (component.mesh)
-				component.mMeshUuid = component.mesh->uuid;
-			component.mesh = AssetsManager::GetMesh(component.mMeshUuid);
-			component.UpdateMaterialsUuids();
-			if (component.mMaterialsUuids.size() == 0)
-				component.mMaterials = { AssetsManager::GetDefaultMaterial() };
-			else
-				component.mMaterials = AssetsManager::GetMaterialsVector(component.mMaterialsUuids);
-			component.renderGroup = this->AddRenderGroup(AssetsManager::GetMesh(component.mMeshUuid), component.mMaterials);
+			component.renderGroup = this->AddRenderGroup(AssetsManager::GetMesh(component.mMeshUuid), component.GetMaterials());
 		}
 
 		this->mainSceneEntity = this->GetEntity(this->mainSceneEntityUuid);

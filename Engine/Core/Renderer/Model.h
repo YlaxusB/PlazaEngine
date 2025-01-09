@@ -1,11 +1,10 @@
 #pragma once
 
 namespace Plaza {
-	class Model {
+	class Model : public Asset {
 	public:
-		uint64_t mUuid;
-		Model() {
-			mUuid = Plaza::UUID::NewUUID();
+		Model() : Asset() {
+			mAssetUuid = Plaza::UUID::NewUUID();
 		}
 
 		Mesh* GetMesh(uint64_t uuid) {
@@ -15,9 +14,9 @@ namespace Plaza {
 			return nullptr;
 		}
 
-		void AddMeshes(std::vector<std::unique_ptr<Mesh>> newMeshes) {
-			for (std::unique_ptr<Mesh>& mesh : newMeshes) {
-				//mMeshes.emplace(mesh->uuid, mesh);
+		void AddMeshes(const std::vector<std::shared_ptr<Mesh>>& newMeshes) {
+			for (const std::shared_ptr<Mesh>& mesh : newMeshes) {
+				mMeshes.emplace(mesh->uuid, mesh);
 			}
 		}
 
@@ -35,7 +34,12 @@ namespace Plaza {
 		}
 
 		std::unordered_map<uint64_t, std::unique_ptr<Entity>> mEntities = std::unordered_map<uint64_t, std::unique_ptr<Entity>>();
-		std::unordered_map<uint64_t, std::unique_ptr<Mesh>> mMeshes = std::unordered_map<uint64_t, std::unique_ptr<Mesh>>();
+		std::unordered_map<uint64_t, std::shared_ptr<Mesh>> mMeshes = std::unordered_map<uint64_t, std::shared_ptr<Mesh>>();
+
+		template <class Archive>
+		void serialize(Archive& archive) {
+			archive(cereal::base_class<Asset>(this), PL_SER(mMeshes));
+		}
 	private:
 	};
 }

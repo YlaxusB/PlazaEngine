@@ -19,7 +19,7 @@ namespace Plaza::Editor {
 
 				if (ImGui::TreeNodeEx("Materials List", ImGuiTreeNodeFlags_DefaultOpen)) {
 					unsigned int index = 0;
-					for (Material* material : meshRenderer->mMaterials) {
+					for (Material* material : meshRenderer->GetMaterials()) {
 						std::string idString = std::to_string(material->mAssetUuid) + "meshRendererMaterial";
 						ImGui::PushID(idString.c_str());
 						std::string treeNodeName = std::to_string(index) + ": " + material->mAssetName;
@@ -33,7 +33,7 @@ namespace Plaza::Editor {
 						}
 						ImGui::SameLine();
 						if (ImGui::Button("Remove Button")) {
-							meshRenderer->mMaterials.erase(meshRenderer->mMaterials.begin() + index);
+							meshRenderer->mMaterialsUuids.erase(meshRenderer->mMaterialsUuids.begin() + index);
 						}
 
 						index++;
@@ -54,7 +54,7 @@ namespace Plaza::Editor {
 					if (ImGui::Button("Add Material")) {
 						sMaterialsSearch->SetOpen(true);
 						sMaterialsSearch->mCallback = [&](uint64_t uuid) {
-							meshRenderer->mMaterials.push_back(AssetsManager::mMaterials.at(uuid).get());
+							meshRenderer->mMaterialsUuids.push_back(uuid);
 							};
 					}
 					ImGui::TreePop();

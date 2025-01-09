@@ -8,6 +8,7 @@ namespace Plaza {
 		static inline std::string sceneExtName = engineExtName + "scn";
 		static inline std::string materialExtName = engineExtName + "mat";
 		static inline std::string modelExtName = engineExtName + "mod";
+		static inline std::string prefabExtName = engineExtName + "prfb";
 		static inline std::string scriptConfigExtName = engineExtName + "scp";
 		static inline std::string metadataExtName = engineExtName + "meta";
 		static inline std::string animationExtName = engineExtName + "anim";

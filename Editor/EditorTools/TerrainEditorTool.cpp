@@ -269,7 +269,7 @@ namespace Plaza {
 
 					glm::vec4 localPosition = glm::inverse(Scene::GetActiveScene()->GetComponent<TransformComponent>(entity->uuid)->GetWorldMatrix()) * clickPosition;
 
-					Mesh* mesh = Scene::GetActiveScene()->GetComponent<MeshRenderer>(entity->uuid)->mesh;
+					Mesh* mesh = Scene::GetActiveScene()->GetComponent<MeshRenderer>(entity->uuid)->GetMesh();
 
 					uint32_t nearestVertexIndex = (glm::round<int>(localPosition.x) * mSettings.x) + (glm::round<int>(localPosition.z));//(mSettings.x / localPosition.x) * (mSettings.z / localPosition.z);
 					if (nearestVertexIndex > mesh->vertices.size() - 1)

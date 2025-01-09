@@ -112,7 +112,6 @@ namespace Plaza::Editor {
 		std::vector<glm::vec3> tangents;
 		std::vector<unsigned int> materials{ 0 };
 		Mesh* newMesh = Application::Get()->mRenderer->CreateNewMesh(positions, normals, texCoords, tangents, indices, materials, false);
-		newMesh->meshId = cubeUuid;
 		newMesh->uuid = cubeUuid;
 		AssetsManager::AddMesh(newMesh);
 	}
@@ -177,7 +176,6 @@ namespace Plaza::Editor {
 
 		std::vector<unsigned int> materials{ 0 };
 		Mesh* newMesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);
-		newMesh->meshId = sphereUuid;
 		newMesh->uuid = sphereUuid;
 		AssetsManager::AddMesh(newMesh);
 	}
@@ -212,7 +210,6 @@ namespace Plaza::Editor {
 		std::vector<glm::vec3> tangents;
 		std::vector<unsigned int> materials{ 0 };
 		Mesh* newMesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, texCoords, tangents, indices, materials, false);
-		newMesh->meshId = planeUuid;
 		newMesh->uuid = planeUuid;
 		AssetsManager::AddMesh(newMesh);
 	}
@@ -384,7 +381,6 @@ namespace Plaza::Editor {
 		std::vector<glm::vec3> tangents;
 		std::vector<unsigned int> materials{ 0 };
 		Mesh* newMesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);
-		newMesh->meshId = capsuleUuid;
 		newMesh->uuid = capsuleUuid;
 		AssetsManager::AddMesh(newMesh);
 	}

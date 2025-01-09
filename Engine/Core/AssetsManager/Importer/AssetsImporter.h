@@ -33,13 +33,14 @@ namespace Plaza {
 		glm::vec2 mFlipTextures = glm::vec2(1.0f, 1.0f);
 	};
 
+	class Model;
 	class AssetsImporter {
 	public:
 		static inline glm::vec3 mModelImporterScale = glm::vec3(1.0f);//glm::vec3(0.01f);
 		static std::string ImportAsset(std::string path, uint64_t uuid = 0, AssetsImporterSettings settings = AssetsImporterSettings{});
-		static void ImportModel(AssetImported asset);
-		static Entity* ImportOBJ(AssetImported asset, std::filesystem::path outPath, AssetsImporterSettings settings = AssetsImporterSettings{});
-		static Entity* ImportFBX(AssetImported asset, std::filesystem::path outPath, AssetsImporterSettings settings = AssetsImporterSettings{});
+		static void ImportModel(const AssetImported& asset, const std::string& outPath, const std::string& outDirectory, const AssetsImporterSettings& settings);
+		static std::shared_ptr<Scene> ImportOBJ(AssetImported asset, std::filesystem::path outPath, Model& model, AssetsImporterSettings settings = AssetsImporterSettings{});
+		static std::shared_ptr<Scene> ImportFBX(AssetImported asset, std::filesystem::path outPath, Model& model, AssetsImporterSettings settings = AssetsImporterSettings{});
 		static Entity* ImportGLTF(AssetImported asset, std::filesystem::path outPath, AssetsImporterSettings settings = AssetsImporterSettings{});
 		static std::string ImportTexture(AssetImported asset, uint64_t uuid = 0);
 		static void ImportAnimation(std::filesystem::path filePath, std::filesystem::path outFolder, AssetsImporterSettings settings = AssetsImporterSettings{});

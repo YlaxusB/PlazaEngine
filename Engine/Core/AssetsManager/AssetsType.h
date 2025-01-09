@@ -14,6 +14,7 @@ namespace Plaza {
 		ANIMATION,
 		AUDIO,
 		SHADERS,
+		PREFAB,
 		UNKNOWN,
 	};
 }

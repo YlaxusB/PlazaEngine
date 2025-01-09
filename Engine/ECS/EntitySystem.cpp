@@ -19,39 +19,61 @@ namespace Plaza {
 	}
 
 	uint64_t ECS::EntitySystem::Instantiate(Scene* scene, uint64_t uuidToInstantiate) {
+		return ECS::EntitySystem::Instantiate(scene, scene, uuidToInstantiate, 0);
+	}
+
+	uint64_t ECS::EntitySystem::Instantiate(Scene* srcScene, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid) {
+		return ECS::EntitySystem::Instantiate(srcScene->entities, srcScene->mComponentPools, dstScene, srcUuid, dstUuid);
+	}
+
+	uint64_t ECS::EntitySystem::Instantiate(const std::unordered_map<uint64_t, Entity>& srcEntities, const std::vector<ComponentPool*>& srcComponentPools, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid) {
 		PLAZA_PROFILE_SECTION("Instantiate");
-		if (!scene->GetEntity(uuidToInstantiate))
+		const Entity* entityToInstantiate = nullptr;
+		if (srcEntities.find(srcUuid) == srcEntities.end())
 			return 0;
-		Entity* entityToInstantiate = scene->GetEntity(uuidToInstantiate);
-		Entity* instantiatedEntity = scene->NewEntity(entityToInstantiate->name, scene->GetEntity(entityToInstantiate->parentUuid));
+		else
+			entityToInstantiate = &srcEntities.at(srcUuid);
+
+		Entity* instantiatedEntity = dstScene->NewEntity(entityToInstantiate->name, dstScene->GetEntity(entityToInstantiate->parentUuid));
 		uint64_t newUuid = instantiatedEntity->uuid;
 
-		for (auto& pool : scene->mComponentPools) {
+		int poolIndex = 0;
+		for (auto& pool : srcComponentPools) {
 			if (!pool || !entityToInstantiate->mComponentMask.test(pool->mComponentMask))
 				continue;
-			ECS::InstantiateComponent(pool, pool, uuidToInstantiate, newUuid);
+
+			if (dstScene->mComponentPools.size() <= pool->mComponentMask)
+				dstScene->mComponentPools.resize(pool->mComponentMask + 1, nullptr);
+			if (dstScene->mComponentPools[pool->mComponentMask] == nullptr) {
+				dstScene->mComponentPools[pool->mComponentMask] = new ComponentPool(pool->mElementSize, pool->mComponentMask, "");
+				dstScene->mComponentPools[pool->mComponentMask]->mComponentRawNameHash = pool->mComponentRawNameHash;
+			}
+
+			ECS::InstantiateComponent(pool, dstScene->mComponentPools[poolIndex], srcUuid, newUuid);
 			Component* component = pool->Get(newUuid);//(Component*)pool->mInstantiateFactory(pool, pool->Get(uuidToInstantiate), newUuid);
 			instantiatedEntity->mComponentMask.set(pool->mComponentMask);
+			poolIndex++;
 		}
-		for (auto& pool : scene->mComponentPools) {
+
+		for (auto& pool : dstScene->mComponentPools) {
 			if (!pool || !entityToInstantiate->mComponentMask.test(pool->mComponentMask) || pool->Get(newUuid) == nullptr)
 				continue;
 			Component* component = static_cast<Component*>(pool->Get(newUuid));
 			if (component->mUuid != newUuid)
 				continue;
-			component->OnInstantiate(scene, uuidToInstantiate);
+			component->OnInstantiate(dstScene, srcUuid);
 		}
 
 		/* Instantiate children */
 		for (unsigned int i = 0; i < entityToInstantiate->childrenUuid.size(); i++) {
 			uint64_t childUuid = entityToInstantiate->childrenUuid[i];
-			uint64_t uuid = ECS::EntitySystem::Instantiate(scene, childUuid);
+			uint64_t uuid = ECS::EntitySystem::Instantiate(srcEntities, srcComponentPools, dstScene, childUuid, 0);
 			if (uuid) {
-				scene->SetParent(scene->GetEntity(uuid), scene->GetEntity(newUuid));
+				dstScene->SetParent(dstScene->GetEntity(uuid), dstScene->GetEntity(newUuid));
 				//ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(uuid), scene->GetComponent<TransformComponent>(newUuid), scene);
 			}
 		}
-		ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(newUuid), scene->GetComponent<TransformComponent>(scene->GetEntity(entityToInstantiate->parentUuid)->uuid), scene);
+		ECS::TransformSystem::UpdateSelfAndChildrenTransform(*dstScene->GetComponent<TransformComponent>(newUuid), dstScene->GetComponent<TransformComponent>(dstScene->GetEntity(entityToInstantiate->parentUuid)->uuid), dstScene);
 		return instantiatedEntity->uuid;
 	}
 

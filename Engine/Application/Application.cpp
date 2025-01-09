@@ -133,6 +133,7 @@ namespace Plaza {
 		settings.mProjectSerializationMode = SerializationMode::SERIALIZE_JSON;
 		settings.mSettingsSerializationMode = SerializationMode::SERIALIZE_JSON;
 		settings.mModelSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		settings.mPrefabSerializationMode = SerializationMode::SERIALIZE_JSON;
 		settings.mAnimationSerializationMode = SerializationMode::SERIALIZE_BINARY;
 		settings.mMaterialSerializationMode = SerializationMode::SERIALIZE_JSON;
 		settings.mRenderGraphSerializationMode = SerializationMode::SERIALIZE_JSON;
@@ -145,6 +146,7 @@ namespace Plaza {
 		settings.mProjectSerializationMode = SerializationMode::SERIALIZE_JSON;
 		settings.mSettingsSerializationMode = SerializationMode::SERIALIZE_JSON;
 		settings.mModelSerializationMode = SerializationMode::SERIALIZE_BINARY;
+		settings.mPrefabSerializationMode = SerializationMode::SERIALIZE_BINARY;
 		settings.mAnimationSerializationMode = SerializationMode::SERIALIZE_BINARY;
 		settings.mMaterialSerializationMode = SerializationMode::SERIALIZE_BINARY;
 		settings.mRenderGraphSerializationMode = SerializationMode::SERIALIZE_BINARY;

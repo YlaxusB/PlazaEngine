@@ -5,6 +5,8 @@
 #include "Editor/GUI/Utils/Filesystem.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Engine/Core/AssetsManager/Metadata/Metadata.h"
+#include "Engine/Components/Core/Prefab.h"
+#include "Engine/Core/Renderer/Model.h"
 
 namespace Plaza {
 	std::string AssetsImporter::ImportAsset(std::string path, uint64_t uuid, AssetsImporterSettings settings) {
@@ -25,25 +27,10 @@ namespace Plaza {
 		Entity* mainEntity;
 		switch (AssetsImporter::mExtensionMapping.at(extension)) {
 		case AssetExtension::OBJ:
-			if (settings.mImportModel) {
-				mainEntity = AssetsImporter::ImportOBJ(asset, std::filesystem::path{});
-				SerializablePrefab prefab = AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName }, Application::Get()->mSettings.mModelSerializationMode);
-				Scene::GetActiveScene()->RemoveEntity(mainEntity->uuid);
-				Asset* asset = AssetsManager::NewAsset<Asset>(prefab.assetUuid, outPath + Standards::modelExtName);
-				AssetsLoader::LoadAsset(asset);
-			}
+			AssetsImporter::ImportModel(asset, outPath, outDirectory, settings);
 			break;
 		case AssetExtension::FBX:
-			if (settings.mImportModel) {
-				mainEntity = AssetsImporter::ImportFBX(asset, std::filesystem::path{});
-				SerializablePrefab prefab = AssetsSerializer::SerializePrefab(mainEntity, std::filesystem::path{ outPath + Standards::modelExtName }, Application::Get()->mSettings.mModelSerializationMode);
-				Scene::GetActiveScene()->RemoveEntity(mainEntity->uuid);
-				Asset* asset = AssetsManager::NewAsset<Asset>(prefab.assetUuid, outPath + Standards::modelExtName);
-				AssetsLoader::LoadAsset(asset);
-			}
-			if (settings.mImportAnimations)
-				ImportAnimation(path, outDirectory);
-			//AssetsLoader::LoadPrefab(AssetsManager::NewAsset(AssetType::MODEL, outPath + Standards::modelExtName));
+			AssetsImporter::ImportModel(asset, outPath, outDirectory, settings);
 			break;
 		case AssetExtension::PNG:
 			return AssetsImporter::ImportTexture(asset, uuid);
@@ -71,7 +58,43 @@ namespace Plaza {
 		return outPath;
 	}
 
-	void AssetsImporter::ImportModel(AssetImported asset) {
+	void AssetsImporter::ImportModel(const AssetImported& asset, const std::string& outPath, const std::string& outDirectory, const AssetsImporterSettings& settings) {
+		std::string extension = std::filesystem::path(asset.mPath).extension().string();
+		std::shared_ptr<Model> model = std::make_shared<Model>();
+		std::shared_ptr<Scene> modelScene;
+
+		switch (AssetsImporter::mExtensionMapping.at(extension)) {
+		case AssetExtension::OBJ:
+			if (settings.mImportModel) {
+				modelScene = AssetsImporter::ImportOBJ(asset, std::filesystem::path{}, *model.get());
+			}
+			break;
+		case AssetExtension::FBX:
+			if (settings.mImportModel) {
+				modelScene = AssetsImporter::ImportFBX(asset, std::filesystem::path(outPath), *model.get(), settings);
+			}
+			//AssetsLoader::LoadPrefab(AssetsManager::NewAsset(AssetType::MODEL, outPath + Standards::modelExtName));
+			break;
+		}
+		if (settings.mImportAnimations)
+			ImportAnimation(asset.mPath, outDirectory);
+
+		model->mAssetPath = std::filesystem::path{ outPath + Standards::modelExtName };
+		model->mAssetName = model->mAssetPath.stem().string();
+		std::shared_ptr<Prefab> prefab = std::make_shared<Prefab>(modelScene.get(), modelScene->mainSceneEntity);
+		prefab->mAssetPath = std::filesystem::path{ outPath + Standards::prefabExtName };
+		prefab->mAssetName = prefab->mAssetPath.stem().string();
+
+		AssetsSerializer::SerializeFile<Model>(*model.get(), model->mAssetPath.string(), Application::Get()->mSettings.mModelSerializationMode);
+		AssetsSerializer::SerializeFile<Prefab>(*prefab.get(), prefab->mAssetPath.string(), Application::Get()->mSettings.mPrefabSerializationMode);
+
+		std::shared_ptr<Model> modelAsset = AssetsSerializer::DeSerializeFile<Model>(model->mAssetPath.string(), Application::Get()->mSettings.mModelSerializationMode);
+		AssetsLoader::LoadAsset(modelAsset.get());
+		std::shared_ptr<Prefab> prefabAsset = AssetsSerializer::DeSerializeFile<Prefab>(prefab->mAssetPath.string(), Application::Get()->mSettings.mPrefabSerializationMode);
+		AssetsLoader::LoadAsset(prefabAsset.get());
+
+		prefabAsset->LoadToScene(Scene::GetActiveScene());
+		Scene::GetActiveScene()->RecalculateAddedComponents();
 
 	}
 

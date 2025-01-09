@@ -18,9 +18,9 @@ namespace Plaza {
 		string aiMeshName;
 		//uint64_t uuid;
 		std::string meshName;
-		Mesh* mesh = nullptr;
+		//Mesh* mesh = nullptr;
 		//Material* material = nullptr;
-		std::vector<Material*> mMaterials = std::vector<Material*>();
+		//std::vector<Material*> mMaterials = std::vector<Material*>();
 		RenderGroup* renderGroup = nullptr;
 
 		bool instanced = false;
@@ -33,14 +33,14 @@ namespace Plaza {
 			mUuid = Plaza::UUID::NewUUID();
 		}
 
+		Mesh* GetMesh() const;
+		std::vector<Material*> GetMaterials() const;
 		void AddMaterial(Material* newMaterial);
 		void ChangeMaterial(Material* newMaterial, unsigned int index = 0);
 		void ChangeMesh(Mesh* newMesh);
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			if (mesh)
-				mMeshUuid = mesh->uuid;
 			UpdateMaterialsUuids();
 			archive(cereal::base_class<Component>(this), PL_SER(castShadows), PL_SER(mMeshUuid), PL_SER(mMaterialsUuids));
 		}
@@ -48,13 +48,13 @@ namespace Plaza {
 		std::vector<uint64_t> mMaterialsUuids = std::vector<uint64_t>();
 		std::vector<uint64_t> UpdateMaterialsUuids() {
 			std::vector<uint64_t> oldMaterialsUuids = mMaterialsUuids;
-			mMaterialsUuids.clear();
-			for (Material* material : mMaterials) {
-				mMaterialsUuids.push_back(material->mAssetUuid);
-			}
-			if (mMaterialsUuids.size() <= 0) {
-				mMaterialsUuids = oldMaterialsUuids;
-			}
+			//mMaterialsUuids.clear();
+			//for (Material* material : mMaterials) {
+			//	mMaterialsUuids.push_back(material->mAssetUuid);
+			//}
+			//if (mMaterialsUuids.size() <= 0) {
+			//	mMaterialsUuids = oldMaterialsUuids;
+			//}
 			return mMaterialsUuids;
 		}
 	private:

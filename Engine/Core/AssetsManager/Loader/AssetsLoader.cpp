@@ -4,6 +4,9 @@
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include <ThirdParty/cereal/cereal/archives/binary.hpp>
 #include <future>
+#include "Engine/Core/Renderer/Model.h"
+#include "Engine/Core/AssetsManager/Asset.h"
+#include "Engine/Components/Core/Prefab.h"
 
 namespace Plaza {
 	void AssetsLoader::LoadAsset(Asset* asset) {
@@ -13,11 +16,26 @@ namespace Plaza {
 			AssetsManager::NewAsset<Asset>(asset->mAssetUuid, asset->mAssetPath.string());
 
 		if (asset->GetExtension() == Standards::modelExtName)
+			AssetsLoader::LoadModel(asset);
+		if (asset->GetExtension() == Standards::prefabExtName)
 			AssetsLoader::LoadPrefab(asset);
 		else if (asset->GetExtension() == Standards::materialExtName)
 			AssetsLoader::LoadMaterial(asset, Application::Get()->mSettings.mCommonSerializationMode);
 		else if (asset->GetExtension() == Standards::animationExtName)
 			AssetsLoader::LoadAnimation(asset, Application::Get()->mSettings.mAnimationSerializationMode);
+	}
+
+	std::shared_ptr<Model> AssetsLoader::LoadModel(Asset* asset) {
+		std::shared_ptr<Model> model = AssetsSerializer::DeSerializeFile<Model>(asset->mAssetPath.string(), Application::Get()->mSettings.mModelSerializationMode);
+		AssetsManager::AddModel(model);
+
+		for (auto& [key, mesh] : model->mMeshes) {
+			Mesh* newMesh = VulkanRenderer::GetRenderer()->CreateNewMesh(mesh->vertices, mesh->normals, mesh->uvs, mesh->tangent, mesh->indices, mesh->materialsIndices, mesh->usingNormal, mesh->bonesHolder, {});
+			newMesh->uuid = key;
+			AssetsManager::AddMesh(newMesh);
+		}
+
+		return model;
 	}
 
 	std::shared_ptr<Scene> AssetsLoader::LoadScene(Asset* asset, SerializationMode serializationMode) {
@@ -45,12 +63,16 @@ namespace Plaza {
 		// FIX: Remake model importers
 	}
 
-	void AssetsLoader::LoadPrefabToScene(LoadedModel* model, bool loadToScene) {
+	void AssetsLoader::LoadPrefabToScene(Model* model, bool loadToScene) {
 		// FIX: Remake model importers
 	}
 
 	static std::vector<std::future<void>> futures;
 	void AssetsLoader::LoadPrefab(Asset* asset) {
+		if (!AssetsManager::GetPrefab(asset->mAssetUuid)) {
+			std::shared_ptr<Prefab> prefab = AssetsSerializer::DeSerializeFile<Prefab>(asset->mAssetPath.string(), Application::Get()->mSettings.mPrefabSerializationMode);
+			AssetsManager::AddPrefab(prefab);
+		}
 		// FIX: Remake model importers
 		//Asset assetCopy = *asset;
 		//Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([assetCopy]() {

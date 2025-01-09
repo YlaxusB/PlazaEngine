@@ -24,6 +24,8 @@ namespace Plaza {
 			static void SetParent(Scene* scene, Entity* child, Entity* newParent);
 			static void Delete(Scene* scene, uint64_t uuid);
 			static uint64_t Instantiate(Scene* scene, uint64_t uuidToInstantiate);
+			static uint64_t Instantiate(Scene* srcScene, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid);
+			static uint64_t Instantiate(const std::unordered_map<uint64_t, Entity>& srcEntities, const std::vector<ComponentPool*>& srcComponentPools, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid);
 		};
 		class TransformSystem {
 		public:

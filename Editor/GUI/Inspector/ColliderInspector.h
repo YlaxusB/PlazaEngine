@@ -15,7 +15,7 @@ namespace Plaza::Editor {
 		void AddChildrenMeshShape(Scene* scene, Collider* collider, uint64_t parentUuid) {
 			for (uint64_t childUuid : Scene::GetActiveScene()->GetEntity(parentUuid)->childrenUuid) {
 				if (scene->HasComponent<MeshRenderer>(childUuid)) {
-					collider->AddConvexMeshShape(scene->GetComponent<MeshRenderer>(childUuid)->mesh);
+					collider->AddConvexMeshShape(scene->GetComponent<MeshRenderer>(childUuid)->GetMesh());
 				}
 				AddChildrenMeshShape(scene, collider, childUuid);
 			}
@@ -85,7 +85,7 @@ namespace Plaza::Editor {
 					if (ImGui::MenuItem("Mesh"))
 					{
 						if (scene->HasComponent<MeshRenderer>(collider->mUuid)) {
-							collider->AddMeshShape(scene->GetComponent<MeshRenderer>(collider->mUuid)->mesh);
+							collider->AddMeshShape(scene->GetComponent<MeshRenderer>(collider->mUuid)->GetMesh());
 						}
 						if (scene->HasComponent<RigidBody>(collider->mUuid)) {
 							AddChildrenMeshShape(scene, collider, collider->mUuid);
@@ -95,7 +95,7 @@ namespace Plaza::Editor {
 					if (ImGui::MenuItem("Convex Mesh"))
 					{
 						if (scene->HasComponent<MeshRenderer>(collider->mUuid)) {
-							collider->AddConvexMeshShape(scene->GetComponent<MeshRenderer>(collider->mUuid)->mesh);
+							collider->AddConvexMeshShape(scene->GetComponent<MeshRenderer>(collider->mUuid)->GetMesh());
 						}
 						if (scene->HasComponent<RigidBody>(collider->mUuid)) {
 							AddChildrenMeshShape(scene, collider, collider->mUuid);

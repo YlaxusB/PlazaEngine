@@ -25,8 +25,6 @@ namespace Plaza {
 			this->uvs = uvs;
 			this->tangent = tangent;
 			this->uuid = Plaza::UUID::NewUUID();
-			if (this->meshId == 0)
-				this->meshId = Plaza::UUID::NewUUID();
 			//setupMesh();
 		}
 
@@ -54,8 +52,6 @@ namespace Plaza {
 			this->bonesHolder = bonesHolder;
 			this->usingNormal = usingNormal;
 			this->uuid = Plaza::UUID::NewUUID();
-			if (this->meshId == 0)
-				this->meshId = Plaza::UUID::NewUUID();
 			//setupMesh();
 		}
 

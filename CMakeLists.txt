@@ -256,13 +256,11 @@ string(REGEX MATCH "\"value0\"[ \t\r\n]*:[ \t\r\n]*\"([^\"]+)\"" matched_value0 
 if (matched_value0)
     string(REGEX REPLACE ".*\"([^\"]*)\".*" "\\1" project_path ${matched_value0})
     get_filename_component(parent_path "${project_path}" DIRECTORY)
-
+    set(target_path "${parent_path}/bin/")
+    add_custom_command(TARGET PlazaEngineCore
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_LINKER_FILE:PlazaEngineCore> ${target_path}
+        COMMENT "Copying PlazaEngineCore.lib to game project folder")
 else()
-    message(FATAL_ERROR "Failed to find project path in JSON file.")
+    message("Failed to find project path in JSON file.")
 endif()
-
-set(target_path "${parent_path}/bin/")
-add_custom_command(TARGET PlazaEngineCore
-                   POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_LINKER_FILE:PlazaEngineCore> ${target_path}
-                   COMMENT "Copying PlazaEngineCore.lib to game project folder")

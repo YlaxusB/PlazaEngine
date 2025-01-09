@@ -44,6 +44,7 @@ namespace Plaza {
 
 	void ECS::InstantiateComponent(ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid) {
 		Component* component = static_cast<Component*>(sInstantiateComponentFactory[srcPool->mComponentMask](srcPool, dstPool, srcUuid, dstUuid));
+		component->mUuid = dstUuid;
 	}
 }
 PL_REGISTER_COMPONENT(TransformComponent);

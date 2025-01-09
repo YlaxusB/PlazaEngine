@@ -150,14 +150,15 @@ namespace Plaza {
 
 		}
 
-		Entity* NewEntity(const std::string& name = "", Entity* parent = nullptr)
+		Entity* NewEntity(const std::string& name = "", Entity* parent = nullptr, bool newTransform = true)
 		{
 			uint64_t uuid = entities.size() + 1;//Plaza::UUID::NewUUID();
 			//if (entities.size() < uuid)
 			//	entities.resize(uuid + 1);
 			entities.emplace(uuid, Entity(name, nullptr, uuid));
 			this->SetParent(&entities.at(uuid), parent);
-			this->NewComponent<TransformComponent>(uuid);
+			if (newTransform)
+				this->NewComponent<TransformComponent>(uuid);
 			return &entities.at(uuid);
 		}
 
@@ -333,7 +334,7 @@ namespace Plaza {
 			if (!mainSceneEntity)
 				mainSceneEntity = &entities.at(mainSceneEntityUuid);
 
-			for (const auto& [key, entity]: entities) {
+			for (const auto& [key, entity] : entities) {
 				entitiesNames[entity.name].emplace(key);
 			}
 		}

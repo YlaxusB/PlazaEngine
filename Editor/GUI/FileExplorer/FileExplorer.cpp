@@ -90,7 +90,7 @@ namespace Plaza {
 			ImGui::End();
 			ImGui::PopStyleColor();
 		}
-
+		
 		/* Read all files in a directory and push them to the files vector */
 		std::vector<std::unique_ptr<File>> Gui::FileExplorer::files = std::vector<std::unique_ptr<File>>();
 		void Gui::FileExplorer::UpdateContent(std::string folderPath) {

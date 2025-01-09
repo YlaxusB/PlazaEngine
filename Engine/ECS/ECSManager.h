@@ -23,9 +23,9 @@ namespace Plaza {
 		public:
 			static void SetParent(Scene* scene, Entity* child, Entity* newParent);
 			static void Delete(Scene* scene, uint64_t uuid);
-			static uint64_t Instantiate(Scene* scene, uint64_t uuidToInstantiate);
-			static uint64_t Instantiate(Scene* srcScene, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid);
-			static uint64_t Instantiate(const std::unordered_map<uint64_t, Entity>& srcEntities, const std::vector<ComponentPool*>& srcComponentPools, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid);
+			static uint64_t Instantiate(Scene* scene, uint64_t uuidToInstantiate, bool newTransform = false);
+			static uint64_t Instantiate(Scene* srcScene, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid, bool newTransform = false);
+			static uint64_t Instantiate(const std::unordered_map<uint64_t, Entity>& srcEntities, const std::vector<ComponentPool*>& srcComponentPools, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid, bool newTransform = false);
 		};
 		class TransformSystem {
 		public:
@@ -80,7 +80,8 @@ namespace Plaza {
 			mElementSize = elementsSize;
 			mComponentMask = componentMask;
 			mData.push_back(nullptr);
-			mSize = 1;
+			mSize = mData.size();
+			mSparseMap[0] = 0;
 			hash<std::string> hasher;
 			mComponentRawNameHash = hasher(rawComponentName);
 		}
@@ -88,16 +89,15 @@ namespace Plaza {
 		ComponentPool(ComponentPool& other) {
 			mElementSize = other.mElementSize;
 			mComponentMask = other.mComponentMask;
-			mSize = 0;
 			for (size_t i = 0; i < other.mData.size(); ++i) {
 				if (other.mData[i]) {
 					ECS::InstantiateComponent(&other, this, other.mData[i]->mUuid, other.mData[i]->mUuid);
 				}
 				else {
 					mData.push_back(nullptr);
-					mSize++;
 				}
 			}
+			mSize = mData.size();
 		}
 
 		~ComponentPool() {
@@ -116,6 +116,7 @@ namespace Plaza {
 			mSparseMap[index] = mSize;
 			std::shared_ptr<T> component = std::make_shared<T>();
 			mData.push_back(component);
+			static_cast<Component*>(component.get())->mUuid = index;
 			mSize++;
 			return component.get();
 		}
@@ -147,6 +148,7 @@ namespace Plaza {
 		template <typename Archive>
 		void serialize(Archive& archive) {
 			archive(PL_SER(mSize), PL_SER(mCapacity), PL_SER(mElementSize), PL_SER(mComponentMask), PL_SER(mComponentRawNameHash), PL_SER(mSparseMap), PL_SER(mData));
+			mSize = mData.size();
 		}
 	};
 };

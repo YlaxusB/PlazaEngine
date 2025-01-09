@@ -317,6 +317,12 @@ namespace Plaza {
 		return finalMesh;
 	}
 
+	size_t CombineHashes(size_t seed, size_t value) {
+		constexpr size_t prime = 0x9e3779b97f4a7c15; // Large odd prime
+		seed ^= value + prime + (seed << 6) + (seed >> 2);
+		return seed;
+	}
+
 	std::shared_ptr<Scene> AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath, Model& model, AssetsImporterSettings settings) {
 		// FIX: Remake model importers
 		ufbx_load_opts opts = { };
@@ -338,9 +344,17 @@ namespace Plaza {
 
 		//Entity* mainEntity = new Entity(std::filesystem::path{ asset.mPath }.stem().string(), Scene::GetActiveScene()->mainSceneEntity);
 		std::shared_ptr<Scene> modelScene = std::make_shared<Scene>();
-		modelScene->mainSceneEntity = modelScene->NewEntity(std::filesystem::path{ asset.mPath }.stem().string(), nullptr);
-		modelScene->mainSceneEntityUuid = modelScene->mainSceneEntity->uuid;
-		modelScene->mainSceneEntity->parentUuid = modelScene->mainSceneEntity->uuid;
+		if (scene->root_node->mesh == nullptr) {
+			Entity* entity = modelScene->NewEntity(std::filesystem::path{ asset.mPath }.stem().string(), nullptr);
+			modelScene->mainSceneEntity = modelScene->GetEntity(entity->uuid);
+			modelScene->mainSceneEntityUuid = modelScene->mainSceneEntity->uuid;
+			modelScene->mainSceneEntity->parentUuid = modelScene->mainSceneEntity->uuid;
+
+			ufbx_transform& transform = scene->root_node->local_transform;
+			modelScene->GetComponent<TransformComponent>(entity->uuid)->mLocalPosition = ConvertUfbxVec3(transform.translation);
+			modelScene->GetComponent<TransformComponent>(entity->uuid)->mLocalRotation = ConvertUfbxQuat(transform.rotation);
+			modelScene->GetComponent<TransformComponent>(entity->uuid)->mLocalScale = ConvertUfbxVec3(transform.scale);
+		}
 
 		std::unordered_map<uint64_t, Entity*> entities = std::unordered_map<uint64_t, Entity*>();
 		std::unordered_map<uint64_t, uint64_t> meshIndexEntityMap = std::unordered_map<uint64_t, uint64_t>(); // ufbx id, plaza uuid
@@ -349,6 +363,7 @@ namespace Plaza {
 		std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
 		std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
 		std::unordered_map<size_t, std::shared_ptr<Mesh>> uniqueMeshes = std::unordered_map<size_t, std::shared_ptr<Mesh>>();
+		std::unordered_map<std::string, std::shared_ptr<Mesh>> uniqueMeshesNames = std::unordered_map<std::string, std::shared_ptr<Mesh>>();
 
 		bool noTangent = true;
 
@@ -363,7 +378,13 @@ namespace Plaza {
 
 			std::string name = node->name.data;
 
-			Entity* entity = modelScene->NewEntity(name, modelScene->mainSceneEntity);
+			Entity* parent = entities.find(node->parent->element_id) != entities.end() ? entities.at(node->parent->element_id) : modelScene->mainSceneEntity;
+			Entity* entity = modelScene->NewEntity(name, parent);
+			if (!modelScene->mainSceneEntity) {
+				modelScene->mainSceneEntity = modelScene->GetEntity(entity->uuid);
+				modelScene->mainSceneEntityUuid = modelScene->mainSceneEntity->uuid;
+				modelScene->mainSceneEntity->parentUuid = modelScene->mainSceneEntity->uuid;
+			}
 			modelScene->GetComponent<TransformComponent>(entity->uuid)->mLocalPosition = ConvertUfbxVec3(transform.translation);
 			modelScene->GetComponent<TransformComponent>(entity->uuid)->mLocalRotation = ConvertUfbxQuat(transform.rotation);
 			modelScene->GetComponent<TransformComponent>(entity->uuid)->mLocalScale = ConvertUfbxVec3(transform.scale);
@@ -409,18 +430,25 @@ namespace Plaza {
 			else
 				materials.push_back(AssetsManager::GetDefaultMaterial());
 
+			size_t meshHash = 0;
+			meshHash = CombineHashes(meshHash, std::hash<std::string>()(std::string(ufbxMesh->name.data)));
+			meshHash = CombineHashes(meshHash, std::hash<size_t>()(ufbxMesh->num_vertices));
+			meshHash = CombineHashes(meshHash, std::hash<size_t>()(ufbxMesh->num_indices));
+			meshHash = CombineHashes(meshHash, std::hash<size_t>()(ufbxMesh->num_faces));
+			meshHash = CombineHashes(meshHash, std::hash<size_t>()(ufbxMesh->num_edges));
 
 			Mesh* mesh = nullptr;
-			if (uniqueMeshes.find(ufbxMesh->element_id) == uniqueMeshes.end()) {
+			if (uniqueMeshes.find(meshHash) == uniqueMeshes.end()) {
 				//mesh = GetMeshFromNode(node, loadedTextures, loadedMaterials, noTangent, mModelImporterScale); //Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, true);
 				//uniqueMeshes.emplace(ufbxMesh, std::make_shared<Mesh>(*mesh));
 				std::shared_ptr<Mesh> uniqueMesh = std::make_shared<Mesh>(
 					*GetMeshFromNode(node, loadedTextures, loadedMaterials, noTangent, mModelImporterScale)
 				);
-				uniqueMeshes[ufbxMesh->element_id] = uniqueMesh;
+				uniqueMeshes[meshHash] = uniqueMesh;
+				uniqueMeshesNames[std::string(ufbxMesh->name.data)] = uniqueMesh;
 			}
 			//else {
-			mesh = uniqueMeshes[ufbxMesh->element_id].get();
+			mesh = uniqueMeshes[meshHash].get();
 			//}
 
 			if (materials.size() <= 0)
@@ -442,6 +470,7 @@ namespace Plaza {
 				ECS::EntitySystem::SetParent(modelScene.get(), entity, &modelScene->entities.at(meshIndexEntityMap.at(value)));
 			}
 		}
+		ECS::TransformSystem::UpdateSelfAndChildrenTransform(*modelScene->GetComponent<TransformComponent>(modelScene->mainSceneEntityUuid), nullptr, modelScene.get(), true, true);
 
 		for (auto& [key, mesh] : uniqueMeshes) {
 			model.AddMeshes({ mesh });

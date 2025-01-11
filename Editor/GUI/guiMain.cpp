@@ -474,7 +474,7 @@ namespace Plaza {
 			}
 
 			appSizes.hierarchySize.x = ImGui::GetWindowSize().x;
-			HierarchyPopup::Update(scene);
+			HierarchyPopup::Update(scene, Editor::selectedGameObject);
 
 			if (Editor::selectedGameObject)
 				Editor::selectedFiles.clear();

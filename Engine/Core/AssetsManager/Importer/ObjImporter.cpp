@@ -75,9 +75,10 @@ namespace Plaza {
 
 		const std::string parentPath = std::filesystem::path{ asset.mPath }.parent_path().string();
 
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, asset.mPath.c_str(), parentPath.c_str())) {
+		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, asset.mPath.c_str(), parentPath.c_str(), true)) {
 			throw std::runtime_error(warn + err);
 		}
+
 		Entity* mainEntity = nullptr;
 		std::shared_ptr<Scene> modelScene = std::make_shared<Scene>();
 		modelScene->InitMainEntity();
@@ -116,11 +117,9 @@ namespace Plaza {
 					attrib.vertices[3 * index.vertex_index + 1],
 					attrib.vertices[3 * index.vertex_index + 2]
 				) * mModelImporterScale;
-				meshHash ^= std::hash<float>{}(vertex.x) + 0x9e3779b9 + (meshHash << 6) + (meshHash >> 2);
-				meshHash ^= std::hash<float>{}(vertex.y) + 0x9e3779b9 + (meshHash << 6) + (meshHash >> 2);
-				meshHash ^= std::hash<float>{}(vertex.z) + 0x9e3779b9 + (meshHash << 6) + (meshHash >> 2);
+				meshHash = CombineHashes(meshHash, std::hash<glm::vec3>()(vertex));
 
-				bool isVertexUnique = true;//uniqueVertices.count(vertex) == 0;
+				bool isVertexUnique = uniqueVertices.count(vertex) == 0;
 				if (isVertexUnique) {
 					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
 
@@ -142,9 +141,13 @@ namespace Plaza {
 					}
 				}
 				indices.push_back(uniqueVertices[vertex]);
-				meshHash ^= std::hash<unsigned int>{}(indices.back()) + 0x9e3779b9 + (meshHash << 6) + (meshHash >> 2);
+				meshHash = CombineHashes(meshHash, std::hash<unsigned int>()(uniqueVertices[vertex]));
 			}
 			if (vertices.size() > 0) {
+				meshHash = CombineHashes(meshHash, std::hash<size_t>()(vertices.size()));
+				meshHash = CombineHashes(meshHash, std::hash<size_t>()(normals.size()));
+				meshHash = CombineHashes(meshHash, std::hash<size_t>()(indices.size()));
+
 				Material* material = AssetsManager::GetDefaultMaterial();
 				if (shape.mesh.material_ids.size() > 0 && materials.size() >= shape.mesh.material_ids[0]) {
 					tinyobj::material_t tinyobjMaterial = materials.at(shape.mesh.material_ids[0]);
@@ -161,66 +164,6 @@ namespace Plaza {
 					}
 					else
 						material = AssetsManager::GetMaterial(loadedMaterials.find(materialOutPath)->second);
-				}
-
-				/* Generate Tangents */
-				tangents.resize(vertices.size());
-				std::vector<glm::vec3> accumulatedTangents(vertices.size(), glm::vec3(0.0f));
-				std::vector<glm::vec3> accumulatedBitangents(vertices.size(), glm::vec3(0.0f));
-
-				// Calculate tangents and bitangents per triangle
-				for (size_t i = 0; i < indices.size(); i += 3) {
-					uint32_t i0 = indices[i];
-					uint32_t i1 = indices[i + 1];
-					uint32_t i2 = indices[i + 2];
-
-					glm::vec3& v0 = vertices[i0];
-					glm::vec3& v1 = vertices[i1];
-					glm::vec3& v2 = vertices[i2];
-
-					glm::vec2& uv0 = uvs[i0];
-					glm::vec2& uv1 = uvs[i1];
-					glm::vec2& uv2 = uvs[i2];
-
-					// Calculate the edges of the triangle in model space
-					glm::vec3 deltaPos1 = v1 - v0;
-					glm::vec3 deltaPos2 = v2 - v0;
-
-					// Calculate the differences in UV coordinates
-					glm::vec2 deltaUV1 = uv1 - uv0;
-					glm::vec2 deltaUV2 = uv2 - uv0;
-
-					// Calculate the tangent and bitangent
-					float r = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV1.y * deltaUV2.x);
-					glm::vec3 tangent = (deltaPos1 * deltaUV2.y - deltaPos2 * deltaUV1.y) * r;
-					glm::vec3 bitangent = (deltaPos2 * deltaUV1.x - deltaPos1 * deltaUV2.x) * r;
-
-					// Accumulate the tangents and bitangents for each vertex of the triangle
-					accumulatedTangents[i0] += tangent;
-					accumulatedTangents[i1] += tangent;
-					accumulatedTangents[i2] += tangent;
-
-					accumulatedBitangents[i0] += bitangent;
-					accumulatedBitangents[i1] += bitangent;
-					accumulatedBitangents[i2] += bitangent;
-				}
-
-				// Normalize and orthogonalize tangents and bitangents for each vertex
-				for (size_t i = 0; i < vertices.size(); ++i) {
-					glm::vec3& n = normals[i];
-					glm::vec3& t = accumulatedTangents[i];
-					glm::vec3& b = accumulatedBitangents[i];
-
-					// Gram-Schmidt orthogonalize the tangent
-					t = glm::normalize(t - n * glm::dot(n, t));
-
-					// Calculate handedness (flip the tangent direction if necessary)
-					if (glm::dot(glm::cross(n, t), b) < 0.0f) {
-						t = t * -1.0f;
-					}
-
-					// Store the final tangent in the mesh
-					tangents[i] = t;
 				}
 
 				std::vector<unsigned int> materials{ 0 };

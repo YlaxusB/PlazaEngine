@@ -38,7 +38,7 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(cereal::base_class<Asset>(this), PL_SER(mMeshes));
+			archive(cereal::base_class<Asset>(this), mMeshes);
 		}
 	private:
 	};

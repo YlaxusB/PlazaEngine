@@ -319,10 +319,9 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
+			archive(uuid, mImportedMesh, id, meshName, modelUuid, vertices, indices, normals, uvs, materialsIndices, bonesHolder, uniqueBonesInfo);
 			verticesCount = vertices.size();
 			indicesCount = indices.size();
-			archive(PL_SER(uuid), PL_SER(mImportedMesh), PL_SER(id), PL_SER(meshName), PL_SER(modelUuid), PL_SER(vertices),
-				PL_SER(verticesCount), PL_SER(indices), PL_SER(indicesCount), PL_SER(normals), PL_SER(uvs), PL_SER(tangent), PL_SER(materialsIndices), PL_SER(bonesHolder), PL_SER(uniqueBonesInfo));
 		}
 	};
 }

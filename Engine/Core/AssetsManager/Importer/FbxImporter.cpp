@@ -7,8 +7,10 @@
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Editor/GUI/Utils/Filesystem.h"
-#include "ThirdParty/ufbx/ufbx/ufbx.c"
 #include "Engine/Core/Renderer/Model.h"
+#define UFBX_REAL_TYPE float
+#include "ThirdParty/ufbx/ufbx/ufbx.h"
+#include "ThirdParty/ufbx/ufbx/ufbx.c"
 
 #include <stdio.h>
 #include <d3d11.h>
@@ -137,12 +139,11 @@ namespace Plaza {
 		return inverseBindMatrix;
 	};
 
-	Mesh* GetMeshFromNode(ufbx_node* node, std::unordered_map<std::string, uint64_t>& loadedTextures, std::unordered_map<std::filesystem::path, uint64_t>& loadedMaterials, bool noTangent, const glm::vec3& modelImporterScale) {
-		ufbx_mesh* ufbxMesh = node->mesh;
+	std::shared_ptr<Mesh> ConvertUFBXMesh(ufbx_mesh* ufbxMesh, std::unordered_map<std::string, uint64_t>& loadedTextures, std::unordered_map<std::filesystem::path, uint64_t>& loadedMaterials, bool noTangent, const glm::vec3& modelImporterScale) {
 		if (!ufbxMesh)
 			return nullptr;
 
-		Mesh* finalMesh = new Mesh();
+		std::shared_ptr<Mesh> finalMesh = std::make_shared<Mesh>();
 		/* Skinning */
 		if (ufbxMesh->skin_deformers.count > 0) {
 			ufbx_skin_deformer* skin = ufbxMesh->skin_deformers[0];
@@ -161,7 +162,7 @@ namespace Plaza {
 		triangleIndices.resize(triangleIndicesCount);
 
 		int faceIndex = 0;
-		for (ufbx_face face : ufbxMesh->faces) {
+		for (const ufbx_face& face : ufbxMesh->faces) {
 			size_t trianglesNumber = ufbx_triangulate_face(triangleIndices.data(), triangleIndicesCount, ufbxMesh, face);
 			uint32_t materialIndex = 0;//ufbxMesh->face_material[faceIndex];
 			if (ufbxMesh->face_material.count > faceIndex)
@@ -169,7 +170,7 @@ namespace Plaza {
 			faceIndex++;
 			for (size_t vertexIndex = 0; vertexIndex < trianglesNumber * 3; vertexIndex++) {
 				uint32_t index = triangleIndices[vertexIndex];
-				finalMesh->indices.push_back(index);
+				//finalMesh->indices.push_back(index);
 
 
 				glm::vec3 position = ConvertUfbxVec3(ufbxMesh->vertex_position[index]);
@@ -226,7 +227,7 @@ namespace Plaza {
 		}
 
 		if (noTangent) {
-			// Initialize tangents and bitangents arrays
+			// Calculate tangent
 			std::vector<glm::vec3> accumulatedTangents(finalMesh->vertices.size(), glm::vec3(0.0f));
 			std::vector<glm::vec3> accumulatedBitangents(finalMesh->vertices.size(), glm::vec3(0.0f));
 
@@ -310,17 +311,23 @@ namespace Plaza {
 			streams.push_back({ finalMesh->materialsIndices.data(), finalMesh->materialsIndices.size(), sizeof(finalMesh->materialsIndices[0]) });
 		}
 
+		finalMesh->indices.clear();
 		finalMesh->indices.resize(ufbxMesh->num_triangles * 3);
 		ufbx_error error;
-		size_t num_vertices = ufbx_generate_indices(streams.data(), streams.size(), finalMesh->indices.data(), indices, NULL, &error);
+		size_t num_vertices = ufbx_generate_indices(streams.data(), streams.size(), finalMesh->indices.data(), finalMesh->indices.size(), NULL, &error);
+
+		if (finalMesh->vertices.size() > 0)
+			finalMesh->vertices.resize(num_vertices);
+		if (finalMesh->normals.size() > 0)
+			finalMesh->normals.resize(num_vertices);
+		if (finalMesh->uvs.size() > 0)
+			finalMesh->uvs.resize(num_vertices);
+		if (finalMesh->bonesHolder.size() > 0)
+			finalMesh->bonesHolder.resize(num_vertices);
+		if (finalMesh->materialsIndices.size() > 0)
+			finalMesh->materialsIndices.resize(num_vertices);
 
 		return finalMesh;
-	}
-
-	size_t CombineHashes(size_t seed, size_t value) {
-		constexpr size_t prime = 0x9e3779b97f4a7c15; // Large odd prime
-		seed ^= value + prime + (seed << 6) + (seed >> 2);
-		return seed;
 	}
 
 	std::shared_ptr<Scene> AssetsImporter::ImportFBX(AssetImported asset, std::filesystem::path outPath, Model& model, AssetsImporterSettings settings) {
@@ -363,9 +370,18 @@ namespace Plaza {
 		std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
 		std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
 		std::unordered_map<size_t, std::shared_ptr<Mesh>> uniqueMeshes = std::unordered_map<size_t, std::shared_ptr<Mesh>>();
-		std::unordered_map<std::string, std::shared_ptr<Mesh>> uniqueMeshesNames = std::unordered_map<std::string, std::shared_ptr<Mesh>>();
 
 		bool noTangent = true;
+
+		for (ufbx_mesh* ufbxMesh : scene->meshes) {
+			if (uniqueMeshes.find(ufbxMesh->element_id) != uniqueMeshes.end()) {
+				PL_CORE_WARN("Duplicated UFBX Mesh");
+				continue;
+			}
+			std::shared_ptr<Mesh> mesh = ConvertUFBXMesh(ufbxMesh, loadedTextures, loadedMaterials, noTangent, mModelImporterScale);
+			uniqueMeshes.emplace(ufbxMesh->element_id, mesh);
+			model.AddMeshes({ mesh });
+		}
 
 		for (size_t i = 0; i < scene->nodes.count; ++i) {
 			Application::Get()->mRenderer->UpdateMainProgressBar(float(float(i) / float(scene->nodes.count)));
@@ -430,31 +446,18 @@ namespace Plaza {
 			else
 				materials.push_back(AssetsManager::GetDefaultMaterial());
 
-			size_t meshHash = 0;
-			meshHash = CombineHashes(meshHash, std::hash<std::string>()(std::string(ufbxMesh->name.data)));
-			meshHash = CombineHashes(meshHash, std::hash<size_t>()(ufbxMesh->num_vertices));
-			meshHash = CombineHashes(meshHash, std::hash<size_t>()(ufbxMesh->num_indices));
-			meshHash = CombineHashes(meshHash, std::hash<size_t>()(ufbxMesh->num_faces));
-			meshHash = CombineHashes(meshHash, std::hash<size_t>()(ufbxMesh->num_edges));
-
-			Mesh* mesh = nullptr;
-			if (uniqueMeshes.find(meshHash) == uniqueMeshes.end()) {
-				//mesh = GetMeshFromNode(node, loadedTextures, loadedMaterials, noTangent, mModelImporterScale); //Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, true);
-				//uniqueMeshes.emplace(ufbxMesh, std::make_shared<Mesh>(*mesh));
-				std::shared_ptr<Mesh> uniqueMesh = std::make_shared<Mesh>(
-					*GetMeshFromNode(node, loadedTextures, loadedMaterials, noTangent, mModelImporterScale)
-				);
-				uniqueMeshes[meshHash] = uniqueMesh;
-				uniqueMeshesNames[std::string(ufbxMesh->name.data)] = uniqueMesh;
+			std::shared_ptr<Mesh> mesh = nullptr;
+			if (uniqueMeshes.find(node->mesh->element_id) != uniqueMeshes.end()) {
+				mesh = uniqueMeshes.at(node->mesh->element_id);
 			}
-			//else {
-			mesh = uniqueMeshes[meshHash].get();
-			//}
+			else {
+				mesh = std::make_shared<Mesh>();
+			}
 
 			if (materials.size() <= 0)
 				materials.push_back(AssetsManager::GetDefaultMaterial());
 			MeshRenderer* meshRenderer = modelScene->NewComponent<MeshRenderer>(entity->uuid);
-			meshRenderer->ChangeMesh(mesh);
+			meshRenderer->ChangeMesh(mesh.get());
 			for (Material* material : materials) {
 				meshRenderer->AddMaterial(material);
 			}
@@ -471,10 +474,6 @@ namespace Plaza {
 			}
 		}
 		ECS::TransformSystem::UpdateSelfAndChildrenTransform(*modelScene->GetComponent<TransformComponent>(modelScene->mainSceneEntityUuid), nullptr, modelScene.get(), true, true);
-
-		for (auto& [key, mesh] : uniqueMeshes) {
-			model.AddMeshes({ mesh });
-		}
 
 		ufbx_free_scene(scene);
 		return modelScene;

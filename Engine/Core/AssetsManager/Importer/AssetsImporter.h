@@ -61,5 +61,11 @@ namespace Plaza {
 
 		static Material* FbxModelMaterialLoader(const ufbx_material* ufbxMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures);
 		static Material* ObjModelMaterialLoader(const tinyobj::material_t* tinyobjMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures);
+
+		static size_t CombineHashes(size_t seed, size_t value) {
+			constexpr size_t prime = 0x9e3779b97f4a7c15; // Large odd prime
+			seed ^= value + prime + (seed << 6) + (seed >> 2);
+			return seed;
+		}
 	};
 }

@@ -20,7 +20,7 @@ namespace Plaza::Drawing::UI {
 		unsigned int mVAO, mVBO;
 		TextRenderer();
 		void Init(std::string fontPath);
-		void Render(Shader& shader);
+		void Render();
 		void Terminate();
 
 		void SetFullText(string text = "", float x = 0.0f, float y = 0.0f, float scale = 1.0f, glm::vec4 color = glm::vec4(1.0f)) {

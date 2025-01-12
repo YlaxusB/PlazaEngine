@@ -1,23 +1,10 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Inspector.h"
 
-#include "Editor/GUI/Inspector/MeshRendererInspector.h"
-#include "Editor/GUI/Inspector/RigidBodyInspector.h"
-#include "Editor/GUI/Inspector/SceneInspector.h"
-#include "Editor/GUI/Inspector/ColliderInspector.h"
-#include "Editor/GUI/Inspector/CppScriptComponentInspector.h"
-#include "Editor/GUI/Inspector/CsScriptComponentInspector.h"
-#include "Editor/GUI/Inspector/AudioListenerInspector.h"
-#include "Editor/GUI/Inspector/AudioSourceInspector.h"
-#include "Editor/GUI/Inspector/CameraInspector.h"
-
+#include "Editor/GUI/Inspector/Components/ComponentsInspector.h"
 #include "Editor/GUI/Inspector/FileInspector/MaterialFileInspector.h"
 #include "Editor/GUI/Inspector/FileInspector/TextEditor.h"
-#include "Editor/GUI/Inspector/LightInspector.h"
-#include "Editor/GUI/Inspector/CharacterControllerInspector.h"
-#include "Editor/GUI/Inspector/TextRendererInspector.h"
-#include "Editor/GUI/Inspector/AnimationComponentInspector.h"
-#include "Editor/GUI/Inspector/GuiComponentInspector.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza::Editor {
 	/* File Inspector*/
@@ -49,7 +36,7 @@ namespace Plaza::Editor {
 			ImGui::Indent(10);
 			bool selectedEntityIsSceneEntity = Editor::selectedGameObject->uuid == Scene::GetActiveScene()->mainSceneEntity->uuid;
 			if (selectedEntityIsSceneEntity) {
-				SceneInspector::SceneInspector(Scene::GetActiveScene());
+				Editor::ComponentsInspector::SceneInspector(Scene::GetActiveScene(), nullptr);
 			}
 			else {
 				ImGui::Text(Editor::selectedGameObject->name.c_str());
@@ -119,47 +106,44 @@ namespace Plaza::Editor {
 
 	void Inspector::ComponentInspector::CreateRespectiveInspector(Scene* scene, Component* component) {
 		if (TransformComponent* transform = dynamic_cast<TransformComponent*>(component)) {
-			Editor::Gui::TransformInspector inspector{ scene, Editor::selectedGameObject };
+			Plaza::Editor::ComponentsInspector::TransformInspector(scene, scene->GetEntity(component->mUuid));
 		}
 		else if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {
-			Plaza::Editor::MeshRendererInspector::MeshRendererInspector(scene, Editor::selectedGameObject);
+			Plaza::Editor::ComponentsInspector::MeshRendererInspector(scene, scene->GetEntity(component->mUuid));
 			//Plaza::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
 		}
 		else if (Camera* camera = dynamic_cast<Camera*>(component)) {
-			Plaza::Editor::CameraInspector::CameraInspector(camera);
+			Plaza::Editor::ComponentsInspector::CameraInspector(scene, scene->GetEntity(component->mUuid));
 		}
 		else if (RigidBody* rigidBody = dynamic_cast<RigidBody*>(component)) {
-			Plaza::Editor::RigidBodyInspector::RigidBodyInspector(scene, rigidBody);
+			Plaza::Editor::ComponentsInspector::RigidBodyInspector(scene, scene->GetEntity(component->mUuid));
 		}
 		else if (Collider* collider = dynamic_cast<Collider*>(component)) {
-			Plaza::Editor::ColliderInspector::ColliderInspector(scene, collider);
+			Plaza::Editor::ComponentsInspector::ColliderInspector(scene, scene->GetEntity(component->mUuid));
 		}
 		else if (CppScriptComponent* cppScriptComponent = dynamic_cast<CppScriptComponent*>(component)) {
-			Plaza::Editor::CppScriptComponentInspector::CppScriptComponentInspector(cppScriptComponent);
+			Plaza::Editor::ComponentsInspector::CppScriptComponentInspector(scene, scene->GetEntity(component->mUuid));
 		}
 		else if (CsScriptComponent* csScriptComponent = dynamic_cast<CsScriptComponent*>(component)) {
-			Plaza::Editor::CsScriptComponentInspector::CsScriptComponentInspector(csScriptComponent);
+			Plaza::Editor::ComponentsInspector::CsScriptComponentInspector(scene, scene->GetEntity(component->mUuid));
 		}
 		else if (AudioSource* audioSource = dynamic_cast<AudioSource*>(component)) {
-			Plaza::Editor::AudioSourceInspector::AudioSourceInspector(audioSource);
+			Plaza::Editor::ComponentsInspector::AudioSourceInspector(scene, scene->GetEntity(component->mUuid));
 		}
 		else if (AudioListener* audioListener = dynamic_cast<AudioListener*>(component)) {
-			Plaza::Editor::AudioListenerInspector::AudioListenerInspector(audioListener);
+			Plaza::Editor::ComponentsInspector::AudioListenerInspector(scene, scene->GetEntity(component->mUuid));
 		}
 		else if (Light* light = dynamic_cast<Light*>(component)) {
-			Plaza::Editor::LightInspector::LightInspector(light);
-		}
-		else if (CharacterController* characterController = dynamic_cast<CharacterController*>(component)) {
-			Plaza::Editor::CharacterControllerInspector::CharacterControllerInspector(characterController);
+			Plaza::Editor::ComponentsInspector::LightInspector(scene, scene->GetEntity(component->mUuid));
 		}
 		else if (Drawing::UI::TextRenderer* textRenderer = dynamic_cast<Drawing::UI::TextRenderer*>(component)) {
-			Plaza::Editor::TextRendererInspector::TextRendererInspector(textRenderer);
+			Plaza::Editor::ComponentsInspector::TextRendererInspector(scene, scene->GetEntity(component->mUuid));
 		}
 		else if (AnimationComponent* animationComponent = dynamic_cast<AnimationComponent*>(component)) {
-			Plaza::Editor::AnimationComponentInspector::AnimationComponentInspector(animationComponent);
+			Plaza::Editor::ComponentsInspector::AnimationComponentInspector(scene, scene->GetEntity(component->mUuid));
 		}
 		else if (GuiComponent* guiComponent = dynamic_cast<GuiComponent*>(component)) {
-			Plaza::Editor::GuiComponentInspector::GuiComponentInspector(guiComponent);
+			Plaza::Editor::ComponentsInspector::GuiComponentInspector(scene, scene->GetEntity(component->mUuid));
 		}
 	}
 }

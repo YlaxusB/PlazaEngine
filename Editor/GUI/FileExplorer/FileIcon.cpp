@@ -3,6 +3,7 @@
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Editor/GUI/Utils/Filesystem.h"
 #include "Editor/GUI/Popups/FileExplorerFilePopup.h"
+#include "Engine/Core/Renderer/Renderer.h"
 namespace Plaza {
 	namespace Editor {
 		std::map<std::string, IconTexture> Icon::textures = std::map<std::string, IconTexture>();

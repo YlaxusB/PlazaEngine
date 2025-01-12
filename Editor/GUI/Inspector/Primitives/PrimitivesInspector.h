@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Engine/Core/Any.h"
 namespace Plaza::Editor {
 	class PrimitivesInspector {
 	public:

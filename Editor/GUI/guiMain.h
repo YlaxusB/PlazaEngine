@@ -1,32 +1,22 @@
 #pragma once
-
 #include "ThirdParty/GLFW/include/GLFW/glfw3.h"
-//#include "ThirdParty/imgui/imgui.h"
-//#include "ThirdParty/imgui/imgui_impl_glfw.h"
-//#include "ThirdParty/imgui/imgui_impl_opengl3.h"
-
-//#include "Engine/Application/EditorCamera.h"
 #include "Engine/Components/Core/Entity.h"
-//#include "Engine/Application/Application.h"
-
 #include "Editor/GUI/GuiWindow.h"
-#include "Editor/GUI/Hierarchy/Hierarchy.h"
-#include "Editor/GUI/AssetsImporterWindow/AssetsImporterWindow.h"
-#include "Editor/GUI/Console/Console.h"
-#include "Editor/GUI/NodeEditors/RenderGraphEditor.h"
 #include "Editor/EditorTools/EditorTool.h"
 
 namespace ImGuizmoHelper {
 	static bool IsDrawing;
 }
 
-namespace Plaza {
-	class Camera;
-}
 using namespace std;
 namespace Plaza {
+	class Camera;
 	struct TrackedImage;
 	namespace Editor {
+		class HierarchyWindow;
+		class AssetsImporterWindow;
+		class Console;
+		class RenderGraphEditor;
 		class Gui {
 		public:
 			class FileExplorer;
@@ -80,10 +70,10 @@ namespace Plaza {
 			static inline GuiLayer sFocusedLayer = GuiLayer::SCENE;
 			static inline std::vector<GuiWindow> mGuiWindows = std::vector<GuiWindow>();
 
-			HierarchyWindow mHierarchy = HierarchyWindow(GuiLayer::HIERARCHY, true);
-			AssetsImporterWindow mAssetsImporter = AssetsImporterWindow(GuiLayer::ASSETS_IMPORTER, false);
-			Console* mConsole = new Console(GuiLayer::CONSOLE, false);
-			RenderGraphEditor* mRenderGraphEditor = new RenderGraphEditor(GuiLayer::RENDER_GRAPH_EDITOR, false);
+			HierarchyWindow* mHierarchy;
+			AssetsImporterWindow* mAssetsImporter;
+			Console* mConsole;
+			RenderGraphEditor* mRenderGraphEditor;
 
 			static inline std::map<EditorTool::ToolType, std::unique_ptr<EditorTool>> sEditorTools;
 			//static inline EditorTool::ToolType sEditorToolCaptureMouseClick;

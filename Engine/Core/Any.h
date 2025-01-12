@@ -5,6 +5,7 @@
 #include <typeinfo>
 #include <typeindex>
 #include "Engine/Core/Engine.h"
+#include "Engine/Core/EnumReflection.h"
 
 namespace Plaza {
 	class Any {

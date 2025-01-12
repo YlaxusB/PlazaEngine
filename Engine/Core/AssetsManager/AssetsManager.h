@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/Core/AssetsManager/AssetsType.h"
 #include "Engine/Core/Standards.h"
+#include "Engine/Core/Renderer/Model.h"
 #include "Engine/Components/Physics/Collider.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
 #include "Engine/Components/Rendering/Material.h"

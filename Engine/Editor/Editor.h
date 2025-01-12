@@ -1,8 +1,8 @@
 #pragma once
-#include "Engine/Components/Core/CoreComponents.h"
 #include "Editor/GUI/FileExplorer/File.h"
 #include "Engine/Core/Scripting/FieldManager.h"
 namespace Plaza {
+	class Entity;
 	namespace Editor
 	{
 		extern Entity* selectedGameObject;

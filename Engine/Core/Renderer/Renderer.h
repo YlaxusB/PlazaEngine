@@ -1,5 +1,4 @@
 #pragma once
-#include "Engine/Core/PreCompiledHeaders.h"
 #include "Mesh.h"
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Core/RenderGroup.h"

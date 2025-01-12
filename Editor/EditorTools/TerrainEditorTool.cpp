@@ -2,6 +2,8 @@
 #include "TerrainEditorTool.h"
 #include <unordered_map>
 #include "Editor/GUI/Utils/DataVisualizer.h"
+#include "Engine/Application/Callbacks/CallbacksHeader.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	namespace Editor {

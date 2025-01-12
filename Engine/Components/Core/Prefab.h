@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Core/AssetsManager/Asset.h"
+#include "Engine/ECS/ECSManager.h"
 namespace Plaza {
 	class PLAZA_API Prefab : public Asset {
 	public:

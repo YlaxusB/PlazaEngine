@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "DefaultModels.h"
 #include "Engine/Core/Physics.h"
+#include "Engine/Core/Renderer/Renderer.h"
 namespace Plaza::Editor {
 
 	vector<Mesh*> DefaultModels::meshes = vector<Mesh*>();

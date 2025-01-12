@@ -1,13 +1,12 @@
 #pragma once
-#include "Renderer.h"
 #include <string>
 #include "Engine/stb_image.h"
 #include "ThirdParty/cereal/cereal/types/polymorphic.hpp"
 #include "Engine/Core/Renderer/Texture.h"
-#include "Engine/Core/Renderer/Vulkan/Renderer.h"
 #include "Engine/Core/Engine.h"
 
 namespace Plaza {
+	class VulkanRenderer;
 	class PLAZA_API VulkanTexture : public Texture {
 	public:
 		VkDescriptorSet GetDescriptorSet() override;

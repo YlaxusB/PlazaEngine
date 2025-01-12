@@ -7,6 +7,7 @@
 #include "Engine/Core/Renderer/Model.h"
 #include "Engine/Core/AssetsManager/Asset.h"
 #include "Engine/Components/Core/Prefab.h"
+#include "Engine/Core/Renderer/Vulkan/Renderer.h"
 
 namespace Plaza {
 	void AssetsLoader::LoadAsset(Asset* asset) {
@@ -89,5 +90,20 @@ namespace Plaza {
 		//	}
 		//	//	}));
 		//	});
+	}
+
+	void AssetsLoader::LoadScript(Asset* asset) {
+		AssetsManager::AddScript(static_cast<Script*>(asset));
+	};
+	Texture* AssetsLoader::LoadTexture(Asset* asset) {
+		if (!asset)
+			return new Texture();
+		if (AssetsManager::GetTexture(asset->mAssetUuid) != nullptr)
+			return AssetsManager::GetTexture(asset->mAssetUuid);
+
+		Texture* texture = Application::Get()->mRenderer->LoadTexture(asset->mAssetPath.string());
+		texture->mAssetUuid = asset->mAssetUuid;
+		AssetsManager::mTextures.emplace(asset->mAssetUuid, texture);
+		return texture;
 	}
 }

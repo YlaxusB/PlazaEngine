@@ -1,5 +1,4 @@
 #pragma once
-#include "Editor/GUI/Inspector/TransformInspector.h"
 
 using namespace Plaza::Editor;
 namespace Plaza::Editor {

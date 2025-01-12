@@ -2,6 +2,8 @@
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 #include "Engine/Utils/vectorUtils.h"
 #include "Engine/ECS/ECSManager.h"
+#include "Engine/Core/Scene.h"
+
 using namespace Plaza;
 void payloadDrop(Plaza::Entity* entity, Plaza::Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, const ImGuiPayload* payload, Scene* scene);
 void InsertBefore(Plaza::Entity* payloadObj, Plaza::Entity* currentObj, Scene* scene);

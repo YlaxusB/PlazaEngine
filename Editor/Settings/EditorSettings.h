@@ -9,7 +9,7 @@ namespace Plaza::Editor{
 	public:
 		std::string mName = "editor";
 		bool mVsync = false;
-		RendererAPI mDefaultRendererAPI = RendererAPI::Vulkan;
+		RendererAPI mDefaultRendererAPI;
 
 		void ReapplyAllSettings();
 

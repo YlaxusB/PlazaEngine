@@ -2,40 +2,8 @@
 #include "ScriptManager.h"
 #include "Engine/Core/Scripting/Mono.h"
 #include "Engine/Core/Scripting/Scripting.h"
-
-/*
-		 Get all fields and group them in a map
-std::map<std::string, Field*> fields = std::map<std::string, Field*>();
-if (data["SerializedFields"]) {
-	for (auto dataField : data["SerializedFields"]) {
-		GetValuesFromSerializedFields(dataField, fields);
-	}
-}
-
- Apply the values got from the yaml
-for (auto [scriptName, scriptClass] : script->scriptClasses) {
-	for (auto [key, value] : fields) {
-		if (value->mType != MONO_TYPE_CLASS && value->mType == MONO_TYPE_R4) {
-			mono_gchandle_new(scriptClass->monoObject, true);
-			MonoClassField* classField = mono_class_get_field_from_name(mono_object_get_class(scriptClass->monoObject), key.c_str());
-			// float val = 1.0f;
-			//mono_field_set_value(scriptClass->monoObject, classField, &val);
-			FieldSetValue(value->mType, value->mValue, scriptClass->monoObject, classField);
-
-		}
-		else if (value->mType == MONO_TYPE_CLASS) {
-			for (auto [name, child] : value->mChildren) {
-				MonoObject* newMonoObject = nullptr;
-				mono_field_get_value(scriptClass->monoObject, mono_class_get_field_from_name(mono_object_get_class(scriptClass->monoObject), value->mName.c_str()), &newMonoObject);
-				//SetFieldValue(newMonoObject, child);
-				//SetFieldValue(scriptClass->monoObject, child);
-			}
-		}
-	}
-}
-*/
-
-
+#include "Engine/Components/Scripting/CsScriptComponent.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza::Editor {
 

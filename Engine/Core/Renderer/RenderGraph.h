@@ -408,8 +408,3 @@ namespace Plaza {
 		unsigned int numSamples = 32u;
 	};
 }
-
-PL_SER_REGISTER_TYPE(PlazaTextureBinding);
-PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaShadersBinding, PlazaTextureBinding);
-PL_SER_REGISTER_TYPE(PlazaBufferBinding);
-PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaShadersBinding, PlazaBufferBinding);

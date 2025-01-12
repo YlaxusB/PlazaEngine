@@ -58,5 +58,5 @@ namespace Plaza {
 }
 
 CEREAL_REGISTER_TYPE(GuiRectangle);
-CEREAL_REGISTER_TYPE(GuiButton);
+CEREAL_REGISTER_TYPE(Plaza::GuiButton);
 //CEREAL_REGISTER_POLYMORPHIC_RELATION(GuiItem, GuiButton);

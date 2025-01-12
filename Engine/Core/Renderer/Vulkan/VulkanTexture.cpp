@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "VulkanTexture.h"
+#include "Renderer.h"
 #include "ThirdParty/dds_image/dds.hpp"
 #include "ThirdParty/DirectXTex/DirectXTex/DirectXTex.h"
 

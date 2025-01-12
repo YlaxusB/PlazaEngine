@@ -11,6 +11,7 @@
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Core/RenderGroup.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
+#include "Engine/Core/Scene.h"
 
 
 namespace Plaza::Editor {

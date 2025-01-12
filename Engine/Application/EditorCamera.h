@@ -1,13 +1,8 @@
 #pragma once
-
 #include "ThirdParty/glm/glm.hpp"
 #include "ThirdParty/glad/glad.h"
 #include "ThirdParty/glm/gtc/matrix_transform.hpp"
 #include <vector>
-
-#include "Engine/Application/Application.h"
-#include "EntryPoint.h"
-#include "Engine/Application/ApplicationSizes.h"
 #include "Engine/Components/Core/Camera.h"
 
 

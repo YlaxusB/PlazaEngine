@@ -59,7 +59,7 @@ namespace Plaza {
 			uuid = Plaza::UUID::NewUUID();
 		}
 
-		void Draw(Shader& shader) override;
+		void Draw() override;
 		void DrawInstances() override;
 		void Drawe();
 		void setupMesh() override;

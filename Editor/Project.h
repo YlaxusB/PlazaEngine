@@ -1,12 +1,9 @@
 #pragma once
-#include "Engine/Core/Script.h"
-#include "ThirdParty/mono/include/mono/jit/jit.h"
-#include "ThirdParty/mono/include/mono/metadata/assembly.h"
-#include "Engine/Core/Scripting/Script.h"
 #include "Engine/Core/AssetsManager/Asset.h"
 namespace Plaza {
+	class Script;
 	namespace Editor {
-		class Project : public Asset {
+		class PLAZA_API Project : public Asset {
 		public:
 			uint64_t mLastSceneUuid = 0;
 			std::string creationDate = "";

@@ -3,6 +3,7 @@
 #include <typeinfo>
 #include <algorithm>
 #include <vector>
+#include "ThirdParty/magic_enum/magic_enum.hpp"
 
 namespace Plaza {
 	class EnumReflection {

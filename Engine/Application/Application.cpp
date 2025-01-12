@@ -4,20 +4,19 @@
 
 #include "Engine/Components/Core/Camera.h"
 #include "Engine/Components/Core/Entity.h"
-#include "Engine/Shaders/Shader.h"
 #include "Editor/GUI/Style/EditorStyle.h"
-#include "Engine/Core/Skybox.h"
 #include "Engine/Core/Time.h"
-#include "Engine/Core/Renderer/Renderer.h"
 #include "Engine/Editor/Editor.h"
 #include "Engine/Application/Window.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
+#include "Engine/Core/Scene.h"
+#include "Engine/Core/Renderer/Renderer.h"
+#include "Engine/Core/Renderer/Vulkan/Renderer.h"
 
 #include <cstdlib> 
 
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Core/Physics.h"
-#include "Engine/Components/Core/Camera.h"
 #include "Engine/Core/Scripting/Mono.h"
 #include "Engine/Core/Scripting/Scripting.h"
 #include "Editor/Filewatcher.h"
@@ -29,8 +28,6 @@ using namespace Plaza;
 /// ---------------------------------------------------------------------
 
 //std::list<Model> models;
-
-EditorStyle editorStyle;
 
 using namespace Plaza::Editor;
 
@@ -177,7 +174,7 @@ namespace Plaza {
 				//	Application::Get()->activeCamera = &Scene::GetActiveScene()->cameraComponents.begin()->second;
 				//else
 				//	Application::Get()->activeCamera = Scene::GetActiveScene()->mainSceneEntity->AddComponent<Camera>(new Camera());
-				Application::Get()->activeCamera = Scene::GetActiveScene()->AddComponent<Camera>(Scene::GetActiveScene()->mainSceneEntity->uuid);
+				//Application::Get()->activeCamera = Scene::GetActiveScene()->AddComponent<Camera>(Scene::GetActiveScene()->mainSceneEntity->uuid);
 			}
 		}
 

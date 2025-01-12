@@ -4,6 +4,7 @@
 #include "Engine/Core/AssetsManager/AssetsManager.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Engine/Components/Core/Prefab.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	namespace Editor {

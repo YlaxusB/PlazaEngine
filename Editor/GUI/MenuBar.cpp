@@ -6,6 +6,7 @@
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Engine/Core/AssetsManager/AssetsReader.h"
 #include "Editor/Settings/ProjectGenerator.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	namespace Editor {

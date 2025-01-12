@@ -1,4 +1,5 @@
 #pragma once
+#include <ThirdParty/glm/common.hpp>
 
 namespace Plaza {
 	enum PlTextureType {

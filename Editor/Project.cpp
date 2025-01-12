@@ -1,6 +1,10 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Project.h"
 
+#include "Engine/Core/Scripting/Script.h"
+#include "ThirdParty/mono/include/mono/jit/jit.h"
+#include "ThirdParty/mono/include/mono/metadata/assembly.h"
+#include "Engine/Core/Scripting/Script.h"
 #include "Engine/Application/FileDialog/FileDialog.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 #include "Engine/Core/Scripting/Mono.h"
@@ -9,6 +13,7 @@
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Engine/Core/AssetsManager/AssetsReader.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza::Editor {
 	void Project::Load(const std::string filePath) {

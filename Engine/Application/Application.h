@@ -1,22 +1,14 @@
 #pragma once
-//#include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Application/ApplicationSizes.h"
 #include "Engine/Components/Core/Camera.h"
 
 #include "Engine/Application/EditorCamera.h"
-#include "Engine/Shaders/Shader.h"
-#include "Editor/GUI/guiMain.h"
 #include "Engine/Application/Window.h"
 #include "Engine/Editor/Editor.h"
 #include "Editor/GUI/ProjectManager/ProjectManager.h"
-//#include "Engine/Application/Callbacks/CallbacksHeader.h"
-#include "Engine/Core/Scene.h"
 #include "Editor/Project.h"
 #include "Engine/Core/Engine.h"
-#include "Engine/Core/FrameBuffer.h"
 
-#include "Engine/Core/Renderer/Renderer.h"
-#include "Engine/Core/Renderer/Vulkan/Renderer.h"
 #include "Engine/Core/AssetsManager/AssetsManager.h"
 #include "Engine/Threads/ThreadManager.h"
 #include "Editor/Editor.h"
@@ -25,6 +17,7 @@
 namespace Plaza {
 	class Camera;
 	class Window;
+	class Renderer;
 	class PLAZA_API Application {
 	public:
 		void CreateApplication();

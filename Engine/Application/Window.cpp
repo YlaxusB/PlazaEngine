@@ -1,14 +1,9 @@
-#include "Window.h"
-
 #include "Engine/Core/PreCompiledHeaders.h"
-
-//#include "Engine/Application/Callbacks/Callbacks.h"
+#include "Window.h"
+#include "Engine/Application/Application.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
-//using namespace Plaza;
-//using Application::Get()->;
+#include <ThirdParty/stb/stb_image.h>
 
-//using namespace Plaza;
-//using Application::Get()->;
 using Plaza::Application;
 namespace Plaza {
 	GLFWwindow* Window::InitGLFWWindow() {

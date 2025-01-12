@@ -6,6 +6,7 @@
 #include "Editor/Settings/SettingsSerializer.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanBloom.h"
 #include "Editor/GUI/Utils/DataVisualizer.h"
+#include "Engine/Core/Renderer/Vulkan/Renderer.h"
 
 namespace Plaza::Editor {
      void EditorInspector::Update() {

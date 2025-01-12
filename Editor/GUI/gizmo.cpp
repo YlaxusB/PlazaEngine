@@ -2,6 +2,8 @@
 #include "gizmo.h"
 #include "Editor/GUI/guiMain.h"
 #include "Editor/GUI/TransformOverlay.h"
+#include "Engine/ECS/ECSManager.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza::Editor {
 	glm::vec3 WorldToLocal(const glm::mat4& worldToLocalMatrix, const glm::vec3& worldPoint) {

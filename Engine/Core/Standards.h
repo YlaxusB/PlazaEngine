@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 namespace Plaza {
 	using namespace std;
 	class Standards {

@@ -1,6 +1,5 @@
 #pragma once
 #include "Editor/GUI/GuiWindow.h"
-#include "Engine/Application/Callbacks/CallbacksHeader.h"
 
 namespace Plaza {
 	namespace Editor {

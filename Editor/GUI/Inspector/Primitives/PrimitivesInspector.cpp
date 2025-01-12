@@ -2,7 +2,7 @@
 #include "PrimitivesInspector.h"
 #include "ThirdParty/magic_enum/magic_enum.hpp"
 #include "Engine/Core/EnumReflection.h"
-#include "Engine/Core/Any.h"
+#include "Editor/GUI/NodeEditors/NodeEditor.h"
 
 namespace Plaza::Editor {
 	void PrimitivesInspector::Init() {

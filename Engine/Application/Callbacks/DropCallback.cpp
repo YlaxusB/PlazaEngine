@@ -18,6 +18,6 @@ void Plaza::Callbacks::dropCallback(GLFWwindow* window, int count, const char** 
 		if (AssetsLoader::mSupportedLoadFormats.find(fileExtension) != AssetsLoader::mSupportedLoadFormats.end())
 			AssetsLoader::LoadAsset(AssetsManager::GetAsset(std::filesystem::path{ path }));
 		else
-			Application::Get()->mEditor->mGui.mAssetsImporter.OpenAssetsImporter(path, "");
+			Application::Get()->mEditor->mGui.mAssetsImporter->OpenAssetsImporter(path, "");
 	}
 }

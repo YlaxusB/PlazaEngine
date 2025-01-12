@@ -5,7 +5,6 @@
 
 #include "Engine/Application/Application.h"
 #include "Engine/Core/Time.h"
-#include "Engine/Core/Skybox.h"
 #include "Editor/SessionCache/Cache.h"
 using namespace Plaza;
 

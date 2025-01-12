@@ -3,6 +3,7 @@
 #include "Engine/Application/ApplicationSizes.h"
 #include "Editor/GUI/guiMain.h"
 #include "Engine/Components/Drawing/UI/GuiButton.h"
+#include "Engine/Core/Scene.h"
 
 using namespace Plaza::Editor;
 using namespace Plaza;

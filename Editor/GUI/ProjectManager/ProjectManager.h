@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/Core/PreCompiledHeaders.h"
+
 namespace Plaza {
 	namespace Editor {
 		class ProjectManagerGui {

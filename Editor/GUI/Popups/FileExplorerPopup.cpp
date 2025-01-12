@@ -7,6 +7,7 @@
 #include "Editor/GUI/FileExplorer/File.h"
 #include "Engine/Core/AssetsManager/Metadata/Metadata.h"
 #include "Engine/Core/AssetsManager/AssetsReader.h"
+#include "Engine/Core/Scripting/CppScript.h"
 namespace Plaza::Editor {
 	void Popup::FileExplorerPopup::UpdateContent() {
 		if (ImGui::BeginMenu("Create"))

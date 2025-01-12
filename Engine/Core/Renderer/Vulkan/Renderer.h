@@ -1,5 +1,4 @@
 #pragma once
-#include "Engine/Shaders/Shader.h"
 #include "Engine/Core/Renderer/Renderer.h"
 #include "Engine/Components/Core/Entity.h"
 #include "Engine/Core/Renderer/Vulkan/ShadersCompiler.h"
@@ -45,6 +44,7 @@ namespace Plaza {
 		VkImageView mImageView = VK_NULL_HANDLE;
 	};
 
+	class VulkanRenderGraph;
 	class PLAZA_API VulkanRenderer : public Renderer {
 	public:
 		VulkanRenderer() {};

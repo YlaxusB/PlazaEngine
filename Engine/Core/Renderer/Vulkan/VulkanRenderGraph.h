@@ -6,6 +6,8 @@
 #include "VulkanTexture.h"
 #include "VulkanPlazaWrapper.h"
 #include "Engine/Core/Renderer/Buffer.h"
+#include "Engine/Core/Engine.h"
+#include <ThirdParty/cereal/cereal/types/polymorphic.hpp>
 
 namespace Plaza {
 	static VkDescriptorType PlBufferTypeToVkDescriptorType(PlBufferType type) {

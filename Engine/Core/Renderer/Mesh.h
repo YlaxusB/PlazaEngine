@@ -250,7 +250,7 @@ namespace Plaza {
 
 		virtual void setupMesh() {};
 		virtual void Restart() {};
-		virtual void Draw(Shader& shader) {};
+		virtual void Draw() {};
 		virtual void DrawInstances() {};
 
 		Mesh() {

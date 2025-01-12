@@ -9,7 +9,7 @@
 #include "Editor/SessionCache/Cache.h"
 #include <ThirdParty/imgui/imgui_impl_opengl3.h>
 #include "Editor/DefaultAssets/DefaultAssets.h"
-#include "Editor/DefaultAssets/Models/DefaultModels.h"
+#include "Engine/Core/Renderer/Renderer.h"
 
 namespace Plaza {
 	namespace Editor {

@@ -14,7 +14,6 @@
 #include "Engine/Editor/Editor.h"
 //#include "EntryPoint.h"
 #include "Editor/GUI/Inspector.h"
-#include "Editor/GUI/Inspector/TransformInspector.h"
 #include "Editor/GUI/FpsCounter.h"
 #include "Editor/GUI/MenuBar.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
@@ -30,6 +29,12 @@
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Editor/DragDrop/DropFileScene.h"
 #include "Editor/EditorTools/TerrainEditorTool.h"
+
+#include "Editor/GUI/Hierarchy/Hierarchy.h"
+#include "Editor/GUI/AssetsImporterWindow/AssetsImporterWindow.h"
+#include "Editor/GUI/Console/Console.h"
+#include "Editor/GUI/NodeEditors/RenderGraphEditor.h"
+#include "Editor/GUI/Style/EditorStyle.h"
 
 ////   #include "ThirdParty/imgui/imgui_impl_vulkan.h"
 //#include "Engine/Application/Application.h" //
@@ -100,6 +105,11 @@ namespace Plaza {
 			CommonGuiInit(window, editorStyle, false);
 			mMainProgressBarContext->IO = mMainContext->IO;
 			mMainProgressBarContext->PlatformIO = mMainContext->PlatformIO;
+
+			Application::Get()->mEditor->mGui.Gui::mHierarchy = new HierarchyWindow(GuiLayer::HIERARCHY, true);
+			Application::Get()->mEditor->mGui.Gui::mAssetsImporter = new AssetsImporterWindow(GuiLayer::ASSETS_IMPORTER, false);
+			Application::Get()->mEditor->mGui.Gui::mConsole = new Console(GuiLayer::CONSOLE, false);
+			Application::Get()->mEditor->mGui.Gui::mRenderGraphEditor = new RenderGraphEditor(GuiLayer::RENDER_GRAPH_EDITOR, false);
 
 			Application::Get()->mEditor->mGui.mRenderGraphEditor->Init();
 
@@ -202,8 +212,8 @@ namespace Plaza {
 			Gui::MainMenuBar::Begin();
 
 			//Gui::beginHierarchyView(gameFrameBuffer);
-			Application::Get()->mEditor->mGui.mHierarchy.mScene = Scene::GetActiveScene();
-			Application::Get()->mEditor->mGui.mHierarchy.Update(Scene::GetActiveScene());
+			Application::Get()->mEditor->mGui.mHierarchy->mScene = Scene::GetActiveScene();
+			Application::Get()->mEditor->mGui.mHierarchy->Update(Scene::GetActiveScene());
 
 			Gui::beginScene(scene, *Application::Get()->activeCamera);
 
@@ -238,7 +248,7 @@ namespace Plaza {
 			//	Gui::AssetsImporter::Update();
 			//}
 
-			Application::Get()->mEditor->mGui.mAssetsImporter.Update(scene);
+			Application::Get()->mEditor->mGui.mAssetsImporter->Update(scene);
 
 
 			for (auto& editorTool : Gui::sEditorTools) {

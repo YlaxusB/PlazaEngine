@@ -51,20 +51,8 @@ namespace Plaza {
 		static void LoadPrefab(Asset* asset);
 		static void LoadPrefabToMemory(const std::string& path);
 		static void LoadPrefabToScene(Model* model, bool loadToScene);
-		static void LoadScript(Asset* asset) {
-			AssetsManager::AddScript(static_cast<Script*>(asset));
-		};
-		static Texture* LoadTexture(Asset* asset) {
-			if (!asset)
-				return new Texture();
-			if (AssetsManager::GetTexture(asset->mAssetUuid) != nullptr)
-				return AssetsManager::GetTexture(asset->mAssetUuid);
-
-			Texture* texture = Application::Get()->mRenderer->LoadTexture(asset->mAssetPath.string());
-			texture->mAssetUuid = asset->mAssetUuid;
-			AssetsManager::mTextures.emplace(asset->mAssetUuid, texture);
-			return texture;
-		}
+		static void LoadScript(Asset* asset);
+		static Texture* LoadTexture(Asset* asset);
 		static Material* LoadMaterial(Asset* asset, SerializationMode serializationMode);
 		static std::shared_ptr<Model> LoadModel(Asset* asset);
 		static Animation& LoadAnimation(Asset* asset, SerializationMode serializationMode);

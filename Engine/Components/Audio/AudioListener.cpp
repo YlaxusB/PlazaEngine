@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "AudioListener.h"
+#include <ThirdParty/AL/include/AL/al.h>
 namespace Plaza {
 	void AudioListener::UpdateListener() {
 		mPosition = Application::Get()->activeCamera->Position;

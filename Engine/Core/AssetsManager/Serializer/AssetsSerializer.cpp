@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "AssetsSerializer.h"
 #include "Engine/Core/AssetsManager/Metadata/Metadata.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	void AssetsSerializer::SerializeAssetByExtension(Asset* asset) {

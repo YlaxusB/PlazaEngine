@@ -2,6 +2,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Core/Engine.h"
 #include "Engine/Core/Physics.h"
+#include "Engine/Core/Scene.h"
 
 #include "Engine/Components/Component.h"
 #include "Engine/Components/Core/Entity.h"

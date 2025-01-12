@@ -1,6 +1,5 @@
 #pragma once
 #include "Engine/Components/Drawing/UI/TextRenderer.h"
-#include "Renderer.h"
 
 namespace Plaza {
 	class GuiRenderer {

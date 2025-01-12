@@ -1,5 +1,8 @@
 #pragma once
 #include "VulkanGuiRenderer.h"
+#include "Renderer.h"
+#include "Engine/Core/Scene.h"
+#include "VulkanShaders.h"
 
 namespace Plaza {
 	void VulkanGuiRenderer::PreparePipeline()

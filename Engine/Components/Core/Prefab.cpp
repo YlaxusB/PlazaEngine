@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Prefab.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	Prefab::Prefab(Scene* scene, Entity* rootEntity) {

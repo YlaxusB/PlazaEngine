@@ -1,8 +1,10 @@
 #pragma once
 #include <Engine/Core/Renderer/Skybox.h>
 #include "VulkanPlazaPipeline.h"
+#include "VulkanTexture.h"
 
 namespace Plaza {
+	class VulkanMesh;
 	class VulkanSkybox : public Skybox {
 	public:
 		struct PushConstants {

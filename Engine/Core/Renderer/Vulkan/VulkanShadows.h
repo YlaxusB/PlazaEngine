@@ -1,6 +1,8 @@
 #pragma once 
 #include "Engine/Core/Renderer/Shadows.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanShaders.h"
+#include "VulkanTexture.h"
+
 namespace Plaza {
 	class VulkanShadows : public Shadows {
 	public:

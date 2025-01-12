@@ -1,5 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Audio.h"
+#include "Engine/Core/Scene.h"
+
 namespace Plaza {
 	ALCdevice* Audio::sAudioDevice = nullptr;
 	int InitAL(ALCdevice*& device, char*** argv, int* argc)

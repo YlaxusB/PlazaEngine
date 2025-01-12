@@ -9,7 +9,8 @@
 #define TEXTOVERLAY_MAX_CHAR_COUNT 2048
 
 namespace Plaza {
-	class VulkanGuiRenderer : public GuiRenderer {
+	class VulkanRenderer;
+	class PLAZA_API VulkanGuiRenderer : public GuiRenderer {
 	public:
 		enum TextAlign { alignLeft, alignCenter, alignRight };
 

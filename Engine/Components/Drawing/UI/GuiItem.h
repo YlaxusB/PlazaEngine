@@ -1,5 +1,4 @@
 #pragma once
-#include "Gui.h"
 #include <vector>
 
 namespace Plaza {

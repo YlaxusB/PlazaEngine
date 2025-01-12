@@ -6,6 +6,8 @@
 #include "Engine/Core/Renderer/Vulkan/VulkanGuiRenderer.h"
 #include "Engine/Components/Drawing/UI/Gui.h"
 #include "Engine/Components/Drawing/UI/GuiButton.h"
+#include "Renderer.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	void VulkanRenderGraph::BuildDefaultRenderGraph() {

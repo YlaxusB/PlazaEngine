@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ECSManager.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	void ECS::EntitySystem::SetParent(Scene* scene, Entity* child, Entity* newParent) {

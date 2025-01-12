@@ -1,7 +1,8 @@
 #pragma once
+#include <string>
 namespace Plaza {
 	class AudioSourceLoader {
 	public:
-		static ALuint Mp3(std::string filePath);
+		static unsigned int Mp3(std::string filePath);
 	};
 }

@@ -1,6 +1,7 @@
 #include <Engine/Core/PreCompiledHeaders.h>
 #include "VulkanComputeShaders.h"
 #include "VulkanShaders.h"
+#include "Renderer.h"
 
 namespace Plaza {
 	void VulkanComputeShaders::CreateComputeDescriptorSetLayout() {

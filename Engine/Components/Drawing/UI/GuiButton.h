@@ -1,5 +1,5 @@
 #pragma once
-#include "Gui.h"
+#include "GuiItem.h"
 
 namespace Plaza {
 	class GuiButton : public GuiItem {

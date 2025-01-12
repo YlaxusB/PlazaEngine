@@ -10,6 +10,7 @@
 #include <ThirdParty/cereal/cereal/types/polymorphic.hpp>
 #include <ThirdParty/cereal/cereal/types/utility.hpp>
 #include "Engine/Components/Core/Transform.h"
+#include "Engine/Core/Scene.h"
 
 #define PL_REGISTER_COMPONENT(T) \
     CEREAL_REGISTER_TYPE(T) ;\

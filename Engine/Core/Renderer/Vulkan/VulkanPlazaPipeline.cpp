@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "VulkanPlazaPipeline.h"
+#include "Renderer.h"
 
 namespace Plaza {
 	void VulkanPlazaPipeline::InitializeShaders(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) {

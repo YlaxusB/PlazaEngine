@@ -36,7 +36,7 @@ namespace Plaza {
 		//vkCmdDrawIndexed(*((VulkanRenderer*)(Application::Get()->mRenderer))->mActiveCommandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 	}
 
-	void VulkanMesh::Draw(Shader& shader) {
+	void VulkanMesh::Draw() {
 		vkCmdBindVertexBuffers(*((VulkanRenderer*)(Application::Get()->mRenderer))->mActiveCommandBuffer, 0, 1, { &mVertexBuffer }, { 0 });
 		vkCmdBindIndexBuffer(*((VulkanRenderer*)(Application::Get()->mRenderer))->mActiveCommandBuffer, mIndexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdDrawIndexed(*((VulkanRenderer*)(Application::Get()->mRenderer))->mActiveCommandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);;

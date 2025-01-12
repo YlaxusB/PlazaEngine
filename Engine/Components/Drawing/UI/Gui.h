@@ -3,7 +3,6 @@
 #include "GuiItem.h"
 #include "GuiButton.h"
 #include "GuiRectangle.h"
-#include "ThirdParty/cereal/cereal/types/polymorphic.hpp"
 #include "Engine/Core/Engine.h"
 
 namespace Plaza {

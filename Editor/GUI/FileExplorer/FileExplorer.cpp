@@ -140,10 +140,10 @@ namespace Plaza {
 				if (ImGui::IsWindowHovered())
 					Application::Get()->hoveredMenu = "File Explorer";
 
-				ImVec4 backgroundColor = editorStyle.hierarchyBackgroundColor;
+				ImVec4 backgroundColor = sEditorStyle->hierarchyBackgroundColor;
 
 				if (ImGui::IsWindowHovered() || Editor::selectedFiles.contains(file->directory)) {
-					backgroundColor = editorStyle.treeNodeHoverBackgroundColor;
+					backgroundColor = sEditorStyle->treeNodeHoverBackgroundColor;
 				}
 
 				if (ImGui::BeginDragDropSource()) {

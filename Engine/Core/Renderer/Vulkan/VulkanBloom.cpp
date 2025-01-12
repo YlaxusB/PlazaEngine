@@ -1,5 +1,8 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "VulkanBloom.h"
+#include "Engine/Core/Scene.h"
+#include "Engine/Core/Renderer/Vulkan/Renderer.h"
+
 namespace Plaza {
 	uint8_t VulkanBloom::CalculateMipmapLevels(int m_width, int m_height, int m_max_iterations, int m_downscale_limit) {
 		uint32_t width = m_width / 2;

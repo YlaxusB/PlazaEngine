@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "GuiButton.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	void GuiButton::CallScriptsCallback() {

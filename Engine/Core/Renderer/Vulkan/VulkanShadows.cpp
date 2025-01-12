@@ -2,6 +2,7 @@
 #include "VulkanShadows.h"
 #include "VulkanPlazaInitializator.h"
 #include <bitset>
+#include "Renderer.h"
 
 namespace Plaza {
 	void VulkanShadows::CreateDescriptorPool(VkDevice device) {

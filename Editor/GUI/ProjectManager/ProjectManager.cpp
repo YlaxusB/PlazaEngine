@@ -92,7 +92,7 @@ namespace Plaza {
 			windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 			ImGui::SetNextWindowSize(ImGui::imVec2(appSizes.appSize));
 
-			ImGui::PushStyleColor(ImGuiCol_WindowBg, editorStyle.hierarchyBackgroundColor);
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, Gui::sEditorStyle->hierarchyBackgroundColor);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
 			bool showProjectManager = true;
 			if (ImGui::Begin("Main DockSpace", &showProjectManager, windowFlags)) {

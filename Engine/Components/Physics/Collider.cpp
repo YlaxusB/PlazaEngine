@@ -2,6 +2,7 @@
 #include "Collider.h"
 #include "Engine/Core/Physics.h"
 #include "ThirdParty/PhysX/physx/include/geometry/PxHeightFieldGeometry.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 

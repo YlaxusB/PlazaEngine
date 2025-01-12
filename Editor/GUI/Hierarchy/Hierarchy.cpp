@@ -75,18 +75,18 @@ namespace Plaza::Editor {
 		// Start the treenode before the component selectable, but only assign its values after creating the button
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f)); // Remove the padding of the window
-		ImGui::PushStyleColor(ImGuiCol_HeaderActive, editorStyle.treeNodeActiveBackgroundColor);
+		ImGui::PushStyleColor(ImGuiCol_HeaderActive, Gui::sEditorStyle->treeNodeActiveBackgroundColor);
 
 		bool itemIsSelectedObject = false;
 		if (selectedGameObject && entity.uuid == selectedGameObject->uuid) itemIsSelectedObject = true;
 
 		if (itemIsSelectedObject) {// Selected backgroundde
-			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, editorStyle.selectedTreeNodeBackgroundColor);
-			ImGui::PushStyleColor(ImGuiCol_Header, editorStyle.selectedTreeNodeBackgroundColor);
+			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, Gui::sEditorStyle->selectedTreeNodeBackgroundColor);
+			ImGui::PushStyleColor(ImGuiCol_Header, Gui::sEditorStyle->selectedTreeNodeBackgroundColor);
 		}
 		else {// Not selected background
-			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, editorStyle.treeNodeHoverBackgroundColor);
-			ImGui::PushStyleColor(ImGuiCol_Header, editorStyle.treeNodeBackgroundColor);
+			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, Gui::sEditorStyle->treeNodeHoverBackgroundColor);
+			ImGui::PushStyleColor(ImGuiCol_Header, Gui::sEditorStyle->treeNodeBackgroundColor);
 		}
 
 

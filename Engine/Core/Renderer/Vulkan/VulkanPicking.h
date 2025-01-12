@@ -3,6 +3,7 @@
 #include "VulkanPlazaPipeline.h"
 
 namespace Plaza {
+	class VulkanMesh;
 	class VulkanPicking : public Picking {
 	public:
 		struct PushConstants {

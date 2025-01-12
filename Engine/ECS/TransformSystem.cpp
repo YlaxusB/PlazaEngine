@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ECSManager.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	void ECS::TransformSystem::OnInstantiate(Component* componentToInstantiate, TransformComponent& transform) {

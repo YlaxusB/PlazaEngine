@@ -3,6 +3,8 @@
 #include "VulkanPlazaPipeline.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "VulkanShaders.h"
+#include "Renderer.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	void VulkanPicking::Init() {

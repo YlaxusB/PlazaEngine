@@ -3,6 +3,9 @@
 #include "Engine/Core/Physics.h"
 #include "Collider.h"
 #include "Editor/GUI/gizmo.h"
+#include "Engine/ECS/ECSManager.h"
+#include "Engine/Core/Scene.h"
+
 using namespace physx;
 namespace Plaza {
 	void RigidBody::OnInstantiate(Scene* scene, uint64_t toInstantiate) {

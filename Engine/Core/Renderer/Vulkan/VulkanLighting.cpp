@@ -4,6 +4,9 @@
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "VulkanShaders.h"
 #include "VulkanPlazaInitializator.h"
+#include "Renderer.h"
+#include "Engine/Core/Scene.h"
+#include "VulkanTexture.h"
 
 namespace Plaza {
 	void VulkanLighting::InitializeBuffers() {

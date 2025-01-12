@@ -81,7 +81,7 @@ namespace Plaza::Drawing::UI {
 		//glBindBuffer(GL_ARRAY_BUFFER, 0);
 		//glBindVertexArray(0);
 	}
-	void TextRenderer::Render(Shader& shader) {
+	void TextRenderer::Render() {
 		//float x = mPosX;
 		//float y = mPosY;
 		//glEnable(GL_CULL_FACE);

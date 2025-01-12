@@ -1,5 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "FieldManager.h"
+#include "Engine/Core/Scene.h"
+
 namespace Plaza {
 	std::any FieldManager::GetFieldValue(MonoClassField* field, MonoObject* monoObject) {
 		std::string a = mono_field_get_name(field);

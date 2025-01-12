@@ -4,6 +4,7 @@
 #include "ThirdParty/AL/include/AL/al.h"
 #include "ThirdParty/AL/include/AL/alext.h"
 #include "ThirdParty/AL/include/AL/alc.h"
+#include "Engine/Core/Scene.h"
 namespace Plaza {
 	static AudioFileFormat GetFileFormat(const std::string& filePath)
 	{

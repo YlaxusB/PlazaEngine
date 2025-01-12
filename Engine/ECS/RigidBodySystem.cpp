@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ECSManager.h"
 #include "Engine/Core/Physics.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	void ECS::RigidBodySystem::Init(Scene* scene, uint64_t uuid) {

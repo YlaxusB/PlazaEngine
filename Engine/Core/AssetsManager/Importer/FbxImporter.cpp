@@ -11,6 +11,8 @@
 #define UFBX_REAL_TYPE float
 #include "ThirdParty/ufbx/ufbx/ufbx.h"
 #include "ThirdParty/ufbx/ufbx/ufbx.c"
+#include "Engine/Core/Scene.h"
+#include "Engine/Core/Renderer/Vulkan/Renderer.h"
 
 #include <stdio.h>
 #include <d3d11.h>

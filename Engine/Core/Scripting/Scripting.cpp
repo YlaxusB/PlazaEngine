@@ -6,6 +6,7 @@
 #include "Engine/Components/Scripting/CppScriptComponent.h"
 #include "Engine/Core/Scripting/CppScriptFactory.h"
 #include "Engine/Core/Input/Input.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	void Scripting::LoadProjectCppDll(Scene* scene, const Editor::Project& project) {

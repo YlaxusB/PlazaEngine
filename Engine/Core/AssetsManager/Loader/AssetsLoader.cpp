@@ -8,6 +8,7 @@
 #include "Engine/Core/AssetsManager/Asset.h"
 #include "Engine/Components/Core/Prefab.h"
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	void AssetsLoader::LoadAsset(Asset* asset) {

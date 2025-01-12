@@ -1082,11 +1082,11 @@ namespace Plaza {
 	};
 }
 
-PL_SER_REGISTER_TYPE(VulkanRenderGraph);
-PL_SER_REGISTER_TYPE(VulkanRenderPass);
-PL_SER_REGISTER_TYPE(VulkanTextureBinding);
-PL_SER_REGISTER_TYPE(VulkanBufferBinding);
-PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaRenderGraph, VulkanRenderGraph);
-PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaRenderPass, VulkanRenderPass);
-PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaTextureBinding, VulkanTextureBinding);
-PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaBufferBinding, VulkanBufferBinding);
+//PL_SER_REGISTER_TYPE(VulkanRenderGraph);
+//PL_SER_REGISTER_TYPE(VulkanRenderPass);
+//PL_SER_REGISTER_TYPE(VulkanTextureBinding);
+//PL_SER_REGISTER_TYPE(VulkanBufferBinding);
+//PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaRenderGraph, VulkanRenderGraph);
+//PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaRenderPass, VulkanRenderPass);
+//PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaTextureBinding, VulkanTextureBinding);
+//PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaBufferBinding, VulkanBufferBinding);

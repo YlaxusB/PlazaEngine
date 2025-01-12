@@ -1,11 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "AudioSourceLoader.h"
-#include <ThirdParty/AL/include/AL/al.h>
-
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <string>
 #include <thread>
 #include <filesystem>
 
@@ -16,7 +12,6 @@
 #define MINIMP3_IMPLEMENTATION
 #include "ThirdParty/minimp3/minimp3.h"
 #include "ThirdParty/minimp3/minimp3_ex.h"
-
 
 namespace Plaza {
 	static ALenum GetOpenALFormat(uint32_t channels)
@@ -32,7 +27,7 @@ namespace Plaza {
 		return 0;
 	}
 
-	ALuint AudioSourceLoader::Mp3(std::string filePath) {
+	unsigned int AudioSourceLoader::Mp3(std::string filePath) {
 		mp3dec_file_info_t info;
 
 		mp3dec_t s_Mp3d;

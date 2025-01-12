@@ -87,13 +87,13 @@ namespace Plaza {
 		}
 
 		void Gui::Init(GLFWwindow* window) {
-			EditorStyle* editorStyle = new EditorStyle();
+			sEditorStyle = new EditorStyle();
 
 			mMainContext = ImGui::CreateContext();
 			mMainProgressBarContext = ImGui::CreateContext();
 
 			ImGui::SetCurrentContext(mMainContext);
-			CommonGuiInit(window, editorStyle, true);
+			CommonGuiInit(window, sEditorStyle, true);
 
 			Icon::Init();
 			FpsCounter* fpsCounter = new FpsCounter();
@@ -102,7 +102,7 @@ namespace Plaza {
 			sEditorTools.emplace(EditorTool::ToolType::TERRAIN_EDITOR, std::make_unique<TerrainEditorTool>());
 
 			ImGui::SetCurrentContext(mMainProgressBarContext);
-			CommonGuiInit(window, editorStyle, false);
+			CommonGuiInit(window, sEditorStyle, false);
 			mMainProgressBarContext->IO = mMainContext->IO;
 			mMainProgressBarContext->PlatformIO = mMainContext->PlatformIO;
 

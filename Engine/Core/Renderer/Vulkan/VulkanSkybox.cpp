@@ -3,6 +3,7 @@
 #include "VulkanPlazaPipeline.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 #include "VulkanPlazaInitializator.h"
+#include "Renderer.h"
 
 namespace Plaza {
 	void VulkanSkybox::InitializeImageSampler() {

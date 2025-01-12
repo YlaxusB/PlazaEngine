@@ -8,6 +8,7 @@
 #include "Editor/GUI/Utils/Filesystem.h"
 #include "Engine/Components/Core/Prefab.h"
 #include "Engine/Core/Renderer/Model.h"
+#include "Engine/Core/Scene.h"
 
 struct Vec3Hash {
 	std::size_t operator()(const glm::vec3& v) const {

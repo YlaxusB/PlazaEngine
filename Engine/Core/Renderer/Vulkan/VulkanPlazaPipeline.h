@@ -34,5 +34,6 @@ namespace Plaza {
 	};
 }
 
+PL_SER_REGISTER_TYPE(PlazaPipeline);
 PL_SER_REGISTER_TYPE(VulkanPlazaPipeline);
 PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaPipeline, VulkanPlazaPipeline);

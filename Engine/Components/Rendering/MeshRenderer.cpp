@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/Components/Rendering/MeshRenderer.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	void MeshRenderer::OnInstantiate(Scene* scene, uint64_t toInstantiate) {

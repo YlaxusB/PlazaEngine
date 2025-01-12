@@ -1,6 +1,8 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Physics.h"
 #include <ThirdParty/PhysX/physx/include/cooking/Pxc.h>
+#include "Engine/Core/Scene.h"
+
 using namespace physx;
 namespace Plaza {
 	class CollisionCallback : public physx::PxSimulationEventCallback {

@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "AnimationComponent.h"
 #include "ThirdParty/ufbx/ufbx/ufbx.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	static inline glm::vec3 ConvertUfbxVec3(ufbx_vec3 vec) {

@@ -9,6 +9,7 @@
 #include "Engine/Components/Rendering/Light.h"
 #include "Engine/Components/Rendering/AnimationComponent.h"
 #include "Engine/Components/Drawing/UI/Gui.h"
+#include "Engine/Core/Scene.h"
 
 char* ConvertConstCharToChar(const char* constCharString) {
 	// Calculate the length of the input string

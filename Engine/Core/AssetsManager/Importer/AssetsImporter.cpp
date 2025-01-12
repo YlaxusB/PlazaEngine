@@ -7,6 +7,7 @@
 #include "Engine/Core/AssetsManager/Metadata/Metadata.h"
 #include "Engine/Components/Core/Prefab.h"
 #include "Engine/Core/Renderer/Model.h"
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
 	std::string AssetsImporter::ImportAsset(std::string path, uint64_t uuid, AssetsImporterSettings settings) {

@@ -19,6 +19,8 @@ namespace Plaza {
 		class RenderGraphEditor;
 		class Gui {
 		public:
+			static inline EditorStyle* sEditorStyle;
+
 			class FileExplorer;
 			class MainMenuBar;
 			class Hierarchy;

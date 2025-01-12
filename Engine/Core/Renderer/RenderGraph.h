@@ -3,6 +3,7 @@
 #include "Texture.h"
 #include "Buffer.h"
 #include "Engine/Core/Engine.h"
+#include "PlazaPipeline.h"
 
 namespace Plaza {
 	class PLAZA_API PlazaShadersBinding {

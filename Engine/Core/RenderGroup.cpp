@@ -1,5 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "RenderGroup.h"
+#include "Engine/Core/Scene.h"
+#include "Engine/Core/Renderer/Vulkan/Renderer.h"
 
 namespace Plaza {
 	void RenderGroup::InitializeInstanceBuffer() {

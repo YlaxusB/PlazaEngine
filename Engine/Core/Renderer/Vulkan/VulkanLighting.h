@@ -2,6 +2,7 @@
 #include <Engine/Core/Renderer/Lighting.h>
 #include "VulkanPlazaPipeline.h"
 #include "VulkanComputeShaders.h"
+#include "VulkanTexture.h"
 
 namespace Plaza {
 	class VulkanLighting : public Lighting {

@@ -39,6 +39,8 @@
 #include "VulkanPlazaInitializator.h"
 #include "Editor/GUI/guiMain.h"
 #include "Engine/Core/Time.h"
+#include "Engine/Core/Scene.h"
+#include "Editor/GUI/Console/Console.h"
 
 namespace Plaza {
 #pragma region Vulkan Setup

@@ -1,6 +1,7 @@
 #pragma once
 #include "ThirdParty/include/VulkanMemoryAllocator/vk_mem_alloc.h"
 #include "Engine/Core/Engine.h"
+#include "Engine/Core/Renderer/Buffer.h"
 
 namespace Plaza {
 	class PLAZA_API PlVkBuffer : public PlBuffer {

@@ -42,7 +42,7 @@ namespace Plaza {
 
 		uint32_t mCurrentFrame = 0;
 
-		float exposure = 0.5f;//4.5f;
+		float exposure = 1.0f;//4.5f;
 		float gamma = 2.2f;//2.0f;
 		glm::vec3 sunColor = glm::vec3(1.0f);
 		float mSkyboxIntensity = 1.0f;

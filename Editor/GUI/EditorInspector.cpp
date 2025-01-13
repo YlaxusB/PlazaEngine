@@ -54,6 +54,12 @@ namespace Plaza::Editor {
                        ImGui::EndTable();
                }
 
+               /* Skybox Render Graph */
+               if (Utils::ComponentInspectorHeader(nullptr, "Skbyox RenderGraph", NULL)) {
+                   if (ImGui::Button("Build and Run"))
+                       VulkanRenderer::GetRenderer()->mRenderGraph->RunSkyboxRenderGraph(VulkanRenderer::GetRenderer()->mRenderGraph->BuildSkyboxRenderGraph());
+               }
+
                /* Colors */
                if (Utils::ComponentInspectorHeader(nullptr, "Colors", NULL)) {
                     int index = 0;

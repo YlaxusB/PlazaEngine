@@ -1,6 +1,5 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "AssetsImporter.h"
-#include "ThirdParty/tinyobjloader/tiny_obj_loader.h"
 #include "ThirdParty/glm/gtx/hash.hpp"
 #include "Engine/Core/Renderer/Mesh.h"
 //#include "ThirdParty/OpenFBX/src/ofbx.h"

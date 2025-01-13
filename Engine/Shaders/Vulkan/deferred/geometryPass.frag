@@ -76,6 +76,7 @@ void main() {
     if(material.normalIndex > -1) {
         N = -GetNormalFromMap();
     }
+
     vec3 V =  normalize(-worldPos.xyz);
     float NdotV = dot(N, V);
     if (NdotV < 0.0) {

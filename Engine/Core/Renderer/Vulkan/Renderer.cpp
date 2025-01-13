@@ -30,9 +30,6 @@
 #include "ThirdParty/imgui/imgui.h"
 #include "ThirdParty/imgui/imgui_impl_vulkan.h"
 
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tiny_obj_loader.h>
-
 #include <ThirdParty/glm/glm.hpp>
 #include <ThirdParty/glm/gtc/matrix_transform.hpp>
 

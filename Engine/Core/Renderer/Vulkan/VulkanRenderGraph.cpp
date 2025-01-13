@@ -29,10 +29,10 @@ namespace Plaza {
 		this->AddTexture(make_shared<VulkanTexture>(VulkanRenderer::GetRenderer()->mMaxBindlessTextures, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(1, 1, 1), 1, 0, "TexturesBuffer"));
 
 		this->AddTexture(make_shared<VulkanTexture>(1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R8_UNORM, glm::vec3(STB_FONT_consolas_24_latin1_BITMAP_WIDTH, STB_FONT_consolas_24_latin1_BITMAP_HEIGHT, 1), 1, 1, "FontTexture"));
-		this->AddTexture(make_shared<VulkanTexture>(1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution, skyboxResolution, 1), 1, 1, "EquirectangularTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution * 2, skyboxResolution * 2, 1), 1, 1, "EquirectangularTexture"));
 		this->AddTexture(make_shared<VulkanTexture>(1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution, skyboxResolution, 1), 1, 6, "CubeMapTexture"));
 		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R16G16_SFLOAT, glm::vec3(brdfSize, brdfSize, 1), 1, 1, "SamplerBRDFLUT"));
-		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution, skyboxResolution, 1), 0, 6, "PreFilterMap"));
+		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(skyboxResolution * 2, skyboxResolution * 2, 1), 0, 6, "PreFilterMap"));
 		this->AddTexture(make_shared<VulkanTexture>(1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(irradianceSize, irradianceSize, 1), 1, 6, "IrradianceMap"));
 
 		this->AddTexture(make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D_ARRAY, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(shadowMapResolution, shadowMapResolution, 1), 1, VulkanRenderer::GetRenderer()->mShadows->mCascadeCount, "ShadowsDepthMap"));
@@ -161,6 +161,7 @@ namespace Plaza {
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 2, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, this->GetSharedBuffer("RenderGroupOffsetsBuffer")))
 			->AddInputResource(std::make_shared<VulkanBufferBinding>(1, 3, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, this->GetSharedBuffer("RenderGroupMaterialsOffsetsBuffer")))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 7, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("PreFilterMap")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 8, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("EquirectangularTexture")))
 			//->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("GPosition")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("GNormal")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 1, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("GDiffuse")))
@@ -620,7 +621,7 @@ layout(push_constant) uniform PushConstants {
 			{ pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC)) }
 		);
 
-		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("EquirectangularToCubeMapPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_CUBE, glm::vec2(faceSize, faceSize), true))
+		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("EquirectangularToCubeMapPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_CUBE, glm::vec2(faceSize * 2, faceSize * 2), true))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("EquirectangularTexture")))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("CubeMapTexture")))
 			->AddPipeline(pipelineCreateInfo);

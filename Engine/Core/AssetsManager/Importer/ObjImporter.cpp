@@ -1,4 +1,5 @@
 #include "AssetsImporter.h"
+#define TINYOBJLOADER_IMPLEMENTATION
 #include "ThirdParty/tinyobjloader/tiny_obj_loader.h"
 #include "ThirdParty/glm/gtx/hash.hpp"
 #include "Engine/Core/Renderer/Mesh.h"
@@ -18,7 +19,7 @@ struct Vec3Hash {
 
 
 namespace Plaza {
-	Material* AssetsImporter::ObjModelMaterialLoader(const tinyobj::material_t* tinyobjMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures) {
+	Material* ObjModelMaterialLoader(const tinyobj::material_t* tinyobjMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures) {
 		Material* material = new Material();
 		material->mAssetName = tinyobjMaterial->name;
 
@@ -67,8 +68,7 @@ namespace Plaza {
 		return material;
 	}
 
-	std::shared_ptr<Scene> AssetsImporter::ImportOBJ(AssetImported asset, std::filesystem::path outPath, Model& model, AssetsImporterSettings settings) {
-		// FIX: Remake model importers
+	std::shared_ptr<Scene> AssetsImporter::ImportOBJ(AssetImported asset, std::filesystem::path outPath, Model& model, const AssetsImporterSettings& settings) {
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
@@ -110,7 +110,7 @@ namespace Plaza {
 
 			std::size_t meshHash = 0;
 
-			std::unordered_map<glm::vec3, uint32_t> uniqueVertices = std::unordered_map<glm::vec3, uint32_t>();
+			std::unordered_map<int, uint32_t> uniqueVertices = std::unordered_map<int, uint32_t>();
 			for (size_t v = 0; v < shape.mesh.indices.size(); ++v) {
 				tinyobj::index_t index = shape.mesh.indices[v];
 				glm::vec3 vertex = glm::vec3(
@@ -120,9 +120,9 @@ namespace Plaza {
 				) * mModelImporterScale;
 				meshHash = CombineHashes(meshHash, std::hash<glm::vec3>()(vertex));
 
-				bool isVertexUnique = uniqueVertices.count(vertex) == 0;
+				bool isVertexUnique = uniqueVertices.count(index.vertex_index) == 0;
 				if (isVertexUnique) {
-					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+					uniqueVertices[index.vertex_index] = static_cast<uint32_t>(vertices.size());
 
 					if (attrib.vertices.size() > 0) {
 						vertices.push_back(vertex);
@@ -141,8 +141,8 @@ namespace Plaza {
 						));
 					}
 				}
-				indices.push_back(uniqueVertices[vertex]);
-				meshHash = CombineHashes(meshHash, std::hash<unsigned int>()(uniqueVertices[vertex]));
+				indices.push_back(uniqueVertices[index.vertex_index]);
+				meshHash = CombineHashes(meshHash, std::hash<unsigned int>()(uniqueVertices[index.vertex_index]));
 			}
 			if (vertices.size() > 0) {
 				meshHash = CombineHashes(meshHash, std::hash<size_t>()(vertices.size()));
@@ -154,7 +154,7 @@ namespace Plaza {
 					tinyobj::material_t tinyobjMaterial = materials.at(shape.mesh.material_ids[0]);
 					std::string diffusePath = parentPath + "\\" + tinyobjMaterial.diffuse_texname;
 
-					material = AssetsImporter::ObjModelMaterialLoader(&tinyobjMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+					material = ObjModelMaterialLoader(&tinyobjMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
 
 					std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->mAssetName) + Standards::materialExtName;
 
@@ -173,7 +173,13 @@ namespace Plaza {
 
 				Mesh* mesh = nullptr;
 				if (uniqueMeshes.find(meshHash) == uniqueMeshes.end()) {
-					mesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, true);
+					mesh = new Mesh();//Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, true);
+					mesh->vertices = vertices;
+					mesh->normals = normals;
+					mesh->uvs = uvs;
+					mesh->tangent = tangents;
+					mesh->indices = indices;
+					mesh->materialsIndices = materials;
 					uniqueMeshes.emplace(meshHash, std::make_shared<Mesh>(*mesh));
 				}
 				else {

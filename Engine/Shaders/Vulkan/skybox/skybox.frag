@@ -36,7 +36,7 @@ vec3 inverseTonemapApprox(vec3 color) {
 void main() {
     //vec3 color = vec3(pow(texture(irradianceMap, fragTexCoord).xyz, vec3(1.0f / pushConstants.gamma)));
 	vec3 color =  texture(prefilterMap, fragTexCoord.xyz).xyz;
-	color = inverseTonemapApprox(color);
+	color = (color);
 
     gDiffuse = vec4(color, 1.0f);
 }

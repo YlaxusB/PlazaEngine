@@ -175,8 +175,6 @@ target_include_directories(PlazaEngineCore PUBLIC
     #$<INSTALL_INTERFACE:include>
 )
 
-target_precompile_headers(PlazaEngineCore PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
-
 add_dependencies(PlazaEngineCore PhysX)
 #target_include_directories(PlazaEngineCore PUBLIC "ThirdParty/imgui/")
 target_link_libraries(PlazaEngineCore PUBLIC  glfw OpenAL TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib"  DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan Boost::pfr)
@@ -230,8 +228,9 @@ target_compile_definitions(PlazaShippingGame PUBLIC  PX_PHYSX_STATIC_LIB)
 target_compile_options(PlazaShippingGame PUBLIC  /WX-)
 #target_compile_definitions(PlazaShippingGame PRIVATE ENGINE_EXPORTS)
 
-#target_precompile_headers(PlazaEngine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
-#target_precompile_headers(PlazaShippingGame PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
+target_precompile_headers(PlazaEngine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
+target_precompile_headers(PlazaEngineCore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
+target_precompile_headers(PlazaShippingGame PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
 
 if(MSVC)
   target_compile_options(PlazaEngine PUBLIC "/ZI")

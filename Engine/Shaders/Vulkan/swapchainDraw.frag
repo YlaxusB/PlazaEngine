@@ -15,6 +15,11 @@ vec3 gammaCorrect(vec3 color)
     return pow(color, vec3(1.0 / pushConstants.gamma));
 }
 
+vec3 filmicTonemap(vec3 color) {
+    color = max(vec3(0.0), color - vec3(0.004)); // Linear section near black.
+    return (color * (6.2 * color + 0.5)) / (color * (6.2 * color + 1.7) + 0.06);
+}
+
 // sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
 mat3 ACESInputMat =
 {
@@ -60,16 +65,10 @@ vec3 acesFilm(const vec3 x) {
     return clamp((x * (a * x + b)) / (x * (c * x + d ) + e), 0.0, 1.0);
 }
 
-vec3 filmicTonemap(vec3 color) {
-    color = max(vec3(0.0), color - vec3(0.004)); // Linear section near black.
-    return (color * (6.2 * color + 0.5)) / (color * (6.2 * color + 1.7) + 0.06);
-}
-
-
 void main() 
 {
     vec4 x = texture(samplerTexture, inUV);
-    vec3 color = x.rgb;
+    vec3 color = pushConstants.exposure * x.rgb;
     color = filmicTonemap(color);
     color = gammaCorrect(color);
     color = clamp(color, 0.0, 1.0);

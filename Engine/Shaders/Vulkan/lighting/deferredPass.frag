@@ -390,5 +390,5 @@ void main()
 //    color = (color + heatmap) * 0.5f;
 //#endif
 
-    FragColor = vec4(ubo.exposure * color, 1.0f);
+    FragColor = vec4(color, 1.0f);
 }

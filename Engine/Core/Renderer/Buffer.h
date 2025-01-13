@@ -14,7 +14,7 @@ namespace Plaza {
 		uint64_t mMaxItems = 0;
 		uint64_t mStride = 0;
 		uint8_t mBufferCount = 0;
-		uint64_t mCurrentItemCount = 0;
+		std::atomic<uint64_t> mCurrentItemCount = 0;
 		uint64_t mCurrentBufferSize = 0;
 		PlBufferUsage mBufferUsage{};
 		PlMemoryUsage mMemoryUsage{};
@@ -30,7 +30,9 @@ namespace Plaza {
 
 		template <class Archive>
 		void serialize(Archive& archive) {
-			archive(PL_SER(mName), PL_SER(mType), PL_SER(mMaxItems), PL_SER(mStride), PL_SER(mBufferCount), PL_SER(mCurrentItemCount), PL_SER(mCurrentBufferSize), PL_SER(mBufferUsage), PL_SER(mMemoryUsage), PL_SER(mMemoryProperties));
+			uint64_t mCurrentItemCountSerialize = mCurrentItemCount;
+			archive(PL_SER(mName), PL_SER(mType), PL_SER(mMaxItems), PL_SER(mStride), PL_SER(mBufferCount), PL_SER(mCurrentItemCountSerialize), PL_SER(mCurrentBufferSize), PL_SER(mBufferUsage), PL_SER(mMemoryUsage), PL_SER(mMemoryProperties));
+			mCurrentItemCount = mCurrentItemCountSerialize;
 		}
 	private:
 		virtual void UpdateDataHelper(unsigned int index, const void* newData, size_t size) = 0;

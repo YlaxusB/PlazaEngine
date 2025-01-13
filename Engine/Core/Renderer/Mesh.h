@@ -23,12 +23,36 @@ namespace Plaza {
 		glm::vec2 texCoords;
 		glm::vec3 tangent;
 		unsigned int materialIndex = -1;
-		std::array<int, MAX_BONE_INFLUENCE> boneIds;
-		std::array<float, MAX_BONE_INFLUENCE> weights;
 
 		~Vertex() = default;
 
 		Vertex(const glm::vec3& pos)
+			: position(pos), normal(0.0f), texCoords(0.0f), tangent(0.0f) {
+
+		}
+
+		Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const unsigned int materialIndex = 0)
+			: position(pos), normal(norm), texCoords(tex), tangent(tan), materialIndex(materialIndex) {
+		}
+
+		Vertex()
+			: position(0.0f), normal(0.0f), texCoords(0.0f), tangent(0.0f) {
+
+		}
+	};
+
+	struct SkinnedVertex {
+		glm::vec3 position;
+		glm::vec3 normal;
+		glm::vec2 texCoords;
+		glm::vec3 tangent;
+		unsigned int materialIndex = -1;
+		std::array<int, MAX_BONE_INFLUENCE> boneIds;
+		std::array<float, MAX_BONE_INFLUENCE> weights;
+
+		~SkinnedVertex() = default;
+
+		SkinnedVertex(const glm::vec3& pos)
 			: position(pos), normal(0.0f), texCoords(0.0f), tangent(0.0f) {
 			for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
 				boneIds[i] = -1;
@@ -36,11 +60,11 @@ namespace Plaza {
 			}
 		}
 
-		Vertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const unsigned int materialIndex = 0, const std::array<int, MAX_BONE_INFLUENCE> boneIds = std::array<int, MAX_BONE_INFLUENCE>(), const std::array<float, MAX_BONE_INFLUENCE> weights = std::array<float, MAX_BONE_INFLUENCE>())
+		SkinnedVertex(const glm::vec3& pos, const glm::vec3& norm, const glm::vec2& tex, const glm::vec3& tan, const unsigned int materialIndex = 0, const std::array<int, MAX_BONE_INFLUENCE> boneIds = std::array<int, MAX_BONE_INFLUENCE>(), const std::array<float, MAX_BONE_INFLUENCE> weights = std::array<float, MAX_BONE_INFLUENCE>())
 			: position(pos), normal(norm), texCoords(tex), tangent(tan), materialIndex(materialIndex), boneIds(boneIds), weights(weights) {
 		}
 
-		Vertex()
+		SkinnedVertex()
 			: position(0.0f), normal(0.0f), texCoords(0.0f), tangent(0.0f) {
 			for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
 				boneIds[i] = -1;
@@ -48,6 +72,7 @@ namespace Plaza {
 			}
 		}
 	};
+	
 
 	struct PLAZA_API Bone {
 		uint64_t mId = -1;

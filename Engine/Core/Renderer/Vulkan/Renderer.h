@@ -206,6 +206,7 @@ namespace Plaza {
 		VkBuffer mMainIndirectCommandsBuffer = VK_NULL_HANDLE;
 		VkDeviceMemory mMainIndirectCommandsBufferMemory = VK_NULL_HANDLE;
 		PlVkBuffer* mMainVertexBuffer = new PlVkBuffer();
+		PlVkBuffer* mSkinnedVertexBuffer = new PlVkBuffer();
 		PlVkBuffer* mMainIndexBuffer = new PlVkBuffer();
 
 		std::atomic<uint64_t> mBufferTotalVertices = 0;
@@ -466,21 +467,11 @@ namespace Plaza {
 			attributeDescriptions[7].format = VK_FORMAT_R32G32B32A32_SFLOAT;
 			attributeDescriptions[7].offset = sizeof(float) * 12;
 
+			// Material
 			attributeDescriptions[8].binding = 0;
 			attributeDescriptions[8].location = 8;
-			attributeDescriptions[8].format = VK_FORMAT_R32G32B32A32_SINT;
-			attributeDescriptions[8].offset = offsetof(Vertex, boneIds);
-
-			attributeDescriptions[9].binding = 0;
-			attributeDescriptions[9].location = 9;
-			attributeDescriptions[9].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-			attributeDescriptions[9].offset = offsetof(Vertex, weights);
-
-			// Material
-			attributeDescriptions[10].binding = 0;
-			attributeDescriptions[10].location = 10;
-			attributeDescriptions[10].format = VK_FORMAT_R32_UINT;
-			attributeDescriptions[10].offset = offsetof(Vertex, materialIndex);
+			attributeDescriptions[8].format = VK_FORMAT_R32_UINT;
+			attributeDescriptions[8].offset = offsetof(Vertex, materialIndex);
 			return attributeDescriptions;
 		}
 

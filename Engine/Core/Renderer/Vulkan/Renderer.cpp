@@ -898,164 +898,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::CreateGraphicsPipeline() {
-		auto vertShaderCode = readFile(Application::Get()->exeDirectory + "\\CompiledShaders\\vulkanTriangle.vert.spv");
-		auto fragShaderCode = readFile(Application::Get()->exeDirectory + "\\CompiledShaders\\vulkanTriangle.frag.spv");
 
-		VkShaderModule vertShaderModule = createShaderModule(vertShaderCode, mDevice);
-		VkShaderModule fragShaderModule = createShaderModule(fragShaderCode, mDevice);
-
-		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-		vertShaderStageInfo.module = vertShaderModule;
-		vertShaderStageInfo.pName = "main";
-
-		VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		fragShaderStageInfo.module = fragShaderModule;
-		fragShaderStageInfo.pName = "main";
-
-		VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo,
-			fragShaderStageInfo };
-
-		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-
-		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
-		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-		inputAssembly.primitiveRestartEnable = VK_FALSE;
-
-		VkViewport viewport{};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = (float)mSwapChainExtent.width;
-		viewport.height = (float)mSwapChainExtent.height;
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-
-		VkRect2D scissor{};
-		scissor.offset = { 0, 0 };
-		scissor.extent = mSwapChainExtent;
-
-		VkPipelineViewportStateCreateInfo viewportState{};
-		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-		viewportState.viewportCount = 1;
-		viewportState.scissorCount = 1;
-
-		VkPipelineRasterizationStateCreateInfo rasterizer{};
-		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-		rasterizer.depthClampEnable = VK_FALSE;
-
-		rasterizer.rasterizerDiscardEnable = VK_FALSE;
-		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-		rasterizer.lineWidth = 1.0f;
-		rasterizer.depthBiasEnable = VK_FALSE;
-		rasterizer.depthBiasConstantFactor = 0.0f; // Optional
-		rasterizer.depthBiasClamp = 0.0f; // Optional
-		rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
-		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-
-		VkPipelineMultisampleStateCreateInfo multisampling{};
-		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-		multisampling.sampleShadingEnable = VK_FALSE;
-		multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-
-		VkPipelineDepthStencilStateCreateInfo depthStencil{};
-		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencil.depthTestEnable = VK_TRUE;
-		depthStencil.depthWriteEnable = VK_TRUE;
-		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
-		depthStencil.depthBoundsTestEnable = VK_FALSE;
-		depthStencil.stencilTestEnable = VK_FALSE;
-
-		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		colorBlendAttachment.blendEnable = VK_TRUE;
-		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-		colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-		colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-		colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-		colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-
-		VkPipelineColorBlendStateCreateInfo colorBlending{};
-		colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-		colorBlending.logicOpEnable = VK_FALSE;
-		colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optional
-		colorBlending.attachmentCount = 1;
-		colorBlending.pAttachments = &colorBlendAttachment;
-		colorBlending.blendConstants[0] = 0.0f; // Optional
-		colorBlending.blendConstants[1] = 0.0f; // Optional
-		colorBlending.blendConstants[2] = 0.0f; // Optional
-		colorBlending.blendConstants[3] = 0.0f; // Optional
-
-		std::vector<VkDynamicState> dynamicStates = { VK_DYNAMIC_STATE_VIEWPORT,
-			VK_DYNAMIC_STATE_SCISSOR };
-
-		VkPipelineDynamicStateCreateInfo dynamicState{};
-		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-		dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-		dynamicState.pDynamicStates = dynamicStates.data();
-
-		VkPushConstantRange pushConstantRange = {};
-		pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT; // Specify the shader stage(s) using the
-		// push constant
-		pushConstantRange.offset = 0; // Offset of the push constant block
-		pushConstantRange.size = sizeof(PushConstants); // Size of the push constant block
-
-		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 1;
-		pipelineLayoutInfo.pSetLayouts = &mDescriptorSetLayout;
-		pipelineLayoutInfo.pushConstantRangeCount = 1;
-		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-
-		if (vkCreatePipelineLayout(
-			mDevice, &pipelineLayoutInfo, nullptr, &mPipelineLayout)
-			!= VK_SUCCESS) {
-			throw std::runtime_error("failed to create pipeline layout!");
-		}
-
-		auto bindingDescription = VertexGetBindingDescription();
-		auto attributeDescriptions = VertexGetAttributeDescriptions();
-
-		vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescription.size());
-		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-		vertexInputInfo.pVertexBindingDescriptions = bindingDescription.data();
-		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-
-		VkGraphicsPipelineCreateInfo pipelineInfo{};
-		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		pipelineInfo.stageCount = 2;
-		pipelineInfo.pStages = shaderStages;
-		pipelineInfo.pVertexInputState = &vertexInputInfo;
-		pipelineInfo.pInputAssemblyState = &inputAssembly;
-		pipelineInfo.pViewportState = &viewportState;
-		pipelineInfo.pRasterizationState = &rasterizer;
-		pipelineInfo.pMultisampleState = &multisampling;
-		pipelineInfo.pColorBlendState = &colorBlending;
-		pipelineInfo.pDynamicState = &dynamicState;
-		pipelineInfo.layout = mPipelineLayout;
-		pipelineInfo.renderPass = this->mDeferredRenderPass;
-		pipelineInfo.subpass = 0;
-		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-		pipelineInfo.pDepthStencilState = &depthStencil;
-
-		if (vkCreateGraphicsPipelines(mDevice,
-			VK_NULL_HANDLE,
-			1,
-			&pipelineInfo,
-			nullptr,
-			&mGraphicsPipeline)
-			!= VK_SUCCESS) {
-			throw std::runtime_error("failed to create graphics pipeline!");
-		}
-
-		vkDestroyShaderModule(mDevice, fragShaderModule, nullptr);
-		vkDestroyShaderModule(mDevice, vertShaderModule, nullptr);
 	}
 
 	void VulkanRenderer::CreateFramebuffers() {
@@ -2365,19 +2208,10 @@ namespace Plaza {
 		vmaCreateAllocator(&allocatorInfo, &mVmaAllocator);
 
 		/* Initialize buffers */
-		mMainVertexBuffer->CreateBuffer(1024 * 1024 * 16 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);		 		//mMainVertexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
-		mMainIndexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);	 		//mMainIndexBuffer->CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
+		mMainVertexBuffer->CreateBuffer(1024 * 1024 * 24 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
+		mSkinnedVertexBuffer->CreateBuffer(1024 * 128 * sizeof(SkinnedVertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
+		mMainIndexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
 
-		//CreateBuffer(1024 * 1024 * 16 * sizeof(Vertex),
-		//	VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		//	VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		//	mMainVertexBuffer,
-		//	mMainVertexBufferMemory);
-		//CreateBuffer(1024 * 1024 * 128 * sizeof(unsigned int),
-		//	VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-		//	VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		//	mMainIndexBuffer,
-		//	mMainIndexBufferMemory);
 		mIndirectBuffers.resize(mMaxFramesInFlight);
 		mIndirectBufferMemories.resize(mMaxFramesInFlight);
 		mMainInstanceMatrixBuffers.resize(mMaxFramesInFlight);
@@ -2408,27 +2242,6 @@ namespace Plaza {
 				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 				mMainInstanceMaterialBuffers[i],
 				mMainInstanceMaterialBufferMemories[i]);
-			//CreateBuffer(1024 * 16 * sizeof(MaterialData),
-			//	VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-			//	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			//	mMaterialBuffers[i],
-			//	mMaterialBufferMemories[i]);
-
-			//CreateBuffer(1024 * 256 * (64 * sizeof(unsigned int)),
-			//	VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-			//	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			//	mMainInstanceMaterialOffsetsBuffers[i],
-			//	mMainInstanceMaterialOffsetsBufferMemories[i]);
-			//CreateBuffer(1024 * 256 * (64 * sizeof(unsigned int)),
-			//	VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-			//	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			//	mMainInstanceRenderGroupOffsetsBuffers[i],
-			//	mMainInstanceRenderGroupOffsetsBufferMemories[i]);
-			//CreateBuffer(1024 * 16 * sizeof(glm::mat4),
-			//	VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-			//	VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			//	mBoneMatricesBuffers[i],
-			//	mBoneMatricesBufferMemories[i]);
 		}
 
 
@@ -3014,49 +2827,56 @@ namespace Plaza {
 			usingNormal,
 			bonesHolder);
 
+		bool isSkinned = bonesHolder.size() > 0 && uniqueBonesInfo.size() > 0;
+		PlVkBuffer* vertexBuffer = isSkinned ? mSkinnedVertexBuffer : mMainVertexBuffer;
+
 		vulkMesh->verticesCount = vertices.size();
 		vulkMesh->verticesOffset = this->mBufferTotalVertices;
 		vulkMesh->indicesCount = indices.size();
 		vulkMesh->indicesOffset = this->mBufferTotalIndices;
-		uint64_t oldTotalVertices = mBufferTotalVertices;
+		uint64_t oldTotalVertices = this->mBufferTotalVertices;
 		uint64_t oldTotalIndices = mBufferTotalIndices;
-		mBufferTotalVertices += vertices.size();
+		this->mBufferTotalVertices += vertices.size();
 		mBufferTotalIndices += indices.size();
 
 		//static std::vector<std::future<void>> futures;
 		//Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([&, vulkMesh, indices, vertices, normals, uvs, tangent, materialsIndices, usingNormal, bonesHolder, uniqueBonesInfo, oldTotalVertices, oldTotalIndices]() {
 		//futures.push_back(std::async(std::launch::async, [&, vulkMesh, indices, vertices, normals, uvs, tangent, materialsIndices, usingNormal, bonesHolder, uniqueBonesInfo, oldTotalVertices, oldTotalIndices]() {
 			//vulkMesh->tangent.resize(vertices.size() - vulkMesh->tangent.size());
-			for (unsigned int i = 0; i < vertices.size(); ++i) {
-				vulkMesh->tangent.push_back(glm::vec3(0.0f));
-			}
-			vulkMesh->CalculateTangent();
+		vulkMesh->tangent.resize(vertices.size(), glm::vec3(0.0f));
 
-			vector<Vertex> convertedVertices;
+		vulkMesh->CalculateTangent();
+
+		vector<Vertex> convertedVertices;
+		vector<SkinnedVertex> convertedSkinnedVertices;
+		if (isSkinned)
+			convertedSkinnedVertices.reserve(vertices.size());
+		else
 			convertedVertices.reserve(vertices.size());
 
-			for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
-				uint64_t siz = mBones.size();
-				uint64_t siz1 = mBones.size() + 1;
-				//			uniqueBonesInfo[i].mChildren.clear();
+		for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
+			uint64_t siz = mBones.size();
+			uint64_t siz1 = mBones.size() + 1;
+			//			uniqueBonesInfo[i].mChildren.clear();
 
-				if (this->mBones.find(uniqueBonesInfo[i].mId) == this->mBones.end() && uniqueBonesInfo[i].mName != "bone") {
-					this->mBones.emplace(uniqueBonesInfo[i].mId, Bone{ uniqueBonesInfo[i].mId, uniqueBonesInfo[i].mParentId, mBones.size(), uniqueBonesInfo[i].mName, uniqueBonesInfo[i].mOffset });
-				}
+			if (this->mBones.find(uniqueBonesInfo[i].mId) == this->mBones.end() && uniqueBonesInfo[i].mName != "bone") {
+				this->mBones.emplace(uniqueBonesInfo[i].mId, Bone{ uniqueBonesInfo[i].mId, uniqueBonesInfo[i].mParentId, mBones.size(), uniqueBonesInfo[i].mName, uniqueBonesInfo[i].mOffset });
 			}
+		}
 
-			//for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
-			//	uint64_t siz = mBones.size();
-			//	uint64_t siz1 = mBones.size() + 1;
-			//	if (uniqueBonesInfo[i].mParentId != 0 && this->mBones.find(uniqueBonesInfo[i].mParentId) != this->mBones.end()) {
-			//		this->mBones.at(uniqueBonesInfo[i].mParentId).mChildren.push_back(uniqueBonesInfo[i].mId);
-			//	}
-			//}
+		//for (unsigned int i = 0; i < uniqueBonesInfo.size(); i++) {
+		//	uint64_t siz = mBones.size();
+		//	uint64_t siz1 = mBones.size() + 1;
+		//	if (uniqueBonesInfo[i].mParentId != 0 && this->mBones.find(uniqueBonesInfo[i].mParentId) != this->mBones.end()) {
+		//		this->mBones.at(uniqueBonesInfo[i].mParentId).mChildren.push_back(uniqueBonesInfo[i].mId);
+		//	}
+		//}
 
-			for (unsigned int i = 0; i < vertices.size(); i++) {
-				vulkMesh->CalculateVertexInBoundingBox(vertices[i]);
+		for (unsigned int i = 0; i < vertices.size(); i++) {
+			vulkMesh->CalculateVertexInBoundingBox(vertices[i]);
 
-				Vertex vertex{
+			if (isSkinned) {
+				SkinnedVertex vertex{
 					vertices[i],
 					(normals.size() > i) ? normals[i] : glm::vec3(1.0f),
 					(uvs.size() > i) ? uvs[i] : glm::vec2(0.0f),
@@ -3077,63 +2897,73 @@ namespace Plaza {
 					}
 				}
 				//vertex.weights = { 1.0f, 1.0f, 1.0f, 1.0f };
+				convertedSkinnedVertices.push_back(vertex);
+			}
+			else {
+				Vertex vertex{
+					vertices[i],
+					(normals.size() > i) ? normals[i] : glm::vec3(1.0f),
+					(uvs.size() > i) ? uvs[i] : glm::vec2(0.0f),
+					(tangent.size() > i) ? tangent[i] : glm::vec3(0.0f),
+					(materialsIndices.size() > i) ? materialsIndices[i] : 0 };
 				convertedVertices.push_back(vertex);
 			}
+		}
 
-			VkDeviceSize newDataSize = sizeof(Vertex) * convertedVertices.size();
-			PlVkBuffer stagingBuffer = PlVkBuffer();
-			stagingBuffer.CreateBuffer(newDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_ONLY, 0);
-			// Add vertices to the big vertex buffer
+		VkDeviceSize newDataSize = sizeof(Vertex) * convertedVertices.size();
+		PlVkBuffer stagingBuffer = PlVkBuffer();
+		stagingBuffer.CreateBuffer(newDataSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_ONLY, 0);
+		// Add vertices to the big vertex buffer
 
-			void* data;
-			vmaMapMemory(stagingBuffer.GetVmaAllocator(), stagingBuffer.GetAllocation(), &data);
-			memcpy(data, convertedVertices.data(), (size_t)newDataSize);
-			vmaUnmapMemory(stagingBuffer.GetVmaAllocator(), stagingBuffer.GetAllocation());
+		void* data;
+		vmaMapMemory(stagingBuffer.GetVmaAllocator(), stagingBuffer.GetAllocation(), &data);
+		memcpy(data, convertedVertices.data(), (size_t)newDataSize);
+		vmaUnmapMemory(stagingBuffer.GetVmaAllocator(), stagingBuffer.GetAllocation());
 
-			CopyBuffer(stagingBuffer.GetBuffer(),
-				mMainVertexBuffer->GetBuffer(),
-				newDataSize,
-				oldTotalVertices * sizeof(Vertex),
-				true);
+		CopyBuffer(stagingBuffer.GetBuffer(),
+			mMainVertexBuffer->GetBuffer(),
+			newDataSize,
+			isSkinned ? oldTotalVertices * sizeof(SkinnedVertex) : oldTotalVertices * sizeof(Vertex),
+			true);
 
-			stagingBuffer.Destroy();
+		stagingBuffer.Destroy();
 
-			VkDeviceSize indicesDataSize = sizeof(unsigned int) * indices.size();
+		VkDeviceSize indicesDataSize = sizeof(unsigned int) * indices.size();
 
-			VkBuffer indexStagingBuffer;
-			VkDeviceMemory indexStagingBufferMemory;
-			CreateBuffer(indicesDataSize,
-				VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-				indexStagingBuffer,
-				indexStagingBufferMemory);
+		VkBuffer indexStagingBuffer;
+		VkDeviceMemory indexStagingBufferMemory;
+		CreateBuffer(indicesDataSize,
+			VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			indexStagingBuffer,
+			indexStagingBufferMemory);
 
-			void* data2;
-			vkMapMemory(mDevice, indexStagingBufferMemory, 0, indicesDataSize, 0, &data2);
-			memcpy(data2, indices.data(), static_cast<size_t>(indicesDataSize));
-			vkUnmapMemory(mDevice, indexStagingBufferMemory);
+		void* data2;
+		vkMapMemory(mDevice, indexStagingBufferMemory, 0, indicesDataSize, 0, &data2);
+		memcpy(data2, indices.data(), static_cast<size_t>(indicesDataSize));
+		vkUnmapMemory(mDevice, indexStagingBufferMemory);
 
-			CopyBuffer(indexStagingBuffer,
-				mMainIndexBuffer->GetBuffer(),
-				indicesDataSize,
-				oldTotalIndices * sizeof(unsigned int),
-				true);
+		CopyBuffer(indexStagingBuffer,
+			mMainIndexBuffer->GetBuffer(),
+			indicesDataSize,
+			oldTotalIndices * sizeof(unsigned int),
+			true);
 
-			vkDestroyBuffer(mDevice, indexStagingBuffer, nullptr);
-			vkFreeMemory(mDevice, indexStagingBufferMemory, nullptr);
+		vkDestroyBuffer(mDevice, indexStagingBuffer, nullptr);
+		vkFreeMemory(mDevice, indexStagingBufferMemory, nullptr);
 
-			//VkDrawIndexedIndirectCommand indirectCommand{};
-			//indirectCommand.firstIndex = mBufferTotalIndices;
-			//indirectCommand.vertexOffset = mBufferTotalVertices;
-			//indirectCommand.firstInstance = mTotalInstancesNewMesh;
-			//indirectCommand.indexCount = indices.size();
-			//indirectCommand.instanceCount = 1;
+		//VkDrawIndexedIndirectCommand indirectCommand{};
+		//indirectCommand.firstIndex = mBufferTotalIndices;
+		//indirectCommand.vertexOffset = mBufferTotalVertices;
+		//indirectCommand.firstInstance = mTotalInstancesNewMesh;
+		//indirectCommand.indexCount = indices.size();
+		//indirectCommand.instanceCount = 1;
 
-			//this->mIndirectCommands.push_back(indirectCommand);
-			mTotalInstancesNewMesh++;
-			//mIndirectDrawCount++;
-			//}));
-		//uploadThread.detach();
+		//this->mIndirectCommands.push_back(indirectCommand);
+		mTotalInstancesNewMesh++;
+		//mIndirectDrawCount++;
+		//}));
+	//uploadThread.detach();
 
 		return vulkMesh;
 	}
@@ -3289,22 +3119,39 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::UpdateMeshVertices(Mesh& mesh) {
+		bool isSkinned = mesh.bonesHolder.size() > 0 && mesh.uniqueBonesInfo.size() > 0;
 		vector<Vertex> convertedVertices;
-		convertedVertices.reserve(mesh.vertices.size());
+		vector<SkinnedVertex> convertedSkinnedVertices;
+		if (isSkinned)
+			convertedSkinnedVertices.reserve(mesh.vertices.size());
+		else
+			convertedVertices.reserve(mesh.vertices.size());
 
+		PlVkBuffer* vertexBuffer = isSkinned ? mSkinnedVertexBuffer : mMainVertexBuffer;
 		for (unsigned int i = 0; i < mesh.vertices.size(); i++) {
 			mesh.CalculateVertexInBoundingBox(mesh.vertices[i]);
 
-			Vertex vertex{
-				mesh.vertices[i],
-				(mesh.normals.size() > i) ? mesh.normals[i] : glm::vec3(1.0f),
-				(mesh.uvs.size() > i) ? mesh.uvs[i] : glm::vec2(0.0f),
-				(mesh.tangent.size() > i) ? mesh.tangent[i] : glm::vec3(0.0f),
-				(mesh.materialsIndices.size() > i) ? mesh.materialsIndices[i] : 0,
-				(mesh.bonesHolder.size() > i && mesh.bonesHolder[i].mBones.size() > 0) ? this->GetBoneIds(mesh.bonesHolder[i].mBones) : std::array<int, MAX_BONE_INFLUENCE>{-1, -1, -1, -1},
-				(mesh.bonesHolder.size() > i && mesh.bonesHolder[i].mBones.size() > 0) ? mesh.bonesHolder[i].GetBoneWeights() : std::array<float, MAX_BONE_INFLUENCE>{0, 0, 0, 0} };
+			if (isSkinned) {
+				SkinnedVertex vertex{
+					mesh.vertices[i],
+					(mesh.normals.size() > i) ? mesh.normals[i] : glm::vec3(1.0f),
+					(mesh.uvs.size() > i) ? mesh.uvs[i] : glm::vec2(0.0f),
+					(mesh.tangent.size() > i) ? mesh.tangent[i] : glm::vec3(0.0f),
+					(mesh.materialsIndices.size() > i) ? mesh.materialsIndices[i] : 0,
+					(mesh.bonesHolder.size() > i && mesh.bonesHolder[i].mBones.size() > 0) ? this->GetBoneIds(mesh.bonesHolder[i].mBones) : std::array<int, MAX_BONE_INFLUENCE>{-1, -1, -1, -1},
+					(mesh.bonesHolder.size() > i && mesh.bonesHolder[i].mBones.size() > 0) ? mesh.bonesHolder[i].GetBoneWeights() : std::array<float, MAX_BONE_INFLUENCE>{0, 0, 0, 0} };
 
-			convertedVertices.push_back(vertex);
+				convertedSkinnedVertices.push_back(vertex);
+			}
+			else {
+				Vertex vertex{
+					mesh.vertices[i],
+					(mesh.normals.size() > i) ? mesh.normals[i] : glm::vec3(1.0f),
+					(mesh.uvs.size() > i) ? mesh.uvs[i] : glm::vec2(0.0f),
+					(mesh.tangent.size() > i) ? mesh.tangent[i] : glm::vec3(0.0f),
+					(mesh.materialsIndices.size() > i) ? mesh.materialsIndices[i] : 0 };
+				convertedVertices.push_back(vertex);
+			}
 		}
 
 		// Add vertices to the big vertex buffer
@@ -3324,7 +3171,7 @@ namespace Plaza {
 		vkUnmapMemory(mDevice, stagingBufferMemory);
 
 		CopyBuffer(stagingBuffer,
-			mMainVertexBuffer->GetBuffer(),
+			vertexBuffer->GetBuffer(),
 			newDataSize,
 			mesh.verticesOffset * sizeof(Vertex));
 
@@ -3612,7 +3459,7 @@ namespace Plaza {
 			MeshRenderer* component = scene->GetComponent<MeshRenderer>(uuid);
 			if (!component->mEnabled)
 				continue;
-			
+
 			if (component->renderGroup) {
 				component->renderGroup->AddInstance(scene->GetComponent<TransformComponent>(uuid)->mWorldMatrix);
 				Time::addInstanceCalls++;

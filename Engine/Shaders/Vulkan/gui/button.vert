@@ -5,9 +5,7 @@ layout(location = 1) in vec3 inNormal;
 layout(location = 2) in vec2 inTexCoord;
 layout(location = 3) in vec3 inTangent;
 layout(location = 4) in vec4 instanceMatrix[4];
-layout(location = 8) in ivec4 boneIds;
-layout(location = 9) in vec4 weights;
-layout(location = 10) in uint vertexMaterialIndex;
+layout(location = 8) in uint vertexMaterialIndex;
 
 layout (location = 0) out vec2 outUV;
 

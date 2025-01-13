@@ -898,7 +898,8 @@ namespace Plaza {
 		VulkanBufferBinding() {}
 		VulkanBufferBinding(const VulkanBufferBinding& other) = default;
 		VulkanBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage, std::shared_ptr<PlBuffer> buffer)
-			: PlazaBufferBinding(descriptorCount, binding, type, stage, buffer) {};
+			: PlazaBufferBinding(descriptorCount, binding, type, stage, buffer) {
+		};
 		virtual void Compile(std::set<std::string>& compiledBindings) override;
 		virtual void Destroy() override;
 
@@ -982,6 +983,7 @@ namespace Plaza {
 		virtual void RenderIndirectBuffer(PlazaPipeline* pipeline) override;
 		virtual void RenderIndirectBufferShadowMap(PlazaPipeline* pipeline) override;
 		virtual void RenderIndirectBufferSpecificMesh(PlazaPipeline* pipeline) override;
+		virtual void RenderIndirectBufferSkinned(PlazaPipeline* pipeline) override;
 		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) override;
 		virtual void RunCompute(PlazaPipeline* pipeline) override;
 		virtual void RenderCube(PlazaPipeline* pipeline) override;

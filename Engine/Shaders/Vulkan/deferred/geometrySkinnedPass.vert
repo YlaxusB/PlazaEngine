@@ -20,7 +20,9 @@ layout(location = 1) in vec3 inNormal;
 layout(location = 2) in vec2 inTexCoord;
 layout(location = 3) in vec3 inTangent;
 layout(location = 4) in vec4 instanceMatrix[4];
-layout(location = 8) in uint vertexMaterialIndex;
+layout(location = 8) in ivec4 boneIds;
+layout(location = 9) in vec4 weights;
+layout(location = 10) in uint vertexMaterialIndex;
 //layout(location = 12) in uint materialsOffsets[64];
 
 layout(location = 0) out vec4 fragColor;
@@ -82,6 +84,7 @@ out gl_PerVertex {
 };
 
 void main() {
+// TODO: FIX ANIMATION NORMALS
     model = mat4(instanceMatrix[0], instanceMatrix[1], instanceMatrix[2], instanceMatrix[3]);
 
     mat4 aInstanceMatrix = model;
@@ -89,7 +92,32 @@ void main() {
     mat4 finalInstanceMatrix = model;
     FragPos = vec3(model * vec4(inPosition, 1.0));
 
-    vec4 totalPosition = vec4(inPosition,1.0f);
+    vec4 totalPosition = vec4(0.0f);
+    bool allNegative = true;
+
+    for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
+    {
+          if(boneIds[i] < 0 || boneIds[i] > 1000) 
+          {
+            continue;
+          }   
+          else
+          {
+               allNegative = false;
+          }
+          if(boneIds[i] >= MAX_BONES) 
+          {
+              totalPosition = vec4(inPosition, 1.0f);
+              break;
+          }
+          vec4 localPosition = boneMatrices[boneIds[i]] * vec4(inPosition,1.0f);
+          totalPosition += localPosition * weights[i];
+          vec3 localNormal = mat3(boneMatrices[boneIds[i]]) * Normal.xyz;
+    }
+     
+     if(allNegative)
+         totalPosition = vec4(inPosition,1.0f);
+
     vec4 finalModel = finalInstanceMatrix * totalPosition;
 
     worldPos.xyz = vec3(finalModel);

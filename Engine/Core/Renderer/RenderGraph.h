@@ -168,6 +168,7 @@ namespace Plaza {
 					case PL_RENDER_PASS_INDIRECT_BUFFER: this->RenderIndirectBuffer(pipeline.get()); break;
 					case PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP: this->RenderIndirectBufferShadowMap(pipeline.get()); break;
 					case PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH: this->RenderIndirectBufferSpecificMesh(pipeline.get()); break;
+					case PL_RENDER_PASS_INDIRECT_BUFFER_SKINNED: this->RenderIndirectBufferSkinned(pipeline.get()); break;
 					case PL_RENDER_PASS_CUBE: this->RenderCube(pipeline.get()); break;
 					case PL_RENDER_PASS_COMPUTE: this->RunCompute(pipeline.get()); break;
 					case PL_RENDER_PASS_GUI: this->RenderGui(scene, pipeline.get()); break;
@@ -191,7 +192,8 @@ namespace Plaza {
 
 		virtual void RenderIndirectBuffer(PlazaPipeline* pipeline) { };
 		virtual void RenderIndirectBufferShadowMap(PlazaPipeline* pipeline) { };
-		virtual void RenderIndirectBufferSpecificMesh(PlazaPipeline* pipeline) { };
+		virtual void RenderIndirectBufferSpecificMesh(PlazaPipeline* pipeline) {};
+		virtual void RenderIndirectBufferSkinned(PlazaPipeline* pipeline) { };
 		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) { };
 		virtual void RenderCube(PlazaPipeline* pipeline) { };
 		virtual void RunCompute(PlazaPipeline* pipeline) { };
@@ -369,9 +371,23 @@ namespace Plaza {
 			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4));
 			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(6, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8));
 			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(7, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12));
-			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(8, 0, PL_FORMAT_R32G32B32A32_SINT, offsetof(Vertex, boneIds)));
-			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(9, 0, PL_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, weights)));
-			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(10, 0, PL_FORMAT_R32_UINT, offsetof(Vertex, materialIndex)));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(8, 0, PL_FORMAT_R32_UINT, offsetof(Vertex, materialIndex)));
+			return attributeDescriptions;
+		}
+
+		static std::vector<PlVertexInputAttributeDescription> SkinnedVertexGetAttributeDescriptions() {
+			std::vector<PlVertexInputAttributeDescription> attributeDescriptions{};
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(SkinnedVertex, position)));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(1, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(SkinnedVertex, normal)));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(2, 0, PL_FORMAT_R32G32_SFLOAT, offsetof(SkinnedVertex, texCoords)));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(3, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(SkinnedVertex, tangent)));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(4, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(6, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(7, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(8, 0, PL_FORMAT_R32G32B32A32_SINT, offsetof(SkinnedVertex, boneIds)));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(9, 0, PL_FORMAT_R32G32B32A32_SFLOAT, offsetof(SkinnedVertex, weights)));
+			attributeDescriptions.push_back(pl::vertexInputAttributeDescription(10, 0, PL_FORMAT_R32_UINT, offsetof(SkinnedVertex, materialIndex)));
 			return attributeDescriptions;
 		}
 

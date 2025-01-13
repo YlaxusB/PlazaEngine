@@ -293,8 +293,8 @@ vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float met
 
     vec3 Lo = specularContribution(L, V, normal, F0, metallic, roughness, albedo);
 
-    vec3 irradiance = texture(irradianceMap, normal).rgb;
-    vec3 diffuse = irradiance * albedo.xyz ;
+    vec3 irradiance = texture(irradianceMap, normal).rgb + ubo.ambientLightColor.x;
+    vec3 diffuse = irradiance * albedo.xyz;
 
     const float MAX_REFLECTION_LOD = 9.0;
     vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;   
@@ -305,11 +305,11 @@ vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float met
 
     float ambientOcclusion = 1.0f;
     vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
-    //ambient *= material.intensity;
 
-    shadow = (1.0f - ShadowCalculation(fragPos.xyz, normal)) * ubo.directionalLightColor.xyz + ubo.ambientLightColor.xyz;
-    vec3 color = ambient; //+ ubo.directionalLightColor.xyz; // Directional Light
-    color *= Lo * shadow + ubo.ambientLightColor.xyz;
+    shadow = (1.0f - ShadowCalculation(fragPos.xyz, normal)) * (ubo.directionalLightColor.xyz) + ubo.ambientLightColor.x;
+    vec3 color = ambient;
+    color += Lo;
+    color *= shadow;
     return color;
 }
 

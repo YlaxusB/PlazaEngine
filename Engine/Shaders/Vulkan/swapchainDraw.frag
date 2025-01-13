@@ -70,7 +70,7 @@ void main()
     vec4 x = texture(samplerTexture, inUV);
     vec3 color = pushConstants.exposure * x.rgb;
     color = filmicTonemap(color);
-    color = gammaCorrect(color);
+    //color = gammaCorrect(color);
     color = clamp(color, 0.0, 1.0);
     outFragcolor = vec4(color, 1.0f);
     //vec4 x = pushConstants.exposure * texture(samplerTexture, inUV);

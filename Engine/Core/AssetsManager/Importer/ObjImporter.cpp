@@ -120,9 +120,13 @@ namespace Plaza {
 				) * mModelImporterScale;
 				meshHash = CombineHashes(meshHash, std::hash<glm::vec3>()(vertex));
 
-				bool isVertexUnique = uniqueVertices.count(index.vertex_index) == 0;
+				std::size_t vertexHash = 0;
+				vertexHash = CombineHashes(vertexHash, std::hash<size_t>()(index.vertex_index));
+				vertexHash = CombineHashes(vertexHash, std::hash<size_t>()(index.texcoord_index));
+				vertexHash = CombineHashes(vertexHash, std::hash<size_t>()(index.normal_index));
+				bool isVertexUnique = uniqueVertices.count(vertexHash) == 0;
 				if (isVertexUnique) {
-					uniqueVertices[index.vertex_index] = static_cast<uint32_t>(vertices.size());
+					uniqueVertices[vertexHash] = static_cast<uint32_t>(vertices.size());
 
 					if (attrib.vertices.size() > 0) {
 						vertices.push_back(vertex);
@@ -141,8 +145,8 @@ namespace Plaza {
 						));
 					}
 				}
-				indices.push_back(uniqueVertices[index.vertex_index]);
-				meshHash = CombineHashes(meshHash, std::hash<unsigned int>()(uniqueVertices[index.vertex_index]));
+				indices.push_back(uniqueVertices[vertexHash]);
+				meshHash = CombineHashes(meshHash, std::hash<unsigned int>()(uniqueVertices[vertexHash]));
 			}
 			if (vertices.size() > 0) {
 				meshHash = CombineHashes(meshHash, std::hash<size_t>()(vertices.size()));

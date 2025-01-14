@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "AssetsReader.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
+#include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 
 namespace Plaza {
     bool IsJsonFile(const std::string& path) {

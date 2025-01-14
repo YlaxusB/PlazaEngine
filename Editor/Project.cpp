@@ -14,6 +14,7 @@
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Engine/Core/AssetsManager/AssetsReader.h"
 #include "Engine/Core/Scene.h"
+#include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 
 namespace Plaza::Editor {
 	void Project::Load(const std::string filePath) {

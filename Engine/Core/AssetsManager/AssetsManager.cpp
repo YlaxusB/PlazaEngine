@@ -16,19 +16,6 @@
 #include "Engine/Core/Scripting/Script.h"
 
 namespace Plaza {
-	std::unordered_map<uint64_t, Texture*> AssetsManager::mTextures = std::unordered_map<uint64_t, Texture*>();
-	std::unordered_map<uint64_t, shared_ptr<Material>> AssetsManager::mMaterials = std::unordered_map<uint64_t, shared_ptr<Material>>();
-	std::unordered_map<std::string, uint64_t> AssetsManager::mMaterialsNames = std::unordered_map<std::string, uint64_t>();
-	std::unordered_map<uint64_t, shared_ptr<Prefab>> AssetsManager::mPrefabs = std::unordered_map<uint64_t, shared_ptr<Prefab>>();
-	std::unordered_map<uint64_t, shared_ptr<Model>> AssetsManager::mModels = std::unordered_map<uint64_t, std::shared_ptr<Model>>();
-	std::unordered_map<PhysicsMaterial, std::shared_ptr<PhysicsMaterial>> AssetsManager::mPhysicsMaterials = std::unordered_map<PhysicsMaterial, std::shared_ptr<PhysicsMaterial>>();
-	std::unordered_map<uint64_t, Mesh*> AssetsManager::mLoadedMeshes = std::unordered_map<uint64_t, Mesh*>();
-	std::unordered_map<uint64_t, Animation> AssetsManager::mLoadedAnimations = std::unordered_map<uint64_t, Animation>();
-	std::unordered_map<uint64_t, Asset*> AssetsManager::mSceneAssets = std::unordered_map<uint64_t, Asset*>();
-	std::unordered_map<uint64_t, Script*> AssetsManager::mScripts = std::unordered_map<uint64_t, Script*>();
-	std::unordered_map<std::string, std::filesystem::path> AssetsManager::mShaders = std::unordered_map<std::string, std::filesystem::path>();
-
-
 	void AssetsManager::Init() {
 		PL_CORE_INFO("Initializing Assets Manager");
 

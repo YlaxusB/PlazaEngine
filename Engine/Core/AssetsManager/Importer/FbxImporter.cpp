@@ -12,6 +12,7 @@
 #include "ThirdParty/ufbx/ufbx/ufbx.c"
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
+#include "Engine/ECS/ECSManager.h"
 
 #include <stdio.h>
 #include <d3d11.h>

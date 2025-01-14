@@ -8,6 +8,8 @@
 #include "Engine/Application/FileDialog/FileDialog.h"
 #include "Engine/Core/Scene.h"
 #include "Editor/GUI/NodeEditors/RenderGraphEditor.h"
+#include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
+#include "Engine/ECS/ECSManager.h"
 
 using namespace Plaza;
 uint64_t lastUuid;

@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Core/Renderer/PushConstants.h"
+#include "Engine/Core/Renderer/RendererTypes.h"
 
 namespace Plaza {
 	class PlVkPushConstants : public PlPushConstants {
@@ -11,6 +12,3 @@ namespace Plaza {
 		}
 	};
 }
-
-PL_SER_REGISTER_TYPE(PlVkPushConstants);
-PL_SER_REGISTER_POLYMORPHIC_RELATION(PlPushConstants, PlVkPushConstants);

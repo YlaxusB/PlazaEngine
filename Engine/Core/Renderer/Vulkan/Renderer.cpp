@@ -38,6 +38,7 @@
 #include "Engine/Core/Time.h"
 #include "Engine/Core/Scene.h"
 #include "Editor/GUI/Console/Console.h"
+#include "VulkanPushConstants.h"
 
 namespace Plaza {
 #pragma region Vulkan Setup
@@ -3679,3 +3680,6 @@ namespace Plaza {
 		//vkDestroyFence(mDevice, mInFlightFences[mCurrentFrame], nullptr);
 	}
 }
+
+PL_SER_REGISTER_TYPE(PlVkPushConstants);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(PlPushConstants, PlVkPushConstants);

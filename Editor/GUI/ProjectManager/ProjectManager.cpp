@@ -10,6 +10,7 @@
 #include <ThirdParty/imgui/imgui_impl_opengl3.h>
 #include "Editor/DefaultAssets/DefaultAssets.h"
 #include "Engine/Core/Renderer/Renderer.h"
+#include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 
 namespace Plaza {
 	namespace Editor {

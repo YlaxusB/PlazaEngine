@@ -1,5 +1,4 @@
 #pragma once
-#include "Engine/Core/PreCompiledHeaders.h"
 #include <unordered_set>
 #include <ThirdParty/glm/glm.hpp>
 #include <ThirdParty/cereal/cereal/types/string.hpp>

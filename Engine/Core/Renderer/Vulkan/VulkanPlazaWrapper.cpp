@@ -1,5 +1,6 @@
 #include "VulkanPlazaWrapper.h"
 #include "Renderer.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
 	VmaAllocator PlVkBuffer::GetVmaAllocator() {
@@ -47,3 +48,6 @@ namespace Plaza {
 		vmaUnmapMemory(GetVmaAllocator(), mAllocations[index]);
 	}
 }
+
+PL_SER_REGISTER_TYPE(PlVkBuffer);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(PlBuffer, PlVkBuffer);

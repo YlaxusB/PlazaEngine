@@ -1,12 +1,20 @@
 #pragma once
 #include <string>
-#include <vector>
 #include "RendererTypes.h"
 #include "Engine/Core/AssetsManager/Asset.h"
 #include "Engine/Core/Engine.h"
+#include <cstdint>
+#include <type_traits>
+#include <unordered_set>
+#include <Engine\Core\UUID.h>
+#include <cereal\types\base_class.hpp>
+#include <fwd.hpp>
+#include <imgui.h>
+#include <vulkan_core.h>
+#include <cereal\types\polymorphic.hpp>
 
 namespace Plaza {
-	struct TextureInfo {
+	struct PLAZA_API TextureInfo {
 	public:
 		uint64_t mDescriptorCount = 1;
 		PlTextureType mTextureType = PL_TYPE_2D;

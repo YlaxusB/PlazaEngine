@@ -3,6 +3,7 @@
 #include "VulkanPlazaPipeline.h"
 
 namespace Plaza {
+	class MeshRenderer;
 	class VulkanMesh;
 	class VulkanPicking : public Picking {
 	public:

@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "RenamedFile.h"
 #include "Engine/Core/AssetsManager/AssetsReader.h"
+#include "Engine/Components/Rendering/Material.h"
 namespace Plaza::Editor {
 	void RenamedFileManager::Run(std::string oldPath, std::string newPath) {
 		std::string newExtension = std::filesystem::path{ newPath }.extension().string();

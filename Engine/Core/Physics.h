@@ -1,7 +1,9 @@
 #pragma once
 #include "Engine/Core/Engine.h"
+#include "Engine/Components/Physics/PhysicsMaterial.h"
 
 namespace Plaza {
+	class PhysicsMaterial;
 	class PLAZA_API MyQueryFilterCallback : public physx::PxQueryFilterCallback {
 	public:
 		virtual physx::PxQueryHitType::Enum preFilter(

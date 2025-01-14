@@ -6,6 +6,7 @@
 #include "Engine/Application/FileDialog/FileDialog.h"
 #include "Editor/GUI/FileExplorer/File.h"
 #include "Editor/GUI/Utils/DataVisualizer.h"
+#include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 
 namespace Plaza::Editor {
 	static class MaterialFileInspector {

@@ -1,4 +1,6 @@
+#include "Engine/Core/PreCompiledHeaders.h"
 #include "AssetsLoader.h"
+#include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 
 namespace Plaza {
 	Animation& AssetsLoader::LoadAnimation(Asset* asset, SerializationMode serializationMode) {

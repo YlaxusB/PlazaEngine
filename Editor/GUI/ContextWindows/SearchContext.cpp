@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Editor/GUI/GuiWindow.h"
 #include "SearchContext.h"
+#include "Engine/Components/Rendering/Material.h"
 
 namespace Plaza::Editor {
 	void SearchContext::Init() {

@@ -1,5 +1,4 @@
-#ifndef PLAZA_MATERIAL_H
-#define PLAZA_MATERIAL_H
+#pragma once
 
 #include "Engine/Components/Component.h"
 //#include "Engine/Components/Rendering/Mesh.h"
@@ -7,9 +6,6 @@
 #include "Engine/Core/Renderer/Texture.h"
 #include "Engine/Core/AssetsManager/Asset.h"
 #include "ThirdParty/glm/common.hpp"
-
-CEREAL_REGISTER_TYPE(Texture);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Asset, Texture);
 
 namespace Plaza {
 	struct Material : public Asset {
@@ -82,4 +78,3 @@ namespace Plaza {
 		std::vector<uint64_t> mDeserializedTexturesUuid = std::vector<uint64_t>();
 	};
 }
-#endif // PLAZA_MATERIAL_H

@@ -23,6 +23,8 @@
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Audio/Audio.h"
 #include "Editor/SessionCache/Cache.h"
+#include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
+#include "Engine/ECS/ECSManager.h"
 
 using namespace Plaza;
 /// ---------------------------------------------------------------------

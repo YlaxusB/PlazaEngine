@@ -150,40 +150,40 @@ namespace Plaza {
 
 		template<typename T>
 		static void RegisterType() {
-			//mTypeRawName = mType->raw_name();
-			std::string typeRawName = typeid(T).raw_name();
-			if (sRegisteredRawNames.find(typeRawName) != sRegisteredRawNames.end())
-				return;
-			// Setup serialization
-			sJsonSerializeByRawName.emplace(typeRawName, [](cereal::JSONOutputArchive& archive, Any& any) {
-				T* newValue = static_cast<T*>(any.mValue);
-				archive(*newValue); // Serialize the value
-				});
-			sBinarySerializeByRawName.emplace(typeRawName, [](cereal::BinaryOutputArchive& archive, Any& any) {
-				T* newValue = static_cast<T*>(any.mValue);
-				archive(*newValue); // Serialize the value
-				});
-
-			// Setup deserialization
-			sJsonDeSerializeByRawName.emplace(typeRawName, [](cereal::JSONInputArchive& archive, Any& any) {
-				T newValue;
-				archive(newValue); // Deserialize into newValue
-				any.SetValue(newValue, false); // Store the new valu)e
-				});
-			sBinaryDeSerializeByRawName.emplace(typeRawName, [](cereal::BinaryInputArchive& archive, Any& any) {
-				T newValue;
-				archive(newValue); // Deserialize into newValue
-				any.SetValue(newValue, false); // Store the new valu)e
-				});
-
-			sCopyValueFactoryByRawName.emplace(typeRawName, [](Any& from, Any& to) {
-				if (from.mValue == nullptr)
-					return;
-				T* newValue = new T(*from.GetValue<T>());
-				//archive(newValue);
-				//any.SetValue(newValue, false);
-				to.mValue = static_cast<void*>(newValue);
-				});
+			////mTypeRawName = mType->raw_name();
+			//std::string typeRawName = typeid(T).raw_name();
+			//if (sRegisteredRawNames.find(typeRawName) != sRegisteredRawNames.end())
+			//	return;
+			//// Setup serialization
+			//sJsonSerializeByRawName.emplace(typeRawName, [](cereal::JSONOutputArchive& archive, Any& any) {
+			//	T* newValue = static_cast<T*>(any.mValue);
+			//	archive(*newValue); // Serialize the value
+			//	});
+			//sBinarySerializeByRawName.emplace(typeRawName, [](cereal::BinaryOutputArchive& archive, Any& any) {
+			//	T* newValue = static_cast<T*>(any.mValue);
+			//	archive(*newValue); // Serialize the value
+			//	});
+			//
+			//// Setup deserialization
+			//sJsonDeSerializeByRawName.emplace(typeRawName, [](cereal::JSONInputArchive& archive, Any& any) {
+			//	T newValue;
+			//	archive(newValue); // Deserialize into newValue
+			//	any.SetValue(newValue, false); // Store the new valu)e
+			//	});
+			//sBinaryDeSerializeByRawName.emplace(typeRawName, [](cereal::BinaryInputArchive& archive, Any& any) {
+			//	T newValue;
+			//	archive(newValue); // Deserialize into newValue
+			//	any.SetValue(newValue, false); // Store the new valu)e
+			//	});
+			//
+			//sCopyValueFactoryByRawName.emplace(typeRawName, [](Any& from, Any& to) {
+			//	if (from.mValue == nullptr)
+			//		return;
+			//	T* newValue = new T(*from.GetValue<T>());
+			//	//archive(newValue);
+			//	//any.SetValue(newValue, false);
+			//	to.mValue = static_cast<void*>(newValue);
+			//	});
 
 		}
 

@@ -6,6 +6,7 @@
 #include <iostream>
 #include "Editor/GUI/Inspector/Primitives/PrimitivesInspector.h"
 #include <typeinfo>
+#include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 
 namespace Plaza::Editor {
 	void NodeEditor::InitNodeEditor() {

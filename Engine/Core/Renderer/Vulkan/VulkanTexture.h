@@ -74,6 +74,3 @@ namespace Plaza {
 		friend VulkanRenderer;
 	};
 }
-
-CEREAL_REGISTER_TYPE(VulkanTexture);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Texture, VulkanTexture);

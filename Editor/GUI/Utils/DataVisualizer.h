@@ -2,6 +2,7 @@
 #include <string>
 #include <ThirdParty/glm/glm.hpp>
 #include "Engine/Core/UUID.h"
+#include "Engine/Core/Renderer/Texture.h"
 
 namespace Plaza::Editor::Utils {
 	struct GuiTable {

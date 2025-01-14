@@ -1,6 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "VulkanPlazaPipeline.h"
 #include "Renderer.h"
+#include "Engine/Core/Engine.h"
 
 namespace Plaza {
 	void VulkanPlazaPipeline::InitializeShaders(std::string vertexPath, std::string fragmentPath, std::string geometryPath, VkDevice device, glm::vec2 size, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo) {
@@ -64,3 +65,7 @@ namespace Plaza {
 		vkDestroyPipeline(VulkanRenderer::GetRenderer()->mDevice, mComputeShaders->mComputePipeline, nullptr);
 	}
 }
+
+PL_SER_REGISTER_TYPE(PlazaPipeline);
+PL_SER_REGISTER_TYPE(VulkanPlazaPipeline);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(PlazaPipeline, VulkanPlazaPipeline);

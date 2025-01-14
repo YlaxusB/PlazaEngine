@@ -167,7 +167,7 @@ vec3 F_SchlickR(float cosTheta, vec3 F0, float roughness)
 }
 
 vec3 prefilteredReflection(vec3 R, float roughness) {
-	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
+	const float MAX_REFLECTION_LOD = 9.0;
 	float lod = roughness * MAX_REFLECTION_LOD;
 	float lodf = floor(lod);
 	float lodc = ceil(lod);
@@ -301,7 +301,7 @@ vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float met
     vec2 brdfCoord = vec2(maxNdotV, roughness);
     vec2 brdf  = texture(samplerBRDFLUT, brdfCoord).rg;
     vec3 reflection = prefilteredReflection(R, roughness).rgb;	
-    vec3 specular = reflection * ((F * brdf.x + brdf.y));
+    vec3 specular = reflection * ((F * brdf.x + brdf.y)) ;
 
     float ambientOcclusion = 1.0f;
     vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;

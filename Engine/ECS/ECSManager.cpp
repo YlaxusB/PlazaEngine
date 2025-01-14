@@ -30,6 +30,7 @@ namespace Plaza {
 	}
 
 	void ECS::RegisterComponents() {
+		Scene::sComponentCounter = 0;
 		RegisterComponent<TransformComponent>();
 		RegisterComponent<MeshRenderer>();
 		RegisterComponent<Collider>();

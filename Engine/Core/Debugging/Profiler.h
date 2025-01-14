@@ -78,8 +78,8 @@ namespace Plaza {
 		}
 
 		static std::shared_ptr<Profiler> NewProfiler(const std::string& profilerName) {
-			PLAZA_ASSERT(sProfilers.find(profilerName) == sProfilers.end());
-			sProfilers.emplace(profilerName, std::make_shared<Profiler>());
+			if (sProfilers.find(profilerName) == sProfilers.end())
+				sProfilers.emplace(profilerName, std::make_shared<Profiler>());
 			return sProfilers.at(profilerName);
 		}
 		static std::shared_ptr<Profiler> GetProfiler(const std::string& profilerName) {

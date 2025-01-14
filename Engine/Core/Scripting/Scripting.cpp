@@ -36,7 +36,7 @@ namespace Plaza {
 				CppScript* script = ScriptFactory::CreateScript(std::filesystem::path(AssetsManager::GetAsset(uuid)->mAssetName).stem().string());
 				script->mAssetUuid = uuid;
 				component.AddScript(script);
-				script->OnStart();
+				script->OnStart(scene);
 			}
 		}
 	}
@@ -88,7 +88,7 @@ namespace Plaza {
 		for (const uint64_t& uuid : SceneView<CppScriptComponent>(scene)) {
 			auto& component = *scene->GetComponent<CppScriptComponent>(uuid);
 			for (auto& script : component.mScripts) {
-				script->OnUpdate();
+				script->OnUpdate(scene);
 			}
 		}
 	}

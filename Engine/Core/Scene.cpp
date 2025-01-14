@@ -129,7 +129,7 @@ namespace Plaza {
 			//	value.Init();
 			//}
 			FieldManager::ApplyAllScritpsFields(scene, allFields);
-			for (const uint64_t& uuid : SceneView<Collider>(scene)) {
+			for (const uint64_t& uuid : SceneView<CsScriptComponent>(scene)) {
 				CsScriptComponent& csScript = *scene->GetComponent<CsScriptComponent>(uuid);
 				for (auto& [className, classScript] : csScript.scriptClasses) {
 					Mono::CallMethod(classScript->monoObject, classScript->onStartMethod);

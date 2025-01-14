@@ -12,7 +12,6 @@ namespace Plaza::Editor {
 	static inline SearchContext* sMaterialsSearch = new SearchContext("MaterialSearchContext");
 
 	void ComponentsInspector::MeshRendererInspector(Scene* scene, Entity* entity) {
-		Light* light = scene->GetComponent<Light>(entity->uuid);
 		if (Utils::ComponentInspectorHeader(scene->GetComponent<MeshRenderer>(entity->uuid), "Mesh Renderer")) {
 			ImGui::PushID("MeshRendererInspector");
 			MeshRenderer* meshRenderer = scene->GetComponent<MeshRenderer>(entity->uuid);

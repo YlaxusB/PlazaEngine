@@ -8,10 +8,10 @@ namespace Plaza {
 			this->lastModifiedDate = std::chrono::system_clock::now();
 		}
 
-		virtual void OnStart() {};
-		virtual void OnUpdate() {};
-		virtual void OnTerminate() {};
-		virtual void OnUpdateEditorGUI() {};
+		virtual void OnStart(Scene* scene) {};
+		virtual void OnUpdate(Scene* scene) {};
+		virtual void OnTerminate(Scene* scene) {};
+		virtual void OnUpdateEditorGUI(Scene* scene) {};
 	};
 
 	class PLAZA_API CppEditorScript : public Script {
@@ -20,8 +20,8 @@ namespace Plaza {
 			this->lastModifiedDate = std::chrono::system_clock::now();
 		}
 
-		virtual void OnStart() {};
-		virtual void OnUpdate() {};
-		virtual void OnTerminate() {};
+		virtual void OnStart(Scene* scene) {};
+		virtual void OnUpdate(Scene* scene) {};
+		virtual void OnTerminate(Scene* scene) {};
 	};
 }

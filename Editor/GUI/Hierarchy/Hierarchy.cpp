@@ -190,7 +190,7 @@ namespace Plaza::Editor {
 		}
 		bool treePop = !entity.changingName && !nameChanged;
 		if (ImGui::IsItemHovered() || ImGui::IsPopupOpen("ItemPopup")) {
-			HierarchyWindow::Item::ItemPopup(entity, scene);
+			HierarchyWindow::Item::ItemPopup(&entity, scene);
 		}
 
 		if (ImGui::IsPopupOpen("ItemPopup")) {
@@ -212,12 +212,7 @@ namespace Plaza::Editor {
 		ImGui::PopID();
 	};
 
-	void HierarchyWindow::Item::ItemPopup(Entity& entity, Scene* scene) {
-		if (ImGui::BeginPopupContextWindow("ItemPopup"))
-		{
-			HierarchyPopup::Update(scene, &entity);
-
-			ImGui::EndPopup();
-		}
+	void HierarchyWindow::Item::ItemPopup(Entity* entity, Scene* scene) {
+		HierarchyPopup::Update(scene, entity);
 	}
 };

@@ -19,7 +19,7 @@ namespace Plaza {
 
 
 	public:
-		class EntitySystem {
+		class PLAZA_API EntitySystem {
 		public:
 			static void SetParent(Scene* scene, Entity* child, Entity* newParent);
 			static void Delete(Scene* scene, uint64_t uuid);
@@ -27,7 +27,7 @@ namespace Plaza {
 			static uint64_t Instantiate(Scene* srcScene, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid, bool newTransform = false);
 			static uint64_t Instantiate(const std::unordered_map<uint64_t, Entity>& srcEntities, const std::vector<ComponentPool*>& srcComponentPools, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid, bool newTransform = false);
 		};
-		class TransformSystem {
+		class PLAZA_API TransformSystem {
 		public:
 			static void OnInstantiate(Component* componentToInstantiate, TransformComponent& transform);
 			static void UpdateTransform(TransformComponent& transform, Scene* scene);
@@ -42,7 +42,7 @@ namespace Plaza {
 			static void SetWorldScale(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
 			static void UpdateSelfAndChildrenTransform(TransformComponent& transform, TransformComponent* parentTransform, Scene* scene, bool updateLocal = true, bool forceUpdateLocal = false);
 		};
-		class ColliderSystem {
+		class PLAZA_API ColliderSystem {
 		public:
 			static void RemoveActor(Collider* collider);
 			static void Init(RigidBody* rigidBody);
@@ -64,7 +64,7 @@ namespace Plaza {
 			static void UpdatePose(Collider* collider, TransformComponent* transform);
 		};
 
-		class RigidBodySystem {
+		class PLAZA_API RigidBodySystem {
 		public:
 			static void Init(Scene* scene, uint64_t uuid);
 			static void Update(Scene* scene, uint64_t uuid);

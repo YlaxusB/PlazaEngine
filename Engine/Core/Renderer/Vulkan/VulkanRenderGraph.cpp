@@ -70,7 +70,7 @@ namespace Plaza {
 #endif
 
 		TextureInfo equirectangularInfo = this->GetTexture<VulkanTexture>("EquirectangularTexture")->GetTextureInfo();
-		equirectangularInfo.mPath = skyboxPath + "HDR_blue_nebulae-1.hdr";
+		equirectangularInfo.mPath = skyboxPath + "autumn_field_puresky_4k.hdr";
 		equirectangularInfo.mIsHdr = true;
 		this->GetTexture<Texture>("EquirectangularTexture")->SetTextureInfo(equirectangularInfo);
 

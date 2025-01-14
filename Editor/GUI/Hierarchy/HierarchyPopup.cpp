@@ -11,10 +11,11 @@
 Entity* obj = nullptr;
 namespace Plaza::Editor {
 	void HierarchyPopup::Update(Scene* scene, Entity* entity) {
-		if (ImGui::BeginPopupContextWindow())
+		if (ImGui::BeginPopupContextWindow("ItemPopup"))
 		{
-			HierarchyPopup::UpdateAddComponentPopup(scene, entity);
-			Popup::NewEntityPopup::Init(nullptr, scene);
+			Popup::NewEntityPopup::Init(entity, scene);
+			if (entity)
+				HierarchyPopup::UpdateAddComponentPopup(scene, entity);
 
 			ImGui::EndPopup();
 
@@ -104,7 +105,7 @@ namespace Plaza::Editor {
 						script->mAssetUuid = value->mAssetUuid;
 						component->AddScript(script);
 						if (scene->mRunning) {
-							script->OnStart();
+							script->OnStart(scene);
 						}
 						//entity->AddComponent<CppScriptComponent>(component);
 					}

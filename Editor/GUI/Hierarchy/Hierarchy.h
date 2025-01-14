@@ -29,7 +29,7 @@ namespace Plaza::Editor {
 			static void NewItem(Entity& entity, Entity*& selectedGameObject, Scene* scene);
 			static void HierarchyDragDrop(Entity& entity, Entity* currentObj, ImVec2 treeNodeMin, ImVec2 treeNodeMax, Scene* scene);
 
-			static void ItemPopup(Entity& entity, Scene* scene);
+			static void ItemPopup(Entity* entity, Scene* scene);
 		};
 	};
 	//class Gui::Hierarchy {

@@ -5,6 +5,7 @@
 #include "Editor/GUI/Utils/Utils.h"
 #include "Engine/Core/Scene.h"
 #include <math.h>
+#include "Engine/ECS/ECSManager.h"
 
 namespace Plaza::Editor {
 	void ComponentsInspector::TransformInspector(Scene* scene, Entity* entity) {

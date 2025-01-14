@@ -5,6 +5,7 @@
 #include "Engine/Core/Physics.h"
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 #include "Engine/Core/Scene.h"
+#include "Engine/ECS/ECSManager.h"
 
 namespace Plaza::Editor {
 	Entity* NewEntity(string name, Entity* parent, Mesh* mesh, bool instanced = true, bool addToScene = true, Scene* scene = nullptr) {

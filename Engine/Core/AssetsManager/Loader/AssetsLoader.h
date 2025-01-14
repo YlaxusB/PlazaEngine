@@ -24,29 +24,7 @@ namespace Plaza {
 		};
 
 		static void LoadAsset(Asset* asset);
-		static void LoadMetadata(Asset* asset) {
-			Metadata::MetadataStructure metadata = *AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(asset->mAssetPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode).get();
-			std::string metadataContentExtension = std::filesystem::path{ asset->mAssetPath.parent_path().string() + "\\" + metadata.mContentName }.extension().string();
-			bool metadataContentExtensionIsSupported = AssetsManager::mAssetTypeByExtension.find(metadataContentExtension) != AssetsManager::mAssetTypeByExtension.end();
-			if (!metadataContentExtensionIsSupported)
-				return;
-			AssetType type = AssetsManager::mAssetTypeByExtension.at(metadataContentExtension);
-
-			switch (type) {
-			case AssetType::TEXTURE:
-				AssetsLoader::LoadTexture(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
-				break;
-			case AssetType::SCRIPT:
-				AssetsLoader::LoadScript(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
-				break;
-			case AssetType::SHADERS:
-				AssetsManager::AddShaders(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
-				break;
-			default:
-				AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata)));
-				break;
-			}
-		}
+		static void LoadMetadata(Asset* asset);
 		static std::shared_ptr<Scene> LoadScene(Asset* asset, SerializationMode serializationMode);
 		static void LoadPrefab(Asset* asset);
 		static void LoadPrefabToMemory(const std::string& path);
@@ -58,7 +36,6 @@ namespace Plaza {
 		static Animation& LoadAnimation(Asset* asset, SerializationMode serializationMode);
 
 	private:
-		static SerializablePrefab DeserializePrefab(const std::string& path, const SerializationMode& serializationMode);
-		static void LoadDeserializedEntity(const SerializableEntity& deserializedEntity, std::unordered_map<uint64_t, uint64_t>& equivalentUuids, bool loadToScene);
+
 	};
 }

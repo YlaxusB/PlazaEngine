@@ -1,7 +1,7 @@
 #pragma once
 #include "Engine/Core/AssetsManager/Asset.h"
+#include "Engine/Core/Scripting/Script.h"
 namespace Plaza {
-	class Script;
 	namespace Editor {
 		class PLAZA_API Project : public Asset {
 		public:

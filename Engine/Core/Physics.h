@@ -36,6 +36,7 @@ namespace Plaza {
 		bool missed = false;
 	};
 
+	class ColliderShape;
 	class PLAZA_API Physics {
 	public:
 		static inline physx::PxDefaultAllocator m_defaultAllocatorCallback;

@@ -1,5 +1,4 @@
 #pragma once
-#include "Engine/Core/Renderer/Mesh.h"
 #include "Engine/Core/AssetsManager/Asset.h"
 #include "Engine/Core/Engine.h"
 

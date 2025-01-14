@@ -7,6 +7,7 @@
 #include "Engine/Core/Scripting/CppScriptFactory.h"
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 #include "Engine/Core/Scene.h"
+#include "Engine/ECS/ECSManager.h"
 
 Entity* obj = nullptr;
 namespace Plaza::Editor {

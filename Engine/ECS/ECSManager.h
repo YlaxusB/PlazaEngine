@@ -1,22 +1,32 @@
 #pragma once
 #include <functional>
+#include "Engine/Core/Scene.h"
 
 namespace Plaza {
-	typedef uint64_t EntityId;
 	class PLAZA_API ECSManager {
 	public:
 
 	};
 
 	class ComponentPool;
-	class Scene;
 	class PLAZA_API ECS {
 	public:
 		static void RegisterComponents();
 		static void InstantiateComponent(ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid);
 		static inline std::vector<std::function<void* (ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid)>> sInstantiateComponentFactory{};
 	private:
-
+		template<typename T>
+		void RegisterComponent() {
+			const int componentId = Scene::GetComponentId<T>();
+			if (componentId >= ECS::sInstantiateComponentFactory.size())
+				ECS::sInstantiateComponentFactory.resize(componentId + 1);
+			ECS::sInstantiateComponentFactory[componentId] = [](ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid) -> void* {
+				T* component = dstPool->New<T>(dstUuid);
+				*component = *static_cast<T*>(srcPool->Get(srcUuid));
+				static_cast<Component*>(component)->mUuid = dstUuid;
+				return component;
+				};
+		}
 
 	public:
 		class PLAZA_API EntitySystem {
@@ -71,84 +81,5 @@ namespace Plaza {
 			static void UpdateGlobalPose(Scene* scene, uint64_t uuid);
 			static void AddCollidersOfChildren(Scene* scene, uint64_t parent);
 		};
-	};
-
-#define MAX_ENTITIES 65536*4
-	struct PLAZA_API ComponentPool {
-		ComponentPool() {}
-		ComponentPool(size_t elementsSize, size_t componentMask, const std::string& rawComponentName) {
-			mElementSize = elementsSize;
-			mComponentMask = componentMask;
-			mData.push_back(nullptr);
-			mSize = mData.size();
-			mSparseMap[0] = 0;
-			hash<std::string> hasher;
-			mComponentRawNameHash = hasher(rawComponentName);
-		}
-
-		ComponentPool(ComponentPool& other) {
-			mElementSize = other.mElementSize;
-			mComponentMask = other.mComponentMask;
-			for (size_t i = 0; i < other.mData.size(); ++i) {
-				if (other.mData[i]) {
-					ECS::InstantiateComponent(&other, this, other.mData[i]->mUuid, other.mData[i]->mUuid);
-				}
-				else {
-					mData.push_back(nullptr);
-				}
-			}
-			mSize = mData.size();
-		}
-
-		~ComponentPool() {
-			mData.clear();
-		}
-
-		inline Component* Get(size_t index) {
-			uint64_t sparsedIndex = mSparseMap[index];
-			if (mSize < sparsedIndex)
-				return nullptr;
-			return mData[sparsedIndex].get();
-		}
-
-		template<typename T>
-		inline T* New(size_t index) {
-			mSparseMap[index] = mSize;
-			std::shared_ptr<T> component = std::make_shared<T>();
-			mData.push_back(component);
-			static_cast<Component*>(component.get())->mUuid = index;
-			mSize++;
-			return component.get();
-		}
-
-		template<typename T>
-		T* Add(size_t index, T* component = nullptr) {
-			void* storage = Get(index);
-
-			if (component == nullptr)
-				component = new T();
-			mData.push_back(std::make_shared<T>(component));
-
-			mSparseMap[index] = mSize;
-			mSize++; //= std::max(mSize, index + 1);
-
-			return component;
-		}
-
-		std::map<EntityId, EntityId> mSparseMap;
-		std::vector<std::shared_ptr<Component>> mData;
-		size_t mSize = 1;
-		size_t mCapacity = MAX_ENTITIES;
-		size_t mElementSize{ 0 };
-		size_t mComponentMask;
-		size_t mComponentRawNameHash;
-
-		std::function<void* (ComponentPool* poolToAddComponent, void*, uint64_t)> mInstantiateFactory;
-
-		template <typename Archive>
-		void serialize(Archive& archive) {
-			archive(PL_SER(mSize), PL_SER(mCapacity), PL_SER(mElementSize), PL_SER(mComponentMask), PL_SER(mComponentRawNameHash), PL_SER(mSparseMap), PL_SER(mData));
-			mSize = mData.size();
-		}
 	};
 };

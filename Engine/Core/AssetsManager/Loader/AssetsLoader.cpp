@@ -27,6 +27,30 @@ namespace Plaza {
 			AssetsLoader::LoadAnimation(asset, Application::Get()->mSettings.mAnimationSerializationMode);
 	}
 
+	void AssetsLoader::LoadMetadata(Asset* asset) {
+		Metadata::MetadataStructure metadata = *AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(asset->mAssetPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode).get();
+		std::string metadataContentExtension = std::filesystem::path{ asset->mAssetPath.parent_path().string() + "\\" + metadata.mContentName }.extension().string();
+		bool metadataContentExtensionIsSupported = AssetsManager::mAssetTypeByExtension.find(metadataContentExtension) != AssetsManager::mAssetTypeByExtension.end();
+		if (!metadataContentExtensionIsSupported)
+			return;
+		AssetType type = AssetsManager::mAssetTypeByExtension.at(metadataContentExtension);
+
+		switch (type) {
+		case AssetType::TEXTURE:
+			AssetsLoader::LoadTexture(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
+			break;
+		case AssetType::SCRIPT:
+			AssetsLoader::LoadScript(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
+			break;
+		case AssetType::SHADERS:
+			AssetsManager::AddShaders(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
+			break;
+		default:
+			AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata)));
+			break;
+		}
+	}
+
 	std::shared_ptr<Model> AssetsLoader::LoadModel(Asset* asset) {
 		std::shared_ptr<Model> model = AssetsSerializer::DeSerializeFile<Model>(asset->mAssetPath.string(), Application::Get()->mSettings.mModelSerializationMode);
 		AssetsManager::AddModel(model);
@@ -46,51 +70,12 @@ namespace Plaza {
 		return scene;
 	}
 
-	SerializablePrefab AssetsLoader::DeserializePrefab(const std::string& path, const SerializationMode& serializationMode) {
-		SerializablePrefab prefab{};
-
-		std::shared_ptr<Serp> loadedPrefab = AssetsSerializer::DeSerializeFile<Serp>(path, serializationMode);
-
-		prefab = loadedPrefab->data;
-		prefab = loadedPrefab->data;
-
-		return prefab;
-	}
-
-	void AssetsLoader::LoadDeserializedEntity(const SerializableEntity& deserializedEntity, std::unordered_map<uint64_t, uint64_t>& equivalentUuids, bool loadToScene) {
-		// FIX: Remake model importers
-	}
-
-	void AssetsLoader::LoadPrefabToMemory(const std::string& path) {
-		// FIX: Remake model importers
-	}
-
-	void AssetsLoader::LoadPrefabToScene(Model* model, bool loadToScene) {
-		// FIX: Remake model importers
-	}
-
 	static std::vector<std::future<void>> futures;
 	void AssetsLoader::LoadPrefab(Asset* asset) {
 		if (!AssetsManager::GetPrefab(asset->mAssetUuid)) {
 			std::shared_ptr<Prefab> prefab = AssetsSerializer::DeSerializeFile<Prefab>(asset->mAssetPath.string(), Application::Get()->mSettings.mPrefabSerializationMode);
 			AssetsManager::AddPrefab(prefab);
 		}
-		// FIX: Remake model importers
-		//Asset assetCopy = *asset;
-		//Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([assetCopy]() {
-		//	//futures.push_back(std::async(std::launch::async, [assetCopy]() {
-		//	if (AssetsManager::mLoadedModels.find(assetCopy.mAssetUuid) != AssetsManager::mLoadedModels.end()) {
-		//		LoadPrefabToScene(AssetsManager::mLoadedModels.at(assetCopy.mAssetUuid), true);
-		//	}
-		//	else {
-		//		//static std::mutex queueMutex;
-		//		//std::lock_guard<std::mutex> lock(queueMutex);
-		//		LoadPrefabToMemory(assetCopy.mAssetPath.string());
-		//		if (AssetsManager::mLoadedModels.find(assetCopy.mAssetUuid) != AssetsManager::mLoadedModels.end())
-		//			LoadPrefabToScene(AssetsManager::mLoadedModels.at(assetCopy.mAssetUuid), true);
-		//	}
-		//	//	}));
-		//	});
 	}
 
 	void AssetsLoader::LoadScript(Asset* asset) {

@@ -16,32 +16,19 @@
     CEREAL_REGISTER_TYPE(T) ;\
 	CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, T) ;
 namespace Plaza {
-	template<typename T>
-	void RegisterComponent() {
-		const int componentId = Scene::GetComponentId<T>();
-		if (componentId >= ECS::sInstantiateComponentFactory.size())
-			ECS::sInstantiateComponentFactory.resize(componentId + 1);
-		ECS::sInstantiateComponentFactory[componentId] = [](ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid) -> void* {
-			T* component = dstPool->New<T>(dstUuid);
-			*component = *static_cast<T*>(srcPool->Get(srcUuid));
-			static_cast<Component*>(component)->mUuid = dstUuid;
-			return component;
-			};
-	}
-
 	void ECS::RegisterComponents() {
 		Scene::sComponentCounter = 0;
-		RegisterComponent<TransformComponent>();
-		RegisterComponent<MeshRenderer>();
-		RegisterComponent<Collider>();
-		RegisterComponent<RigidBody>();
-		RegisterComponent<Camera>();
-		RegisterComponent<Light>();
-		RegisterComponent<AudioSource>();
-		RegisterComponent<AudioListener>();
-		RegisterComponent<CppScriptComponent>();
-		RegisterComponent<AnimationComponent>();
-		RegisterComponent<CsScriptComponent>();
+		ECS::RegisterComponent<TransformComponent>();
+		ECS::RegisterComponent<MeshRenderer>();
+		ECS::RegisterComponent<Collider>();
+		ECS::RegisterComponent<RigidBody>();
+		ECS::RegisterComponent<Camera>();
+		ECS::RegisterComponent<Light>();
+		ECS::RegisterComponent<AudioSource>();
+		ECS::RegisterComponent<AudioListener>();
+		ECS::RegisterComponent<CppScriptComponent>();
+		ECS::RegisterComponent<AnimationComponent>();
+		ECS::RegisterComponent<CsScriptComponent>();
 	}
 
 	void ECS::InstantiateComponent(ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid) {

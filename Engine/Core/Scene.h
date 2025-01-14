@@ -33,7 +33,7 @@
 
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
 #include "Engine/Core/Engine.h"
-#include "Engine/ECS/ECSManager.h"
+#include "Engine/ECS/ComponentPool.h"
 //#include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 
 using namespace std;

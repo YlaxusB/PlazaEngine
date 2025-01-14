@@ -193,7 +193,7 @@ set_target_properties(PlazaEngineCore PROPERTIES
   set_property(TARGET PlazaEngineCore PROPERTY CXX_STANDARD 20)
 
 # PlazaEngine and PlazaShippingGame
-add_executable(PlazaEngine  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp")
+add_executable(PlazaEngine  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "Engine/ECS/ComponentPool.h")
 
 set_target_properties(PlazaEngine PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"  # For the DLL
@@ -201,7 +201,7 @@ set_target_properties(PlazaEngine PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"  # For shared libs
 )
 
-add_executable(PlazaShippingGame "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}")
+add_executable(PlazaShippingGame "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}" "Engine/ECS/ComponentPool.h")
 set_target_properties(PlazaShippingGame PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"  # For the DLL
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"  # For the .lib (import library)

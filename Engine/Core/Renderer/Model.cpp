@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Model.h"
+#include "Engine/Core/Renderer/Mesh.h"
 
 namespace Plaza {
 	Mesh* Model::GetMesh(uint64_t uuid) {

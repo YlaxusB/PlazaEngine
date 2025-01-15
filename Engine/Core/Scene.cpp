@@ -12,6 +12,7 @@
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "ThirdParty/mono/include/mono/metadata/mono-debug.h"
 #include "Engine/Core/Scripting/Scripting.h"
+#include "Engine/ECS/ECSManager.h"
 
 namespace Plaza {
 	void Scene::Copy(Scene* baseScene) {

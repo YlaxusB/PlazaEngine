@@ -8,6 +8,7 @@
 #include "Engine/Core/Renderer/Buffer.h"
 #include "Engine/Core/Engine.h"
 #include <ThirdParty/cereal/cereal/types/polymorphic.hpp>
+#include "Engine/Core/Renderer/RendererTypes.h"
 
 namespace Plaza {
 	static VkDescriptorType PlBufferTypeToVkDescriptorType(PlBufferType type) {

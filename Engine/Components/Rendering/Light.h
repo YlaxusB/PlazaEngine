@@ -1,4 +1,8 @@
 #pragma once
+#include <ThirdParty/glm/glm.hpp>
+#include "Engine/Components/Component.h"
+#include "Engine/Core/Engine.h"
+
 namespace Plaza {
 	class Light : public Component {
 	public:

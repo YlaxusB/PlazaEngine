@@ -8,7 +8,6 @@
 //#include "Engine/Components/Core/Entity.h"
 
 
-#include "Engine/Components/Rendering/Material.h"
 #include "Engine/Core/RenderGroup.h"
 
 

@@ -1,5 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ComponentPool.h"
+#include "Engine/ECS/ECSManager.h"
 
 namespace Plaza {
 	ComponentPool::ComponentPool(size_t elementsSize, size_t componentMask, const std::string& rawComponentName) {

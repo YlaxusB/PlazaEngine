@@ -11,6 +11,8 @@
 #include <ThirdParty/cereal/cereal/types/utility.hpp>
 #include "Engine/Application/EngineSettings.h"
 #include "Engine/Core/AssetsManager/Asset.h"
+#include "Engine/Components/Rendering/AnimationComponent.h"
+#include "Engine/Components/Rendering/Material.h"
 
 namespace Plaza {
 	class AssetsSerializer {
@@ -22,7 +24,7 @@ namespace Plaza {
 		static void SerializeAssetByExtension(Asset* asset);
 
 		template <typename T>
-		static void SerializeFile(T& file, std::string path, SerializationMode serializationMode) {
+		static inline void SerializeFile(T& file, std::string path, SerializationMode serializationMode) {
 			switch (serializationMode) {
 			case SerializationMode::SERIALIZE_BINARY:
 				AssetsSerializer::SerializeAsBinary<T>(file, path);
@@ -34,7 +36,7 @@ namespace Plaza {
 		}
 
 		template <typename T>
-		static std::shared_ptr<T> DeSerializeFile(std::string path, SerializationMode serializationMode) {
+		static inline std::shared_ptr<T> DeSerializeFile(std::string path, SerializationMode serializationMode) {
 			switch (serializationMode) {
 			case SerializationMode::SERIALIZE_BINARY:
 				return AssetsSerializer::DeSerializeAsBinary<T>(path);
@@ -47,7 +49,7 @@ namespace Plaza {
 
 	private:
 		template <typename T>
-		static void SerializeAsBinary(T& file, const std::string& path) {
+		static inline void SerializeAsBinary(T& file, const std::string& path) {
 			std::ofstream os(path, std::ios::binary);
 			cereal::BinaryOutputArchive archive(os);
 			archive(file);
@@ -55,7 +57,7 @@ namespace Plaza {
 		}
 
 		template <typename T>
-		static std::shared_ptr<T> DeSerializeAsBinary(const std::string& path) {
+		static inline std::shared_ptr<T> DeSerializeAsBinary(const std::string& path) {
 			std::ifstream is(path, std::ios::binary);
 			cereal::BinaryInputArchive archive(is);
 			std::shared_ptr<T> file = std::make_shared<T>();
@@ -66,7 +68,7 @@ namespace Plaza {
 		}
 
 		template <typename T>
-		static void SerializeAsJson(T& file, const std::string& path) {
+		static inline void SerializeAsJson(T& file, const std::string& path) {
 			std::ofstream os(path);
 			{
 				cereal::JSONOutputArchive archive(os);
@@ -76,7 +78,7 @@ namespace Plaza {
 		}
 
 		template <typename T>
-		static std::shared_ptr<T> DeSerializeAsJson(const std::string& path) {
+		static inline std::shared_ptr<T> DeSerializeAsJson(const std::string& path) {
 			std::ifstream is(path);
 			cereal::JSONInputArchive archive(is);
 			std::shared_ptr<T> file = std::make_shared<T>();
@@ -86,30 +88,4 @@ namespace Plaza {
 			return file;
 		}
 	};
-}
-
-namespace cereal {
-	template <class Archive> void serialize(Archive& archive, glm::vec2& v) {
-		archive(v.x, v.y);
-	}
-
-	template <class Archive> void serialize(Archive& archive, glm::vec3& v) {
-		archive(v.x, v.y, v.z);
-	}
-
-	template <class Archive> void serialize(Archive& archive, glm::vec4& v) {
-		archive(v.x, v.y, v.z, v.w);
-	}
-
-	template <class Archive> void serialize(Archive& archive, glm::quat& q) {
-		archive(q.w, q.x, q.y, q.z);
-	}
-
-	template <class Archive> void serialize(Archive& archive, glm::mat4& mat) {
-		for (int i = 0; i < 4; ++i) {
-			for (int j = 0; j < 4; ++j) {
-				archive(cereal::make_nvp("m" + std::to_string(i) + std::to_string(j), mat[i][j]));
-			}
-		}
-	}
 }

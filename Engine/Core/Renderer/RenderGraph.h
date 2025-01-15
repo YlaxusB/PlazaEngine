@@ -4,6 +4,8 @@
 #include "Buffer.h"
 #include "Engine/Core/Engine.h"
 #include "PlazaPipeline.h"
+#include "Engine/Core/Renderer/RendererTypes.h"
+#include "Engine/Core/Renderer/Mesh.h"
 
 namespace Plaza {
 	class PLAZA_API PlazaShadersBinding {

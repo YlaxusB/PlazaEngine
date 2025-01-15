@@ -2,6 +2,7 @@
 #include "Physics.h"
 #include <ThirdParty/PhysX/physx/include/cooking/Pxc.h>
 #include "Engine/Core/Scene.h"
+#include "Engine/ECS/ECSManager.h"
 
 using namespace physx;
 namespace Plaza {

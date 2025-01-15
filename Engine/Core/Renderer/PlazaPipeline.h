@@ -1,6 +1,7 @@
 #pragma once
 #include "PushConstants.h"
 #include "Engine/Core/Engine.h"
+#include "Engine/Core/Renderer/RendererTypes.h"
 
 namespace Plaza {
 	class PLAZA_API PlazaPipeline {

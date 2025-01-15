@@ -12,6 +12,21 @@
 #include "Engine/Components/Core/Transform.h"
 #include "Engine/Core/Scene.h"
 
+#include "Engine/Components/Core/Camera.h"
+#include "Engine/Components/Rendering/MeshRenderer.h"
+#include "Engine/Components/Rendering/Material.h"
+#include "Engine/Components/Rendering/Light.h"
+#include "Engine/Components/Physics/RigidBody.h"
+#include "Engine/Components/Physics/CharacterController.h"
+#include "Engine/Components/Physics/Collider.h"
+#include "Engine/Components/Scripting/CppScriptComponent.h"
+#include "Engine/Components/Scripting/CsScriptComponent.h"
+#include "Engine/Components/Drawing/UI/TextRenderer.h"
+#include "Engine/Components/Drawing/UI/Gui.h"
+#include "Engine/Components/Audio/AudioSource.h"
+#include "Engine/Components/Audio/AudioListener.h"
+#include "Engine/Components/Rendering/AnimationComponent.h"
+
 #define PL_REGISTER_COMPONENT(T) \
     CEREAL_REGISTER_TYPE(T) ;\
 	CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, T) ;
@@ -43,7 +58,31 @@ PL_REGISTER_COMPONENT(RigidBody);
 PL_REGISTER_COMPONENT(Camera);
 PL_REGISTER_COMPONENT(Light);
 PL_REGISTER_COMPONENT(AudioSource);
-PL_REGISTER_COMPONENT(AudioListener);
+namespace cereal {
+    namespace detail {
+        template <> struct binding_name<AudioListener> {
+            static constexpr char const* name() {
+                return "AudioListener";
+            }
+        };
+    }
+} namespace cereal {
+    namespace detail {
+        template<> struct init_binding<AudioListener> {
+            static inline bind_to_archives<AudioListener> const& b = ::cereal::detail::StaticObject< bind_to_archives<AudioListener> >::getInstance().bind(); static void unused() {
+                (void)b;
+            }
+        };
+    }
+}; namespace cereal {
+    namespace detail {
+        template <> struct PolymorphicRelation<Component, AudioListener> {
+            static void bind() {
+                RegisterPolymorphicCaster<Component, AudioListener>::bind();
+            }
+        };
+    }
+};;
 PL_REGISTER_COMPONENT(CppScriptComponent);
 PL_REGISTER_COMPONENT(AnimationComponent);
 PL_REGISTER_COMPONENT(CsScriptComponent);

@@ -4,6 +4,7 @@
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Engine.h"
 #include <cereal/types/polymorphic.hpp>
+#include "Engine/Components/Rendering/AnimationComponent.h"
 
 namespace Plaza {
 	void AssetsSerializer::SerializeAssetByExtension(Asset* asset) {
@@ -22,7 +23,6 @@ namespace Plaza {
 	}
 }
 
-CEREAL_REGISTER_TYPE(Asset);
 CEREAL_REGISTER_TYPE(Texture);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Asset, Texture);
 CEREAL_REGISTER_TYPE(VulkanTexture);

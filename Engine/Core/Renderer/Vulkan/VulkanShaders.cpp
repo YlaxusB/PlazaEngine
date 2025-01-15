@@ -1,5 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "VulkanShaders.h"
+#include "Engine/Core/Renderer/RendererTypes.h"
+#include "Engine/Core/Renderer/Mesh.h"
 
 namespace Plaza {
 	VkShaderModule VulkanShaders::CreateShaderModule(const std::vector<char>& code, VkDevice device) {

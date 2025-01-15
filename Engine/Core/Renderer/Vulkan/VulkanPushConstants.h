@@ -4,7 +4,9 @@
 
 namespace Plaza {
 	class PlVkPushConstants : public PlPushConstants {
-		PlVkPushConstants(PlRenderStage stage, uint32_t offset, uint32_t stride) : PlPushConstants(stage, offset, stride) { };
+	public:
+		PlVkPushConstants() {}
+		PlVkPushConstants(PlRenderStage stage, uint32_t offset, uint32_t stride) : PlPushConstants(stage, offset, stride) {};
 
 		template <class Archive>
 		void serialize(Archive& archive) {

@@ -8,12 +8,14 @@
 #include <string>
 #include <string_view>
 #include "Engine/Core/Engine.h"
+#include "Engine/Core/Physics.h"
+#include "Engine/Components/Physics/PhysicsMaterial.h"
+#include "Engine/Components/Rendering/AnimationComponent.h"
 
 namespace Plaza {
 	class Texture;
 	class Material;
 	class Prefab;
-	class Animation;
 	class Model;
 	class PhysicsMaterial;
 	class Mesh;
@@ -30,17 +32,17 @@ namespace Plaza {
 		static inline std::map<std::string, AssetType> mAssetTypeByExtension = std::map<std::string, AssetType>();
 		static inline std::set<AssetType> mAssetsTypesWithMetaData = std::set<AssetType>();
 
-		static std::unordered_map<uint64_t, Texture*> mTextures;
-		static std::unordered_map<uint64_t, shared_ptr<Material>> mMaterials;
-		static std::unordered_map<std::string, uint64_t> mMaterialsNames;
-		static std::unordered_map<uint64_t, shared_ptr<Prefab>> mPrefabs;
-		static std::unordered_map<uint64_t, shared_ptr<Model>> mModels;
-		static std::unordered_map<PhysicsMaterial, std::shared_ptr<PhysicsMaterial>> mPhysicsMaterials;
-		static std::unordered_map<uint64_t, Mesh*> mLoadedMeshes;
-		static std::unordered_map<uint64_t, Animation> mLoadedAnimations;
-		static std::unordered_map<uint64_t, Asset*> mSceneAssets;
-		static std::unordered_map<uint64_t, Script*> mScripts;
-		static std::unordered_map<std::string, std::filesystem::path> mShaders;
+		static inline std::unordered_map<uint64_t, Texture*> mTextures;
+		static inline std::unordered_map<uint64_t, shared_ptr<Material>> mMaterials;
+		static inline std::unordered_map<std::string, uint64_t> mMaterialsNames;
+		static inline std::unordered_map<uint64_t, shared_ptr<Prefab>> mPrefabs;
+		static inline std::unordered_map<uint64_t, shared_ptr<Model>> mModels;
+		static inline std::unordered_map<PhysicsMaterial, std::shared_ptr<PhysicsMaterial>> mPhysicsMaterials;
+		static inline std::unordered_map<uint64_t, Mesh*> mLoadedMeshes;
+		static inline std::unordered_map<uint64_t, Animation> mLoadedAnimations;
+		static inline std::unordered_map<uint64_t, Asset*> mSceneAssets;
+		static inline std::unordered_map<uint64_t, Script*> mScripts;
+		static inline std::unordered_map<std::string, std::filesystem::path> mShaders;
 
 
 		static inline std::unordered_map<AssetType, std::unordered_set<uint64_t>> mTypeMap = std::unordered_map<AssetType, std::unordered_set<uint64_t>>();

@@ -38,6 +38,7 @@ namespace Plaza {
 		bool missed = false;
 	};
 
+	class Mesh;
 	class ColliderShape;
 	class PLAZA_API Physics {
 	public:

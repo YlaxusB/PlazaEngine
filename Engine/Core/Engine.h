@@ -15,6 +15,7 @@
 #include <ThirdParty/cereal/cereal/types/map.hpp>
 #include <ThirdParty/cereal/cereal/types/polymorphic.hpp>
 #include <ThirdParty/cereal/cereal/types/utility.hpp>
+#include <unordered_map>
 
 #define PL_SER(T) CEREAL_NVP(T)
 #define PL_SER_REGISTER_TYPE(T) CEREAL_REGISTER_TYPE(T)

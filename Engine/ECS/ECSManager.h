@@ -16,7 +16,7 @@ namespace Plaza {
 		static inline std::vector<std::function<void* (ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid)>> sInstantiateComponentFactory{};
 	private:
 		template<typename T>
-		static void RegisterComponent() {
+		static inline void RegisterComponent() {
 			const int componentId = Scene::GetComponentId<T>();
 			if (componentId >= ECS::sInstantiateComponentFactory.size())
 				ECS::sInstantiateComponentFactory.resize(componentId + 1);

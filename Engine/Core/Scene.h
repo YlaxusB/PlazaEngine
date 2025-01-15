@@ -109,9 +109,9 @@ namespace Plaza {
 		bool mIsDeleting = false;
 		bool mRunning = false;
 
-		static inline int sComponentCounter;
+		static inline int sComponentCounter = 0;
 		template <class T>
-		static int GetComponentId()
+		static inline int GetComponentId()
 		{
 			static const int sComponentId = sComponentCounter++;
 			return sComponentId;
@@ -192,7 +192,7 @@ namespace Plaza {
 
 		template<typename T>
 		T* NewComponent(uint64_t id) {
-			const int componentId = GetComponentId<T>();
+			const int componentId = Scene::GetComponentId<T>();
 			RegisterComponent<T>();
 
 			T* component = mComponentPools[componentId]->New<T>(id);

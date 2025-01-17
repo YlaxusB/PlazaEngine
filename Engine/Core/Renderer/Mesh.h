@@ -7,6 +7,7 @@
 #include <vector>
 #include <array>
 #include "Engine/Core/Engine.h"
+#include <limits>
 
 namespace Plaza {
 
@@ -229,7 +230,7 @@ namespace Plaza {
 		}
 	};
 
-	struct BoundingBox {
+	struct PLAZA_API BoundingBox {
 		glm::vec4 maxVector = glm::vec4(glm::vec3(std::numeric_limits<float>::min()), 1.0f);
 		glm::vec4 minVector = glm::vec4(glm::vec3(std::numeric_limits<float>::max()), 1.0f);
 	};

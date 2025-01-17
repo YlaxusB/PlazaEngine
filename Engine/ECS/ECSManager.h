@@ -14,7 +14,6 @@ namespace Plaza {
 		static void RegisterComponents();
 		static void InstantiateComponent(ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid);
 		static inline std::vector<std::function<void* (ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid)>> sInstantiateComponentFactory{};
-	private:
 		template<typename T>
 		static inline void RegisterComponent() {
 			const int componentId = Scene::GetComponentId<T>();
@@ -27,6 +26,7 @@ namespace Plaza {
 				return component;
 				};
 		}
+	private:
 
 	public:
 		class PLAZA_API EntitySystem {

@@ -109,11 +109,10 @@ namespace Plaza {
 		bool mIsDeleting = false;
 		bool mRunning = false;
 
-		static inline int sComponentCounter = 0;
 		template <class T>
-		static inline int GetComponentId()
+		static int GetComponentId()
 		{
-			static const int sComponentId = sComponentCounter++;
+			static const int sComponentId = Application::Get()->mComponentCounter;
 			return sComponentId;
 		}
 

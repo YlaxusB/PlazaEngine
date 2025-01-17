@@ -1,10 +1,14 @@
 #pragma once
 //#include "Engine/Core/ModelLoader/Model.h"
 
-#ifdef ENGINE_EXPORTS
+#ifdef ENGINE_EXPORT
 #define PLAZA_API __declspec(dllexport)
-#else
+#define MONO_DLL_EXPORT
+#elif ENGINE_IMPORT
 #define PLAZA_API  __declspec(dllimport)
+#define MONO_DLL_IMPORT
+#else
+#define PLAZA_API 
 #endif
 
 #include <ThirdParty/cereal/cereal/archives/json.hpp>
@@ -16,6 +20,8 @@
 #include <ThirdParty/cereal/cereal/types/polymorphic.hpp>
 #include <ThirdParty/cereal/cereal/types/utility.hpp>
 #include <unordered_map>
+#include <ThirdParty/glm/glm.hpp>
+#include <ThirdParty/glm/gtx/quaternion.hpp>
 
 #define PL_SER(T) CEREAL_NVP(T)
 #define PL_SER_REGISTER_TYPE(T) CEREAL_REGISTER_TYPE(T)

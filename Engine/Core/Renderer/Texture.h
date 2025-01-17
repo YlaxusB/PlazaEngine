@@ -9,7 +9,6 @@
 #include <Engine\Core\UUID.h>
 #include <cereal\types\base_class.hpp>
 #include <fwd.hpp>
-#include <imgui.h>
 #include <vulkan_core.h>
 #include <cereal\types\polymorphic.hpp>
 

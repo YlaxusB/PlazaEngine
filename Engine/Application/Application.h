@@ -47,6 +47,7 @@ namespace Plaza {
 		Scene* activeScene = nullptr;
 		int drawCalls = 0;
 		bool runningEditor = true;
+		int mComponentCounter = 0;
 
 		std::string exeDirectory;
 		std::string projectPath;
